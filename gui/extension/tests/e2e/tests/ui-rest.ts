@@ -45,6 +45,7 @@ import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";
 import { AuthenticationAppDialog } from "../lib/WebViews/Dialogs/AuthenticationAppDialog";
 import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 import { E2ELogger } from "../lib/E2ELogger";
+import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
@@ -374,11 +375,12 @@ describe("MySQL REST Service", () => {
                 }
                 await (await dbTreeSection.getTreeItem("sakila")).collapse();
 
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
-                await RestServiceDialog.set(service2);
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                    constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service2.servicePath), constants.waitForTreeItem);
+                const notebook = new E2ENotebook();
+                const result = await notebook.codeEditor
+                    .execute(`CREATE REST SERVICE ${service2.servicePath}`) as E2ECommandResultData;
+                expect(result.text).to.match(/OK/);
+                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation)).click();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -681,24 +683,18 @@ describe("MySQL REST Service", () => {
 
                 await (await dbTreeSection.getTreeItem("sakila")).collapse();
 
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
-                await RestServiceDialog.set(service3);
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                    constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service3.servicePath), constants.waitForTreeItem);
-                await dbTreeSection.setCurrentRestService(service3.servicePath);
-
-                await dbTreeSection.openContextMenuAndSelect(service3.restSchemas[0].settings.schemaName,
-                    constants.addSchemaToREST);
-
-                service3.restSchemas[0] = await RestSchemaDialog.set(service3.restSchemas[0]);
-                await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
-                    constants.wait1second * 10);
-
+                const notebook = new E2ENotebook();
+                let result = await notebook.codeEditor
+                    .execute(`CREATE REST SERVICE ${service3.servicePath};`) as E2ECommandResultData;
+                expect(result.text).to.match(/OK/);
+                result = await notebook.codeEditor
+                    .execute(`CREATE REST SCHEMA ${service3.restSchemas[0].restSchemaPath} 
+                        ON SERVICE ${service3.servicePath} 
+                        FROM \`${service3.restSchemas[0].settings.schemaName}\`;`) as E2ECommandResultData;
+                expect(result.text).to.match(/OK/);
+                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation)).click();
                 await dbTreeSection.expandTreeItem(service3.servicePath);
-                const schemaTreeName = `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0]
-                    .settings.schemaName})`;
-                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.waitForTreeItem);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1069,11 +1065,12 @@ describe("MySQL REST Service", () => {
 
                 await (await dbTreeSection.getTreeItem("sakila")).collapse();
 
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
-                await RestServiceDialog.set(service4);
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                    constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.waitForTreeItem);
+                const notebook = new E2ENotebook();
+                const result = await notebook.codeEditor
+                    .execute(`CREATE REST SERVICE ${service4.servicePath};`) as E2ECommandResultData;
+                expect(result.text).to.match(/OK/);
+                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation)).click();
                 await dbTreeSection.setCurrentRestService(service4.servicePath);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1316,24 +1313,19 @@ describe("MySQL REST Service", () => {
             servicePath: `/service5`,
             authenticationApps: [
                 {
-                    vendor: constants.vendorOCIOAuth2,
-                    name: "Auth App",
+                    vendor: constants.mrs,
+                    name: "MRS",
                     enabled: true,
                     limitToRegisteredUsers: true,
                     settings: {
                         description: "this is an authentication app",
                         defaultRole: "Full Access",
                     },
-                    oauth2settings: {
-                        appId: "1234",
-                        appSecret: "1234test",
-                        customURL: "http://localhost",
-                        customURLforAccessToken: "http://localhost/1234",
-                    },
                     options: `{ "name": "test options" }`,
                     user: [{
                         username: "gui",
-                        authenticationApp: "new app",
+                        password: "MySQLR0cks!",
+                        authenticationApp: "MRS",
                         email: "user@oracle.com",
                         assignedRoles: undefined,
                         userOptions: "",
@@ -1361,21 +1353,17 @@ describe("MySQL REST Service", () => {
 
                 await (await dbTreeSection.getTreeItem("sakila")).collapse();
 
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
-                await RestServiceDialog.set(service5);
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                    constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service5.servicePath), constants.waitForTreeItem);
-                await dbTreeSection.setCurrentRestService(service5.servicePath);
-
-                await dbTreeSection.openContextMenuAndSelect(constants.restAuthenticationApps,
-                    constants.addNewAuthenticationApp);
-                service5.authenticationApps = [await AuthenticationAppDialog.set(service5.authenticationApps[0])];
-                await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been added"),
-                    constants.wait1second * 5);
+                const notebook = new E2ENotebook();
+                let result = await notebook.codeEditor
+                    .execute(`CREATE REST SERVICE ${service5.servicePath};`) as E2ECommandResultData;
+                expect(result.text).to.match(/OK/);
+                result = await notebook.codeEditor
+                    .execute(`CREATE OR REPLACE REST AUTHENTICATION APP "${service5.authenticationApps[0].name}"
+                        VENDOR ${service5.authenticationApps[0].vendor};`) as E2ECommandResultData;
+                expect(result.text).to.match(/OK/);
+                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation)).click();
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps[0].name),
-                    constants.waitForTreeItem);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1427,6 +1415,7 @@ describe("MySQL REST Service", () => {
 
             const editedUser: interfaces.IRestUser = {
                 username: "testUser",
+                password: "MySQLR0cks!",
                 authenticationApp: service5.authenticationApps[0].name,
                 email: "testuser@oracle.com",
                 assignedRoles: "Full Access",

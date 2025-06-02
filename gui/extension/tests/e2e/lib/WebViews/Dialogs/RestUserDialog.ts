@@ -135,7 +135,7 @@ export class RestUserDialog {
         restUser.permitLogin = await DialogHelper.getCheckBoxValue("loginPermitted");
 
         await driver.wait(async () => {
-            await dialog.findElement(locator.mrsUserDialog.ok).click();
+            await dialog.findElement(locator.mrsUserDialog.cancel).click();
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait1second * 10, "The MRS User dialog was not closed");

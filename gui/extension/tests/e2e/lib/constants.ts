@@ -320,6 +320,7 @@ export const addRESTUser = "Add User";
 export const editRESTUser = "Edit User";
 export const deleteRESTUser = "Delete User";
 export const vendorOCIOAuth2 = "OCI OAuth2";
+export const mrs = "MRS";
 
 export const checkNewTabAndWebView = "Check New Tab and WebView";
 export const checkNewTab = "Check New Tab";
