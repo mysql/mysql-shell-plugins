@@ -9,6 +9,8 @@
 ### Fixes
 
 - BUG#38037847 Type-check errors in generated Python SDK file with Async Procedure
+- BUG#38005572 Python SDK: cannot call procedure which has no parameters
+-
 
 ## Changes in 1.19.12+9.3.1
 
