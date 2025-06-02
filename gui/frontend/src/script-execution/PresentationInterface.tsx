@@ -34,7 +34,8 @@ import { EditorLanguage, IScriptRequest } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import {
     IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions,
-    IResultSet, IResultSetRows, IResultSets, LoadingState,
+    IResultSet,
+    IResultSetRows, IResultSets, IRuntimeErrorResult, LoadingState,
 } from "./index.js";
 
 import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.js";
@@ -44,9 +45,9 @@ import { ActionOutput } from "../components/ResultView/ActionOutput.js";
 import { ResultStatus } from "../components/ResultView/ResultStatus.js";
 import { GraphHost } from "../components/graphs/GraphHost.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
-import { Settings } from "../supplement/Settings/Settings.js";
-import { uuid } from "../utilities/helpers.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
+import { uuid } from "../utilities/helpers.js";
+import { Settings } from "../supplement/Settings/Settings.js";
 
 /** Base class for handling of UI related elements like editor decorations and result display in execution contexts. */
 export class PresentationInterface {
@@ -757,6 +758,8 @@ export class PresentationInterface {
      * Applies the new diagnostics to the code block represented by this presentation interface.
      *
      * @param diagnostics Records of data describing the new diagnostics.
+     *
+     * @returns A set of decoration IDs that can be used for further updates (or removal).
      */
     public updateDiagnosticsDecorations(diagnostics: IDiagnosticEntry[]): void {
         const editorModel = this.#backend?.getModel?.();

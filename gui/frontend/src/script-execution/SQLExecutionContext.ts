@@ -39,7 +39,7 @@ interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
 }
 
-export interface IRuntimeErrorResult {
+interface IRuntimeErrorResult {
     message: string;
     range: IRange;
 }
@@ -62,12 +62,11 @@ export class SQLExecutionContext extends ExecutionContext {
     // The set of currently running validations with the statement index and a timestamp.
     private validationsRunning = new Map<number, number>();
 
-    private runtimeErrorDecorations: string[] | undefined;
-
     // A signal that is set when the splitter is currently running. Can be awaited to wait for the splitter to finish.
     #splitterSignal?: Semaphore<void>;
 
     #validationTimer?: ReturnType<typeof setTimeout> | null;
+    private runtimeErrorDecorations: string[] | undefined;
 
     public constructor(presentation: PresentationInterface, store: StoreType, public dbVersion: number,
         public sqlMode: string,
@@ -537,10 +536,10 @@ export class SQLExecutionContext extends ExecutionContext {
         this.presentation.selectRange(span);
     }
 
-    public addRuntimeErrorData(index: number, data: IRuntimeErrorResult): void {
+    public async addRuntimeErrorData(index: number, data: IRuntimeErrorResult) {
         const editorModel = this.presentation.backend?.getModel?.();
         const details = this.statementDetails[index];
-        const decoration = [{
+        let decoration = [{
             range: data.range,
             options: {
                 stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
@@ -554,12 +553,12 @@ export class SQLExecutionContext extends ExecutionContext {
             },
         }];
         // Only add runtime error decoration if there is no existing syntax error decorations
-        if (details.diagnosticDecorationIDs.length === 0) {
+        if (details.diagnosticDecorationIDs.length == 0) {
             this.runtimeErrorDecorations = editorModel?.deltaDecorations?.(details.diagnosticDecorationIDs, decoration);
         }
     }
 
-    public clearRuntimeErrorData(): void {
+    public async clearRuntimeErrorData() {
         const editorModel = this.presentation.backend?.getModel?.();
         if (this.runtimeErrorDecorations) {
             editorModel?.deltaDecorations?.(this.runtimeErrorDecorations, []);
