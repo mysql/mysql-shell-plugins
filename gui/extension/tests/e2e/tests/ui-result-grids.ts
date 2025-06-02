@@ -1438,8 +1438,8 @@ describe("RESULT GRIDS", () => {
             await openEditorsSection.expand();
             await Workbench.dismissNotifications();
 
-            await (await openEditorsSection.getTreeItemActionButton(globalConn.caption,
-                constants.newMySQLScript)).click();
+            await openEditorsSection.clickTreeItemActionButton(globalConn.caption,
+                constants.newMySQLScript);
 
             await dbTreeSection.openContextMenuAndSelect(anotherConn.caption, constants.openNewConnection);
             const anotherConnNotebook = new E2ENotebook();

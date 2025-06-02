@@ -437,11 +437,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
      * @param entryType The database type name of the database object (e.g. "table", "view" etc.).
      * @param withDelimiter If true, the statement will be wrapped in a delimiter block.
      * @param withDrop If true, the statement will be preceded by a DROP statement.
-     *
+     * @param editRoutine If true, the script is created for modifying a routine
      * @returns The CREATE statement for the given database object.
      */
     public async getCreateSqlScript(entry: ConnectionDataModelNoGroupEntry, entryType: string, withDelimiter = false,
-        withDrop = false): Promise<string> {
+        withDrop = false, editRoutine = false): Promise<string> {
         let sql = "";
 
         const configuration = workspace.getConfiguration(`msg.dbEditor`);
@@ -482,7 +482,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                             }
                             sql = !isJSRoutine
                                 ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;`
-                                : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
+                                : editRoutine ? `${sql};` : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
                         }
                     }
                 }

@@ -152,8 +152,7 @@ describe("Router", () => {
         await Workbench.waitForTerminalText("Once the MySQL Router is started", constants.wait1second * 10);
         expect(await Workbench.terminalHasErrors(), "Terminal has errors").to.be.false;
         await dbTreeSection.expandTreeItem(constants.mysqlRouters);
-        await (await dbTreeSection.getTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation))
-            .click();
+        await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
         await driver.wait(dbTreeSection.untilTreeItemExists(new RegExp(hostname())), constants.waitForTreeItem);
         await Os.setRouterConfigFile({
             sinks: "filelog",

@@ -598,12 +598,12 @@ export class E2EAccordionSection {
      * @param actionButton The action button d
      * @returns A promise resolving with the button
      */
-    public getTreeItemActionButton = async (element: string, actionButton: string): Promise<WebElement> => {
+    public clickTreeItemActionButton = async (element: string, actionButton: string): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        return driver.wait(async () => {
+        await driver.wait(async () => {
             try {
                 const treeItem = await this.getTreeItem(element);
                 const btn = await treeItem.findElement(locator.section.itemAction(actionButton));
@@ -615,8 +615,9 @@ export class E2EAccordionSection {
                 }).perform();
                 await driver.wait(until.elementIsVisible(btn),
                     constants.wait1second * 5, `'${actionButton}' button was not visible`);
+                await btn.click();
 
-                return btn;
+                return true;
             } catch (e) {
                 if (!(errors.isStaleError(e as Error))) {
                     throw e;

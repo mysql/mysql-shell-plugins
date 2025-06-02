@@ -379,8 +379,8 @@ describe("MySQL REST Service", () => {
                 const result = await notebook.codeEditor
                     .execute(`CREATE REST SERVICE ${service2.servicePath}`) as E2ECommandResultData;
                 expect(result.text).to.match(/OK/);
-                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                    constants.reloadDataBaseInformation)).click();
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -445,8 +445,8 @@ describe("MySQL REST Service", () => {
                 await dbTreeSection.expandTreeItem(service2.servicePath);
                 const schemaTreeName = `${service2.restSchemas[i].restSchemaPath} (${service2.restSchemas[i]
                     .settings.schemaName})`;
-                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                    constants.reloadDataBaseInformation)).click();
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation);
                 await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.waitForTreeItem);
             }
 
@@ -692,8 +692,8 @@ describe("MySQL REST Service", () => {
                         ON SERVICE ${service3.servicePath} 
                         FROM \`${service3.restSchemas[0].settings.schemaName}\`;`) as E2ECommandResultData;
                 expect(result.text).to.match(/OK/);
-                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                    constants.reloadDataBaseInformation)).click();
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation);
                 await dbTreeSection.expandTreeItem(service3.servicePath);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1069,8 +1069,8 @@ describe("MySQL REST Service", () => {
                 const result = await notebook.codeEditor
                     .execute(`CREATE REST SERVICE ${service4.servicePath};`) as E2ECommandResultData;
                 expect(result.text).to.match(/OK/);
-                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                    constants.reloadDataBaseInformation)).click();
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation);
                 await dbTreeSection.setCurrentRestService(service4.servicePath);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1361,8 +1361,8 @@ describe("MySQL REST Service", () => {
                     .execute(`CREATE OR REPLACE REST AUTHENTICATION APP "${service5.authenticationApps[0].name}"
                         VENDOR ${service5.authenticationApps[0].vendor};`) as E2ECommandResultData;
                 expect(result.text).to.match(/OK/);
-                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                    constants.reloadDataBaseInformation)).click();
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation);
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
             } catch (e) {
                 await Misc.processFailure(this);

@@ -28,7 +28,7 @@ import { type IPosition, languages } from "monaco-editor";
 import type { IDocumentResultData } from "../app-logic/ApplicationDB.js";
 
 import { IColumnInfo, IDictionary, IStatusInfo, MessageType } from "../app-logic/general-types.js";
-import type { ICodeEditorViewState, IExecutionContextState, IRange } from "../components/ui/CodeEditor/index.js";
+import type { ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor/index.js";
 
 import { LanguageCompletionKind } from "../parsing/parser-common.js";
 import type { IExecutionContext } from "../supplement/index.js";
