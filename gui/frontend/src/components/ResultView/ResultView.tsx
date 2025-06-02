@@ -143,6 +143,8 @@ export const updateWideColumnsCache = (columnsCache: Map<string, number>, result
     });
 };
 
+const iconHostClassName = "iconHost data";
+
 export interface IResultViewProperties extends IComponentProperties {
     /** The result data to show. */
     resultSet: IResultSet;
@@ -1480,7 +1482,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         if (value == null) {
             const host = document.createElement("div");
-            host.className = "iconHost";
+            host.className = iconHostClassName;
 
             const element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
@@ -1507,7 +1509,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const value = cell.getValue();
 
         const host = document.createElement("div");
-        host.className = "iconHost";
+        host.className = iconHostClassName;
 
         const element = <Icon src={value == null ? Assets.data.nullIcon : Assets.data.jsonIcon} />;
         render(element, host);
@@ -1528,7 +1530,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const value = cell.getValue();
         if (value === null) {
             const host = document.createElement("div");
-            host.className = "iconHost";
+            host.className = iconHostClassName;
 
             const element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
@@ -1553,7 +1555,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const value = cell.getValue();
         if (value === null) {
             const host = document.createElement("div");
-            host.className = "iconHost";
+            host.className = iconHostClassName;
 
             element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
@@ -1582,7 +1584,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const icon = <Icon src={source} />;
 
         const host = document.createElement("div");
-        host.className = "iconHost";
+        host.className = iconHostClassName;
 
         render(icon, host);
 
@@ -1597,7 +1599,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const icon = <Icon src={source} />;
 
         const host = document.createElement("div");
-        host.className = "iconHost";
+        host.className = iconHostClassName;
 
         render(icon, host);
 
@@ -1612,7 +1614,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const value = cell.getValue();
         if (value === null) {
             const host = document.createElement("div");
-            host.className = "iconHost";
+            host.className = iconHostClassName;
 
             const element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
@@ -1678,7 +1680,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         let element;
         if (cell.getValue() === null) {
             element = <Icon src={Assets.data.nullIcon} />;
-            host.className = "iconHost";
+            host.className = iconHostClassName;
             render(element, host);
 
             return host;
