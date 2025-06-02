@@ -61,6 +61,7 @@ from typing import (
     Union,
     Unpack,
     cast,
+    is_typeddict,
 )
 import typing
 from urllib.parse import urlencode, quote
@@ -448,9 +449,10 @@ class IMrsCompletedTaskReport(Generic[IMrsTaskResult]):
         self,
         status_update: IMrsCompletedTaskReportDetails[IMrsTaskResult],
         result_type_hint_struct: RoutineResponseTypeHintStruct,
+        routine_type: Literal["FUNCTION", "PROCEDURE"],
     ):
         data: Any = None
-        if status_update["data"].get("out_parameters") is not None:
+        if routine_type == "PROCEDURE":
             data = IMrsProcedureResponse[Any, Any](
                 data=cast(
                     IMrsProcedureResponseDetails[Any, Any], status_update["data"]
@@ -835,7 +837,7 @@ class IMrsProcedureResponseDetails(
     Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], TypedDict
 ):
     result_sets: list[dict]
-    out_parameters: dict
+    out_parameters: NotRequired[dict]
     _metadata: NotRequired[MrsTransactionalMetadata]
 
 
@@ -864,10 +866,19 @@ class IMrsProcedureResponse(
             )
             for result_set in data["result_sets"]
         ]
+
+        # If the procedure does not specify any OUT/INOUT parameter, the "out_parameters" property will not exist
+        # in the JSON response.
+        out_parameters = data.get("out_parameters", {})
+
         self.out_parameters = (
-            MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
-                data["out_parameters"], typed_dict=type_hint_struct["out_parameters"]
+            (
+                MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
+                    out_parameters, typed_dict=type_hint_struct["out_parameters"]
+                )
             )
+            if is_typeddict(out_parameters)
+            else cast(IMrsProcedureOutParameters, out_parameters)
         )
 
         for key in MrsDocumentBase._reserved_keys:
@@ -1767,6 +1778,7 @@ class MrsBaseTaskWatch(Generic[IMrsTaskResult]):
         task_id: str,
         result_type_hint_struct: RoutineResponseTypeHintStruct,
         options: IMrsTaskCallOptions,
+        routine_type: Literal["FUNCTION", "PROCEDURE"],
     ) -> None:
         """MrsBaseTaskWatch.
 
@@ -1784,6 +1796,7 @@ class MrsBaseTaskWatch(Generic[IMrsTaskResult]):
             result_type_hint_struct
         )
         self._options: IMrsTaskCallOptions = options
+        self._routine_type = routine_type
 
     async def __get_status(self) -> IMrsTaskStatusUpdateResponse:
         """Gets a report status."""
@@ -1875,8 +1888,9 @@ class MrsBaseTaskWatch(Generic[IMrsTaskResult]):
             yield IMrsCancelledTaskReport(status_update)
         elif status_update["status"] == "COMPLETED":
             yield IMrsCompletedTaskReport[IMrsTaskResult](
-                cast(IMrsCompletedTaskReportDetails, status_update),
-                self._result_type_hint_struct,
+                status_update=cast(IMrsCompletedTaskReportDetails, status_update),
+                result_type_hint_struct=self._result_type_hint_struct,
+                routine_type=self._routine_type,
             )
 
 
@@ -1889,6 +1903,7 @@ class MrsTask(Generic[IMrsTaskResult]):
         task_id: str,
         options: IMrsTaskCallOptions,
         result_type_hint_struct: RoutineResponseTypeHintStruct,
+        routine_type: Literal["FUNCTION", "PROCEDURE"],
     ) -> None:
         """MrsTask.
 
@@ -1906,6 +1921,7 @@ class MrsTask(Generic[IMrsTaskResult]):
         self._result_type_hint_struct: RoutineResponseTypeHintStruct = (
             result_type_hint_struct
         )
+        self._routine_type = routine_type
 
         if options.get("refresh_rate", DEFAULT_REFRESH_RATE) < MIN_ALLOWED_REFRESH_RATE:
             raise ValueError(
@@ -1921,6 +1937,7 @@ class MrsTask(Generic[IMrsTaskResult]):
             task_id=self._task_id,
             result_type_hint_struct=self._result_type_hint_struct,
             options=self._options,
+            routine_type=self._routine_type,
         )
         async for response in request.submit():
             yield response
@@ -1981,6 +1998,7 @@ class MrsBaseTaskStartFunction(
             task_id=response["task_id"],
             options=cast(IMrsTaskCallOptions, self._options),
             result_type_hint_struct=self._result_type_hint_struct,
+            routine_type="FUNCTION",
         )
 
 
@@ -2030,6 +2048,7 @@ class MrsBaseTaskStartProcedure(
             task_id=response["task_id"],
             options=cast(IMrsTaskCallOptions, self._options),
             result_type_hint_struct=self._result_type_hint_struct,
+            routine_type="PROCEDURE",
         )
 
 
@@ -2069,6 +2088,7 @@ class MrsBaseTaskCallFunction(
             task_id=response["task_id"],
             options=self._options,
             result_type_hint_struct=self._result_type_hint_struct,
+            routine_type="FUNCTION",
         )
 
         async for report in task.watch():
@@ -2134,6 +2154,7 @@ class MrsBaseTaskCallProcedure(
             task_id=response["task_id"],
             options=self._options,
             result_type_hint_struct=self._result_type_hint_struct,
+            routine_type="PROCEDURE",
         )
 
         async for report in task.watch():
