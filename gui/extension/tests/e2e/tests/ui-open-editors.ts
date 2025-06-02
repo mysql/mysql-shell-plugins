@@ -111,35 +111,34 @@ describe("OPEN EDITORS", () => {
     it("Icon - New MySQL Script", async () => {
 
         await dbTreeSection.focus();
-        await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-            constants.openNewConnectionUsingNotebook)).click();
+        await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+            constants.openNewConnectionUsingNotebook);
         await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 15);
-        const newMySQLScript = await openEditorsTreeSection.getTreeItemActionButton(globalConn.caption,
+        await openEditorsTreeSection.clickTreeItemActionButton(globalConn.caption,
             constants.newMySQLScript);
-        await driver.executeScript("arguments[0].click()", newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait1second * 5);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
         const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.mysqlType);
-        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
-            constants.closeEditor)).click();
+        await openEditorsTreeSection.clickTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor);
 
     });
 
     it("Icon - Load SQL Script from Disk", async () => {
 
         const sqlScript = "setup.sql";
-        const loadScriptFromDisk = await openEditorsTreeSection.getTreeItemActionButton(globalConn.caption,
+        await openEditorsTreeSection.clickTreeItemActionButton(globalConn.caption,
             constants.loadScriptFromDisk);
-        await driver.executeScript("arguments[0].click()", loadScriptFromDisk);
+
         await Workbench.setInputPath(join(process.cwd(), "sql", sqlScript));
         await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(sqlScript)), constants.wait1second * 5);
         await driver.wait(openEditorsTreeSection.untilTreeItemExists(sqlScript), constants.waitForTreeItem);
         expect((await new E2EScript().codeEditor.existsText("GEOMETRYCOLLECTION"))).to.be.true;
         const treeItem = await openEditorsTreeSection.getTreeItem(new RegExp(sqlScript), constants.mysqlType);
-        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
-            constants.closeEditor)).click();
+        await openEditorsTreeSection.clickTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor);
 
     });
 
@@ -152,9 +151,8 @@ describe("OPEN EDITORS", () => {
             `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
         const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.mysqlType);
-        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
-            constants.closeEditor)).click();
-
+        await openEditorsTreeSection.clickTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor);
     });
 
     it("Context menu - New JavaScript Script", async () => {
@@ -165,9 +163,8 @@ describe("OPEN EDITORS", () => {
             `The current editor icon should be 'scriptJs'`)
             .to.include(constants.jsScriptIcon);
         const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.jsType);
-        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
-            constants.closeEditor)).click();
-
+        await openEditorsTreeSection.clickTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor);
     });
 
     it("Context menu - New TypeScript Script", async () => {
@@ -177,8 +174,8 @@ describe("OPEN EDITORS", () => {
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'scriptTs'`).to.include(constants.tsScriptIcon);
         const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.tsType);
-        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
-            constants.closeEditor)).click();
+        await openEditorsTreeSection.clickTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor);
 
     });
 
