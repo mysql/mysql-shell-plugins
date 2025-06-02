@@ -1888,6 +1888,16 @@ def get_routine_request(
                 },
             },
         ),
+        (
+            "noOutParamsProc",
+            "CALL_PROCEDURE",
+            {},
+            {"result_sets": []},  # the "out_parameters" property might not exist
+            None,
+            None,
+            None,
+            {"out_parameters": None, "result_sets": None},
+        ),
     ],
 )
 async def test_routine_call(
@@ -1985,6 +1995,7 @@ def _get_report_sequence_of_task(
     result_type_hint_struct: (
         ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
     ),
+    routine_type: Literal["FUNCTION", "PROCEDURE"],
 ) -> list[IMrsTaskReport]:
     expected_report_seq: list[IMrsTaskReport] = []
     for response in status_update_response_seq:
@@ -1993,6 +2004,7 @@ def _get_report_sequence_of_task(
             report = IMrsCompletedTaskReport(
                 status_update=cast(IMrsCompletedTaskReportDetails, response),
                 result_type_hint_struct=result_type_hint_struct,
+                routine_type=routine_type,
             )
         elif response["status"] == "RUNNING":
             report = IMrsRunningTaskReport(response)
@@ -2267,7 +2279,11 @@ async def test_routine_start_task(
 
     # check the got report sequence matches the expected one
     assert report_seq == _get_report_sequence_of_task(
-        urlopen_read["status_update_responses"], result_type_hint_struct
+        urlopen_read["status_update_responses"],
+        result_type_hint_struct,
+        routine_type=(
+            "FUNCTION" if routine_type == "START_TASK_FUNCTION" else "PROCEDURE"
+        ),
     )
 
     # check result of routine
@@ -2438,7 +2454,11 @@ async def test_routine_call_task(
 
         async def report_seq():
             for report in _get_report_sequence_of_task(
-                status_update_seq + [final_response], result_type_hint_struct
+                status_update_seq + [final_response],
+                result_type_hint_struct,
+                routine_type=(
+                    "FUNCTION" if routine_type == "CALL_TASK_FUNCTION" else "PROCEDURE"
+                ),
             ):
                 yield report
 
