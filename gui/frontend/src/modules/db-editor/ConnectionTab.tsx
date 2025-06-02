@@ -49,16 +49,16 @@ import {
 } from "../../data-models/OpenDocumentDataModel.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { IRuntimeErrorResult, SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import {
-    IExecutionResult, INotebookFileFormat, IResponseDataOptions, IRuntimeErrorResult, ITextResultEntry, LoadingState, currentNotebookVersion,
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState, currentNotebookVersion,
 } from "../../script-execution/index.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import {
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, type IColumnDetails,
     type IOpenFileDialogResult,
 } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { appParameters } from "../../supplement/AppParameters.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
@@ -75,10 +75,10 @@ import { Notebook } from "./Notebook.js";
 import { PerformanceDashboard } from "./PerformanceDashboard.js";
 import { ScriptEditor } from "./ScriptEditor.js";
 import { ServerStatus } from "./ServerStatus.js";
+import { SqlQueryExecutor } from "./SqlQueryExecutor.js";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 import { DocumentContext, ISavedGraphData, IToolbarItems } from "./index.js";
-import { SqlQueryExecutor } from "./SqlQueryExecutor.js";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -361,7 +361,7 @@ Execute \\help or \\? for help;`;
                     rowValue[index] = rowInfo.join(":");
                 }
 
-                return { message: `Exception Stack Trace: \n${rowValue.join("\n")}`.trim(), range: range };
+                return { message: `Exception Stack Trace: \n${rowValue.join("\n")}`.trim(), range };
             }
         }
     };
@@ -1109,7 +1109,7 @@ Execute \\help or \\? for help;`;
         if (savedState.mleEnabled) {
             const resultData: ITextResultEntry[] = [];
             // Clear any existing runtime error decorations as they become obsolete after new execution
-            void await context.clearRuntimeErrorData();
+            void context.clearRuntimeErrorData();
 
             try {
                 const stackTrace: QueryResult = await connection?.backend?.execute(
@@ -1124,7 +1124,8 @@ Execute \\help or \\? for help;`;
                         content: updatedStacktrace.message + "\n",
                         language: "ansi",
                     });
-                    void await context.addRuntimeErrorData(errorStatementIndex, { message: errorMessage, range: updatedStacktrace.range });
+                    void context.addRuntimeErrorData(errorStatementIndex,
+                        { message: errorMessage, range: updatedStacktrace.range });
                 }
             } catch (error) {
                 console.error("Error while getting stack trace:\n" + String(error));
