@@ -29,6 +29,10 @@
     width: 16px;
 }
 
+.msg .iconHost.data {
+    width: auto;
+}
+
 .msg.icon:not(.codicon) {
     mask-repeat: no-repeat;
     mask-position: center;
