@@ -35,7 +35,7 @@ import { ScriptingLanguageServices } from "../../script-execution/ScriptingLangu
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import {
     convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet,
-    parseSchemaTable
+    parseSchemaTable,
 } from "../../supplement/index.js";
 import type { IColumnDetails } from "../../supplement/RequisitionTypes.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";

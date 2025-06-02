@@ -270,8 +270,8 @@ describe("DATABASE CONNECTIONS", () => {
             await dbTreeSection.openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL).schema,
                 constants.setCurrentDBSchema, undefined);
             await driver.wait(dbTreeSection.untilTreeItemIsDefault("sakila"), constants.wait1second * 5);
-            await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                constants.openNewConnectionUsingNotebook)).click();
+            await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                constants.openNewConnectionUsingNotebook);
             await Workbench.openEditor(globalConn.caption);
 
             const notebook = new E2ENotebook();
@@ -829,8 +829,8 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.closeAllEditors();
             await dbTreeSection.createDatabaseConnection(mleDisabledConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(mleDisabledConn.caption), constants.waitForTreeItem);
-            await (await dbTreeSection.getTreeItemActionButton(mleDisabledConn.caption,
-                constants.openNewConnectionUsingNotebook)).click();
+            await dbTreeSection.clickTreeItemActionButton(mleDisabledConn.caption,
+                constants.openNewConnectionUsingNotebook);
             await driver.wait(new E2ENotebook().untilIsOpened(mleDisabledConn), constants.waitConnectionOpen);
             await dbTreeSection.expandTreeItem(mleDisabledConn.caption, mleDisabledConn);
             const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
@@ -942,8 +942,8 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.performanceDashboard.mlePerformance.mleHeapUtilizationGraph).to.exist;
             expect(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
 
-            await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
-                constants.openNewConnectionUsingNotebook)).click();
+            await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                constants.openNewConnectionUsingNotebook);
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
 
@@ -1045,8 +1045,8 @@ describe("DATABASE CONNECTIONS", () => {
                     await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
                         .schema)).expand();
                     await (await dbTreeSection.getTreeItem("Tables")).expand();
-                    await (await dbTreeSection.getTreeItemActionButton(heatWaveConn.caption,
-                        constants.reloadDataBaseInformation)).click();
+                    await dbTreeSection.clickTreeItemActionButton(heatWaveConn.caption,
+                        constants.reloadDataBaseInformation);
                     await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name), constants.waitForTreeItem);
 
                     await dbTreeSection.openContextMenuAndSelect(newTask.name, constants.dropTable);
