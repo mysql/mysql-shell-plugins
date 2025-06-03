@@ -2,7 +2,7 @@
     "terminal.integrated.copyOnSelection": true,
     "terminal.integrated.sendKeybindingsToShell": true,
     "window.dialogStyle": "custom",
-    "msg.debugLog.level": "DEBUG2",
+    "msg.debugLog.level": "DEBUG3",
     "terminal.integrated.gpuAcceleration": "off",
     "workbench.colorTheme": "Dark Modern",
     "disable-hardware-acceleration": true,

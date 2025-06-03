@@ -47,12 +47,23 @@ export class DatabaseConnectionDialog {
 
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
             constants.wait1second * 25, "Connection dialog was not displayed");
+
         if (dbConfig.dbType) {
-            const inDBType = await dialog.findElement(locator.dbConnectionDialog.databaseType);
-            await inDBType.click();
-            const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
-                constants.wait1second * 5, "Database type popup was not found");
-            await popup.findElement(By.id(dbConfig.dbType)).click();
+
+            await driver.wait(async () => {
+                const inDBType = await dialog.findElement(locator.dbConnectionDialog.databaseType);
+                await inDBType.click();
+
+                try {
+                    const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
+                        constants.wait1second * 2, "Database type popup was not found");
+                    await popup.findElement(By.id(dbConfig.dbType)).click();
+
+                    return true;
+                } catch (e) {
+                    // repeat
+                }
+            }, constants.wait1second * 5, "Database type popup was not opened");
         }
         if (dbConfig.caption) {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.caption, dbConfig.caption);
