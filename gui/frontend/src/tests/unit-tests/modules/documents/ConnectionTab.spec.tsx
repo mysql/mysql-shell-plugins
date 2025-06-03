@@ -46,8 +46,8 @@ import { ExecutionContexts } from "../../../../script-execution/ExecutionContext
 import { PresentationInterface } from "../../../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
 import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
-import type { IEditorExtendedExecutionOptions } from "../../../../supplement/RequisitionTypes.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
+import type { IEditorExtendedExecutionOptions } from "../../../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import type { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
@@ -56,6 +56,12 @@ import { uuid } from "../../../../utilities/helpers.js";
 import { notebookDocumentMock } from "../../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { nextProcessTick, setupShellForTests } from "../../test-helpers.js";
+
+interface IMLEStacktrace {
+    stacktrace: string,
+    jsStartline: number,
+    shiftedStacktrace: string,
+}
 
 jest.mock("../../../../components/ui/CodeEditor/CodeEditor");
 jest.mock("../../../../script-execution/ScriptingLanguageServices.js", (): unknown => {
@@ -140,6 +146,73 @@ describe("DBConnectionTab tests", (): void => {
         options: {},
     });
 
+    const mleStacktraces: IMLEStacktrace[] = [
+        {
+            stacktrace: "<js> execute(/mysql/sql:455:15421-15464)\n<js> my_proc:6:14-31\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> execute(/mysql/sql:455:15421-15464)\n<js> my_proc:9:14-31",
+        },
+        {
+            stacktrace: "<js> execute(/mysql/sql:455:15421-15464)\n<js> my_proc:6:14-31\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> execute(/mysql/sql:455:15421-15464)\n<js> my_proc:9:14-31",
+        },
+        {
+            stacktrace: "<js> my_proc:2:7-35\n",
+            jsStartline: 5,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> my_proc:7:7-35",
+        },
+        {
+            stacktrace: "<js> js_throw_exception_mult_line:1-6:7-32\n",
+            jsStartline: 2,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> js_throw_exception_mult_line:3-8:7-32",
+        },
+        {
+            stacktrace: "<js> my_proc:4:7-33\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> my_proc:7:7-33",
+        },
+        {
+            stacktrace: "<js> my_proc:6:7-35\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> my_proc:9:7-35",
+        },
+        {
+            stacktrace: "<js> js_throw_exception_one_line:1:19-44\n",
+            jsStartline: 2,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> js_throw_exception_one_line:3:19-44",
+        },
+        {
+            stacktrace: "<js> fun:2:7-27\n<js> my_proc:4:1-5\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> fun:5:7-27\n<js> my_proc:7:1-5",
+        },
+        {
+            // eslint-disable-next-line max-len
+            stacktrace: "<js> fun3:2:7-27\n<js> fun2:5:1-6\n<js> fun1:8:1-6\n<js> fun:11:1-6\n<js> my_proc:13:1-5\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                // eslint-disable-next-line max-len
+                `Exception Stack Trace: \n<js> fun3:5:7-27\n<js> fun2:8:1-6\n<js> fun1:11:1-6\n<js> fun:14:1-6\n<js> my_proc:16:1-5`,
+        },
+        {
+            stacktrace: "<js> pc00120075:1:1-6\n",
+            jsStartline: 3,
+            shiftedStacktrace:
+                "Exception Stack Trace: \n<js> pc00120075:4:1-6",
+        },
+    ];
+
+    const mleStacktraceShiftingFunc = ConnectionTab["shiftMLEStacktraceLineNumbers"];
+
     beforeAll(async () => {
         registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true);
@@ -147,6 +220,13 @@ describe("DBConnectionTab tests", (): void => {
 
     afterAll(async () => {
         await launcher.exitProcess();
+    });
+
+    it.each(mleStacktraces)("Test shifting MLE stacktrace", ({ stacktrace, jsStartline, shiftedStacktrace }) => {
+        const result = mleStacktraceShiftingFunc(
+            { rows: [[stacktrace]] }, jsStartline);
+        expect(result?.message)
+            .toEqual(shiftedStacktrace);
     });
 
     it("Test DBConnectionTab snapshot", () => {
