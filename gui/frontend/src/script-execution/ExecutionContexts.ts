@@ -33,6 +33,7 @@ import { requisitions } from "../supplement/Requisitions.js";
 import { EditorLanguage, ITextRange } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
+import { IResultSetUpdater, ResultSetUpdater } from "./ResultSetUpdater.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
 import { IContextProvider, IExecutionContextDetails, IResultSet } from "./index.js";
 
@@ -73,14 +74,15 @@ export class ExecutionContexts implements IContextProvider {
     private sqlMode: string;
     private defaultSchema: string;
 
-    private runUpdates?: (sql: string[]) => Promise<ISqlUpdateResult>;
+    private updater: IResultSetUpdater;
 
-    public constructor(params: IExecutionContextsParameters = {}) {
+    public constructor(params: IExecutionContextsParameters = {}, updater?: IResultSetUpdater) {
         this.store = params.store ?? StoreType.Unused;
         this.dbVersion = params.dbVersion ?? 80200;
         this.sqlMode = params.sqlMode ?? "";
         this.defaultSchema = params.currentSchema ?? "";
-        this.runUpdates = params.runUpdates;
+
+        this.updater = updater ?? new ResultSetUpdater(this.store, params.runUpdates);
 
         requisitions.register("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
     }
@@ -415,10 +417,10 @@ export class ExecutionContexts implements IContextProvider {
     }
 
     private createContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {
-        presentation.onRemoveResult = this.onResultRemoval;
-        presentation.onCommitChanges = this.onCommitChanges;
-        presentation.updateRowsForResultId = this.updateRowsForResultId;
-        presentation.onRollbackChanges = this.rollbackChanges;
+        presentation.onRemoveResult = this.updater.onRemoveResult;
+        presentation.onCommitChanges = this.updater.onCommitChanges;
+        presentation.updateRowsForResultId = this.updater.updateRowsForResultId;
+        presentation.onRollbackChanges = this.updater.onRollbackChanges;
 
         if (presentation.isSQLLike) {
             return new SQLExecutionContext(presentation, this.store, this.dbVersion, this.sqlMode, this.defaultSchema,
@@ -427,28 +429,6 @@ export class ExecutionContexts implements IContextProvider {
 
         return new ExecutionContext(presentation, this.store);
     }
-
-    private onResultRemoval = (resultIds: string[]): Promise<void> => {
-        return ApplicationDB.removeDataByResultIds(this.store, resultIds);
-    };
-
-    private updateRowsForResultId = async (resultSet: IResultSet) => {
-        await ApplicationDB.updateRowsForResultId(StoreType.Document, resultSet.resultId, resultSet.data.rows);
-    };
-
-    private onCommitChanges = async (resultSet: IResultSet, updateSql: string[]): Promise<ISqlUpdateResult> => {
-        const result = await this.runUpdates?.(updateSql) ?? { affectedRows: 0, errors: [] };
-        if (typeof result.affectedRows === "number") {
-            await this.updateRowsForResultId(resultSet);
-        }
-
-        return result;
-    };
-
-    private rollbackChanges = async (resultSet: IResultSet): Promise<void> => {
-        const rows = await ApplicationDB.getRowsForResultId(StoreType.Document, resultSet.resultId);
-        resultSet.data.rows = rows;
-    };
 
     private sqlUpdateColumnInfo = async (data: IColumnDetails): Promise<boolean> => {
         return ApplicationDB.updateColumnsForResultId(StoreType.Document, data);
