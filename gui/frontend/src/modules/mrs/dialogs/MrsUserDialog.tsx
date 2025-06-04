@@ -85,7 +85,7 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
                         result.messages.authString = "The authentication string is required for this app.";
                     } else if (pwd.length < 8) {
                         result.messages.authString = "The minimum authentication string length is 8 characters.";
-                    } else {
+                    } else if (pwd !== "[Stored Password]") {
                         const hasUpperCase = /[A-Z]/.test(pwd) ? 1 : 0;
                         const hasLowerCase = /[a-z]/.test(pwd) ? 1 : 0;
                         const hasNumbers = /\d/.test(pwd) ? 1 : 0;
