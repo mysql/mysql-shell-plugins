@@ -1348,7 +1348,7 @@ export const mrsDbObjectDialog = {
 
 export const e2eDebugger = {
     toggle: By.id("statusBarItem.2"),
-    exists: By.id("debuggerPaneHost"),
+    exists: By.id("scriptTreeHost"),
     scripts: {
         treeItem: By.css("#scriptSection .tabulator-row"),
     },

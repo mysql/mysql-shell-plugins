@@ -2066,7 +2066,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath.value, constants.editFolder);
                 await Workbench.setInputPath("Edited group");
                 await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-                expect(await dbTreeSection.treeItemExists(editedGroup)).to.be.true;
+                await driver.wait(dbTreeSection.untilTreeItemExists(editedGroup), constants.waitForTreeItem);
                 expect(await connectionOverview.existsGroup(editedGroup)).to.be.true;
 
             });

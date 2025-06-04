@@ -126,7 +126,7 @@ describe("MySQL REST Service Configuration", () => {
         await driver.wait(dbTreeSection.untilTreeItemExists(constants.mysqlRestService), constants.waitForTreeItem);
         await dbTreeSection.expandTreeItem(constants.mysqlRestService);
         await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
-        expect(await dbTreeSection.treeItemExists("MRS")).to.be.true;
+        await driver.wait(dbTreeSection.untilTreeItemExists("MRS"), constants.wait1second * 5);
         expect(await dbTreeSection.treeItemExists("MySQL")).to.be.true;
     });
 
