@@ -604,6 +604,8 @@ def substitute_objects_in_template(
                 else:
                     if sdk_language == "TypeScript":
                         required_datatypes.add("IMrsProcedureResult")
+                    elif sdk_language == "Python":
+                        required_datatypes.update({"MrsProcedureResultSet", "IMrsProcedureResponse"})
                     options = db_obj.get("options")
                     if options is not None and options.get("mysqlTask") is not None:
                         db_object_crud_ops = ["PROCEDURETASKRUN"]

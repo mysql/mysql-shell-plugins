@@ -42,9 +42,7 @@ from .mrs_base_classes import (
     MrsBaseObjectFunctionCall,
     # --- importFunctionCallOnlyEnd
     # --- importProcedureCallOnlyStart
-    MrsProcedureResultSet,
     MrsBaseObjectProcedureCall,
-    IMrsProcedureResponse,
     # --- importProcedureCallOnlyEnd
     # --- importTaskRunOnlyStart
     MrsBaseTaskStartFunction,
