@@ -222,6 +222,8 @@ export const connectToExternalShell = "Connect to External MySQL Shell Process";
 export const relaunchWelcomeWizard = "Relaunch Welcome Wizard";
 export const resetExtension = "Reset MySQL Shell for VS Code Extension";
 export const dropStoredRoutine = "Drop Stored Routine...";
+export const createStoredFunction = "Create Stored Function...";
+export const createStoredJSFunction = "Create Stored JavaScript Function...";
 export const openNewConnectionUsingNotebook = "Open New Connection using Notebook";
 export const openNewConnection = "Open New Database Connection";
 export const connectToDB = "Connect to Database";
@@ -398,6 +400,11 @@ export const dbObjectCtxMenu = new Map([
     [addDBObjToREST, 4],
     [dropTable, 5],
     [dropView, 5],
+]);
+
+export const functionsCtxMenu = new Map([
+    [createStoredFunction, 1],
+    [createStoredJSFunction, 2],
 ]);
 
 export const routinesCtxMenu = new Map([

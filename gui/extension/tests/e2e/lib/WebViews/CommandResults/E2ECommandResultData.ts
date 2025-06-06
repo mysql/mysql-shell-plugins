@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, Condition, until } from "selenium-webdriver";
+import { WebElement, Condition, until, error } from "selenium-webdriver";
 import { driver } from "../../Misc";
 import * as constants from "../../constants";
 import * as locator from "../../locators";
@@ -127,38 +127,52 @@ export class E2ECommandResultData extends E2ECommandResult {
      */
     public setText = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
+
         const text = async (): Promise<string> => {
             const words = await this.resultContext.findElements(resultLocator.singleOutput.text.words);
 
-            if (words.length > 1) {
-                let sentence = "";
-                for (const word of words) {
-                    const hasChildren = (await word.findElements(resultLocator.singleOutput.text.children)).length > 0;
+            if (words.length > 0) {
+                if (words.length > 1) {
+                    let sentence = "";
+                    for (const word of words) {
+                        const hasChildren = (await word
+                            .findElements(resultLocator.singleOutput.text.children)).length > 0;
 
-                    if (!hasChildren) {
-                        sentence += await word.getAttribute("innerHTML");
+                        if (!hasChildren) {
+                            sentence += await word.getAttribute("innerHTML");
+                        }
                     }
-                }
 
-                return sentence;
-            } else {
-                return words[0].getAttribute("innerHTML");
+                    return sentence;
+                } else {
+                    return words[0].getAttribute("innerHTML");
+                }
             }
         };
 
-        if (this.command) {
-            if (this.command.match(/export/) !== null) {
-                await driver.wait(async () => {
-                    return (await text()).match(/The dump can be loaded using/) !== null;
-                }, constants.wait1second * 5, "Could not find on result 'The dump can be loaded using'");
-            } else if (this.command.match(/(\\c|connect).*@.*/) !== null) {
-                await driver.wait(async () => {
-                    return (await text()).match(/schema/) !== null;
-                }, constants.wait1second * 5, "Could not find 'schema' on result");
-            }
-        }
+        await driver.wait(async () => {
+            try {
+                if (this.command) {
+                    if (this.command.match(/export/) !== null) {
+                        await driver.wait(async () => {
+                            return (await text()).match(/The dump can be loaded using/) !== null;
+                        }, constants.wait1second * 5, "Could not find on result 'The dump can be loaded using'");
+                    } else if (this.command.match(/(\\c|connect).*@.*/) !== null) {
+                        await driver.wait(async () => {
+                            return (await text()).match(/schema/) !== null;
+                        }, constants.wait1second * 5, "Could not find 'schema' on result");
+                    }
+                }
 
-        this.#text = await text();
+                this.#text = await text();
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait1second * 5);
     };
 
     /**
