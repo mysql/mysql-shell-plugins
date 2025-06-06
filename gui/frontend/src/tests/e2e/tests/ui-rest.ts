@@ -139,8 +139,8 @@ describe("MYSQL REST SERVICE", () => {
                     constants.wait3seconds);
                 await dbTreeSection.expandTreeItem(constants.mysqlRestService);
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
-                expect(await dbTreeSection.existsTreeItem("MRS")).toBe(true);
-                expect(await dbTreeSection.existsTreeItem("MySQL")).toBe(true);
+                await driver.wait(dbTreeSection.untilTreeItemExists("MRS"), constants.wait5seconds);
+                await driver.wait(dbTreeSection.untilTreeItemExists("MySQL"), constants.wait5seconds);
             } catch (e) {
                 testFailed = true;
                 throw e;

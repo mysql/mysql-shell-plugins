@@ -46,16 +46,29 @@ export class E2EToolbar {
             await Misc.switchToFrame();
         }
 
-        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait1second * 5, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
-        for (const btn of buttons) {
-            if ((await btn.getAttribute("data-tooltip")) === button) {
-                return true;
-            }
-        }
+        let exists = false;
 
-        return false;
+        await driver.wait(async () => {
+            try {
+                const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+                    constants.wait1second * 5, "Toolbar was not found");
+                const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
+                for (const btn of buttons) {
+                    if ((await btn.getAttribute("data-tooltip")) === button) {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait1second * 5, `Could not verify if button '${button}' exists`);
+
+        return exists;
     };
 
     /**

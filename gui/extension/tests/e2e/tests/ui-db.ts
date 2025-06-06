@@ -105,6 +105,589 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
+    describe("Toolbar", () => {
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
+
+        afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
+        });
+
+        it("Reload the connection list", async () => {
+
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
+
+        });
+
+        it("Collapse All", async () => {
+
+            await dbTreeSection.focus();
+            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            const treeGlobalSchema = await dbTreeSection.getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL)
+                .schema);
+
+            await treeGlobalSchema.expand();
+            const treeGlobalSchemaTables = await dbTreeSection.getTreeItem("Tables");
+            await treeGlobalSchemaTables.expand();
+            const treeGlobalSchemaViews = await dbTreeSection.getTreeItem("Views");
+            await treeGlobalSchemaViews.expand();
+            const treeDBSection: CustomTreeSection = await new SideBarView().getContent()
+                .getSection(constants.dbTreeSection);
+            await dbTreeSection.clickToolbarButton(constants.collapseAll);
+
+            let visibleItems: CustomTreeItem[];
+            await driver.wait(async () => {
+                visibleItems = await treeDBSection.getVisibleItems();
+                if (visibleItems.length > 0) {
+                    for (const item of visibleItems) {
+                        if (await item.getAttribute("aria-level") !== "1") {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }, constants.wait1second * 5, "The tree is not fully collapsed");
+        });
+
+        it("Restart internal MySQL Shell process", async () => {
+
+            await fs.truncate(Os.getMysqlshLog());
+            await dbTreeSection.selectMoreActionsItem(constants.restartInternalShell);
+            const notification = await Workbench.getNotification("This will close all MySQL Shell tabs", false);
+            await Workbench.clickOnNotificationButton(notification, "Restart MySQL Shell");
+            await driver.wait(async () => {
+                return Os.findOnMySQLShLog(/Info/);
+            }, constants.wait1second * 5 * 3, "Shell server did not start");
+
+            try {
+                await driver.wait(async () => {
+                    const text = await fs.readFile(Os.getMysqlshLog());
+                    if (text.includes("Registering session...")) {
+                        return true;
+                    }
+                }, constants.wait1second * 20, "Restarting the internal MySQL Shell server went wrong");
+            } finally {
+                E2ELogger.info("<<<<MySQLSH Logs>>>>");
+                await Os.writeMySQLshLogs();
+            }
+
+        });
+
+        it("Relaunch Welcome Wizard", async () => {
+
+            await dbTreeSection.selectMoreActionsItem(constants.relaunchWelcomeWizard);
+            await driver.wait(Workbench.untilTabIsOpened(constants.welcomeTab), constants.wait1second * 5);
+            const active = await Workbench.getActiveTab();
+            let error = `The active tab should be ${constants.welcomeTab}`;
+            error += `, but found ${await active.getTitle()}`;
+            expect(await active.getTitle(), error).equals(constants.welcomeTab);
+            await driver.wait(until.ableToSwitchToFrame(0), constants.wait1second * 5, "Not able to switch to frame 0");
+            await driver.wait(until.ableToSwitchToFrame(
+                locator.iframe.isActive), constants.wait1second * 5, "Not able to switch to frame 2");
+            const text = await driver.findElement(locator.welcomeWizard.title).getText();
+            expect(text, `The Welcome wizard title should be ${constants.welcome}, but found ${text}`)
+                .equals(constants.welcome);
+            expect(await driver.findElement(locator.welcomeWizard.nextButton),
+                `Next button does not exist on the welcome wizard`).to.exist;
+
+        });
+
+        it("Reset MySQL Shell for VS Code Extension", async () => {
+
+            await Workbench.closeAllEditors();
+            await dbTreeSection.selectMoreActionsItem(constants.resetExtension);
+            let notification = "This will completely reset the MySQL Shell for VS Code extension by ";
+            notification += "deleting the web certificate and optionally deleting the user settings directory.";
+            const ntf = await Workbench.getNotification(notification, false);
+            await Workbench.clickOnNotificationButton(ntf, constants.cancel);
+
+        });
+    });
+
+    describe("MySQL Administration", () => {
+
+        const mysqlAdministration = new E2EMySQLAdministration();
+        const toolbar = new E2EToolbar();
+
+        before(async function () {
+            await Os.appendToExtensionLog("beforeAll MySQL Administration");
+            try {
+                await Os.deleteCredentials();
+                await Workbench.closeAllEditors();
+                await dbTreeSection.focus();
+                await dbTreeSection.clickToolbarButton(constants.collapseAll);
+                await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+
+                const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
+                await treeMySQLAdmin.expand();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
+
+        afterEach(async function () {
+
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
+
+        });
+
+        after(async function () {
+
+            try {
+                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption);
+                await treeGlobalConn.collapse();
+                await Workbench.closeAllEditors();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+
+        });
+
+        it("Server Status", async () => {
+
+            await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.serverStatus),
+                constants.wait1second * 15);
+            expect((await toolbar.editorSelector.getCurrentEditor()).label,
+                `The current editor name should be ${constants.serverStatus}`)
+                .to.equals(constants.serverStatus);
+
+            await mysqlAdministration.serverStatus.create();
+            expect(mysqlAdministration.serverStatus.host).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.socket).to.match(/(\.sock|MySQL)/);
+            expect(mysqlAdministration.serverStatus.port).to.match(/(\d+)/);
+            expect(mysqlAdministration.serverStatus.version).to.match(/(\d+).(\d+).(\d+)/);
+            expect(mysqlAdministration.serverStatus.compiledFor).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.configurationFile).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.runningSince)
+                .to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
+            expect(mysqlAdministration.serverStatus.baseDirectory).to.match(/^\/\w+/);
+            expect(mysqlAdministration.serverStatus.dataDirectory).to.match(/^\/\w+/);
+            expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/^\/\w+/);
+            expect(mysqlAdministration.serverStatus.tempDirectory).to.match(/^\/\w+/);
+            expect(mysqlAdministration.serverStatus.errorLog.checked).to.be.true;
+            expect(mysqlAdministration.serverStatus.errorLog.path).to.match(/\/\w+/);
+            expect(typeof mysqlAdministration.serverStatus.generalLog.checked).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.generalLog.path).to.not.equals("");
+            expect(typeof mysqlAdministration.serverStatus.slowQueryLog.checked).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.slowQueryLog.path).to.not.equals("");
+            expect(typeof mysqlAdministration.serverStatus.performanceSchema).to.equals("boolean");
+            expect(typeof mysqlAdministration.serverStatus.threadPool).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.memCachedPlugin).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.semiSyncRepPlugin).to.not.equals("");
+            expect(typeof mysqlAdministration.serverStatus.pamAuthentication).to.equals("boolean");
+            expect(typeof mysqlAdministration.serverStatus.passwordValidation).to.equals("boolean");
+            expect(typeof mysqlAdministration.serverStatus.auditLog).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.firewall).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.firewallTrace).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.sslCa.endsWith(".pem")).to.be.true;
+            expect(mysqlAdministration.serverStatus.sslCert.endsWith(".pem")).to.be.true;
+            expect(mysqlAdministration.serverStatus.sslKey.endsWith(".pem")).to.be.true;
+            expect(mysqlAdministration.serverStatus.privateKey).to.equals("private_key.pem");
+            expect(mysqlAdministration.serverStatus.publicKey).to.equals("public_key.pem");
+
+        });
+
+        it("Client Connections", async () => {
+
+            await (await dbTreeSection.getTreeItem(constants.clientConns)).click();
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.clientConns),
+                constants.wait1second * 15);
+            expect((await toolbar.editorSelector.getCurrentEditor()).label,
+                `The current editor name should be ${constants.clientConns}`)
+                .to.equals(constants.clientConns);
+
+            await mysqlAdministration.clientConnections.create();
+            expect(mysqlAdministration.clientConnections.threadsConnected).to.match(/Threads Connected: (\d+)/);
+            expect(mysqlAdministration.clientConnections.threadsRunning).to.match(/Threads Running: (\d+)/);
+            expect(mysqlAdministration.clientConnections.threadsCreated).to.match(/Threads Created: (\d+)/);
+            expect(mysqlAdministration.clientConnections.rejected).to.match(/Rejected \(over limit\):/);
+            expect(mysqlAdministration.clientConnections.totalConnections).to.match(/Total Connections: (\d+)/);
+            expect(mysqlAdministration.clientConnections.connectionLimit).to.match(/Connection Limit: (\d+)/);
+            expect(mysqlAdministration.clientConnections.abortedClients).to.match(/Aborted Clients: (\d+)/);
+            expect(mysqlAdministration.clientConnections.abortedConnections).to.match(/Aborted Connections: (\d+)/);
+            expect(mysqlAdministration.clientConnections.errors).to.match(/Errors: (\d+)/);
+            expect((await mysqlAdministration.clientConnections.connectionsList
+                .findElements(locator.mysqlAdministration.clientConnections.tableRow)).length).to.be.greaterThan(0);
+        });
+
+        it("Performance Dashboard - MLE Disabled", async () => {
+
+            const mleDisabledConn: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `e2eMleDisabledConn`,
+                description: "Local connection",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: parseInt(process.env.MYSQL_ROUTER_PORT, 10),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD1),
+                },
+            };
+
+            await dbTreeSection.clickToolbarButton(constants.collapseAll);
+            await Workbench.closeAllEditors();
+            await dbTreeSection.createDatabaseConnection(mleDisabledConn);
+            await driver.wait(dbTreeSection.untilTreeItemExists(mleDisabledConn.caption), constants.waitForTreeItem);
+            await dbTreeSection.clickTreeItemActionButton(mleDisabledConn.caption,
+                constants.openNewConnectionUsingNotebook);
+            await driver.wait(new E2ENotebook().untilIsOpened(mleDisabledConn), constants.waitConnectionOpen);
+            await dbTreeSection.expandTreeItem(mleDisabledConn.caption, mleDisabledConn);
+            const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
+            await dbTreeSection.focus();
+            await treeMySQLAdmin.expand();
+            await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
+                constants.wait1second * 15);
+            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.false;
+
+            await mysqlAdministration.performanceDashboard.loadServerPerformance();
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
+            await Workbench.closeEditor(new RegExp(constants.perfDash));
+
+        });
+
+        it("Performance Dashboard - MLE Enabled", async () => {
+
+            await Workbench.closeAllEditors();
+            await dbTreeSection.clickToolbarButton(constants.collapseAll);
+            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
+            await treeMySQLAdmin.expand();
+
+            const perfDash = await dbTreeSection.getTreeItem(constants.perfDash);
+            await driver.actions().doubleClick(perfDash).perform();
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
+                constants.wait1second * 15);
+            expect((await toolbar.editorSelector.getCurrentEditor()).label,
+                `The current editor name should be ${constants.perfDash}`)
+                .to.equals(constants.perfDash);
+
+            await driver.wait(async () => {
+                return mysqlAdministration.performanceDashboard.tabExists(constants.perfDashServerTab);
+            }, constants.wait1second * 5, `${constants.perfDashServerTab} tab was not found`);
+
+            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.true;
+            expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
+                .to.be.true;
+
+            await mysqlAdministration.performanceDashboard.loadServerPerformance();
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) (KB|B)\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) (KB|B)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) (KB|B)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) (KB|B)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) (KB|B)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) (KB|B)\/s/);
+            await mysqlAdministration.performanceDashboard.selectTab(constants.perfDashMLETab);
+            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Inactive");
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleMaxHeapSize).to.match(/(\d+).(\d+) GB/);
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleHeapUtilizationGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
+
+            await Workbench.closeAllEditors();
+            const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            await (await openEditorsSection.getTreeItem(constants.dbConnectionsLabel)).click();
+            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
+
+            const notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
+
+            const jsFunction =
+                `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT)
+                    RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT
+                    AS
+                    $$
+                    let x = Math.pow(arg1, arg2)
+                    return x
+                    $$;`;
+
+
+            const result = await notebook.executeWithButton(jsFunction,
+                constants.execFullBlockSql) as E2ECommandResultData;
+            expect(result.text).to.match(/OK/);
+
+            const result1 = await notebook.codeEditor.execute("SELECT js_pow(2,3);") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
+            await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
+            await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
+            await mysqlAdministration.performanceDashboard.selectTab(constants.perfDashMLETab);
+            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
+            const currentHeap = await driver
+                .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
+            await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
+            expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage
+                .match(/(\d+)/)[1], 10)).to.match(/(\d+)/);
+        });
+
+        describe("Lakehouse Navigator", () => {
+
+            const heatWaveConn: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: "e2eHeatWave Connection",
+                description: "Local connection",
+                basic: {
+                    hostname: String(process.env.HWHOSTNAME),
+                    username: String(process.env.HWUSERNAME),
+                    schema: "e2e_tests",
+                    password: String(process.env.HWPASSWORD),
+                },
+            };
+
+            const newTask: interfaces.INewLoadingTask = {
+                name: "qa_cookbook_ext",
+                description: "How do cook properly",
+                targetDatabaseSchema: "e2e_tests",
+                formats: "PDF (Portable Document Format Files)",
+            };
+
+            const fileToUpload = "qa_cookbook_ext.pdf";
+
+            before(async function () {
+                await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
+                try {
+                    await Workbench.closeAllEditors();
+                    await dbTreeSection.clickToolbarButton(constants.collapseAll);
+                    await dbTreeSection.createDatabaseConnection(heatWaveConn);
+                    await dbTreeSection.expandTreeItem(heatWaveConn.caption, heatWaveConn);
+                    const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
+                    await treeMySQLAdmin.expand();
+                    await dbTreeSection.focus();
+                    await (await dbTreeSection.getTreeItem(constants.lakehouseNavigator)).click();
+                    await driver.wait(mysqlAdministration.untilPageIsOpened(heatWaveConn, constants.lakehouseNavigator),
+                        constants.wait1second * 15);
+                    expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
+                        .to.include(`${constants.lakehouseNavigator} (${heatWaveConn.caption})`);
+                    await dbTreeSection.focus();
+                    await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
+                        .schema)).expand();
+                    await (await dbTreeSection.getTreeItem("Tables")).expand();
+
+                    if (await dbTreeSection.treeItemExists(newTask.name)) {
+                        await dbTreeSection.openContextMenuAndSelect(newTask.name, constants.dropTable);
+                        await Workbench.pushDialogButton(`Drop ${newTask.name}`);
+                        await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+
+                        await driver.wait(async () => {
+                            return !(await dbTreeSection.treeItemExists(newTask.name));
+                        }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
+                    }
+                    await Workbench.toggleSideBar(false);
+                } catch (e) {
+                    await Misc.processFailure(this);
+                    throw e;
+                }
+
+            });
+
+            beforeEach(async function () {
+                await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            });
+
+            after(async function () {
+                try {
+                    await Workbench.toggleSideBar(true);
+                    await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
+                        .schema)).expand();
+                    await (await dbTreeSection.getTreeItem("Tables")).expand();
+                    await dbTreeSection.clickTreeItemActionButton(heatWaveConn.caption,
+                        constants.reloadDataBaseInformation);
+                    await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name), constants.waitForTreeItem);
+
+                    await dbTreeSection.openContextMenuAndSelect(newTask.name, constants.dropTable);
+                    await Workbench.pushDialogButton(`Drop ${newTask.name}`);
+                    await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+                    await driver.wait(async () => {
+                        return !(await dbTreeSection.treeItemExists(newTask.name));
+                    }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
+                    await Workbench.closeAllEditors();
+                } catch (e) {
+                    await Misc.processFailure(this);
+                    throw e;
+                }
+            });
+
+            it("Upload data to object storage", async () => {
+
+                const uploadToObjectStorage = mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage;
+
+                await driver.wait(mysqlAdministration.lakeHouseNavigator.overview.untilIsOpened(),
+                    constants.wait1second * 3);
+                await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
+                    return (await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
+                        .getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
+                }), constants.wait1second * 3);
+
+                await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
+                await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
+                await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
+                await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                    constants.wait1minute);
+
+                await uploadToObjectStorage.objectStorageBrowser
+                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+
+                await (await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage
+                    .getFilesForUploadButton(constants.addFiles)).click();
+                await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), "lakehouse_nav_files",
+                    fileToUpload));
+                await driver.wait(uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
+                    constants.wait1second * 10);
+                await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
+                await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
+                await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
+                    constants.wait1second * 20);
+            });
+
+            it("Load into Lakehouse", async () => {
+
+                const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
+                await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
+                await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
+                    constants.wait1second * 10);
+                await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                expect(await loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
+                    `'${fileToUpload}' was not found`).to.be.true;
+                await loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
+                await driver.wait(loadIntoLakehouse.untilExistsLoadingTask(fileToUpload), constants.wait1second * 5);
+                await loadIntoLakehouse.setNewLoadingTask(newTask);
+                await loadIntoLakehouse.startLoadingTask();
+
+            });
+
+            it("Lakehouse Tables", async () => {
+
+                const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
+                await driver.wait(lakehouseTables.untilIsOpened(), constants.wait1second * 15);
+                expect(await lakehouseTables.getDatabaseSchemas()).to.contain(newTask.targetDatabaseSchema);
+                await driver.wait(lakehouseTables.untilExistsLakeHouseTable(newTask.name), constants.wait1second * 10);
+                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoading(newTask.name), constants.wait1minute);
+
+                let latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
+                expect(latestTable.hasProgressBar).to.be.true;
+                expect(latestTable.loaded).to.match(/(\d+)%/);
+                expect(latestTable.hasLoadingSpinner).to.be.true;
+                expect(latestTable.rows).to.equals("-");
+                expect(latestTable.size).to.equals("-");
+                expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                expect(latestTable.comment).to.equals(newTask.description);
+
+                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name), constants.wait1minute * 2);
+                latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
+                expect(latestTable.hasProgressBar).to.be.false;
+                expect(latestTable.loaded).to.equals("Yes");
+                expect(latestTable.hasLoadingSpinner).to.be.false;
+                expect(latestTable.rows).to.match(/(\d+)/);
+                expect(latestTable.size).to.match(/(\d+).(\d+) (KB|MB)/);
+                expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                expect(latestTable.comment).to.equals(newTask.description);
+
+                const tasks = await lakehouseTables.getLakeHouseTasks();
+
+                tasks.sort((itemA: interfaces.ICurrentTask, itemB: interfaces.ICurrentTask) => {
+                    return itemA.id > itemB.id ? -1 : 1; // sort descending
+                });
+
+                if (tasks.length > 0) {
+                    for (const task of tasks) {
+                        if (task.name === `Loading ${newTask.name}`) {
+                            await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id),
+                                constants.wait1second * 10);
+                            expect(task.name).to.equals(`Loading ${newTask.name}`);
+                            expect(task.hasProgressBar).to.be.false;
+                            expect(task.status).to.equals("COMPLETED");
+                            expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                            expect(task.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                            expect(task.message).to.equals("Task completed.");
+                            break;
+                        }
+                    }
+                } else {
+                    // disabled verification
+                    //throw new Error(`There are not any new tasks to verify`);
+                }
+
+            });
+
+        });
+
+    });
+
     describe("Tree context menu items", () => {
 
         let treeGlobalSchema: TreeItem;
@@ -123,6 +706,8 @@ describe("DATABASE CONNECTIONS", () => {
         const dup = "duplicatedConnection";
         const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
         let existsInQueue = false;
+        const storedFunction = "storedFunction";
+        const storedJSFunction = "storedJSFunction";
 
         before(async function () {
             await Os.appendToExtensionLog("beforeAll Tree context menu items");
@@ -665,15 +1250,67 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Functions - Drop Function", async () => {
+        it("Create Stored Function", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(testRoutine, constants.dropStoredRoutine);
-            await Workbench.pushDialogButton(`Drop ${testRoutine}`);
-            await Workbench.getNotification(`The object ${testRoutine} has been dropped successfully.`);
+            await dbTreeSection.expandTreeItem("sakila");
+            await dbTreeSection.openContextMenuAndSelect("Functions", constants.createStoredFunction);
+            await Workbench.setInputPath(storedFunction);
+            const script = new E2EScript();
+            await driver.wait(script.untilIsOpened(globalConn), constants.wait1second * 10);
             await driver.wait(async () => {
-                return !(await dbTreeSection.treeItemExists(testRoutine));
-            }, constants.wait1second * 3, `${testRoutine} should not exist on the tree`);
+                return script.toolbar.existsButton(constants.execFullScript);
+            }, constants.wait1second * 5, `Could not find button '${constants.execFullScript}'`);
 
+            await (await script.toolbar.getButton(constants.execFullScript)).click();
+
+            await driver.wait(async () => {
+                return (await script.getResult() as E2ECommandResultGrid).status !== undefined;
+            }, constants.wait1second * 5, `Result status is undefined`);
+
+            const result = await script.getResult() as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await Workbench.closeAllEditors();
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await dbTreeSection.focus();
+            await dbTreeSection.expandTreeItem("Functions");
+            await driver.wait(dbTreeSection.untilTreeItemExists(storedFunction), constants.wait1second * 5);
+        });
+
+        it("Create Stored Javascript Function", async () => {
+
+            await dbTreeSection.focus();
+            await dbTreeSection.openContextMenuAndSelect("Functions", constants.createStoredJSFunction);
+            await Workbench.setInputPath(storedJSFunction);
+            const script = new E2EScript();
+            await driver.wait(script.untilIsOpened(globalConn), constants.wait1second * 10);
+            await driver.wait(async () => {
+                return script.toolbar.existsButton(constants.execFullScript);
+            }, constants.wait1second * 5, `Could not find button '${constants.execFullScript}'`);
+            await (await script.toolbar.getButton(constants.execFullScript)).click();
+
+            await driver.wait(async () => {
+                return (await script.getResult() as E2ECommandResultGrid).status !== undefined;
+            }, constants.wait1second * 5, `Result status is undefined`);
+
+            const result = await script.getResult() as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await Workbench.closeAllEditors();
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await dbTreeSection.focus();
+            await dbTreeSection.expandTreeItem("Functions");
+            await driver.wait(dbTreeSection.untilTreeItemExists(storedJSFunction), constants.wait1second * 5);
+        });
+
+        it("Functions - Drop Functions", async () => {
+
+            for (const routine of [storedFunction, storedJSFunction]) {
+                await dbTreeSection.openContextMenuAndSelect(routine, constants.dropStoredRoutine);
+                await Workbench.pushDialogButton(`Drop ${routine}`);
+                await Workbench.getNotification(`The object ${routine} has been dropped successfully.`);
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(routine));
+                }, constants.wait1second * 3, `${routine} should not exist on the tree`);
+            }
         });
 
         it("Drop Event", async () => {
@@ -689,481 +1326,6 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(async () => {
                 return !(await dbTreeSection.treeItemExists(testEvent));
             }, constants.wait1second * 3, `${testEvent} should not exist on the tree`);
-
-        });
-
-    });
-
-    describe("MySQL Administration", () => {
-
-        const mysqlAdministration = new E2EMySQLAdministration();
-        const toolbar = new E2EToolbar();
-
-        before(async function () {
-            await Os.appendToExtensionLog("beforeAll MySQL Administration");
-            try {
-                await Os.deleteCredentials();
-                await Workbench.closeAllEditors();
-                await dbTreeSection.focus();
-                await dbTreeSection.clickToolbarButton(constants.collapseAll);
-                await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
-
-                const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
-                await treeMySQLAdmin.expand();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-
-        });
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-        });
-
-        afterEach(async function () {
-
-            if (this.currentTest.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
-        });
-
-        after(async function () {
-
-            try {
-                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption);
-                await treeGlobalConn.collapse();
-                await Workbench.closeAllEditors();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-
-        });
-
-        it("Server Status", async () => {
-
-            await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
-            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.serverStatus),
-                constants.wait1second * 15);
-            expect((await toolbar.editorSelector.getCurrentEditor()).label,
-                `The current editor name should be ${constants.serverStatus}`)
-                .to.equals(constants.serverStatus);
-
-            await mysqlAdministration.serverStatus.create();
-            expect(mysqlAdministration.serverStatus.host).to.not.equals("");
-            expect(mysqlAdministration.serverStatus.socket).to.match(/(\.sock|MySQL)/);
-            expect(mysqlAdministration.serverStatus.port).to.match(/(\d+)/);
-            expect(mysqlAdministration.serverStatus.version).to.match(/(\d+).(\d+).(\d+)/);
-            expect(mysqlAdministration.serverStatus.compiledFor).to.not.equals("");
-            expect(mysqlAdministration.serverStatus.configurationFile).to.not.equals("");
-            expect(mysqlAdministration.serverStatus.runningSince)
-                .to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
-            expect(mysqlAdministration.serverStatus.baseDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(mysqlAdministration.serverStatus.dataDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(mysqlAdministration.serverStatus.tempDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(mysqlAdministration.serverStatus.errorLog.checked).to.be.true;
-            expect(mysqlAdministration.serverStatus.errorLog.path).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(typeof mysqlAdministration.serverStatus.generalLog.checked).to.equals("boolean");
-            expect(mysqlAdministration.serverStatus.generalLog.path).to.not.equals("");
-            expect(typeof mysqlAdministration.serverStatus.slowQueryLog.checked).to.equals("boolean");
-            expect(mysqlAdministration.serverStatus.slowQueryLog.path).to.not.equals("");
-            expect(typeof mysqlAdministration.serverStatus.performanceSchema).to.equals("boolean");
-            expect(typeof mysqlAdministration.serverStatus.threadPool).to.equals("boolean");
-            expect(mysqlAdministration.serverStatus.memCachedPlugin).to.not.equals("");
-            expect(mysqlAdministration.serverStatus.semiSyncRepPlugin).to.not.equals("");
-            expect(typeof mysqlAdministration.serverStatus.pamAuthentication).to.equals("boolean");
-            expect(typeof mysqlAdministration.serverStatus.passwordValidation).to.equals("boolean");
-            expect(typeof mysqlAdministration.serverStatus.auditLog).to.equals("boolean");
-            expect(mysqlAdministration.serverStatus.firewall).to.not.equals("");
-            expect(mysqlAdministration.serverStatus.firewallTrace).to.not.equals("");
-            expect(mysqlAdministration.serverStatus.sslCa).to.match(/.+pem$/);
-            expect(mysqlAdministration.serverStatus.sslCert).to.match(/.+pem$/);
-            expect(mysqlAdministration.serverStatus.sslKey).to.match(/.+pem$/);
-            expect(mysqlAdministration.serverStatus.privateKey).to.equals("private_key.pem");
-            expect(mysqlAdministration.serverStatus.publicKey).to.equals("public_key.pem");
-
-        });
-
-        it("Client Connections", async () => {
-
-            await (await dbTreeSection.getTreeItem(constants.clientConns)).click();
-            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.clientConns),
-                constants.wait1second * 15);
-            expect((await toolbar.editorSelector.getCurrentEditor()).label,
-                `The current editor name should be ${constants.clientConns}`)
-                .to.equals(constants.clientConns);
-
-            await mysqlAdministration.clientConnections.create();
-            expect(mysqlAdministration.clientConnections.threadsConnected).to.match(/Threads Connected: (\d+)/);
-            expect(mysqlAdministration.clientConnections.threadsRunning).to.match(/Threads Running: (\d+)/);
-            expect(mysqlAdministration.clientConnections.threadsCreated).to.match(/Threads Created: (\d+)/);
-            expect(mysqlAdministration.clientConnections.rejected).to.match(/Rejected \(over limit\):/);
-            expect(mysqlAdministration.clientConnections.totalConnections).to.match(/Total Connections: (\d+)/);
-            expect(mysqlAdministration.clientConnections.connectionLimit).to.match(/Connection Limit: (\d+)/);
-            expect(mysqlAdministration.clientConnections.abortedClients).to.match(/Aborted Clients: (\d+)/);
-            expect(mysqlAdministration.clientConnections.abortedConnections).to.match(/Aborted Connections: (\d+)/);
-            expect(mysqlAdministration.clientConnections.errors).to.match(/Errors: (\d+)/);
-            expect((await mysqlAdministration.clientConnections.connectionsList
-                .findElements(locator.mysqlAdministration.clientConnections.tableRow)).length).to.be.greaterThan(0);
-        });
-
-        it("Performance Dashboard - MLE Disabled", async () => {
-
-            const mleDisabledConn: interfaces.IDBConnection = {
-                dbType: "MySQL",
-                caption: `e2eMleDisabledConn`,
-                description: "Local connection",
-                basic: {
-                    hostname: "localhost",
-                    username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_ROUTER_PORT, 10),
-                    schema: "sakila",
-                    password: String(process.env.DBPASSWORD1),
-                },
-            };
-
-            await dbTreeSection.clickToolbarButton(constants.collapseAll);
-            await Workbench.closeAllEditors();
-            await dbTreeSection.createDatabaseConnection(mleDisabledConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(mleDisabledConn.caption), constants.waitForTreeItem);
-            await dbTreeSection.clickTreeItemActionButton(mleDisabledConn.caption,
-                constants.openNewConnectionUsingNotebook);
-            await driver.wait(new E2ENotebook().untilIsOpened(mleDisabledConn), constants.waitConnectionOpen);
-            await dbTreeSection.expandTreeItem(mleDisabledConn.caption, mleDisabledConn);
-            const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
-            await dbTreeSection.focus();
-            await treeMySQLAdmin.expand();
-            await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
-            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
-                constants.wait1second * 15);
-            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.false;
-
-            await mysqlAdministration.performanceDashboard.loadServerPerformance();
-            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
-            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
-            await Workbench.closeEditor(new RegExp(constants.perfDash));
-
-        });
-
-        it("Performance Dashboard - MLE Enabled", async () => {
-
-            await Workbench.closeAllEditors();
-            await dbTreeSection.clickToolbarButton(constants.collapseAll);
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
-            const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
-            await treeMySQLAdmin.expand();
-
-            await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
-            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
-                constants.wait1second * 15);
-            expect((await toolbar.editorSelector.getCurrentEditor()).label,
-                `The current editor name should be ${constants.perfDash}`)
-                .to.equals(constants.perfDash);
-
-            await driver.wait(async () => {
-                return mysqlAdministration.performanceDashboard.tabExists(constants.perfDashServerTab);
-            }, constants.wait1second * 5, `${constants.perfDashServerTab} tab was not found`);
-
-            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.true;
-            expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
-                .to.be.true;
-
-            await mysqlAdministration.performanceDashboard.loadServerPerformance();
-            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) (KB|B)\/s/);
-            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) (KB|B)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) (KB|B)\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) (KB|B)\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) (KB|B)\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) (KB|B)\/s/);
-            await mysqlAdministration.performanceDashboard.selectTab(constants.perfDashMLETab);
-            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Inactive");
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleMaxHeapSize).to.match(/(\d+).(\d+) GB/);
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleHeapUtilizationGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
-
-            await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
-                constants.openNewConnectionUsingNotebook);
-            const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
-
-            const jsFunction =
-                `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT)
-                    RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT
-                    AS
-                    $$
-                    let x = Math.pow(arg1, arg2)
-                    return x
-                    $$;`;
-
-
-            const result = await notebook.executeWithButton(jsFunction,
-                constants.execFullBlockSql) as E2ECommandResultData;
-            expect(result.text).to.match(/OK/);
-
-            const result1 = await notebook.codeEditor.execute("SELECT js_pow(2,3);") as E2ECommandResultGrid;
-            expect(result1.status).to.match(/OK/);
-            await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
-            await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
-            await mysqlAdministration.performanceDashboard.selectTab(constants.perfDashMLETab);
-            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
-            const currentHeap = await driver
-                .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
-            await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
-            expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage
-                .match(/(\d+)/)[1], 10)).to.match(/(\d+)/);
-        });
-
-        describe("Lakehouse Navigator", () => {
-
-            const heatWaveConn: interfaces.IDBConnection = {
-                dbType: "MySQL",
-                caption: "e2eHeatWave Connection",
-                description: "Local connection",
-                basic: {
-                    hostname: String(process.env.HWHOSTNAME),
-                    username: String(process.env.HWUSERNAME),
-                    schema: "e2e_tests",
-                    password: String(process.env.HWPASSWORD),
-                },
-            };
-
-            const newTask: interfaces.INewLoadingTask = {
-                name: "qa_cookbook_ext",
-                description: "How do cook properly",
-                targetDatabaseSchema: "e2e_tests",
-                formats: "PDF (Portable Document Format Files)",
-            };
-
-            const fileToUpload = "qa_cookbook_ext.pdf";
-
-            before(async function () {
-                await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
-                try {
-                    await Workbench.closeAllEditors();
-                    await dbTreeSection.clickToolbarButton(constants.collapseAll);
-                    await dbTreeSection.createDatabaseConnection(heatWaveConn);
-                    await dbTreeSection.expandTreeItem(heatWaveConn.caption, heatWaveConn);
-                    const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
-                    await treeMySQLAdmin.expand();
-                    await dbTreeSection.focus();
-                    await (await dbTreeSection.getTreeItem(constants.lakehouseNavigator)).click();
-                    await driver.wait(mysqlAdministration.untilPageIsOpened(heatWaveConn, constants.lakehouseNavigator),
-                        constants.wait1second * 15);
-                    expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
-                        .to.include(`${constants.lakehouseNavigator} (${heatWaveConn.caption})`);
-                    await dbTreeSection.focus();
-                    await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
-                        .schema)).expand();
-                    await (await dbTreeSection.getTreeItem("Tables")).expand();
-
-                    if (await dbTreeSection.treeItemExists(newTask.name)) {
-                        await dbTreeSection.openContextMenuAndSelect(newTask.name, constants.dropTable);
-                        await Workbench.pushDialogButton(`Drop ${newTask.name}`);
-                        await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
-
-                        await driver.wait(async () => {
-                            return !(await dbTreeSection.treeItemExists(newTask.name));
-                        }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
-                    }
-                    await Workbench.toggleSideBar(false);
-                } catch (e) {
-                    await Misc.processFailure(this);
-                    throw e;
-                }
-
-            });
-
-            beforeEach(async function () {
-                await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-            });
-
-            after(async function () {
-                try {
-                    await Workbench.toggleSideBar(true);
-                    await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
-                        .schema)).expand();
-                    await (await dbTreeSection.getTreeItem("Tables")).expand();
-                    await dbTreeSection.clickTreeItemActionButton(heatWaveConn.caption,
-                        constants.reloadDataBaseInformation);
-                    await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name), constants.waitForTreeItem);
-
-                    await dbTreeSection.openContextMenuAndSelect(newTask.name, constants.dropTable);
-                    await Workbench.pushDialogButton(`Drop ${newTask.name}`);
-                    await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
-                    await driver.wait(async () => {
-                        return !(await dbTreeSection.treeItemExists(newTask.name));
-                    }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
-                    await Workbench.closeAllEditors();
-                } catch (e) {
-                    await Misc.processFailure(this);
-                    throw e;
-                }
-            });
-
-            it("Upload data to object storage", async () => {
-
-                const uploadToObjectStorage = mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage;
-
-                await driver.wait(mysqlAdministration.lakeHouseNavigator.overview.untilIsOpened(),
-                    constants.wait1second * 3);
-                await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
-                    return (await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
-                        .getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
-                }), constants.wait1second * 3);
-
-                await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
-                await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
-                await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-                await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait1minute);
-
-                await uploadToObjectStorage.objectStorageBrowser
-                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-
-                await (await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage
-                    .getFilesForUploadButton(constants.addFiles)).click();
-                await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), "lakehouse_nav_files",
-                    fileToUpload));
-                await driver.wait(uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
-                    constants.wait1second * 10);
-                await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
-                await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
-                await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
-                    constants.wait1second * 20);
-            });
-
-            it("Load into Lakehouse", async () => {
-
-                const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
-                await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
-                await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait1second * 10);
-                await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
-                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-                expect(await loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
-                    `'${fileToUpload}' was not found`).to.be.true;
-                await loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
-                await driver.wait(loadIntoLakehouse.untilExistsLoadingTask(fileToUpload), constants.wait1second * 5);
-                await loadIntoLakehouse.setNewLoadingTask(newTask);
-                await loadIntoLakehouse.startLoadingTask();
-
-            });
-
-            it("Lakehouse Tables", async () => {
-
-                const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
-                await driver.wait(lakehouseTables.untilIsOpened(), constants.wait1second * 15);
-                expect(await lakehouseTables.getDatabaseSchemas()).to.contain(newTask.targetDatabaseSchema);
-                await driver.wait(lakehouseTables.untilExistsLakeHouseTable(newTask.name), constants.wait1second * 10);
-                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoading(newTask.name), constants.wait1minute);
-
-                let latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
-                expect(latestTable.hasProgressBar).to.be.true;
-                expect(latestTable.loaded).to.match(/(\d+)%/);
-                expect(latestTable.hasLoadingSpinner).to.be.true;
-                expect(latestTable.rows).to.equals("-");
-                expect(latestTable.size).to.equals("-");
-                expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                expect(latestTable.comment).to.equals(newTask.description);
-
-                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name), constants.wait1minute * 2);
-                latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
-                expect(latestTable.hasProgressBar).to.be.false;
-                expect(latestTable.loaded).to.equals("Yes");
-                expect(latestTable.hasLoadingSpinner).to.be.false;
-                expect(latestTable.rows).to.match(/(\d+)/);
-                expect(latestTable.size).to.match(/(\d+).(\d+) (KB|MB)/);
-                expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                expect(latestTable.comment).to.equals(newTask.description);
-
-                const tasks = await lakehouseTables.getLakeHouseTasks();
-
-                tasks.sort((itemA: interfaces.ICurrentTask, itemB: interfaces.ICurrentTask) => {
-                    return itemA.id > itemB.id ? -1 : 1; // sort descending
-                });
-
-                if (tasks.length > 0) {
-                    for (const task of tasks) {
-                        if (task.name === `Loading ${newTask.name}`) {
-                            await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id),
-                                constants.wait1second * 10);
-                            expect(task.name).to.equals(`Loading ${newTask.name}`);
-                            expect(task.hasProgressBar).to.be.false;
-                            expect(task.status).to.equals("COMPLETED");
-                            expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                            expect(task.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                            expect(task.message).to.equals("Task completed.");
-                            break;
-                        }
-                    }
-                } else {
-                    // disabled verification
-                    //throw new Error(`There are not any new tasks to verify`);
-                }
-
-            });
 
         });
 
@@ -2030,6 +2192,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await DatabaseConnectionDialog.setConnection(dbConnection);
 
                 await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+                await dbTreeSection.focus();
                 const treeFolder = await dbTreeSection.getTreeItem(dbConnection1.folderPath.value);
 
                 const children = await treeFolder.getChildren();
@@ -2109,110 +2272,6 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-    });
-
-    describe("Toolbar", () => {
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-        });
-
-        afterEach(async function () {
-            if (this.currentTest.state === "failed") {
-                await Misc.processFailure(this);
-            }
-        });
-
-        it("Reload the connection list", async () => {
-
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
-
-        });
-
-        it("Collapse All", async () => {
-
-            await dbTreeSection.focus();
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
-            const treeGlobalSchema = await dbTreeSection.getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL)
-                .schema);
-
-            await treeGlobalSchema.expand();
-            const treeGlobalSchemaTables = await dbTreeSection.getTreeItem("Tables");
-            await treeGlobalSchemaTables.expand();
-            const treeGlobalSchemaViews = await dbTreeSection.getTreeItem("Views");
-            await treeGlobalSchemaViews.expand();
-            const treeDBSection: CustomTreeSection = await new SideBarView().getContent()
-                .getSection(constants.dbTreeSection);
-            await dbTreeSection.clickToolbarButton(constants.collapseAll);
-
-            let visibleItems: CustomTreeItem[];
-            await driver.wait(async () => {
-                visibleItems = await treeDBSection.getVisibleItems();
-                if (visibleItems.length > 0) {
-                    for (const item of visibleItems) {
-                        if (await item.getAttribute("aria-level") !== "1") {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }
-            }, constants.wait1second * 5, "The tree is not fully collapsed");
-        });
-
-        it("Restart internal MySQL Shell process", async () => {
-
-            await fs.truncate(Os.getMysqlshLog());
-            await dbTreeSection.selectMoreActionsItem(constants.restartInternalShell);
-            const notification = await Workbench.getNotification("This will close all MySQL Shell tabs", false);
-            await Workbench.clickOnNotificationButton(notification, "Restart MySQL Shell");
-            await driver.wait(async () => {
-                return Os.findOnMySQLShLog(/Info/);
-            }, constants.wait1second * 5 * 3, "Shell server did not start");
-
-            try {
-                await driver.wait(async () => {
-                    const text = await fs.readFile(Os.getMysqlshLog());
-                    if (text.includes("Registering session...")) {
-                        return true;
-                    }
-                }, constants.wait1second * 20, "Restarting the internal MySQL Shell server went wrong");
-            } finally {
-                E2ELogger.info("<<<<MySQLSH Logs>>>>");
-                await Os.writeMySQLshLogs();
-            }
-
-        });
-
-        it("Relaunch Welcome Wizard", async () => {
-
-            await dbTreeSection.selectMoreActionsItem(constants.relaunchWelcomeWizard);
-            await driver.wait(Workbench.untilTabIsOpened(constants.welcomeTab), constants.wait1second * 5);
-            const active = await Workbench.getActiveTab();
-            let error = `The active tab should be ${constants.welcomeTab}`;
-            error += `, but found ${await active.getTitle()}`;
-            expect(await active.getTitle(), error).equals(constants.welcomeTab);
-            await driver.wait(until.ableToSwitchToFrame(0), constants.wait1second * 5, "Not able to switch to frame 0");
-            await driver.wait(until.ableToSwitchToFrame(
-                locator.iframe.isActive), constants.wait1second * 5, "Not able to switch to frame 2");
-            const text = await driver.findElement(locator.welcomeWizard.title).getText();
-            expect(text, `The Welcome wizard title should be ${constants.welcome}, but found ${text}`)
-                .equals(constants.welcome);
-            expect(await driver.findElement(locator.welcomeWizard.nextButton),
-                `Next button does not exist on the welcome wizard`).to.exist;
-
-        });
-
-        it("Reset MySQL Shell for VS Code Extension", async () => {
-
-            await Workbench.closeAllEditors();
-            await dbTreeSection.selectMoreActionsItem(constants.resetExtension);
-            let notification = "This will completely reset the MySQL Shell for VS Code extension by ";
-            notification += "deleting the web certificate and optionally deleting the user settings directory.";
-            const ntf = await Workbench.getNotification(notification, false);
-            await Workbench.clickOnNotificationButton(ntf, constants.cancel);
-
-        });
     });
 
 });
