@@ -43,7 +43,7 @@ from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
                                                       MySQLColumnsListTask,
                                                       MySQLRoutinesListTask)
 from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
-                                            ReconnectionMode)
+                                            ReconnectionMode, lock_usage)
 from gui_plugin.core.dbms.DbSessionTasks import (DbExecuteTask,
                                                  check_supported_type)
 from gui_plugin.core.Error import MSGException
@@ -131,6 +131,12 @@ class DbMysqlSession(DbSession):
         return False
 
     def run_sql(self, sql, args=None):
+        """
+        Executes an sql statement, returns a result object.
+
+        WARNING: Use LOCKED state to call this function anc consume it's result,
+        otherwise may lead to race conditions and shell crashes (see lock_usage)
+        """
         return self.session.run_sql(sql, args)
 
     def on_shell_prompt(self, text, options):
@@ -373,8 +379,9 @@ class DbMysqlSession(DbSession):
         self.execute("START TRANSACTION")
 
     def kill_query(self, user_session):
-        user_session._killed = True
-        self.session.run_sql(f"KILL QUERY {user_session.connection_id}")
+        with lock_usage(self._mutex, 5):
+            user_session._killed = True
+            self.run_sql(f"KILL QUERY {user_session.connection_id}")
 
     def get_default_schema(self):
         return self._connection_options['schema'] if 'schema' in self._connection_options else ''
@@ -753,11 +760,11 @@ class DbMysqlSession(DbSession):
                                    f"The columns {column_names} do not exist.")
             return {"columns": result}
 
-
     def get_routines_metadata(self, schema_name):
         params = (schema_name,)
 
-        has_external_language = self._column_exists("ROUTINES", "EXTERNAL_LANGUAGE")
+        has_external_language = self._column_exists(
+            "ROUTINES", "EXTERNAL_LANGUAGE")
         if has_external_language:
             sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', EXTERNAL_LANGUAGE as 'language'
                     FROM information_schema.ROUTINES
@@ -783,9 +790,8 @@ class DbMysqlSession(DbSession):
                 result = []
             if not result:
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
-                                    f"The '{schema_name}' does not exist.")
+                                   f"The '{schema_name}' does not exist.")
             return {"routines": result}
-
 
     def _column_exists(self, table_name, column_name):
         """Check if a column exists in INFORMATION_SCHEMA table."""
@@ -796,9 +802,10 @@ class DbMysqlSession(DbSession):
                     AND TABLE_NAME = ?
                     AND COLUMN_NAME = ?"""
 
-        cursor = self.cursor = self.run_sql(sql, (table_name, column_name))
+        with lock_usage(self._mutex, 5):
+            cursor = self.cursor = self.run_sql(sql, (table_name, column_name))
 
-        if cursor:
-            result = cursor.fetch_one()
-            return result and result.get_field("count") > 0
+            if cursor:
+                result = cursor.fetch_one()
+                return result and result.get_field("count") > 0
         return False
