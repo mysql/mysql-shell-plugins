@@ -10,6 +10,7 @@
 
 - BUG#37716544 Conflicts when updating a REST Document with the TypeScript SDK
 - BUG#37762456 Type error not raised when attempting to sort by unsortable fields in the TypeScript MRS SDK
+- BUG#38043368 Type check error when accessing OUT parameters for Async Procedure in the MRS TypeScript SDK
 -
 
 ## Changes in 1.19.14+9.3.1
