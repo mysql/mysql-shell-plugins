@@ -39,9 +39,11 @@ import { IThemeChangeData, ThemeManager } from "../components/Theming/ThemeManag
 import { CodeEditorSetup } from "../components/ui/CodeEditor/CodeEditorSetup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
-import type { IStatusBarItem, IStatusBarItemOptions,
-    StatusBarAlignment } from "../components/ui/Statusbar/StatusBarItem.js";
 import { renderStatusBar, StatusBar } from "../components/ui/Statusbar/Statusbar.js";
+import type {
+    IStatusBarItem, IStatusBarItemOptions,
+    StatusBarAlignment,
+} from "../components/ui/Statusbar/StatusBarItem.js";
 import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
 import { appParameters } from "../supplement/AppParameters.js";
 import { requisitions } from "../supplement/Requisitions.js";
@@ -52,11 +54,12 @@ import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
 import { DialogHost } from "./DialogHost.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
+import {
+    DialogResponseClosure, DialogType, IDialogResponse, minimumShellVersion, type IDialogRequest,
+    type IServicePasswordRequest,
+} from "./general-types.js";
 import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
 import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
-import {
-    DialogResponseClosure, DialogType, IDialogResponse, minimumShellVersion, type IServicePasswordRequest,
-} from "./general-types.js";
 
 void CodeEditorSetup.init();
 
@@ -261,8 +264,8 @@ export class App extends Component<{}, IAppState> {
 
     // IUILayer interface implementation
 
-    public showInformationMessage = <T extends string>(message: string, _options: MessageOptions,
-        ..._items: T[]): Thenable<string | undefined> => {
+    public showInformationMessage = <T extends string>(message: string, options: MessageOptions,
+        ...items: T[]): Thenable<string | undefined> => {
         // Forward info messages to the hosting application.
         if (appParameters.embedded) {
             const result = requisitions.executeRemote("showInfo", message);
@@ -271,11 +274,31 @@ export class App extends Component<{}, IAppState> {
             }
         }
 
-        if (this.#notificationCenterRef.current) {
-            return this.#notificationCenterRef.current.showNotification({
-                type: NotificationType.Information,
-                text: message,
-            });
+        const accept = items.shift();
+        const refuse = items.shift();
+        const alternative = items.shift();
+        if (options?.modal) {
+            const request: IDialogRequest = {
+                id: "uiInformationMessage",
+                type: DialogType.Confirm,
+                description: options?.detail ? [options.detail] : undefined,
+                parameters: {
+                    title: options?.title ?? "Information",
+                    prompt: message,
+                    accept,
+                    refuse,
+                    alternative,
+                },
+            };
+
+            void requisitions.execute("showDialog", request);
+        } else {
+            if (this.#notificationCenterRef.current) {
+                return this.#notificationCenterRef.current.showNotification({
+                    type: NotificationType.Information,
+                    text: message,
+                });
+            }
         }
 
         return Promise.resolve(undefined);

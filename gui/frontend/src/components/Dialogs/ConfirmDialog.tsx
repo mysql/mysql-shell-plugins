@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,11 +36,12 @@ import { Icon } from "../ui/Icon/Icon.js";
 import { Label } from "../ui/Label/Label.js";
 import { Button } from "../ui/Button/Button.js";
 
-interface IConfirmDialogButtons {
-    accept?: string;      // Default: "Yes".
-    refuse?: string;      // Default: "No".
-    alternative?: string; // Default: nothing.
-    default?: string;     // Default: nothing.
+/** Possible buttons to show. Only fields with a value also show a button. */
+export interface IConfirmDialogButtons {
+    accept?: string;
+    refuse?: string;
+    alternative?: string;
+    default?: string;
 }
 
 interface IConfirmDialogProperties extends IComponentProperties {

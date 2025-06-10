@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -244,7 +244,7 @@ class ShellTask(BaseTask):
         raise_exception: bool = True,
     ) -> str:
         return self.__shell_execute(command, mode, conn_str, False, raise_exception)
-    
+
     def shell_command_execute_cli(
         self,
         commands: list,
@@ -317,7 +317,7 @@ class ShellTask(BaseTask):
             else:
                 Logger.warning(exc)
         return out
-    
+
     def __shell_execute_cli(
         self,
         commands: list,
@@ -349,7 +349,7 @@ class ShellTask(BaseTask):
                 .decode("utf-8")
                 .strip()
             )
-            
+
             if out:
                 if "WARNING" in out.upper():
                     Logger.warning(out)
@@ -544,17 +544,17 @@ class SetMySQLServerTask(ShellTask):
         """Deploying new MySQL server instance in temp dir"""
 
         self.shell_command_execute_cli(
-            ["--", 
-             "dba", 
-             "deploy-sandbox-instance", 
-             self.port, 
-             f"--password={self.environment['DBPASSWORD']}", 
+            ["--",
+             "dba",
+             "deploy-sandbox-instance",
+             self.port,
+             f"--password={self.environment['DBPASSWORD']}",
              f"--sandbox-dir={self.dir_name}"
             ])
 
         cert_path = pathlib.Path(
             self.dir_name, f"{self.port}", "sandboxdata")
-        
+
         if not cert_path.joinpath("ca.pem").exists():
             raise RuntimeError("Unable to find SSL certificates")
 
@@ -575,10 +575,10 @@ class SetMySQLServerTask(ShellTask):
 
         if self.sandbox_deployed:
             self.shell_command_execute_cli(
-                ["--", 
+                ["--",
                 "dba", "kill-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully stopped MySQL instance")
-            
+
             self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully deleted MySQL instance")
 
@@ -783,11 +783,10 @@ class DisableTests:
                             to_replace = test_file.replace(f"it(\"{test}\"", f"it.skip(\"{test}\"")
                         else:
                             continue
-                        
+
                         f = open(pathlib.Path(tests_dir.joinpath(file)), "w")
                         f.write(to_replace)
                         f.close()
 
                         Logger.info(f"{log} \"{test}\" on file \"{file}\" was DISABLED")
                         break
-                    

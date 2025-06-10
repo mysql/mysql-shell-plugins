@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -122,6 +122,7 @@ class SetEnvironmentVariablesTask:
         self.environment["DBUSERNAME3PWD"] = "dummy"
         self.environment["MU_USERNAME"] = "client"
         self.environment["MU_PASSWORD"] = "client"
+        self.environment["TEST_AUTO_LOGOUT_TIMEOUT"] = "5000"
 
         for server in self.servers:
             if server.multi_user:

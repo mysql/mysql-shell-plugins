@@ -312,8 +312,8 @@ export class DialogHost extends ComponentBase {
         this.#confirmDialogRef.current?.show(
             request.parameters?.prompt as string ?? "",
             {
-                accept: request.parameters?.accept as string ?? "",
-                refuse: request.parameters?.refuse as string ?? "",
+                accept: request.parameters?.accept as string,
+                refuse: request.parameters?.refuse as string,
                 alternative: request.parameters?.alternative as string,
                 default: request.parameters?.default as string,
             },
