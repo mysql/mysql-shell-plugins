@@ -153,13 +153,19 @@ export class ShellInterfaceDbConnection {
      * @param profileId The id of the profile.
      * @param caption The caption of the folder.
      * @param parentFolderId The id of the parent folder, optional.
+     * @param settings Optional settings for the folder path, can be used to store additional metadata.
+     * @param settings.color The color of the folder path, optional.
      *
      * @returns A promise resolving to the id of the new folder path.
      */
-    public async addFolderPath(profileId: number, caption: string, parentFolderId?: number): Promise<IFolderPath> {
+    public async addFolderPath(profileId: number, caption: string, parentFolderId?: number,
+        settings?: { color: string; },
+    ): Promise<IFolderPath> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsAddFolderPath,
-            parameters: { args: { profileId, caption, parentFolderId } },
+            parameters: {
+                args: { profileId, caption, parentFolderId, settings: settings ?? { color: "" } },
+            },
         });
 
         return response.result;
