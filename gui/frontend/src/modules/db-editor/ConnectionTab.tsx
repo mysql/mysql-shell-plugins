@@ -65,7 +65,9 @@ import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
     EditorLanguage, IScriptRequest, ISqlPageRequest,
 } from "../../supplement/index.js";
-import { convertErrorToString, resolvePageSize, saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
+import {
+    convertErrorToString, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
+} from "../../utilities/helpers.js";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
@@ -961,7 +963,7 @@ Execute \\help or \\? for help;`;
                 return requisitions.executeRemote("editorLoadNotebook", undefined);
             }
 
-            const selection = await selectFile([".mysql-notebook"], false);
+            const selection = await selectFileInBrowser([".mysql-notebook"], false);
             if (selection) {
                 const file = selection[0];
                 const reader = new FileReader();
@@ -2292,6 +2294,7 @@ Execute \\help or \\? for help;`;
 
                 break;
             }
+
             case ChatOptionAction.LoadChatOptions: {
                 if (appParameters.embedded) {
                     const options = {
@@ -2311,6 +2314,7 @@ Execute \\help or \\? for help;`;
 
                 break;
             }
+
             case ChatOptionAction.StartNewChat: {
                 // Start new chat but keep schemaName and modelId
                 this.updateChatOptionsState({

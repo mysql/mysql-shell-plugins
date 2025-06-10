@@ -30,8 +30,7 @@ import { commands, ConfigurationTarget, TextEditor, Uri, window, workspace } fro
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import {
-    ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
-    type IDocumentOpenData,
+    ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider, type IDocumentOpenData,
     type InitialEditor,
 } from "../../frontend/src/supplement/RequisitionTypes.js";
 
@@ -43,14 +42,14 @@ import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.j
 import {
     cdbDbEntityTypeName, CdmEntityType, ConnectionDataModelEntry, ICdmConnectionEntry, ICdmEventEntry,
     ICdmRestDbObjectEntry, type ConnectionDataModelNoGroupEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
-    type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
-    type ICdmTriggerEntry, type ICdmViewEntry,
+    type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry, type ICdmTriggerEntry,
+    type ICdmViewEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import {
     OdmEntityType, OpenDocumentDataModel, type IOdmConnectionPageEntry, type IOdmNotebookEntry, type IOdmScriptEntry,
-    type IOdmShellSessionEntry,
-    type OpenDocumentDataModelEntry,
+    type IOdmShellSessionEntry, type OpenDocumentDataModelEntry,
 } from "../../frontend/src/data-models/OpenDocumentDataModel.js";
+import { ConnectionProcessor } from "../../frontend/src/modules/common/ConnectionProcessor.js";
 import { MrsDbObjectType } from "../../frontend/src/modules/mrs/types.js";
 import { DBType, type IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
@@ -186,6 +185,31 @@ export class DocumentCommandHandler {
                 void provider?.show(entry.details.id, editor);
             }
         };
+
+        context.subscriptions.push(commands.registerCommand("msg.importWorkbenchConnections", () => {
+            void window.showOpenDialog({
+                title: "Select the connection.xml file to import",
+                openLabel: "Import Connections File",
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                filters: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    XML: ["xml"],
+                },
+            }).then((value) => {
+                if (value && value.length === 1) {
+                    const uri = value[0];
+                    void workspace.fs.readFile(uri).then((value) => {
+                        const content = value.toString();
+                        void ConnectionProcessor.importMySQLWorkbenchConnections(content,
+                            this.connectionsProvider.dataModel);
+
+                        void requisitions.execute("refreshConnection", undefined);
+                    });
+                }
+            });
+        }));
 
         context.subscriptions.push(commands.registerCommand("msg.openConnection", (entry?: ICdmConnectionEntry) => {
             openConnection(entry);

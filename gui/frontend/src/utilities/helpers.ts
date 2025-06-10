@@ -57,14 +57,14 @@ export const versionMatchesExpected = (version: string | number[], expected: num
 };
 
 /**
- * Allows the user to select a local file.
+ * Allows the user to select a local file. This is only usable in a browser environment.
  *
  * @param acceptedExtensions A list of file extensions (including the dot) that are allowed to be selected.
  * @param multiple If true, allows to select more than a single file.
  *
  * @returns A promise that resolves to a single file or a list of files.
  */
-export const selectFile = (acceptedExtensions: string[], multiple: boolean): Promise<File[] | null> => {
+export const selectFileInBrowser = (acceptedExtensions: string[], multiple: boolean): Promise<File[] | null> => {
     return new Promise((resolve): void => {
         const input = document.createElement("input");
         input.type = "file";

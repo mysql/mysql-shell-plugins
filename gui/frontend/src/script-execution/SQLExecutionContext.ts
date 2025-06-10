@@ -553,6 +553,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 hoverMessage: { value: data.message },
             },
         }];
+
         // Only add runtime error decoration if there is no existing syntax error decorations
         if (details.diagnosticDecorationIDs.length === 0) {
             this.runtimeErrorDecorations = editorModel?.deltaDecorations?.(details.diagnosticDecorationIDs, decoration);

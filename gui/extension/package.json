@@ -469,6 +469,10 @@
                 "title": "File Bug Report"
             },
             {
+                "command": "msg.importWorkbenchConnections",
+                "title": "Import MySQL Workbench Connections"
+            },
+            {
                 "command": "msg.restartShell",
                 "title": "Restart the Internal MySQL Shell Process"
             },
@@ -1427,8 +1431,13 @@
                     "when": "view == msg.connections"
                 },
                 {
-                    "command": "msg.fileBugReport",
+                    "command": "msg.importWorkbenchConnections",
                     "group": "3_msg@1",
+                    "when": "view == msg.connections"
+                },
+                {
+                    "command": "msg.fileBugReport",
+                    "group": "4_msg@1",
                     "when": "view == msg.connections"
                 },
                 {

@@ -56,7 +56,7 @@ import { IOpenFileDialogResult } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { convertErrorToString, selectFile, uuidBinary16Base64 } from "../../utilities/helpers.js";
+import { convertErrorToString, selectFileInBrowser, uuidBinary16Base64 } from "../../utilities/helpers.js";
 import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
 import { IToolbarItems } from "./index.js";
 
@@ -3119,7 +3119,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 });
             }
 
-            void selectFile(contentType, true).then((result) => {
+            void selectFileInBrowser(contentType, true).then((result) => {
                 if (result) {
                     const newFilesForUpload = filesForUpload ?? [];
                     result.forEach((file) => {

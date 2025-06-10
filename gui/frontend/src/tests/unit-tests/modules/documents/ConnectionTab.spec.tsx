@@ -129,11 +129,11 @@ describe("DBConnectionTab tests", (): void => {
         },
         executionHistory: [],
         currentExecutionHistoryIndex: 0,
-        isCloudInstance: false
     };
 
     const connection = connectionsDataModel.createConnectionEntry({
         id: 123,
+        index: -1,
         dbType: DBType.MySQL,
         caption: "details1",
         description: "description1",
