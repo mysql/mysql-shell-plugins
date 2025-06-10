@@ -39,6 +39,6 @@ COMMIT;
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version`;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 22;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 23;
 
 PRAGMA foreign_keys = ON;
