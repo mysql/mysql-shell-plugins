@@ -215,6 +215,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private sidebarCommandHandler: SidebarCommandHandler;
 
+    private autoLogoutTimer?: ReturnType<typeof setTimeout>;
+
     public constructor(props: {}) {
         super(props);
 
@@ -310,9 +312,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (this.containerRef.current && !appParameters.embedded) {
             this.containerRef.current.addEventListener("keydown", this.handleKeyPress);
         }
+
+        // A user is logged in when this component gets mounted, so we can start the auto logout timer.
+        if (webSession.runMode === RunMode.SingleServer) {
+            this.restartAutologoutTimer();
+            ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
+                window.addEventListener(evt, this.restartAutologoutTimer, true);
+            });
+        }
     }
 
     public override componentWillUnmount(): void {
+        clearTimeout(this.autoLogoutTimer);
+        this.autoLogoutTimer = undefined;
+
+        if (webSession.runMode === RunMode.SingleServer) {
+            ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
+                window.removeEventListener(evt, this.restartAutologoutTimer, true);
+            });
+        }
+
         if (this.containerRef.current && !appParameters.embedded) {
             this.containerRef.current.removeEventListener("keydown", this.handleKeyPress);
         }
@@ -2969,4 +2988,33 @@ EXAMPLES
 
         return caption;
     }
+
+    private restartAutologoutTimer = () => {
+        clearTimeout(this.autoLogoutTimer);
+        this.autoLogoutTimer = undefined;
+
+        let logoutTimout: number | undefined;
+        const testTimeout = process.env.TEST_AUTO_LOGOUT_TIMEOUT;
+        if (testTimeout !== undefined) {
+            logoutTimout = parseInt(testTimeout, 10); // Must be in milliseconds.
+
+            if (logoutTimout === undefined || isNaN(logoutTimout)) {
+                logoutTimout = undefined;
+            }
+        }
+
+        if (logoutTimout === undefined) {
+            // Use the configured auto logout timeout. Convert hours to milliseconds.
+            logoutTimout = Settings.get("general.autoLogoutTimeout", 12) * 3600 * 1000;
+        }
+
+        if (logoutTimout > 0) {
+            this.autoLogoutTimer = setTimeout(() => {
+                void ui.showInformationMessage("You have been logged out due to inactivity. Please log in again.",
+                    { modal: true }, "OK");
+                void this.doLogout();
+            }, logoutTimout);
+        }
+    };
+
 }

@@ -33,8 +33,8 @@ import { requisitions } from "../supplement/Requisitions.js";
 import { EditorLanguage, IScriptRequest } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import {
-    IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions,
-    IResultSet, IResultSetRows, IResultSets, LoadingState,
+    IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions, IResultSet, IResultSetRows,
+    IResultSets, LoadingState,
 } from "./index.js";
 
 import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.js";
