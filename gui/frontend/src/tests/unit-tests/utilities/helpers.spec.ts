@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import {
-    binarySearch, clampValue, flattenObject, selectFile, sleep, strictEval, uuid, waitFor, deepEqual,
+    binarySearch, clampValue, flattenObject, selectFileInBrowser, sleep, strictEval, uuid, waitFor, deepEqual,
 } from "../../../utilities/helpers.js";
 import { nextProcessTick, uuidPattern } from "../test-helpers.js";
 
@@ -106,7 +106,7 @@ describe("Utilities Tests", (): void => {
 
     it("Select File", async () => {
         // Single file.
-        let promise = selectFile([".json"], false);
+        let promise = selectFileInBrowser([".json"], false);
         let inputs = document.getElementsByTagName("input");
         expect(inputs).toHaveLength(1);
         await nextProcessTick();
@@ -120,7 +120,7 @@ describe("Utilities Tests", (): void => {
         expect(singleValue).not.toBeNull();
         expect(singleValue).toHaveLength(0);
 
-        promise = selectFile([".json"], true);
+        promise = selectFileInBrowser([".json"], true);
         inputs = document.getElementsByTagName("input");
         expect(inputs).toHaveLength(1);
         await nextProcessTick();

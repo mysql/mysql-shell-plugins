@@ -28,8 +28,8 @@ import { Component, ComponentChild, createRef } from "preact";
 import { ICodeEditorModel, type IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
-import { requisitions } from "../../supplement/Requisitions.js";
 import { appParameters } from "../../supplement/AppParameters.js";
+import { requisitions } from "../../supplement/Requisitions.js";
 import {
     IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
     IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData,
@@ -47,7 +47,9 @@ import {
 } from "./index.js";
 
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
-import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
+import {
+    IMySQLConnectionOptions,
+} from "../../communication/MySQL.js";
 import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { ComponentPlacement } from "../../components/ui/Component/ComponentBase.js";
@@ -66,7 +68,7 @@ import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supp
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
-import { convertErrorToString, loadFileAsText, selectFile, uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, loadFileAsText, selectFileInBrowser, uuid } from "../../utilities/helpers.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
@@ -103,11 +105,12 @@ import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/Shel
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
 import type { IShellEditorModel } from "../shell/index.js";
 import { ShellTab, type IShellTabPersistentState } from "../shell/ShellTab.js";
+import { ConnectionDataModelListener } from "./ConnectionDataModelListener.js";
 import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
-import { ConnectionDataModelListener } from "./ConnectionDataModelListener.js";
+import { ConnectionProcessor } from "../common/ConnectionProcessor.js";
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -786,21 +789,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private handleAddConnection = (entry: ICdmConnectionEntry): void => {
-        void this.connectionsDataModel.groupFromPath(entry.details.folderPath).then((group) => {
-            ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, entry.details,
-                group.folderPath.id).then((connectionDetails) => {
-                    if (connectionDetails !== undefined) {
-                        entry.details.id = connectionDetails[0];
-                        void this.connectionsDataModel.addConnectionEntry(entry).then(() => {
-                            requisitions.executeRemote("connectionAdded", entry.details);
-                        });
-                    }
-                }).catch((reason) => {
-                    const message = convertErrorToString(reason);
-                    void requisitions.execute("showError", "Cannot add DB connection: " + message);
-
-                });
-        });
+        void ConnectionProcessor.addConnection(entry, this.connectionsDataModel);
     };
 
     private handleUpdateConnection = (entry: ICdmConnectionEntry): void => {
@@ -1206,6 +1195,23 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
 
         return requisitions.execute("userLoggedOut", {});
+    };
+
+    private handleImportWorkbenchConnections = async (): Promise<boolean> => {
+        const files: File[] | null = await selectFileInBrowser([".xml"], false);
+        if (files && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const xmlString = e.target?.result?.toString() ?? "";
+                void ConnectionProcessor.importMySQLWorkbenchConnections(xmlString, this.connectionsDataModel);
+            };
+
+            reader.readAsText(file);
+        }
+
+        return true;
     };
 
     /**
@@ -2216,7 +2222,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         qualifiedName?: QualifiedName): Promise<ISideBarCommandResult> => {
         const { connectionTabs } = this.state;
 
-        // First command which need no entry.
+        // First handle commands which need no entry.
         if (!entry) {
             switch (command.command) {
                 case "addConsole": {
@@ -2226,16 +2232,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 }
 
                 case "msg.logOut": {
-                    await this.connectionsDataModel.clear();
-                    this.documentDataModel.clear();
-                    this.ociDataModel.clear();
-                    webSession.clearCredentials();
+                    await this.doLogout();
 
-                    // No need to manually close any connection. The data models take care to close when
-                    // they are cleared.
-                    this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
+                    return { success: true };
+                }
 
-                    void requisitions.execute("userLoggedOut", {});
+                case "msg.importWorkbenchConnections": {
+                    await this.handleImportWorkbenchConnections();
 
                     return { success: true };
                 }
@@ -2422,7 +2425,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private async loadScriptFromDisk(connection: IConnectionDetails, pageId?: string): Promise<void> {
-        const files = await selectFile([".sql"], false);
+        const files = await selectFileInBrowser([".sql"], false);
         if (files && files.length > 0) {
             const file = files[0];
             const content = await loadFileAsText(file);

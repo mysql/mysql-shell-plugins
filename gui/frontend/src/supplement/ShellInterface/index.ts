@@ -44,14 +44,14 @@ export interface IConnectionSettings {
     defaultEditor?: ConnectionEditorType;
 }
 
-export interface IConnectionDetails {
+export interface IConnectionDetails<OptionsType = IShellConnectionOptions> {
     /** A running number in the backend DB, where connections are stored. */
     id: number;
 
     dbType: DBType;
     caption: string;
     description: string;
-    options: IShellConnectionOptions;
+    options: OptionsType;
     useSSH?: boolean;
     useMHS?: boolean;
 

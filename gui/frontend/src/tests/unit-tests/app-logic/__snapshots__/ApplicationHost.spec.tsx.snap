@@ -537,6 +537,13 @@ exports[`Application host tests Rendering About 1`] = `
                               "choices": [
                                 {
                                   "command": {
+                                    "command": "msg.importWorkbenchConnections",
+                                    "title": "Import MySQL Workbench Connections",
+                                  },
+                                  "icon": "import.svg",
+                                },
+                                {
+                                  "command": {
                                     "command": "msg.logOut",
                                     "title": "Log Out",
                                   },
@@ -10826,6 +10833,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                               "choices": [
                                 {
                                   "command": {
+                                    "command": "msg.importWorkbenchConnections",
+                                    "title": "Import MySQL Workbench Connections",
+                                  },
+                                  "icon": "import.svg",
+                                },
+                                {
+                                  "command": {
                                     "command": "msg.logOut",
                                     "title": "Log Out",
                                   },
@@ -20907,6 +20921,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                               "choices": [
                                 {
                                   "command": {
+                                    "command": "msg.importWorkbenchConnections",
+                                    "title": "Import MySQL Workbench Connections",
+                                  },
+                                  "icon": "import.svg",
+                                },
+                                {
+                                  "command": {
                                     "command": "msg.logOut",
                                     "title": "Log Out",
                                   },
@@ -30986,6 +31007,13 @@ exports[`Application host tests Rendering Preferences 1`] = `
                           [
                             {
                               "choices": [
+                                {
+                                  "command": {
+                                    "command": "msg.importWorkbenchConnections",
+                                    "title": "Import MySQL Workbench Connections",
+                                  },
+                                  "icon": "import.svg",
+                                },
                                 {
                                   "command": {
                                     "command": "msg.logOut",
