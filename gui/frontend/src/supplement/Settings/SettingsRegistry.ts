@@ -199,6 +199,15 @@ export const registerSettings = (): void => {
         true,
         false,
     );
+    registerSetting(
+        "general.autoLogoutTimeout",
+        "Auto Logout Timeout",
+        "The number of hours after which the user is automatically logged out. Set to 0 to disable auto logout.",
+        "number",
+        12,
+        false,
+        { range: [0, 24] },
+    );
 
     registerSettingCategory(
         "workers",

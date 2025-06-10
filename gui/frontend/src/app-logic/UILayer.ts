@@ -36,7 +36,6 @@ import type { IServicePasswordRequest } from "./general-types.js";
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface MessageOptions {
-
     /** Indicates that this message should be modal. */
     modal?: boolean;
 
@@ -45,6 +44,11 @@ export interface MessageOptions {
      * is only shown for {@link MessageOptions.modal modal} messages.
      */
     detail?: string;
+
+    /**
+     * An optional string as title for the message. This is used only for {@link MessageOptions.modal modal} messages.
+     */
+    title?: string;
 }
 
 /**

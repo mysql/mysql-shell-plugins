@@ -44,6 +44,7 @@ import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ENotebook } from "../lib/E2ENotebook.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { E2EWorkbench } from "../lib/SideBar/E2EWorkbench.js";
+import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -606,6 +607,5 @@ describe("Single Server Mode", () => {
             throw e;
         }
     });
-
 
 });

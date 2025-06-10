@@ -49,9 +49,10 @@ import {
 } from "../../data-models/OpenDocumentDataModel.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
-import { IRuntimeErrorResult, SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { SQLExecutionContext, type IRuntimeErrorResult } from "../../script-execution/SQLExecutionContext.js";
 import {
-    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState, currentNotebookVersion,
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState,
+    currentNotebookVersion,
 } from "../../script-execution/index.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import {
