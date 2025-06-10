@@ -36,7 +36,7 @@ import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
 import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { KeyboardKeys, saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
+import { KeyboardKeys, saveArrayAsFile, saveTextAsFile, selectFileInBrowser } from "../../utilities/helpers.js";
 import { convertCamelToTitleCase, convertHexToBase64, formatBase64ToHex } from "../../utilities/string-helpers.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import {
@@ -1157,7 +1157,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         // Keep a reference to the selected cell, because it is reset while the file dialog is open.
         const cell = this.selectedCell;
         if (cell) {
-            void selectFile([], false).then((files) => {
+            void selectFileInBrowser([], false).then((files) => {
                 if (files && files.length > 0) {
                     const reader = new FileReader();
                     reader.onload = (e) => {

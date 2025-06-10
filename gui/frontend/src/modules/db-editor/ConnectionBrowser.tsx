@@ -31,12 +31,14 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { DialogResponseClosure, DialogType, IDialogResponse, IDictionary } from "../../app-logic/general-types.js";
 import { IMySQLDbSystem } from "../../communication/index.js";
 import { Breadcrumb, type IBreadCrumbSegment } from "../../components/ui/Breadcrumb/Breadcrumb.js";
+
 import { Codicon } from "../../components/ui/Codicon.js";
 import {
     ComponentBase, ComponentPlacement, IComponentProperties, type IComponentState,
 } from "../../components/ui/Component/ComponentBase.js";
 import {
-    ConnectionTile, ConnectionTileType, IConnectionTileProperties, type ITileActionOptions,
+    ConnectionTile, ConnectionTileType, IConnectionTileProperties,
+    type ITileActionOptions,
 } from "../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { FrontPage } from "../../components/ui/FrontPage/FrontPage.js";
@@ -58,7 +60,7 @@ import { DocumentContext, type DocumentContextType, type IToolbarItems } from ".
 interface IConnectionBrowserProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
 
-    onAddConnection: (entry: ICdmConnectionEntry) => void;
+    onAddConnection: (entry: ICdmConnectionEntry) => void | Promise<void>;
     onUpdateConnection: (entry: ICdmConnectionEntry) => void;
     onRemoveConnection: (entry: ICdmConnectionEntry) => void;
 }
@@ -280,6 +282,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     <MenuItem id="remove" command={{ title: "Remove Connection…", command: "remove" }} />
                 </Menu>
                 <FrontPage
+                    id="frontPageContent"
                     showGreeting={Settings.get("dbEditor.connectionBrowser.showGreeting", true)}
                     caption="MySQL Shell - DB Connections"
                     description={
@@ -293,7 +296,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     onCloseGreeting={this.handleCloseGreeting}
                 >
                     <Container
-                        id="frontPageContent"
+                        id="frontPageHeading"
+                        fixedScrollbars={false}
                         crossAlignment={ContentAlignment.Center}
                     >
                         <Label id="contentTitle" caption={contentTitle} />
@@ -315,7 +319,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                         {tiles}
                     </Container>
                 </FrontPage>
-            </Container>
+            </Container >
         );
     }
 
@@ -682,7 +686,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
         const model = this.dataModel;
         if (model) {
-            onAddConnection(model.createConnectionEntry(details));
+            void onAddConnection(model.createConnectionEntry(details));
         }
     };
 

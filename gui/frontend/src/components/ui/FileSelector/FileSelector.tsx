@@ -27,10 +27,10 @@ import "./FileSelector.css";
 
 import { ComponentChild } from "preact";
 
+import { appParameters } from "../../../supplement/AppParameters.js";
 import { IOpenDialogFilters, IOpenFileDialogResult } from "../../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
-import { appParameters } from "../../../supplement/AppParameters.js";
-import { selectFile } from "../../../utilities/helpers.js";
+import { selectFileInBrowser } from "../../../utilities/helpers.js";
 import { Button } from "../Button/Button.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, Orientation } from "../Container/Container.js";
@@ -190,7 +190,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                 });
             }
 
-            void selectFile(contentType, multiSelection).then((result) => {
+            void selectFileInBrowser(contentType, multiSelection).then((result) => {
                 if (result) {
                     onChange?.(result.map((value) => { return value.name; }), this.props);
                 } else {

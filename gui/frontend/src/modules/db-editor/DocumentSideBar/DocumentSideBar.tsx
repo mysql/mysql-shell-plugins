@@ -528,6 +528,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         icon: Codicon.KebabHorizontal,
                         tooltip: "More Actions",
                         choices: [{
+                            icon: Assets.toolbar.importIcon,
+                            command: {
+                                command: "msg.importWorkbenchConnections",
+                                title: "Import MySQL Workbench Connections",
+                            },
+                        }, {
                             icon: Codicon.Account,
                             command: {
                                 command: "msg.logOut",

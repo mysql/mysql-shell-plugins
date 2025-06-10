@@ -249,6 +249,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
 Click the [New Connection] tile to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
 
 DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data."
+        id="frontPageContent"
         onCloseGreeting={[Function]}
         showGreeting={true}
       >
@@ -411,12 +412,13 @@ DB Notebooks are modern editors for working with databases. You can use them to 
               >
                 <Container
                   crossAlignment="center"
-                  id="frontPageContent"
+                  fixedScrollbars={false}
+                  id="frontPageHeading"
                   orientation="row"
                 >
                   <div
-                    className="msg container fixedScrollbar"
-                    id="frontPageContent"
+                    className="msg container"
+                    id="frontPageHeading"
                     style={
                       {
                         "alignItems": "center",

@@ -94,6 +94,18 @@
     white-space: nowrap;
 }
 
+.msg.connectionBrowser #importConnectionsButton {
+    padding: 0;
+    margin: 0 4px auto 8px;
+    width: 20px;
+    height: 20px;
+}
+
+.msg.connectionBrowser #importConnectionsButton > .icon {
+    width: 8px;
+    height: 8px;
+}
+
 .msg.connectionBrowser #documentSelector,
 .msg.dbModuleTabview #documentSelector {
     flex: 0 0 210px;
@@ -778,6 +790,6 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     background: var(--button-background);
 }
 
-.msg #frontPageContent #contentTitle {
+.msg #frontPageHeading #contentTitle {
     padding-right: 14px;
 }
