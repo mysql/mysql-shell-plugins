@@ -4,7 +4,8 @@
 
 ### Additions
 
--
+- Error highlighting for Javascript stored programs
+- Usability and functionality improvements in the Connection Overview
 
 ### Fixes
 
