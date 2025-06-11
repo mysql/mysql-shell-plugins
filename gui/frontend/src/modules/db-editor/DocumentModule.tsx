@@ -3010,7 +3010,7 @@ EXAMPLES
             // Use the configured auto logout timeout. Convert hours to milliseconds.
             logoutTimout = Settings.get("general.autoLogoutTimeout", 12) * 3600 * 1000;
         }
-
+        console.log(`logoutTimout is: ${logoutTimout}`);
         if (logoutTimout > 0) {
             this.autoLogoutTimer = setTimeout(() => {
                 void ui.showInformationMessage("You have been logged out due to inactivity. Please log in again.",

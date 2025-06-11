@@ -608,4 +608,25 @@ describe("Single Server Mode", () => {
         }
     });
 
+    it("Auto logout", async () => {
+        try {
+            console.log(`TEST_AUTO_LOGOUT_TIMEOUT: ${String(process.env.TEST_AUTO_LOGOUT_TIMEOUT)}`);
+            const login = new E2ELogin();
+            await login.setUsername(String(process.env.DBUSERNAME1));
+            await login.setPassword(String(process.env.DBUSERNAME1PWD));
+            await login.login();
+
+            const tabContainer = new E2ETabContainer();
+            await driver.wait(tabContainer.untilTabExists(constants.mysqlAIServer), constants.wait10seconds);
+            const dialog = await new ConfirmDialog().untilExists(constants.wait15seconds);
+            expect(await dialog.getText()).toBe("You have been logged out due to inactivity. Please log in again.");
+            await dialog.accept();
+            await driver.wait(until.elementLocated(locator.loginPage.sakilaLogo), constants.wait5seconds,
+                "The user was not auto logged out");
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
 });
