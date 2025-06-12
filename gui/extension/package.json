@@ -1433,7 +1433,7 @@
                 {
                     "command": "msg.importWorkbenchConnections",
                     "group": "3_msg@1",
-                    "when": "view == msg.connections && false"
+                    "when": "view == msg.connections"
                 },
                 {
                     "command": "msg.fileBugReport",

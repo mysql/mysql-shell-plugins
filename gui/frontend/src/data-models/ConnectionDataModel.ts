@@ -1261,11 +1261,22 @@ export class ConnectionDataModel implements ICdmAccessManager {
         const parts = path.split("/");
         let currentGroup = this.rootGroup;
         let currentList = this.rootGroup.entries;
+
+        const findGroup = (name: string): ICdmConnectionGroupEntry | undefined => {
+            return currentList.find((e) => {
+                return e.caption === name && e.type === CdmEntityType.ConnectionGroup;
+            }) as ICdmConnectionGroupEntry | undefined;
+        };
+
         for (const part of parts) {
             // Does a group with this name already exist?
-            let group = currentList.find((e) => {
-                return e.caption === part && e.type === CdmEntityType.ConnectionGroup;
-            }) as ICdmConnectionGroupEntry | undefined;
+            let group = findGroup(part);
+
+            if (group === undefined) {
+                await this.updateConnectionGroup(currentGroup);
+                currentList = currentGroup.entries;
+                group = findGroup(part);
+            }
 
             if (group === undefined) {
                 const folderPath = await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, part,
