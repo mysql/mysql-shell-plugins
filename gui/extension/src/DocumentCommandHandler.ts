@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import * as os from "os";
 import fs from "fs";
 import { basename } from "path";
 
@@ -71,6 +72,15 @@ import {
 import { showMessageWithTimeout } from "./utilities.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 
+const homeDir = os.homedir();
+
+/** The platform specific paths for MySQL Workbench connection files. */
+const defaultWbConnectionsFilePath = new Map<string, string>([
+    ["win32", `${homeDir}/AppData/Roaming/MySQL/Workbench/connections.xml`],
+    ["darwin", `${homeDir}/Library/Application Support/MySQL/Workbench/connections.xml`],
+    ["linux", `${homeDir}/.mysql/workbench/connections.xml`],
+]);
+
 /** A class to handle all DB editor related commands and jobs. */
 export class DocumentCommandHandler {
     static #dmTypeToMrsType = new Map<CdmEntityType, MrsDbObjectType>([
@@ -101,6 +111,8 @@ export class DocumentCommandHandler {
     // Set when the handler triggers a document selection, which causes the a bounce back from the web app
     // in which a document was selected. This flag is used to prevent the re-selection of the last selected item.
     private selectionInProgress = false;
+
+    private lastUsedWbImportPath?: string;
 
     public constructor(connectionsProvider: ConnectionsTreeDataProvider) {
         this.connectionsProvider = connectionsProvider;
@@ -186,8 +198,12 @@ export class DocumentCommandHandler {
             }
         };
 
-        context.subscriptions.push(commands.registerCommand("msg.importWorkbenchConnections", () => {
-            void window.showOpenDialog({
+        context.subscriptions.push(commands.registerCommand("msg.importWorkbenchConnections", async () => {
+            const defaultPath = this.lastUsedWbImportPath ?? defaultWbConnectionsFilePath.get(os.platform())
+                ?? "";
+
+            const value = await window.showOpenDialog({
+                defaultUri: Uri.file(defaultPath),
                 title: "Select the connection.xml file to import",
                 openLabel: "Import Connections File",
                 canSelectFiles: true,
@@ -197,18 +213,15 @@ export class DocumentCommandHandler {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     XML: ["xml"],
                 },
-            }).then((value) => {
-                if (value && value.length === 1) {
-                    const uri = value[0];
-                    void workspace.fs.readFile(uri).then((value) => {
-                        const content = value.toString();
-                        void ConnectionProcessor.importMySQLWorkbenchConnections(content,
-                            this.connectionsProvider.dataModel);
-
-                        void requisitions.execute("refreshConnection", undefined);
-                    });
-                }
             });
+
+            if (value && value.length === 1) {
+                const uri = value[0];
+                this.lastUsedWbImportPath = uri.fsPath;
+                const content = (await workspace.fs.readFile(uri)).toString();
+                await ConnectionProcessor.importMySQLWorkbenchConnections(content, this.connectionsProvider.dataModel);
+                void requisitions.execute("refreshConnection", undefined);
+            }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openConnection", (entry?: ICdmConnectionEntry) => {

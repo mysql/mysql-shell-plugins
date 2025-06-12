@@ -61,9 +61,6 @@ export class ConnectionProcessor {
         try {
             const xml = SimpleXMLParser.parse(xmlString);
 
-            //const parser = new DOMParser();
-            //const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-
             // Validate the XML file.
             if (xml.length === 0) {
                 throw new Error("No data found.");
@@ -293,6 +290,7 @@ export class ConnectionProcessor {
             if (connectionDetails !== undefined) {
                 entry.details.id = connectionDetails[0];
                 await dataModel.addConnectionEntry(entry);
+
                 requisitions.executeRemote("connectionAdded", entry.details);
             }
         } catch (reason) {

@@ -123,6 +123,10 @@ export class SimpleXMLParser {
             }
         }
 
+        if (stack.length > 0) {
+            throw new Error(`Unclosed tag: ${stack[stack.length - 1].tagName}`);
+        }
+
         return result;
     }
 
