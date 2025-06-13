@@ -60,12 +60,14 @@ def open_file_viewer(path):
     else:
         cmd = cmd.split()
 
+    cmd.append(str(path))
+
     global g_open_file_viewer_printed_note
     if not g_open_file_viewer_printed_note:
         g_open_file_viewer_printed_note = True
         print(f"Opening results with {cmd}, set EXPLAIN_TEST_OPEN env var to change")
 
-    subprocess.call(cmd + [path])
+    subprocess.call(cmd)
 
 
 def strip_style(svg_data):
