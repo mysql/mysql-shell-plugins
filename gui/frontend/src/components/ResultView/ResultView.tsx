@@ -451,6 +451,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             let minWidth = 50;
             let editor: Editor | undefined;
+            let width = this.columnWidthCache.get(info.title);
 
             switch (info.dataType.type) {
                 case DBDataType.TinyInt:
@@ -492,6 +493,18 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     // For now, use built in text editor with HEX formatting
                     editor = this.editorHost;
                     minWidth = 150;
+                    width = undefined;
+
+                    break;
+                }
+
+                case DBDataType.Vector: {
+                    // No in-place editor. Uses value editor popup.
+                    formatter = this.vectorFormatter;
+                    // For now, use built in text editor with HEX formatting
+                    editor = this.editorHost;
+                    minWidth = 150;
+                    width = undefined;
 
                     break;
                 }
@@ -510,6 +523,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     // As a temporary solution allow editing as string.
                     editor = this.editorHost;
                     minWidth = 150;
+                    width = undefined;
 
                     break;
                 }
@@ -524,6 +538,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     // As a temporary solution allow editing as string.
                     editor = this.editorHost;
                     minWidth = 150;
+                    width = undefined;
 
                     break;
                 }
@@ -552,8 +567,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     break;
                 }
             }
-
-            const width = this.columnWidthCache.get(info.title);
 
             return {
                 title: info.title,
@@ -1315,6 +1328,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.Varbinary:
             case DBDataType.Enum:
             case DBDataType.Set:
+            case DBDataType.Vector:
             case DBDataType.Geometry:
             case DBDataType.Point:
             case DBDataType.LineString:
@@ -1581,6 +1595,21 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.markIfChanged(cell);
 
         const source = cell.getValue() === null ? Assets.data.nullIcon : Assets.data.blobIcon;
+        const icon = <Icon src={source} />;
+
+        const host = document.createElement("div");
+        host.className = iconHostClassName;
+
+        render(icon, host);
+
+        return host;
+    };
+
+    // istanbul ignore next
+    private vectorFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
+        const source = cell.getValue() === null ? Assets.data.nullIcon : Assets.data.vectorIcon;
         const icon = <Icon src={source} />;
 
         const host = document.createElement("div");

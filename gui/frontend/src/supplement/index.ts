@@ -256,6 +256,12 @@ export const generateColumnInfo = (dbType: DBType, rawColumns?: ITableColumn[],
                 break;
             }
 
+            case "vector": {
+                dataType.type = DBDataType.Vector;
+
+                break;
+            }
+
             default:
                 break;
         }

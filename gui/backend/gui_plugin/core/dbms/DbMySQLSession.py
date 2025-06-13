@@ -319,8 +319,9 @@ class DbMysqlSession(DbSession):
     def get_column_info(self, row=None):
         columns = []
         for column in self.cursor.get_columns():
+            data_type = column.get_type()
             columns.append({"name": column.get_column_label(),
-                            "type": column.get_type().data,
+                            "type": data_type.data if data_type else "VECTOR",
                             "length": column.get_length()})
 
         return columns
