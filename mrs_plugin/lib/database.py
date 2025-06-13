@@ -411,7 +411,7 @@ def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_ty
     if schema_name.lower() in ["performance_schema"]:
         sql = f"""
             REVOKE IF EXISTS SELECT ON
-            {schema_name}.{db_object_name}
+            {quote_identifier(schema_name)}.{quote_identifier(db_object_name)}
             FROM 'mysql_rest_service_data_provider'@'%'
         """
     else:
@@ -423,7 +423,7 @@ def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_ty
             revoke = "ALL PRIVILEGES ON"
         sql = f"""
             REVOKE IF EXISTS
-            {revoke} {schema_name}.{db_object_name}
+            {revoke} {quote_identifier(schema_name)}.{quote_identifier(db_object_name)}
             FROM 'mysql_rest_service_data_provider'@'%'
         """
     session.run_sql(sql)
