@@ -35,6 +35,7 @@ DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
 REQUIRED_ROUTER_VERSION_STR = '%d.%d.%d' % tuple(REQUIRED_ROUTER_VERSION)
 
+HEATWAVE_DEFAULT_ENDPOINTS_SCRIPT_VERSION = "1.1.0"
 
 def get_status(session):
     # Check if the MRS metadata schema already exists
@@ -200,7 +201,7 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                             script_name="HeatWave Default Endpoints",
                             sql_file_path=lib.core.script_path(
                                 "scripts", "default_heatwave_endpoints",
-                                "heatwave_rest_service_1.0.0.sql"))
+                                f"heatwave_rest_service_{HEATWAVE_DEFAULT_ENDPOINTS_SCRIPT_VERSION}.sql"))
         else:
             schema_changed = False
             info_msg = (
