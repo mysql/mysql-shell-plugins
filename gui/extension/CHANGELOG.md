@@ -2,13 +2,10 @@
 
 ## Changes in 1.19.14+9.3.1
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixed broken VECTOR datatype support
+- Fixed MRS SDK generation when an db object name consists only of special chars
 
 ## Changes in 1.19.13+9.3.1
 
