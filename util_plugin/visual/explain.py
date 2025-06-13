@@ -64,6 +64,8 @@ k_svg_style = """
 .join_subtext { font: 11px sans-serif; text-anchor: middle; alignment-baseline: bottom; fill: #444; stroke: transparent; }
 .bold_join_subtext { font: bold 11px sans-serif; text-anchor: middle; alignment-baseline: bottom; fill: #444; stroke: transparent; }
 
+.subheading { stroke: #f8f8f8; fill: #f0f0f0; }
+.subheading_text { font: italic 9px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #444; stroke: transparent; }
 .description { stroke: #f0f0f0; fill: #f0f0f0; }
 .description_text { font: 9px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #888; stroke: transparent; }
 
@@ -75,6 +77,7 @@ k_svg_style = """
 
 .cost_box { stroke: #f0f0f0; fill: #f8f8f8; rx: 2; }
 .subquery_heading { fill: #eee; stroke: #eee; rx: 2; }
+.subquery_text { font: 10px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #555; stroke: transparent; }
 .subquery_box { fill: transparent; stroke: #aaa; rx: 2; stroke-dasharray: 4,2; }
 
 .total_rows_text { font: 11px sans-serif; text-anchor: start; alignment-baseline: bottom; }
@@ -84,7 +87,7 @@ k_svg_style = """
 .join_phase { font: 10px sans-serif; text-anchor: end; alignment-baseline: bottom; fill: #aaa; stroke: transparent; }
 
 /* sql */
-.identifier { fill: #888; font: 10px monospace; text-anchor: start; alignment-baseline: bottom; }
+.identifier { fill: #444; font: 10px monospace; text-anchor: start; alignment-baseline: bottom; }
 .comment { fill: #aaa; font: 10px monospace; text-anchor: start; alignment-baseline: bottom; }
 .string { fill: #a64; font: 10px monospace; text-anchor: start; alignment-baseline: bottom; }
 .number { fill: #266; font: 10px monospace; text-anchor: start; alignment-baseline: bottom; }
@@ -178,7 +181,7 @@ k_svg_style = """
 
 .arrow { stroke: transparent; fill: #aaa; }
 
-.minimap_frame { stroke: #bbb; fill: #fff; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4)); }
+.minimap_frame { stroke: #bbb; fill: #fff; filter: drop-shadow(3px 5px 2px rgb(0 0 0 0.4)); }
 """
 
 k_svg_script = r"""
@@ -423,7 +426,7 @@ class BaseExplainWidget(VBox):
         self,
         from_widget: "BaseExplainWidget",
         to_widget: "BaseExplainWidget",
-        is_select_item: bool,
+        is_extra_item: bool,
     ):
         flipped = self.owner._owner.options.top_down
 
@@ -433,7 +436,7 @@ class BaseExplainWidget(VBox):
             )
         )
         yoffset = 5 if flipped else -5
-        if is_select_item:
+        if is_extra_item:
             to_point = self.from_absolute(to_widget.to_absolute(to_widget.right_anchor))
 
             return make_bendy_arrow(
@@ -556,12 +559,12 @@ class BaseExplainWidget(VBox):
     def do_draw(self) -> Optional[svg.Element]:
         extras = []
         if self.owner._parent:
-            is_select_item = self.owner in self.owner._parent.inputs_from_select_list
+            is_extra_item = self.owner in self.owner._parent._extra_inputs
 
             from_widget = self
             to_widget = self.owner._parent._symbol
             extras.append(
-                self._draw_arrow(from_widget, to_widget, is_select_item=is_select_item)
+                self._draw_arrow(from_widget, to_widget, is_extra_item=is_extra_item)
             )
 
             extras += self._draw_row_count(from_widget, to_widget)
@@ -643,62 +646,75 @@ class JoinWidget(BaseExplainWidget):
         self.add(w, end=end)
 
     def _draw_join_phases(self) -> List[svg.Element]:
-        assert len(self.owner.inputs) == 2, self.owner.inputs
+        # JOINs always have 2 main inputs but they can have additional inputs
+        # that are "subquery_location": "condition"
+        # or "subquery_location": "extra conditions"
 
         # tag inputs with the phases that they represent
-        tag0 = None
-        tag1 = None
+        tags = []
+        positions = []
         input0 = self.owner.inputs[0]
         input1 = self.owner.inputs[1]
         if self.owner.join_algorithm == "nested_loop":
-            tag0 = "outer"
-            tag1 = "inner"
+            tags.append("outer")
+            tags.append("inner")
         elif self.owner.join_algorithm == "hash":
             if getattr(input1, "heading") == "Hash":
-                tag0 = "probe"
-                tag1 = "build"
+                tags.append("probe")
+                tags.append("build")
             else:
-                tag0 = "build"
-                tag1 = "probe"
+                tags.append("build")
+                tags.append("probe")
         elif self.owner.join_algorithm == "batch_key_access":
             if getattr(input0, "heading") == "Batch input rows":
-                tag0 = "outer"
-                tag1 = "inner"
+                tags.append("outer")
+                tags.append("inner")
             else:
-                tag0 = "inner"
-                tag1 = "outer"
+                tags.append("inner")
+                tags.append("outer")
 
-        p0 = self.from_absolute(
-            input0._symbol.to_absolute(
-                Point(input0._symbol.right_anchor.x, input0._symbol.top_anchor.y)
+        positions.append(
+            self.from_absolute(
+                input0._symbol.to_absolute(
+                    Point(input0._symbol.right_anchor.x, input0._symbol.top_anchor.y)
+                )
             )
         )
-        p1 = self.from_absolute(
-            input1._symbol.to_absolute(
-                Point(input1._symbol.right_anchor.x, input1._symbol.top_anchor.y)
+        positions.append(
+            self.from_absolute(
+                input1._symbol.to_absolute(
+                    Point(input1._symbol.right_anchor.x, input1._symbol.top_anchor.y)
+                )
             )
         )
+
+        for input in self.owner.inputs[2:]:
+            if input.subquery_location:
+                tags.append(input.subquery_location)
+            else:
+                tags.append("")
+            positions.append(
+                self.from_absolute(
+                    input._symbol.to_absolute(
+                        Point(input._symbol.right_anchor.x, input._symbol.top_anchor.y)
+                    )
+                )
+            )
 
         flipped = self.owner._owner.options.top_down
         yoffset = 5 if flipped else 4
 
         elements = []
-        elements.append(
-            svg.Text(
-                x=p0.x,
-                y=p0.y - yoffset,
-                text=tag0,
-                class_=["join_phase"],
+        for tag, pos in zip(tags, positions):
+            elements.append(
+                svg.Text(
+                    x=pos.x,
+                    y=pos.y - yoffset,
+                    text=tag,
+                    class_=["join_phase"],
+                )
             )
-        )
-        elements.append(
-            svg.Text(
-                x=p1.x,
-                y=p1.y - yoffset,
-                text=tag1,
-                class_=["join_phase"],
-            )
-        )
+
         return elements
 
     def do_draw(self) -> Optional[svg.Element]:
@@ -799,6 +815,7 @@ class ExplainWidget(BaseExplainWidget):
         self,
         owner: "node",
         title,
+        heading=None,
         description=None,
         icon=None,
         style=None,
@@ -842,26 +859,23 @@ class ExplainWidget(BaseExplainWidget):
         content_group = VBox(style="box_content")
         self.add(content_group)
 
+        if heading and not self.compact:
+            content_group.add(
+                self.make_subheading(
+                    heading, style="subheading", text_style="subheading_text"
+                )
+            )
+
         if (
             description
             and (owner._owner.options.show_description or always_show_description)
             and not self.compact
         ):
-            frame = Frame(
-                left_padding=1,
-                right_padding=1,
-                draw_background=True,
-                style="description",
+            content_group.add(
+                self.make_subheading(
+                    description, style="description", text_style="description_text"
+                )
             )
-            margin = Frame(
-                left_padding=5, top_padding=0, right_padding=5, bottom_padding=3
-            )
-            text = Text(not_code(description), char_width=4.5, style="description_text")
-            # hack to force width of text
-            text._fixed_width = self.symbol_width - 10
-            margin.set_content(text)
-            frame.set_content(margin)
-            content_group.add(frame)
 
         self._box = VBox(
             top_padding=4,
@@ -872,6 +886,18 @@ class ExplainWidget(BaseExplainWidget):
             fixed_width=self.symbol_width,
         )
         content_group.add(self._box)
+
+    def make_subheading(self, text, style, text_style):
+        frame = Frame(
+            left_padding=1, right_padding=1, draw_background=True, style=style
+        )
+        margin = Frame(left_padding=5, top_padding=0, right_padding=5, bottom_padding=3)
+        text = Text(not_code(text), char_width=4.5, style=text_style)
+        # hack to force width of text
+        text._fixed_width = self.symbol_width - 10
+        margin.set_content(text)
+        frame.set_content(margin)
+        return frame
 
     @property
     def symbol_width(self):
@@ -977,7 +1003,7 @@ class SubqueryGrid(Grid):
                 svg.Rect(
                     x=0, y=0, width=size.w, height=24, class_=["subquery_heading"]
                 ),
-                svg.Text(x=8, y=18, text=self.heading, class_=["text"]),
+                svg.Text(x=8, y=18, text=self.heading, class_=["subquery_text"]),
                 svg.Rect(
                     x=0,
                     y=0,
@@ -1140,8 +1166,8 @@ class Explain:
             return
 
         # align this node to the parent node of the child group
-        if node.inputs:
-            c = node.inputs[-1]
+        if node._main_inputs:
+            c = node._main_inputs[-1]
             assert node._container
             assert not c._container or isinstance(c._container, Grid)
 
@@ -1382,9 +1408,9 @@ class Explain:
                         fill=self._color_for_cost(n.estimated_total_cost),
                     )
                 )
-            for c in n.inputs:
+            for c in n._main_inputs:
                 elements += draw_recursive(c)
-            for c in n.inputs_from_select_list:
+            for c in n._extra_inputs:
                 elements += draw_recursive(c)
             return elements
 
@@ -1547,6 +1573,20 @@ class node:
 
     _is_framed = False
 
+    @property
+    def _main_inputs(self):
+        if isinstance(self, Join):
+            return self.inputs[:2]
+        else:
+            return self.inputs
+
+    @property
+    def _extra_inputs(self):
+        if isinstance(self, Join):
+            return self.inputs[2:] + self.inputs_from_select_list
+        else:
+            return self.inputs_from_select_list
+
     def __init__(self, owner: Explain, parent: Optional["node"], explain: dict):
         self._owner = owner
         self._parent = parent
@@ -1598,7 +1638,7 @@ class node:
                 chained_join = True
                 assert len(self.inputs) == 2
 
-            num_columns = len(self.inputs) + len(self.inputs_from_select_list)
+            num_columns = len(self._main_inputs) + len(self._extra_inputs)
             if not self.inputs:
                 num_columns += 1
             if self.subquery:
@@ -1628,7 +1668,7 @@ class node:
                 parent_row = 0
 
             col = 0
-            for child in self.inputs:
+            for child in self._main_inputs:
                 if chained_join and 0:
                     self._container.put(
                         row=children_row,
@@ -1643,15 +1683,26 @@ class node:
                         w=child._container or child._symbol,
                     )
                 col += 1
-            if self.inputs:
+            if self._main_inputs:
                 col -= 1
-            self._container.put(row=parent_row, column=col, w=self._symbol)
 
-            for child in self.inputs_from_select_list:
+            self._container.put(row=parent_row, column=col, w=self._symbol)
+            for child in self._extra_inputs:
                 col += 1
                 self._container.put(
                     row=children_row, column=col, w=child._container or child._symbol
                 )
+        else:
+            if self.subquery:
+                self._container = SubqueryGrid(
+                    num_columns=1,
+                    num_rows=1,
+                    vspacing=80 if not self._symbol.compact else 60,
+                    hspacing=40 if not self._symbol.compact else 20,
+                    heading=self.heading,
+                    style="box_nested_content",
+                )
+                self._container.put(row=0, column=0, w=self._symbol)
 
     def _add_cost_estimate(self):
         if isinstance(self._symbol, BaseExplainWidget):
@@ -1758,17 +1809,11 @@ class node:
                     )
 
     def _dump(self, indent=0):
-        print(indent * "  ", f"+ {self.access_type or '?'} '{self.operation}'")
+        print(indent * "  ", f"+ {self.access_type or '?'}")
         for k in dir(self):
             if (
                 not k.startswith("_")
-                and k
-                not in [
-                    "inputs",
-                    "inputs_from_select_list",
-                    "access_type",
-                    "operation",
-                ]
+                and k not in ["inputs", "inputs_from_select_list", "access_type"]
                 and getattr(self, k) is not None
             ):
                 print(indent * "  ", f"  - {k}: {getattr(self, k)}")
@@ -1793,8 +1838,8 @@ class node:
     @property
     def _arrow_width(self) -> int:
         if not hasattr(self, "estimated_rows"):
-            if self.inputs:
-                return self.inputs[0]._arrow_width
+            if self._main_inputs:
+                return self._main_inputs[0]._arrow_width
             return 1
 
         if not self.estimated_rows or isinstance(self.estimated_rows, str):
@@ -1835,7 +1880,8 @@ class source(node):
     def _make_symbol(self, **kwargs) -> BaseExplainWidget:
         widget = ExplainWidget(
             self,
-            self._caption + (f" ({self.heading})" if self.heading else ""),
+            self._caption
+            + (f" ({self.heading})" if self.heading and not self.subquery else ""),
             description=self.operation,
             style=self._style,
             compact=not self._owner.options.detailed,
@@ -1917,7 +1963,8 @@ class operation(node):
     def _make_symbol(self, **kwargs) -> BaseExplainWidget:
         widget = ExplainWidget(
             self,
-            self._caption + (f" ({self.heading})" if self.heading else ""),
+            self._caption,
+            heading=None if self.subquery else self.heading,
             description=self.operation,
             icon=self._icon,
             style=self._style,
