@@ -46,7 +46,7 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
-import { webSession } from "../../supplement/WebSession.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, sleep, uuid } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber, quote } from "../../utilities/string-helpers.js";
 import type { MrsHub } from "../mrs/MrsHub.js";
@@ -1074,7 +1074,10 @@ export class SidebarCommandHandler {
             const port = getRouterPortForConnection(entry.connection.details.id);
             let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
 
-            if (url.startsWith("/")) {
+            if (webSession.runMode === RunMode.SingleServer && url.startsWith("/")) {
+                // TODO: Get port from metadata schema once the router stores it there
+                url = `https://${window.location.hostname}:8443${url}`;
+            } else if (url.startsWith("/")) {
                 url = `https://localhost:${port}${url}`;
             } else {
                 url = `https://${url}`;
