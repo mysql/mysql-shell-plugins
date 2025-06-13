@@ -30,6 +30,8 @@ from string import Template
 import json
 from base64 import b64decode
 import mysqlsh
+import string
+import random
 
 
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
@@ -439,6 +441,9 @@ def generate_identifier(
         identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value, allowed_special_characters))}"
     else:
         identifier = value
+    # If the stripped identifier would result in an empty one, create a random one
+    if len(identifier) == 0:
+        identifier = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     identifier = f"_{identifier}" if identifier[0].isdigit() else identifier
     total_duplicates = existing_identifiers.count(identifier)
     # we want to track the identifier with a potential prefix, but without the suffix
