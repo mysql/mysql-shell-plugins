@@ -109,6 +109,8 @@ export enum DBDataType {
     Boolean,
     Enum,
     Set,
+
+    Vector,
 }
 
 export const isNumericType = (type: DBDataType): boolean => {
