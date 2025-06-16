@@ -697,11 +697,12 @@ export class ConnectionDataModel implements ICdmAccessManager {
     public set autoRouterRefresh(value: boolean) {
         if (value) {
             this.refreshMrsRoutersTimer = setInterval(() => {
-                const list = this.connectionList;
-                list.forEach((c) => {
-                    if (c.mrsEntry?.state.expanded) {
-                        void c.mrsEntry.refresh!();
-                    }
+                void this.connectionList().then((list) => {
+                    list.forEach((c) => {
+                        if (c.mrsEntry?.state.expanded) {
+                            void c.mrsEntry.refresh!();
+                        }
+                    });
                 });
             }, this.routerRefreshTime);
         } else {
@@ -768,7 +769,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     /** Closes all connections, but keeps them in the data model. */
     public async closeAllConnections(): Promise<void> {
-        const connections = this.connectionList;
+        const connections = await this.connectionList();
         for (const connection of connections) {
             await connection.close();
         }
@@ -824,8 +825,8 @@ export class ConnectionDataModel implements ICdmAccessManager {
      *
      * @param connectionId The id of the connection to check.
      */
-    public isValidConnectionId(connectionId: number): boolean {
-        return this.findConnectionEntryById(connectionId) !== undefined;
+    public async isValidConnectionId(connectionId: number): Promise<boolean> {
+        return (await this.findConnectionEntryById(connectionId)) !== undefined;
     }
 
     /**
@@ -1112,21 +1113,28 @@ export class ConnectionDataModel implements ICdmAccessManager {
     }
 
     /**
-     * @returns The connection entry with the given id, or `undefined` if no such entry exists.
+     * Finds a connection entry by its ID, optionally restricting the search to a specific folder path.
+     * Providing the folderPath parameter improves performance by limiting the search scope instead of
+     * refreshing all connection groups, which can be inefficient with many connections.
      *
      * @param id The id of the connection to find.
+     * @param folderPath A path under which the connection is organized.
+     *
+     * @returns The connection entry with the given id, or `undefined` if no such entry exists.
      */
-    public findConnectionEntryById(id: number): ICdmConnectionEntry | undefined {
-        return this.connectionList.find((entry) => { return entry.details.id === id; });
+    public async findConnectionEntryById(id: number, folderPath?: string): Promise<ICdmConnectionEntry | undefined> {
+        return (await this.connectionList(folderPath)).find((entry) => { return entry.details.id === id; });
     }
 
     /**
      * @returns The connection group entry with the given id, or `undefined` if no such entry exists.
      *
      * @param id The id of the connection group to find.
+     * @param folderPath A path under which the group is organized.
      */
-    public findConnectionGroupEntryById(id: number): ICdmConnectionGroupEntry | undefined {
-        return this.groupList.find((entry) => { return entry.folderPath.id === id; });
+    public async findConnectionGroupEntryById(id: number, folderPath = "/")
+        : Promise<ICdmConnectionGroupEntry | undefined> {
+        return (await this.groupList(folderPath)).find((entry) => { return entry.folderPath.id === id; });
     }
 
     /**
@@ -1134,11 +1142,12 @@ export class ConnectionDataModel implements ICdmAccessManager {
      *
      * @param caption The caption of the connection to find.
      */
-    public findConnectionEntryByCaption(caption: string): ICdmConnectionEntry | undefined {
-        return this.connectionList.find((entry) => { return entry.details.caption === caption; });
+    public async findConnectionEntryByCaption(caption: string): Promise<ICdmConnectionEntry | undefined> {
+        return (await this.connectionList()).find((entry) => { return entry.details.caption === caption; });
     }
 
-    public updateConnectionDetails(data: IConnectionDetails | ICdmConnectionEntry): ICdmConnectionEntry | undefined {
+    public async updateConnectionDetails(data: IConnectionDetails | ICdmConnectionEntry)
+        : Promise<ICdmConnectionEntry | undefined> {
         let details: IConnectionDetails;
 
         let id;
@@ -1151,7 +1160,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
             id = details.id;
         }
 
-        const entry = this.findConnectionEntryById(id) as Mutable<ICdmConnectionEntry>;
+        const entry = await this.findConnectionEntryById(id, details.folderPath) as Mutable<ICdmConnectionEntry>;
         if (entry) {
             entry.details = details;
             entry.caption = details.caption;
@@ -1190,50 +1199,27 @@ export class ConnectionDataModel implements ICdmAccessManager {
         }
     }
 
-    /**
-     * @returns a flat list of all loaded connections (no groups).
-     */
-    public get connectionList(): ICdmConnectionEntry[] {
-        const result: ICdmConnectionEntry[] = [];
-
-        const addEntry = (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
-            if (entry.type === CdmEntityType.Connection) {
-                result.push(entry);
-            } else {
-                for (const child of entry.entries) {
-                    addEntry(child);
-                }
-            }
+    public groupList = async (folderPath = "/"): Promise<ICdmConnectionGroupEntry[]> => {
+        const predicate = (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
+            return entry.type === CdmEntityType.ConnectionGroup;
         };
 
-        for (const entry of this.rootGroup.entries) {
-            addEntry(entry);
-        }
+        return this.collectEntries<ICdmConnectionGroupEntry>(
+            folderPath,
+            predicate,
+        );
+    };
 
-        return result;
-    }
-
-    /**
-     * @returns a flat list of all loaded groups (no connections).
-     */
-    public get groupList(): ICdmConnectionGroupEntry[] {
-        const result: ICdmConnectionGroupEntry[] = [];
-
-        const addEntry = (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
-            if (entry.type === CdmEntityType.ConnectionGroup) {
-                result.push(entry);
-                for (const child of entry.entries) {
-                    addEntry(child);
-                }
-            }
+    public connectionList = async (folderPath = "/"): Promise<ICdmConnectionEntry[]> => {
+        const predicate = (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
+            return entry.type === CdmEntityType.Connection;
         };
 
-        for (const entry of this.rootGroup.entries) {
-            addEntry(entry);
-        }
-
-        return result;
-    }
+        return this.collectEntries<ICdmConnectionEntry>(
+            folderPath,
+            predicate,
+        );
+    };
 
     public async getCredentials(): Promise<ILoginCredentials | undefined> {
         return webSession.decryptCredentials();
@@ -1363,6 +1349,40 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 result.connections.push(entry);
             }
         };
+
+        for (const entry of group.entries) {
+            await addEntry(entry);
+        }
+
+        return result;
+    }
+
+    private async collectEntries<T extends ICdmConnectionGroupEntry | ICdmConnectionEntry>(folderPath: string,
+        filterFn: (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => boolean): Promise<T[]> {
+        const result: T[] = [];
+
+        const addEntry = async (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
+            if (entry.type === CdmEntityType.ConnectionGroup) {
+                if (!entry.state.initialized) {
+                    await entry.refresh?.();
+                }
+                if (filterFn(entry)) {
+                    result.push(entry as T);
+                }
+                for (const child of entry.entries) {
+                    await addEntry(child);
+                }
+            } else {
+                if (filterFn(entry)) {
+                    result.push(entry as T);
+                }
+            }
+        };
+
+        const group = await this.groupFromPath(folderPath);
+        if (!group.state.initialized) {
+            await group.refresh?.();
+        }
 
         for (const entry of group.entries) {
             await addEntry(entry);

@@ -5,6 +5,8 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
   value={
     {
       "connectionsDataModel": ConnectionDataModel {
+        "connectionList": [Function],
+        "groupList": [Function],
         "notifySubscribers": [Function],
         "refreshMrsRoutersTimer": undefined,
         "rootGroup": {

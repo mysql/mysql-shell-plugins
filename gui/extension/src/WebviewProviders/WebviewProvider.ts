@@ -29,6 +29,7 @@ import { commands, ConfigurationTarget, Uri, ViewColumn, WebviewPanel, window, w
 
 import { RequisitionHub, requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import {
+    IConnectionInfo,
     IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, SimpleCallback,
     type IUpdateStatusBarItem,
 } from "../../../frontend/src/supplement/RequisitionTypes.js";
@@ -271,10 +272,10 @@ export class WebviewProvider implements IWebviewProvider {
         });
     };
 
-    private updateMrsRoot = (connectionId: string): Promise<boolean> => {
+    private updateMrsRoot = (connectionInfo: IConnectionInfo): Promise<boolean> => {
         return requisitions.execute("proxyRequest", {
             provider: this,
-            original: { requestType: "updateMrsRoot", parameter: connectionId },
+            original: { requestType: "updateMrsRoot", parameter: connectionInfo },
         });
     };
 

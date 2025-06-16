@@ -32,7 +32,7 @@ import {
     CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
     type ICdmConnectionGroupEntry,
 } from "../../../data-models/ConnectionDataModel.js";
-import { webSession } from "../../../supplement/WebSession.js";
+import { ILoginCredentials, webSession } from "../../../supplement/WebSession.js";
 import { sleep } from "../../../utilities/helpers.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
@@ -255,7 +255,7 @@ describe("ConnectionDataModel", () => {
         cdmMockState.haveMockConnectionResponse = true;
         await firstConnection.refresh?.();
         expect(firstConnection.isOpen).toBe(true);
-        expect(dataModel.isValidConnectionId(firstConnection.details.id)).toBe(true);
+        expect(await dataModel.isValidConnectionId(firstConnection.details.id)).toBe(true);
 
         // Run the MRS timer at least once. For this we need to expand the MRS item in the connection.
         // This test cannot be used when an MRS database upgrade is due.
@@ -284,31 +284,31 @@ describe("ConnectionDataModel", () => {
         // Still you can open it.
         await connection.refresh!();
         expect(connection.isOpen).toBe(true);
-        expect(dataModel.isValidConnectionId(connection.details.id)).toBe(false); // Not in the DM.
+        expect(await dataModel.isValidConnectionId(connection.details.id)).toBe(false); // Not in the DM.
         await connection.close();
 
-        expect(dataModel.isValidConnectionId(1)).toBe(true); // A connection with id 1 is in the DM.
+        expect(await dataModel.isValidConnectionId(1)).toBe(true); // A connection with id 1 is in the DM.
 
-        expect(dataModel.findConnectionEntryById(1)).toEqual(roots[1]);
+        expect(await dataModel.findConnectionEntryById(1)).toEqual(roots[1]);
 
-        expect(dataModel.findConnectionEntryById(3)).toBeUndefined();
+        expect(await dataModel.findConnectionEntryById(3)).toBeUndefined();
         await dataModel.addConnectionEntry(connection); // Now we have 3 connections.
         expect(dataModel.roots).toHaveLength(4);
-        expect(dataModel.findConnectionEntryById(3)).toEqual(connection);
+        expect(await dataModel.findConnectionEntryById(3)).toEqual(connection);
 
         // Make the extra connection use the same id as the second connection and update that. This will replace
         // the details of the second connection by that of the 3rd. But first test they are not already equal.
         expect(secondConnection.details).not.toEqual(extraConnectionDetails);
 
         extraConnectionDetails.id = 2;
-        dataModel.updateConnectionDetails(extraConnectionDetails);
+        await dataModel.updateConnectionDetails(extraConnectionDetails);
         expect(dataModel.roots).toHaveLength(4);
         expect(secondConnection.details).toEqual(extraConnectionDetails);
 
         // Now the same with the first DM connection entry. Make it use the second connection id and update it.
         connection.details.id = 1;
         expect(secondConnection.details).not.toEqual(firstConnection.details);
-        dataModel.updateConnectionDetails(connection);
+        await dataModel.updateConnectionDetails(connection);
         expect(secondConnection.details).toEqual(firstConnection.details);
 
         webSession.profile.id = -1; // Simulate no profile.

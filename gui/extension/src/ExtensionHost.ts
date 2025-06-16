@@ -49,16 +49,16 @@ import type {
 } from "../../frontend/src/supplement/RequisitionTypes.js";
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
+import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
 import { DocumentCommandHandler } from "./DocumentCommandHandler.js";
 import { MDSCommandHandler } from "./MDSCommandHandler.js";
 import { MRSCommandHandler } from "./MRSCommandHandler.js";
+import { MsmCommandHandler } from "./MsmCommandHandler.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
 import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider.js";
 import { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
-import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
-import { MsmCommandHandler } from "./MsmCommandHandler.js";
 
 /** This class manages some extension wide things like authentication handling etc. */
 export class ExtensionHost {
@@ -178,13 +178,13 @@ export class ExtensionHost {
      */
     public determineConnection = async (dbType?: DBType,
         forcePicker?: boolean, showErrorMessages = true): Promise<ICdmConnectionEntry | undefined> => {
-        let connections: ICdmConnectionEntry[] = [];
+        let connections: ICdmConnectionEntry[] = await this.#connectionsDataModel.connectionList();
 
         let title = "Select a connection for SQL execution";
         if (!forcePicker) {
             const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
             if (connectionName) {
-                const connection = this.#connectionsDataModel.findConnectionEntryByCaption(connectionName);
+                const connection = connections.find((entry) => { return entry.details.caption === connectionName; });
 
                 if (!connection) {
                     if (showErrorMessages) {
@@ -207,7 +207,7 @@ export class ExtensionHost {
 
         // If a specific dbType was specified, filter connections by that DBType
         if (dbType) {
-            connections = this.#connectionsDataModel.connectionList.filter((entry) => {
+            connections = connections.filter((entry) => {
                 return entry.type === CdmEntityType.Connection && entry.details.dbType === dbType;
             });
         }
@@ -229,7 +229,12 @@ export class ExtensionHost {
 
         // No default connection set. Show a picker.
         const items = connections.map((connection) => {
-            return connection.details.caption;
+            let prefix = connection.details.folderPath ?? "";
+            if (prefix === "/") {
+                prefix = "";
+            }
+
+            return `${prefix}/${connection.details.caption}`;
         });
         const name = await window.showQuickPick(items, {
             title,
@@ -237,11 +242,15 @@ export class ExtensionHost {
             placeHolder: "Type the name of an existing DB connection",
         });
 
-        const connection = connections.find((candidate) => {
-            return candidate.details.caption === name;
+        const index = items.findIndex((candidate) => {
+            return candidate === name;
         });
 
-        return connection;
+        if (index < 0) {
+            return undefined;
+        }
+
+        return connections[index];
     };
 
     /**
@@ -304,7 +313,7 @@ export class ExtensionHost {
      *
      * @param connectionId The id of the connection to check.
      */
-    public isValidConnectionId(connectionId: number): boolean {
+    public isValidConnectionId(connectionId: number): Promise<boolean> {
         return this.#connectionsDataModel.isValidConnectionId(connectionId);
     }
 

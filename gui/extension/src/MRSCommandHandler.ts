@@ -47,7 +47,7 @@ import {
 import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { findExecutable } from "../../frontend/src/utilities/file-utilities.js";
-import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
+import { convertErrorToString, getConnectionInfoFromDetails } from "../../frontend/src/utilities/helpers.js";
 import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 import { convertPathToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
 import { ExtensionHost } from "./ExtensionHost.js";
@@ -179,10 +179,11 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (entry?: ICdmRestRootEntry) => {
             if (entry) {
                 const connectionId = entry.connection.details.id;
+                const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                 const provider = this.#host.currentProvider;
                 if (provider) {
                     void provider.runCommand("job", [
-                        { requestType: "showPage", parameter: { connectionId } },
+                        { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                         { requestType: "showMrsServiceDialog", parameter: undefined },
                     ], "newConnection");
                 }
@@ -193,10 +194,11 @@ export class MRSCommandHandler {
             (entry?: ICdmRestServiceEntry) => {
                 if (entry) {
                     const connectionId = entry.connection.details.id;
+                    const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showPage", parameter: { connectionId } },
+                            { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                             { requestType: "showMrsServiceDialog", parameter: entry.details },
                         ], "newConnection");
                     }
@@ -232,10 +234,11 @@ export class MRSCommandHandler {
                         await commands.executeCommand("msg.refreshConnections");
 
                         const connectionId = entry.connection.details.id;
+                        const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 { requestType: "refreshMrsServiceSdk", parameter: {} },
                             ], "newConnection");
                         }
@@ -775,9 +778,10 @@ export class MRSCommandHandler {
 
                         if (value !== undefined) {
                             const connectionId = entry.connection.details.id;
+                            const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
 
                             void this.#host.currentProvider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 {
                                     requestType: "showMrsSdkExportDialog", parameter: {
                                         serviceId: entry.details.id,
@@ -852,10 +856,11 @@ export class MRSCommandHandler {
             (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
                     const connectionId = entry.connection.details.id;
+                    const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showPage", parameter: { connectionId } },
+                            { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                             {
                                 requestType: "showMrsSchemaDialog",
                                 parameter: { schemaName: entry.details.name, schema: entry.details },
@@ -870,6 +875,7 @@ export class MRSCommandHandler {
                 if (entry) {
                     const connection = entry.parent;
                     const connectionId = connection.details.id;
+                    const connectionInfo = getConnectionInfoFromDetails(connection.details);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         // Check if there is at least one MRS Service
@@ -877,7 +883,7 @@ export class MRSCommandHandler {
 
                         if (services.length > 0) {
                             void provider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 { requestType: "showMrsSchemaDialog", parameter: { schemaName: entry.caption } },
                             ], "newConnection");
                         } else {
@@ -960,10 +966,11 @@ export class MRSCommandHandler {
                 if (entry) {
                     const connection = entry.connection;
                     const connectionId = connection.details.id;
+                    const connectionInfo = getConnectionInfoFromDetails(connection.details);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showPage", parameter: { connectionId } },
+                            { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                             { requestType: "showMrsAuthAppDialog", parameter: { authApp: entry.details } },
                         ], "newConnection");
                     }
@@ -977,10 +984,11 @@ export class MRSCommandHandler {
                         const connection = entry.connection;
                         if (entry.details) {
                             const connectionId = connection.details.id;
+                            const connectionInfo = getConnectionInfoFromDetails(connection.details);
                             const provider = this.#host.currentProvider;
                             if (provider) {
                                 void provider.runCommand("job", [
-                                    { requestType: "showPage", parameter: { connectionId } },
+                                    { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                     { requestType: "showMrsAuthAppDialog", parameter: { service: entry.details } },
                                 ], "newConnection");
                             }
@@ -998,10 +1006,11 @@ export class MRSCommandHandler {
                     if (entry) {
                         const connection = entry.connection;
                         const connectionId = connection.details.id;
+                        const connectionInfo = getConnectionInfoFromDetails(connection.details);
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 { requestType: "showMrsAuthAppDialog", parameter: {} },
                             ], "newConnection");
                         }
@@ -1075,10 +1084,11 @@ export class MRSCommandHandler {
                 try {
                     if (entry) {
                         const connectionId = entry.connection.details.id;
+                        const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 { requestType: "showMrsContentSetDialog", parameter: {} },
                             ], "newConnection");
                         }
@@ -1094,10 +1104,11 @@ export class MRSCommandHandler {
                 try {
                     if (entry) {
                         const connectionId = entry.connection.details.id;
+                        const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 {
                                     requestType: "showMrsContentSetDialog", parameter: {
                                         // eslint-disable-next-line no-template-curly-in-string
@@ -1176,10 +1187,11 @@ export class MRSCommandHandler {
                 const connection = entry.connection;
                 if (entry.details) {
                     const connectionId = connection.details.id;
+                    const connectionInfo = getConnectionInfoFromDetails(connection.details);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showPage", parameter: { connectionId } },
+                            { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                             { requestType: "showMrsUserDialog", parameter: { authApp: entry.details } },
                         ], "newConnection");
                     }
@@ -1195,10 +1207,11 @@ export class MRSCommandHandler {
                         connection.backend.mrs.getAuthApp(entry.details.authAppId).then((authApp) => {
                             if (authApp) {
                                 const connectionId = connection.details.id;
+                                const connectionInfo = getConnectionInfoFromDetails(connection.details);
                                 const provider = this.#host.currentProvider;
                                 if (provider) {
                                     void provider.runCommand("job", [
-                                        { requestType: "showPage", parameter: { connectionId } },
+                                        { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                         {
                                             requestType: "showMrsUserDialog", parameter: {
                                                 authApp, user: entry.details,
@@ -1228,8 +1241,10 @@ export class MRSCommandHandler {
                     if (connection) {
                         const provider = this.#host.currentProvider;
                         if (provider) {
+                            const connectionId = connection.details.id;
+                            const connectionInfo = getConnectionInfoFromDetails(connection.details);
                             void provider.runCommand("job", [
-                                { requestType: "showPage", parameter: { connectionId: connection.details.id } },
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 {
                                     requestType: "showMrsContentSetDialog", parameter: {
                                         directory: directory.fsPath,
@@ -1546,10 +1561,11 @@ export class MRSCommandHandler {
         if (entry) {
             if (enableMrs === undefined) {
                 const connectionId = entry.connection.details.id;
+                const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
                 const provider = this.#host.currentProvider;
                 if (provider) {
                     void provider.runCommand("job", [
-                        { requestType: "showPage", parameter: { connectionId } },
+                        { requestType: "showPage", parameter: { connectionId, connectionInfo} },
                         { requestType: "showMrsConfigurationDialog", parameter: undefined },
                     ], "newConnection");
                 }

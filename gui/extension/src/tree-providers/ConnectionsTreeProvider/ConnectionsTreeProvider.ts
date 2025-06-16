@@ -26,7 +26,9 @@
 import { Event, EventEmitter, TreeDataProvider, TreeItem, commands, env, window, workspace } from "vscode";
 
 import type {
-    IDocumentCloseData, IDocumentOpenData, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
+    IConnectionInfo,
+    IDocumentCloseData, IDocumentOpenData, IRequestListEntry, IRequestTypeMap,
+    IWebviewProvider,
 } from "../../../../frontend/src/supplement/RequisitionTypes.js";
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
 
@@ -41,7 +43,7 @@ import { ShellPromptResponseType, type IPromptReplyBackend } from "../../../../f
 import {
     systemSchemas, type AdminPageType, type ISubscriberActionType,
 } from "../../../../frontend/src/data-models/data-model-types.js";
-import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { DBType, IConnectionDetails, IFolderPath } from "../../../../frontend/src/supplement/ShellInterface/index.js";
 import { convertErrorToString } from "../../../../frontend/src/utilities/helpers.js";
 import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
 import { AdminSectionTreeItem } from "./AdminSectionTreeItem.js";
@@ -149,10 +151,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             // A provider is now active, so update the current schemas for all connections.
             this.clearCurrentSchemas = false;
             provider.currentSchemas.forEach((schema, id) => {
-                const connection = this.dataModel.findConnectionEntryById(id);
-                if (connection) {
-                    connection.currentSchema = schema;
-                }
+                void this.dataModel.findConnectionEntryById(id).then((connection) => {
+                    if (connection) {
+                        connection.currentSchema = schema;
+                    }
+                });
             });
 
             this.changeEvent.fire(undefined);
@@ -564,10 +567,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             case "sqlSetCurrentSchema": {
                 // Find the connection for which the schema should be changed.
                 const response = request.original.parameter as {
-                    editorId: string, connectionId: number, schema: string;
+                    editorId: string, connectionInfo: IConnectionInfo, schema: string;
                 };
 
-                const connection = this.dataModel.findConnectionEntryById(response.connectionId);
+                const connection = await this.dataModel.findConnectionEntryById(response.connectionInfo.connectionId,
+                    response.connectionInfo.folderPath);
                 if (connection) {
                     connection.currentSchema = response.schema;
 
@@ -584,11 +588,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             }
 
             case "refreshConnectionGroup": {
-                const groupId = request.original.parameter as number;
-                if (groupId === undefined || groupId < 0) {
+                const data = request.original.parameter as IFolderPath | undefined;
+                if (data?.id === undefined || data.id < 0) {
                     this.refresh();
                 } else {
-                    const group = this.dataModel.findConnectionGroupEntryById(groupId);
+                    const group = await this.dataModel.findConnectionGroupEntryById(data.id, data.caption);
                     this.refresh(group);
                 }
                 break;
@@ -603,7 +607,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
             case "connectionUpdated": {
                 const response = request.original.parameter as IConnectionDetails;
-                const connection = this.dataModel.updateConnectionDetails(response);
+                const connection = await this.dataModel.updateConnectionDetails(response);
                 this.refresh(connection);
 
                 break;
@@ -620,7 +624,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             case "documentOpened": {
                 const response = request.original.parameter as IDocumentOpenData;
 
-                const connection = this.dataModel.findConnectionEntryById(response.connection?.id ?? -1);
+                const connection = await this.dataModel.findConnectionEntryById(response.connection?.id ?? -1,
+                    response.connection?.folderPath);
                 if (connection) {
                     const count = this.openEditorCounts.get(connection) ?? 0;
                     this.openEditorCounts.set(connection, count + 1);
@@ -632,8 +637,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             case "documentClosed": {
                 const response = request.original.parameter as IDocumentCloseData;
 
-                if (response.connectionId) {
-                    const connection = this.dataModel.findConnectionEntryById(response.connectionId);
+                const { connectionId, folderPath } = response.connectionInfo ?? {};
+                if (connectionId) {
+                    const connection = await this.dataModel.findConnectionEntryById(connectionId, folderPath);
                     if (connection) {
                         let count = this.openEditorCounts.get(connection);
                         if (count !== undefined) {
@@ -652,8 +658,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             }
 
             case "updateMrsRoot": {
-                const response = request.original.parameter as string;
-                const entry = this.dataModel.findConnectionEntryById(parseInt(response, 10));
+                const response = request.original.parameter as IConnectionInfo;
+                const entry = await this.dataModel.findConnectionEntryById(response.connectionId, response.folderPath);
 
                 if (entry) {
                     void entry.mrsEntry?.refresh?.(); // Tree item refresh happens in the data model change handler.

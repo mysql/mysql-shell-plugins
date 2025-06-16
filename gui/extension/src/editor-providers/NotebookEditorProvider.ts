@@ -32,11 +32,12 @@ import { readFile } from "fs/promises";
 
 import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
 import { RequisitionHub, requisitions } from "../../../frontend/src/supplement/Requisitions.js";
-import { DBType } from "../../../frontend/src/supplement/ShellInterface/index.js";
+import { DBType, IConnectionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { ExtensionHost } from "../ExtensionHost.js";
 import { prepareWebviewContent } from "../WebviewProviders/webview-helpers.js";
 
 import { Semaphore } from "../../../frontend/src/supplement/Semaphore.js";
+import { getConnectionInfoFromDetails } from "../../../frontend/src/utilities/helpers.js";
 
 /** This provider manages a MySQL notebook document. */
 export class NotebookEditorProvider implements CustomTextEditorProvider {
@@ -107,7 +108,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
                     void workspace.openTextDocument(uri).then((document) => {
                         void commands.executeCommand("vscode.openWith", uri, "msg.notebook").then(() => {
                             void host.context.workspaceState.update(document.uri.toString(), connection.details.id);
-                            void this.showNotebookPage(connection.details.id, document.getText());
+                            void this.showNotebookPage(connection.details.id, document.getText(), connection.details);
                         });
                     });
                 }
@@ -137,13 +138,21 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      *
      * @param connectionId The id of the connection to use for the notebook.
      * @param content The content of the script to run and other related information.
+     * @param details The connection details.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    private showNotebookPage(connectionId: number, content: string): Promise<boolean> {
+    private showNotebookPage(connectionId: number, content: string, details?: IConnectionDetails): Promise<boolean> {
+        let connectionInfo;
+        if (details) {
+            connectionInfo = getConnectionInfoFromDetails(details);
+        }
+
         return Promise.resolve(this.#requisitions?.executeRemote("job", [
-            // !TODO: Check the need of pageId
-            { requestType: "showPage", parameter: { connectionId, suppressAbout: true, noEditor: true } },
+            {
+                requestType: "showPage",
+                parameter: { connectionId, suppressAbout: true, noEditor: true, connectionInfo },
+            },
             { requestType: "editorLoadNotebook", parameter: { content, standalone: true } },
         ]) ?? true);
     }
@@ -155,13 +164,15 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      *
      * @returns A promise which resolves after the command was executed.
      */
-    private handleConnectionsUpdated = (): Promise<boolean> => {
+    private handleConnectionsUpdated = async (): Promise<boolean> => {
         this.#connectionsAvailable = true;
 
         // Check if the connection is still valid.
         if (this.#document && this.#panel) {
             const connectionId = this.#host!.context.workspaceState.get<number>(this.#document.uri.toString());
-            if (connectionId !== undefined && !this.#host!.isValidConnectionId(connectionId)) {
+            const isInvalidConnection = connectionId !== undefined
+                && !(await this.#host!.isValidConnectionId(connectionId));
+            if (isInvalidConnection) {
                 if (this.#document.isDirty) {
                     void this.#document.save().then(() => {
                         this.#panel!.dispose();
@@ -229,7 +240,9 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
 
         // Do we have a connection id for this document, stored when it was last opened?
         let usedConnectionId = this.#host!.context.workspaceState.get<number>(document.uri.toString());
-        if (usedConnectionId === undefined || !this.#host!.isValidConnectionId(usedConnectionId)) {
+        const isValidConnection = usedConnectionId !== undefined
+            && await this.#host!.isValidConnectionId(usedConnectionId);
+        if (!isValidConnection) {
             usedConnectionId = undefined;
             await this.#host!.context.workspaceState.update(document.uri.toString(), undefined);
         }

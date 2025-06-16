@@ -29,6 +29,7 @@ import { ITableColumn, IGetColumnsMetadataItem } from "../communication/Protocol
 import { QueryType } from "../parsing/parser-common.js";
 import { Base64Convert } from "../utilities/Base64Convert.js";
 import { unquote } from "../utilities/string-helpers.js";
+import { IConnectionInfo } from "./RequisitionTypes.js";
 import { ShellInterfaceSqlEditor } from "./ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "./ShellInterface/index.js";
 
@@ -133,6 +134,7 @@ export interface IScriptRequest {
     forceSecondaryEngine?: boolean;
 
     pageId?: string;
+    connectionInfo?: IConnectionInfo;
 }
 
 /**
@@ -369,7 +371,7 @@ export const parseColumnLength = (rawType: string, characterMaximumLength?: numb
 };
 
 export const parseSchemaTable = async (fullTableName: string, backend?: ShellInterfaceSqlEditor):
-    Promise<{schema: string; table: string}> => {
+    Promise<{ schema: string; table: string }> => {
 
     const parts = fullTableName.split(".");
     const table = unquote(parts.pop()!);
