@@ -66,9 +66,9 @@ export class E2EToastNotification implements interfaces.INotification {
                 this.webElement = notification;
 
                 if ((await this.webElement.findElements(locator.toastNotification.error)).length > 0) {
-                    this.type = "error";
+                    this.type = constants.notificationError;
                 } else if ((await this.webElement.findElements(locator.toastNotification.info)).length > 0) {
-                    this.type = "info";
+                    this.type = constants.notificationInfo;
                 } else {
                     throw new Error("Could not find the notification type");
                 }
