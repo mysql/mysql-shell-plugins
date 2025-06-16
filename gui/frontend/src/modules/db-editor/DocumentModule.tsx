@@ -31,6 +31,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import {
+    IConnectionInfo,
     IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
     IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData,
 } from "../../supplement/RequisitionTypes.js";
@@ -68,7 +69,9 @@ import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supp
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
-import { convertErrorToString, loadFileAsText, selectFileInBrowser, uuid } from "../../utilities/helpers.js";
+import {
+    convertErrorToString, getConnectionInfoFromDetails, loadFileAsText, selectFileInBrowser, uuid,
+} from "../../utilities/helpers.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
@@ -102,6 +105,7 @@ import { ShellTaskDataModel } from "../../data-models/ShellTaskDataModel.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
 import { Assets } from "../../supplement/Assets.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { ConnectionProcessor } from "../common/ConnectionProcessor.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
 import type { IShellEditorModel } from "../shell/index.js";
 import { ShellTab, type IShellTabPersistentState } from "../shell/ShellTab.js";
@@ -110,7 +114,6 @@ import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
-import { ConnectionProcessor } from "../common/ConnectionProcessor.js";
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -798,10 +801,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, entry.details, id).then(() => {
                 // Connection groups may have changed.
                 void entry.parent?.refresh?.(); // Old parent.
-                requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath.id);
+                requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath);
                 if (entry.parent !== group) {
                     void group.refresh?.();     // New parent.
-                    requisitions.executeRemote("refreshConnectionGroup", group.parent?.folderPath.id);
+                    requisitions.executeRemote("refreshConnectionGroup", group.parent?.folderPath);
                 }
                 requisitions.executeRemote("connectionUpdated", entry.details);
             }).catch((reason) => {
@@ -826,6 +829,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showPage = async (data: {
         connectionId?: number; suppressAbout?: boolean; editor?: InitialEditor; pageId?: string; force?: boolean;
+        connectionInfo?: IConnectionInfo;
     }): Promise<boolean> => {
         const { connectionTabs, selectedPage } = this.state;
 
@@ -842,7 +846,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 connection = entry.connection;
             }
         } else if (data.connectionId) {
-            connection = this.connectionsDataModel.findConnectionEntryById(data.connectionId);
+            connection = await this.connectionsDataModel.findConnectionEntryById(data.connectionId,
+                data.connectionInfo?.folderPath);
         }
 
         const doShowPage = (): Promise<boolean> => {
@@ -877,7 +882,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         const { connectionTabs } = this.state;
 
-        const connection = this.connectionsDataModel.findConnectionEntryById(data.connection.id);
+        const connection = await this.connectionsDataModel.findConnectionEntryById(data.connection.id,
+            data.connection.folderPath);
         if (!connection) {
             return false;
         }
@@ -941,7 +947,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return this.activateConnectionTab(data.connection, data.force, false, data.initialEditor);
     };
 
-    private setCurrentSchema = (data: { id: string; connectionId: number; schema: string; }): Promise<boolean> => {
+    private setCurrentSchema = (data: { id: string; connectionInfo: IConnectionInfo; schema: string; })
+        : Promise<boolean> => {
         return new Promise((resolve) => {
             const { connectionTabs } = this.state;
 
@@ -949,7 +956,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             connectionTabs.forEach((tab: IConnectionTab) => {
                 // Either update the current schema only for the given tab or for all tabs using the same connection
                 // id (if no tab id is given).
-                if (tab.connection.details.id === data.connectionId || data.id === tab.dataModelEntry.id) {
+                if (tab.connection.details.id === data.connectionInfo.connectionId
+                    || data.id === tab.dataModelEntry.id) {
                     const connectionState = this.connectionPresentation.get(tab.dataModelEntry)!;
                     if (connectionState) {
                         // Change for chat options
@@ -1066,9 +1074,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 const result = await this.mrsHubRef.current.showMrsConfigurationDialog(
                     tab.connection);
                 if (result) {
-                    const connection = this.connectionsDataModel.findConnectionEntryById(tab.connection.details.id);
+                    const connection = await this.connectionsDataModel.findConnectionEntryById(
+                        tab.connection.details.id,
+                        tab.connection.details.folderPath,
+                    );
                     if (connection) {
-                        void requisitions.executeRemote("updateMrsRoot", String(connection.details.id));
+                        const connectionInfo = getConnectionInfoFromDetails(connection.details);
+                        void requisitions.executeRemote("updateMrsRoot", connectionInfo);
                     }
                 }
 
@@ -1086,9 +1098,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             if (tab) {
                 const result = await this.mrsHubRef.current.showMrsServiceDialog(tab.connection.backend, data);
                 if (result) {
-                    const connection = this.connectionsDataModel.findConnectionEntryById(tab.connection.details.id);
+                    const connection = await this.connectionsDataModel.findConnectionEntryById(
+                        tab.connection.details.id,
+                        tab.connection.details.folderPath,
+                    );
                     if (connection) {
-                        void requisitions.executeRemote("updateMrsRoot", String(connection.details.id));
+                        const connectionInfo = getConnectionInfoFromDetails(connection.details);
+                        void requisitions.executeRemote("updateMrsRoot", connectionInfo);
                     }
                 }
 
@@ -1574,7 +1590,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (connectionState) {
             this.notifyRemoteEditorClose(tabId);
 
-            this.removeDocument(tabId, undefined, page.details.id);
+            this.removeDocument(tabId, undefined, page.details);
 
             // Release all editor models.
             connectionState.documentStates.forEach((editor) => {
@@ -1600,12 +1616,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      *
      * @param tabId The id of the tab to remove.
      * @param documentId The id of the document to remove, optional.
-     * @param connectionId The id of the connection to remove, optional,
+     * @param details The connection details.
+     *
      */
-    private removeDocument = (tabId: string, documentId?: string, connectionId?: number): void => {
+    private removeDocument = (tabId: string, documentId?: string, details?: IConnectionDetails): void => {
         this.documentDataModel.closeDocument(undefined, {
             pageId: tabId,
-            connectionId,
+            connectionInfo: details ? getConnectionInfoFromDetails(details) : undefined,
             id: documentId,
         });
     };
@@ -1831,8 +1848,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     return this.removeTabs([tab.dataModelEntry.id]);
                 } else {
                     this.notifyRemoteEditorClose(tab.dataModelEntry.id, documentState.document.id,
-                        tab.connection.details.id);
-                    this.removeDocument(tab.dataModelEntry.id, documentState.document.id, tab.connection.details.id);
+                        tab.connection.details.id, tab.connection.details);
+                    this.removeDocument(tab.dataModelEntry.id, documentState.document.id, tab.connection.details);
 
                     this.forceUpdate();
 
@@ -2299,8 +2316,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     });
 
                     if (tab && qualifiedName) {
+                        const connectionInfo = getConnectionInfoFromDetails(connection.details);
                         await this.setCurrentSchema({
-                            id: tab.dataModelEntry.id, connectionId: connection.details.id, schema: qualifiedName.name!,
+                            id: tab.dataModelEntry.id, connectionInfo, schema: qualifiedName.name!,
                         });
                     }
 
@@ -2840,12 +2858,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param tabId The id of the tab in which the editor was located.
      * @param documentId The id of the editor to close. If not given, the tab itself is closed.
      * @param connectionId If set this is the id of the connection used by the document.
+     * @param details The connection details.
      */
-    private notifyRemoteEditorClose(tabId: string, documentId?: string, connectionId?: number) {
+    private notifyRemoteEditorClose(tabId: string, documentId?: string, connectionId?: number,
+        details?: IConnectionDetails) {
         requisitions.executeRemote("documentClosed", {
             pageId: tabId,
             id: documentId,
-            connectionId,
+            connectionInfo: details ? getConnectionInfoFromDetails(details): undefined,
         });
     }
 

@@ -52,7 +52,7 @@ export class ConnectionDataModelListener {
      * @returns A promise always fulfilled to true.
      */
     public handleConnectionUpdated = async (details: IConnectionDetails): Promise<boolean> => {
-        this.connectionsDataModel.updateConnectionDetails(details);
+        await this.connectionsDataModel.updateConnectionDetails(details);
 
         return Promise.resolve(true);
     };
@@ -65,7 +65,7 @@ export class ConnectionDataModelListener {
      * @returns A promise always fulfilled to true.
      */
     public handleConnectionRemoved = async (details: IConnectionDetails): Promise<boolean> => {
-        const connection = this.connectionsDataModel.findConnectionEntryById(details.id);
+        const connection = await this.connectionsDataModel.findConnectionEntryById(details.id, details.folderPath);
         if (connection) {
             await this.connectionsDataModel.removeEntry(connection);
         }

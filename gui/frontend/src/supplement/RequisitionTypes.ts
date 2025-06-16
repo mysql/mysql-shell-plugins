@@ -41,7 +41,7 @@ import type {
 } from "../data-models/ConnectionDataModel.js";
 import type { AdminPageType } from "../data-models/data-model-types.js";
 import type { OdmEntityType } from "../data-models/OpenDocumentDataModel.js";
-import type { IConnectionDetails, IShellSessionDetails } from "./ShellInterface/index.js";
+import type { IConnectionDetails, IFolderPath, IShellSessionDetails } from "./ShellInterface/index.js";
 
 export interface IAppParameters {
     /** Indicates if the app runs under control of a wrapper app (a web client control embedded in a desktop app). */
@@ -224,8 +224,8 @@ export interface ICodeBlockExecutionOptions {
     /** Mandatory: the id of the code block. */
     linkId: number;
 
-    /** The id of the connection to use for execution. */
-    connectionId: number;
+    /** The connection info to use for execution. */
+    connectionInfo: IConnectionInfo;
 
     /** The tile to use if the request required opening a new notebook. */
     caption: string;
@@ -288,7 +288,7 @@ export interface IDocumentCloseData {
      * Set for all documents that require a connection (like notebooks). This is useful for code parts that track
      * documents per connection.
      */
-    readonly connectionId?: number;
+    readonly connectionInfo?: IConnectionInfo;
 }
 
 /**
@@ -402,6 +402,11 @@ export interface IHostThemeData {
     themeClass: string;
     themeName: string;
     themeId: string;
+}
+
+export interface IConnectionInfo {
+    connectionId: number;
+    folderPath?: string;
 }
 
 /**
@@ -519,7 +524,7 @@ export interface IRequestTypeMap {
     "documentClosed": (data: IDocumentCloseData) => Promise<boolean>;
 
     /** Sent when a connection data model entry needs an update of its MRS services. */
-    "updateMrsRoot": (connectionId: string) => Promise<boolean>;
+    "updateMrsRoot": (connectionInfo: IConnectionInfo) => Promise<boolean>;
 
     /** Sent when a document is to be selected. */
     "selectDocument": (details: { connectionId?: number, documentId: string; pageId?: string; }) => Promise<boolean>;
@@ -530,7 +535,7 @@ export interface IRequestTypeMap {
     /** Sent to insert text into an editor. */
     "editorInsertText": (text: string) => Promise<boolean>;
 
-    "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string; }) => Promise<boolean>;
+    "sqlSetCurrentSchema": (data: { id: string; connectionInfo: IConnectionInfo; schema: string; }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;
     "sqlTransactionEnded": SimpleCallback;
 
@@ -544,13 +549,13 @@ export interface IRequestTypeMap {
     "addNewConnection": (details: { mdsData?: IMySQLDbSystem; profileName?: string; }) => Promise<boolean>;
 
     /** Triggers removing a connection */
-    "removeConnection": (connectionId: number) => Promise<boolean>;
+    "removeConnection": (connectionInfo: IConnectionInfo) => Promise<boolean>;
 
     /** Triggers editing a connection */
-    "editConnection": (connectionId: number) => Promise<boolean>;
+    "editConnection": (connectionInfo: IConnectionInfo) => Promise<boolean>;
 
     /** Triggers duplicating a connection */
-    "duplicateConnection": (connectionId: number) => Promise<boolean>;
+    "duplicateConnection": (connectionInfo: IConnectionInfo) => Promise<boolean>;
 
     /** Sent when a connection was added. This is more effective than refreshing all connections. */
     "connectionAdded": (details: IConnectionDetails) => Promise<boolean>;
@@ -574,7 +579,7 @@ export interface IRequestTypeMap {
     "showPreferences": SimpleCallback;
     "showPage": (data: {
         connectionId?: number; editor?: InitialEditor; suppressAbout?: boolean;
-        pageId?: string;
+        pageId?: string; connectionInfo?: IConnectionInfo;
     }) => Promise<boolean>;
 
     "openDocument": (data: IDocumentOpenData) => Promise<boolean>;
@@ -591,7 +596,7 @@ export interface IRequestTypeMap {
     "refreshConnection": (data?: ICdmConnectionEntry) => Promise<boolean>;
 
     /** Used to refresh a connection group (if `data` is assigned) or the root connection groups (if not). */
-    "refreshConnectionGroup": (groupId?: number) => Promise<boolean>;
+    "refreshConnectionGroup": (data?: IFolderPath) => Promise<boolean>;
 
     /** Triggered when the list of connections has been updated and is now available. */
     "connectionsUpdated": SimpleCallback;

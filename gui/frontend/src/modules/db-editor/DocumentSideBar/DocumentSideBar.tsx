@@ -60,7 +60,7 @@ import { BastionLifecycleState } from "../../../oci-typings/oci-bastion/lib/mode
 import { Assets } from "../../../supplement/Assets.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { appParameters } from "../../../supplement/AppParameters.js";
-import { DBType } from "../../../supplement/ShellInterface/index.js";
+import { DBType, IFolderPath } from "../../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../../supplement/WebSession.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { convertErrorToString, uuid } from "../../../utilities/helpers.js";
@@ -341,23 +341,25 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             if (!defaultOpening && context) {
                 this.setState({ defaultOpening: true });
 
-                const firstConnection = context.connectionsDataModel.connectionList[0];
-                if (!context.documentDataModel.isOpen(firstConnection.details)) {
-                    // Open the first connection and wait for it to finish that.
-                    void firstConnection.refresh?.().then(() => {
-                        setTimeout(() => {
-                            const row = this.connectionTableRef.current?.getRows()[0];
-                            if (row) {
-                                row.treeExpand();
-                            }
-                        }, 500);
+                void context.connectionsDataModel.connectionList().then((connectionList) => {
+                    const firstConnection = connectionList[0];
+                    if (!context.documentDataModel.isOpen(firstConnection.details)) {
+                        // Open the first connection and wait for it to finish that.
+                        void firstConnection.refresh?.().then(() => {
+                            setTimeout(() => {
+                                const row = this.connectionTableRef.current?.getRows()[0];
+                                if (row) {
+                                    row.treeExpand();
+                                }
+                            }, 500);
 
-                        this.openNewNotebook(firstConnection);
-                    });
+                            this.openNewNotebook(firstConnection);
+                        });
 
-                    // Do not update the trees yet. Instead wait for the new notebook to be opened.
-                    return;
-                }
+                        // Do not update the trees yet. Instead wait for the new notebook to be opened.
+                        return;
+                    }
+                });
             }
         }
 
@@ -2798,15 +2800,15 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      * Triggered when one specific or all top level groups need to be refreshed.
      * Refreshing the top level groups also means to refresh all top level connections.
      *
-     * @param groupId The id of the group to refresh. If not provided, the top level groups are refreshed.
+     * @param data Details of the connection group to refresh.
      *
      * @returns A promise that resolves to `true`.
      */
-    private refreshConnectionGroup = async (groupId?: number): Promise<boolean> => {
-        if (groupId !== undefined && groupId >= 0) {
+    private refreshConnectionGroup = async (data?: IFolderPath): Promise<boolean> => {
+        if (data?.id !== undefined && data.id >= 0) {
             const context = this.context as DocumentContextType;
             if (context) {
-                const group = context.connectionsDataModel.findConnectionGroupEntryById(groupId);
+                const group = await context.connectionsDataModel.findConnectionGroupEntryById(data.id, data.caption);
                 if (group) {
                     await this.refreshConnectionTreeEntryChildren(group, true);
                 }

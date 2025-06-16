@@ -51,8 +51,11 @@ import {
     type ICdmConnectionGroupEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import { Assets } from "../../supplement/Assets.js";
+import { IConnectionInfo } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { DBType, IConnectionDetails, type IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
+import {
+    DBType, IConnectionDetails, IFolderPath, type IShellSessionDetails,
+} from "../../supplement/ShellInterface/index.js";
 import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
@@ -333,8 +336,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return Promise.resolve(true);
     };
 
-    private editConnection = (connectionId: number): Promise<boolean> => {
-        const connections = this.dataModel?.connectionList;
+    private editConnection = async (connectionInfo: IConnectionInfo): Promise<boolean> => {
+        const { connectionId, folderPath } = connectionInfo;
+        const connections = await this.dataModel?.connectionList(folderPath);
         const connection = connections?.find((candidate) => {
             return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
         });
@@ -348,8 +352,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return Promise.resolve(false);
     };
 
-    private removeConnection = (connectionId: number): Promise<boolean> => {
-        const connections = this.dataModel?.connectionList;
+    private removeConnection = async (connectionInfo: IConnectionInfo): Promise<boolean> => {
+        const { connectionId, folderPath } = connectionInfo;
+        const connections = await this.dataModel?.connectionList(folderPath);
 
         const connection = connections?.find((candidate) => {
             return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
@@ -364,8 +369,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return Promise.resolve(false);
     };
 
-    private duplicateConnection = (connectionId: number): Promise<boolean> => {
-        const connections = this.dataModel?.connectionList;
+    private duplicateConnection = async (connectionInfo: IConnectionInfo): Promise<boolean> => {
+        const { connectionId, folderPath } = connectionInfo;
+        const connections = await this.dataModel?.connectionList(folderPath);
 
         const connection = connections?.find((candidate) => {
             return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
@@ -395,15 +401,15 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
      * Triggered when one specific or all top level groups need to be refreshed.
      * Refreshing the top level groups also means to refresh all top level connections.
      *
-     * @param groupId The id of the group to refresh. If not provided, the top level groups are refreshed.
+     * @param data Details of the connection group to refresh.
      *
      * @returns A promise that resolves to `true`.
      */
-    private refreshConnectionGroup = async (groupId?: number): Promise<boolean> => {
-        if (groupId !== undefined && groupId >= 0) {
+    private refreshConnectionGroup = async (data?: IFolderPath): Promise<boolean> => {
+        if (data?.id !== undefined && data.id >= 0) {
             const context = this.context as DocumentContextType;
             if (context) {
-                const group = context.connectionsDataModel.findConnectionGroupEntryById(groupId);
+                const group = await context.connectionsDataModel.findConnectionGroupEntryById(data.id, data.caption);
                 if (group) {
                     await group.refresh?.();
                     this.forceUpdate();
@@ -420,7 +426,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         Settings.set("dbEditor.connectionBrowser.showGreeting", false);
     };
 
-    private dbFileDropped = (fileName: string): Promise<boolean> => {
+    private dbFileDropped = async (fileName: string): Promise<boolean> => {
         // First remove drop zone.
         if (this.hostRef.current) {
             this.hostRef.current.classList.remove("dropTarget");
@@ -430,10 +436,10 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             return Promise.resolve(false);
         }
 
-        const connections = this.dataModel?.connectionList;
+        const folderPath = this.generateFolderPathFromCurrentGroup();
+        const connections = await this.dataModel?.connectionList(folderPath);
         const caption = `New Connection ${connections.length}`;
         const description = "A new Database Connection";
-        const folderPath = this.generateFolderPathFromCurrentGroup();
 
         // Don't wait here. The editor will be shown asynchronously.
         void this.editorRef.current?.show(DBType.Sqlite, true, "", {
@@ -695,11 +701,12 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
         const model = this.dataModel;
         if (model) {
-            const entry = model.findConnectionEntryById(details.id);
-            if (entry) {
-                onUpdateConnection(entry);
-                this.forceUpdate();
-            }
+            void model.findConnectionEntryById(details.id, details.folderPath).then((entry) => {
+                if (entry) {
+                    onUpdateConnection(entry);
+                    this.forceUpdate();
+                }
+            });
         }
     };
 

@@ -47,7 +47,7 @@ import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.j
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
-import { convertErrorToString, sleep, uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, getConnectionInfoFromDetails, sleep, uuid } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber, quote } from "../../utilities/string-helpers.js";
 import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
@@ -85,12 +85,14 @@ export class SidebarCommandHandler {
             if (entry?.type !== CdmEntityType.ConnectionGroup) {
                 const connection = entry?.connection;
                 if (connection) {
+                    const connectionInfo = getConnectionInfoFromDetails(connection.details);
+
                     // Commands/actions that are related to a specific connection.
                     switch (command.command) {
                         case "msg.editConnection": {
                             success = await requisitions.execute("job", [
                                 { requestType: "showPage", parameter: {} },
-                                { requestType: "editConnection", parameter: connection.details.id },
+                                { requestType: "editConnection", parameter: connectionInfo },
                             ]);
 
                             break;
@@ -99,7 +101,7 @@ export class SidebarCommandHandler {
                         case "msg.duplicateConnection": {
                             success = await requisitions.execute("job", [
                                 { requestType: "showPage", parameter: {} },
-                                { requestType: "duplicateConnection", parameter: connection.details.id },
+                                { requestType: "duplicateConnection", parameter: connectionInfo },
                             ]);
 
                             break;
@@ -108,7 +110,7 @@ export class SidebarCommandHandler {
                         case "msg.removeConnection": {
                             success = await requisitions.execute("job", [
                                 { requestType: "showPage", parameter: {} },
-                                { requestType: "removeConnection", parameter: connection.details.id },
+                                { requestType: "removeConnection", parameter: connectionInfo },
                             ]);
 
                             break;
@@ -643,7 +645,7 @@ export class SidebarCommandHandler {
                                 success = await requisitions.execute("job", [
                                     {
                                         requestType: "showPage",
-                                        parameter: { connectionId, pageId },
+                                        parameter: { connectionId, pageId, connectionInfo },
                                     },
                                     { requestType: "editorRunCode", parameter: options },
                                 ]);
@@ -672,7 +674,7 @@ export class SidebarCommandHandler {
                                 success = await requisitions.execute("job", [
                                     {
                                         requestType: "showPage",
-                                        parameter: { connectionId },
+                                        parameter: { connectionId, connectionInfo },
                                     },
                                     { requestType: "editorInsertText", parameter: entry?.caption },
                                 ]);
@@ -748,7 +750,7 @@ export class SidebarCommandHandler {
                                             success = await requisitions.execute("job", [
                                                 {
                                                     requestType: "showPage",
-                                                    parameter: { connectionId, pageId },
+                                                    parameter: { connectionId, pageId, connectionInfo },
                                                 },
                                                 { requestType: "editorInsertText", parameter: row[index] },
                                             ]);

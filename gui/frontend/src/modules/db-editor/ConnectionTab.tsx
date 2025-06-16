@@ -66,7 +66,7 @@ import {
     EditorLanguage, IScriptRequest, ISqlPageRequest,
 } from "../../supplement/index.js";
 import {
-    convertErrorToString, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
+    convertErrorToString, getConnectionInfoFromDetails, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
 } from "../../utilities/helpers.js";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
@@ -390,9 +390,10 @@ Execute \\help or \\? for help;`;
 
         const { id, connection } = this.props;
         if (connection) {
-            const details = connection.details;
             requisitions.executeRemote("sqlSetCurrentSchema",
-                { id: id ?? "", connectionId: details.id, schema: connection.currentSchema });
+                { id: id ?? "", schema: connection.currentSchema,
+                    connectionInfo: getConnectionInfoFromDetails(connection.details) },
+            );
         }
 
         this.notebookRef.current?.focus();
@@ -414,7 +415,8 @@ Execute \\help or \\? for help;`;
 
         if (connection) {
             requisitions.executeRemote("sqlSetCurrentSchema",
-                { id: id ?? "", connectionId: connection.details.id, schema: "" });
+                { id: id ?? "", schema: "", connectionInfo: getConnectionInfoFromDetails(connection.details) },
+            );
         }
 
         requisitions.unregister("editorStopExecution", this.editorStopExecution);
@@ -443,7 +445,9 @@ Execute \\help or \\? for help;`;
             const details = connection.details;
             if (details.id !== prevProps.connection?.details.id) {
                 requisitions.executeRemote("sqlSetCurrentSchema",
-                    { id: id ?? "", connectionId: details.id, schema: connection.currentSchema });
+                    { id: id ?? "", schema: connection.currentSchema,
+                        connectionInfo: getConnectionInfoFromDetails(details),
+                });
             }
         }
     }
@@ -1380,11 +1384,11 @@ Execute \\help or \\? for help;`;
                 // This may have failed so query the backend for the current schema and then trigger the command.
                 void connection?.backend.getCurrentSchema().then((schema) => {
                     if (schema) {
-                        const details = connection.details;
+                        const connectionInfo = getConnectionInfoFromDetails(connection.details);
                         requisitions.executeRemote("sqlSetCurrentSchema",
-                            { id: id ?? "", connectionId: details.id, schema });
+                            { id: id ?? "", connectionInfo, schema });
                         void requisitions.execute("sqlSetCurrentSchema",
-                            { id: id ?? "", connectionId: details.id, schema });
+                            { id: id ?? "", connectionInfo, schema });
                     }
                 });
 

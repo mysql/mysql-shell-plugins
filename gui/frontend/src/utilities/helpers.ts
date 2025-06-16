@@ -24,6 +24,8 @@
  */
 
 import { IDictionary } from "../app-logic/general-types.js";
+import { IConnectionInfo } from "../supplement/RequisitionTypes.js";
+import { IConnectionDetails } from "../supplement/ShellInterface/index.js";
 import { convertHexToBase64 } from "./string-helpers.js";
 
 /**
@@ -907,4 +909,11 @@ export const resolvePageSize = (settingsRawValue?: string): number => {
     }
 
     return settingsValue;
+};
+
+export const getConnectionInfoFromDetails = (details: IConnectionDetails): IConnectionInfo => {
+    return {
+        connectionId: details.id,
+        folderPath: details.folderPath,
+    };
 };

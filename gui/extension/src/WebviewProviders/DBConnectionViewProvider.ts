@@ -29,15 +29,19 @@ import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vsc
 
 import { requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import {
+    IConnectionInfo,
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
     IRequestTypeMap, IRequisitionCallbackValues, type IDocumentOpenData, type InitialEditor, type ISaveDialogOptions,
 } from "../../../frontend/src/supplement/RequisitionTypes.js";
 
+import { ui } from "../../../frontend/src/app-logic/UILayer.js";
 import type { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
 import type { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
-import type { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
+import type {
+    IConnectionDetails, IShellSessionDetails,
+} from "../../../frontend/src/supplement/ShellInterface/index.js";
+import { getConnectionInfoFromDetails } from "../../../frontend/src/utilities/helpers.js";
 import { WebviewProvider } from "./WebviewProvider.js";
-import { ui } from "../../../frontend/src/app-logic/UILayer.js";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**
@@ -51,14 +55,19 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Shows the given module page.
      *
-     * @param connectionId The id of the connection.
+     * @param details The connection details.
      * @param editor The initial editor to show.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public show(connectionId?: number, editor?: InitialEditor): Promise<boolean> {
+    public show(details?: IConnectionDetails, editor?: InitialEditor): Promise<boolean> {
+        let connectionInfo;
+        if (details) {
+            connectionInfo = getConnectionInfoFromDetails(details);
+        }
+
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId, editor } }],
+            { requestType: "showPage", parameter: { connectionId: details?.id, editor, connectionInfo } }],
             "newConnection",
         );
     }
@@ -79,12 +88,17 @@ export class DBConnectionViewProvider extends WebviewProvider {
      *
      * @param connectionId The id of the connection.
      * @param details Required information about the query that must be executed.
+     * @param connectionInfo Additional connection information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runCode(connectionId: number, details: IEditorExtendedExecutionOptions): Promise<boolean> {
+    public runCode(connectionId: number, details: IEditorExtendedExecutionOptions,
+        connectionInfo: IConnectionInfo): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId, suppressAbout: true } },
+            {
+                requestType: "showPage",
+                parameter: { connectionId, suppressAbout: true, connectionInfo },
+            },
             { requestType: "editorRunCode", parameter: details },
         ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
     }
@@ -99,7 +113,11 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public runScript(connectionId: number, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId, suppressAbout: true, noEditor: true } },
+            {
+                requestType: "showPage", parameter: {
+                    connectionId, suppressAbout: true, noEditor: true, connectionInfo: details.connectionInfo,
+                },
+            },
             { requestType: "editorRunScript", parameter: details },
         ], "newConnection");
     }
@@ -114,7 +132,11 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public editScript(connectionId: number, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId, suppressAbout: true, pageId: details.pageId } },
+            {
+                requestType: "showPage", parameter: {
+                    connectionId, suppressAbout: true, pageId: details.pageId, connectionInfo: details.connectionInfo,
+                },
+            },
             { requestType: "editorEditScript", parameter: details },
         ], "newConnection");
     }
@@ -138,12 +160,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * Opens a new script editor in the webview tab and loads the given content into it.
      *
      * @param details The content of the script to run and other related information.
+     * @param connectionDetails The connection details.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public createNewEditor(details: INewEditorRequest): Promise<boolean> {
+    public createNewEditor(details: INewEditorRequest, connectionDetails?: IConnectionDetails): Promise<boolean> {
+        let connectionInfo;
+        if (connectionDetails) {
+            connectionInfo = getConnectionInfoFromDetails(connectionDetails);
+        }
+
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId: details.connectionId, suppressAbout: true } },
+            {
+                requestType: "showPage", parameter: {
+                    connectionId: details.connectionId, suppressAbout: true, connectionInfo,
+                },
+            },
             { requestType: "createNewEditor", parameter: details },
         ], "newConnection");
     }
@@ -179,42 +211,42 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Removes the connection from the stored connection list.
      *
-     * @param connectionId The connection id.
+     * @param details The connection details.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public removeConnection(connectionId: number): Promise<boolean> {
+    public removeConnection(details: IConnectionDetails): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showPage", parameter: {} },
-            { requestType: "removeConnection", parameter: connectionId },
+            { requestType: "removeConnection", parameter: getConnectionInfoFromDetails(details) },
         ], "connections");
     }
 
     /**
      * Shows the connection editor on the connections page for the given connection id.
      *
-     * @param connectionId The connection id.
+     * @param details The connection details.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editConnection(connectionId: number): Promise<boolean> {
+    public editConnection(details: IConnectionDetails): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showPage", parameter: {} },
-            { requestType: "editConnection", parameter: connectionId },
+            { requestType: "editConnection", parameter: getConnectionInfoFromDetails(details) },
         ], "connections");
     }
 
     /**
      * Shows the connection editor on the connections page with a duplicate of the given connection.
      *
-     * @param connectionId The connection id.
+     * @param details The connection details.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public duplicateConnection(connectionId: number): Promise<boolean> {
+    public duplicateConnection(details: IConnectionDetails): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showPage", parameter: {} },
-            { requestType: "duplicateConnection", parameter: connectionId },
+            { requestType: "duplicateConnection", parameter: getConnectionInfoFromDetails(details) },
         ], "connections");
     }
 
@@ -283,14 +315,16 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Shows the MRS DB object editor dialog.
      *
-     * @param connectionId The id of the connection.
+     * @param details The connection details.
      * @param data Details of the object to edit.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editMrsDbObject(connectionId: number, data: IMrsDbObjectEditRequest): Promise<boolean> {
+    public editMrsDbObject(details: IConnectionDetails, data: IMrsDbObjectEditRequest): Promise<boolean> {
+        const connectionInfo = getConnectionInfoFromDetails(details);
+
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId } },
+            { requestType: "showPage", parameter: { connectionId: details.id, connectionInfo } },
             { requestType: "showMrsDbObjectDialog", parameter: data },
         ], "newConnection");
     }
@@ -298,19 +332,23 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Tell the web app to switch the current schema to the given one.
      *
-     * @param connectionId The ID of the connection to switch the schema for.
+     * @param details The connection details.
      * @param schema The new current schema.
      *
      * @returns Returns a promise which resolves after the command was executed.
      */
-    public makeCurrentSchema(connectionId: number, schema: string): Promise<boolean> {
+    public makeCurrentSchema(details: IConnectionDetails, schema: string): Promise<boolean> {
+        const { id: connectionId } = details;
         // Assume we can set the given schema. If we can't, the web app will tell us next time an editor is activated.
         this.currentSchemas.set(connectionId, schema);
 
         if (this.panel) {
             // Tell the web app to switch the schema, if one is open.
             return this.runCommand("job", [
-                { requestType: "sqlSetCurrentSchema", parameter: { id: "", connectionId, schema } },
+                {
+                    requestType: "sqlSetCurrentSchema",
+                    parameter: { id: "", connectionInfo: getConnectionInfoFromDetails(details), schema },
+                },
             ], "connections");
         }
 
@@ -381,12 +419,12 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
     private setCurrentSchema = (data: {
         id: string,
-        connectionId: number,
+        connectionInfo: IConnectionInfo,
         schema: string,
     }): Promise<boolean> => {
         // The connection entry set here is never removed, but that doesn't matter as all we need is to
         // track the current schema for each connection (which can also be empty if no editor is open).
-        this.currentSchemas.set(data.connectionId, data.schema);
+        this.currentSchemas.set(data.connectionInfo.connectionId, data.schema);
 
         return requisitions.execute("proxyRequest", {
             provider: this,

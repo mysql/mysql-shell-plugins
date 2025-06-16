@@ -39,6 +39,8 @@ import {
     ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
 } from "../../frontend/src/supplement/RequisitionTypes.js";
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
+import { IConnectionDetails } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { getConnectionInfoFromDetails } from "../../frontend/src/utilities/helpers.js";
 import { printChannelOutput } from "./extension.js";
 
 /** A record of white spaces in a code block, which must be re-applied when replacing the original block. */
@@ -143,7 +145,7 @@ export class CodeBlocks {
         }));
     }
 
-    public executeSqlFromEditor(editor: TextEditor, caption: string, connectionId: number): void {
+    public executeSqlFromEditor(editor: TextEditor, caption: string, details: IConnectionDetails): void {
         const content = editor.document.getText();
         const { line, character } = editor.selection.active;
 
@@ -224,9 +226,9 @@ export class CodeBlocks {
 
                                 const options: ICodeBlockExecutionOptions = {
                                     caption,
-                                    connectionId,
                                     query: beautified,
                                     linkId: span.id,
+                                    connectionInfo: getConnectionInfoFromDetails(details),
                                 };
                                 void requisitions.execute("executeCodeBlock", options);
                             }
