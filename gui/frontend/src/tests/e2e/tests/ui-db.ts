@@ -52,6 +52,7 @@ import { PasswordDialog } from "../lib/Dialogs/PasswordDialog.js";
 import { E2EObjectStorageBrowserError } from "../lib/errors/E2EObjectStorageBrowserError.js";
 import { FolderDialog } from "../lib/Dialogs/FolderDialog.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
+import { E2EWorkbench } from "../lib/SideBar/E2EWorkbench.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -828,6 +829,18 @@ describe("DATABASE CONNECTIONS", () => {
                 },
             };
 
+            const importedDBConnection: interfaces.IDBConnection = {
+                caption: "Imported Connection",
+                dbType: "MySQL",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: parseInt(process.env.MYSQL_PORT!, 10),
+                    schema: "sakila",
+                    password: String(process.env.DBUSERNAME1PWD),
+                },
+            };
+
             const connectionOverview = new E2EDatabaseConnectionOverview();
             let testFailed = false;
 
@@ -1178,6 +1191,75 @@ describe("DATABASE CONNECTIONS", () => {
                     expect(notification?.message)
                         .toBe(`The connection group "${dbConnection1.folderPath!.value!}" has been deleted.`);
                     await notification?.close();
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Import MySQL Workbench DB Connections", async () => {
+                try {
+                    const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
+                    const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
+                    const username = (importedDBConnection.basic as interfaces.IConnBasicMySQL).username;
+                    const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
+
+                    const xml = constants.validXMLConnection
+                        .replace(/<HOSTNAME>/g, String(hostname))
+                        .replace(/<PORT>/g, String(port))
+                        .replace(/<USERNAME>/g, String(username))
+                        .replace(/<SCHEMA>/g, String(schema))
+                        .replace(/<CAPTION>/g, importedDBConnection.caption!);
+
+                    const xmlFile = join(process.cwd(), "connections.xml");
+                    await fs.writeFile(xmlFile, xml);
+
+                    await new E2EWorkbench().selectFromSubmenu("Import MySQL Workbench Connections");
+                    await driver.wait(until.elementLocated(locator.fileSelect),
+                        constants.wait5seconds, "Could not find the input file box").sendKeys(xmlFile);
+                    let notification = await new E2EToastNotification().create();
+                    expect(notification!.message).toBe("Imported 1 connection from MySQL Workbench.");
+                    await notification!.close();
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    await driver.wait(dbTreeSection.untilTreeItemExists(constants.importedConnections),
+                        constants.wait5seconds);
+                    await dbTreeSection.expandTreeItem(constants.importedConnections);
+                    await dbTreeSection.expandTreeItem(importedDBConnection);
+
+                    await dbTreeSection.openContextMenuAndSelect(constants.importedConnections,
+                        constants.removeFolder);
+                    const dialog = await new ConfirmDialog().untilExists();
+                    await dialog.accept();
+                    notification = await new E2EToastNotification().create();
+                    await notification?.close();
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Import MySQL Workbench DB Connections from an invalid XML", async () => {
+                try {
+                    const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
+                    const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
+                    const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
+
+                    const xml = constants.invalidXMLConnection
+                        .replace(/<HOSTNAME>/g, String(hostname))
+                        .replace(/<PORT>/g, String(port))
+                        .replace(/<SCHEMA>/g, String(schema));
+
+                    const xmlFile = join(process.cwd(), "invalid_connections.xml");
+                    await fs.writeFile(xmlFile, xml);
+
+                    await new E2EWorkbench().selectFromSubmenu("Import MySQL Workbench Connections");
+                    await driver.wait(until.elementLocated(locator.fileSelect),
+                        constants.wait5seconds, "Could not find the input file box").sendKeys(xmlFile);
+                    const notification = await new E2EToastNotification().create();
+                    expect(notification!.type).toBe(constants.notificationError);
+                    expect(notification!.message).toBe("Could not parse XML file: Unclosed tag: value");
+                    await notification!.close();
+                    expect(await dbTreeSection.existsTreeItem(constants.importedConnections)).toBe(false);
                 } catch (e) {
                     testFailed = true;
                     throw e;

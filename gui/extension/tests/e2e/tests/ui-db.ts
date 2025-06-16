@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+
 import { join } from "path";
 import fs from "fs/promises";
 import {
@@ -1942,12 +1943,25 @@ describe("DATABASE CONNECTIONS", () => {
                 },
             };
 
+            const importedDBConnection: interfaces.IDBConnection = {
+                caption: "Imported Connection",
+                dbType: "MySQL",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: parseInt(process.env.MYSQL_PORT, 10),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD1),
+                },
+            };
+
             const connectionOverview = new DatabaseConnectionOverview();
             let testFailed = false;
 
             before(async () => {
                 try {
                     const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+                    await openEditorsSection.expand();
                     await (await openEditorsSection.getTreeItem(constants.dbConnectionsLabel)).click();
                     await dbTreeSection.focus();
                     await dbTreeSection.clickToolbarButton(constants.collapseAll);
@@ -2268,6 +2282,74 @@ describe("DATABASE CONNECTIONS", () => {
                     .untilNotificationExists(`The connection group "${dbConnection1.folderPath.value}" has been deleted.`,
                         true, true), constants.wait1second * 5);
                 expect(await dbTreeSection.treeItemExists(dbConnection1.folderPath.value)).to.be.false;
+            });
+
+            it("Import MySQL Workbench DB Connections", async () => {
+                try {
+                    const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
+                    const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
+                    const username = (importedDBConnection.basic as interfaces.IConnBasicMySQL).username;
+                    const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
+
+                    const xml = constants.validXMLConnection
+                        .replace(/<HOSTNAME>/g, hostname)
+                        .replace(/<PORT>/g, String(port))
+                        .replace(/<USERNAME>/g, username)
+                        .replace(/<SCHEMA>/g, schema)
+                        .replace(/<CAPTION>/g, importedDBConnection.caption);
+
+                    const xmlFile = join(process.cwd(), "connections.xml");
+                    await fs.writeFile(xmlFile, xml);
+
+                    await dbTreeSection.selectMoreActionsItem(constants.importMySQLWorkbenchConnections);
+                    await Workbench.setInputPath(xmlFile);
+                    await driver.wait(Workbench.untilNotificationExists("Imported 1 connection from MySQL Workbench."),
+                        constants.wait1second * 5);
+
+                    await driver.wait(dbTreeSection.untilTreeItemExists(constants.importedConnections),
+                        constants.wait1second * 5);
+                    await dbTreeSection.expandTreeItem(constants.importedConnections);
+                    await dbTreeSection.expandTreeItem(importedDBConnection.caption, importedDBConnection);
+
+                    await dbTreeSection.openContextMenuAndSelect(constants.importedConnections,
+                        constants.removeFolder);
+                    await Workbench.pushDialogButton("Delete Folder");
+                    await driver.wait(Workbench
+                        // eslint-disable-next-line max-len
+                        .untilNotificationExists(`The connection group "${constants.importedConnections}" has been deleted.`,
+                            true, true), constants.wait1second * 5);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Import MySQL Workbench DB Connections from an invalid XML", async () => {
+                try {
+                    const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
+                    const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
+                    const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
+
+                    const xml = constants.invalidXMLConnection
+                        .replace(/<HOSTNAME>/g, hostname)
+                        .replace(/<PORT>/g, String(port))
+                        .replace(/<SCHEMA>/g, schema);
+
+                    const xmlFile = join(process.cwd(), "invalid_connections.xml");
+                    await fs.writeFile(xmlFile, xml);
+
+                    await dbTreeSection.selectMoreActionsItem(constants.importMySQLWorkbenchConnections);
+                    await Workbench.setInputPath(xmlFile);
+
+                    await driver.wait(Workbench
+                        .untilNotificationExists("Could not parse XML file: Unclosed tag: value", true, true),
+                        constants.wait1second * 5);
+
+                    expect(await dbTreeSection.treeItemExists(constants.importedConnections)).to.be.false;
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
             });
 
         });

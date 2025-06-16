@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+/* eslint-disable max-len */
 
 import { join } from "node:path";
 
@@ -331,4 +332,62 @@ export const mysqlAIServer = "MySQL AI Server";
 export const addSubfolder = "Add Subfolder";
 export const editFolder = "Edit Folder";
 export const removeFolder = "Remove Folder";
+
+export const importedConnections = "Imported Connections";
+export const notificationError = "error";
+export const notificationInfo = "info";
+
+export const validXMLConnection = `
+    <?xml version="1.0"?>
+        <data grt_format="2.0">
+            <value _ptr_="0x600001969b00" type="list" content-type="object" content-struct-name="db.mgmt.Connection">
+                <value type="object" struct-name="db.mgmt.Connection" id="647AEE55-E4D8-461E-916C-07A1C4B68DFD" struct-checksum="0x96ba47d8">
+                <link type="object" struct-name="db.mgmt.Driver" key="driver">com.mysql.rdbms.mysql.driver.native</link>
+                <value type="string" key="hostIdentifier">Mysql@<HOSTNAME>:<PORT></value>
+                <value type="int" key="isDefault">1</value>
+                <value _ptr_="0x600001910000" type="dict" key="modules"/>
+                <value _ptr_="0x600001912700" type="dict" key="parameterValues">
+                <value type="string" key=""></value>
+                <value type="string" key="DbSqlEditor:LastDefaultSchema"><SCHEMA></value>
+                <value type="string" key="SQL_MODE"></value>
+                <value type="string" key="hostName"><HOSTNAME></value>
+                <value type="int" key="lastConnected">1749028678</value>
+                <value type="string" key="password"></value>
+                <value type="int" key="port"><PORT></value>
+                <value type="string" key="schema"></value>
+                <value type="string" key="serverVersion">9.1.0-commercial</value>
+                <value type="string" key="sslCA"></value>
+                <value type="string" key="sslCert"></value>
+                <value type="string" key="sslCipher"></value>
+                <value type="string" key="sslKey"></value>
+                <value type="int" key="useSSL">1</value>
+                <value type="string" key="userName"><USERNAME></value>
+            </value>
+            <value type="string" key="name"><CAPTION></value>
+            <link type="object" struct-name="GrtObject" key="owner">E496CAEB-50C3-46E4-AB33-A23D48A8A5E1</link>
+            </value>
+            </value>
+        </data>`;
+
+export const invalidXMLConnection = `
+    <?xml version="1.0"?>
+        <data grt_format="2.0">
+            <value _ptr_="0x600001969b00" type="list" content-type="object" content-struct-name="db.mgmt.Connection">
+            <value type="object" struct-name="db.mgmt.Connection" id="647AEE55-E4D8-461E-916C-07A1C4B68DFD" struct-checksum="0x96ba47d8">
+            <link type="object" struct-name="db.mgmt.Driver" key="driver">com.mysql.rdbms.mysql.driver.native</link>
+            <value type="string" key="hostIdentifier">Mysql@$<HOSTNAME>:<PORT></value>
+             <value type="int" key="isDefault">1</value>
+            <value _ptr_="0x600001910000" type="dict" key="modules"/>
+            <value _ptr_="0x600001912700" type="dict" key="parameterValues">
+            <value type="string" key=""></value>
+            <value type="string" key="DbSqlEditor:LastDefaultSchema"><SCHEMA></value>
+            <value type="string" key="SQL_MODE"></value>
+            <value type="string" key="hostName"><HOSTNAME></value>
+            <value type="int" key="lastConnected">1749028678</value>
+            <value type="string" key="password"></value>
+            <value type="int" key="port"><PORT></value>
+            <value type="string" key="schema"></value>
+            <value type="string" key="serverVersion">9.1.0-commercial</value>
+            <value type="string" key="sslCA"></value>`;
+
 
