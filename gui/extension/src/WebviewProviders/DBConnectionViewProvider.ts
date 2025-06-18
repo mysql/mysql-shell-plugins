@@ -86,18 +86,16 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Executes a piece of code in a webview tab.
      *
-     * @param connectionId The id of the connection.
+     * @param connectionInfo The connection information.
      * @param details Required information about the query that must be executed.
-     * @param connectionInfo Additional connection information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runCode(connectionId: number, details: IEditorExtendedExecutionOptions,
-        connectionInfo: IConnectionInfo): Promise<boolean> {
+    public runCode(connectionInfo: IConnectionInfo, details: IEditorExtendedExecutionOptions): Promise<boolean> {
         return this.runCommand("job", [
             {
                 requestType: "showPage",
-                parameter: { connectionId, suppressAbout: true, connectionInfo },
+                parameter: { connectionId:connectionInfo.connectionId, suppressAbout: true, connectionInfo },
             },
             { requestType: "editorRunCode", parameter: details },
         ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
