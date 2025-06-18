@@ -326,11 +326,11 @@ export class DocumentCommandHandler {
 
                 const query = `${select} * ${from} \`${entry.schema}\`.\`${entry.caption}\``;
                 const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                void provider?.runCode(entry.connection.details.id, {
+                void provider?.runCode(connectionInfo, {
                     code: query,
                     language: "mysql",
                     linkId: -1,
-                }, connectionInfo);
+                });
             }
         }));
 
@@ -1240,11 +1240,11 @@ export class DocumentCommandHandler {
     private executeCodeBlock = (details: ICodeBlockExecutionOptions): Promise<boolean> => {
         const provider = this.host.currentProvider;
         if (provider) {
-            return provider.runCode(details.connectionId, {
+            return provider.runCode(details.connectionInfo, {
                 linkId: details.linkId,
                 code: details.query,
                 language: "mysql",
-            }, details.connectionInfo);
+            });
         }
 
         return Promise.resolve(false);
