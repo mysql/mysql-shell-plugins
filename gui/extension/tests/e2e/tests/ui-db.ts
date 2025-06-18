@@ -276,10 +276,10 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.serverStatus.configurationFile).to.not.equals("");
             expect(mysqlAdministration.serverStatus.runningSince)
                 .to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
-            expect(mysqlAdministration.serverStatus.baseDirectory).to.match(/^\/\w+/);
-            expect(mysqlAdministration.serverStatus.dataDirectory).to.match(/^\/\w+/);
-            expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/^\/\w+/);
-            expect(mysqlAdministration.serverStatus.tempDirectory).to.match(/^\/\w+/);
+            expect(mysqlAdministration.serverStatus.baseDirectory).to.match(/(\\\w+|\/\w+)/);
+            expect(mysqlAdministration.serverStatus.dataDirectory).to.match(/(\\\w+|\/\w+)/);
+            expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/(\\\w+|\/\w+)/);
+            expect(mysqlAdministration.serverStatus.tempDirectory).to.match(/(\\\w+|\/\w+)/);
             expect(mysqlAdministration.serverStatus.errorLog.checked).to.be.true;
             expect(mysqlAdministration.serverStatus.errorLog.path).to.match(/\/\w+/);
             expect(typeof mysqlAdministration.serverStatus.generalLog.checked).to.equals("boolean");
