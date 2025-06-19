@@ -542,8 +542,8 @@ describe("Value Edit Dialog Tests", (): void => {
 
     it("Validation", async () => {
         const onValidate = jest.fn((_closing: boolean, _values: IDialogValues,
-            _data?: IDictionary): IDialogValidations => {
-            return {
+            _data?: IDictionary): Promise<IDialogValidations> => {
+            return Promise.resolve({
                 requiredContexts: [
                     "context 1",
                     "context 2",
@@ -552,7 +552,7 @@ describe("Value Edit Dialog Tests", (): void => {
                     yesNo: "Say yes or no, not maybe",
                     listMe: "One of a kind",
                 },
-            };
+            });
         });
 
         const component = mount<ValueEditDialog>(
@@ -972,24 +972,26 @@ describe("Value Edit Dialog Tests", (): void => {
             expect(dropDownChange).toHaveBeenCalledTimes(1);
             expect(dropDownChange.mock.calls[0][0]).toBe("Two");
 
-            elements = portals[0].getElementsByClassName("valueEditor fileSelector");
-            expect(elements).toHaveLength(1);
-            elements = elements[0].getElementsByClassName("input");
-            expect(elements).toHaveLength(1);
-
-            let count = close.mock.calls.length;
-            sendKeyPress(KeyboardKeys.Enter, elements[0]);
-            expect(close).toHaveBeenCalledTimes(count + 1);
-
+            portals = document.getElementsByClassName("portal");
             elements = portals[0].getElementsByClassName("valueEditor input");
             expect(elements).toHaveLength(5);
             expect((elements[0] as HTMLInputElement).value).toBe("");
             (elements[0] as HTMLInputElement).focus();
             (elements[1] as HTMLInputElement).focus();
 
-            count = focusLost.mock.calls.length;
+            let count = focusLost.mock.calls.length;
             sendBlurEvent();
             expect(focusLost).toHaveBeenCalledTimes(1);
+
+            elements = portals[0].getElementsByClassName("valueEditor fileSelector");
+            expect(elements).toHaveLength(1);
+            elements = elements[0].getElementsByClassName("input");
+            expect(elements).toHaveLength(1);
+
+            count = close.mock.calls.length;
+            sendKeyPress(KeyboardKeys.Enter, elements[0]);
+            await nextProcessTick();
+            expect(close).toHaveBeenCalledTimes(count + 1);
         }
 
         component.unmount();

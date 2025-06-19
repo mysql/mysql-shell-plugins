@@ -428,7 +428,7 @@ interface IValueEditDialogProperties extends IComponentProperties {
     customFooter?: ComponentChild;
 
     advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
-    onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
+    onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => Promise<IDialogValidations>;
     onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary) => Promise<void> | void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
@@ -672,7 +672,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     };
 
     public updateInputValue = (value: string, id: string): void => {
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         values.sections.forEach((section) => {
             const entry = section.values[id] as IDialogValue | undefined;
@@ -681,9 +681,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     entry.value = value;
                     entry.showLoading = false;
 
-                    const { onValidate } = this.props;
-                    const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                    this.setState({ values, validations });
+                    void this.handleValidations();
 
                     return;
                 }
@@ -695,9 +693,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         entry.choices.push(value);
                     }
 
-                    const { onValidate } = this.props;
-                    const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                    this.setState({ values, validations });
+                    void this.handleValidations();
 
                     return;
                 }
@@ -712,7 +708,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     };
 
     public updateDropdownValue = (items: string[], active: string, id: string): void => {
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         values.sections.forEach((section) => {
             const entry = section.values[id] as IDialogValue | undefined;
@@ -720,9 +716,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 entry.choices = items;
                 entry.value = active;
 
-                const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+                void this.handleValidations();
 
                 return;
             }
@@ -730,7 +724,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     };
 
     public beginValueUpdating = (value: string, id: string): void => {
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         values.sections.forEach((section) => {
             const entry = section.values[id] as IDialogValue | undefined;
@@ -738,9 +732,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 entry.value = value;
                 entry.showLoading = true;
 
-                const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+                void this.handleValidations();
             }
         });
     };
@@ -1098,6 +1090,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                 id={key}
                                 key={key}
                                 imageOnly={entry.value.icon !== undefined && entry.value.caption === undefined}
+                                disabled={options?.includes(CommonDialogValueOption.Disabled)}
                                 onClick={this.btnClick.bind(this, sectionId)}
                             >
                                 {entry.value.icon && <Icon
@@ -1513,7 +1506,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             return;
         }
 
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         const matrixValues = section?.values[key] as IKeyValueDialogValue | undefined;
@@ -1535,16 +1528,16 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             return;
         }
 
-        const validations = this.props.onValidate?.(false, values, data) ?? { messages: {} };
-
-        this.resetSelectedMatrixRows(sectionId, key);
-        this.setState({ values, validations, currentParamDialogForMatrix: undefined });
+        void this.handleValidations().then(() => {
+            this.resetSelectedMatrixRows(sectionId, key);
+            this.setState({ currentParamDialogForMatrix: undefined });
+        });
 
         changedValue.onChange?.(name, this);
     };
 
     private onRemoveMatrixProperty = (sectionId: string, key: string): void => {
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         const matrixValues = section?.values[key] as IKeyValueDialogValue | undefined;
@@ -1566,45 +1559,40 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             return;
         }
 
-        const validations = this.props.onValidate?.(false, values, data) ?? { messages: {} };
-
+        void this.handleValidations();
         this.resetSelectedMatrixRows(sectionId, key);
-        this.setState({ values, validations });
-
         removedKeys.forEach((name) => {
             changedValue.onChange?.(name, this);
         });
+
     };
 
     private handleActionClick = (_e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;
         const { values, data } = this.state;
-        let accepted = false;
 
         if (props.id === "ok") {
-            if (!this.inputIsValid()) {
-                return;
-            } else {
-                accepted = true;
-            }
-
-            // Only send success close events here. Closed on cancel are handled in `handleClose`.
-            void onClose?.(DialogResponseClosure.Accept, values, data);
+            void this.inputIsValid().then((isValid) => {
+                if (!isValid) {
+                    return;
+                }
+                // Only send success close events here. Closed on cancel are handled in `handleClose`.
+                void onClose?.(DialogResponseClosure.Accept, values, data);
+                this.dialogRef.current?.close(false);
+            });
+        } else {
+            this.dialogRef.current?.close(true);
         }
-
-        this.dialogRef.current?.close(!accepted);
     };
 
     private handleInputChange = (sectionId: string, _e: InputEvent, props: IInputChangeProperties): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         if (section && props.id) {
             const value = this.setValue(props.id, props.value, section) as IStringInputDialogValue | undefined;
             if (value) {
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+                void this.handleValidations();
 
                 value.onChange?.(props.value, this);
             }
@@ -1613,38 +1601,35 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
     private handleCustomControlChange = (sectionId: string, key: string,
         customControlData: IDictionary, callback?: () => void): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         if (section && key) {
             const value = this.setValue(key, customControlData, section) as ICustomDialogValue | undefined;
             if (value) {
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations }, callback);
+                void this.handleValidations();
             }
         }
     };
 
     private fileChange = (sectionId: string, newValue: File[], props: IFileSelectorProperties): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         if (section && props.id) {
             if (newValue.length > 0) {
                 const value = this.setValue(props.id, newValue[0].name, section) as IResourceDialogValue | undefined;
                 if (value) {
-                    const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                    this.setState({ values, validations });
+
+                    void this.handleValidations();
 
                     value.onChange?.(newValue[0], this);
                 }
             } else {
                 const value = this.setValue(props.id, "", section) as IResourceDialogValue | undefined;
                 if (value) {
-                    const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                    this.setState({ values, validations });
+
+                    void this.handleValidations();
 
                     value.onChange?.(null, this);
                 }
@@ -1661,16 +1646,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * @param props The checkbox' properties.
      */
     private checkboxChange = (sectionId: string, checkState: CheckState, props: ICheckboxProperties): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         if (section && props.id) {
             const newValue = (checkState === CheckState.Checked) ? true : false;
             const value = this.setValue(props.id, newValue, section) as IBooleanInputDialogValue | undefined;
             if (value) {
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+
+                void this.handleValidations();
 
                 value.onChange?.(newValue, this);
             }
@@ -1691,8 +1675,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     /* istanbul ignore next */
     private checkListCheckboxChange = (sectionId: string, valueId: string, checkState: CheckState,
         props: ICheckboxProperties): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const id = props.id;
 
@@ -1712,8 +1695,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     const properties = found.data;
                     properties.checkState = checkState;
 
-                    const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                    this.setState({ values, validations });
+                    void this.handleValidations();
 
                     entry.onChange?.(properties);
                 }
@@ -1721,7 +1703,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
     };
 
-    private btnClick = (sectionId: string, _e: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
+    private btnClick = (sectionId: string, _e: MouseEvent | KeyboardEvent, props: IButtonProperties):
+        void => {
         const { values } = this.state;
 
         const section = values.sections.get(sectionId);
@@ -1742,15 +1725,14 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
     private upDownChange = (sectionId: string, item: number | bigint,
         props: IUpDownProperties<number | bigint>): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const section = values.sections.get(sectionId);
         if (section && props.id) {
             const value = this.setValue(props.id, item, section) as INumberInputDialogValue | undefined;
             if (value) {
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+
+                void this.handleValidations();
 
                 value.onChange?.(item, this);
             }
@@ -1759,8 +1741,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
     private handleChoiceChange = (sectionId: string, accept: boolean, selectedIds: Set<string>,
         payload: unknown): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const id = payload as string;
         const newValue = selectedIds.size > 0 ? [...selectedIds][0] : "";
@@ -1768,8 +1749,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         if (section && id) {
             const value = this.setValue(id, newValue, section) as IChoiceDialogValue | undefined;
             if (value) {
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+
+                void this.handleValidations();
 
                 value.onChange?.(newValue, this);
             }
@@ -1778,8 +1759,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
     private handleSetChange = (sectionId: string, accept: boolean, selectedIds: Set<string>,
         payload: unknown): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const id = payload as string;
         const newValue = [...selectedIds];
@@ -1787,8 +1767,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         if (section && id) {
             const value = this.setValue(id, newValue, section) as ISetDialogValue | undefined;
             if (value) {
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                this.setState({ values, validations });
+                void this.handleValidations();
 
                 value.onChange?.(newValue, this);
             }
@@ -1797,18 +1776,17 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
     private handleRelationalListRowSelection = (sectionId: string, value: IRelationDialogValue,
         row: RowComponent): void => {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
+        const { values } = this.state;
 
         const entry = row.getData() as IDictionary;
         const section = values.sections.get(sectionId);
         if (section && value.active !== entry.id) {
-            const validations = onValidate?.(false, values, data) ?? { messages: {} };
-            if (Object.keys(validations.messages).length === 0) {
-                value.active = entry[value.listItemId ?? "id"] as string;
-            }
 
-            this.setState({ values, validations });
+            void this.handleValidations().then((validations) => {
+                if (Object.keys(validations.messages).length === 0) {
+                    value.active = entry[value.listItemId ?? "id"] as string;
+                }
+            });
         }
     };
 
@@ -1830,13 +1808,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * Triggers an alternative acceptance path, instead of clicking OK.
      */
     private acceptOnConfirm = (): void => {
-        if (this.inputIsValid()) {
-            const { onClose } = this.props;
-            const { values, data } = this.state;
+        void this.inputIsValid().then((isValid) => {
+            if (isValid) {
+                const { onClose } = this.props;
+                const { values, data } = this.state;
 
-            this.dialogRef.current?.close(false);
-            void onClose?.(DialogResponseClosure.Accept, values, data);
-        }
+                this.dialogRef.current?.close(false);
+                void onClose?.(DialogResponseClosure.Accept, values, data);
+            }
+        });
     };
 
     private onBlur = (sectionId: string, _e: FocusEvent, props: IInputProperties): void => {
@@ -1879,11 +1859,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      *
      * @returns True if all values are correct (or not validated at all).
      */
-    private inputIsValid(): boolean {
+    private async inputIsValid(): Promise<boolean> {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
-        const validations = onValidate?.(true, values, data) ?? { messages: {} };
+        const validations = (await onValidate?.(true, values, data)) ?? { messages: {} };
         this.setState({ validations });
 
         return Object.keys(validations.messages).length === 0;
@@ -1970,25 +1950,39 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             // Don't delete the <new> entry if there
             if (index > -1 && index < (itemData.value.value ?? []).length - 1) {
-                const { onValidate } = this.props;
-                const { values, data } = this.state;
 
-                const validations = onValidate?.(false, values, data) ?? { messages: {} };
-                if (Object.keys(validations.messages).length === 0) {
-                    // Remove item
-                    itemData.value.value?.splice(index, 1);
+                void this.handleValidations().then((validations) => {
+                    if (Object.keys(validations.messages).length === 0) {
+                        // Remove item
+                        itemData.value.value?.splice(index, 1);
 
-                    // Make the new item in the same position active or the one before that
-                    // if the last item as already selected
-                    const entry = itemData.value.value?.[
-                        (index === (itemData.value.value ?? []).length - 1) ? index - 1 : index];
-                    itemData.value.active = (entry) ? String(entry[idName]) : undefined;
-
-                    this.setState({ values, validations });
-                }
+                        // Make the new item in the same position active or the one before that
+                        // if the last item as already selected
+                        const entry = itemData.value.value?.[
+                            (index === (itemData.value.value ?? []).length - 1) ? index - 1 : index];
+                        itemData.value.active = (entry) ? String(entry[idName]) : undefined;
+                    }
+                });
             }
         }
 
         return true;
     };
+
+    private handleValidations = async (): Promise<IDialogValidations> => {
+        const { onValidate } = this.props;
+        const { values, data } = this.state;
+
+        let validations: IDialogValidations = { messages: {} };
+        try {
+            if (onValidate) {
+                validations = await onValidate(false, values, data);
+            }
+        } finally {
+            this.setState({ values, validations });
+        }
+
+        return validations;
+    };
 }
+

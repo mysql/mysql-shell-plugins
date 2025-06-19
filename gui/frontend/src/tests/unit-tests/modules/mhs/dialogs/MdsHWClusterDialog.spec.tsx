@@ -199,7 +199,7 @@ describe("MdsHWClusterDialog tests", () => {
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Cancel);
     });
 
-    it("Test return validation messages", () => {
+    it("Test return validation messages", async () => {
         const values: IDialogValues = {
             sections: new Map<string, IDialogSection>([
                 [
@@ -213,13 +213,13 @@ describe("MdsHWClusterDialog tests", () => {
             ]),
         };
 
-        const result = (component.instance()).validateInput(true, values);
+        const result = await (component.instance()).validateInput(true, values);
 
         expect(result.messages).toEqual({ name: "The cluster size must be specified." });
         expect(result.requiredContexts).toEqual([]);
     });
 
-    it("Test return empty validation messages", () => {
+    it("Test return empty validation messages", async () => {
         const values: IDialogValues = {
             sections: new Map<string, IDialogSection>([
                 [
@@ -233,7 +233,7 @@ describe("MdsHWClusterDialog tests", () => {
             ]),
         };
 
-        const result = (component.instance()).validateInput(true, values);
+        const result = await (component.instance()).validateInput(true, values);
 
         expect(result.messages).toEqual({});
         expect(result.requiredContexts).toEqual([]);

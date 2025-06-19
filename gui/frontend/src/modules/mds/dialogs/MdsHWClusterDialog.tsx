@@ -73,7 +73,7 @@ export class MdsHWClusterDialog extends ValueDialogBase {
         return Promise.resolve();
     };
 
-    public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    public validateInput = (closing: boolean, values: IDialogValues): Promise<IDialogValidations> => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],
@@ -88,7 +88,7 @@ export class MdsHWClusterDialog extends ValueDialogBase {
             }
         }
 
-        return result;
+        return Promise.resolve(result);
     };
 
     private dialogValues(request: IDialogRequest, title: string, shapes: IMySQLDbSystemShapeSummary[]): IDialogValues {

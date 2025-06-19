@@ -231,7 +231,7 @@ describe("MdsEndpointDialog validateInput tests", () => {
         dialog = new MdsEndpointDialog({ onClose: jest.fn() });
     });
 
-    it("should return empty messages when closing is false", () => {
+    it("should return empty messages when closing is false", async () => {
         const values: IDialogValues = {
             sections: new Map<string, IDialogSection>([
                 ["mainSection", {
@@ -252,12 +252,12 @@ describe("MdsEndpointDialog validateInput tests", () => {
             ]),
         };
 
-        const result = dialog.validateInput(false, values);
+        const result = await dialog.validateInput(false, values);
 
         expect(result.messages).toEqual({});
     });
 
-    it("should return validation messages when closing is true and required fields are missing", () => {
+    it("should return validation messages when closing is true and required fields are missing", async () => {
         const values: IDialogValues = {
             sections: new Map<string, IDialogSection>([
                 ["mainSection", {
@@ -282,7 +282,7 @@ describe("MdsEndpointDialog validateInput tests", () => {
             ]),
         };
 
-        const result = dialog.validateInput(true, values);
+        const result = await dialog.validateInput(true, values);
 
         expect(result.messages).toEqual({
             instanceName: "The instance name must be specified.",
@@ -297,7 +297,7 @@ describe("MdsEndpointDialog validateInput tests", () => {
         });
     });
 
-    it("should return empty messages when closing is true and all required fields are provided", () => {
+    it("should return empty messages when closing is true and all required fields are provided", async () => {
         const values: IDialogValues = {
             sections: new Map<string, IDialogSection>([
                 ["mainSection", {
@@ -322,7 +322,7 @@ describe("MdsEndpointDialog validateInput tests", () => {
             ]),
         };
 
-        const result = dialog.validateInput(true, values);
+        const result = await dialog.validateInput(true, values);
 
         expect(result.messages).toEqual({});
     });

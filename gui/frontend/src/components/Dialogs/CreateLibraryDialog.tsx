@@ -23,15 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as ts from "typescript";
+import ts from "typescript";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../app-logic/general-types.js";
-import { loadFileAsText, loadFileBinary } from "../../utilities/helpers.js";
-import { AwaitableValueEditDialog } from "./AwaitableValueEditDialog.js";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
-    type IResourceDialogValue,
+    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+    IResourceDialogValue,
 } from "./ValueEditDialog.js";
+import { arrayBufferToBase64 } from "../../utilities/string-helpers.js";
+import { AwaitableValueEditDialog } from "./AwaitableValueEditDialog.js";
+import { loadFileAsText, loadFileBinary, convertErrorToString } from "../../utilities/helpers.js";
 
 export interface ICreateLibraryDialogData extends IDictionary {
     schemaName: string;
@@ -41,151 +42,125 @@ export interface ICreateLibraryDialogData extends IDictionary {
     body: string;
 }
 
-/**
- * Format bytes as human-readable text.
- *
- * @param bytes Number of bytes.
- * @param si True to use metric (SI) units, aka powers of 1000. False to use
- *           binary (IEC), aka powers of 1024.
- * @param dp Number of decimal places to display.
- *
- * @returns Formatted string.
- */
-const humanFileSize = (bytes: number, si = false, dp = 1) => {
-    const thresh = si ? 1000 : 1024;
-
-    if (Math.abs(bytes) < thresh) {
-        return `${bytes} B`;
-    }
-
-    const units = si
-        ? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
-        : ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
-    let u = -1;
-    const r = 10 ** dp;
-
-    do {
-        bytes /= thresh;
-        ++u;
-    } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
-
-    return bytes.toFixed(dp) + " " + units[u];
-};
-
-const isValidESModule = (code: string): boolean => {
+const isValidESModule = (code: string): void => {
+    const fileName = "input.js";
     const result = ts.transpileModule(code, {
         compilerOptions: {
             allowJs: true,
             checkJs: true,
             target: ts.ScriptTarget.ESNext,
             module: ts.ModuleKind.ESNext,
+            esModuleInterop: true,
+            isolatedModules: true,
         },
         reportDiagnostics: true,
+        fileName,
     });
 
-    if (!result.diagnostics || result.diagnostics.length === 0) {
-        return true;
+    if (result.diagnostics) {
+        const issues = result.diagnostics.filter(
+            (d) => {
+                return d.category === ts.DiagnosticCategory.Error
+                    || d.category === ts.DiagnosticCategory.Warning;
+            },
+        );
+
+        if (issues.length > 0) {
+            throw Error(`Not a valid ES module`);
+        }
     }
-    const errors = result.diagnostics.filter((d) => {
-        return d.category === ts.DiagnosticCategory.Error;
-    });
-
-    return errors.length === 0;
 };
 
 export class CreateLibraryDialog extends AwaitableValueEditDialog {
 
     private selectedFile: File | undefined = undefined;
-    private selectedFileContent?: Promise<string>;
+    private processedContent: string = "";
+    private libraryNameIsSet: boolean = false;
+    private commentIsSet: boolean = false;
 
     protected override get id(): string {
         return "createLibraryDialog";
     }
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
-        const dialogValues = this.dialogValues(request);
-        const result = await this.doShow(() => {
-            return dialogValues;
-        }, { title: "Create Library From" });
+        let showComment = false;
+        if (request.values && (request.values.serverVersion as number) >= 90400) {
+            showComment = true;
+        }
+        const dialogValues = this.dialogValues(request, showComment);
+        const contexts: string[] = ["localFile"];
+        const result = await this.doShow(() => { return dialogValues; }, { title: "Create Library From", contexts });
         if (result.closure === DialogResponseClosure.Accept) {
-            return this.processResults(result.values);
+            return this.processResults(result.values, showComment);
         }
 
         return DialogResponseClosure.Cancel;
     }
 
-    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    protected override validateInput = async (closing: boolean, values: IDialogValues): Promise<IDialogValidations> => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],
         };
 
         const mainSection = values.sections.get("mainSection");
-        if (mainSection) {
-            if ((mainSection.values.schemaName.value as string).length === 0) {
-                result.messages.schemaName = "Schema name is missing";
+        if (!mainSection) {
+            return result;
+        }
+
+        if ((mainSection.values.schemaName.value as string).length === 0) {
+            result.messages.schemaName = "Schema name is missing";
+        }
+
+        if ((mainSection.values.libraryName.value as string).length === 0) {
+            result.messages.libraryName = "Library name is missing";
+        }
+
+        if (mainSection.values.loadFrom.value === "File") {
+            const localFileSection = values.sections.get("localFileSection");
+
+            if (!localFileSection) {
+                return result;
             }
-            if ((mainSection.values.libraryName.value as string).length === 0) {
-                result.messages.libraryName = "Library name is missing";
+
+            const hasPath = localFileSection.values.localFilePath.value
+                && ((localFileSection.values.localFilePath.value as string).length > 0);
+
+            if (closing) {
+                if (!hasPath) {
+                    result.messages.localFilePath = "Please select a file";
+
+                    return result;
+                }
+                try {
+                    this.processedContent = await this.loadFile();
+                } catch (error) {
+                    result.messages.localFilePath = convertErrorToString(error);
+                }
             }
-            const pathMissing = !mainSection.values.localFilePath.value ||
-                (mainSection.values.localFilePath.value as string).length === 0;
-            if (pathMissing) {
-                result.messages.localFilePath = "Path is missing";
-                // because only validateInput is called on every change, reset it here
-                this.selectedFile = undefined;
+        } else if (mainSection.values.loadFrom.value === "URL") {
+            const urlSection = values.sections.get("urlSection");
+
+            if (!urlSection) {
+                return result;
+            }
+
+            const hasPath = urlSection.values.url.value
+                && ((urlSection.values.url.value as string).length > 0);
+
+            if (!hasPath && closing) {
+                result.messages.url = "URL is missing";
+
+                return result;
             }
 
             if (closing) {
-                if (pathMissing) {
-                    return result;
-                }
-                if (!this.selectedFile) {
-                    result.messages.localFilePath = "File NOT selected";
-
-                    return result;
-                }
-                if (this.selectedFile.size === 0) {
-                    result.messages.localFilePath = "File is empty";
-
-                    return result;
-                }
-                const lang = mainSection.values.language.value as string;
-                let correctExt = false;
-                if (lang === "JavaScript" && (
-                    this.selectedFile.name.endsWith(".js") || this.selectedFile.name.endsWith(".mjs"))) {
-                    correctExt = true;
-                    // load & check if correct ES module
-                    this.selectedFileContent = loadFileAsText(this.selectedFile).then(
-                        (txt) => {
-                            if (isValidESModule(txt)) {
-                                return txt;
-                            }
-                            throw Error("Selected file is not a valid ES module");
-                        });
-                }
-                if (lang === "WebAssembly" && this.selectedFile.name.endsWith(".wasm")) {
-                    correctExt = true;
-                    // convert to base64 encoding
-                    this.selectedFileContent = loadFileBinary(this.selectedFile).then(
-                        (arrayBuffer) => {
-                            const uint8Array = new Uint8Array(arrayBuffer);
-                            const chunkSize = 65535; // Maximum number of arguments that can be handled
-                            let binaryString = "";
-
-                            for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                                const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-                                binaryString += String.fromCharCode(...chunk);
-                            }
-
-                            return btoa(binaryString);
-                        },
-                    );
-                }
-                if (!correctExt) {
-                    result.messages.localFilePath = `Unsupported file extension for ${lang}`;
-
-                    return result;
+                try {
+                    this.processedContent = await this.downloadFromUrl(
+                        urlSection.values.url.value as string,
+                        mainSection.values.language.value as string);
+                } catch (error) {
+                    result.messages.url = convertErrorToString(error);
                 }
             }
         }
@@ -193,7 +168,81 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
         return result;
     };
 
-    private dialogValues(request: IDialogRequest): IDialogValues {
+    private loadFile = async (): Promise<string> => {
+        if (!this.selectedFile) {
+            throw new Error("Please select a file");
+        }
+
+        const isJS = this.selectedFile.name.endsWith(".js")
+            || this.selectedFile.name.endsWith(".mjs");
+
+        if (isJS) {
+            // load & check if correct ES module
+            const fileContent = await loadFileAsText(this.selectedFile);
+
+            if (fileContent.length === 0) {
+                throw new Error("File is empty");
+            }
+            // check if correct ES module
+            isValidESModule(fileContent);
+
+            return fileContent;
+        } else if (this.selectedFile.name.endsWith(".wasm")) {
+            // convert to base64 encoding
+            const fileContent = await loadFileBinary(this.selectedFile);
+
+            if (fileContent.byteLength === 0) {
+                throw new Error("File is empty");
+            }
+
+            return arrayBufferToBase64(fileContent);
+        }
+        throw new Error("Unknown file extension");
+    };
+
+    private downloadFromUrl = async (url: string, language: string): Promise<string> => {
+        const response = await fetch(url);
+
+
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}: ${response.statusText}`);
+        }
+
+        if (language === "JavaScript") {
+            const fileContent = await response.text();
+            if (fileContent.length === 0) {
+                throw new Error("URL returns empty content");
+            }
+            // check if correct ES module
+            isValidESModule(fileContent);
+
+            return fileContent;
+        } else if (language === "WebAssembly") {
+            const blob = await response.blob();
+
+            if (blob.size === 0) {
+                throw new Error("URL returns empty content");
+            }
+            const buffer = await blob.arrayBuffer();
+
+            return arrayBufferToBase64(buffer);
+        }
+        throw new Error("Unknown language");
+    };
+
+    private resetState(): void {
+        this.selectedFile = undefined;
+        this.processedContent = "";
+    }
+
+    private dialogValues(request: IDialogRequest, showComment: boolean): IDialogValues {
+        const commentOptions = [
+            CommonDialogValueOption.NewGroup,
+            CommonDialogValueOption.Grouped,
+        ];
+        if (!showComment) {
+            commentOptions.push(CommonDialogValueOption.Hidden);
+        }
         const mainSection: IDialogSection = {
             values: {
                 schemaName: {
@@ -207,7 +256,10 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
                     caption: "Library Name",
                     value: "my_library",
                     horizontalSpan: 2,
-                    options: [CommonDialogValueOption.AutoFocus],
+                    onChange: (value: string): void => {
+                        // If user erases the lbirary name, we can still take over the file name.
+                        this.libraryNameIsSet = value.length > 0;
+                    },
                 },
                 language: {
                     type: "choice",
@@ -221,31 +273,73 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
                     type: "choice",
                     caption: "Load From",
                     value: "File",
-                    choices: ["File"],
+                    choices: ["File", "URL"],
                     horizontalSpan: 2,
+                    onChange: (value: string, dialog: ValueEditDialog): void => {
+                        let toAdd;
+                        let toRemove;
+                        if (value === "File") {
+                            toAdd = ["localFile"];
+                            toRemove = ["url", "localProject"];
+                        } else if (value === "URL") {
+                            toAdd = ["url"];
+                            toRemove = ["localFile", "localProject"];
+                        }
+                        const contexts = {
+                            add: toAdd,
+                            remove: toRemove,
+                        };
+                        this.resetState();
+                        if (!this.commentIsSet) {
+                            dialog.updateInputValue("", "comment");
+                        }
+                        dialog.updateActiveContexts(contexts);
+                    },
                 },
                 comment: {
                     type: "text",
-                    caption: "Comment",
+                    caption: showComment ? "Comment" : undefined,
                     horizontalSpan: 8,
                     multiLine: true,
                     multiLineCount: 3,
-                    options: [
-                        CommonDialogValueOption.NewGroup,
-                        CommonDialogValueOption.Grouped,
-                    ],
+                    options: commentOptions,
+                    onChange: (): void => {
+                        // If user erases the comment, it mean he wants it empty, so dont override it anymore.
+                        this.commentIsSet = true;
+                    },
                 },
+            },
+        };
+
+        const localFileSection: IDialogSection = {
+            caption: "Load From File",
+            contexts: ["localFile"],
+            values: {
                 localFilePath: {
                     type: "resource",
                     caption: "Path",
-                    placeholder: "<Select JavaScript file>",
+                    placeholder: "<Select local JavaScript file>",
                     filters: { javaScript: ["js", "mjs"] },
                     multiSelection: false,
                     canSelectFiles: true,
                     canSelectFolders: false,
-                    horizontalSpan: 6,
+                    horizontalSpan: 8,
                     onChange: this.onFileChange,
                     doRead: true,
+                },
+            },
+        };
+
+        const urlSection: IDialogSection = {
+            caption: "Download From URL",
+            contexts: ["url"],
+            values: {
+                url: {
+                    type: "text",
+                    caption: "URL",
+                    value: "",
+                    horizontalSpan: 8,
+                    onFocusLost: this.onUrlChange,
                 },
             },
         };
@@ -254,6 +348,8 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
+                ["localFileSection", localFileSection],
+                ["urlSection", urlSection],
             ]),
         };
     }
@@ -261,57 +357,78 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
     private onLanguageChange = (value: string, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
         dialog.updateInputValue(value, "language");
-        const mainSection = values.sections.get("mainSection");
-        if (mainSection) {
-            const localFilePath = mainSection.values.localFilePath as IResourceDialogValue;
+        const localFileSection = values.sections.get("localFileSection");
+        if (localFileSection) {
+            const localFilePath = localFileSection.values.localFilePath as IResourceDialogValue;
             if (value === "JavaScript") {
                 localFilePath.value = undefined;
                 localFilePath.filters = { javaScript: ["js", "mjs"] };
-                localFilePath.placeholder = "<Select JavaScript file>";
+                localFilePath.placeholder = "<Select local JavaScript file>";
                 localFilePath.description = "Select a new JavaScript file";
-                this.selectedFile = undefined;
             } else if (value === "WebAssembly") {
                 localFilePath.value = undefined;
                 localFilePath.filters = { webAssembly: ["wasm"] };
-                localFilePath.placeholder = "<Select WebAssembly file>";
+                localFilePath.placeholder = "<Select local WebAssembly file>";
                 localFilePath.description = "Select a new WebAssembly file";
-                this.selectedFile = undefined;
             }
         }
+        this.resetState();
         dialog.setDialogValues(values);
+        if (!this.commentIsSet) {
+            dialog.updateInputValue("", "comment");
+        }
     };
 
-    private onFileChange = (value: File | null, dialog: ValueEditDialog): void => {
+    private onFileChange = (_value: File | null, dialog: ValueEditDialog): void => {
+        const values = dialog.getDialogValues();
+        const localFileSection = values.sections.get("localFileSection");
+        const mainSection = values.sections.get("mainSection");
+
+        if (!localFileSection) {
+            return;
+        }
+
+        if (!_value || _value.name.length === 0) {
+            this.selectedFile = undefined;
+        } else {
+            this.selectedFile = _value;
+
+            if (mainSection && !this.commentIsSet) {
+                dialog.updateInputValue(`Loaded from ${this.selectedFile.name}`, "comment");
+            }
+            if (mainSection && !this.libraryNameIsSet) {
+                // Split by both forward and backward slashes to handle different OS
+                const parts = this.selectedFile.name.split(/[/\\]/);
+                const fileName = parts[parts.length - 1];
+                dialog.updateInputValue(fileName, "libraryName");
+            }
+        }
+    };
+
+    private onUrlChange = (_value: string, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
         const mainSection = values.sections.get("mainSection");
 
-        if (mainSection) {
-            if (!value || value.name.length === 0) {
-                this.selectedFile = undefined;
-                mainSection.values.localFilePath.description = undefined;
-            } else {
-                this.selectedFile = value;
-                mainSection.values.localFilePath.description = `File size: ${humanFileSize(value.size)}`;
-            }
+        if (mainSection && !this.commentIsSet) {
+            dialog.updateInputValue(`Downloaded from ${_value}`, "comment");
         }
         dialog.setDialogValues(values);
     };
 
-    private processResults = async (dialogValues: IDialogValues): Promise<IDictionary> => {
+    private processResults = (dialogValues: IDialogValues, showComment: boolean): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
-        if (mainSection) {
-            const c = mainSection.values.comment.value ? mainSection.values.comment.value as string : "";
-            const values: ICreateLibraryDialogData = {
-                schemaName: mainSection.values.schemaName.value as string,
-                libraryName: mainSection.values.libraryName.value as string,
-                language: mainSection.values.language.value as string,
-                comment: c,
-                body: this.selectedFileContent ? await this.selectedFileContent : "",
-            };
+        if (!mainSection) { return {}; }
+        const lang = mainSection.values.language.value as string;
+        const c = mainSection.values.comment.value && showComment ? mainSection.values.comment.value as string : "";
 
-            return values;
-        }
+        const values: ICreateLibraryDialogData = {
+            schemaName: mainSection.values.schemaName.value as string,
+            libraryName: mainSection.values.libraryName.value as string,
+            language: lang,
+            comment: c,
+            body: this.processedContent,
+        };
 
-        return {};
+        return values;
     };
 }

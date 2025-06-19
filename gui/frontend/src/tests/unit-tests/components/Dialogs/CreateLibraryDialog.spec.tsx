@@ -36,6 +36,7 @@ import {
     createBackend,
     sendKeyPress,
     setupShellForTests,
+    nextProcessTick
 } from "../../test-helpers.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
@@ -136,14 +137,17 @@ describe("MRS SDK Export dialog tests", () => {
         expect(portals).toHaveLength(1);
 
         await dialogHelper.clickOk();
-        dialogHelper.verifyErrors(["Path is missing", "Schema name is missing"]);
+        await nextProcessTick();
+        dialogHelper.verifyErrors(["Please select a file", "Schema name is missing"]);
+        await nextProcessTick();
         await dialogHelper.setInputText("schemaName", "CREATE_LIBRARY_TEST2");
-        // it has to be an actual file, not just a random file path
-        await dialogHelper.setInputText("localFilePath", "/my/path/to.js");
 
         await dialogHelper.clickOk();
-        dialogHelper.verifyErrors(["File is empty"]);
+        await nextProcessTick();
+        dialogHelper.verifyErrors(["Please select a file"]);
+        await nextProcessTick();
         await dialogHelper.clickCancel();
+        await nextProcessTick();
 
         await promise;
 

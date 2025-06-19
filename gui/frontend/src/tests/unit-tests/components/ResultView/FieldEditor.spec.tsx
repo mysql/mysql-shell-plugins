@@ -143,7 +143,7 @@ describe("FieldEditor basic tests", () => {
         component.unmount();
     });
 
-    it("Test validateInput function", () => {
+    it("Test validateInput function", async () => {
         const component = mount<FieldEditor>(
             <FieldEditor />,
         );
@@ -166,10 +166,10 @@ describe("FieldEditor basic tests", () => {
 
         const testFieldEditor = new TestFieldEditor(component.instance().props);
 
-        let result = testFieldEditor.validateInput(false, request);
+        let result = await testFieldEditor.validateInput(false, request);
         expect(result).toEqual(expected);
 
-        result = testFieldEditor.validateInput(true, request);
+        result = await testFieldEditor.validateInput(true, request);
         expect(result).toEqual(expected);
 
         component.unmount();

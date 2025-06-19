@@ -41,6 +41,7 @@ export class CreateLibraryDialog {
 
     /**
      * Verifies if confirm dialog exists
+     *
      * @param timeout The timeout
      * @returns A promise resolving with the dialog if the dialog exists, false otherwise
      */
@@ -62,6 +63,7 @@ export class CreateLibraryDialog {
 
     /**
      * Sets the schema name
+     *
      * @param name The schema name
      * @returns A promise resolving when the schema name is set
      */
@@ -73,6 +75,7 @@ export class CreateLibraryDialog {
 
     /**
      * Sets the library name
+     *
      * @param name The library name
      * @returns A promise resolving when the library name is set
      */
@@ -84,12 +87,14 @@ export class CreateLibraryDialog {
 
     /**
      * Selects the library name
+     *
      * @param name The library name
      * @returns A promise resolving when the library name is set
      */
     public setLanguage = async (name: string): Promise<void> => {
         await this.dialog.findElement(locator.createLibraryDialog.language.exists).click();
-        await driver.wait(until.elementLocated(locator.createLibraryDialog.language.selectList.exists), constants.wait1second * 3);
+        await driver.wait(until.elementLocated(locator.createLibraryDialog.language.selectList.exists),
+            constants.wait1second * 3);
         await driver.findElement(locator.createLibraryDialog.language.selectList.item(name)).click();
     };
 
@@ -106,6 +111,7 @@ export class CreateLibraryDialog {
 
     /**
      * Sets the comment
+     *
      * @param comment The comment
      * @returns A promise resolving when the library name is set
      */
@@ -116,7 +122,20 @@ export class CreateLibraryDialog {
     };
 
     /**
+     * Sets the URL
+     *
+     * @param url The url
+     * @returns A promise resolving when the library url is set
+     */
+    public setURL = async (url: string): Promise<void> => {
+        const input = await this.dialog.findElement(locator.createLibraryDialog.url);
+        await input.clear();
+        await input.sendKeys(url);
+    };
+
+    /**
      * Sets the path
+     *
      * @param path The path
      * @returns A promise resolving when the path is set
      */

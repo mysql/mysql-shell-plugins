@@ -68,7 +68,7 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
         return DialogResponseClosure.Cancel;
     }
 
-    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    protected override validateInput = (closing: boolean, values: IDialogValues): Promise<IDialogValidations> => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],
@@ -102,7 +102,7 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
             }
         }
 
-        return result;
+        return Promise.resolve(result);
     };
 
     private dialogValues(request: IDialogRequest, availableRoles: IMrsRoleData[],

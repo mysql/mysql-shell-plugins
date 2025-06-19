@@ -60,7 +60,7 @@ class ProfileSelectorMock extends ProfileSelector {
     declare public profileLoaded: () => Promise<boolean>;
     declare public getProfileList: (userId: number) => Promise<void>;
     declare public validateProfileValues: (closing: boolean, values: IDialogValues,
-        payload: unknown) => IDialogValidations;
+        payload: unknown) => Promise<IDialogValidations>;
     declare public updateProfile: (profileToEdit: IShellProfile, setDefault: boolean) => Promise<void>;
     declare public handleMenuItemClick: (props: IMenuItemProperties) => boolean;
     declare public addProfile: () => void;
@@ -368,27 +368,31 @@ describe("ProfileSelector test", () => {
                 ]),
             };
 
-            it("should validate empty profile name on closing", () => {
+            it("should validate empty profile name on closing", async () => {
                 const result = selectorRef.current?.validateProfileValues(
                     true,
                     baseValues,
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result?.messages.profileName).toBe("The profile name cannot be empty");
+                if (result) {
+                    expect((await result).messages.profileName).toBe("The profile name cannot be empty");
+                }
             });
 
-            it("should not validate empty profile name when not closing", () => {
+            it("should not validate empty profile name when not closing", async () => {
                 const result = selectorRef.current?.validateProfileValues(
                     false,
                     baseValues,
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result?.messages.profileName).toBeUndefined();
+                if (result) {
+                    expect((await result).messages.profileName).toBeUndefined();
+                }
             });
 
-            it("should validate duplicate profile name", () => {
+            it("should validate duplicate profile name", async () => {
                 const values: IDialogValues = {
                     sections: new Map([
                         ["add", {
@@ -411,10 +415,12 @@ describe("ProfileSelector test", () => {
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result?.messages.profileName).toBe("A profile with that name exists already");
+                if (result) {
+                    expect((await result).messages.profileName).toBe("A profile with that name exists already");
+                }
             });
 
-            it("should validate missing profile selection when copying", () => {
+            it("should validate missing profile selection when copying", async () => {
                 const values: IDialogValues = {
                     sections: new Map([
                         ["add", {
@@ -433,7 +439,9 @@ describe("ProfileSelector test", () => {
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result?.messages.databaseType).toBe("Select one of the existing profile");
+                if (result) {
+                    expect((await result).messages.databaseType).toBe("Select one of the existing profile");
+                }
             });
         });
 
@@ -450,17 +458,19 @@ describe("ProfileSelector test", () => {
                 ]),
             };
 
-            it("should validate empty profile name on closing", () => {
+            it("should validate empty profile name on closing", async () => {
                 const result = selectorRef.current?.validateProfileValues(
                     true,
                     baseValues,
                     { saveProfile: true, section: "edit" },
                 );
 
-                expect(result?.messages.profileNewName).toBe("The profile name cannot be empty");
+                if (result) {
+                    expect((await result).messages.profileNewName).toBe("The profile name cannot be empty");
+                }
             });
 
-            it("should allow same name for same profile", () => {
+            it("should allow same name for same profile", async () => {
                 selectorRef.current!.activeProfiles = [
                     { name: "profile1", id: 1, userId: 1, description: "", options: {} },
                 ];
@@ -483,7 +493,9 @@ describe("ProfileSelector test", () => {
                     { saveProfile: true, section: "edit" },
                 );
 
-                expect(result?.messages.profileNewName).toBeUndefined();
+                if (result) {
+                    expect((await result).messages.profileNewName).toBeUndefined();
+                }
             });
         });
     });

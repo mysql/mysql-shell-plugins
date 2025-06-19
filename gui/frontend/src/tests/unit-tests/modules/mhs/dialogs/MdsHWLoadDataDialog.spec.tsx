@@ -142,7 +142,7 @@ describe("MdsHWLoadDataDialog tests", () => {
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Cancel);
     });
 
-    it("Test validate the input", () => {
+    it("Test validate the input", async () => {
         const request: IDialogRequest = {
             type: MdsDialogType.MdsHeatWaveLoadData,
             id: "mdsHWLoadDataDialog",
@@ -161,7 +161,7 @@ describe("MdsHWLoadDataDialog tests", () => {
             },
         };
 
-        const validations = (component.instance()).validateInput(true, {
+        const validations = await (component.instance()).validateInput(true, {
             sections: new Map<string, IDialogSection>([["mainSection", mainSection]]),
         });
 

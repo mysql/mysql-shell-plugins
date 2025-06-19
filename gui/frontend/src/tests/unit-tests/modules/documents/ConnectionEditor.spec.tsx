@@ -45,9 +45,9 @@ import {
 } from "../../test-helpers.js";
 
 class TestConnectionEditor extends ConnectionEditor {
-    public testValidateConnectionValues = (closing: boolean, values: IDialogValues,
-        data?: IDictionary): IDialogValidations => {
-        return this.validateConnectionValues(closing, values, data);
+    public testValidateConnectionValues = async (closing: boolean, values: IDialogValues,
+        data?: IDictionary): Promise<IDialogValidations> => {
+        return await this.validateConnectionValues(closing, values, data);
     };
 
     public testGenerateEditorConfig = (currentPath: string, details?: IConnectionDetails): IDialogValues => {
@@ -226,7 +226,7 @@ describe("ConnectionEditor tests", (): void => {
         component.unmount();
     });
 
-    it("Test ConnectionEditor validateConnectionValues function when databaseType is not selected", () => {
+    it("Test ConnectionEditor validateConnectionValues function when databaseType is not selected", async () => {
         const component = mount<TestConnectionEditor>(
             <DocumentContext.Provider
                 value={{
@@ -264,7 +264,7 @@ describe("ConnectionEditor tests", (): void => {
         };
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testValidateConnectionValues(false, values);
+        const result = await editor.instance().testValidateConnectionValues(false, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ databaseType: "Select one of the database types for your connection" });
@@ -272,7 +272,7 @@ describe("ConnectionEditor tests", (): void => {
         component.unmount();
     });
 
-    it("Test ConnectionEditor validateConnectionValues function when caption is empty", () => {
+    it("Test ConnectionEditor validateConnectionValues function when caption is empty", async () => {
         const component = mount<TestConnectionEditor>(
             <DocumentContext.Provider
                 value={{
@@ -316,7 +316,7 @@ describe("ConnectionEditor tests", (): void => {
         };
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testValidateConnectionValues(true, values);
+        const result = await editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ caption: "The caption cannot be empty" });
@@ -324,7 +324,7 @@ describe("ConnectionEditor tests", (): void => {
         component.unmount();
     });
 
-    it("Test ConnectionEditor validateConnectionValues function when dbFilePath is not specified for Sqlite", () => {
+    it("Test ConnectionEditor validateConnectionValues function when dbFilePath is not specified for Sqlite", async () => {
         const component = mount<TestConnectionEditor>(
             <DocumentContext.Provider
                 value={{
@@ -364,7 +364,7 @@ describe("ConnectionEditor tests", (): void => {
         };
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testValidateConnectionValues(true, values);
+        const result = await editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ dbFilePath: "Specify the path to an existing Sqlite DB file" });
@@ -372,7 +372,7 @@ describe("ConnectionEditor tests", (): void => {
         component.unmount();
     });
 
-    it("Test ConnectionEditor validateConnectionValues function when hostName is not specified for MySQL", () => {
+    it("Test ConnectionEditor validateConnectionValues function when hostName is not specified for MySQL", async () => {
         const component = mount<TestConnectionEditor>(
             <DocumentContext.Provider
                 value={{
@@ -416,7 +416,7 @@ describe("ConnectionEditor tests", (): void => {
         };
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testValidateConnectionValues(true, values);
+        const result = await editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ hostName: "Specify a valid host name or IP address" });
@@ -424,7 +424,7 @@ describe("ConnectionEditor tests", (): void => {
         component.unmount();
     });
 
-    it("Test ConnectionEditor validateConnectionValues function when userName is not specified for MySQL", () => {
+    it("Test ConnectionEditor validateConnectionValues function when userName is not specified for MySQL", async () => {
         const component = mount<TestConnectionEditor>(
             <DocumentContext.Provider
                 value={{
@@ -468,7 +468,7 @@ describe("ConnectionEditor tests", (): void => {
         };
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testValidateConnectionValues(true, values);
+        const result = await editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ userName: "The user name must not be empty" });
@@ -476,7 +476,7 @@ describe("ConnectionEditor tests", (): void => {
         component.unmount();
     });
 
-    it("Test ConnectionEditor validateConnectionValues function when port is not a valid integer for MySQL", () => {
+    it("Test ConnectionEditor validateConnectionValues function when port is not a valid integer for MySQL", async () => {
         const component = mount<TestConnectionEditor>(
             <DocumentContext.Provider
                 value={{
@@ -520,7 +520,7 @@ describe("ConnectionEditor tests", (): void => {
         };
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testValidateConnectionValues(true, values);
+        const result = await editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ timeout: "The port must be a valid integer >= 0" });

@@ -810,7 +810,7 @@ export class SidebarCommandHandler {
                                         type: LibraryDialogType.CreateLibraryFrom,
                                         id: "createLibraryDialog",
                                         parameters: {},
-                                        values: { schemaName: entry.caption },
+                                        values: { schemaName: entry.caption, serverVersion: connection.details.version },
                                     };
                                     const element = document.activeElement;
                                     const response = await this.createLibraryDialogRef.current.show(request);
@@ -858,7 +858,6 @@ export class SidebarCommandHandler {
                                     return { success: false };
                                 }
                             }
-
                             break;
                         }
 

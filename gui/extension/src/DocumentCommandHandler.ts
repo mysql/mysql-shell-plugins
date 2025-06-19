@@ -491,7 +491,7 @@ export class DocumentCommandHandler {
                         type: LibraryDialogType.CreateLibraryFrom,
                         id: "createLibraryDialog",
                         parameters: {},
-                        values: { schemaName: entry.parent.caption },
+                        values: { schemaName: entry.parent.caption , serverVersion: connection.details.version},
                     };
                     if (provider) {
                         void provider.runCommand("job", [

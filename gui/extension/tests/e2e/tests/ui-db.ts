@@ -1387,6 +1387,28 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
+        it("Create JavaScript Library From URL", async () => {
+
+            const library = "test_js_library_from_url";
+            await dbTreeSection.focus();
+            await dbTreeSection.expandTreeItem("sakila");
+            await dbTreeSection.expandTreeItem("Libraries");
+            await dbTreeSection.openContextMenuAndSelect(constants.libraries, constants.createLibraryFrom);
+            await driver.wait(new E2EScript().untilIsOpened(globalConn), constants.wait1second * 10);
+            const createLibraryDialog = await new CreateLibraryDialog().untilExists();
+            await createLibraryDialog.setLibraryName(library);
+            await createLibraryDialog.setLoadFrom("URL");
+            await createLibraryDialog.setURL("https://cdn.jsdelivr.net/npm/validator@13.15.15/+esm");
+            await createLibraryDialog.ok();
+            Workbench.untilNotificationExists(`JavaScript library ${library} successfully created!`);
+
+            await driver.wait(async () => {
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+
+                return dbTreeSection.treeItemExists(library);
+            }, constants.wait1second * 5, `${library} does not exist on the tree`);
+        });
+
         it("Create WebAssembly Library From File", async () => {
 
             const libraryFile = "library.wasm";

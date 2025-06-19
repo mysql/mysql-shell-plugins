@@ -90,7 +90,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             { ...payload, services, schemas, rowOwnershipFields });
     }*/
 
-    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    protected override validateInput = (closing: boolean, values: IDialogValues): Promise<IDialogValidations> => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],
@@ -140,7 +140,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             }
         }
 
-        return result;
+        return Promise.resolve(result);
     };
 
     private createDialogValues(request: IDialogRequest,

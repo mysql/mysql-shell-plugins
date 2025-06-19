@@ -264,7 +264,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     }
 
     protected validateConnectionValues = (closing: boolean, values: IDialogValues,
-        data?: IDictionary): IDialogValidations => {
+        data?: IDictionary): Promise<IDialogValidations> => {
 
         const result: IDialogValidations = {
             requiredContexts: [],
@@ -363,7 +363,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             }
         }
 
-        return result;
+        return Promise.resolve(result);
     };
 
     private handleOptionsDialogClose = (closure: DialogResponseClosure, values: IDialogValues,

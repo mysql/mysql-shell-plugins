@@ -255,7 +255,8 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         }
     };
 
-    private validateProfileValues = (closing: boolean, values: IDialogValues, payload: unknown): IDialogValidations => {
+    private validateProfileValues = (closing: boolean, values: IDialogValues, payload: unknown):
+        Promise<IDialogValidations> => {
         const result: IDialogValidations = {
             requiredContexts: [],
             messages: {},
@@ -344,7 +345,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
             }
         }
 
-        return result;
+        return Promise.resolve(result);
     };
 
     private handleProfileChanges = (closure: DialogResponseClosure, values: IDialogValues,

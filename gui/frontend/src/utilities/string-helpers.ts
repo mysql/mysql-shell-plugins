@@ -277,8 +277,16 @@ export const convertHexToBase64 = (hex: string): string => {
  *
  * @returns The base64 encoded string for use in serialization.
  */
-export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-    return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+export const arrayBufferToBase64 = (buffer: ArrayBuffer | Uint8Array): string => {
+    const uint8Array = new Uint8Array(buffer);
+    const chunkSize = 65535; // Maximum number of arguments that can be handled
+    let binaryString = "";
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+        binaryString += String.fromCharCode(...chunk);
+    }
+
+    return btoa(binaryString);
 };
 
 /**

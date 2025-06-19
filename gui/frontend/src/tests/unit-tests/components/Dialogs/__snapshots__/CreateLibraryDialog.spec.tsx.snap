@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MRS SDK Export dialog tests Show Create Library Dialog (snapshot) and escape 1`] = `
 <div
@@ -137,29 +137,22 @@ exports[`MRS SDK Export dialog tests Show Create Library Dialog (snapshot) and e
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 8;"
+        />
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
         >
           <label
-            class="msg label valueTitle"
+            class="msg label sectionTitle"
             data-tooltip="expand"
           >
-            Comment
+            Load From File
           </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <textarea
-              class="msg input valueEditor"
-              id="comment"
-              rows="3"
-              spellcheck="true"
-            />
-          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
             class="msg label valueTitle"
@@ -174,7 +167,7 @@ exports[`MRS SDK Export dialog tests Show Create Library Dialog (snapshot) and e
             <input
               class="msg input"
               id="localFilePath"
-              placeholder="<Select JavaScript file>"
+              placeholder="<Select local JavaScript file>"
               readonly=""
               spellcheck="true"
               type="text"
@@ -364,29 +357,22 @@ exports[`MRS SDK Export dialog tests Show Create Library Dialog and cancel 1`] =
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 8;"
+        />
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
         >
           <label
-            class="msg label valueTitle"
+            class="msg label sectionTitle"
             data-tooltip="expand"
           >
-            Comment
+            Load From File
           </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <textarea
-              class="msg input valueEditor"
-              id="comment"
-              rows="3"
-              spellcheck="true"
-            />
-          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
             class="msg label valueTitle"
@@ -401,7 +387,7 @@ exports[`MRS SDK Export dialog tests Show Create Library Dialog and cancel 1`] =
             <input
               class="msg input"
               id="localFilePath"
-              placeholder="<Select JavaScript file>"
+              placeholder="<Select local JavaScript file>"
               readonly=""
               spellcheck="true"
               type="text"

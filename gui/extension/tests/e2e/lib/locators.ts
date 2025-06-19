@@ -1051,6 +1051,7 @@ export const createLibraryDialog = {
     },
     comment: By.id("comment"),
     path: By.id("localFilePathBtn"),
+    url: By.id("url"),
     ok: By.id("ok"),
     cancel: By.id("cancel"),
 };
