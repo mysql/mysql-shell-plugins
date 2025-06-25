@@ -9,3 +9,7 @@
 **/.DS_Store
 **/.antlr
 .idea
+**/finalReport
+**/test-report-*
+**/mergeReport.json
+**/config

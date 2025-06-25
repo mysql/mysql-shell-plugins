@@ -12,5 +12,17 @@
     "extensions.autoUpdate": false,
     "git.autoRepositoryDetection": false,
     "workbench.remoteIndicator.showExtensionRecommendations": false,
-    "extensions.ignoreRecommendations": true
+    "extensions.ignoreRecommendations": true,
+    "telemetry.enableCrashReporter": false,
+    "telemetry.enableTelemetry": false,
+    "workbench.startupEditor": "none",
+    "workbench.enableExperiments": false,
+    "files.watcherExclude": {
+        "**/node_modules": true,
+        "**/.git": true
+    },
+    "search.followSymlinks": false,
+    "explorer.autoReveal": false,
+    "breadcrumbs.enabled": false,
+    "editor.minimap.enabled": false
 }

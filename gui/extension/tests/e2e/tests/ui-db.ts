@@ -281,7 +281,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/(\\\w+|\/\w+)/);
             expect(mysqlAdministration.serverStatus.tempDirectory).to.match(/(\\\w+|\/\w+)/);
             expect(mysqlAdministration.serverStatus.errorLog.checked).to.be.true;
-            expect(mysqlAdministration.serverStatus.errorLog.path).to.match(/\/\w+/);
+            expect(mysqlAdministration.serverStatus.errorLog.path).to.match(/(\\\w+|\/\w+)/);
             expect(typeof mysqlAdministration.serverStatus.generalLog.checked).to.equals("boolean");
             expect(mysqlAdministration.serverStatus.generalLog.path).to.not.equals("");
             expect(typeof mysqlAdministration.serverStatus.slowQueryLog.checked).to.equals("boolean");

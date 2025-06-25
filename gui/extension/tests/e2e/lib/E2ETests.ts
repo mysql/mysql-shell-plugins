@@ -743,7 +743,6 @@ export class E2ETests {
         E2ELogger.info(`Running tests for ${testSuite.name.toUpperCase()} suite...`);
         process.env.NODE_ENV = "test";
         const defaultStdoutWrite = process.stdout.write.bind(process.stdout);
-
         const filename = `test_results_${testSuite.name}.log`;
 
         if (log) {
@@ -755,6 +754,21 @@ export class E2ETests {
 
             process.stdout.write = process.stderr.write = logStream.write.bind(logStream);
         }
+
+        let extensionFileName: string;
+        const extensionDir = await fs.readdir(testSuite.extensionDir);
+        for (const file of extensionDir) {
+            if (file.includes("oracle")) {
+                extensionFileName = file;
+                break;
+            }
+        }
+
+        if (!extensionFileName) {
+            throw new Error(`Could not find the extension file name at ${testSuite.extensionDir}`);
+        }
+
+        process.env.VSCODE_ARGS = `--disable-extensions --extensionDevelopmentPath=${join(testSuite.extensionDir, extensionFileName)} --user-data-dir=./vscode-test-user-data --disable-gpu`;
 
         const result = await testSuite.exTester.runTests(`./tests/ui-${testSuite.name.toLowerCase()}.ts`, {
             settings: join(process.cwd(), "setup", "settings.json"),
