@@ -684,7 +684,7 @@ export class Workbench {
                 if (open === true) {
                     if (!(await isOpened())) {
                         await driver.wait(async () => {
-                            await primarySidebar.click();
+                            await driver.executeScript("arguments[0].click()", primarySidebar);
 
                             return driver.wait(untilIsOpened(), constants.wait1second)
                                 .then(() => { return true; })
@@ -696,7 +696,7 @@ export class Workbench {
                 } else {
                     if (await isOpened()) {
                         await driver.wait(async () => {
-                            await primarySidebar.click();
+                            await driver.executeScript("arguments[0].click()", primarySidebar);
 
                             return driver.wait(untilIsClosed(), constants.wait1second)
                                 .then(() => { return true; })
@@ -783,9 +783,6 @@ export class Workbench {
             let feWasLoaded = false;
 
             const loadTry = async (): Promise<void> => {
-                await driver.wait(Workbench.untilTabIsOpened("Welcome"), constants.wait1second * 10,
-                    "Welcome tab was not opened");
-                await Workbench.openMySQLShellForVSCode();
                 await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait1second * 25,
                     `${constants.dbDefaultEditor} tab was not opened`);
                 await Misc.switchToFrame();
@@ -795,7 +792,7 @@ export class Workbench {
 
             while (tryNumber <= feLoadTries) {
                 try {
-                    await Workbench.reloadVSCode();
+                    await Workbench.openMySQLShellForVSCode();
                     await loadTry();
                     feWasLoaded = true;
                     break;

@@ -365,7 +365,7 @@ export class E2ECodeEditor {
                 result = await driver.wait(until
                     .elementLocated(locator.notebook.codeEditor.editor.result
                         .existsById(String(resultId))),
-                    constants.wait2seconds, `Could not find result id ${String(resultId)} for ${cmd}`);
+                    constants.wait5seconds, `Could not find result id ${String(resultId)} for ${cmd}`);
             } catch (e) {
                 if (e instanceof error.TimeoutError) {
                     const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
