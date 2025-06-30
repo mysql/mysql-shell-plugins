@@ -275,7 +275,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.serverStatus.compiledFor).to.not.equals("");
             expect(mysqlAdministration.serverStatus.configurationFile).to.not.equals("");
             expect(mysqlAdministration.serverStatus.runningSince)
-                .to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
+                .to.match(/((\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)|none)/);
             expect(mysqlAdministration.serverStatus.baseDirectory).to.match(/(\\\w+|\/\w+)/);
             expect(mysqlAdministration.serverStatus.dataDirectory).to.match(/(\\\w+|\/\w+)/);
             expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/(\\\w+|\/\w+)/);

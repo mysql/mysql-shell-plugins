@@ -268,6 +268,7 @@ describe("RESULT GRIDS", () => {
 
         it("Edit a result grid, verify query preview and commit - integer columns", async () => {
 
+            await notebook.codeEditor.clean();
             let result = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_ints;") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);

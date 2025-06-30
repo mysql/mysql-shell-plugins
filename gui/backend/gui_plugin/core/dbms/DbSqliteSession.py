@@ -21,11 +21,11 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 import os.path
 import sqlite3
-import time
-import os
 import stat
+import time
 
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
@@ -34,9 +34,9 @@ from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
                                             ReconnectionMode)
 from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 from gui_plugin.core.dbms.DbSqliteSessionTasks import (
-    SqliteBaseObjectTask, SqliteGetAutoCommit, SqliteOneFieldListTask,
-    SqliteSetCurrentSchemaTask, SqliteTableObjectTask, SqliteColumnObjectTask,
-    SqliteColumnsMetadataTask, SqliteColumnsListTask)
+    SqliteBaseObjectTask, SqliteColumnObjectTask, SqliteColumnsListTask,
+    SqliteColumnsMetadataTask, SqliteGetAutoCommit, SqliteOneFieldListTask,
+    SqliteSetCurrentSchemaTask, SqliteTableObjectTask)
 from gui_plugin.core.Error import MSGException
 
 
@@ -158,37 +158,57 @@ class DbSqliteSession(DbSession):
                                "The 'db_file' option was not set for the '%s' database." % db_name)
 
     def _do_open_database(self, notify_success=True):
-        try:
-            self._on_connect()
+        max_retries = 3
+        retry_delay = 1
 
-            # open the database connection
-            self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
-                                        isolation_level=None, check_same_thread=False)
+        for attempt in range(max_retries):
+            try:
+                self._on_connect()
 
-            # restrict permissions to the database file
-            os.chmod(self._databases[self._current_schema],
-                     stat.S_IRUSR | stat.S_IWUSR)
+                # open the database connection with longer timeout
+                self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=30, factory=SqliteConnection,
+                                            isolation_level=None, check_same_thread=False)
 
-            # Cursor to be used for statements from the owner of this instance
-            self.cursor = None
+                # restrict permissions to the database file
+                os.chmod(self._databases[self._current_schema],
+                         stat.S_IRUSR | stat.S_IWUSR)
 
-            init_cursor = self.conn.execute("PRAGMA journal_mode = WAL")
-            init_cursor.close()
+                # Cursor to be used for statements from the owner of this instance
+                self.cursor = None
 
-            for (database_name, db_file) in self._databases.items():
-                if database_name == self._current_schema:
+                init_cursor = self.conn.execute("PRAGMA journal_mode = WAL")
+                init_cursor.close()
+
+                for (database_name, db_file) in self._databases.items():
+                    if database_name == self._current_schema:
+                        continue
+                    self.conn.execute(f"ATTACH '{db_file}' AS '{database_name}';")
+
+                if self._connected_cb is not None and notify_success:
+                    self._connected_cb(self)
+
+                return True
+
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < max_retries - 1:
+                    logger.warning(f"Database locked, retrying in {retry_delay} seconds (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
                     continue
-                self.conn.execute(f"ATTACH '{db_file}' AS '{database_name}';")
+                else:
+                    if self._failed_cb is None:
+                        raise e
+                    else:
+                        self._failed_cb(e)
+                        return False
+            except Exception as e:
+                if self._failed_cb is None:
+                    raise e
+                else:
+                    self._failed_cb(e)
+                    return False
 
-            if self._connected_cb is not None and notify_success:
-                self._connected_cb(self)
-        except Exception as e:
-            if self._failed_cb is None:
-                raise e
-            else:
-                self._failed_cb(e)
-                return False
-        return True
+        return False
 
     def _reconnect(self, is_auto_reconnect):
         logger.debug3(f"Reconnecting session {self._id}...")

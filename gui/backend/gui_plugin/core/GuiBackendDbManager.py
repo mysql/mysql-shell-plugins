@@ -139,10 +139,57 @@ class BackendSqliteDbManager(BackendDbManager):
                          })
 
     def open_database(self):
+        # Clean WAL/SHM files before opening database
+        self._cleanup_wal_shm_files()
+
         session_id = "BackendDB-" + \
             "anonymous" if self._session_uuid is None else self._session_uuid
         return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options,
                                        None, True, None, None, None, None, None)
+
+    def _cleanup_wal_shm_files(self):
+        """
+        Safely handles WAL and SHM files for all environments
+        """
+        try:
+            db_file = self._connection_options["db_file"]
+
+            if not path.exists(db_file):
+                return
+
+            self._safe_wal_checkpoint(db_file)
+
+        except Exception as e:
+            logger.error(f"Error during WAL/SHM handling: {e}")
+
+    def _safe_wal_checkpoint(self, db_file):
+        """
+        Performs safe WAL checkpoint without removing files
+        """
+        try:
+            with sqlite3.connect(db_file, timeout=10) as conn:
+                cursor = conn.execute("PRAGMA journal_mode")
+                journal_mode = cursor.fetchone()[0]
+
+                if journal_mode == "wal":
+                    # Perform passive checkpoint
+                    cursor = conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
+                    checkpoint_result = cursor.fetchone()
+                    logger.debug3(f"WAL checkpoint result: {checkpoint_result}")
+
+                    # Log any issues but don't fail
+                    if checkpoint_result and checkpoint_result[0] != 0:
+                        logger.warning(f"WAL checkpoint returned non-zero: {checkpoint_result}")
+                else:
+                    logger.debug3("Database not in WAL mode")
+
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e):
+                logger.debug3("Database is locked during WAL checkpoint, this is normal")
+            else:
+                logger.error(f"Error during WAL checkpoint: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error during WAL checkpoint: {e}")
 
     def current_database_exist(self):
         return path.isfile(self._connection_options["db_file"])
