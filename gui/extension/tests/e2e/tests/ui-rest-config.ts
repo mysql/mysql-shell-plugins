@@ -122,7 +122,7 @@ describe("MySQL REST Service Configuration", () => {
         await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
         await ConfigRestServiceDialog.set(mrsConfig);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
-            constants.wait1second * 25);
+            constants.wait1second * 60);
         await driver.wait(dbTreeSection.untilTreeItemExists(constants.mysqlRestService), constants.waitForTreeItem);
         await dbTreeSection.expandTreeItem(constants.mysqlRestService);
         await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);

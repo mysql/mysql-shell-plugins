@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,18 +21,30 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-import gui_plugin.core.Logger as logger
-import re
-import json
+import atexit
 import datetime
-import uuid
-from os import path, listdir
+import json
+import re
+import threading
+from os import listdir, path
 from pathlib import Path
-from .Protocols import Response
-from .GuiBackendDbManager import BackendSqliteDbManager
+
+from mysqlsh.plugin_manager import \
+    plugin_function  # pylint: disable=no-name-in-module
+
+import gui_plugin.core.Logger as logger
 from gui_plugin.core import Error
 
+from .GuiBackendDbManager import BackendSqliteDbManager
+from .Protocols import Response
+
+_backend_db_instances = {}
+_backend_db_lock = threading.Lock()
+
+def cleanup_backend_databases():
+    GuiBackendDb.close_all_instances()
+
+atexit.register(cleanup_backend_databases)
 
 class BackendDatabase():
     def __init__(self, be_session=None, log_rotation=False):
@@ -44,17 +56,14 @@ class BackendDatabase():
 
     def __enter__(self):
         if self.db is None:
-            self.db = GuiBackendDb(
-                log_rotation=self.log_rotation,
-                session_uuid=str(uuid.uuid1()))
+            self.db = GuiBackendDb.get_instance(
+                log_rotation=self.log_rotation)
 
         return self.db
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type:
             logger.exception(exc_value)
-        if self.needs_close:
-            self.db.close()
 
 
 class BackendTransaction():
@@ -93,6 +102,38 @@ class GuiBackendDb():
 
         # Opens the session to the backend database
         self._db = backend_db_manager.open_database()
+
+    @classmethod
+    def get_instance(cls, log_rotation=False, session_uuid=None):
+        """
+        Singleton pattern - returns existing instance or creates new one
+        """
+        # Use session_uuid as key, if not provided, use 'default'
+        key = session_uuid if session_uuid else 'default'
+
+        with _backend_db_lock:
+            if key not in _backend_db_instances:
+                logger.debug3(f"Creating new GuiBackendDb instance for key: {key}")
+                _backend_db_instances[key] = cls(log_rotation=log_rotation, session_uuid=session_uuid)
+            else:
+                logger.debug3(f"Reusing existing GuiBackendDb instance for key: {key}")
+
+            return _backend_db_instances[key]
+
+    @classmethod
+    def close_all_instances(cls):
+        """
+        Closes all database instances
+        """
+        with _backend_db_lock:
+            for key, instance in list(_backend_db_instances.items()):
+                try:
+                    instance.close()
+                    logger.debug3(f"Closed GuiBackendDb instance for key: {key}")
+                except Exception as e:
+                    logger.error(f"Error closing GuiBackendDb instance for key {key}: {e}")
+                finally:
+                    del _backend_db_instances[key]
 
     def execute(self, sql, params=None):
         return self._db.execute(sql, params)

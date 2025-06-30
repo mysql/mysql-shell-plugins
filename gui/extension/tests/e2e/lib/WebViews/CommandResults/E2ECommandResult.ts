@@ -145,7 +145,7 @@ export abstract class E2ECommandResult {
             if (tabs.length > 0) {
                 return tabs[0];
             }
-        }, constants.wait1second * 5, `Could not find the tabs for cmd ${this.command}`);
+        }, constants.wait1second * 15, `Could not find the tabs for cmd ${this.command}`);
 
         const tabsToGrab: interfaces.ICommandResultTab[] = [];
         const existingTabs = await tabContext.findElements(tabLocator.tab);

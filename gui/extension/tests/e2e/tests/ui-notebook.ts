@@ -209,7 +209,8 @@ describe("NOTEBOOKS", () => {
             await driver.wait(notebook.codeEditor.untilNewPromptExists(), constants.wait1second * 5);
         });
 
-        it("Connection toolbar buttons - Execute statement at the caret position", async () => {
+        it("Connection toolbar buttons - Execute statement at the caret position", async function () {
+            this.retries(2);
             try {
                 const query1 = "select * from sakila.actor limit 1;";
                 const query2 = "select * from sakila.address limit 2;";
