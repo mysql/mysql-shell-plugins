@@ -100,9 +100,7 @@ describe("RESULT GRIDS", () => {
         }
     });
 
-    describe("MySQL", function () {
-
-        this.retries(1);
+    describe("MySQL", () => {
 
         let cleanEditor = false;
         let existsInQueue = false;
@@ -110,6 +108,7 @@ describe("RESULT GRIDS", () => {
         before(async function () {
             try {
                 await Workbench.toggleSideBar(false);
+                await (await notebook.toolbar.getButton(constants.autoCommit)).click();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -123,6 +122,8 @@ describe("RESULT GRIDS", () => {
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
+                await (await notebook.toolbar.getButton(constants.rollback)).click();
+                await Workbench.dismissNotifications();
             }
 
             if (existsInQueue) {
@@ -323,9 +324,15 @@ describe("RESULT GRIDS", () => {
             await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
 
             await result2.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
-            await Workbench.getNotification("Changes committed successfully.");
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5)
+                .catch(async (e) => {
+                    await result2.selectSqlPreview();
+                    await Workbench.dismissNotifications();
 
+                    throw e;
+                });
+
+            await Workbench.getNotification("Changes committed successfully.");
             const result3 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_ints where id = 1;") as E2ECommandResultGrid;
             expect(result3.status).to.match(/OK/);
@@ -355,9 +362,9 @@ describe("RESULT GRIDS", () => {
                 .execute("select * from sakila.all_data_types_dates;") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
 
-            const dateEdited = "2024-01-01";
-            const dateTimeEdited = "2024-01-01 15:00";
-            const timeStampEdited = "2024-01-01 15:00";
+            const dateEdited = "2045-01-01";
+            const dateTimeEdited = "2026-01-01 15:45";
+            const timeStampEdited = "2026-01-01 15:45";
             const timeEdited = "23:59";
             const yearEdited = "2030";
 
@@ -398,7 +405,13 @@ describe("RESULT GRIDS", () => {
 
             await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
             await result.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5)
+                .catch(async (e) => {
+                    await result2.selectSqlPreview();
+                    await Workbench.dismissNotifications();
+
+                    throw e;
+                });
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
@@ -406,11 +419,11 @@ describe("RESULT GRIDS", () => {
             expect(result3.status).to.match(/OK/);
 
             const testDate = await result3.getCellValue(rowToEdit, "test_date");
-            expect(testDate).to.equals("01/01/2024");
+            expect(testDate).to.equals("01/01/2045");
             const testDateTime = await result3.getCellValue(rowToEdit, "test_datetime");
-            expect(testDateTime).to.equals("01/01/2024");
+            expect(testDateTime).to.equals("01/01/2026");
             const testTimeStamp = await result3.getCellValue(rowToEdit, "test_timestamp");
-            expect(testTimeStamp).to.equals("01/01/2024");
+            expect(testTimeStamp).to.equals("01/01/2026");
             const testTime = await result3.getCellValue(rowToEdit, "test_time");
             const convertedTime = Misc.convertTimeTo12H(timeEdited);
             expect(testTime === `${timeEdited}:00` || testTime === convertedTime).to.equals(true);
@@ -419,6 +432,8 @@ describe("RESULT GRIDS", () => {
         });
 
         it("Edit a result grid, verify query preview and commit - char columns", async () => {
+
+            await notebook.codeEditor.clean();
             let result = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_chars where id = 2;") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
@@ -473,7 +488,13 @@ describe("RESULT GRIDS", () => {
                 .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
             await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
             await result.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5)
+                .catch(async (e) => {
+                    await result2.selectSqlPreview();
+                    await Workbench.dismissNotifications();
+
+                    throw e;
+                });
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
@@ -500,6 +521,8 @@ describe("RESULT GRIDS", () => {
         });
 
         it("Edit a result grid, verify query preview and commit - geometry columns", async () => {
+
+            await notebook.codeEditor.clean();
             let result = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
@@ -552,7 +575,13 @@ describe("RESULT GRIDS", () => {
                 .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
             await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
             await result.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5)
+                .catch(async (e) => {
+                    await result2.selectSqlPreview();
+                    await Workbench.dismissNotifications();
+
+                    throw e;
+                });
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
