@@ -29,7 +29,7 @@ import {
 } from "./ValueEditDialog.js";
 import { AwaitableValueEditDialog } from "./AwaitableValueEditDialog.js";
 import { loadFileAsText, loadFileBinary } from "../../utilities/helpers.js";
-import { parse } from "acorn";
+import ts from "typescript";
 
 export interface ICreateLibraryDialogData extends IDictionary {
     schemaName: string;
@@ -71,17 +71,23 @@ const humanFileSize = (bytes: number, si = false, dp = 1) => {
     return bytes.toFixed(dp) + " " + units[u];
 };
 
-const isValidESModule = (code: string) => {
-    try {
-        parse(code, {
-            sourceType: "module",
-            ecmaVersion: "latest",
-        });
+const isValidESModule = (code: string): boolean => {
+     const result = ts.transpileModule(code, {
+        compilerOptions: {
+            allowJs: true,
+            checkJs: true,
+            target: ts.ScriptTarget.ESNext,
+            module: ts.ModuleKind.ESNext,
+        },
+        reportDiagnostics: true,
+    });
 
+    if (!result.diagnostics || result.diagnostics.length === 0) {
         return true;
-    } catch (e) {
-        return false;
     }
+    const errors = result.diagnostics.filter((d) => {return d.category === ts.DiagnosticCategory.Error;});
+
+    return errors.length === 0;
 };
 
 export class CreateLibraryDialog extends AwaitableValueEditDialog {
