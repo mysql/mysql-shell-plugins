@@ -55,6 +55,8 @@ export class E2ENotebook {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
+            const ignore = /(The currently deployed schema version is 0.0.0|msg.showPerformanceDashboard)/;
+
             const confirmDialog = new ConfirmDialog();
             const existsFingerPrintDialog = await confirmDialog.exists();
 
@@ -71,7 +73,7 @@ export class E2ENotebook {
 
                         if (await notification.getType() === NotificationType.Error) {
                             if ((await notification.getMessage())
-                                .match(/The currently deployed schema version is 0.0.0/) !== null) {
+                                .match(ignore) !== null) {
 
                                 await notification.dismiss();
                             } else {

@@ -215,6 +215,7 @@ export class E2ECodeEditor {
         }, constants.wait1second * 5, "Editor was not cleaned");
 
         await this.execute("\\about ", true);
+
     };
 
     /**
