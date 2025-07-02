@@ -189,19 +189,19 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
             # Check if the HeatWave default endpoints have already been deployed
             if edition is not None and (
                 edition.lower() == "heatwave" or edition.lower() == "mysqlai"):
-                    res = session.run_sql("""
-                        SELECT COUNT(*) > 0 AS has_default_endpoints
-                        FROM mysql_rest_service_metadata.service
-                        WHERE url_context_root = '/HeatWave/v1';""").fetch_one()
-                    if res and int(res[0]) == 0:
-                        # HeatWave default endpoints have not been deployed yet,
-                        # so deploy them now
-                        schema_management.execute_msm_sql_script(
-                            session=session,
-                            script_name="HeatWave Default Endpoints",
-                            sql_file_path=lib.core.script_path(
-                                "scripts", "default_heatwave_endpoints",
-                                f"heatwave_rest_service_{HEATWAVE_DEFAULT_ENDPOINTS_SCRIPT_VERSION}.sql"))
+                # Script 1.0.0 used CREATE OR REPLACE REST SERVICE
+                # which must not be re-executed or any service references
+                # (like auth apps) will be lost. Newer scripts use
+                # CREATE REST SERVICE IF NOT EXISTS which we can re-execute to
+                # handle upgrades.
+                assert "1.0.0" not in HEATWAVE_DEFAULT_ENDPOINTS_SCRIPT_VERSION
+
+                schema_management.execute_msm_sql_script(
+                    session=session,
+                    script_name="HeatWave Default Endpoints",
+                    sql_file_path=lib.core.script_path(
+                        "scripts", "default_heatwave_endpoints",
+                        f"heatwave_rest_service_{HEATWAVE_DEFAULT_ENDPOINTS_SCRIPT_VERSION}.sql"))
         else:
             schema_changed = False
             info_msg = (
