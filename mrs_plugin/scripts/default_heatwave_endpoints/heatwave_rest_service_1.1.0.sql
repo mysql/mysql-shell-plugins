@@ -2,7 +2,7 @@
  * Copyright (c) 2025, Oracle and/or its affiliates.
  */
 
-CREATE OR REPLACE REST SERVICE /HeatWave/v1
+CREATE REST SERVICE IF NOT EXISTS /HeatWave/v1
     OPTIONS {
         "http": {
             "allowedOrigin": "auto"
