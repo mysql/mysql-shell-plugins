@@ -477,7 +477,7 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.createLibraryJs",
             (entry?: ICdmSchemaGroupEntry<CdmEntityType.Library>) => {
                 if (entry) {
-                    void this.addNewSqlScript(entry.connection.details.id, "msg.createLibraryJs",
+                    void this.addNewSqlScript(entry.connection.details, "msg.createLibraryJs",
                         entry.parent.caption, "New Library", "my_library");
                 }
             }));
