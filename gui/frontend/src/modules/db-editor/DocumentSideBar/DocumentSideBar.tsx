@@ -3208,9 +3208,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         if ("parent" in item.dataModelEntry) {
             // If the parent is the invisible root entry, we need to refresh the entire tree.
             const parent = item.dataModelEntry.parent;
-            if (("folderPath" in parent) && parent.folderPath?.id === 1) {
+            if (parent && ("folderPath" in parent) && parent.folderPath?.id === 1) {
                 await parent.refresh?.(); // Will trigger componentDidUpdate to refresh the root nodes.
-            } else {
+            } else if (parent) {
                 await this.refreshConnectionTreeEntryChildren(parent, needRefresh);
             }
         }
