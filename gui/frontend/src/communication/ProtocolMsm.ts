@@ -65,7 +65,9 @@ export enum ShellAPIMsm {
     /** Returns the current version of the database schema */
     MsmGetSchemaVersion = "msm.get.schema_version",
     /** Deploys the database schema */
-    MsmDeploySchema = "msm.deploy_schema"
+    MsmDeploySchema = "msm.deploy_schema",
+    /** Fetches a diagram from the given source_path */
+    MsmGetSchemaDiagram = "msm.get_schema_diagram"
 }
 
 export interface IShellMsmCreateNewProjectFolderKwargs {
@@ -170,6 +172,11 @@ export interface IShellMsmDeploySchemaKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMsmGetSchemaDiagramKwargs {
+    /** The name of the database schema when creating a new model. Defaults to mySchema. */
+    schemaName?: string;
+}
+
 export interface IProtocolMsmParameters {
     [ShellAPIMsm.MsmInfo]: {};
     [ShellAPIMsm.MsmVersion]: {};
@@ -190,6 +197,7 @@ export interface IProtocolMsmParameters {
     [ShellAPIMsm.MsmGetSchemaIsManaged]: { kwargs?: IShellMsmGetSchemaIsManagedKwargs; };
     [ShellAPIMsm.MsmGetSchemaVersion]: { kwargs?: IShellMsmGetSchemaVersionKwargs; };
     [ShellAPIMsm.MsmDeploySchema]: { kwargs?: IShellMsmDeploySchemaKwargs; };
+    [ShellAPIMsm.MsmGetSchemaDiagram]: { args: { sourcePath?: string; }; kwargs?: IShellMsmGetSchemaDiagramKwargs; };
 
 }
 
@@ -216,6 +224,24 @@ export interface IMsmProjectInfo extends IMsmProjectSettings{
 
 export type MsmVersion = [number, number, number];
 
+export interface IMsmSchemaDiagram {
+    id: string;
+    caption: string;
+    modelerVersion: string;
+    schema: IMsmSchemaDiagramSchema;
+    referencedSchemas: IMsmSchemaDiagramReferencedSchema[];
+}
+
+export interface IMsmSchemaDiagramSchema {
+    id: string;
+    name: string;
+}
+
+export interface IMsmSchemaDiagramReferencedSchema {
+    id: string;
+    name: string;
+}
+
 export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmInfo]: { result: string; };
     [ShellAPIMsm.MsmVersion]: { result: string; };
@@ -236,5 +262,6 @@ export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmGetSchemaIsManaged]: { result: boolean; };
     [ShellAPIMsm.MsmGetSchemaVersion]: { result: string | null; };
     [ShellAPIMsm.MsmDeploySchema]: {};
+    [ShellAPIMsm.MsmGetSchemaDiagram]: { result: IMsmSchemaDiagram; };
 }
 

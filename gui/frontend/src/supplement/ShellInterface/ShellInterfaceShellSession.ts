@@ -28,12 +28,10 @@ import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../co
 import { ShellAPIGui, IShellResultType } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
-import { ShellInterfaceMsm } from "./ShellInterfaceMsm.js";
 
 export class ShellInterfaceShellSession implements IPromptReplyBackend {
 
     public mhs: ShellInterfaceMhs = new ShellInterfaceMhs();
-    public msm: ShellInterfaceMsm = new ShellInterfaceMsm();
 
     private moduleSessionLookupId = "";
 

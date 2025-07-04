@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-"""The MySQL Shell Schema Plugin - Management"""
+"""The MySQL Shell Schema Management Plugin - Management"""
 
 # cSpell:ignore mysqlsh
 

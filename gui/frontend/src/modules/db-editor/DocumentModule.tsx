@@ -96,6 +96,7 @@ import {
     type IOciDmProfile, type OciDataModelEntry,
 } from "../../data-models/OciDataModel.js";
 import {
+    IOdmSchemaDiagramEntry,
     OdmEntityType, OpenDocumentDataModel, type IOdmAdminEntry, type IOdmConnectionPageEntry, type IOdmScriptEntry,
     type IOdmShellSessionEntry,
     type IOdmStandaloneDocumentEntry, type LeafDocumentEntry, type LeafDocumentType, type OpenDocumentDataModelEntry,
@@ -117,6 +118,7 @@ import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
+import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./SchemaDiagramDesigner.js";
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -161,6 +163,17 @@ export interface IShellSessionTab {
     savedState: IShellTabPersistentState;
 }
 
+/**
+ * Details for a standalone diagram tab. Displays a Entity Relationship Diagram.
+ */
+export interface ISchemaDiagramTab {
+    /** The corresponding open document data model entry with further details. */
+    dataModelEntry: IOdmSchemaDiagramEntry;
+
+    /** The diagram state. */
+    savedState: ISchemaDiagramPersistentState;
+}
+
 export interface IDocumentModuleState {
     /** All currently open connection tabs. */
     connectionTabs: IConnectionTab[];
@@ -170,6 +183,9 @@ export interface IDocumentModuleState {
      * such documents.
      */
     documentTabs: IDocumentTab[];
+
+    /** All currently open Entity-Relationship Diagram tabs */
+    schemaDiagramTabs: ISchemaDiagramTab[];
 
     /** All currently open shell session tabs. */
     shellSessionTabs: IShellSessionTab[];
@@ -260,6 +276,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             selectedPage: "",
             connectionTabs: [],
             documentTabs: [],
+            schemaDiagramTabs: [],
             shellSessionTabs: [],
             sidebarState: new Map<string, IDocumentSideBarSectionState>(),
             showSidebar: !appParameters.embedded,
@@ -382,8 +399,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     public override render(): ComponentChild {
         const {
-            selectedPage, connectionTabs, documentTabs, shellSessionTabs, sidebarState, showSidebar, showTabs, loading,
-            progressMessage,
+            selectedPage, connectionTabs, documentTabs, schemaDiagramTabs, shellSessionTabs, sidebarState, showSidebar,
+            showTabs, loading, progressMessage,
         } = this.state;
 
         let sqlIcon = Assets.file.mysqlIcon;
@@ -463,6 +480,21 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         documentTabs.forEach((info) => {
             const document = info.dataModelEntry;
             const iconName = documentTypeToFileIcon.get(document.language!) ?? Assets.file.defaultIcon;
+
+            dropDownItems.push(
+                <DropdownItem
+                    key={document.id}
+                    id={document.id}
+                    caption={info.dataModelEntry.caption}
+                    picture={<Icon src={iconName} />}
+                    payload={info.dataModelEntry}
+                />,
+            );
+        });
+
+        schemaDiagramTabs.forEach((info) => {
+            const document = info.dataModelEntry;
+            const iconName = Assets.file.defaultIcon;
 
             dropDownItems.push(
                 <DropdownItem
@@ -637,6 +669,37 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             pages.push({
                 icon: Assets.misc.scriptingIcon,
+                caption: document.caption,
+                id: document.id,
+                content,
+                auxiliary: (
+                    <Button
+                        id={document.id}
+                        className="closeButton"
+                        round={true}
+                        onClick={this.handleCloseTab}>
+                        <Icon src={Assets.misc.close2Icon} />
+                    </Button>
+                ),
+                canClose: !appParameters.embedded,
+            });
+        });
+
+        schemaDiagramTabs.forEach((info) => {
+            const document = info.dataModelEntry;
+            const content = (<SchemaDiagramDesigner
+                key={document.id}
+                id={document.id}
+                savedState={info.savedState}
+                dataModelEntry={info.dataModelEntry}
+            />);
+
+            if (document.id === selectedPage) {
+                selectedDocument = selectedPage;
+            }
+
+            pages.push({
+                icon: Assets.file.defaultIcon,
                 caption: document.caption,
                 id: document.id,
                 content,
@@ -1309,7 +1372,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         webSession.clearCredentials();
 
         // No need to manually close any connection. The data models take care to close when they are cleared.
-        this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
+        this.setState({ connectionTabs: [], documentTabs: [], schemaDiagramTabs: [], shellSessionTabs: [] });
 
         return requisitions.execute("userLoggedOut", {});
     };
@@ -1326,6 +1389,48 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             };
 
             reader.readAsText(file);
+        }
+
+        return true;
+    };
+
+    private handleNewSchemaDiagram = async (): Promise<boolean> => {
+        const { schemaDiagramTabs } = this.state;
+
+        try {
+            this.setProgressMessage("Creating new EER Diagram ...");
+
+            const diagram = await ShellInterface.msm.getSchemaDiagram();
+
+            const parameters = {
+                type: OdmEntityType.SchemaDiagram,
+                parameters: {
+                    pageId: uuid(),
+                    id: uuid(),
+                    caption: diagram.caption,
+                    diagram,
+                },
+            };
+
+            const document = this.documentDataModel.openDocument(undefined, parameters) as IOdmSchemaDiagramEntry;
+
+            schemaDiagramTabs.push({
+                dataModelEntry: document,
+                savedState: {
+                    xOffset: 0,
+                    yOffset: 0,
+                    zoom: 1,
+                },
+            });
+
+            await this.setStatePromise({ schemaDiagramTabs, selectedPage: document.id, loading: false });
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Connection Error: ${message}`, {});
+
+            const { lastSelectedPage } = this.state;
+            await this.setStatePromise({ selectedPage: lastSelectedPage ?? this.documentDataModel.overview.id });
+            this.hideProgress(true);
         }
 
         return true;
@@ -1577,6 +1682,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         state.documentTabs?.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
+
+        state.schemaDiagramTabs?.forEach((info) => {
+            remainingPageIds.push(info.dataModelEntry.id);
+        });
+
         const newSelection = Tabview.getSelectedPageId(remainingPageIds, selectedPage, closingIds,
             this.documentDataModel.overview.id);
         state.selectedPage = newSelection;
@@ -1618,17 +1728,21 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (!tabIds.length) {
             return true;
         }
-        const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
+        const { connectionTabs, documentTabs, schemaDiagramTabs, shellSessionTabs } = this.state;
 
-        const closingTabs: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
+        const closingTabs: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs" |
+            "schemaDiagramTabs"> = {
             shellSessionTabs: [],
             connectionTabs: [],
             documentTabs: [],
+            schemaDiagramTabs: [],
         };
-        const remainingTabsState: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
+        const remainingTabsState: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs" |
+            "schemaDiagramTabs"> = {
             shellSessionTabs: [],
             connectionTabs: [],
             documentTabs: [],
+            schemaDiagramTabs: [],
         };
 
         shellSessionTabs.forEach((info) => {
@@ -1655,6 +1769,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
         });
 
+        schemaDiagramTabs.forEach((info) => {
+            if (tabIds.includes(info.dataModelEntry.id)) {
+                closingTabs.schemaDiagramTabs.push(info);
+            } else {
+                remainingTabsState.schemaDiagramTabs.push(info);
+            }
+        });
+
         await Promise.all(tabIds.map(async (id) => {
             // Remove all result data from the application DB.
             await ApplicationDB.removeDataByTabId(StoreType.Document, id);
@@ -1669,6 +1791,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         }));
 
         closingTabs.documentTabs.forEach((info) => {
+            this.removeDocument(info.dataModelEntry.id, info.dataModelEntry.id);
+        });
+
+        closingTabs.schemaDiagramTabs.forEach((info) => {
             this.removeDocument(info.dataModelEntry.id, info.dataModelEntry.id);
         });
 
@@ -1810,7 +1936,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (document.type === OdmEntityType.ShellSession) {
             void this.activateShellTab(document.id);
         } else {
-            const tabId = document.type === OdmEntityType.StandaloneDocument ? document.id : document.parent!.id;
+            const tabId = document.type === (
+                OdmEntityType.StandaloneDocument | OdmEntityType.SchemaDiagram) ? document.id : document.parent!.id;
 
             // Activate the tab for the selected document.
             this.handleSelectTab(tabId);
@@ -2025,7 +2152,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param tabId The id of the tab to activate.
      */
     private doSwitchTab(tabId: string): void {
-        const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
+        const { connectionTabs, documentTabs, schemaDiagramTabs, shellSessionTabs } = this.state;
 
         if (tabId === this.documentDataModel.overview.id) {
             this.showOverview();
@@ -2053,12 +2180,20 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             if (docTab) {
                 this.setState({ selectedPage: docTab.dataModelEntry.id });
             } else {
-                const shellTab = shellSessionTabs.find((entry) => {
+                const schemaDiagramTab = schemaDiagramTabs.find((entry) => {
                     return entry.dataModelEntry.id === tabId;
                 });
 
-                if (shellTab) {
-                    this.setState({ selectedPage: shellTab.dataModelEntry.id });
+                if (schemaDiagramTab) {
+                    this.setState({ selectedPage: schemaDiagramTab.dataModelEntry.id });
+                } else {
+                    const shellTab = shellSessionTabs.find((entry) => {
+                        return entry.dataModelEntry.id === tabId;
+                    });
+
+                    if (shellTab) {
+                        this.setState({ selectedPage: shellTab.dataModelEntry.id });
+                    }
                 }
             }
         }
@@ -2364,6 +2499,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 case "msg.importWorkbenchConnections": {
                     await this.handleImportWorkbenchConnections();
+
+                    return { success: true };
+                }
+
+                case "msg.newSchemaDiagram": {
+                    await this.handleNewSchemaDiagram();
 
                     return { success: true };
                 }
@@ -2876,6 +3017,20 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 const { documentTabs } = this.state;
 
                 const tab = documentTabs.find((info) => {
+                    return info.dataModelEntry.id === entry.id;
+                });
+
+                if (tab) {
+                    this.setState({ selectedPage: entry.id });
+                }
+
+                break;
+            }
+
+            case OdmEntityType.SchemaDiagram: {
+                const { schemaDiagramTabs } = this.state;
+
+                const tab = schemaDiagramTabs.find((info) => {
                     return info.dataModelEntry.id === entry.id;
                 });
 

@@ -33,8 +33,8 @@ import re
 import threading
 import traceback
 import mysqlsh
-import sys
 from contextlib import contextmanager
+import uuid
 
 SCHEMA_METADATA_LOCK_ERROR = "Failed to acquire schema metadata lock. Please ensure no other metadata update is running, then try again."
 
@@ -770,3 +770,6 @@ def execute_msm_sql_script(
     finally:
         if msm_lock == 1:
             MsmDbExec('SELECT RELEASE_LOCK("MSM_METADATA_LOCK")').exec(session)
+
+def get_uuid_string():
+    return str(uuid.uuid4()).replace("-", "")

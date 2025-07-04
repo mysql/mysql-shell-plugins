@@ -34,6 +34,7 @@ import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { IMsmProjectInfo } from "../../frontend/src/communication/ProtocolMsm.js";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 
 export class MsmCommandHandler {
     #host: ExtensionHost;
@@ -88,16 +89,16 @@ export class MsmCommandHandler {
                             return;
                         }
 
-                        const availableLicenses = await this.#shellSession.msm.getAvailableLicenses();
+                        const availableLicenses = await ShellInterface.msm.getAvailableLicenses();
                         const license = await window.showQuickPick(availableLicenses, {
                             title: "MSM - Create Project Folder - License",
                             ignoreFocusOut: true,
                         });
 
                         try {
-                            const projectFolder = await this.#shellSession.msm.createNewProjectFolder(
+                            const projectFolder = await ShellInterface.msm.createNewProjectFolder(
                                 schemaName, directory.fsPath, copyrightHolder, license);
-                            const projectInfo = await this.#shellSession.msm.getProjectInformation(projectFolder);
+                            const projectInfo = await ShellInterface.msm.getProjectInformation(projectFolder);
 
                             // Open the schema development file
                             void workspace.openTextDocument(
@@ -127,7 +128,7 @@ export class MsmCommandHandler {
                 if (directory) {
                     if (this.#host.extensionInitialized()) {
                         try {
-                            const projectInfo = await this.#shellSession.msm.getProjectInformation(directory.fsPath);
+                            const projectInfo = await ShellInterface.msm.getProjectInformation(directory.fsPath);
 
                             // Open the schema development file
                             void workspace.openTextDocument({
@@ -155,7 +156,7 @@ export class MsmCommandHandler {
             async (directory?: Uri) => {
                 if (directory) {
                     if (this.#host.extensionInitialized()) {
-                        const projectInfo: IMsmProjectInfo = await this.#shellSession.msm.getProjectInformation(
+                        const projectInfo: IMsmProjectInfo = await ShellInterface.msm.getProjectInformation(
                             directory.fsPath);
 
                         const version = await window.showInputBox({
@@ -188,7 +189,7 @@ export class MsmCommandHandler {
                             return;
                         }
 
-                        const releasedVersions = await this.#shellSession.msm.getReleasedVersions(
+                        const releasedVersions = await ShellInterface.msm.getReleasedVersions(
                             directory.fsPath);
                         const releasedVersionStrings = releasedVersions.map((v) => {
                             return `${v[0]}.${v[1]}.${v[2]}`;
@@ -204,7 +205,7 @@ export class MsmCommandHandler {
                         }
 
                         try {
-                            const filesForRelease = await this.#shellSession.msm.prepareRelease(
+                            const filesForRelease = await ShellInterface.msm.prepareRelease(
                                 directory.fsPath, version, nextVersion, true, true);
 
                             // Open all files that have been created/modified
@@ -236,7 +237,7 @@ export class MsmCommandHandler {
             async (directory?: Uri) => {
                 if (directory) {
                     if (this.#host.extensionInitialized()) {
-                        const projectInfo: IMsmProjectInfo = await this.#shellSession.msm.getProjectInformation(
+                        const projectInfo: IMsmProjectInfo = await ShellInterface.msm.getProjectInformation(
                             directory.fsPath);
 
                         const version = await window.showInputBox({
@@ -252,7 +253,7 @@ export class MsmCommandHandler {
                             return;
                         }
 
-                        const deployedVersions = await this.#shellSession.msm.getDeploymentScriptVersions(
+                        const deployedVersions = await ShellInterface.msm.getDeploymentScriptVersions(
                             directory.fsPath);
                         const deployedVersionStrings = deployedVersions.map((v) => {
                             return `${v[0]}.${v[1]}.${v[2]}`;
@@ -268,7 +269,7 @@ export class MsmCommandHandler {
                         }
 
                         try {
-                            const fileForRelease = await this.#shellSession.msm.generateDeploymentScript(
+                            const fileForRelease = await ShellInterface.msm.generateDeploymentScript(
                                 directory.fsPath, version, true);
 
                             // Open the file that have been created/modified

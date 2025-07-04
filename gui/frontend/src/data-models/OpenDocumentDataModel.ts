@@ -24,6 +24,7 @@
  */
 
 import type { Mutable } from "../app-logic/general-types.js";
+import { IMsmSchemaDiagram } from "../communication/ProtocolMsm.js";
 import type { IDocumentCloseData, IWebviewProvider } from "../supplement/RequisitionTypes.js";
 import type { IConnectionDetails, IShellSessionDetails } from "../supplement/ShellInterface/index.js";
 import type { EditorLanguage } from "../supplement/index.js";
@@ -73,6 +74,9 @@ export enum OdmEntityType {
 
     /** A document not associated with a connection (like config files, generated info etc.). */
     StandaloneDocument,
+
+    /** A EER diagram page */
+    SchemaDiagram,
 }
 
 /** The base entry for all interfaces here. */
@@ -122,10 +126,11 @@ export interface IOdmAdminEntry extends IOdmBaseEntry {
 
 /** All document types that cannot have children. */
 export type LeafDocumentType = OdmEntityType.Notebook | OdmEntityType.Script | OdmEntityType.AdminPage |
-    OdmEntityType.StandaloneDocument;
+    OdmEntityType.StandaloneDocument | OdmEntityType.SchemaDiagram;
 
 /** All data model types that stand for a single document. */
-export type LeafDocumentEntry = IOdmNotebookEntry | IOdmScriptEntry | IOdmAdminEntry | IOdmStandaloneDocumentEntry;
+export type LeafDocumentEntry = IOdmNotebookEntry | IOdmScriptEntry | IOdmAdminEntry | IOdmStandaloneDocumentEntry
+    | IOdmSchemaDiagramEntry;
 
 /** The interface for a connection overview entry. */
 export interface IOdmConnectionOverviewEntry extends IOdmBaseEntry {
@@ -148,6 +153,16 @@ export interface IOdmStandaloneDocumentEntry extends IOdmBaseEntry {
     readonly type: OdmEntityType.StandaloneDocument;
     readonly parent?: IOdmAppProviderEntry;
     readonly language?: EditorLanguage;
+}
+
+/** The interface for an EER Diagram. */
+export interface IOdmSchemaDiagramEntry extends IOdmBaseEntry {
+    readonly type: OdmEntityType.SchemaDiagram;
+    readonly parent?: IOdmAppProviderEntry | IOdmConnectionPageEntry;
+
+    readonly diagram: IMsmSchemaDiagram;
+
+    readonly connection?: IConnectionDetails;
 }
 
 /** The interface for a shell session. */
@@ -185,6 +200,9 @@ export interface IOdmAppProviderEntry extends IOdmBaseEntry {
     /** A list of standalone documents that are not related to a connection. */
     readonly documentPages: IOdmStandaloneDocumentEntry[];
 
+    //** A list of EER diagrams. */
+    readonly schemaDiagramPages: IOdmSchemaDiagramEntry[];
+
     /** The root entry for open shell sessions. */
     readonly shellSessionRoot: IOdmShellSessionRootEntry;
 }
@@ -203,6 +221,7 @@ export type OpenDocumentDataModelEntry =
     | IOdmConnectionPageEntry
     | IOdmConnectionOverviewEntry
     | IOdmStandaloneDocumentEntry
+    | IOdmSchemaDiagramEntry
     | IOdmAppProviderEntry
     | IOdmShellSessionEntry
     | IOdmShellSessionRootEntry;
@@ -213,6 +232,7 @@ export interface IDocumentTypeMap {
     [OdmEntityType.Script]: IOdmScriptEntry;
     [OdmEntityType.AdminPage]: IOdmAdminEntry;
     [OdmEntityType.StandaloneDocument]: IOdmStandaloneDocumentEntry;
+    [OdmEntityType.SchemaDiagram]: IOdmSchemaDiagramEntry;
     [OdmEntityType.ConnectionPage]: IOdmConnectionPageEntry;
     [OdmEntityType.Overview]: IOdmConnectionOverviewEntry;
     [OdmEntityType.AppProvider]: IOdmAppProviderEntry;
@@ -233,6 +253,7 @@ export interface IDocumentOpenParameterMap {
     [OdmEntityType.Script]: IBaseDocumentParameters & { language: EditorLanguage };
     [OdmEntityType.AdminPage]: IBaseDocumentParameters & { pageType: AdminPageType; };
     [OdmEntityType.StandaloneDocument]: { id: string; caption: string; language: EditorLanguage; };
+    [OdmEntityType.SchemaDiagram]: IBaseDocumentParameters & { diagram: IMsmSchemaDiagram; };
     [OdmEntityType.ConnectionPage]: IBaseDocumentParameters;
     [OdmEntityType.Overview]: IBaseDocumentParameters;
     [OdmEntityType.AppProvider]: never;
@@ -287,7 +308,11 @@ export class OpenDocumentDataModel {
             roots.push(this.#defaultProvider.connectionOverview);
         }
 
-        roots.push(...this.#defaultProvider.connectionPages, ...this.#defaultProvider.documentPages);
+        roots.push(
+            ...this.#defaultProvider.schemaDiagramPages,
+            ...this.#defaultProvider.connectionPages,
+            ...this.#defaultProvider.documentPages,
+        );
 
         if (this.#defaultProvider.shellSessionRoot.sessions.length > 0) {
             roots.push(this.#defaultProvider.shellSessionRoot);
@@ -527,6 +552,36 @@ export class OpenDocumentDataModel {
 
             case OdmEntityType.ShellSessionRoot: {
                 return undefined;
+            }
+
+            case OdmEntityType.SchemaDiagram: {
+                const parameters = data.parameters as IDocumentOpenParameterMap[OdmEntityType.SchemaDiagram];
+                const document = entry.schemaDiagramPages.find((item) => {
+                    return item.id === parameters.diagram.id;
+                });
+
+                if (document) {
+                    // The document is already open.
+                    if (actions.length > 0) {
+                        this.notifySubscribers(actions);
+                    }
+
+                    return document as IDocumentTypeMap[T];
+                }
+
+                const newDiagram: Mutable<IOdmSchemaDiagramEntry> = {
+                    type: OdmEntityType.SchemaDiagram,
+                    id: parameters.diagram.id,
+                    state: createDataModelEntryState(true, true),
+                    parent: entry,
+                    caption: parameters.diagram.caption,
+                    diagram: parameters.diagram,
+                };
+
+                entry.schemaDiagramPages.push(newDiagram);
+                this.notifySubscribers([{ action: "add", entry: newDiagram }]);
+
+                return newDiagram as IDocumentTypeMap[T];
             }
 
             default: { // Documents associated with a connection.
@@ -1077,6 +1132,7 @@ export class OpenDocumentDataModel {
             caption,
             connectionPages: [],
             documentPages: [],
+            schemaDiagramPages: [],
         };
 
         entry.shellSessionRoot = {
@@ -1097,6 +1153,7 @@ export class OpenDocumentDataModel {
                 entry.connectionOverview!,
                 ...entry.connectionPages!,
                 ...entry.documentPages!,
+                ...entry.schemaDiagramPages!,
                 entry.shellSessionRoot!,
             ];
         };

@@ -51,7 +51,7 @@ class msm():
         automatically register all decorated functions in the sub-modules
         """
         # Import all sub-modules to register the decorated functions there
-        from msm_plugin import general, management
+        from msm_plugin import general, management, modeling
 
     class get():
         """Used to get detailed information about the database schema project.

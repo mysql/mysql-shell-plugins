@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,7 @@
 import { ShellInterfaceCore } from "./ShellInterfaceCore.js";
 import { ShellInterfaceDbConnection } from "./ShellInterfaceDbConnection.js";
 import { ShellInterfaceModule } from "./ShellInterfaceModule.js";
+import { ShellInterfaceMsm } from "./ShellInterfaceMsm.js";
 import { ShellInterfaceUser } from "./ShellInterfaceUser.js";
 
 /**
@@ -38,6 +39,7 @@ export class ShellInterface {
         users?: ShellInterfaceUser;
         modules?: ShellInterfaceModule;
         dbConnections?: ShellInterfaceDbConnection;
+        msm?: ShellInterfaceMsm;
     } = {};
 
     public static get core(): ShellInterfaceCore {
@@ -70,5 +72,13 @@ export class ShellInterface {
         }
 
         return ShellInterface.interfaces.dbConnections;
+    }
+
+    public static get msm(): ShellInterfaceMsm {
+        if (!ShellInterface.interfaces.msm) {
+            ShellInterface.interfaces.msm = new ShellInterfaceMsm();
+        }
+
+        return ShellInterface.interfaces.msm;
     }
 }

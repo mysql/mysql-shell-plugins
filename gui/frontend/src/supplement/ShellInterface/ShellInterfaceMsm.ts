@@ -24,7 +24,7 @@
  */
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
-import { ShellAPIMsm, IMsmProjectInfo, MsmVersion } from "../../communication/ProtocolMsm.js";
+import { ShellAPIMsm, IMsmProjectInfo, MsmVersion, IMsmSchemaDiagram } from "../../communication/ProtocolMsm.js";
 
 export class ShellInterfaceMsm {
 
@@ -139,4 +139,21 @@ export class ShellInterfaceMsm {
 
         return response.result;
     }
+
+    public async getSchemaDiagram(sourcePath?: string, schemaName?: string): Promise<IMsmSchemaDiagram> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMsm.MsmGetSchemaDiagram,
+            parameters: {
+                args: {
+                    sourcePath,
+                },
+                kwargs: {
+                    schemaName,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
 }

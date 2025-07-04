@@ -21,6 +21,24 @@ export interface IMsmProjectInfo extends IMsmProjectSettings{
 
 export type MsmVersion = [number, number, number];
 
+export interface IMsmSchemaDiagram {
+    id: string;
+    caption: string;
+    modelerVersion: string;
+    schema: IMsmSchemaDiagramSchema;
+    referencedSchemas: IMsmSchemaDiagramReferencedSchema[];
+}
+
+export interface IMsmSchemaDiagramSchema {
+    id: string;
+    name: string;
+}
+
+export interface IMsmSchemaDiagramReferencedSchema {
+    id: string;
+    name: string;
+}
+
 export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmInfo]: { result: string; };
     [ShellAPIMsm.MsmVersion]: { result: string; };
@@ -41,4 +59,5 @@ export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmGetSchemaIsManaged]: { result: boolean; };
     [ShellAPIMsm.MsmGetSchemaVersion]: { result: string | null; };
     [ShellAPIMsm.MsmDeploySchema]: {};
+    [ShellAPIMsm.MsmGetSchemaDiagram]: { result: IMsmSchemaDiagram; };
 }
