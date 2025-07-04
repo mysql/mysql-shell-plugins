@@ -26,6 +26,7 @@
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../app-logic/general-types.js";
 import {
     ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+    IResourceDialogValue,
 } from "./ValueEditDialog.js";
 import { AwaitableValueEditDialog } from "./AwaitableValueEditDialog.js";
 import { loadFileAsText, loadFileBinary } from "../../utilities/helpers.js";
@@ -253,22 +254,23 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
         };
     }
 
-    private onLanguageChange = (_value: string, dialog: ValueEditDialog): void => {
+private onLanguageChange = (value: string, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
-        dialog.updateInputValue(_value, "language");
+        dialog.updateInputValue(value, "language");
         const mainSection = values.sections.get("mainSection");
         if (mainSection) {
-            if (_value === "JavaScript") {
-                mainSection.values.localFilePath.value = undefined;
-                mainSection.values.localFilePath.filters = { javaScript: ["js", "mjs"] };
-                mainSection.values.localFilePath.placeholder = "<Select JavaScript file>";
-                mainSection.values.localFilePath.description = "Select a new JavaScript file";
+            const localFilePath = mainSection.values.localFilePath as IResourceDialogValue;
+            if (value === "JavaScript") {
+                localFilePath.value = undefined;
+                localFilePath.filters = { javaScript: ["js", "mjs"] };
+                localFilePath.placeholder = "<Select JavaScript file>";
+                localFilePath.description = "Select a new JavaScript file";
                 this.selectedFile = undefined;
-            } else if (_value === "WebAssembly") {
-                mainSection.values.localFilePath.value = undefined;
-                mainSection.values.localFilePath.filters = { webAssembly: ["wasm"] };
-                mainSection.values.localFilePath.placeholder = "<Select WebAssembly file>";
-                mainSection.values.localFilePath.description = "Select a new WebAssembly file";
+            } else if (value === "WebAssembly") {
+                localFilePath.value = undefined;
+                localFilePath.filters = { webAssembly: ["wasm"] };
+                localFilePath.placeholder = "<Select WebAssembly file>";
+                localFilePath.description = "Select a new WebAssembly file";
                 this.selectedFile = undefined;
             }
         }

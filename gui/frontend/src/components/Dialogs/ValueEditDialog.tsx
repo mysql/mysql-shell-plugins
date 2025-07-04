@@ -238,7 +238,7 @@ interface IKeyValueDialogValue extends IBaseDialogValue {
 }
 
 /** A dialog value which represents a file/folder selection. */
-interface IResourceDialogValue extends IBaseDialogValue {
+export interface IResourceDialogValue extends IBaseDialogValue {
     type: "resource";
 
     value?: string;
@@ -729,6 +729,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 const { onValidate } = this.props;
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
+
                 return;
             }
         });
