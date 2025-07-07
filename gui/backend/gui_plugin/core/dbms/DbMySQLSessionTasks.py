@@ -29,6 +29,11 @@ from gui_plugin.core.Error import MSGException
 class MySQLOneFieldTask(DbQueryTask):
     def process_result(self):
         data = None
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=data)
+            return
+
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
             data = row[0]
@@ -39,6 +44,11 @@ class MySQLOneFieldTask(DbQueryTask):
 class MySQLBaseObjectTask(BaseObjectTask):
     def process_result(self):
         _err_msg = f"The {self.type} '{self.name}' does not exist."
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=None)
+            return
+
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
 
@@ -60,6 +70,12 @@ class MySQLTableObjectTask(BaseObjectTask):
     def process_result(self):
         if self._sql_index == 0:
             _err_msg = f"The table '{self.name}' does not exist."
+
+            if self.resultset is None:
+                self._break = True
+                self.dispatch_result("PENDING", data=None)
+                return
+
             if self.resultset.has_data():
                 row = self.resultset.fetch_one()
 
@@ -142,6 +158,11 @@ class MySQLColumnObjectTask(BaseObjectTask):
 
     def process_result(self):
         _err_msg = f"The {self.type} '{self.name}' does not exist."
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=None)
+            return
+
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
 
@@ -174,6 +195,11 @@ class MySQLColumnsMetadataTask(DbQueryTask):
         buffer_size = self.options.get("row_packet_size", 25)
         columns_details = []
         send_empty = True
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=[])
+            return
+
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
             while row:
@@ -195,6 +221,11 @@ class MySQLOneFieldListTask(DbQueryTask):
         buffer_size = self.options.get("row_packet_size", 25)
         name_list = []
         send_empty = True
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=[])
+            return
+
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
             while row:

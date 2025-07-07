@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -135,6 +135,11 @@ class DbQueryTask(DbTask):
         self.session.clear_stats()
         self._execution_time = 0
         self._break = False
+
+        # If sql list is empty or contains only empty strings, just process result
+        if not self.sql or (len(self.sql) == 1 and not self.sql[0]):
+            self.process_result()
+            return
 
         for self._sql_index, sql in enumerate(self.sql):
             # Execute the requested sql
