@@ -36,6 +36,11 @@ class SqliteOneFieldListTask(DbQueryTask):
         buffer_size = self.options.get("row_packet_size", 25)
         name_list = []
         send_empty = True
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=[])
+            return
+
         for row in self.resultset:
             name_list.append(row[0])
 
@@ -52,6 +57,10 @@ class SqliteOneFieldListTask(DbQueryTask):
 
 class SqliteBaseObjectTask(BaseObjectTask):
     def process_result(self):
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=None)
+            return
+
         row = self.resultset.fetchone()
         if row is None:
             self.dispatch_result(
@@ -69,6 +78,10 @@ class SqliteTableObjectTask(BaseObjectTask):
 
     def process_result(self):
         if self._sql_index == 0:
+            if self.resultset is None:
+                self.dispatch_result("PENDING", data=None)
+                return
+
             row = self.resultset.fetchone()
             if row is None:
                 self.dispatch_result(
@@ -140,6 +153,11 @@ class SqliteGetAutoCommit(DbTask):
 class SqliteColumnObjectTask(BaseObjectTask):
     def process_result(self):
         _err_msg = f"The {self.type} '{self.name}' does not exist."
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=None)
+            return
+
         row = self.resultset.fetch_one()
 
         if not row:
@@ -171,6 +189,11 @@ class SqliteColumnsMetadataTask(DbQueryTask):
         buffer_size = self.options.get("row_packet_size", 25)
         columns_details = []
         send_empty = True
+
+        if self.resultset is None:
+            self.dispatch_result("PENDING", data=[])
+            return
+
         for row in self.resultset:
             columns_details.append(self.format(row))
 

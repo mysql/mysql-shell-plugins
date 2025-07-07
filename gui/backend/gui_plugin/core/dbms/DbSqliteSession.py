@@ -486,6 +486,13 @@ class DbSqliteSession(DbSession):
         sql_parts = []
         params = []
 
+        if not names:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(SqliteColumnsMetadataTask(
+                self, task_id=task_id, sql="", params=[]))
+            return
+
         for name in names:
             sql_parts.append(f"""
                 SELECT name, type, "notnull" as 'not_null', dflt_value as 'default',

@@ -748,6 +748,16 @@ class DbMysqlSession(DbSession):
         params = []
         where_clause = []
 
+        if not names:
+            if self.threaded:
+                context = get_context()
+                task_id = context.request_id if context else None
+                self.add_task(MySQLColumnsMetadataTask(
+                    self, task_id=task_id, sql="", params=[]))
+                return
+            else:
+                return {"columns": []}
+
         sql = """SELECT COLUMN_NAME as 'name', COLUMN_TYPE as 'type',
                     IS_NULLABLE='NO' as 'not_null', COLUMN_DEFAULT as 'default',
                     COLUMN_KEY='PRI' as 'is_pk',
