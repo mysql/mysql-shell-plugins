@@ -24,6 +24,7 @@
  */
 
 import { E2ETests } from "../lib/E2ETests";
+import { E2ELogger } from "../lib/E2ELogger";
 
 const results: number[] = [];
 
@@ -40,6 +41,7 @@ const main = async () => {
             await E2ETests.installExtension(testSuite);
 
             if (process.env.DISABLE_TESTS) {
+                E2ELogger.info(`To Disable: ${process.env.DISABLE_TESTS}`);
                 await E2ETests.disableTests();
             }
 

@@ -1088,14 +1088,13 @@ export const lakeHouseNavigator = {
             row: By.className("tabulator-row"),
             cell: {
                 task: {
-                    label: By.css('div.tabulator-cell[tabulator-field="title"] label'),
-                    progressBar: By.css("div.tabulator-cell[tabulator-field='title'] .progressBar"),
+                    label: By.css('div.tabulator-cell[tabulator-field="name"] label'),
+                    progressBar: By.css("div.tabulator-cell[tabulator-field='name'] .progressBar"),
                 },
-                id: By.css('div.tabulator-cell[tabulator-field="id"]'),
                 status: By.css('div.tabulator-cell[tabulator-field="status"] label'),
                 startTime: By.css('div.tabulator-cell[tabulator-field="startingTime"] label'),
                 endTime: By.css('div.tabulator-cell[tabulator-field="estimatedCompletionTime"] label'),
-                message: By.css('div.tabulator-cell[tabulator-field="statusMessage"] label'),
+                message: By.css('div.tabulator-cell[tabulator-field="message"] label'),
             },
         },
     },

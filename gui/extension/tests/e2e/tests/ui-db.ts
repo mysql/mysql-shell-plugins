@@ -658,14 +658,10 @@ describe("DATABASE CONNECTIONS", () => {
 
                 const tasks = await lakehouseTables.getLakeHouseTasks();
 
-                tasks.sort((itemA: interfaces.ICurrentTask, itemB: interfaces.ICurrentTask) => {
-                    return itemA.id > itemB.id ? -1 : 1; // sort descending
-                });
-
                 if (tasks.length > 0) {
                     for (const task of tasks) {
                         if (task.name === `Loading ${newTask.name}`) {
-                            await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id),
+                            await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.name),
                                 constants.wait1second * 10);
                             expect(task.name).to.equals(`Loading ${newTask.name}`);
                             expect(task.hasProgressBar).to.be.false;
@@ -784,7 +780,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Edit MySQL connection", async () => {
+        it("Edit MySQL connection from the tree", async () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.clickToolbarButton(constants.collapseAll);
@@ -798,7 +794,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Duplicate this MySQL connection", async () => {
+        it("Duplicate a MySQL connection from the tree", async () => {
 
             const dupConn = Object.assign({}, globalConn);
             dupConn.caption = dup;
@@ -809,7 +805,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Delete DB connection", async () => {
+        it("Delete MySQL connection from the tree", async () => {
 
             await dbTreeSection.focus();
 

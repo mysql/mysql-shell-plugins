@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -404,34 +404,37 @@ def lakehouse_status(**kwargs):
             "tables": []
         }
 
-    res = session.run_sql("""
-        SELECT
-            JSON_OBJECT(
-                'id', id,
-                'title', name,
-                'log_time', DATE_FORMAT(log_time, '%Y-%m-%d %H:%i:%s'),
-                'status', status,
-                'status_message', message,
-                'progress', IFNULL(progress, 0),
-                'data', data,
-                'scheduled_time', DATE_FORMAT(scheduled_time, '%Y-%m-%d %H:%i:%s'),
-                'starting_time', DATE_FORMAT(starting_time, '%Y-%m-%d %H:%i:%s'),
-                'estimated_completion_time', DATE_FORMAT(estimated_completion_time, '%Y-%m-%d %H:%i:%s'),
-                'estimated_remaining_time', estimated_remaining_time
-            ) AS task_status,
-            MD5(CONCAT_WS(',',
-                log_time, status, message, progress, data, scheduled_time, starting_time,
-                estimated_completion_time, estimated_remaining_time)) AS col_hash
-        FROM `mysql_task_management`.`task_status`
-        WHERE task_type='GenAI_Load'
-        ORDER BY id DESC
-        LIMIT 20""")
+    # res = session.run_sql("""
+    #     SELECT
+    #         JSON_OBJECT(
+    #             'id', id,
+    #             'title', name,
+    #             'log_time', DATE_FORMAT(log_time, '%Y-%m-%d %H:%i:%s'),
+    #             'status', status,
+    #             'status_message', message,
+    #             'progress', IFNULL(progress, 0),
+    #             'data', data,
+    #             'scheduled_time', DATE_FORMAT(scheduled_time, '%Y-%m-%d %H:%i:%s'),
+    #             'starting_time', DATE_FORMAT(starting_time, '%Y-%m-%d %H:%i:%s'),
+    #             'estimated_completion_time', DATE_FORMAT(estimated_completion_time, '%Y-%m-%d %H:%i:%s'),
+    #             'estimated_remaining_time', estimated_remaining_time
+    #         ) AS task_status,
+    #         MD5(CONCAT_WS(',',
+    #             log_time, status, message, progress, data, scheduled_time, starting_time,
+    #             estimated_completion_time, estimated_remaining_time)) AS col_hash
+    #     FROM `mysql_tasks`.`task_status`
+    #     WHERE task_type='GenAI_Load'
+    #     ORDER BY id DESC
+    #     LIMIT 20""")
+    res = session.run_sql("SELECT `mysql_tasks`.`task_status_list`('GenAI_Load', 0, 20);")
     rows = res.fetch_all()
     tasks = []
     task_hash = 0
-    for row in rows:
-        tasks.append(json.loads(row[0]))
-        task_hash = hash(row[1] + str(task_hash))
+    if rows is not None and len(rows) > 0 and rows[0][0] is not None:
+        tasks = json.loads(rows[0][0])
+
+    for task in tasks:
+        task_hash = hash(task.get('row_hash', 0) + str(task_hash))
 
     if not (lakehouse_tasks_hash == str(task_hash)):
         status["task_status"] = {

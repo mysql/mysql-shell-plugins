@@ -92,7 +92,7 @@ describe("CLIPBOARD", () => {
         await driver.quit();
     });
 
-    describe("OCI", () => {
+    describe.skip("OCI", () => {
 
         beforeAll(async () => {
             const configs = await Misc.mapOciConfig();

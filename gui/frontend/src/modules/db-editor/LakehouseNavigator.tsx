@@ -110,6 +110,8 @@ export interface ILakehouseNavigatorState extends IComponentState {
     newTaskPanelWidth?: number;
     filesForUploadPanelWidth?: number;
     taskListPanelHeight?: number;
+
+    heatWaveVersionSupported: boolean;
 }
 
 interface IUploadFileItem {
@@ -159,7 +161,8 @@ export interface ILakehouseTaskItem {
 
 export interface ILakehouseTask {
     id?: string;
-    title?: string;
+    name?: string;
+    alias?: string;
     description?: string;
     schemaName?: string;
     tableName?: string;
@@ -168,7 +171,7 @@ export interface ILakehouseTask {
     activeFormat?: string;
     progress?: number;
     status?: string;
-    statusMessage?: string;
+    message?: string;
     startingTime?: string;
     logTime?: string;
     estimatedCompletionTime?: string;
@@ -232,7 +235,7 @@ export interface IObjectStorageTreeItem {
 
 const isTask = (data: ILakehouseTask | ILakehouseTaskItem):
     data is ILakehouseTask => {
-    return (data as ILakehouseTask).title !== undefined;
+    return (data as ILakehouseTask).name !== undefined;
 };
 
 export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorProperties, ILakehouseNavigatorState> {
@@ -258,6 +261,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         this.state = {
             autoRefreshTablesAndTasks: true,
             activeTabId: LakehouseNavigatorTab.Overview,
+            heatWaveVersionSupported: true,
         };
 
         this.#objTreeItems = props.savedState.objTreeItems;
@@ -425,6 +429,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     };
 
     private getOverviewTabContent = (): ComponentChild => {
+        const { heatWaveVersionSupported } = this.state;
+
         return (<Container
             className={"overviewTab"}
             orientation={Orientation.TopDown}
@@ -524,6 +530,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 </Container>
                 <Container className="stepSeparator step1to2">&gt;&gt;&gt;</Container>
                 <Container className="stepSeparator step2to3">&gt;&gt;&gt;</Container>
+                {!heatWaveVersionSupported &&
+                    <Container className="warningContainer">
+                        <Label className="warningLabel">Unsupported HeatWave Version.<br />
+                            Please update to 9.3.2 or later.</Label>
+                    </Container>
+                }
             </Container>
             <Container className="headerTitle">
                 <Label caption="HeatWave Lakehouse Navigator" />
@@ -1282,17 +1294,17 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             rowHeight: 25,
                             selectionType: SelectionType.Multi,
                             treeChildIndent: 10,
-                            treeColumn: "title",
+                            treeColumn: "name",
                             childKey: "items",
                         }}
                         columns={[{
                             title: "Task",
-                            field: "title",
+                            field: "name",
                             editable: false,
                             formatter: this.taskTreeGridColumnFormatter,
                         }, {
-                            title: "Id",
-                            field: "id",
+                            title: "Alias",
+                            field: "alias",
                             editable: false,
                             width: 60,
                         }, {
@@ -1318,7 +1330,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             formatter: this.taskTreeGridColumnFormatter,
                         }, {
                             title: "Message",
-                            field: "statusMessage",
+                            field: "message",
                             width: 220,
                             widthGrow: 0.4,
                             editable: false,
@@ -1417,6 +1429,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 profiles,
                 activeProfile: profiles.find((item) => { return item.isCurrent; }),
             });
+        }
+
+        // Check if the mysql_tasks schema is available
+        const schemas = await backend.getCatalogObjects("Schema", "mysql_tasks");
+        if (schemas.length === 0) {
+            this.setState({ heatWaveVersionSupported: false });
         }
     };
 
@@ -1972,9 +1990,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         let statusIconClassName;
         if (isTask(cellData)) {
             switch (field) {
-                case "title": {
+                case "name": {
                     iconSrc = Assets.misc.shellTaskIcon;
-                    caption = cellData.title ?? "Task";
+                    caption = cellData.name ?? "Task";
                     statusIconClassName = cellData.status?.toLowerCase();
                     hint = cellData.description;
                     break;
@@ -2020,8 +2038,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     }
                     break;
                 }
-                case "statusMessage": {
-                    caption = cellData.statusMessage ?? "";
+                case "message": {
+                    caption = cellData.message ?? "";
                     break;
                 }
 
@@ -2029,7 +2047,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
         } else {
             switch (field) {
-                case "title": {
+                case "name": {
                     const parent = cell.getRow().getTreeParent();
                     let schemaName = "";
                     if (typeof parent !== "boolean") {
@@ -2063,7 +2081,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 }
                 <Icon src={iconSrc} data-tooltip={hint} className={iconClassName} />
                 {lbl}
-                {field === "title" && isTask(cellData) && cellData.status === "RUNNING"
+                {field === "name" && isTask(cellData) && cellData.status === "RUNNING"
                     && (cellData.progress ?? 0) > 0 &&
                     <Container className="progressBar stripesLoader"
                         style={{ backgroundPosition: (cellData.progress ?? 0) * -1.5 }} />
@@ -2423,10 +2441,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             // Add optional parameters if defined by user
             let taskNameSql = "";
-            if (task.title !== undefined || task.tableName !== undefined) {
+            if (task.name !== undefined || task.tableName !== undefined) {
                 taskNameSql = "'task_name', ?, ";
-                if (task.title !== undefined) {
-                    params.push(task.title);
+                if (task.name !== undefined) {
+                    params.push(task.name);
                 } else {
                     params.push(`Loading ${task.tableName}`);
                 }
@@ -2505,13 +2523,13 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     private readonly checkMysqlPrivileges = async (): Promise<boolean> => {
         const { backend } = this.props;
 
-        // Check if the user has access to the mysql_task_management VIEWs
+        // Check if the user has access to the mysql_tasks VIEWs
         const res = await backend.execute(`
             SELECT * FROM INFORMATION_SCHEMA.TABLES
-            WHERE TABLE_SCHEMA = 'mysql_task_management'
-            AND (TABLE_NAME = 'task' OR TABLE_NAME = 'task_log' OR TABLE_NAME = 'task_status')
+            WHERE TABLE_SCHEMA = 'mysql_tasks'
+            AND (TABLE_NAME = 'task_i' OR TABLE_NAME = 'task_log_i')
             AND TABLE_TYPE = 'VIEW';`);
-        if (res?.rows?.length !== 3) {
+        if (res?.rows?.length !== 2) {
             return false;
         }
 
@@ -2539,14 +2557,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
         let privilegesEnsured = false;
         try {
-            // On first run, ensure the required privileges have been assigned and the task management schema has been
-            // made available
+            // On first run, ensure the required privileges have been assigned
             if (this.#firstRun) {
                 this.#firstRun = false;
 
                 privilegesEnsured = await this.checkMysqlPrivileges();
-
-                await backend.execute("SELECT mysql_task_management_ensure_schema()");
             }
 
             // Get the lakehouse status. Pass the current mem values and hashes to only get data back when it changed.
@@ -2664,18 +2679,20 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (tables.length > 0) {
             let taskId = "";
             try {
-                await backend.execute(`CALL mysql_task_management.create_task(?, ?, NULL)`,
-                    [`Unload Lakehouse Table${tables.length > 1 ? "s" : ""}`, "GenAI_Load"], undefined, (data) => {
-                        if (data.result.rows !== undefined && data.result.rows.length > 0) {
-                            taskId = String((data.result.rows[0] as string[])[0]);
-                        }
+                await backend.execute(`CALL mysql_tasks.create_task(?, ?, NULL, @genai_task_id)`,
+                    [`Unload Lakehouse Table${tables.length > 1 ? "s" : ""}`, "GenAI_Load"]);
 
-                        return Promise.resolve();
-                    });
+                await backend.execute(`SELECT @genai_task_id`, [], undefined, (data) => {
+                    if (data.result.rows !== undefined && data.result.rows.length > 0) {
+                        taskId = String((data.result.rows[0] as string[])[0]);
+                    }
+
+                    return Promise.resolve();
+                });
 
                 if (taskId !== "") {
                     await backend.execute(
-                        `CALL mysql_task_management.add_task_log(?, ?, NULL, ?, ?)`,
+                        `CALL mysql_tasks.add_task_log(?, ?, NULL, ?, ?)`,
                         [taskId, "Task starting.", "0", "RUNNING"]);
 
                     StatusBar.setStatusBarMessage(
@@ -2688,11 +2705,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         }
 
                         await backend.execute(
-                            `CALL mysql_task_management.add_task_log(?, ?, NULL, ?, ?)`,
+                            `CALL mysql_tasks.add_task_log(?, ?, NULL, ?, ?)`,
                             [taskId, "Task completed.", "0", "COMPLETED"]);
                     } catch (e) {
                         await backend.execute(
-                            `CALL mysql_task_management.add_task_log(?, ?, NULL, ?, ?)`,
+                            `CALL mysql_tasks.add_task_log(?, ?, NULL, ?, ?)`,
                             [taskId, String(e), "0", "ERROR"]);
                     }
 
@@ -2830,7 +2847,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             if (task.id !== undefined && task.status === "RUNNING") {
                 count++;
-                void backend.execute("CALL mysql_task_management.kill_task(?)", [task.id]);
+                void backend.execute("CALL mysql_tasks.kill_task(?)", [task.id]);
             }
         });
 

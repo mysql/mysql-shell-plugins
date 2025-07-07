@@ -329,3 +329,100 @@ mysql_user=mysql_router_mrs16_250ho3u15n
 mysql_user_data_access=
 router_id=16
 ```
+
+## Installing the MRS Server Component
+
+> Please note that the MRS Server Component is not available in production quality yet. Experimental packages of MySQL Server including the upcoming MySQL REST Service server component can be downloaded from [labs.mysql.com](https://labs.mysql.com).
+
+The MySQL REST Service server component can be managed the same way as any other [server component](https://dev.mysql.com/doc/refman/en/components.html).
+
+During installation, the MRS server component replaces the MySQL X Plugin to serve as the preferred MySQL Document Store solution. Rather than serving the MySQL X Protocol, the MySQL Server then enables clients to access MRS REST endpoints via the HTTPS protocol.
+
+> Important: If any active clients are still using the MySQL X protocol, the MRS server component must not be installed before migrating these clients to the classic MySQL protocol. Alternatively, a MySQL Router instance can be deployed to serve the MRS REST endpoints.
+
+The MRS server component can be installed before [configuring the MySQL instance for the MySQL REST Service support](#configuring-mysql-rest-service). In this case, the component will remain in a waiting state until MRS has been configured. No HTTP access is available during this time.
+
+The following SQL command can be used to install the MRS server component.
+
+```sql
+INSTALL COMPONENT "file://component_mysql_rest_service";
+```
+
+**_Example_**
+
+The following example installs the MRS server component and sets related MRS system variables at install time:
+
+```sql
+INSTALL COMPONENT "file://component_mysql_rest_service"
+    SET GLOBAL component_mysql_rest_service.use_ssl = 0,
+    GLOBAL component_mysql_rest_service.user = "miguel";
+```
+
+### Uninstalling the MRS Server Component
+
+To uninstall the MRS server component, the following SQL command can be used.
+
+1. `UNINSTALL COMPONENT "file://component_mysql_rest_service";`
+
+If the MySQL X Plugin was available before, it will be loaded again when uninstalling the MRS server component.
+
+### MRS Server Component Configuration
+
+The following MySQL system variables are available to configure the MRS server component.
+
+| System Variable | Description
+| --- | --------
+| component_mysql_rest_service.user | Defines the [REST Service User](#granting-users-access-to-the-mysql-rest-service). Automatically generated when component is installed and the SysVar has not been set at install time.
+| component_mysql_rest_service.http_port | Rest Service HTTP Port. If the MySQL X Plugin is enabled on the server, the MySQL X Protocol port will be used and the plugin will be disabled. If the X Plugin is disabled, the default port is 8543.
+| component_mysql_rest_service.use_ssl | Enables TLSv1.2 (or later) support. If the server has it enabled/supported, then it's enabled by default.
+| component_mysql_rest_service.ssl_cert | SSL certificate filename. Uses Server default certificate if not specified.
+| component_mysql_rest_service.ssl_key| SSL key filename. Uses Server default key if not specified.
+| component_mysql_rest_service.developer | Rest Service Developer. Allows defining the developer username when the server is used in a development setup. If set, REST services that have not yet been published will be served, as well as REST services owned by the specified developer. Default is empty/disabled.
+
+: MRS System Variables Overview
+
+To check current values of all related MySQL system variables, execute the following SHOW statement.
+
+```sql
+SHOW variables LIKE '%mysql_rest_service%';
+```
+
+To set a related MySQL system variable, execute the following statements that set the variable and then restart the MRS server component.
+
+```sql
+SET PERSIST component_mysql_rest_service.developer = 'mike';
+SELECT component_mysql_rest_service_restart();
+```
+
+> Please note that a restart of the MRS server component is required to activate the change.
+
+### MRS Server Component Status Variables
+
+The following MySQL status variables are available:
+
+| Status Variable | Description
+| --- | --------
+| component_mysql_rest_service.http_port_source | Indicates how the HTTP port was configured. If set to `default` port 8543 is used. If set to `xplugin` the port was taken from the MySQL X Plugin. If set to `user` the port was individually configured by the user.
+| component_mysql_rest_service.ssl_cert_source | Indicates how the SSL-certificate was configured. If set to `mysql` the MySQL Server configuration is used. If set to `user` the source was configured by the user.
+| component_mysql_rest_service.ssl_key_source | Indicates how the SSL-key was configured. If set to `mysql` the MySQL Server configuration is used. If set to `user` the source was configured by the user.
+
+: MRS Status Variables Overview
+
+To query a MRS status variable use a SELECT statement like the following.
+
+```sql
+SELECT VARIABLE_VALUE FROM performance_schema.global_status
+WHERE VARIABLE_NAME = 'component_mysql_rest_service.http_port_source';
+```
+
+### MRS Server Component UDFs
+
+The following UDFs are available to control the MRS server component:
+
+| UDF Call | Description
+| --- | --------
+| `SELECT component_mysql_rest_service_start();` | Starts the MRS server component after it has been stopped.
+| `SELECT component_mysql_rest_service_stop();` | Stops the MRS server component.
+| `SELECT component_mysql_rest_service_restart();` | Restarts the MRS server component.
+
+: MRS server component UDF Overview

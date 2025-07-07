@@ -24,6 +24,7 @@
  */
 
 
+import { E2ELogger } from "../lib/E2ELogger";
 import { E2ETests } from "../lib/E2ETests";
 
 const main = async () => {
@@ -33,6 +34,7 @@ const main = async () => {
     E2ETests.killAndDeleteMySQLInstances();
 
     if (process.env.DISABLE_TESTS) {
+        E2ELogger.info(`To Disable: ${process.env.DISABLE_TESTS}`);
         await E2ETests.disableTests();
     }
 

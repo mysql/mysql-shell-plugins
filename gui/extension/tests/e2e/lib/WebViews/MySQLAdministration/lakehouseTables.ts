@@ -185,7 +185,6 @@ export class LakehouseTables {
                         return {
                             name: await cell.findElement(taskListLocator.cell.task.label).getText(),
                             hasProgressBar: (await cell.findElements(taskListLocator.cell.task.progressBar)).length > 0,
-                            id: await cell.findElement(taskListLocator.cell.id).getText(),
                             status: await cell.findElement(taskListLocator.cell.status).getText(),
                             startTime: await cell.findElement(taskListLocator.cell.startTime).getText(),
                             endTime: await cell.findElement(taskListLocator.cell.endTime).getText(),
@@ -257,11 +256,11 @@ export class LakehouseTables {
 
     /**
      * Verifies if the lakehouse task is completed
-     * @param taskId The task id
+     * @param taskName The task name
      * @returns A promise resolving with true, if the task is completed, false otherwise
      */
-    public untilLakeHouseTaskIsCompleted = (taskId: string): Condition<boolean> => {
-        return new Condition(` for lakehouse table '${taskId}' to be completed`, async () => {
+    public untilLakeHouseTaskIsCompleted = (taskName: string): Condition<boolean> => {
+        return new Condition(` for lakehouse table '${taskName}' to be completed`, async () => {
             const taskRows = await driver.wait(async () => {
                 const rows = await this.getLakeHouseTasks();
                 if (rows.length > 0) {
@@ -269,9 +268,13 @@ export class LakehouseTables {
                 }
             }, constants.wait1second * 5, "Could not find any lakehouse task");
 
-            const wantedTask = taskRows.find((item) => { return item.id === taskId; });
+            for (const task of taskRows) {
+                if (task.name === taskName && task.status !== "COMPLETED") {
+                    return false;
+                }
+            }
 
-            return wantedTask.status === "COMPLETED";
+            return true;
         });
     };
 

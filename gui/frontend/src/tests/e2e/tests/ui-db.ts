@@ -1731,14 +1731,10 @@ describe("DATABASE CONNECTIONS", () => {
 
                     const tasks = await lakehouseTables.getLakeHouseTasks();
 
-                    tasks.sort((itemA: interfaces.ICurrentTask, itemB: interfaces.ICurrentTask) => {
-                        return itemA.id! > itemB.id! ? -1 : 1; // sort descending
-                    });
-
                     if (tasks.length > 0) {
                         for (const task of tasks) {
                             if (task.name === `Loading ${newTask.name}`) {
-                                await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id!),
+                                await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.name),
                                     constants.wait10seconds);
                                 expect(task.name).toBe(`Loading ${newTask.name}`);
                                 expect(task.hasProgressBar).toBe(false);

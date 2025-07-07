@@ -53,6 +53,7 @@ describe("LakehouseNavigator tests", () => {
         lakehouseTablesHash: "hash1",
         lakehouseTasks: [],
         lakehouseTasksHash: "hash2",
+        heatWaveVersionSupported: true,
     };
 
     const props: ILakehouseNavigatorProperties = {
@@ -97,6 +98,7 @@ describe("LakehouseNavigator tests", () => {
         const state = {
             activeTabId: LakehouseNavigatorTab.Overview,
             profiles: undefined,
+            heatWaveVersionSupported: true,
         };
 
         const result = LakehouseNavigator.getDerivedStateFromProps(
@@ -182,6 +184,7 @@ describe("LakehouseNavigator tests", () => {
             lakehouseTasks: [],
             lakehouseTasksHash: "hash2",
             objTreeItems: [],
+            heatWaveVersionSupported: true,
         });
 
         component.unmount();
@@ -513,6 +516,7 @@ describe("LakehouseNavigator tests", () => {
             taskListPanelHeight: 200,
             lakehouseTables: [],
             lakehouseTasks: [],
+            heatWaveVersionSupported: true,
         };
 
         const component = mount<LakehouseNavigator>(
@@ -628,7 +632,8 @@ describe("LakehouseNavigator tests", () => {
 
         const newProps: ILakehouseNavigatorProperties = {
             ...props,
-            savedState: { activeTabId: LakehouseNavigatorTab.Overview, activeSchema: undefined },
+            savedState: { activeTabId: LakehouseNavigatorTab.Overview, activeSchema: undefined,
+                heatWaveVersionSupported: true },
         };
 
         const component = mount<LakehouseNavigator>(
@@ -667,7 +672,8 @@ describe("LakehouseNavigator tests", () => {
 
         const newProps: ILakehouseNavigatorProperties = {
             ...props,
-            savedState: { activeTabId: LakehouseNavigatorTab.Overview, activeSchema: "savedSchema" },
+            savedState: { activeTabId: LakehouseNavigatorTab.Overview, activeSchema: "savedSchema",
+                heatWaveVersionSupported: true },
         };
 
         const component = mount<LakehouseNavigator>(
@@ -1450,13 +1456,13 @@ describe("LakehouseNavigator tests", () => {
             it("should format title column for task", () => {
                 const taskData = {
                     type: "TASK",
-                    title: "Test Task",
+                    name: "Test Task",
                     status: "RUNNING",
                     description: "Task description",
                 } as ILakehouseTask;
 
                 cell.getData = jest.fn().mockReturnValue(taskData);
-                cell.getColumn = jest.fn().mockReturnValue({ getField: () => { return "title"; } });
+                cell.getColumn = jest.fn().mockReturnValue({ getField: () => { return "name"; } });
 
                 const result = instance["taskTreeGridColumnFormatter"](cell) as HTMLElement;
 
@@ -1478,7 +1484,7 @@ describe("LakehouseNavigator tests", () => {
                 } as ILakehouseTask;
 
                 cell.getData = jest.fn().mockReturnValue(taskItemData);
-                cell.getColumn = jest.fn().mockReturnValue({ getField: () => { return "title"; } });
+                cell.getColumn = jest.fn().mockReturnValue({ getField: () => { return "name"; } });
                 cell.getRow = jest.fn().mockReturnValue({
                     getTreeParent: () => {
                         return {
@@ -1802,9 +1808,8 @@ describe("LakehouseNavigator tests", () => {
         it("should return true when all required views are accessible", async () => {
             executeSpy.mockResolvedValueOnce({
                 rows: [
-                    ["mysql_task_management", "task", "VIEW"],
-                    ["mysql_task_management", "task_log", "VIEW"],
-                    ["mysql_task_management", "task_status", "VIEW"],
+                    ["mysql_tasks", "task_i", "VIEW"],
+                    ["mysql_tasks", "task_log_i", "VIEW"],
                 ],
             });
 
@@ -1812,15 +1817,14 @@ describe("LakehouseNavigator tests", () => {
             expect(result).toBe(true);
 
             expect(executeSpy).toHaveBeenCalledWith(
-                expect.stringMatching(/SELECT.*FROM INFORMATION_SCHEMA\.TABLES.*mysql_task_management.*/s),
+                expect.stringMatching(/SELECT.*FROM INFORMATION_SCHEMA\.TABLES.*mysql_tasks.*/s),
             );
         });
 
         it("should return false when not all views are accessible", async () => {
             executeSpy.mockResolvedValueOnce({
                 rows: [
-                    ["mysql_task_management", "task", "VIEW"],
-                    ["mysql_task_management", "task_log", "VIEW"],
+                    ["mysql_tasks", "task_i", "VIEW"],
                 ],
             });
 

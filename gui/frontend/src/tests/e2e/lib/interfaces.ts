@@ -216,7 +216,6 @@ export interface ILakeHouseTable {
 export interface ICurrentTask {
     name?: string;
     hasProgressBar?: boolean;
-    id?: string;
     status?: string;
     startTime?: string;
     endTime?: string;

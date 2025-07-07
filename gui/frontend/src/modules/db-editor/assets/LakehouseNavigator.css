@@ -815,3 +815,22 @@ body[theme=dark] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-even.n
 .msg.lakehouseNavigatorHost .current-compartment {
     background-color: var(--rowTextColor);
 }
+
+.msg.lakehouseNavigatorHost .warningContainer {
+    position: absolute;
+    top: calc(100% / 2 - 30px);
+    left: calc(100% / 2 - 175px);
+    min-width: 350px;
+    min-height: 60px;
+    background-color: #700;
+    border-radius: 5px;
+    padding: 30px;
+    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.7));
+}
+
+.msg.lakehouseNavigatorHost .warningLabel {
+    color: #fff;
+    font-size: 1.5em;
+    font-weight: 400;
+    text-align: center;
+}
