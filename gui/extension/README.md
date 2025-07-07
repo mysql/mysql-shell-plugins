@@ -69,6 +69,11 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
   - Execute any selected SQL commands from SQL files
   - Execute multi-line SQL blocks from Python files
     - Update original Python files with changes made in DB Editor
+- MySQL REST Service support:
+  - Full support for the MySQL REST Service and HeatWave REST Service
+  - Create and manage REST services and REST endpoint
+  - Manage authentication, authorization for REST endpoints
+  - Upload Progressive Web Apps (PWAs) for a full-stack web app solution running on top of MySQL
 
 ## How to report a bug
 
@@ -92,7 +97,7 @@ To file a bug report, select the following menu item or go to [bugs.mysql.com](h
 | Ubuntu              | 22.04, 24.04      |
 | Ubuntu-WSL2         | 22.04             |
 | Kubuntu             | 22.04, 24.04      |
-| Oracle Linux/RedHat | 7, 8, 9           |
+| Oracle Linux/RedHat | 8, 9, 10          |
 | Fedora              | 40                |
 | Raspberry Pi OS     | January 28th 2022 |
 

@@ -2129,7 +2129,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe.skip("HeatWave Chat", () => {
+    describe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",

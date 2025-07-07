@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -574,8 +574,9 @@ def add_ingress_port_to_security_lists(**kwargs):
         for sec_list in security_lists:
             for rule in sec_list.ingress_security_rules:
                 if rule.tcp_options is not None and \
+                    (rule.tcp_options.destination_port_range is not None and \
                         port >= rule.tcp_options.destination_port_range.min and \
-                        port <= rule.tcp_options.destination_port_range.max and \
+                        port <= rule.tcp_options.destination_port_range.max) and \
                         rule.protocol == "6" and \
                         rule.source == "0.0.0.0/0":
                     return True

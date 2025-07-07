@@ -103,7 +103,7 @@ When working with MySQL, it is recommended that the `root` account be used exclu
 
 ### DBA Account
 
-> When working with HeatWave, a dedicated MySQL user account with administrative privileges was already created during HeatWave deployment. This MySQL user account can be used instead. Please proceed to
+> When working with HeatWave, a dedicated MySQL user account with administrative privileges was already created during HeatWave deployment. This MySQL user account can be used instead. Please proceed to [Granting REST Service Admin Privileges](#granting-rest-service-admin-privileges).
 
 To create a database administrator account named `dba` the following SQL commands can be used.
 

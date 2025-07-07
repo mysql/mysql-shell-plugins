@@ -25,7 +25,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 Welcome to the MySQL REST Service. This book features a detailed discussion of the MySQL REST Service, including architecture, configuration and deployment.
 
-To start with a hands-on approach instead, please check out the [MRS Notes Example](#mrs-notes-example) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
+To start with a hands-on approach, please check out the [Quickstart Guide](quickstart.html) or take a look at the [MRS Notes Example PWA](#mrs-notes-example) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
 
 ## What is the MySQL REST Service
 
@@ -108,3 +108,13 @@ Representational State Transfer (REST) is a style of software architecture for d
 - A small, uniform set of operations are used to manipulate resources (for example, PUT, POST, GET, DELETE).
 - A resource can have multiple representations (for example, a blog might have an HTML representation and an RSS representation).
 - Services are stateless and because the client is likely to access related resources, these should be identified in the representation returned, typically by providing hypertext links.
+
+## Supported MySQL Versions
+
+MySQL REST Service can be configured using MySQL Server versions from 8.0.39 onwards.
+
+A MySQL Router 9.3.1 or later is required to serve the REST endpoints and Progressive Web Apps. The MySQL Shell for VS Code extension includes a recent MySQL Router version for local development deployments.
+
+Alternatively, experimental packages of MySQL Server including the upcoming MySQL REST Service server component can be downloaded from [labs.mysql.com](https://labs.mysql.com).
+
+It is recommended to use the latest available version of MySQL Shell (9.4.0 and higher) to configure and work with the MySQL REST Service, regardless of the MySQL Server and MySQL Router versions.

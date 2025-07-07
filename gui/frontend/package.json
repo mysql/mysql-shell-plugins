@@ -4,10 +4,10 @@
     "publisher": "Oracle",
     "type": "module",
     "scripts": {
-        "launch-single-user": "bash ./scripts/launch-shell-webserver.sh 1234",
-        "launch-single-server": "bash ./scripts/launch-shell-webserver.sh localhost:3306",
-        "launch-shell-web-server-win": "call ./scripts/launch-shell-webserver.cmd",
-        "launch-dev-server": "vite",
+        "run-shell:single-user": "bash ./scripts/launch-shell-webserver.sh 1234",
+        "run-shell:single-server": "bash ./scripts/launch-shell-webserver.sh localhost:3306",
+        "run-win-shell:web-server": "call ./scripts/launch-shell-webserver.cmd",
+        "run-vite:dev-server": "vite",
         "build": "bash ./scripts/production-build.sh",
         "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
@@ -22,7 +22,7 @@
         "coverage:report": "istanbul-merge --out coverage/coverage-final.json coverage/coverage-generic/coverage-final.json coverage/coverage-mrs/coverage-final.json && nyc report",
         "update-snapshots:generic": "clear && node --no-compilation-cache --expose-gc --max_old_space_size=81292 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",
         "update-snapshots:mrs": "clear && node --no-compilation-cache --expose-gc --max_old_space_size=81292 node_modules/.bin/jest -c=unit-tests-mrs.jest.config.ts --no-coverage  --watchAll=false -u  --runInBand",
-        "clear": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings",
+        "clear:node-modules": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings",
         "e2e-tests-setup-and-run": "mysqlsh --py -f src/tests/e2e/setup_local_env_and_run.py",
         "e2e-tests-run": "jest -c e2e.jest.config.ts",
         "e2e-tests-report": "node src/tests/e2e/postActions.mjs"
