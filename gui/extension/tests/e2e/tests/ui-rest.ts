@@ -61,12 +61,12 @@ describe("MySQL REST Service", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "e2eGlobalConnection",
+        caption: `conn-port:${parseInt(process.env.MYSQL_1108, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_REST_PORT, 10),
+            port: parseInt(process.env.MYSQL_1108, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -187,6 +187,8 @@ describe("MySQL REST Service", () => {
 
         it("Set as Current", async () => {
             await dbTreeSection.setCurrentRestService(service1.servicePath);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
+                `${constants.dbTreeSection} is still loading`);
             await driver.wait(dbTreeSection.untilTreeItemIsDefault(service1.servicePath),
                 constants.wait1second * 5, "REST Service tree item did not became default");
         });

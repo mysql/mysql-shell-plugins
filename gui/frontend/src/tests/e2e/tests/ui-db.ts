@@ -1013,7 +1013,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await FolderDialog.setFolderValue(subFolder);
                     await FolderDialog.ok();
                     await dbTreeSection.expandTreeItem(dbConnection.folderPath!.value!);
-                    expect(await dbTreeSection.existsTreeItem(subFolder)).toBe(true);
+                    await driver.wait(dbTreeSection.untilTreeItemExists(subFolder), constants.wait5seconds);
                 } catch (e) {
                     testFailed = true;
                     throw e;
@@ -1026,7 +1026,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await FolderDialog.setFolderValue("3group");
                     await FolderDialog.ok();
                     await dbTreeSection.expandTreeItem("2group");
-                    expect(await dbTreeSection.existsTreeItem("3group")).toBe(true);
+                    await driver.wait(dbTreeSection.untilTreeItemExists("3group"), constants.wait5seconds);
 
                     await dbTreeSection.openContextMenuAndSelect("3group", constants.addSubfolder);
                     await FolderDialog.setFolderValue("4group");
@@ -1136,6 +1136,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     const editedGroup = "Edited group";
                     await connectionOverview.addNewConnection(dbConnection);
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
                     await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath!.value!, constants.editFolder);
                     await FolderDialog.setFolderValue("Edited group");
                     await FolderDialog.ok();

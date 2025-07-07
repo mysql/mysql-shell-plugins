@@ -59,12 +59,12 @@ describe("DATABASE CONNECTIONS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `e2eGlobalDBConnection`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1107, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT, 10),
+            port: parseInt(process.env.MYSQL_1107, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -330,12 +330,12 @@ describe("DATABASE CONNECTIONS", () => {
 
             const mleDisabledConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
-                caption: `e2eMleDisabledConn`,
+                caption: `conn-port:${parseInt(process.env.MYSQL_1109, 10)}`,
                 description: "Local connection",
                 basic: {
                     hostname: "localhost",
                     username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_ROUTER_PORT, 10),
+                    port: parseInt(process.env.MYSQL_1109, 10),
                     schema: "sakila",
                     password: String(process.env.DBPASSWORD1),
                 },
@@ -1344,7 +1344,7 @@ describe("DATABASE CONNECTIONS", () => {
             basic: {
                 hostname: "localhost",
                 username: String(process.env.DBUSERNAME1),
-                port: parseInt(process.env.MYSQL_PORT, 10),
+                port: parseInt(process.env.MYSQL_1107, 10),
                 schema: "sakila",
                 password: String(process.env.DBPASSWORD1),
             },
@@ -1950,7 +1950,7 @@ describe("DATABASE CONNECTIONS", () => {
                 basic: {
                     hostname: "localhost",
                     username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_PORT, 10),
+                    port: parseInt(process.env.MYSQL_1107, 10),
                     schema: "sakila",
                     password: String(process.env.DBPASSWORD1),
                 },
