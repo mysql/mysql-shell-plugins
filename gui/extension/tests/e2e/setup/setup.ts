@@ -27,6 +27,9 @@
 import { E2ETests } from "../lib/E2ETests";
 
 const main = async () => {
+    const cliArguments = E2ETests.getCliArguments();
+    cliArguments.testSuite ? E2ETests.setTestSuite(cliArguments.testSuite) : E2ETests.readTestSuites();
+
     E2ETests.killAndDeleteMySQLInstances();
 
     if (process.env.DISABLE_TESTS) {

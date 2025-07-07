@@ -45,17 +45,13 @@ export class E2ETests {
     /** The Test suites identified under the tests folder */
     public static testSuites: IE2ETestSuite[] = [];
 
-    /** The MySQL port used by the deployed sandbox. Defaults to 3308 */
-    public static mysqlPort = "1107";
-
-    /** The MySQL port used by the deployed sandbox for REST tests*/
-    public static mysqlPortRest = "1108";
-
-    /** The MySQL port used by the deployed sandbox for ROUTER tests*/
-    public static mysqlPortRouter = "1109";
-
-    /** The MySQL port used by the deployed sandbox for REST CONFIG tests*/
-    public static mysqlPortRestConfig = "1110";
+    /** MySQL Servers to deploy */
+    public static mysqlPorts = [
+        "1107", // DEFAULT
+        "1108", // REST
+        "1109", // ROUTER
+        "1110", // REST CONFIG
+    ];
 
     /** The MySQL deployed sandbox directory */
     public static mysqlSandboxDir = process.cwd();
@@ -271,14 +267,40 @@ export class E2ETests {
     /**
      * Executes the setup to run the e2e tests
      */
-    public static setup = (): void => {
+    public static setup = async (): Promise<void> => {
+
+        const ociConfigFile = `
+        [E2ETESTS]
+        user=${process.env.OCI_E2E_USER}
+        fingerprint=${process.env.OCI_E2E_FINGERPRINT}
+        tenancy=${process.env.OCI_E2E_TENANCY}
+        region=${process.env.OCI_E2E_REGION}
+        key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
+
+        [HEATWAVE]
+        user=${process.env.OCI_HW_USER}
+        fingerprint=${process.env.OCI_HW_FINGERPRINT}
+        tenancy=${process.env.OCI_HW_TENANCY}
+        region=${process.env.OCI_HW_REGION}
+        key_file=${process.env.OCI_HW_KEY_FILE_PATH}
+        `;
 
         this.checkSetupEnvVars();
         this.checkMySql();
         this.setShellBinary();
 
-        for (const port of [this.mysqlPort, this.mysqlPortRest, this.mysqlPortRouter, this.mysqlPortRestConfig]) {
+        const installMLE = async (port: string): Promise<void> => {
+            const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${port}`;
+            this.runShellCommand([
+                connUri,
+                "--sql",
+                "-e",
+                `INSTALL COMPONENT "file://component_mle";`,
+            ]);
+            E2ELogger.success(`Installed MLE component on port ${this.mysqlPorts[0]}`);
+        };
 
+        const installSqlData = async (port: string): Promise<void> => {
             this.runShellCommand([
                 "--",
                 "dba",
@@ -299,44 +321,61 @@ export class E2ETests {
             }));
 
             for (const file of sqlFiles) {
-                this.runShellCommand([`root:${process.env.DBROOTPASSWORD}@localhost:${port}`, "--file", file]);
-                E2ELogger.success(`Executed SQL file ${file} successfully`);
+                this.runShellCommand([
+                    `root:${process.env.DBROOTPASSWORD}@localhost:${port}`, "--file",
+                    file,
+                ]);
             }
+            E2ELogger.success(`Executed SQL files successfully on port ${port}`);
+        };
+
+        const installMRS = async (port: string): Promise<void> => {
+            // INSTALL MRS ON SERVERS 1108 and 1109
+            for (const port of [this.mysqlPorts[1], this.mysqlPorts[2]]) {
+                this.runShellCommand([
+                    `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
+                    "--py", "-e", "mrs.configure()",
+                ]);
+                E2ELogger.success(`MRS was configured successfully on port ${port}`);
+            };
         }
 
-        // INSTALL MLE ON SERVER 3307
-        const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPort}`;
-        this.runShellCommand([connUri, "--sql", "-e", `INSTALL COMPONENT "file://component_mle";`]);
-        E2ELogger.success(`Installed MLE component`);
+        if (this.testSuites.length > 1) {
+            for (const port of this.mysqlPorts) {
+                await installSqlData(port);
+            }
 
-        for (const port of [this.mysqlPortRest, this.mysqlPortRouter]) {
-            this.runShellCommand([
-                `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
-                "--py", "-e", "mrs.configure()",
-            ]);
-            E2ELogger.success(`MRS was configured successfully on MySQL instance ${port}`);
+            await installMLE(this.mysqlPorts[0]);
+            await installMRS(this.mysqlPorts[1]);
+            await installMRS(this.mysqlPorts[2]);
+            writeFileSync(join(process.cwd(), "config"), ociConfigFile);
+            E2ELogger.success("OCI Configuration file created successfully");
+        } else if (this.testSuites[0].name === "DB" ||
+            this.testSuites[0].name === "NOTEBOOK" ||
+            this.testSuites[0].name === "OPEN-EDITORS" ||
+            this.testSuites[0].name === "SHELL"
+        ) {
+            await installSqlData(this.mysqlPorts[0]);
+            await installMLE(this.mysqlPorts[0]);
+            await installSqlData(this.mysqlPorts[2]);
+            writeFileSync(join(process.cwd(), "config"), ociConfigFile);
+            E2ELogger.success("OCI Configuration file created successfully");
+        } else if (this.testSuites[0].name === "REST-CONFIG") {
+            await installSqlData(this.mysqlPorts[3]);
+        } else if (this.testSuites[0].name === "REST") {
+            await installSqlData(this.mysqlPorts[1]);
+            await installMRS(this.mysqlPorts[1]);
+        } else if (this.testSuites[0].name === "ROUTER") {
+            await installSqlData(this.mysqlPorts[2]);
+            await installMRS(this.mysqlPorts[2]);
+        } else if (this.testSuites[0].name === "OCI") {
+            writeFileSync(join(process.cwd(), "config"), ociConfigFile);
+            E2ELogger.success("OCI Configuration file created successfully");
+        } else {
+            throw new Error(`Unknown test suite ${this.testSuites[0].name}`);
         }
 
-        // CREATE THE OCI CONFIG FILE
-        const ociConfigFile = `
-[E2ETESTS]
-user=${process.env.OCI_E2E_USER}
-fingerprint=${process.env.OCI_E2E_FINGERPRINT}
-tenancy=${process.env.OCI_E2E_TENANCY}
-region=${process.env.OCI_E2E_REGION}
-key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
-
-[HEATWAVE]
-user=${process.env.OCI_HW_USER}
-fingerprint=${process.env.OCI_HW_FINGERPRINT}
-tenancy=${process.env.OCI_HW_TENANCY}
-region=${process.env.OCI_HW_REGION}
-key_file=${process.env.OCI_HW_KEY_FILE_PATH}
-        `;
-
-        writeFileSync(join(process.cwd(), "config"), ociConfigFile);
-        E2ELogger.success("OCI Configuration file created successfully");
-        E2ELogger.success("Setup finished !");
+        E2ELogger.success("Setup finished successfully");
     };
 
     /**
@@ -354,11 +393,11 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         process.env.MOCHAWESOME_REPORTFILENAME = `test-report-${testSuite.name}.json`;
         process.env.TEST_SUITE = testSuite.name;
         process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`);
-        process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPort, "sandboxdata");
-        process.env.MYSQL_PORT = this.mysqlPort;
-        process.env.MYSQL_REST_PORT = this.mysqlPortRest;
-        process.env.MYSQL_ROUTER_PORT = this.mysqlPortRouter;
-        process.env.MYSQL_REST_CONFIG_PORT = this.mysqlPortRestConfig;
+        process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPorts[0], "sandboxdata");
+        process.env.MYSQL_1107 = this.mysqlPorts[0];
+        process.env.MYSQL_1108 = this.mysqlPorts[1]; // HAS MRS
+        process.env.MYSQL_1109 = this.mysqlPorts[2]; // HAS MRS
+        process.env.MYSQL_1110 = this.mysqlPorts[3];
         process.env.DBUSERNAME1 = "clientqa";
         process.env.DBPASSWORD1 = "dummy";
         process.env.DBUSERNAME2 = "shell";
@@ -649,17 +688,13 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
      * Kills and removes the sandbox directories of running MySQL Server instances running on ports 3307, 3308 and 3309
      */
     public static killAndDeleteMySQLInstances = (): void => {
-        E2ETests.setTestSuite("DB");
+        if (this.testSuites.length === 0) {
+            E2ETests.setTestSuite("DB");
+        }
+
         E2ETests.setShellBinary();
 
-        const mysqlPorts = [
-            E2ETests.mysqlPort,
-            E2ETests.mysqlPortRest,
-            E2ETests.mysqlPortRouter,
-            E2ETests.mysqlPortRestConfig,
-        ];
-
-        for (const mysqlPort of mysqlPorts) {
+        for (const mysqlPort of this.mysqlPorts) {
 
             try {
                 E2ETests.runShellCommand([

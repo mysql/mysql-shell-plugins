@@ -221,18 +221,28 @@ export class E2EPerformanceDashboard {
         await Misc.switchToFrame();
         const performanceDashboardLocator = locator.mysqlAdministration.performanceDashboard;
 
-        this.mlePerformance = {
-            heapUsageGraph: await driver
-                .findElement(performanceDashboardLocator.mleStatus.heapUsageGraph),
-            mleStatus: await (await driver
-                .findElement(performanceDashboardLocator.mleStatus.mleStatus)).getText(),
-            mleMaxHeapSize: await (await driver
-                .findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getText(),
-            mleHeapUtilizationGraph: await driver
-                .findElement(performanceDashboardLocator.mleStatus.mleHeapUtilizationGraph),
-            currentHeapUsage: await (await driver
-                .findElement(performanceDashboardLocator.mleStatus.currentHeapUsage)).getText(),
-        };
+        await driver.wait(async () => {
+
+            const heapUsageGraph = await driver.findElement(performanceDashboardLocator.mleStatus.heapUsageGraph);
+            const mleStatus = await (await driver.findElement(performanceDashboardLocator.mleStatus.mleStatus)).getText();
+            const mleMaxHeapSize = await (await driver.findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getText();
+            const mleHeapUtilizationGraph = await driver.findElement(performanceDashboardLocator.mleStatus.mleHeapUtilizationGraph);
+            const currentHeapUsage = await (await driver.findElement(performanceDashboardLocator.mleStatus.currentHeapUsage)).getText();
+
+            if (mleStatus && mleMaxHeapSize && currentHeapUsage) {
+                this.mlePerformance = {
+                    heapUsageGraph: heapUsageGraph,
+                    mleStatus: mleStatus,
+                    mleMaxHeapSize: mleMaxHeapSize,
+                    mleHeapUtilizationGraph: mleHeapUtilizationGraph,
+                    currentHeapUsage: currentHeapUsage,
+                };
+
+                return true;
+            }
+        }, constants.wait1second * 5, "Could not load the MLE Performance details");
+
+
     };
 
     /**

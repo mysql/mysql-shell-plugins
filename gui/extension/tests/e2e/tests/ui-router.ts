@@ -78,12 +78,12 @@ describe("Router", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "e2eGlobalConnection",
+        caption: `conn-port:${parseInt(process.env.MYSQL_1109, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_ROUTER_PORT, 10),
+            port: parseInt(process.env.MYSQL_1109, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
