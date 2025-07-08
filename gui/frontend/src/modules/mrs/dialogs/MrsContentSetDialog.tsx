@@ -451,6 +451,8 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                         } else {
                             mrsScriptDefinitions = data.result;
                         }
+
+                        return Promise.resolve();
                     });
 
                 scriptSection.values.buildFolder.value = mrsScriptDefinitions?.buildFolder ?? "";

@@ -632,9 +632,6 @@ export class SqlQueryExecutor {
                     void ApplicationDB.removeDataByResultIds(StoreType.Document, [resultId]);
                 }
             }
-            const columnsMetadata = await getColumnsMetadataForEmptyResultSet(
-                options.fullTableName, options.queryType, connection!.details.dbType, connection!.backend,
-            );
 
             // Have to keep the column definition around for all data packages, for row conversion,
             // but must store it only once (when they come in, which happens only once).
@@ -642,7 +639,7 @@ export class SqlQueryExecutor {
             let setColumns = false;
 
             options.context.executionStarts();
-            await connection!.backend.execute(options.query, options.params, undefined, (data) => {
+            await connection!.backend.execute(options.query, options.params, undefined, async (data) => {
                 let hasMoreRows = false;
                 let rowCount = 0;
                 let status: IStatusInfo = { text: "" };
@@ -677,8 +674,17 @@ export class SqlQueryExecutor {
                     }
                 }
 
-                if (!data.result.columns && rowCount === 0 && columnsMetadata.length) {
-                    data.result.columns = columnsMetadata;
+                if (!data.result.columns && rowCount === 0) {
+                    if (options.updatable) {
+                        const columnsMetadata = await getColumnsMetadataForEmptyResultSet(
+                            options.fullTableName, options.queryType, connection!.details.dbType, connection!.backend,
+                        );
+                        if (columnsMetadata.length) {
+                            data.result.columns = columnsMetadata;
+                        }
+                    } else if (!options.showAsText) {
+                        data.result.columns = [{ name: "*", type: "", length: 0 }];
+                    }
                 }
 
                 if (data.result.columns) {

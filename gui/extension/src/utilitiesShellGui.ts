@@ -81,6 +81,8 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
                 progress(data.result);
             }
         }
+
+        return Promise.resolve();
     });
 };
 
