@@ -362,7 +362,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
             const finalResult = await savedState.backend.execute(command, undefined, (data, requestId) => {
                 if (!data.result) {
-                    return;
+                    return Promise.resolve();
                 }
 
                 const result = data.result;
@@ -638,6 +638,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         }
                     }
                 }
+
+                return Promise.resolve();
             });
 
             // Handling the final response here.

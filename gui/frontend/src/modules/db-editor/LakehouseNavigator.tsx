@@ -2473,6 +2473,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     if (data.result.rows !== undefined && data.result.rows.length > 0) {
                         taskId = String((data.result.rows[0] as string[])[0]);
                     }
+
+                    return Promise.resolve();
                 });
 
                 StatusBar.setStatusBarMessage(`Task scheduled successfully. Task Id: ${taskId}`);
@@ -2667,6 +2669,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         if (data.result.rows !== undefined && data.result.rows.length > 0) {
                             taskId = String((data.result.rows[0] as string[])[0]);
                         }
+
+                        return Promise.resolve();
                     });
 
                 if (taskId !== "") {
@@ -2748,6 +2752,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         if (data.result.rows !== undefined && data.result.rows.length > 0) {
                             taskId = String((data.result.rows[0] as string[])[0]);
                         }
+
+                        return Promise.resolve();
                     });
                 StatusBar.setStatusBarMessage(
                     `${tables.length} Table${tables.length > 1 ? "s are" : " is"} being reloaded. ` +
@@ -3004,6 +3010,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                     this.forceUpdate();
                                 }
                             }
+
+                            return Promise.resolve();
                         },
                     );
 
@@ -3222,6 +3230,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             void ui.showInformationMessage(`The required privileges where assigned to the ` +
                                 `MySQL user ${userName}@${hostName}`, {});
                         }
+
+                        return Promise.resolve();
                     });
             } catch (reason) {
                 const message = convertErrorToString(reason);

@@ -839,6 +839,8 @@ export class MrsHub extends ComponentBase {
                                 } else {
                                     addedContentSet = data.result;
                                 }
+
+                            return Promise.resolve();
                             },
                         );
 

@@ -234,6 +234,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 // Don't save the password in the backend, if we stored in the frontend.
                 connectionData = response.result as IOpenConnectionData;
             }
+
+            return Promise.resolve();
         }));
 
         if (!connectionData) {

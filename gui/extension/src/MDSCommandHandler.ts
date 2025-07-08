@@ -482,6 +482,8 @@ export class MDSCommandHandler {
                                 if (data.message) {
                                     window.setStatusBarMessage(data.message as string);
                                 }
+
+                                return Promise.resolve();
                             });
 
                         window.setStatusBarMessage("Bastion Session available, opening Terminal ...", 5000);

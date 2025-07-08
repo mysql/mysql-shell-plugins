@@ -1254,7 +1254,7 @@ Execute \\help or \\? for help;`;
                                     resultId: chatQueryId,
                                 });
 
-                                return;
+                                return Promise.resolve();
                             }
 
                             currentChatOptions = {
@@ -1296,6 +1296,8 @@ Execute \\help or \\? for help;`;
                             });
 
                         }
+
+                        return Promise.resolve();
                     });
             } catch (reason) {
                 let content: string;
@@ -1949,6 +1951,8 @@ Execute \\help or \\? for help;`;
                             const finalData = await connection.backend.execute(data.code!, data.params as string[],
                                 uuid(), (data) => {
                                     handleResult(data.result);
+
+                                    return Promise.resolve();
                                 });
 
                             if (finalData) {
@@ -1998,6 +2002,8 @@ Execute \\help or \\? for help;`;
                                         contextId: data.contextId,
                                         final: false,
                                     });
+
+                                    return Promise.resolve();
                                 });
 
                             workerPool.continueTask(taskId, {

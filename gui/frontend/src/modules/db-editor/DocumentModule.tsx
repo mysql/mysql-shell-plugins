@@ -2627,6 +2627,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                         if (!ShellPromptHandler.handleShellPrompt(response.result, requestId, backend)) {
                             this.setProgressMessage("Loading ...");
                         }
+
+                        return Promise.resolve();
                     });
 
                 // TODO: get current schema, if a connection is given.

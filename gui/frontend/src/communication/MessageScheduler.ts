@@ -63,7 +63,8 @@ type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>
  * @param requestId The ID for the request either generated implicitly or specified in the sendRequest call.
  * @param data The data given by the current (intermediate) data response.
  */
-export type DataCallback<K extends keyof IProtocolResults> = (data: IProtocolResults[K], requestId: string) => void;
+export type DataCallback<K extends keyof IProtocolResults> =
+    (data: IProtocolResults[K], requestId: string) => Promise<void>;
 
 /** Parameters for sending requests to the backend. */
 interface ISendRequestParameters<K extends keyof IProtocolParameters> {
@@ -302,7 +303,7 @@ export class MessageScheduler {
                         case EventType.DataResponse: {
                             // It's a normal data response.
                             if (ongoing.onData) {
-                                ongoing.onData(response, response.requestId);
+                                void ongoing.onData(response, response.requestId);
                             } else {
                                 ongoing.result.push(response);
                             }
