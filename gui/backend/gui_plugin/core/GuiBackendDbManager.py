@@ -62,21 +62,21 @@ class BackendDbManager():
         self._connection_options = connection_options
 
         self._config = DEFAULT_CONFIG
+        self._log_rotation = log_rotation
 
         self.ensure_database_exists()
-
-        # Log rotation verification should be enabled by the caller
-        # only at specific locations
-        db = self.open_database()
-        if log_rotation and self.check_if_logs_need_rotation(db):
-            self.backup_logs(db)
-        db.close()
 
     def ensure_database_exists(self):
         if not self.current_database_exist():
             self.initialize_db()
         else:
             self.check_for_previous_version_and_upgrade()
+
+    def log_rotate_if_enabled(self, db):
+        # Log rotation verification should be enabled by the caller
+        # only at specific locations
+        if self._log_rotation and self.check_if_logs_need_rotation(db):
+            self.backup_logs(db)
 
     def check_if_logs_need_rotation(self, db):
         sql_message = "SELECT COUNT(sent) FROM `gui_log`.`message` WHERE date(sent) < date('now');"
