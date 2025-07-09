@@ -103,6 +103,10 @@ class GuiBackendDb():
         # Opens the session to the backend database
         self._db = backend_db_manager.open_database()
 
+        # Do the log rotation after opening (and leave it open)
+        # to avoid opening the connection twice
+        backend_db_manager.log_rotate_if_enabled(self._db)
+
     @classmethod
     def get_instance(cls, log_rotation=False, session_uuid=None):
         """
