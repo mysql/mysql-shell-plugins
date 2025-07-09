@@ -84,6 +84,8 @@ export interface ICodeEditorModel extends IProviderEditorModel {
     symbols?: SymbolTable;
 
     session?: unknown;
+
+    is3rdLanguage?: boolean;
 }
 
 /** The presentation class type depends on the place where the editor is used. */
@@ -1519,6 +1521,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                                     forceSecondaryEngine: options.forceSecondaryEngine,
                                     source: position,
                                     asText: options.asText,
+                                    is3rdLanguage: options.is3rdLanguage,
                                 };
 
                                 void onScriptExecution?.(context, executionOptions).then(() => {
@@ -2065,6 +2068,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 advance: advance || terminalMode,
                 forceSecondaryEngine: options.forceSecondaryEngine,
                 asText: options.asText,
+                is3rdLanguage: options.is3rdLanguage,
             });
         editor?.focus();
 

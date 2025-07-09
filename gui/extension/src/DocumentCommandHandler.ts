@@ -71,7 +71,7 @@ import type { DocumentTreeBaseItem } from "./tree-providers/OpenEditorsTreeProvi
 import {
     OpenEditorsTreeDataProvider,
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
-import { showMessageWithTimeout } from "./utilities.js";
+import { isExternalLangRoutine, showMessageWithTimeout } from "./utilities.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 import { LibraryDialogType } from "../../frontend/src/app-logic/general-types.js";
 import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
@@ -470,7 +470,7 @@ export class DocumentCommandHandler {
             (entry?: ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>) => {
                 if (entry) {
                     void this.addNewSqlScript(entry.connection.details, "msg.createFunctionJs",
-                        entry.parent.caption, "New Function", "my_function");
+                        entry.parent.caption, "New Javascript Function", "my_function");
                 }
             }));
 
@@ -508,7 +508,7 @@ export class DocumentCommandHandler {
             (entry?: ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>) => {
                 if (entry) {
                     void this.addNewSqlScript(entry.connection.details, "msg.createProcedureJs",
-                        entry.parent.caption, "New Procedure", "my_procedure");
+                        entry.parent.caption, "New Javascript Procedure", "my_procedure");
                 }
             }));
 
@@ -517,8 +517,9 @@ export class DocumentCommandHandler {
                 const entryType = entry.type === CdmEntityType.StoredFunction ? "function" : "procedure";
                 const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true, true);
 
+
                 void this.addNewSqlScript(entry.connection.details, "msg.editRoutine",
-                    entry.parent.caption, "Edit Routine", sql);
+                    entry.parent.caption, "Edit Routine", sql, isExternalLangRoutine(entry));
             }
         }));
 
@@ -526,9 +527,8 @@ export class DocumentCommandHandler {
             if (entry) {
                 const entryType = "library";
                 const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true);
-
                 void this.addNewSqlScript(entry.connection.details, "msg.editLibrary",
-                    entry.parent.caption, "Edit Library", sql);
+                    entry.parent.caption, "Edit Library", sql, isExternalLangRoutine(entry));
             }
         }));
 
@@ -1044,10 +1044,11 @@ export class DocumentCommandHandler {
     }
 
     public async addNewSqlScript(details: IConnectionDetails, command: string, schemaName: string,
-        scriptName: string, placeHolder: string): Promise<void> {
+        scriptName: string, placeHolder: string, isExternalLanguage?: boolean): Promise<void> {
 
         let name: string | undefined = "";
         let sql = "";
+        let is3rdLanguage = false;
         // If the commands is a create command, get the name of the new routine
         if (command.startsWith("msg.create")) {
             if (command.startsWith("msg.createLibraryJs")) {
@@ -1098,6 +1099,7 @@ export class DocumentCommandHandler {
             }
 
             case "msg.createFunctionJs": {
+                is3rdLanguage = true;
                 sql = `DROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
                     + `/* Add or remove function parameters as needed. */\n`
                     + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\n`
@@ -1117,6 +1119,7 @@ export class DocumentCommandHandler {
             }
 
             case "msg.createLibraryJs": {
+                is3rdLanguage = true;
                 sql = `DROP LIBRARY IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
                     + `CREATE LIBRARY \`${schemaName}\`.\`${name}\`\n`
                     + `LANGUAGE JAVASCRIPT\nAS $$\n`
@@ -1133,6 +1136,7 @@ export class DocumentCommandHandler {
             }
 
             case "msg.createProcedureJs": {
+                is3rdLanguage = true;
                 sql = `DROP PROCEDURE IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
                     + `/* Add or remove procedure parameters as needed. */\n`
                     + `CREATE PROCEDURE \`${schemaName}\`.\`${name}\`(IN arg1 INTEGER, OUT arg2 INTEGER)\n`
@@ -1151,11 +1155,13 @@ export class DocumentCommandHandler {
             }
 
             case "msg.editRoutine": {
+                is3rdLanguage = !!isExternalLanguage;
                 sql = placeHolder;
                 break;
             }
 
             case "msg.editLibrary": {
+                is3rdLanguage = !!isExternalLanguage;
                 sql = placeHolder;
                 break;
             }
@@ -1167,7 +1173,7 @@ export class DocumentCommandHandler {
         if (provider) {
             const { id: connectionId } = details;
             this.createNewScriptEditor(
-                provider, scriptName, sql, "mysql", connectionId, undefined, undefined, details,
+                provider, scriptName, sql, "mysql", connectionId, undefined, undefined, details, is3rdLanguage,
             );
         }
     }
@@ -1468,7 +1474,8 @@ export class DocumentCommandHandler {
 
     private createNewScriptEditor = (
         dbProvider: DBConnectionViewProvider, name: string, content: string, language: string,
-        connectionId: number, uri?: Uri, pageId?: string, details?: IConnectionDetails): void => {
+        connectionId: number, uri?: Uri, pageId?: string, details?: IConnectionDetails,
+        is3rdLanguage?: boolean): void => {
         // A new script.
         const request: IScriptRequest = {
             id: uuid(),
@@ -1477,6 +1484,7 @@ export class DocumentCommandHandler {
             language: language as EditorLanguage,
             pageId,
             connectionInfo: details ? getConnectionInfoFromDetails(details) : undefined,
+            is3rdLanguage,
         };
 
         let scripts = this.openScripts.get(dbProvider);

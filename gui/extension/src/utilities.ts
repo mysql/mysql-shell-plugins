@@ -26,6 +26,7 @@
 import { ProgressLocation, ProviderResult, commands, window } from "vscode";
 
 import { waitFor } from "../../frontend/src/utilities/helpers.js";
+import { ICdmLibraryEntry, ICdmRoutineEntry } from "../../frontend/src/data-models/ConnectionDataModel.js";
 
 /**
  * Dynamically switches a VS Code context on or off. Such a context is used to enable/disable VS Code commands,
@@ -62,4 +63,8 @@ export const showMessageWithTimeout = (message: string, timeout = 3000): void =>
             progress.report({ increment: 100 });
         },
     );
+};
+
+export const isExternalLangRoutine = (entry: ICdmLibraryEntry | ICdmRoutineEntry): boolean => {
+    return entry.language === "JAVASCRIPT" || entry.language === "WASM";
 };

@@ -1207,7 +1207,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     element.focus();
                 }
                 // handle response
-                if (!response ) {
+                if (!response) {
                     await ui.showInformationMessage("Library could NOT be created!", {});
 
                     return true;
@@ -1272,7 +1272,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return false;
         }
         try {
-            const status = await backend?.execute(completeBody);
+            await backend?.execute(completeBody);
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Error while creating library: ${message}`, {});
@@ -2176,7 +2176,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     // External scripts come with their full content.
                     if (details.content !== undefined) {
                         const newState = this.addEditorFromScript(details.tabId, tab!.connection,
-                            details.document, details.content);
+                            details.document, details.content, details.is3rdLanguage);
                         connectionState.documentStates.push(newState);
                     }
                 } else {
@@ -2219,13 +2219,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param connection The data model entry for the connection in which to add the editor.
      * @param script The script from which we create the editor.
      * @param content The script's content.
+     * @param is3rdLanguage Whether the script involves non-SQL language
      *
      * @returns The new editor state.
      */
     private addEditorFromScript(tabId: string, connection: ICdmConnectionEntry, script: IOdmScriptEntry,
-        content: string): IOpenDocumentState {
+        content: string, is3rdLanguage?: boolean): IOpenDocumentState {
         const model = this.createEditorModel(connection.backend, content, script.language,
-            connection.details.version!, connection.details.sqlMode!, connection.currentSchema);
+            connection.details.version!, connection.details.sqlMode!, connection.currentSchema, is3rdLanguage);
 
         const newState: IOpenDocumentState = {
             document: script,
@@ -2732,11 +2733,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param serverVersion The version of the connected server (relevant only for SQL languages).
      * @param sqlMode The current SQL mode of the server (relevant only for MySQL).
      * @param currentSchema The current default schema.
+     * @param is3rdLanguage Whether the model involves non-SQL language
      *
      * @returns The new model.
      */
     private createEditorModel(backend: ShellInterfaceSqlEditor, text: string, language: string,
-        serverVersion: number, sqlMode: string, currentSchema: string): ICodeEditorModel {
+        serverVersion: number, sqlMode: string, currentSchema: string, is3rdLanguage?: boolean): ICodeEditorModel {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(text, language), {
             executionContexts: new ExecutionContexts({
                 store: StoreType.Document,
@@ -2747,6 +2749,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }),
             symbols: new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true }),
             editorMode: CodeEditorMode.Standard,
+            is3rdLanguage,
         });
 
         if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
@@ -2968,7 +2971,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.executeRemote("documentClosed", {
             pageId: tabId,
             id: documentId,
-            connectionInfo: details ? getConnectionInfoFromDetails(details): undefined,
+            connectionInfo: details ? getConnectionInfoFromDetails(details) : undefined,
         });
     }
 

@@ -132,6 +132,7 @@ export interface IScriptExecutionOptions {
     asText?: boolean;
 
     errorCallback?: (errorMessage: string) => Promise<void>;
+    is3rdLanguage?: boolean;
 }
 
 /** Determines the behavior of the code editor. */
