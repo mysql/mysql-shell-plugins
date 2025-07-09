@@ -203,6 +203,8 @@ export interface IEditorCommonExecutionOptions {
 
     /** An explicit context to execute in. */
     context?: IExecutionContext;
+
+    is3rdLanguage?: boolean;
 }
 
 /**

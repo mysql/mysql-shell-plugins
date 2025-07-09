@@ -153,11 +153,12 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
 
     public render(): ComponentChild {
         const { toolbarItems, language, heatWaveEnabled } = this.props;
-        const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
+        const { autoCommit, canExecute, canStop, canExecuteSubparts, currentEditor } = this.state;
 
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "the selection or " : "";
 
+        const is3rdLanguage = currentEditor?.state?.model.is3rdLanguage;
         const stopOnErrors = Settings.get("editor.stopOnErrors", true);
         const stopOnErrorIcon = stopOnErrors
             ? Assets.toolbar.stopOnErrorActiveIcon
@@ -184,7 +185,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { advance: true, forceSecondaryEngine: false, asText: false });
+                                { advance: true, forceSecondaryEngine: false, asText: false, is3rdLanguage });
                         }
                     }
                 >
@@ -200,7 +201,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { advance: false, forceSecondaryEngine: false, asText: false });
+                                { advance: false, forceSecondaryEngine: false, asText: false, is3rdLanguage });
                         }
                     }
                 >
@@ -218,7 +219,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecute",
-                                { advance: false, forceSecondaryEngine: false, asText: false });
+                                { advance: false, forceSecondaryEngine: false, asText: false, is3rdLanguage });
                         }
                     }
                 >
@@ -235,7 +236,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { advance: true, forceSecondaryEngine: false, asText: true });
+                                { advance: true, forceSecondaryEngine: false, asText: true, is3rdLanguage });
                         }
                     }
                 >
@@ -253,7 +254,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecuteSelectedOrAll",
-                                    { advance: true, forceSecondaryEngine: true, asText: false });
+                                    { advance: true, forceSecondaryEngine: true, asText: false, is3rdLanguage });
                             }
                         }
                     >
@@ -267,7 +268,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecute",
-                                    { advance: false, forceSecondaryEngine: true, asText: false });
+                                    { advance: false, forceSecondaryEngine: true, asText: false, is3rdLanguage });
                             }
                         }
                     >

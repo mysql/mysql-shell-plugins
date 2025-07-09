@@ -154,6 +154,8 @@ export interface ISelectItemDetails {
 
     /** For external/broken out scripts only: the script's content. */
     content?: string;
+
+    is3rdLanguage?: boolean;
 }
 
 interface IConnectionTabProperties extends IComponentProperties {
@@ -391,8 +393,10 @@ Execute \\help or \\? for help;`;
         const { id, connection } = this.props;
         if (connection) {
             requisitions.executeRemote("sqlSetCurrentSchema",
-                { id: id ?? "", schema: connection.currentSchema,
-                    connectionInfo: getConnectionInfoFromDetails(connection.details) },
+                {
+                    id: id ?? "", schema: connection.currentSchema,
+                    connectionInfo: getConnectionInfoFromDetails(connection.details),
+                },
             );
         }
 
@@ -447,9 +451,10 @@ Execute \\help or \\? for help;`;
                 this.sqlQueryExecutor.connection = connection;
 
                 requisitions.executeRemote("sqlSetCurrentSchema",
-                    { id: id ?? "", schema: connection.currentSchema,
+                    {
+                        id: id ?? "", schema: connection.currentSchema,
                         connectionInfo: getConnectionInfoFromDetails(details),
-                });
+                    });
             }
         }
     }
@@ -760,6 +765,7 @@ Execute \\help or \\? for help;`;
                     tabId: id ?? "",
                     document: script,
                     content: details.content,
+                    is3rdLanguage: details.is3rdLanguage,
                 });
             }
         }
@@ -1114,30 +1120,57 @@ Execute \\help or \\? for help;`;
             });
         }
 
-        // If MLE is enabled, collect all stack trace, console.log() output and all errors.
-        if (savedState.mleEnabled) {
+        // If MLE is enabled, collect console.log() output and all errors.
+        if (savedState.mleEnabled && options.is3rdLanguage) {
             const resultData: ITextResultEntry[] = [];
             // Clear any existing runtime error decorations as they become obsolete after new execution
             void context.clearRuntimeErrorData();
 
-            try {
-                const stackTrace: QueryResult = await connection?.backend?.execute(
-                    `SELECT mle_session_state("stack_trace")`) as QueryResult;
+            // Only get the stack trace if there is an error.
+            if (errorCount !== 0) {
+                try {
+                    const stackTrace: QueryResult = await connection?.backend?.execute(
+                        `SELECT mle_session_state("stack_trace")`) as QueryResult;
 
-                const updatedStacktrace = ConnectionTab.shiftMLEStacktraceLineNumbers(stackTrace, jsStartLine);
+                    const updatedStacktrace = ConnectionTab.shiftMLEStacktraceLineNumbers(stackTrace, jsStartLine);
 
-                if (updatedStacktrace) {
-                    resultData.push({
-                        type: MessageType.Error,
-                        index: -1,
-                        content: updatedStacktrace.message + "\n",
-                        language: "ansi",
-                    });
-                    void context.addRuntimeErrorData(errorStatementIndex,
-                        { message: errorMessage, range: updatedStacktrace.range });
+                    if (updatedStacktrace) {
+                        resultData.push({
+                            type: MessageType.Error,
+                            index: -1,
+                            content: updatedStacktrace.message + "\n",
+                            language: "ansi",
+                        });
+                        void context.addRuntimeErrorData(errorStatementIndex,
+                            { message: errorMessage, range: updatedStacktrace.range });
+                    }
+                } catch (error) {
+                    console.error("Error while getting stack trace:\n" + String(error));
                 }
-            } catch (error) {
-                console.error("Error while getting stack trace:\n" + String(error));
+
+                try {
+                    const consoleError: QueryResult = await connection.backend?.execute(
+                        `SELECT mle_session_state("stderr")`) as QueryResult;
+
+                    if (consoleError?.rows && consoleError.rows.length > 0) {
+                        const consoleErrorRow = consoleError.rows[0][0];
+
+                        if (consoleErrorRow) {
+                            for (const row of consoleError.rows) {
+                                const consoleErrorInfo: string = `${row[0]}`.trim();
+
+                                resultData.push({
+                                    type: MessageType.Warning,
+                                    index: -1,
+                                    content: consoleErrorInfo + "\n",
+                                    language: "ansi",
+                                });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error while getting console error:\n " + String(error));
+                }
             }
 
             try {
@@ -1162,30 +1195,6 @@ Execute \\help or \\? for help;`;
                 }
             } catch (error) {
                 console.error("Error while getting console log:\n " + String(error));
-            }
-
-            try {
-                const consoleError: QueryResult = await connection.backend?.execute(
-                    `SELECT mle_session_state("stderr")`) as QueryResult;
-
-                if (consoleError?.rows && consoleError.rows.length > 0) {
-                    const consoleErrorRow = consoleError.rows[0][0];
-
-                    if (consoleErrorRow) {
-                        for (const row of consoleError.rows) {
-                            const consoleErrorInfo: string = `${row[0]}`.trim();
-
-                            resultData.push({
-                                type: MessageType.Warning,
-                                index: -1,
-                                content: consoleErrorInfo + "\n",
-                                language: "ansi",
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Error while getting console error:\n " + String(error));
             }
 
             void await context.addResultData({
@@ -2392,7 +2401,8 @@ Execute \\help or \\? for help;`;
                             onChatOptionsChange(id, { options });
 
                             void ui.showInformationMessage(
-                                `The HeatWave options have been loaded successfully from ${fileResult.file[0].path}`, {});
+                                `The HeatWave options have been loaded successfully from ${fileResult.file[0].path}`,
+                                {});
                         }
                     } catch (reason) /* istanbul ignore next */ {
                         let content: string;

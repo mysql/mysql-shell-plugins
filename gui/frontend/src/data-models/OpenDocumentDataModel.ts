@@ -230,7 +230,7 @@ export interface IBaseDocumentParameters {
 /** Maps a document type to a set of parameters for opening/creating a document of this type. */
 export interface IDocumentOpenParameterMap {
     [OdmEntityType.Notebook]: IBaseDocumentParameters;
-    [OdmEntityType.Script]: IBaseDocumentParameters & { language: EditorLanguage; };
+    [OdmEntityType.Script]: IBaseDocumentParameters & { language: EditorLanguage };
     [OdmEntityType.AdminPage]: IBaseDocumentParameters & { pageType: AdminPageType; };
     [OdmEntityType.StandaloneDocument]: { id: string; caption: string; language: EditorLanguage; };
     [OdmEntityType.ConnectionPage]: IBaseDocumentParameters;
