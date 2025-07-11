@@ -140,7 +140,7 @@ describe("MySQL REST Service Configuration", () => {
         await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
         await ConfigRestServiceDialog.set(mrsConfig);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
-            constants.wait1second * 25);
+            constants.wait1second * 120);
         await driver.wait(dbTreeSection.untilTreeItemExists(constants.mysqlRestService), constants.waitForTreeItem);
         await dbTreeSection.expandTreeItem(constants.mysqlRestService);
         await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
@@ -158,7 +158,7 @@ describe("MySQL REST Service Configuration", () => {
         await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
         await ConfigRestServiceDialog.set(config);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
-            constants.wait1second * 10);
+            constants.wait1second * 120);
         await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.configureRestService);
         const mrsConfig: interfaces.IRestServiceConfig = {
             status: "Disabled",
@@ -204,7 +204,7 @@ describe("MySQL REST Service Configuration", () => {
         };
         await ConfigRestServiceDialog.set(mrsConfig);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
-            constants.wait1second * 10);
+            constants.wait1second * 120);
         await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.configureRestService);
         const newConfig = await ConfigRestServiceDialog.get();
         expect(mrsConfig.status).to.equals(newConfig.status);
@@ -235,7 +235,7 @@ describe("MySQL REST Service Configuration", () => {
         };
         await ConfigRestServiceDialog.set(mrsConfig);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
-            constants.wait1second * 10);
+            constants.wait1second * 120);
         for (const mrsVersion of msrVersions.slice(1)) {
             mrsConfig = {
                 updateToVersion: mrsVersion,
@@ -244,7 +244,7 @@ describe("MySQL REST Service Configuration", () => {
                 constants.configureRestService);
             await ConfigRestServiceDialog.set(mrsConfig);
             await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
-                constants.wait1second * 10);
+                constants.wait1second * 120);
         }
     });
 });

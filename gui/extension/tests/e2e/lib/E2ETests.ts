@@ -267,7 +267,7 @@ export class E2ETests {
     /**
      * Executes the setup to run the e2e tests
      */
-    public static setup = async (): Promise<void> => {
+    public static setup = (): void => {
 
         const ociConfigFile = `
         [E2ETESTS]
@@ -289,7 +289,7 @@ export class E2ETests {
         this.checkMySql();
         this.setShellBinary();
 
-        const installMLE = async (port: string): Promise<void> => {
+        const installMLE = (port: string): void => {
             const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${port}`;
             this.runShellCommand([
                 connUri,
@@ -300,7 +300,7 @@ export class E2ETests {
             E2ELogger.success(`Installed MLE component on port ${this.mysqlPorts[0]}`);
         };
 
-        const installSqlData = async (port: string): Promise<void> => {
+        const installSqlData = (port: string): void => {
             this.runShellCommand([
                 "--",
                 "dba",
@@ -329,25 +329,23 @@ export class E2ETests {
             E2ELogger.success(`Executed SQL files successfully on port ${port}`);
         };
 
-        const installMRS = async (port: string): Promise<void> => {
-            // INSTALL MRS ON SERVERS 1108 and 1109
-            for (const port of [this.mysqlPorts[1], this.mysqlPorts[2]]) {
-                this.runShellCommand([
-                    `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
-                    "--py", "-e", "mrs.configure()",
-                ]);
-                E2ELogger.success(`MRS was configured successfully on port ${port}`);
-            };
-        }
+        const installMRS = (port: string): void => {
+            this.runShellCommand([
+                `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
+                "--py", "-e", "mrs.configure()",
+            ]);
+            E2ELogger.success(`MRS was configured successfully on port ${port}`);
+
+        };
 
         if (this.testSuites.length > 1) {
             for (const port of this.mysqlPorts) {
-                await installSqlData(port);
+                installSqlData(port);
             }
 
-            await installMLE(this.mysqlPorts[0]);
-            await installMRS(this.mysqlPorts[1]);
-            await installMRS(this.mysqlPorts[2]);
+            installMLE(this.mysqlPorts[0]);
+            installMRS(this.mysqlPorts[1]);
+            installMRS(this.mysqlPorts[2]);
             writeFileSync(join(process.cwd(), "config"), ociConfigFile);
             E2ELogger.success("OCI Configuration file created successfully");
         } else if (this.testSuites[0].name === "DB" ||
@@ -355,19 +353,22 @@ export class E2ETests {
             this.testSuites[0].name === "OPEN-EDITORS" ||
             this.testSuites[0].name === "SHELL"
         ) {
-            await installSqlData(this.mysqlPorts[0]);
-            await installMLE(this.mysqlPorts[0]);
-            await installSqlData(this.mysqlPorts[2]);
+            installSqlData(this.mysqlPorts[0]);
+            installMLE(this.mysqlPorts[0]);
+            installSqlData(this.mysqlPorts[2]);
+        } else if (this.testSuites[0].name === "CONNECTION-OVERVIEW") {
+            installSqlData(this.mysqlPorts[0]);
             writeFileSync(join(process.cwd(), "config"), ociConfigFile);
             E2ELogger.success("OCI Configuration file created successfully");
-        } else if (this.testSuites[0].name === "REST-CONFIG") {
-            await installSqlData(this.mysqlPorts[3]);
+        }
+        else if (this.testSuites[0].name === "REST-CONFIG") {
+            installSqlData(this.mysqlPorts[3]);
         } else if (this.testSuites[0].name === "REST") {
-            await installSqlData(this.mysqlPorts[1]);
-            await installMRS(this.mysqlPorts[1]);
+            installSqlData(this.mysqlPorts[1]);
+            installMRS(this.mysqlPorts[1]);
         } else if (this.testSuites[0].name === "ROUTER") {
-            await installSqlData(this.mysqlPorts[2]);
-            await installMRS(this.mysqlPorts[2]);
+            installSqlData(this.mysqlPorts[2]);
+            installMRS(this.mysqlPorts[2]);
         } else if (this.testSuites[0].name === "OCI") {
             writeFileSync(join(process.cwd(), "config"), ociConfigFile);
             E2ELogger.success("OCI Configuration file created successfully");
@@ -768,7 +769,8 @@ export class E2ETests {
             throw new Error(`Could not find the extension file name at ${testSuite.extensionDir}`);
         }
 
-        process.env.VSCODE_ARGS = `--disable-extensions --extensionDevelopmentPath=${join(testSuite.extensionDir, extensionFileName)} --user-data-dir=./vscode-test-user-data --disable-gpu`;
+        process.env.VSCODE_ARGS = `--disable-extensions --extensionDevelopmentPath=${join(testSuite.extensionDir,
+            extensionFileName)} --user-data-dir=./vscode-test-user-data --disable-gpu`;
 
         const result = await testSuite.exTester.runTests(`./tests/ui-${testSuite.name.toLowerCase()}.ts`, {
             settings: join(process.cwd(), "setup", "settings.json"),
