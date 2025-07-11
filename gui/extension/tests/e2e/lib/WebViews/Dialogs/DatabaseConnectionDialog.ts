@@ -159,11 +159,22 @@ export class DatabaseConnectionDialog {
                                 const modes = Object.keys(dbConfig.advanced.mode);
 
                                 for (const mode of modes) {
-                                    const modeWebElement = await getModeItem(mode as keyof typeof dbConfig
-                                        .advanced.mode);
-                                    await driver.executeScript("arguments[0].scrollIntoView()", modeWebElement);
-                                    await DialogHelper.setCheckboxValue(modeWebElement,
-                                        dbConfig.advanced.mode[mode as keyof typeof dbConfig.advanced.mode]);
+                                    await driver.wait(async () => {
+                                        try {
+                                            const modeWebElement = await getModeItem(mode as keyof typeof dbConfig
+                                                .advanced.mode);
+                                            await driver.executeScript("arguments[0].scrollIntoView()", modeWebElement);
+                                            await DialogHelper.setCheckboxValue(modeWebElement,
+                                                dbConfig.advanced.mode[mode as keyof typeof dbConfig.advanced.mode]);
+
+                                            return true;
+                                        } catch (e) {
+                                            if (!(e instanceof error.StaleElementReferenceError)) {
+                                                throw e;
+                                            }
+                                        }
+                                    }, constants.wait1second * 5, `Could not get mode ${mode}`);
+
                                 }
                             }
                             if (dbConfig.advanced.timeout) {
