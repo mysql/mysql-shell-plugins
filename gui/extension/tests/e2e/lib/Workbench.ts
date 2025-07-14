@@ -783,8 +783,20 @@ export class Workbench {
             let feWasLoaded = false;
 
             const loadTry = async (): Promise<void> => {
-                await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait1second * 25,
-                    `${constants.dbDefaultEditor} tab was not opened`);
+
+                await driver.wait(async () => {
+
+                    const tabs = await Workbench.getOpenEditorTitles();
+
+                    if (await this.existsNotification(/the web certificate is not installed/)) {
+                        throw new Error("The Web Certificate is not installed");
+                    } else if ((tabs.length > 0 &&
+                        await ((await Workbench.getActiveTab()).getTitle()) === constants.dbDefaultEditor
+                    )) {
+                        return true;
+                    }
+                }, constants.wait1second * 15, "Extension was not loaded");
+
                 await Misc.switchToFrame();
                 await driver.wait(this.untilFEisLoaded(), constants.wait1second * 15);
                 E2ELogger.debug("<<<<FE was loaded successfully>>>>>");
@@ -792,18 +804,24 @@ export class Workbench {
 
             while (tryNumber <= feLoadTries) {
                 try {
+                    await Misc.switchBackToTopFrame();
                     await Workbench.openMySQLShellForVSCode();
+                    await Workbench.reloadVSCode();
                     await loadTry();
                     feWasLoaded = true;
                     break;
                 } catch (e) {
-                    tryNumber++;
-                    await Misc.switchBackToTopFrame();
-                    await Workbench.reloadVSCode();
+                    if (String(e).includes("The Web Certificate is not installed")) {
+                        throw new Error("The Web Certificate is not installed");
+                    } else if (e instanceof error.TimeoutError) {
+                        tryNumber++;
+                    } else {
+                        throw e;
+                    }
                 }
             }
 
-            if (feWasLoaded === false) {
+            if (!feWasLoaded) {
                 E2ELogger.debug("<<<<MYSQLSH Logs>>>>");
                 await Os.writeMySQLshLogs();
                 const logs = driver.manage().logs();

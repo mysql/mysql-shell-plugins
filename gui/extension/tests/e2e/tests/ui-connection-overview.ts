@@ -873,7 +873,7 @@ describe("DB Connection Overview", () => {
             await dbTreeSection.openContextMenuAndSelect("3group", constants.addSubfolder);
             await Workbench.setInputPath("4group");
             await dbTreeSection.expandTreeItem("3group");
-            expect(await dbTreeSection.treeItemExists("4group")).to.equals(true);
+            await driver.wait(dbTreeSection.untilTreeItemExists("4group"), constants.wait1second * 5);
 
             await (await connectionOverview.getBreadCrumbLinks())[0].click();
             await connectionOverview.joinGroup("1group");

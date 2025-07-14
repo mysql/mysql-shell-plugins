@@ -338,7 +338,7 @@ export class E2ECodeEditor {
      * @param ignoreKeywords True to ignore the keywords
      * @returns A promise resolving when the command is executed
      */
-    public execute = async (cmd: string, ignoreKeywords = false):
+    public execute = async (cmd: string, ignoreKeywords = true):
         Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'languageSwitch()'");
