@@ -450,6 +450,7 @@ export const loadFromDisk = "Load from Disk";
 export const restObjectFromJSONFile = "REST Object From JSON File...";
 export const restSchemaFromJSONFile = "Load REST Schema From JSON File...";
 export const restClientSDKFiles = "Dump REST Client SDK Files ...";
+export const restSQLScript = "Dump REST SERVICE SQL Script...";
 
 export const exportCreateServiceStatement = "Export CREATE REST SERVICE Statement...";
 export const exportCreateServiceStatementAll = "Export CREATE REST SERVICE Statement Including Database Objects";
@@ -484,6 +485,7 @@ export const restServiceCtxMenu = new Map([
     [restSchemaFromJSONFile, 0],
     [dumpToDisk, 4],
     [restClientSDKFiles, 0],
+    [restSQLScript, 1],
     [exportCreateServiceStatement, 1],
     [exportCreateServiceStatementAll, 2],
     [copyToClipboard, 5],
@@ -673,3 +675,8 @@ export const invalidXMLConnection = `
             <value type="string" key="serverVersion">9.1.0-commercial</value>
             <value type="string" key="sslCA"></value>`;
 
+export const exportSqlScriptIncludingAllEndPoints = "Export SQL Script Including All Endpoints";
+export const exportSqlScriptIncludingDBEndPoints = "Export SQL Script Including Database Endpoints Only";
+export const exportSqlScriptIncludingDBAndStaticEndPoints = "Export SQL Script Including Database and Static Endpoints Only";
+export const exportSqlScriptFile = "Export SQL Script File";
+export const exportCompressedSQLScriptFile = "Export Compressed SQL Script File";

@@ -26,7 +26,7 @@
 import { join } from "path";
 import * as fs from "fs/promises";
 import { expect } from "chai";
-import { ModalDialog } from "vscode-extension-tester";
+import { ModalDialog, InputBox } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/Misc";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
@@ -266,6 +266,89 @@ describe("MySQL REST Service", () => {
                 constants.wait1second * 5);
             const files = await fs.readdir(destDumpSdk);
             expect(files.length, `No exported files found at ${destDumpSdk}`).to.be.greaterThan(0);
+
+        });
+
+        it("Dump Rest Service SQL Script", async () => {
+
+            // Export SQL Script Including All Endpoints - File
+            let fileLocation = join(process.cwd(), `${service1.servicePath}-1.all.mrs.json`);
+            await fs.rm(fileLocation, { force: true });
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restSQLScript], constants.restServiceCtxMenu);
+            let input = await InputBox.create(constants.wait1second * 5);
+            await (await input.findQuickPick(constants.exportSqlScriptIncludingAllEndPoints)).select();
+            await (await input.findQuickPick(constants.exportSqlScriptFile)).select();
+
+            await Workbench.setInputPath(fileLocation);
+            await driver.wait(Workbench.untilNotificationExists(
+                "The REST Service SQL was exported"), constants.wait1second * 5);
+            await fs.access(fileLocation);
+
+            // Export SQL Script Including All Endpoints - Compressed File
+            fileLocation = join(process.cwd(), `${service1.servicePath}-1.all.mrs.zip`);
+            await fs.rm(fileLocation, { force: true });
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restSQLScript], constants.restServiceCtxMenu);
+            input = await InputBox.create(constants.wait1second * 5);
+            await (await input.findQuickPick(constants.exportSqlScriptIncludingAllEndPoints)).select();
+            await (await input.findQuickPick(constants.exportCompressedSQLScriptFile)).select();
+            await Workbench.setInputPath(fileLocation);
+            await driver.wait(Workbench.untilNotificationExists(
+                "The REST Service SQL was exported"), constants.wait1second * 5);
+            await fs.access(fileLocation);
+
+            // Export SQL Script Including Database Endpoints - File
+            fileLocation = join(process.cwd(), `${service1.servicePath}-1.db.mrs.json`);
+            await fs.rm(fileLocation, { force: true });
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restSQLScript], constants.restServiceCtxMenu);
+            input = await InputBox.create(constants.wait1second * 5);
+            await (await input.findQuickPick(constants.exportSqlScriptIncludingDBEndPoints)).select();
+            await (await input.findQuickPick(constants.exportSqlScriptFile)).select();
+            await Workbench.setInputPath(fileLocation);
+            await driver.wait(Workbench.untilNotificationExists(
+                "The REST Service SQL was exported"), constants.wait1second * 5);
+            await fs.access(fileLocation);
+
+            // Export SQL Script Including Database Endpoints - Compressed File
+            fileLocation = join(process.cwd(), `${service1.servicePath}-1.db.mrs.zip`);
+            await fs.rm(fileLocation, { force: true });
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restSQLScript], constants.restServiceCtxMenu);
+            input = await InputBox.create(constants.wait1second * 5);
+            await (await input.findQuickPick(constants.exportSqlScriptIncludingDBEndPoints)).select();
+            await (await input.findQuickPick(constants.exportCompressedSQLScriptFile)).select();
+            await Workbench.setInputPath(fileLocation);
+            await driver.wait(Workbench.untilNotificationExists(
+                "The REST Service SQL was exported"), constants.wait1second * 5);
+            await fs.access(fileLocation);
+
+            // Export SQL Script Including Database Static Endpoints Only - File
+            fileLocation = join(process.cwd(), `${service1.servicePath}-1.static.mrs.json`);
+            await fs.rm(fileLocation, { force: true });
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restSQLScript], constants.restServiceCtxMenu);
+            input = await InputBox.create(constants.wait1second * 5);
+            await (await input.findQuickPick(constants.exportSqlScriptIncludingDBAndStaticEndPoints)).select();
+            await (await input.findQuickPick(constants.exportSqlScriptFile)).select();
+            await Workbench.setInputPath(fileLocation);
+            await driver.wait(Workbench.untilNotificationExists(
+                "The REST Service SQL was exported"), constants.wait1second * 5);
+            await fs.access(fileLocation);
+
+            // Export SQL Script Including Database Static Endpoints Only - Compressed File
+            fileLocation = join(process.cwd(), `${service1.servicePath}-1.static.mrs.zip`);
+            await fs.rm(fileLocation, { force: true });
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restSQLScript], constants.restServiceCtxMenu);
+            input = await InputBox.create(constants.wait1second * 5);
+            await (await input.findQuickPick(constants.exportSqlScriptIncludingDBAndStaticEndPoints)).select();
+            await (await input.findQuickPick(constants.exportCompressedSQLScriptFile)).select();
+            await Workbench.setInputPath(fileLocation);
+            await driver.wait(Workbench.untilNotificationExists(
+                "The REST Service SQL was exported"), constants.wait1second * 5);
+            await fs.access(fileLocation);
 
         });
 

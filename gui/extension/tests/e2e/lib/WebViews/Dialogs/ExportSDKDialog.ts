@@ -76,4 +76,27 @@ export class ExportSDKDialog {
 
         await dialog.findElement(locator.mrsSdkDialog.ok).click();
     };
+
+    /**
+     * Gets a MRS SDK using the web view dialog
+     * @returns A promise resolving with the MRS data
+     */
+    public static get = async (): Promise<interfaces.IExportMrsSdk> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        const dialog = await driver.wait(until.elementLocated(locator.mrsSdkDialog.exists), constants.wait1second * 10,
+            "Export MRS SDK dialog was not found");
+
+        const data: interfaces.IExportMrsSdk = {
+            directory: await DialogHelper.getFieldValue(dialog, locator.mrsSdkDialog.directory),
+            url: await DialogHelper.getFieldValue(dialog, locator.mrsSdkDialog.serviceUrl),
+            apiLanguage: await (await dialog.findElement(locator.mrsSdkDialog.sdkLanguage)).getAttribute("value"),
+            appBaseClass: await (await dialog.findElement(locator.mrsSdkDialog.appBaseClass)).getAttribute("value"),
+            sdkFileHeader: await DialogHelper.getFieldValue(dialog, locator.mrsSdkDialog.sdkFileHeader),
+        };
+
+        return data;
+    };
 }
