@@ -1224,3 +1224,103 @@ def dump_service_create_statement(**kwargs):
         return f"File created in {file_path}."
 
     return True
+
+
+@plugin_function('mrs.dump.serviceProject', shell=True, cli=True, web=True)
+def dump_service_as_project(**kwargs):
+    """Dump a REST Service as a project. In this project, you can add the necessary
+    services and schemas.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        services (list): The list of services to include in the project.
+        schemas (list): The list of schemas to include in the project.
+        settings (dict): The details for the project.
+        destination (str): The destination where the project should be created.
+        overwrite (bool): Overwrite the file, if already exists.
+        zip (bool): The final directory is to be zipped.
+        session (object): The database session to use.
+
+
+    Allowed options for services:
+        name (str): The name of the service.
+        include_database_endpoints (str): If the database endpoints are to be included.
+        include_static_endpoints (str): If the static endpoints are to be included.
+        include_dynamic_endpoints (str): If the dynamic endpoints are to be included.
+
+    Allowed options for schemas:
+        name (str): The name of the schema.
+        file_path (str): The schema file path.
+
+    Allowed options for settings:
+        name (str): The name of the project.
+        icon_path (str): The path for the project icon.
+        description (str): A project description.
+        publisher (str): The publisher name.
+        version (str): The project version.
+
+    Returns:
+        True if the file was saved.
+    """
+    destination = kwargs.get("destination")
+    services = kwargs.get("services")
+    schemas = kwargs.get("schemas")
+    project_settings = kwargs.get("settings")
+    create_zip = kwargs.get("zip")
+    services = kwargs.get("services")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.services.store_project_validations(session,
+            destination=destination,
+            services=services,
+            schemas=schemas,
+            project_settings=project_settings,
+            create_zip=create_zip)
+
+        lib.services.store_project(session,
+            destination=destination,
+            services=services,
+            schemas=schemas,
+            project_settings=project_settings,
+            create_zip=create_zip)
+
+
+@plugin_function('mrs.load.serviceSqlScript', shell=True, cli=True, web=True)
+def load_service_sql_script(**kwargs):
+    """Loads a previously dumped REST service script.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        file_path (str): The path where to store the file.
+        new_request (str): The name for the new service.
+    """
+    file_path = kwargs.get("file_path")
+
+    if not os.path.isfile(file_path):
+        raise Exception("The specified file was not found.")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.services.load_service(session, file_path)
+
+
+@plugin_function('mrs.load.serviceProject', shell=True, cli=True, web=True)
+def load_service_project(**kwargs):
+    """Loads a previously dumped REST service project.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        file_path (str): The path where to store the file.
+    """
+    file_path = kwargs.get("file_path")
+
+    if not os.path.isfile(file_path) and not os.path.isdir(file_path):
+        raise Exception(f"The specified file or directory {file_path} was not found.")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.services.load_project(session, file_path)

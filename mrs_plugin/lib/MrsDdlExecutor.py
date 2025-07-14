@@ -40,6 +40,8 @@ class Timer(object):
 
 class MrsDdlExecutor(MrsDdlExecutorInterface):
 
+    service_request_path_override = None
+
     def __init__(
         self,
         session,
@@ -362,6 +364,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     def createRestService(self, mrs_object):
         timer = Timer()
+
+        # Check if we need to override the url_context_root
+        if MrsDdlExecutor.service_request_path_override:
+            mrs_object["url_context_root"] = (
+                MrsDdlExecutor.service_request_path_override
+            )
+
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace", False)
         if_not_exists = mrs_object.pop("if_not_exists", False)
@@ -469,6 +478,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         if_not_exists = mrs_object.pop("if_not_exists", False)
 
         schema_request_path = mrs_object.get("schema_request_path")
+
+        # Check if we need to override the url_context_root
+        if MrsDdlExecutor.service_request_path_override:
+            mrs_object["url_context_root"] = (
+                MrsDdlExecutor.service_request_path_override
+            )
+
         full_path = self.getFullSchemaPath(mrs_object=mrs_object)
 
         with lib.core.MrsDbTransaction(self.session):
@@ -593,6 +609,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         do_replace = mrs_object.pop("do_replace", False)
         if_not_exists = mrs_object.pop("if_not_exists", False)
 
+        # Check if we need to override the url_context_root
+        if MrsDdlExecutor.service_request_path_override:
+            mrs_object["url_context_root"] = (
+                MrsDdlExecutor.service_request_path_override
+            )
+
         full_path = self.getFullSchemaPath(
             mrs_object=mrs_object, request_path=mrs_object.get("request_path")
         )
@@ -706,6 +728,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         do_replace = mrs_object.pop("do_replace", False)
         if_not_exists = mrs_object.pop("if_not_exists", False)
 
+        # Check if we need to override the url_context_root
+        if MrsDdlExecutor.service_request_path_override:
+            mrs_object["url_context_root"] = (
+                MrsDdlExecutor.service_request_path_override
+            )
+
         full_path = self.getFullServicePath(
             mrs_object=mrs_object, request_path=mrs_object.get("request_path")
         )
@@ -790,6 +818,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         if_not_exists = mrs_object.pop("if_not_exists", False)
 
         full_path = mrs_object.get("request_path")
+
+        # Check if we need to override the url_context_root
+        if MrsDdlExecutor.service_request_path_override:
+            mrs_object["url_context_root"] = (
+                MrsDdlExecutor.service_request_path_override
+            )
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -3314,6 +3348,93 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "line": mrs_object.get("line"),
                     "type": "error",
                     "message": f"Failed to execute DUMP REST PROJECT `{project_name}`. {e}",
+                    "operation": self.current_operation,
+                }
+            )
+            raise
+
+
+    def loadRestService(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+        new_request_path = mrs_object.pop("request_path")
+        file_path = mrs_object["directory_file_path"]
+        try:
+            if new_request_path:
+                MrsDdlExecutor.service_request_path_override = new_request_path
+
+            if not os.path.isfile(file_path):
+                raise Exception("The specified file was not found.")
+
+            lib.services.load_service(self.session, file_path)
+
+            result = [
+                {
+                    "LOAD REST SERVICE ": f"Service '{new_request_path}' loaded from '{file_path}'"
+                }
+            ]
+
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "success",
+                    "operation": self.current_operation,
+                    # "id": lib.core.convert_id_to_string(service.get("id")),
+                    "result": result,
+                    "executionTime": timer.elapsed(),
+                }
+            )
+
+        except Exception as e:
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "error",
+                    "message": f"Failed to execute LOAD REST SERVICE from `{mrs_object["directory_file_path"]}`. {e}",
+                    "operation": self.current_operation,
+                }
+            )
+            raise
+        finally:
+            MrsDdlExecutor.service_request_path_override = None
+
+    def loadRestProject(self, mrs_object: dict):
+        timer = Timer()
+
+        self.current_operation: str = mrs_object.pop("current_operation")
+        path: str = mrs_object.get("directory_file_path")
+        # create_zip: bool = mrs_object.get("zip", False)
+
+        try:
+            lib.services.load_project(self.session, path)
+
+            result = [
+                {
+                    "LOAD REST PROJECT ": f"Project loaded from '{mrs_object["directory_file_path"]}'"
+                }
+            ]
+
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "success",
+                    "operation": self.current_operation,
+                    # "id": project_name,
+                    "result": result,
+                    "executionTime": timer.elapsed(),
+                }
+            )
+
+        except Exception as e:
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "error",
+                    "message": f"Failed to execute LOAD REST PROJECT from `{mrs_object["directory_file_path"]}`. {e}",
                     "operation": self.current_operation,
                 }
             )

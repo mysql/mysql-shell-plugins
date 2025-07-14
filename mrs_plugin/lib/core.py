@@ -319,6 +319,7 @@ def get_mrs_enabled(session):
     except:
         return False
 
+
 def prompt_for_list_item(
     item_list,
     prompt_caption,
@@ -696,6 +697,7 @@ def convert_json(value) -> dict:
         value_str = value_str.replace(": b'", ': "')
     return json.loads(value_str)
 
+
 def cut_last_comma(fields):
     # Cut the last , away if present
     if fields.endswith(",\n"):
@@ -704,7 +706,8 @@ def cut_last_comma(fields):
     # Otherwise, just cut the last \n
     return fields[:-1]
 
-def format_json_entry(key: str, value: dict, advance: int=1):
+
+def format_json_entry(key: str, value: dict, advance: int = 1):
     if value is None or value == "":
         return ""
 
@@ -716,8 +719,9 @@ def format_json_entry(key: str, value: dict, advance: int=1):
 
     return f"    {key} {"\n".join(result).lstrip()}"
     # for ln in js.split("\n"):
-        # js_indented += f"{advance_space}{ln}\n"
+    # js_indented += f"{advance_space}{ln}\n"
     # return f"    {key} {js_indented[4:-1]}"
+
 
 def id_to_binary(id: str, context: str, allowNone=False):
     if allowNone and id is None:
@@ -729,7 +733,9 @@ def id_to_binary(id: str, context: str, allowNone=False):
             try:
                 result = bytes.fromhex(id[2:])
             except Exception:
-                raise RuntimeError(f"Invalid hexadecimal string '{id}' for '{context}'.")
+                raise RuntimeError(
+                    f"Invalid hexadecimal string '{id}' for '{context}'."
+                )
         elif id.endswith("=="):
             try:
                 result = base64.b64decode(id, validate=True)
@@ -737,7 +743,6 @@ def id_to_binary(id: str, context: str, allowNone=False):
                 raise RuntimeError(f"Invalid base64 string '{id}' for '{context}'.")
         else:
             raise RuntimeError(f"Invalid id format '{id}' for '{context}'.")
-
 
         if len(result) != 16:
             raise RuntimeError(f"The '{context}' has an invalid size.")
@@ -747,7 +752,7 @@ def id_to_binary(id: str, context: str, allowNone=False):
 
 
 def convert_id_to_base64_string(id) -> str:
-    return base64.b64encode(id).decode('ascii')
+    return base64.b64encode(id).decode("ascii")
 
 
 def convert_ids_to_binary(id_options, kwargs):
@@ -755,6 +760,7 @@ def convert_ids_to_binary(id_options, kwargs):
         id = kwargs.get(id_option)
         if id is not None:
             kwargs[id_option] = id_to_binary(id, id_option)
+
 
 def try_convert_ids_to_binary(id_options, kwargs):
     """
@@ -773,9 +779,13 @@ def try_convert_ids_to_binary(id_options, kwargs):
             try:
                 kwargs[id_option] = id_to_binary(id, id_option)
             except RuntimeError as e:
-                if str(e) in [f"Invalid id type for '{id_option}'.", f"Invalid id format '{kwargs[id_option]}' for '{id_option}'."]:
+                if str(e) in [
+                    f"Invalid id type for '{id_option}'.",
+                    f"Invalid id format '{kwargs[id_option]}' for '{id_option}'.",
+                ]:
                     continue
                 raise
+
 
 def convert_id_to_string(id) -> str:
     return f"0x{id.hex()}"
@@ -1102,7 +1112,9 @@ def uppercase_first_char(s):
 
 
 def convert_path_to_camel_case(
-    path: str, allowed_special_characters: Optional[set[str]] = None, lower: bool = False
+    path: str,
+    allowed_special_characters: Optional[set[str]] = None,
+    lower: bool = False,
 ):
     if not allowed_special_characters:
         allowed_special_characters = set()
@@ -1133,6 +1145,7 @@ def convert_snake_to_camel_case(snake_str):
 def convert_to_snake_case(str):
     return re.sub(r"(?<!^)(?=[A-Z])", "_", str).lower()
 
+
 def has_any(str, group):
     if str and group:
         return any(elem in group for elem in str)
@@ -1140,10 +1153,11 @@ def has_any(str, group):
 
 
 def validate_path_for_filesystem(path):
-    if path and has_any(path, "<>:\"|?*"):
+    if path and has_any(path, '<>:"|?*'):
         raise Exception(f"The supplied path '{path}' contains invalid characters.")
 
-def make_string_valid_for_filesystem(str, invalid_characters = "<>:\"/\\|?*"):
+
+def make_string_valid_for_filesystem(str, invalid_characters='<>:"/\\|?*'):
     for invalid_character in invalid_characters:
         str = str.replace(invalid_character, "")
     return str
@@ -1186,8 +1200,10 @@ def quote_ident(s):
 def unquote_ident(s):
     return mysqlsh.mysql.unquote_identifier(s)
 
+
 def squote_str(s):
     return "'" + escape_str(s) + "'"
+
 
 path_re = re.compile("^(/[a-zA-Z_0-9]*?)+?$")
 quote_text = squote_str
@@ -1195,7 +1211,9 @@ quote_user = quote_ident
 quote_auth_app = quote_ident
 quote_role = quote_ident
 # full_service_path
-quote_fsp = lambda s: s # TODO review
+quote_fsp = lambda s: s  # TODO review
+
+
 # request_path
 def quote_rpath(s):
     if not s or "*" in s or "?" in s or s[0] != "/":
@@ -1203,6 +1221,7 @@ def quote_rpath(s):
     if path_re.match(s):
         return s
     return quote_ident(s)
+
 
 def escape_wildcards(text: str) -> str:
     "escape * and ? wildcards with \\"
@@ -1216,6 +1235,7 @@ def unescape_wildcards(text: str) -> str:
 def contains_wildcards(text: str) -> str:
     stripped = text.replace("\\\\", "").replace("\\?", "").replace("\\*", "")
     return "?" in stripped or "*" in stripped
+
 
 def get_enabled_status_caption(enabledState):
     if enabledState == 2:
@@ -1302,8 +1322,7 @@ def is_text(data: bytes) -> bool:
     if isinstance(data, str):
         data = data.encode()
 
-    valid_text__chars = "".join(
-        list(map(chr, range(32, 127))) + list("\n\r\t\b"))
+    valid_text__chars = "".join(list(map(chr, range(32, 127))) + list("\n\r\t\b"))
 
     data_without_text = data.translate(None, valid_text__chars.encode())
 
@@ -1330,8 +1349,9 @@ def is_number(s):
     return True
 
 
-class _NotSet: # used to differentiate None (NULL) vs argument not set
+class _NotSet:  # used to differentiate None (NULL) vs argument not set
     def __bool__(self):
         return False
+
 
 NotSet = _NotSet()

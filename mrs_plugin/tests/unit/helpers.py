@@ -107,7 +107,7 @@ def get_default_user_init(
     email="tempuser@domain.com",
     auth_string="MySQLR0cks!",
     options=None,
-    app_options=None
+    app_options=None,
 ):
     return {
         "auth_app_id": auth_app_id,
@@ -161,7 +161,10 @@ def get_default_auth_app_init(**kwargs):
 
     return {
         "service_id": kwargs.get("service_id"),
-        "auth_vendor_id": kwargs.get("auth_vendor_id") or lib.core.id_to_binary("0x31000000000000000000000000000000", "auth:vendor_id"),
+        "auth_vendor_id": kwargs.get("auth_vendor_id")
+        or lib.core.id_to_binary(
+            "0x31000000000000000000000000000000", "auth:vendor_id"
+        ),
         "name": name,
         "description": kwargs.get("description"),
         "url": kwargs.get("url", "/test_auth"),
@@ -191,6 +194,10 @@ class SchemaCT(object):
     def __exit__(self, type, value, traceback):
         delete_schema(session=self._session, schema_id=self._schema_id)
 
+    @property
+    def id(self):
+        return self._schema_id
+
 
 class ServiceCT(object):
     def __init__(self, session, url_context_root, **kwargs):
@@ -209,7 +216,13 @@ class ServiceCT(object):
         return self._service_id
 
     def __exit__(self, type, value, traceback):
-        assert delete_service(session=self._session, service_id=self._service_id) == True
+        assert (
+            delete_service(session=self._session, service_id=self._service_id) == True
+        )
+
+    @property
+    def id(self):
+        return self._service_id
 
 
 class AuthAppCT:
@@ -246,9 +259,7 @@ class AuthAppCT:
         return self._auth_app_id
 
     def __exit__(self, type, value, traceback):
-        lib.auth_apps.delete_auth_app(
-            self._session, app_id=self._auth_app_id
-        )
+        lib.auth_apps.delete_auth_app(self._session, app_id=self._auth_app_id)
 
 
 class DbObjectCT:
@@ -531,12 +542,12 @@ def create_test_db(session, schema_name):
                         FOREIGN KEY (`contact_id`) REFERENCES `{schema_name}`.`Contacts`(`id`));"""
     )
     session.run_sql(
-        f"""CREATE FUNCTION `format_name` (first_name VARCHAR(45), last_name VARCHAR(45))
+        """CREATE FUNCTION `format_name` (first_name VARCHAR(45), last_name VARCHAR(45))
                         RETURNS VARCHAR(91) DETERMINISTIC
                         RETURN CONCAT(first_name, ' ', last_name);"""
     )
     session.run_sql(
-        f"""CREATE OR REPLACE SQL SECURITY INVOKER VIEW `ContactNotes` AS
+        """CREATE OR REPLACE SQL SECURITY INVOKER VIEW `ContactNotes` AS
                         SELECT `format_name`(t1.`f_name`, t1.`l_name`), t1.`number`, t2.`title`, t2.`content` FROM `Contacts` t1
                         JOIN `Notes` t2 ON t1.`id` = t2.`contact_id`;"""
     )
@@ -614,7 +625,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
 
     entries = (
         lib.core.MrsDbExec(
-            f"""
+            """
         SELECT *
         FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES
         WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'
@@ -624,9 +635,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         .items
     )
 
-    service = lib.services.get_service(
-        session, url_context_root=service_context_root
-    )
+    service = lib.services.get_service(session, url_context_root=service_context_root)
 
     if not service:
         url_host = (
@@ -641,7 +650,6 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
             "url_host_id": None,
             "enabled": 1,
             "comments": "Test service",
-            "options": None,
             "auth_path": "/authentication",
             "auth_completed_url": None,
             "auth_completed_url_validation": None,
@@ -663,7 +671,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "url_host_name": "",
         "url_context_root": service_context_root,
         "comments": "Test service",
-        "options": None,
+        "options": lib.services.DEFAULT_OPTIONS,
         "metadata": None,
         "host_ctx": f"{service_context_root}",
         "url_host_id": service["url_host_id"],
@@ -968,7 +976,11 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
             session, None, service["id"], "DBA", "Database administrator."
         )
         role_id = lib.roles.add_role(
-            session, role_id, service["id"], "Maintenance Admin", "Maintenance administrator."
+            session,
+            role_id,
+            service["id"],
+            "Maintenance Admin",
+            "Maintenance administrator.",
         )
         role_id = lib.roles.add_role(
             session, role_id, service["id"], "Process Admin", "Process administrator."
@@ -1013,12 +1025,18 @@ def get_db_object_privileges(session, schema_name, db_object_name):
     # constraints on every platform, regardless of the value of the `lower_case_table_names` system variable.
     # One way to do that is by using case-insensitive pattern matching with REGEXP_LIKE (
     # https://dev.mysql.com/doc/refman/8.4/en/pattern-matching.html).
-    grants2 = lib.core.MrsDbExec(f"""
+    grants2 = (
+        lib.core.MrsDbExec(
+            """
         SELECT PROC_PRIV
         FROM mysql.procs_priv
         WHERE REGEXP_LIKE(DB, ?, 'i')
             AND REGEXP_LIKE(ROUTINE_NAME, ?, 'i')
-        """).exec(session, [schema_name, db_object_name]).items
+        """
+        )
+        .exec(session, [schema_name, db_object_name])
+        .items
+    )
 
     if grants2:
         grants2 = [g.upper() for g in grants2[0]["PROC_PRIV"]]
@@ -1029,7 +1047,7 @@ def get_db_object_privileges(session, schema_name, db_object_name):
     return grants
 
 
-def get_connection_data(instance:int=0):
+def get_connection_data(instance: int = 0):
     if instance == 0:
         return {
             "user": os.environ.get("MYSQL_USER", "root"),
@@ -1041,13 +1059,13 @@ def get_connection_data(instance:int=0):
         return {
             "user": os.environ.get("MYSQL_USER", "root"),
             "host": os.environ.get("MYSQL_HOST", "localhost"),
-            "port": os.environ.get(f"MYSQL_PORT{instance}", str(3388+instance)),
+            "port": os.environ.get(f"MYSQL_PORT{instance}", str(3388 + instance)),
             "password": os.environ.get("MYSQL_PASSWORD", ""),
         }
 
 
-def create_shell_session() -> mysqlsh.globals.session:
-    connection_data = get_connection_data()
+def create_shell_session(instance=0) -> mysqlsh.globals.session:
+    connection_data = get_connection_data(instance)
     shell = mysqlsh.globals.shell
 
     return shell.connect(

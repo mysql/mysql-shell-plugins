@@ -28,6 +28,7 @@ from ...lib.services import *
 from ...lib.content_sets import *
 from ...lib.schemas import *
 
+
 def test_get_current_service(phone_book):
     set_current_objects()
     current_service = None
@@ -36,9 +37,11 @@ def test_get_current_service(phone_book):
     assert str(exc_info.value) == "A valid session is required."
     assert current_service is None
 
-    set_current_objects(service_id=phone_book["service_id"],
+    set_current_objects(
+        service_id=phone_book["service_id"],
         schema_id=phone_book["schema_id"],
-        content_set_id=phone_book["url_host_id"])
+        content_set_id=phone_book["url_host_id"],
+    )
     with MrsDbSession(session=phone_book["session"]) as session:
         current_service = get_current_service(session)
     assert current_service is not None
@@ -54,7 +57,7 @@ def test_get_current_service(phone_book):
         "url_context_root": "/test",
         "url_host_id": phone_book["url_host_id"],
         "url_host_name": "",
-        "options": None,
+        "options": DEFAULT_OPTIONS,
         "metadata": None,
         "comments": "Test service",
         "host_ctx": "/test",
@@ -67,10 +70,12 @@ def test_get_current_service(phone_book):
         "auth_apps": ["MRS Auth App"],
     }
 
+
 def test_get_current_content_set():
     set_current_objects()
     content = get_current_content_set(None)
     assert content is None
+
 
 def test_get_current_schema(phone_book):
     with MrsDbSession(session=phone_book["session"]) as session:
@@ -78,15 +83,18 @@ def test_get_current_schema(phone_book):
         schema = get_current_schema(session=session)
         assert schema is None
 
+
 def test_get_current_schema(phone_book):
     set_current_objects()
 
     schema = get_current_schema(None)
     assert schema is None
 
-    set_current_objects(service_id=phone_book["service_id"],
+    set_current_objects(
+        service_id=phone_book["service_id"],
         schema_id=phone_book["schema_id"],
-        content_set_id=phone_book["content_set_id"])
+        content_set_id=phone_book["content_set_id"],
+    )
     schema = get_current_schema(phone_book["session"])
     assert schema is not None
     assert schema == {
@@ -106,10 +114,12 @@ def test_get_current_schema(phone_book):
         "internal": 0,
     }
 
+
 def test_get_interactive_default():
     interactive_default = get_interactive_default()
     assert interactive_default is not None
     assert isinstance(interactive_default, bool)
+
 
 def test_get_current_session():
     current_session = get_current_session()
@@ -119,9 +129,11 @@ def test_get_current_session():
 def test_get_current_config(phone_book):
     config = get_current_config()
     assert config is not None
-    assert config == {"current_service_id": phone_book["service_id"],
-                      "current_schema_id": phone_book["schema_id"],
-                      "current_content_set_id": phone_book["content_set_id"]}
+    assert config == {
+        "current_service_id": phone_book["service_id"],
+        "current_schema_id": phone_book["schema_id"],
+        "current_content_set_id": phone_book["content_set_id"],
+    }
 
 
 def test_validate_service_path(phone_book):
@@ -145,7 +157,7 @@ def test_validate_service_path(phone_book):
             "url_host_name": "",
             "url_context_root": "/test",
             "url_host_id": phone_book["url_host_id"],
-            "options": None,
+            "options": DEFAULT_OPTIONS,
             "metadata": None,
             "comments": "Test service",
             "host_ctx": "/test",
@@ -179,11 +191,15 @@ def test_validate_service_path(phone_book):
         assert content_set is None
 
         with pytest.raises(ValueError) as exc_info:
-            service, schema, content_set = validate_service_path(session, "/test/schema")
+            service, schema, content_set = validate_service_path(
+                session, "/test/schema"
+            )
         assert str(exc_info.value) == "The given schema or content set was not found."
 
         with pytest.raises(ValueError) as exc_info:
-            service, schema, content_set = validate_service_path(session, "127.0.0.1/test")
+            service, schema, content_set = validate_service_path(
+                session, "127.0.0.1/test"
+            )
         assert str(exc_info.value) == "The given MRS service was not found."
 
 
@@ -192,7 +208,9 @@ def test_id_to_binary():
     ids = ["", "1234", "/myService"]
 
     for id in ids:
-        with pytest.raises(RuntimeError, match=f"Invalid id format '{id}' for '{context}'."):
+        with pytest.raises(
+            RuntimeError, match=f"Invalid id format '{id}' for '{context}'."
+        ):
             core.id_to_binary(id, context, False)
 
     id = "0x1234"
@@ -221,5 +239,7 @@ def test_convert_path_to_camel_case():
     camel_case_name = convert_path_to_camel_case(path="foo(bar)")
     assert camel_case_name == "foobar"
 
-    camel_case_name = convert_path_to_camel_case(path="foo(bar)", allowed_special_characters={"(", ")"})
+    camel_case_name = convert_path_to_camel_case(
+        path="foo(bar)", allowed_special_characters={"(", ")"}
+    )
     assert camel_case_name == "foo(bar)"

@@ -21,20 +21,30 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
 import tempfile
 import os
 import json
 import zipfile
+import filecmp
+import datetime
+import difflib
+import pytest
 
 from mrs_plugin import lib
-from mrs_plugin.tests.unit.helpers import ServiceCT, TableContents
+from mrs_plugin.tests.unit.helpers import (
+    ServiceCT,
+    SchemaCT,
+    DbObjectCT,
+    TableContents,
+    get_default_db_object_init,
+    create_test_db,
+)
 from lib.core import MrsDbSession
 
 
 def test_get_service(phone_book, table_contents):
     with MrsDbSession(session=phone_book["session"]) as session:
-        service_table = table_contents("service")
+        service_table: TableContents = table_contents("service")
         service1 = lib.services.get_service(session=session, url_context_root="/test")
 
         assert service1 is not None
@@ -52,22 +62,23 @@ def test_get_service(phone_book, table_contents):
             "auth_completed_url": None,
             "auth_completed_url_validation": None,
             "auth_path": "/authentication",
-            "options": None,
+            "options": lib.services.DEFAULT_OPTIONS,
             "metadata": None,
             "is_current": 1,
-            "options": None,
             "in_development": None,
             "full_service_path": "/test",
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
-            "auth_apps": ["MRS Auth App"]
+            "auth_apps": ["MRS Auth App"],
         }
 
         with ServiceCT(session, "/service2") as service_id:
             assert service_table.count == service_table.snapshot.count + 1
 
-            service2 = lib.services.get_service(session=session, url_context_root="/service2")
+            service2 = lib.services.get_service(
+                session=session, url_context_root="/service2"
+            )
 
             assert service2 is not None
             assert service2 == {
@@ -84,20 +95,7 @@ def test_get_service(phone_book, table_contents):
                 "auth_completed_url": None,
                 "auth_completed_url_validation": None,
                 "auth_path": "/authentication",
-                "options": {
-                    "headers": {
-                        "Access-Control-Allow-Credentials": "true",
-                        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
-                        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                    },
-                    "http": { "allowedOrigin": "auto" },
-                    "logging": {
-                        "exceptions": True,
-                        "request": { "body": True, "headers": True },
-                        "response": { "body": True, "headers": True },
-                    },
-                    "returnInternalErrorDetails": True,
-                },
+                "options": lib.services.DEFAULT_OPTIONS,
                 "metadata": None,
                 "in_development": None,
                 "is_current": 0,
@@ -120,20 +118,7 @@ def test_get_service(phone_book, table_contents):
                 "auth_completed_url": None,
                 "auth_completed_url_validation": None,
                 "auth_path": "/authentication",
-                "options": {
-                    "headers": {
-                        "Access-Control-Allow-Credentials": "true",
-                        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
-                        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                    },
-                    "http": { "allowedOrigin": "auto" },
-                    "logging": {
-                        "exceptions": True,
-                        "request": { "body": True, "headers": True },
-                        "response": { "body": True, "headers": True },
-                    },
-                    "returnInternalErrorDetails": True,
-                },
+                "options": lib.services.DEFAULT_OPTIONS,
                 "metadata": None,
                 "in_development": None,
                 "custom_metadata_schema": None,
@@ -147,25 +132,36 @@ def test_get_service(phone_book, table_contents):
             assert str(exc_info.value) == "The url_context_root has to start with '/'."
 
         # Test getting the default service
-        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=False)
+        result = lib.services.get_service(
+            session=session, url_context_root="/service2", get_default=False
+        )
         assert result is None
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=True)
+        result = lib.services.get_service(
+            session=session, url_context_root="/service2", get_default=True
+        )
         assert result is not None
 
         with ServiceCT(session, "/service2") as service_id:
             lib.services.set_current_service_id(session, service_id)
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=False)
+        result = lib.services.get_service(
+            session=session, url_context_root="/service2", get_default=False
+        )
         assert result is None
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=True)
+        result = lib.services.get_service(
+            session=session, url_context_root="/service2", get_default=True
+        )
         assert result is None
 
         lib.services.set_current_service_id(session, phone_book["service_id"])
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=True)
+        result = lib.services.get_service(
+            session=session, url_context_root="/service2", get_default=True
+        )
         assert result is not None
+
 
 def test_get_services(phone_book, table_contents):
     with MrsDbSession(session=phone_book["session"]) as session:
@@ -200,39 +196,51 @@ def test_change_service(phone_book, table_contents):
 
     with MrsDbSession(session=phone_book["session"]) as session:
         with pytest.raises(Exception) as exc_info:
-                lib.services.update_services(session=session, service_ids=[1000], value={"enabled": True})
+            lib.services.update_services(
+                session=session, service_ids=[1000], value={"enabled": True}
+            )
         assert str(exc_info.value) == "'int' object has no attribute 'hex'"
 
         with ServiceCT(session, "/service2") as service_id:
-            value = {
-                "comments": "This is the updated comment."
-            }
-            lib.services.update_services(session=session, service_ids=[service_id], value=value)
-
+            value = {"comments": "This is the updated comment."}
+            lib.services.update_services(
+                session=session, service_ids=[service_id], value=value
+            )
 
     assert service_table.same_as_snapshot
     assert auth_app_table.same_as_snapshot
 
+
 def test_service_as_project(phone_book, table_contents):
     session = phone_book["session"]
+
+    create_test_db(session, "MyTestDb1")
+    create_test_db(session, "MyTestDb2")
+
     services = [
         {
-            "name": "/test",
+            "name": "/myService1",
             "include_database_endpoints": False,
             "include_static_endpoints": False,
             "include_dynamic_endpoints": False,
-        }
+        },
+        {
+            "name": "/myService2",
+            "include_database_endpoints": False,
+            "include_static_endpoints": False,
+            "include_dynamic_endpoints": False,
+        },
     ]
 
     schemas = [
         {
-            "name": "PhoneBook",
+            "name": "MyTestDb1",
             "file_path": None,
         },
         {
-            "name": "MobilePhoneBook",
+            "name": "MyTestDb2",
             "file_path": None,
-        }
+        },
     ]
 
     project_settings = {
@@ -240,21 +248,72 @@ def test_service_as_project(phone_book, table_contents):
         "icon_path": None,
         "description": "This is a test project",
         "publisher": "Oracle",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
 
+    service1 = ServiceCT(session, "/myService1")
+    schema1 = SchemaCT(session, service1.id, "MyTestDb1", "/MyTestDb1")
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(session, schema1.id, "Contacts", "/Contacts"),
+    )
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(session, schema1.id, "Addresses", "/Addresses"),
+    )
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(
+            session,
+            schema1.id,
+            "GetAllContacts",
+            "/GetAllContacts",
+            db_object_type="PROCEDURE",
+        ),
+    )
+
+    service2 = ServiceCT(session, "/myService2")
+    schema2 = SchemaCT(session, service2.id, "MyTestDb2", "/MyTestDb2")
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(session, schema2.id, "Contacts", "/Contacts"),
+    )
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(session, schema2.id, "Addresses", "/Addresses"),
+    )
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(
+            session,
+            schema2.id,
+            "GetAllContacts",
+            "/GetAllContacts",
+            db_object_type="PROCEDURE",
+        ),
+    )
+    DbObjectCT(
+        session,
+        **get_default_db_object_init(
+            session, schema2.id, "ContactBasicInfo", "/ContactBasicInfo"
+        ),
+    )
+
     # Test storing the project into a directory
-    with tempfile.TemporaryDirectory() as directory:
-        project_settings["icon_path"] = os.path.join(directory, "icon1.svg")
-        project_file_path = os.path.join(directory, "mrs.package.json")
-        test_service_path = os.path.join(directory, "test.service.mrs.sql")
-        phone_book_schema_dir = os.path.join(directory, "PhoneBook")
-        mobile_phone_book_schema_dir = os.path.join(directory, "MobilePhoneBook")
+    with tempfile.TemporaryDirectory(delete=False) as directory_1:
+        project_settings["icon_path"] = os.path.join(directory_1, "icon1.svg")
+        project_file_path = os.path.join(directory_1, "mrs.package.json")
+        service1_service_path = os.path.join(directory_1, "myService1.service.mrs.sql")
+        service2_service_path = os.path.join(directory_1, "myService2.service.mrs.sql")
+        test_schema1_dir = os.path.join(directory_1, "MyTestDb1")
+        test_schema2_dir = os.path.join(directory_1, "MyTestDb2")
 
         with open(project_settings["icon_path"], "w") as iconFile:
             iconFile.write(" ")
 
-        lib.services.store_project(session, directory, services, schemas, project_settings, False)
+        lib.services.store_project(
+            session, directory_1, services, schemas, project_settings, False
+        )
 
         assert os.path.isfile(project_file_path)
         with open(project_file_path, "r") as f:
@@ -263,42 +322,59 @@ def test_service_as_project(phone_book, table_contents):
             assert data == {
                 "name": project_settings["name"],
                 "version": project_settings["version"],
-                "restServices": [{"fileName": "test.service.mrs.sql", "serviceName": "/test"}],
+                "restServices": [
+                    {
+                        "fileName": "myService1.service.mrs.sql",
+                        "serviceName": "/myService1",
+                    },
+                    {
+                        "fileName": "myService2.service.mrs.sql",
+                        "serviceName": "/myService2",
+                    },
+                ],
                 "schemas": [
-                    {"path": "PhoneBook", "schemaName": "PhoneBook", "format": "dump"},
-                    {"path": "MobilePhoneBook", "schemaName": "MobilePhoneBook", "format": "dump"},
+                    {
+                        "path": "MyTestDb1",
+                        "schemaName": "MyTestDb1",
+                        "format": "dump",
+                    },
+                    {
+                        "path": "MyTestDb2",
+                        "schemaName": "MyTestDb2",
+                        "format": "dump",
+                    },
                 ],
                 "creationDate": data["creationDate"],
                 "publisher": project_settings["publisher"],
                 "description": project_settings["description"],
-                "icon": "appIcon.svg"
+                "icon": "appIcon.svg",
             }
 
-        assert os.path.isfile(test_service_path)
-        assert os.path.isdir(phone_book_schema_dir)
-        assert os.path.isdir(mobile_phone_book_schema_dir)
+        assert os.path.isfile(service1_service_path)
+        assert os.path.isfile(service2_service_path)
+        assert os.path.isdir(test_schema1_dir)
+        assert os.path.isdir(test_schema2_dir)
 
     # Test storing the project into a zip file
-    with tempfile.TemporaryDirectory(delete=False) as directory:
-        project_settings["icon_path"] = os.path.join(directory, "icon1.svg")
-        project_file_path = os.path.join(directory, "mrs.package.json")
-        test_service_path = os.path.join(directory, "test.service.mrs.sql")
-        phone_book_schema_dir = os.path.join(directory, "PhoneBook")
-        mobile_phone_book_schema_dir = os.path.join(directory, "MobilePhoneBook")
+    with tempfile.TemporaryDirectory(delete=False) as directory_zip_1:
+        project_settings["icon_path"] = os.path.join(directory_zip_1, "icon1.svg")
+        project_file_path = os.path.join(directory_zip_1, "mrs.package.json")
+        service1_service_path = os.path.join(
+            directory_zip_1, "myService1.service.mrs.sql"
+        )
+        service2_service_path = os.path.join(
+            directory_zip_1, "myService2.service.mrs.sql"
+        )
+        test_schema1_dir = os.path.join(directory_zip_1, "MyTestDb1")
+        test_schema2_dir = os.path.join(directory_zip_1, "MyTestDb2")
 
         with open(project_settings["icon_path"], "w") as iconFile:
             iconFile.write(" ")
 
-        # project_settings = {
-        #     "name": "testProject",
-        #     "icon_path": icon_path,
-        #     "description": "This is a test project",
-        #     "publisher": "MRS Team",
-        #     "version": "1.0.0"
-        # }
-
-        zip_path = os.path.join(directory, "project.mrs.zip")
-        lib.services.store_project(session, zip_path, services, schemas, project_settings, True)
+        zip_path = os.path.join(directory_zip_1, "project.mrs.zip")
+        lib.services.store_project(
+            session, zip_path, services, schemas, project_settings, True
+        )
 
         assert os.path.isfile(zip_path)
 
@@ -309,24 +385,94 @@ def test_service_as_project(phone_book, table_contents):
             with myzip.open("mrs.package.json") as f:
                 data = json.load(f)
 
-                # project_settings["iconPath"] = "appIcon.svg"
-                # project_settings["creationDate"] = data["creationDate"]
-                # project_settings["services"] = [{"fileName": "test.service.mrs.sql", "serviceName": "/test"}]
-                # project_settings["schemas"] = [
-                #     {"fileName": "PhoneBook", "schemaName": "PhoneBook"},
-                #     {"fileName": "MobilePhoneBook", "schemaName": "MobilePhoneBook"},
-                # ]
-
                 assert data == {
                     "name": project_settings["name"],
                     "version": project_settings["version"],
-                    "restServices": [{"fileName": "test.service.mrs.sql", "serviceName": "/test"}],
+                    "restServices": [
+                        {
+                            "fileName": "myService1.service.mrs.sql",
+                            "serviceName": "/myService1",
+                        },
+                        {
+                            "fileName": "myService2.service.mrs.sql",
+                            "serviceName": "/myService2",
+                        },
+                    ],
                     "schemas": [
-                        {"path": "PhoneBook", "schemaName": "PhoneBook", "format": "dump"},
-                        {"path": "MobilePhoneBook", "schemaName": "MobilePhoneBook", "format": "dump"},
+                        {
+                            "path": "MyTestDb1",
+                            "schemaName": "MyTestDb1",
+                            "format": "dump",
+                        },
+                        {
+                            "path": "MyTestDb2",
+                            "schemaName": "MyTestDb2",
+                            "format": "dump",
+                        },
                     ],
                     "creationDate": data["creationDate"],
                     "publisher": project_settings["publisher"],
                     "description": project_settings["description"],
-                    "icon": "appIcon.svg"
+                    "icon": "appIcon.svg",
                 }
+
+    for service_data in services:
+        service = lib.services.get_service(
+            session, url_context_root=service_data["name"]
+        )
+
+        lib.services.delete_service(session, service["id"])
+
+    for schema_data in schemas:
+        session.run_sql(f"DROP SCHEMA {schema_data["name"]}")
+
+    lib.services.load_project(session, directory_1)
+
+    with tempfile.TemporaryDirectory(delete=False) as directory_2:
+        lib.services.store_project(
+            session, directory_2, services, schemas, project_settings, False
+        )
+
+    compare = filecmp.dircmp(directory_1, directory_2)
+
+    for file in compare.diff_files:
+        with open(os.path.join(directory_1, file)) as f1:
+            with open(os.path.join(directory_2, file)) as f2:
+                if file == "mrs.package.json":
+                    json1 = json.load(f1)
+                    json2 = json.load(f2)
+
+                    assert "creationDate" in json1
+                    assert "creationDate" in json2
+
+                    assert datetime.datetime.strptime(
+                        json1.get("creationDate"), "%Y-%m-%d %H:%M:%S"
+                    )
+                    assert datetime.datetime.strptime(
+                        json2.get("creationDate"), "%Y-%m-%d %H:%M:%S"
+                    )
+
+                    # make these dates the same, so we can compare the json objects
+                    json1["creationDate"] = json2["creationDate"]
+
+                    assert json1 == json2
+
+                    compare.diff_files.remove("mrs.package.json")
+                else:
+                    file1_content = f1.read()
+                    file2_content = f2.read()
+
+                    for line in difflib.unified_diff(
+                        file1_content,
+                        file2_content,
+                        os.path.join(directory_1, file),
+                        os.path.join(directory_2, file),
+                        lineterm="",
+                    ):
+                        print(line)
+
+    assert not compare.diff_files
+
+    for service_name in ["myService1", "myService2"]:
+        service = lib.services.get_service(session, url_context_root=f"/{service_name}")
+        lib.services.delete_service(session, service["id"])

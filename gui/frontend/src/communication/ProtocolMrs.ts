@@ -88,6 +88,12 @@ export enum ShellAPIMrs {
     MrsGetServiceCreateStatement = "mrs.get.service_create_statement",
     /** Dump a REST Service into a REST SQL file. The database and the dynamic endpoints will be included. */
     MrsDumpServiceSqlScript = "mrs.dump.service_sql_script",
+    /** Dump a REST Service as a project. In this project, you can add the necessary services and schemas. */
+    MrsDumpServiceProject = "mrs.dump.service_project",
+    /** Loads a previously dumped REST service script. */
+    MrsLoadServiceSqlScript = "mrs.load.service_sql_script",
+    /** Loads a previously dumped REST service project. */
+    MrsLoadServiceProject = "mrs.load.service_project",
     /** Add a schema to the given MRS service */
     MrsAddSchema = "mrs.add.schema",
     /** Gets a specific MRS schema */
@@ -548,6 +554,48 @@ export interface IShellMrsDumpServiceSqlScriptKwargs {
     zip?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpServiceProjectKwargsSettings {
+    /** The name of the project. */
+    name?: string;
+    /** The path for the project icon. */
+    iconPath?: string;
+    /** A project description. */
+    description?: string;
+    /** The publisher name. */
+    publisher?: string;
+    /** The project version. */
+    version?: string;
+}
+
+export interface IShellMrsDumpServiceProjectKwargs {
+    /** The list of services to include in the project. */
+    services?: unknown[];
+    /** The list of schemas to include in the project. */
+    schemas?: unknown[];
+    /** The details for the project. */
+    settings?: IShellMrsDumpServiceProjectKwargsSettings;
+    /** The destination where the project should be created. */
+    destination?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
+    /** The final directory is to be zipped. */
+    zip?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsLoadServiceSqlScriptKwargs {
+    /** The path where to store the file. */
+    filePath?: string;
+    /** The name for the new service. */
+    newRequest?: string;
+}
+
+export interface IShellMrsLoadServiceProjectKwargs {
+    /** The path where to store the file. */
+    filePath?: string;
 }
 
 export interface IShellMrsAddSchemaKwargs {
@@ -1536,6 +1584,9 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetRuntimeManagementCode]: { kwargs?: IShellMrsGetRuntimeManagementCodeKwargs; };
     [ShellAPIMrs.MrsGetServiceCreateStatement]: { kwargs?: IShellMrsGetServiceCreateStatementKwargs; };
     [ShellAPIMrs.MrsDumpServiceSqlScript]: { kwargs?: IShellMrsDumpServiceSqlScriptKwargs; };
+    [ShellAPIMrs.MrsDumpServiceProject]: { kwargs?: IShellMrsDumpServiceProjectKwargs; };
+    [ShellAPIMrs.MrsLoadServiceSqlScript]: { kwargs?: IShellMrsLoadServiceSqlScriptKwargs; };
+    [ShellAPIMrs.MrsLoadServiceProject]: { kwargs?: IShellMrsLoadServiceProjectKwargs; };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs; };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs; };
     [ShellAPIMrs.MrsListSchemas]: { args: { serviceId?: string; }; kwargs?: IShellMrsListSchemasKwargs; };

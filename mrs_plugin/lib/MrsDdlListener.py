@@ -2156,6 +2156,37 @@ class MrsDdlListener(MRSListener):
     def exitDumpRestProjectStatement(self, ctx:MRSParser.DumpRestProjectStatementContext):
         self.mrs_ddl_executor.dumpRestProject(self.mrs_object)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # DUMP REST SERVICE
+    def enterLoadRestServiceStatement(self, ctx):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "LOAD REST SERVICE",
+            "directory_file_path": os.path.expanduser(
+                get_text_without_quotes(ctx.directoryFilePath().getText())),
+            "request_path": get_text_without_quotes(
+                ctx.serviceRequestPath().getText()
+            ) if ctx.serviceRequestPath() is not None else None,
+            #"zip": ctx.ZIP_SYMBOL() is not None,
+        }
+
+    def exitLoadRestServiceStatement(self, ctx):
+        self.mrs_ddl_executor.loadRestService(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # LOAD REST PROJECT
+    def enterLoadRestProjectStatement(self, ctx:MRSParser.LoadRestProjectStatementContext):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "LOAD REST PROJECT",
+            "directory_file_path": os.path.expanduser(
+                get_text_without_quotes(ctx.directoryFilePath().getText())),
+            # "zip": ctx.ZIP_SYMBOL() is not None,
+        }
+
+    def exitLoadRestProjectStatement(self, ctx:MRSParser.LoadRestProjectStatementContext):
+        self.mrs_ddl_executor.loadRestProject(self.mrs_object)
+
 
 class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):
     def __init__(self, errors):

@@ -97,6 +97,7 @@ MRS_PREFIXES = [
     "REVOKE REST ",
     "CLONE REST ",
     "DUMP REST ",
+    "LOAD REST ",
 ]
 
 

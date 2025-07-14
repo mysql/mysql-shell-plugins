@@ -1061,6 +1061,24 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#loadRestServiceStatement.
+    def enterLoadRestServiceStatement(self, ctx:MRSParser.LoadRestServiceStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#loadRestServiceStatement.
+    def exitLoadRestServiceStatement(self, ctx:MRSParser.LoadRestServiceStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#loadRestProjectStatement.
+    def enterLoadRestProjectStatement(self, ctx:MRSParser.LoadRestProjectStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#loadRestProjectStatement.
+    def exitLoadRestProjectStatement(self, ctx:MRSParser.LoadRestProjectStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#dumpRestProjectService.
     def enterDumpRestProjectService(self, ctx:MRSParser.DumpRestProjectServiceContext):
         pass
