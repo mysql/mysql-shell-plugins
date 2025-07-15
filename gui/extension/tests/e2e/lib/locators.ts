@@ -145,6 +145,7 @@ export const notebook = {
             statementStart: By.className("statementStart"),
             autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label"),
             scrollBar: By.className("editor-scrollable"),
+            sqlLoading: By.css(".mysql.loading"),
             result: {
                 exists: By.className("zoneHost"),
                 isWaiting: By.css(".editorPromptFirst.waiting"),

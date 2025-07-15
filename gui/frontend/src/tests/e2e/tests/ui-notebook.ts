@@ -210,7 +210,7 @@ describe("NOTEBOOKS", () => {
             try {
                 const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
                     constants.execAsText) as E2ECommandResultData;
-                expect(result.status).toMatch(/OK/);
+                expect(result.text).toMatch(/OK/);
                 expect(result.text).toMatch(/\|.*\|/);
             } catch (e) {
                 testFailed = true;

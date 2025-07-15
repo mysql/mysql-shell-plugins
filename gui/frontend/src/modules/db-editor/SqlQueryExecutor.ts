@@ -456,11 +456,25 @@ export class SqlQueryExecutor {
      * @param columns Column information.
      * @param started A flag indicating whether the column header must be rendered
      * @param finished A flag indicating whether the final line must be rendered.
+     * @param status The status information.
      *
      * @returns The text representation of the given data.
      */
     public convertResultSetToText(rows: IDictionary[], columns: IColumnInfo[], started: boolean,
-        finished: boolean): string {
+        finished: boolean, status: IStatusInfo): string {
+
+        const withStatusInfo = (output: string, status: IStatusInfo) => {
+            if (status.text) {
+                output += `${status.text}\n`;
+            }
+
+            return output;
+        };
+
+        if (rows.length === 0 && columns.length === 0) {
+            return withStatusInfo("", status);
+        }
+
         let result = "";
 
         const convertLineBreaks = (value: string): string => {
@@ -597,7 +611,7 @@ export class SqlQueryExecutor {
             result += separator + "\n";
         }
 
-        return result;
+        return withStatusInfo(result, status);
     }
 
     /**
@@ -712,16 +726,14 @@ export class SqlQueryExecutor {
                 const rows = convertRows(columns, data.result.rows);
 
                 if (options.showAsText) {
-                    let content = "";
-                    if (setColumns) {
-                        let query = options.query.trim();
-                        if (!query.endsWith(";")) {
-                            query += ";";
-                        }
-                        content += `sql> ${query}\n`;
+                    let query = options.query.trim();
+                    if (!query.endsWith(";")) {
+                        query += ";";
                     }
+                    let content = `sql> ${query}\n`;
 
-                    content += this.convertResultSetToText(rows, columns, setColumns, resultSummary);
+                    content += this.convertResultSetToText(rows, columns, setColumns, resultSummary, status);
+
                     this.addTimedResult(options.context, {
                         type: "text",
                         executionInfo: resultSummary ? status : undefined,

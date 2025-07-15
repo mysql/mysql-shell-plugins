@@ -41,7 +41,6 @@ import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.j
 import { AboutHost } from "../components/About/AboutHost.js";
 import { ChatAction, ChatHost } from "../components/Chat/ChatHost.js";
 import { ActionOutput } from "../components/ResultView/ActionOutput.js";
-import { ResultStatus } from "../components/ResultView/ResultStatus.js";
 import { GraphHost } from "../components/graphs/GraphHost.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import { Settings } from "../supplement/Settings/Settings.js";
@@ -1035,8 +1034,6 @@ export class PresentationInterface {
                             contextId={contextId}
                             showIndexes={options?.showIndexes}
                         />
-                        {this.resultData.executionInfo &&
-                            <ResultStatus statusInfo={this.resultData.executionInfo} />}
                     </Container>;
                     this.minHeight = 28;
                 }

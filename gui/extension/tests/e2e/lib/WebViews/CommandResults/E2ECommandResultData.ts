@@ -202,7 +202,6 @@ export class E2ECommandResultData extends E2ECommandResult {
         const prettyJson = await this.resultContext.findElements(resultLocator.json.pretty);
 
         if (prettyJson.length > 0) {
-            await this.setStatus();
             this.#json = await prettyJson[0].getAttribute("innerHTML");
         } else if (rawJson.length > 0) {
             this.#json = await rawJson[0].getAttribute("innerHTML");
