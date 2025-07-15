@@ -1,6 +1,6 @@
 {
   "name": "mrs-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript SDK for the MySQL REST Service",
   "directories": {
     "test": "tests"
