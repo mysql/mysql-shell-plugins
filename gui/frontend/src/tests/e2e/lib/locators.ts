@@ -458,6 +458,7 @@ export const notebook = {
             sentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             scrollBar: By.className("editor-scrollable"),
             autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label"),
+            sqlLoading: By.css(".mysql.loading"),
             result: {
                 exists: By.className("zoneHost"),
                 isWaiting: By.css(".editorPromptFirst.waiting"),

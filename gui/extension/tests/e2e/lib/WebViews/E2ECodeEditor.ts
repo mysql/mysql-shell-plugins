@@ -253,12 +253,6 @@ export class E2ECodeEditor {
 
             switch (resultType) {
 
-                case constants.isGridText: {
-                    await commandResult.setText();
-                    await commandResult.setStatus();
-                    break;
-                }
-
                 case constants.isText: {
                     await commandResult.setText();
                     break;
@@ -369,6 +363,10 @@ export class E2ECodeEditor {
     public getResult = async (cmd?: string, resultId?: number): Promise<WebElement> => {
         let result: WebElement;
 
+        await driver.wait(async () => {
+            return (await driver.findElements(locator.notebook.codeEditor.editor.sqlLoading)).length === 0;
+        }, constants.wait1second * 10, `SQL still loading for cmd ${cmd}`);
+
         if (resultId) {
             try {
                 result = await driver.wait(until
@@ -418,12 +416,6 @@ export class E2ECodeEditor {
 
         const resultLocator = locator.notebook.codeEditor.editor.result;
         await driver.wait(async () => {
-            if ((await context.findElements(resultLocator.singleOutput.exists)).length > 0 &&
-                ((await context.findElements(resultLocator.singleOutput.text.exists)).length > 0) &&
-                ((await context.findElements(resultLocator.grid.status)).length > 0) &&
-                (await context.findElements(resultLocator.json.pretty)).length === 0) {
-                type = constants.isGridText;
-            }
 
             if ((await context.findElements(resultLocator.singleOutput.exists)).length > 0 &&
                 ((await context.findElements(resultLocator.singleOutput.text.exists)).length > 0) &&

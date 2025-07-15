@@ -213,7 +213,7 @@ describe("NOTEBOOKS", () => {
         it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
             const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
                 constants.execAsText, true) as E2ECommandResultData;
-            expect(result.status).to.match(/OK/);
+            expect(result.text).to.match(/OK/);
             expect(result.text).to.match(/\|.*\|/);
         });
 
