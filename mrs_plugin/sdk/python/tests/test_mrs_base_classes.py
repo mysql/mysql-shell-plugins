@@ -1098,7 +1098,7 @@ async def test_auth_apps(
 
     # check that request is issued as expected
     mock_request_class.assert_called_with(
-        url=f"{my_service._service_url}/authentication/authApps",
+        url=f"{my_service._service_url}{my_service._auth_path}/authApps",
         headers={"Accept": "application/json"},
         method="GET",
     )
@@ -1169,7 +1169,7 @@ async def test_authenticate_with_mrs_native(
     assert mock_request_class.call_count == 2
 
     # check first request
-    request_path = f"{my_service._service_url}{my_service._auth_path}"
+    request_path = f"{my_service._service_url}{my_service._auth_path}/login"
     mock_request_class.assert_any_call(
         url=request_path,
         headers={"Accept": "application/json"},
@@ -1306,7 +1306,7 @@ async def test_authenticate_with_mysql_internal(
     assert mock_request_class.call_count == 1
 
     # check that request is issued as expected
-    request_path = f"{my_service._service_url}{my_service._auth_path}"
+    request_path = f"{my_service._service_url}{my_service._auth_path}/login"
     data_auth = {
         "username": options["user"],
         "password": options["password"],
@@ -1378,7 +1378,7 @@ async def test_deauthenticate(
     assert mock_request_class.call_count == 2
 
     # check that request is issued as expected
-    request_path = f"{my_service._service_url}{my_service._deauth_path}"
+    request_path = f"{my_service._service_url}{my_service._auth_path}/logout"
     headers = {
         "Accept": "application/json",
         "Authorization": f"Bearer {fictional_access_token}",
