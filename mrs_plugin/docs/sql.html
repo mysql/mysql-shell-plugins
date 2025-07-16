@@ -3713,6 +3713,19 @@ roleService:
                 <p>An existing REST service can be dumped as REST
                 project by using the <code>DUMP REST PROJECT</code>
                 statement.</p>
+                <p>The command will generate a directory containing the
+                following:</p>
+                <ul>
+                <li><code>mrs.package.json</code> containing the project
+                details</li>
+                <li><code>*.service.mrs.sql</code> containing the REST
+                SQL for each service</li>
+                <li>other SQL files containing schema dumps</li>
+                <li>directories containing schema dumps</li>
+                <li><code>appIcon.*</code> being the icon for this
+                project</li>
+                </ul>
+                <p>This directory may then be zipped into a file.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>dumpRestProjectStatement:
     DUMP REST PROJECT
@@ -3760,12 +3773,78 @@ dumpRestProjectSettings: (
                 including the database schema <code>sakila</code> it is
                 based on.</p>
                 <div class="sourceCode" id="cb125"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST PROJECT myServiceProject VERSION <span class="st">&#39;1.0.0&#39;</span></span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST PROJECT <span class="st">&#39;myServiceProject&#39;</span> VERSION <span class="st">&#39;1.0.0&#39;</span></span>
 <span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>    SERVICE <span class="op">/</span>myService <span class="kw">INCLUDING</span> <span class="kw">ALL</span> ENDPOINTS</span>
-<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> <span class="st">&#39;sakila&#39;</span></span>
+<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> `sakila`</span>
 <span id="cb125-4"><a href="#cb125-4" aria-hidden="true" tabindex="-1"></a>    DESCRIPTION <span class="st">&#39;My first REST project&#39;</span></span>
 <span id="cb125-5"><a href="#cb125-5" aria-hidden="true" tabindex="-1"></a>    PUBLISHER <span class="st">&#39;Oracle&#39;</span></span>
 <span id="cb125-6"><a href="#cb125-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">TO</span> ZIP <span class="st">&#39;~/myServiceProject.zip&#39;</span>;</span></code></pre></div>
+                <p>Here’s a full example to dump a REST service
+                containing most variations of the command.</p>
+                <div class="sourceCode" id="cb126"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST PROJECT <span class="st">&#39;myProject&#39;</span> VERSION <span class="st">&#39;1.0.0&#39;</span></span>
+<span id="cb126-2"><a href="#cb126-2" aria-hidden="true" tabindex="-1"></a>    SERVICE <span class="op">/</span>myService <span class="kw">INCLUDING</span> <span class="kw">DATABASE</span> <span class="kw">AND</span> <span class="kw">STATIC</span> <span class="kw">AND</span> <span class="kw">DYNAMIC</span> ENDPOINTS</span>
+<span id="cb126-3"><a href="#cb126-3" aria-hidden="true" tabindex="-1"></a>    SERVICE <span class="op">/</span>myService2 <span class="kw">INCLUDING</span> <span class="kw">ALL</span> ENDPOINTS</span>
+<span id="cb126-4"><a href="#cb126-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> `chatApp` <span class="kw">FROM</span> <span class="st">&#39;~/mrs_plugin/examples/mrs_chat/db_schema/chat_db_schema.sql&#39;</span></span>
+<span id="cb126-5"><a href="#cb126-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> `chatRestService` <span class="kw">FROM</span> <span class="st">&#39;~/mrs_plugin/examples/mrs_chat/db_schema/chat_rest_service.sql&#39;</span></span>
+<span id="cb126-6"><a href="#cb126-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> `chatApp2` <span class="kw">FROM</span> <span class="st">&#39;~/mrs_plugin/examples/mrs_chat/db_schema/&#39;</span></span>
+<span id="cb126-7"><a href="#cb126-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> `sakila`</span>
+<span id="cb126-8"><a href="#cb126-8" aria-hidden="true" tabindex="-1"></a>    DESCRIPTION <span class="st">&#39;This is my first project&#39;</span></span>
+<span id="cb126-9"><a href="#cb126-9" aria-hidden="true" tabindex="-1"></a>    PUBLISHER <span class="st">&#39;Oracle&#39;</span></span>
+<span id="cb126-10"><a href="#cb126-10" aria-hidden="true" tabindex="-1"></a>    ICON <span class="kw">FROM</span> <span class="st">&#39;~/icon.svg&#39;</span></span>
+<span id="cb126-11"><a href="#cb126-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">TO</span> ZIP <span class="st">&#39;~/project.myService.zip&#39;</span>;</span></code></pre></div>
+                <p>Lets go through the command an explain it in
+                detail.</p>
+                <p>The first part
+                <code>DUMP REST PROJECT 'myProject' VERSION '1.0.0'</code>
+                is the project name and version. The version is not
+                strict to any version format, allowing for
+                <code>'v1.0'</code> or <code>'1.0.0b'</code> to be valid
+                versions.</p>
+                <p>Following we have the services that should be
+                included in the project. You can check the</p>
+                <div class="sourceCode" id="cb127"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a>SERVICE <span class="op">/</span>myService <span class="kw">INCLUDING</span> <span class="kw">DATABASE</span> <span class="kw">AND</span> <span class="kw">STATIC</span> <span class="kw">AND</span> <span class="kw">DYNAMIC</span> ENDPOINTS</span></code></pre></div>
+                <p>The service request path is referring to the service
+                required on the project and you are able to include
+                multiple services in the project. Each of these
+                statements will create its own REST SQL file containing
+                all the REST SQL commands to recreate the service. From
+                that service, you choose what to include: -
+                <code>DATABASE</code> include REST objects like TABLE,
+                VIEW, PROCEDURE, FUNCTION and SCRIPT -
+                <code>STATIC</code> include content sets that are not of
+                SCRIPT type - <code>DYNAMIC</code> include content sets
+                that are of SCRIPT type - <code>ALL</code> short for
+                <code>DATABASE AND STATIC AND DYNAMIC</code></p>
+                <p>Each of these settings are a superset of the
+                former.</p>
+                <p>Then we have the <code>DATABASE</code> sub-statements
+                that either dump a schema</p>
+                <div class="sourceCode" id="cb128"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DATABASE</span> `sakila`</span></code></pre></div>
+                <p>or uses a SQL file containing the dump of a
+                schema</p>
+                <div class="sourceCode" id="cb129"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DATABASE</span> `chatApp` <span class="kw">FROM</span> <span class="st">&#39;~/mrs_plugin/examples/mrs_chat/db_schema/chat_db_schema.sql&#39;</span></span></code></pre></div>
+                <p>Then we can find the project settings. These settings
+                are optional but brings some detail to the project.</p>
+                <ul>
+                <li><code>DESCRIPTION</code> is a short description for
+                the project.</li>
+                <li><code>PUBLISHER</code> the owner or publisher of the
+                project.</li>
+                <li><code>ICON</code> will copy an icon file from the
+                specified path.</li>
+                </ul>
+                <p>All this information will be in the
+                <code>mrs.package.json</code> project file.</p>
+                <p>Finally there’s the
+                <code>TO ZIP '~/project.myService.zip'</code> which
+                defined the output of the command. The command can
+                generate a directory with all the contents or, if the
+                <code>ZIP</code> command is used, generate a zip file
+                with the directory contents.</p>
                 <h2 data-number="7.2" id="dump-rest-service"><span
                 class="header-section-number">7.2</span> DUMP REST
                 SERVICE</h2>
@@ -3796,8 +3875,28 @@ dumpRestProjectSettings: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example dumps the REST service with the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb127"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST SERVICE <span class="op">/</span>myService <span class="kw">AS</span> SQL SCRIPT <span class="kw">INCLUDING</span> <span class="kw">ALL</span> ENDPOINTS <span class="kw">TO</span> ZIP <span class="st">&#39;~/myService.zip&#39;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb131"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST SERVICE <span class="op">/</span>myService <span class="kw">AS</span> SQL SCRIPT <span class="kw">INCLUDING</span> <span class="kw">DATABASE</span> <span class="kw">AND</span> <span class="kw">STATIC</span> <span class="kw">AND</span> <span class="kw">DYNAMIC</span> ENDPOINTS <span class="kw">TO</span> <span class="st">&#39;~/myService.sql&#39;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb132"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST SERVICE <span class="op">/</span>myService <span class="kw">AS</span> SQL SCRIPT <span class="kw">INCLUDING</span> <span class="kw">ALL</span> ENDPOINTS <span class="kw">TO</span> ZIP <span class="st">&#39;~/myService.zip&#39;</span>;</span></code></pre></div>
+                <p>The service request path is referring to the service
+                required on the project and you are able to include
+                multiple services in the project. This statements will
+                create a REST SQL file containing all the REST SQL
+                commands to recreate the service. From that service, you
+                choose what to include: - <code>DATABASE</code> include
+                REST objects like TABLE, VIEW, PROCEDURE, FUNCTION and
+                SCRIPT - <code>STATIC</code> include content sets that
+                are not of SCRIPT type - <code>DYNAMIC</code> include
+                content sets that are of SCRIPT type - <code>ALL</code>
+                short for
+                <code>DATABASE AND STATIC AND DYNAMIC</code></p>
+                <p>Each of these settings are a superset of the
+                former.</p>
+                <p>The destination file is defined with the
+                <code>TO</code> or <code>TO ZIP</code> expression when
+                the created file is a REST SQL script or a zipped REST
+                SQL file.</p>
                 <p>Copyright (c) 2023, 2025, Oracle and/or its
                 affiliates.</p>
             </div>
