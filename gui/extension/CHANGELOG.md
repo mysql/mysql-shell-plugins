@@ -14,6 +14,7 @@
 - BUG#38094986 Python SDK: Service.authenticate() documentation
 - BUG#38160406 Python SDK vs. REST SERVICE SQL clause AUTHENTICATION PATH
 - BUG#38027483 Python SDK: async support and status=SCHEDULED
+- BUG#37052890 mrs.dump.sdkServiceFiles() sdk_language option validation: PythoN vs. python, ...
 -
 
 ## Changes in 1.19.14+9.3.1

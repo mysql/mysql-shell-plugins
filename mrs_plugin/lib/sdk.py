@@ -34,7 +34,13 @@ import string
 import random
 
 
-ProgrammingLanguage: TypeAlias = Literal["TypeScript", "Python"]
+ProgrammingLanguage: TypeAlias = Literal["typescript", "python"]
+
+
+SUPPORTED_LANGUAGES = {
+    "typescript": "TypeScript",
+    "python": "Python",
+}
 
 
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
@@ -67,21 +73,24 @@ SDK_PYTHON_NON_NATIVE_TYPES = ("Date", "DateTime", "Time", "Year", "Vector")
 
 
 class LanguageNotSupportedError(Exception):
-    def __init__(self, sdk_language):
-        self.message = f"The SDK language {sdk_language} is not supported yet."
+    supported_languages = ["TypeScript", "Python"]
+
+    def __init__(self, sdk_language = "Language"):
+        super().__init__(f"{sdk_language} not supported. The MRS SDK is only available for {", ".join(self.supported_languages[:-1])} and {self.supported_languages[-1]}.")
 
 
-def get_base_classes(sdk_language, prepare_for_runtime=False):
-    if sdk_language == "TypeScript":
+def get_base_classes(
+    sdk_language: ProgrammingLanguage = "typescript", prepare_for_runtime=False
+):
+    if sdk_language == "typescript":
         file_name = "MrsBaseClasses.ts"
-    elif sdk_language == "Python":
+    elif sdk_language == "python":
         file_name = "mrs_base_classes.py"
     else:
         raise LanguageNotSupportedError(sdk_language)
 
     path = os.path.abspath(__file__)
-    code = Path(os.path.dirname(path), "..", "sdk", sdk_language.lower(),
-                file_name).read_text()
+    code = Path(os.path.dirname(path), "..", "sdk", sdk_language, file_name).read_text()
 
     if prepare_for_runtime is True:
         # Remove exports as everything will be in a single file
@@ -96,24 +105,21 @@ def get_base_classes(sdk_language, prepare_for_runtime=False):
     return code
 
 
-def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=False, service_url=None):
+def generate_service_sdk(service, session, sdk_language: ProgrammingLanguage = "typescript", prepare_for_runtime=False, service_url=None):
     # If no services is given, return only the MRS runtime management TypeScript Code
     # that allows the user to manage specific MRS runtime settings
     if service is None:
-        if prepare_for_runtime is True and sdk_language == "TypeScript":
+        if prepare_for_runtime is True and sdk_language == "typescript":
             return remove_js_whitespace_and_comments(get_mrs_runtime_management_code(session=session))
         return ""
 
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         file_name = "MrsServiceTemplate.ts.template"
-    elif sdk_language == "Python":
+    elif sdk_language == "python":
         file_name = "mrs_service_template.py.template"
-    else:
-        raise LanguageNotSupportedError(sdk_language)
 
     path = os.path.abspath(__file__)
-    template = Path(os.path.dirname(path), "..", "sdk", sdk_language.lower(),
-                    file_name).read_text()
+    template = Path(os.path.dirname(path), "..", "sdk", sdk_language, file_name).read_text()
 
     def binary_formatter(base64str: str):
         if base64str.startswith("type254:"):
@@ -266,9 +272,9 @@ def substitute_imports_in_template(
     }
 
 
-def substitute_service_in_template(service, template, sdk_language, session, service_url, service_data):
+def substitute_service_in_template(service, template, session, service_url, service_data, sdk_language: ProgrammingLanguage = "typescript"):
     # Currently, we only generate the SDK for a single service, but this might change in the future.
-    existing_identifiers = []
+    existing_identifiers: list[str] = []
 
     code = substitute_schemas_in_template(
         service=service,
@@ -421,26 +427,26 @@ def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
 
 
 def language_comment_delimiter(sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return "//"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         return "#"
 
 
 def generate_identifier(
     value: str,
     primitive: Literal["variable", "class"] = "variable",
-    sdk_language: ProgrammingLanguage = "TypeScript",
+    sdk_language: ProgrammingLanguage = "typescript",
     # mutable objects for default values are re-used on subsequent function calls, let's leverage that
     existing_identifiers: list[str] = [],
     allowed_special_characters: Optional[set[str]] = None
 ) -> str:
     if primitive == "class":
         identifier = f"{lib.core.convert_path_to_pascal_case(value, allowed_special_characters)}"
-    elif sdk_language == "TypeScript":
+    elif sdk_language == "typescript":
         # variable and property names should be lowerCamelCase
         identifier = f"{lib.core.convert_path_to_camel_case(path=value, allowed_special_characters=allowed_special_characters, lower=True)}"
-    elif sdk_language == "Python":
+    elif sdk_language == "python":
         identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value, allowed_special_characters))}"
     else:
         identifier = value
@@ -560,7 +566,7 @@ def substitute_objects_in_template(
                             # our own.
                             # In Python, we have Optional[SomeType] that does the trick, so there there is no
                             # need to add one.
-                            if db_not_null is False and sdk_language == "TypeScript":
+                            if db_not_null is False and sdk_language == "typescript":
                                 required_datatypes.add("MaybeNull")
 
                             client_datatype = get_enhanced_datatype_mapping(db_datatype, sdk_language)
@@ -568,7 +574,7 @@ def substitute_objects_in_template(
                             if not datatype_is_primitive(client_datatype, sdk_language):
                                 required_datatypes.add(client_datatype)
                                 if (
-                                    sdk_language == "Python"
+                                    sdk_language == "python"
                                     and client_datatype.startswith(
                                         SDK_PYTHON_NON_NATIVE_TYPES
                                     )
@@ -603,16 +609,16 @@ def substitute_objects_in_template(
                         db_object_crud_ops.append("DELETEUNIQUE")
                 # If the database object is a FUNCTION a PROCEDURE or a SCRIPT, CRUD operations should not be enabled
                 elif object_is_routine(db_obj, of_type={"FUNCTION", "SCRIPT"}):
-                    required_datatypes.add("IMrsFunctionJsonResponse") if sdk_language == "TypeScript" else None
+                    required_datatypes.add("IMrsFunctionJsonResponse") if sdk_language == "typescript" else None
                     options = db_obj.get("options")
                     if options is not None and options.get("mysqlTask") is not None:
                         db_object_crud_ops = ["FUNCTIONTASKRUN"]
                     else:
                         db_object_crud_ops = ["FUNCTIONCALL"]
                 else:
-                    if sdk_language == "TypeScript":
+                    if sdk_language == "typescript":
                         required_datatypes.add("IMrsProcedureResult")
-                    elif sdk_language == "Python":
+                    elif sdk_language == "python":
                         required_datatypes.update({"MrsProcedureResultSet", "IMrsProcedureResponse"})
                     options = db_obj.get("options")
                     if options is not None and options.get("mysqlTask") is not None:
@@ -661,7 +667,7 @@ def substitute_objects_in_template(
             obj_procedure_result_set_datatype = None
             if object_is_routine(db_obj, of_type={"PROCEDURE"}) and len(objects) == 1:
                 required_datatypes.add("JsonObject")
-                if sdk_language != "Python":
+                if sdk_language != "python":
                     obj_interfaces += generate_union(
                         obj_meta_interface, ["JsonObject"], sdk_language
                     )
@@ -672,7 +678,7 @@ def substitute_objects_in_template(
                         sdk_language,
                     )
             elif object_is_routine(db_obj, of_type={"PROCEDURE"}):
-                if sdk_language != "Python":
+                if sdk_language != "python":
                     # TypeScript tagged unions inherit from JsonObject
                     required_datatypes.add("JsonObject")
                     interface_list = [f"ITagged{name}" for name in obj_meta_interfaces]
@@ -750,7 +756,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
         db_datatype = "text"
 
     db_datatype = db_datatype.lower()
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         if db_datatype.startswith(("tinyint(1)", "bit(1)")):
             return "boolean"
         if db_datatype.startswith(("tinyint", "smallint", "mediumint", "int", "bigint", "decimal", "numeric",
@@ -775,7 +781,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
         if db_datatype.startswith("multipolygon"):
             return "MultiPolygon"
         return "string"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         if db_datatype.startswith(("tinyint(1)", "bit(1)")):
             return "bool"
         if db_datatype.startswith(("tinyint", "smallint", "mediumint", "int", "bigint")):
@@ -817,7 +823,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
 
 def get_enhanced_datatype_mapping(db_datatype, sdk_language):
     enhanced_map = {
-        "Python": {
+        "python": {
             "bool": "BoolField",
             "int": "IntField",
             "float": "FloatField",
@@ -829,10 +835,10 @@ def get_enhanced_datatype_mapping(db_datatype, sdk_language):
             "Vector": "VectorField",
         }
     }
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         # In TypeScript, the fields of type ${DatabaseObject} are the same as type ${DatabaseObject}Params
         return get_datatype_mapping(db_datatype, sdk_language)
-    if sdk_language == "Python":
+    if sdk_language == "python":
         # If `py_datatype` not in the list of types to be enhanced,
         # then we assume it shouldn't be enhanced and returned it as it is.
         py_datatype = get_datatype_mapping(db_datatype, sdk_language)
@@ -842,16 +848,16 @@ def get_enhanced_datatype_mapping(db_datatype, sdk_language):
 
 
 def maybe_null(client_datatype, sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"MaybeNull<{client_datatype}>"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         return f"Optional[{client_datatype}]"
 
     return "unknown"
 
 
 def get_procedure_datatype_mapping(sp_datatype, sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         if sp_datatype == "BOOLEAN":
             return "boolean"
         if sp_datatype in ("NUMBER", "INT"):
@@ -895,11 +901,11 @@ def datatype_is_primitive(client_datatype, sdk_language):
     if client_datatype is None:
         return False
 
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         if client_datatype.startswith(("boolean", "number", "string")):
             return True
         return False
-    if sdk_language == "Python":
+    if sdk_language == "python":
         if client_datatype.startswith(
             ("bool", "float", "int", "str", "list", "tuple", "dict")
         ):
@@ -1024,7 +1030,7 @@ def get_reduced_field_interface_datatype(field, fields, sdk_language, class_name
                 ref_mapping = obj_ref.get("reference_mapping")
                 is_array = ref_mapping and ref_mapping.get("to_many", False)
 
-                if is_array and sdk_language == "Python":
+                if is_array and sdk_language == "python":
                     return f"list[{datatype}]"
                 if is_array:
                     return f"{datatype}[]"
@@ -1038,7 +1044,7 @@ def generate_type_declaration(
     name,
     parents=[],
     fields={},
-    sdk_language="TypeScript",
+    sdk_language="typescript",
     ignore_base_types=False,
     non_mandatory_fields: set[str] = set(),  # Users may or not specify them
     requires_placeholder=False,
@@ -1051,7 +1057,7 @@ def generate_type_declaration(
         if not requires_placeholder:
             return ""
         return generate_type_declaration_placeholder(name, sdk_language, is_unpacked)
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         field_block = [
             generate_type_declaration_field(
                 name,
@@ -1073,7 +1079,7 @@ def generate_type_declaration(
             )
         # To follow the internal convention, we use interfaces for every other case.
         return f"export interface I{name} {{\n" + "".join(field_block) + "}\n\n"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         field_block = [
             generate_type_declaration_field(
                 name,
@@ -1107,13 +1113,13 @@ def generate_type_declaration_field(
     )
     indent = " " * 4
 
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         field_name_part = f"{indent}{"readonly " if readonly else ""}{name}?" if non_mandatory else f"{indent}{"readonly " if readonly else ""}{name}"
         if isinstance(value, list):
             return f"{field_name_part}: {value[0]}[],\n"
         return f"{field_name_part}: {value},\n"
 
-    if sdk_language == "Python":
+    if sdk_language == "python":
         if isinstance(value, list):
             hint = f"NotRequired[list[{value[0]}]]" if non_mandatory is True else f"list[{value[0]}]"
         else:
@@ -1129,7 +1135,7 @@ def generate_data_class(
     obj_endpoint: Optional[str] = None,
     primary_key_fields: set[str] = set(),
 ):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         if len(primary_key_fields) > 0:
             if "UPDATE" in db_object_crud_ops:
                 fields.update({ "update()": f"Promise<I{name}>" })
@@ -1143,7 +1149,7 @@ def generate_data_class(
             readonly_fields=primary_key_fields
         )
 
-    if sdk_language == "Python":
+    if sdk_language == "python":
         field_type_block = [
             (
                 generate_type_declaration_field(name, value, sdk_language).rstrip()
@@ -1186,12 +1192,12 @@ def generate_data_class(
         )
 
 
-def generate_field_enum(name, fields=None, sdk_language="TypeScript"):
-    if sdk_language == "TypeScript":
+def generate_field_enum(name, fields=None, sdk_language="typescript"):
+    if sdk_language == "typescript":
         # In TypeScript the field enum can be obtained using keyof on the original object type declaration, so there is
         # no need for an additional type declaration.
         return ""
-    if sdk_language == "Python":
+    if sdk_language == "python":
         if not fields or len(fields) == 0:
             # To avoid conditional logic in the template, we can generate a placeholder declaration regardless.
             return generate_type_declaration_placeholder(f"{name}Field", sdk_language)
@@ -1202,16 +1208,16 @@ def generate_field_enum(name, fields=None, sdk_language="TypeScript"):
 
 def generate_enum(name, values, sdk_language):
     enum_def = generate_literal_type(values, sdk_language)
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"export type I{name} = {enum_def};\n\n"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         return f"I{name}: TypeAlias = {enum_def}\n\n\n"
 
 
 def generate_type_declaration_placeholder(name, sdk_language, is_unpacked=False):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"type I{name} = never;\n\n"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         if not is_unpacked:
             return f"I{name}: TypeAlias = None\n\n\n"
         # Using an empty TypedDict helps to avoid issues with Unpack
@@ -1219,10 +1225,10 @@ def generate_type_declaration_placeholder(name, sdk_language, is_unpacked=False)
 
 
 def generate_literal_type(values, sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         items = [f'"{value}"' for value in values]
         return f"{' | '.join(items)}"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         items = [f'{" " * 4}"{value}"' for value in values]
         s = ',\n'.join(items)
         return (f"Literal[\n" +
@@ -1231,9 +1237,9 @@ def generate_literal_type(values, sdk_language):
 
 
 def generate_selectable(name, fields, sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return ""
-    if sdk_language == "Python":
+    if sdk_language == "python":
         return generate_type_declaration(name=f"{name}Selectable", fields={ field: "bool" for field in fields },
                                          sdk_language=sdk_language, non_mandatory_fields=set(fields))
 
@@ -1241,15 +1247,15 @@ def generate_selectable(name, fields, sdk_language):
 def generate_sortable(
     name: str,
     fields: set[str] = set(),
-    sdk_language: ProgrammingLanguage = "TypeScript",
+    sdk_language: ProgrammingLanguage = "typescript",
 ):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return generate_tuple(
             name=f"I{name}Sortable",
             values=fields,
             sdk_language=sdk_language,
         )
-    if sdk_language == "Python":
+    if sdk_language == "python":
         return generate_type_declaration(
             name=f"{name}Sortable",
             fields={field: "Order" for field in fields},
@@ -1260,27 +1266,27 @@ def generate_sortable(
 
 
 def generate_union(name, types, sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"export type {name} = {' | '.join(types)};\n\n"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         return f"{name}: TypeAlias = {' | '.join(types)}\n\n\n"
 
 
 def generate_sequence_constant(name, values, sdk_language):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"const {name} = {json.dumps(values)} as const;\n"
-    elif sdk_language == "Python":
+    elif sdk_language == "python":
         return f"{name}: Sequence = {json.dumps(values)}\n\n"
 
 
 def generate_tuple(
     name: str,
     values: set[str] = set(),
-    sdk_language: ProgrammingLanguage = "TypeScript",
+    sdk_language: ProgrammingLanguage = "typescript",
 ):
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"export type {name} = [{', '.join([f'"{value}"' for value in sorted(values)])}];\n\n"
-    if sdk_language == "Python":
+    if sdk_language == "python":
         tuple_elements = (
             "()"
             if len(values) == 0
@@ -1371,9 +1377,9 @@ def generate_interfaces(
                         ):
                             # RESULT
                             relationship = field.get("object_reference").get("reference_mapping").get("kind")
-                            if relationship == "1:n" and sdk_language == "TypeScript":
+                            if relationship == "1:n" and sdk_language == "typescript":
                                 nested_datatype = f"{datatype}[]"
-                            elif relationship == "1:n" and sdk_language == "Python":
+                            elif relationship == "1:n" and sdk_language == "python":
                                 nested_datatype = f"list[{datatype}]"
                             interface_fields.update({field.get("name"): nested_datatype})
                             # Add all table fields that have allow_filtering set and SP params to the
@@ -1437,7 +1443,7 @@ def generate_interfaces(
         creatable_type_alias_name = f"New{class_name}"
         updatable_type_alias_name = f"Update{class_name}"
 
-        if sdk_language != "TypeScript":
+        if sdk_language != "typescript":
             # These type declarations are not needed for TypeScript because it uses a Proxy to replace the interface
             # and not a wrapper class. This might change in the future.
             mrs_resource_type = "IMrsResourceDetails"
@@ -1556,7 +1562,7 @@ def generate_interfaces(
 
         construct_parents = (
             []
-            if sdk_language != "Python"
+            if sdk_language != "python"
             else ["Generic[Filterable]", "HighOrderOperator[Filterable]"]
         )
         obj_interfaces.append(
@@ -1604,7 +1610,7 @@ def generate_interfaces(
         if len(interface_fields) > 0:
             # Result sets are non-deterministic and there is no way to know if a column value can be NULL.
             # Thus, we must assume that is always the case.
-            if sdk_language == "TypeScript":
+            if sdk_language == "typescript":
                 required_datatypes.add("MaybeNull")
 
             result_fields = {
@@ -1617,14 +1623,14 @@ def generate_interfaces(
                     fields=result_fields,
                     sdk_language=sdk_language,
                     parents=(
-                        ["JsonObject"] if sdk_language == "TypeScript" else []
+                        ["JsonObject"] if sdk_language == "typescript" else []
                     ),  # TypeScript tagged unions inherit from JsonObject
                 )
             )
 
             # The Python SDK uses a generic dataclass for the tagged union of result set types.
             # The generic dataclass needs to know the possible values of the "type" field.
-            if sdk_language == "Python":
+            if sdk_language == "python":
                 obj_interfaces.append(
                     generate_enum(
                         name=f"{class_name}Type",
@@ -1636,7 +1642,7 @@ def generate_interfaces(
     else: # kind = "PARAMETERS"
         if len(param_interface_fields) > 0:
             # Parameters are "optional" in a way that they can be NULL at the SQL level.
-            if sdk_language == "TypeScript":
+            if sdk_language == "typescript":
                 required_datatypes.add("MaybeNull")
 
         # Type definition for the set of IN/INOUT Parameters.
@@ -1674,7 +1680,7 @@ def generate_nested_interfaces(
         obj_interfaces, parent_interface_fields, parent_field,
         reference_class_name_suffix,
         fields, class_name, reference_obj,
-        sdk_language: ProgrammingLanguage = "TypeScript",
+        sdk_language: ProgrammingLanguage = "typescript",
         fully_qualified_parent_name: str = "",
         nested_fields: set[str] = set(),
         nesting_fields: set[str] = set(),

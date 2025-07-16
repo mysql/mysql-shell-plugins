@@ -34,6 +34,7 @@ import shutil
 import json
 import tomllib
 import datetime
+from typing import Literal
 
 
 def verify_value_keys(**kwargs):
@@ -203,20 +204,17 @@ def call_update_service(op_text, **kwargs):
     return False
 
 
-def file_name_using_language_convention(name, sdk_language):
-    if sdk_language == "Python":
+def file_name_using_language_convention(name, sdk_language: Literal["typescript", "python"] = "typescript"):
+    if sdk_language == "python":
         return lib.core.convert_to_snake_case(name)
     return name
 
 
-def default_copyright_header(sdk_language):
+def default_copyright_header(sdk_language: Literal["typescript", "python"] = "typescript"):
     header = "Copyright (c) 2023, 2025, Oracle and/or its affiliates."
-
-    if sdk_language == "TypeScript":
+    if sdk_language == "typescript":
         return f"// {header}"
-
-    if sdk_language == "Python":
-        return f"# {header}"
+    return f"# {header}"
 
 
 def generate_create_statement(**kwargs):
@@ -880,7 +878,8 @@ def get_sdk_base_classes(**kwargs):
     Returns:
         The SDK base classes source
     """
-    sdk_language = kwargs.get("sdk_language", "TypeScript")
+    # internally, we use the programming language name in lowercase
+    sdk_language = kwargs.get("sdk_language", "TypeScript").lower()
     prepare_for_runtime = kwargs.get("prepare_for_runtime", False)
 
     return lib.sdk.get_base_classes(sdk_language=sdk_language, prepare_for_runtime=prepare_for_runtime)
@@ -906,7 +905,8 @@ def get_sdk_service_classes(**kwargs):
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
     service_id = kwargs.get("service_id")
-    sdk_language = kwargs.get("sdk_language", "TypeScript")
+    # internally, we use the programming language name in lowercase
+    sdk_language = kwargs.get("sdk_language", "TypeScript").lower()
     prepare_for_runtime = kwargs.get("prepare_for_runtime", False)
     service_url = kwargs.get("service_url")
 
@@ -971,7 +971,11 @@ def dump_sdk_service_files(**kwargs):
         mrs_config = {}
 
     mrs_config["serviceId"] = options.get("service_id", mrs_config.get("serviceId"))
-    mrs_config["sdkLanguage"] = options.get("sdk_language", mrs_config.get("sdkLanguage", "TypeScript"))
+    # the config file should mention the conventional programming language name
+    mrs_config["sdkLanguage"] = lib.sdk.SUPPORTED_LANGUAGES.get(
+        options.get("sdk_language", mrs_config.get("sdkLanguage")).lower(),
+        options.get("sdk_language", ""),
+    )
     mrs_config["serviceUrl"] = options.get("service_url", mrs_config.get("serviceUrl"))
     mrs_config["addAppBaseClass"] = options.get("add_app_base_class", mrs_config.get("addAppBaseClass"))
     mrs_config["dbConnectionUri"] = options.get("db_connection_uri", mrs_config.get("dbConnectionUri"))
@@ -983,10 +987,11 @@ def dump_sdk_service_files(**kwargs):
     if mrs_config.get("serviceUrl") is None:
         raise Exception("The service URL is required.")
 
-    mrs_config["header"] = options.get(
-        "header", default_copyright_header(mrs_config["sdkLanguage"]))
+    # internally, we use the programming language name in lowercase
+    sdk_language = mrs_config["sdkLanguage"].lower()
 
-    sdk_language = mrs_config["sdkLanguage"]
+    mrs_config["header"] = options.get(
+        "header", default_copyright_header(sdk_language))
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         if mrs_config.get("serviceId") is None:
@@ -1005,27 +1010,30 @@ def dump_sdk_service_files(**kwargs):
         service_name = lib.core.convert_path_to_camel_case(
             service.get("url_context_root"))
 
-        if sdk_language == "TypeScript":
+        if sdk_language == "typescript":
             file_type = "ts"
             base_classes_file = os.path.join(directory, "MrsBaseClasses.ts")
             metadata = Path(
                 os.path.dirname(os.path.abspath(__file__)),
                 "sdk",
-                sdk_language.lower(),
+                sdk_language,
                 "package.json",
             ).read_text()
             version = json.loads(metadata).get("version")
 
-        elif sdk_language == "Python":
+        elif sdk_language == "python":
             file_type = "py"
             base_classes_file = os.path.join(directory, "mrs_base_classes.py")
             metadata = Path(
                 os.path.dirname(os.path.abspath(__file__)),
                 "sdk",
-                sdk_language.lower(),
+                sdk_language,
                 "pyproject.toml",
             ).read_text()
             version = tomllib.loads(metadata).get("project").get("version")
+
+        else:
+            raise lib.sdk.LanguageNotSupportedError(sdk_language)
 
         mrs_config["version"] = version
 
@@ -1047,7 +1055,7 @@ def dump_sdk_service_files(**kwargs):
 
         if add_app_base_class is not None and isinstance(add_app_base_class, str) and add_app_base_class != '':
             path = os.path.abspath(__file__)
-            file_path = Path(os.path.dirname(path), "sdk", sdk_language.lower(), add_app_base_class)
+            file_path = Path(os.path.dirname(path), "sdk", sdk_language, add_app_base_class)
             shutil.copy(file_path, os.path.join(directory, add_app_base_class))
 
     # cspell:ignore timespec
@@ -1056,7 +1064,7 @@ def dump_sdk_service_files(**kwargs):
         f.write(json.dumps(mrs_config, indent=4))
 
     # TODO: this should be in a separate function (maybe context-aware for each language)
-    if sdk_language == "Python":
+    if sdk_language == "python":
         # In Python, we should create a "__init__.py" file to be able to import the directory as a regular package
         package_file = Path(directory, "__init__.py")
         with open(package_file, "w") as f:
