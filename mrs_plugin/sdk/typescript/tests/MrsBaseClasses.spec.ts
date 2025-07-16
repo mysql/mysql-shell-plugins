@@ -1909,6 +1909,27 @@ describe("MRS SDK API", () => {
         });
 
         describe("starting an asynchronous task", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "SCHEDULED" }) })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("schedules a new task for the routine", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }, unknown, unknown>(
+                    schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value, done } = await iterator.next();
+                expect(value).toHaveProperty("status", "SCHEDULED");
+                expect(done).toBeFalsy();
+            });
+
             it("does not fail if a refresh rate is not specified", () => {
                 expect(() => {
                     return new MrsBaseTaskStart<{ name: string }, unknown, unknown>(

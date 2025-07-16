@@ -69,6 +69,7 @@ from ..mrs_base_classes import (
     IMrsProcedureResponse,
     IMrsResourceDetails,
     IMrsRunningTaskReport,
+    IMrsScheduledTaskReport,
     IMrsTaskCallOptions,
     IMrsTaskReport,
     IMrsTaskStartOptions,
@@ -2006,6 +2007,8 @@ def _get_report_sequence_of_task(
                 result_type_hint_struct=result_type_hint_struct,
                 routine_type=routine_type,
             )
+        elif response["status"] == "SCHEDULED":
+            report = IMrsScheduledTaskReport(response)
         elif response["status"] == "RUNNING":
             report = IMrsRunningTaskReport(response)
         elif response["status"] == "CANCELLED":
@@ -2080,6 +2083,12 @@ def _get_report_sequence_of_task(
                 ),
                 "status_update_responses": [
                     IMrsTaskStatusUpdateResponse(
+                        data=None,
+                        status="SCHEDULED",
+                        message="progress report",
+                        progress=0,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
                         data={"last_update": "2024-09-30 14:59:01"},
                         status="RUNNING",
                         message="progress report",
@@ -2126,6 +2135,12 @@ def _get_report_sequence_of_task(
                 ),
                 "status_update_responses": [
                     IMrsTaskStatusUpdateResponse(
+                        data=None,
+                        status="SCHEDULED",
+                        message="task created",
+                        progress=0,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
                         data={"last_update": "2024-09-30 14:59:01"},
                         status="RUNNING",
                         message="progress report",
@@ -2161,6 +2176,12 @@ def _get_report_sequence_of_task(
                     task_id="0b67434a-30ea-11f0-a7f3-00155da81f6b",
                 ),
                 "status_update_responses": [
+                    IMrsTaskStatusUpdateResponse(
+                        data=None,
+                        status="SCHEDULED",
+                        message="task created",
+                        progress=0,
+                    ),
                     IMrsTaskStatusUpdateResponse(
                         data={"last_update": "2024-09-30 14:59:01"},
                         status="RUNNING",
@@ -2261,7 +2282,7 @@ async def test_routine_start_task(
     async for report in task.watch():
         report_seq.append(report)
 
-        if report.status != "RUNNING":
+        if report.status not in ("SCHEDULED", "RUNNING"):
             if report.status == "TIMEOUT":
                 # verify kill()
                 await task.kill()
@@ -2405,6 +2426,12 @@ async def test_routine_call_task(
     }
     task_id = "0b67434a-30ea-11f0-a7f3-00155da81f6b"
     status_update_seq: list[IMrsTaskStatusUpdateResponse] = [
+        IMrsTaskStatusUpdateResponse(
+            data=None,
+            status="SCHEDULED",
+            message="task created",
+            progress=0,
+        ),
         IMrsTaskStatusUpdateResponse(
             data={"last_update": "2024-09-30 14:59:01"},
             status="RUNNING",

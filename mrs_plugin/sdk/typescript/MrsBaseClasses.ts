@@ -1664,13 +1664,18 @@ interface IMrsTaskStartResponse {
     statusUrl: string
 }
 
-type MrsTaskStatusUpdateStage = "RUNNING" | "COMPLETED" | "ERROR" | "CANCELLED";
+type MrsTaskStatusUpdateStage = "SCHEDULED" | "RUNNING" | "COMPLETED" | "ERROR" | "CANCELLED";
 
 interface IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult> {
     data: MrsTaskStatusUpdate | MrsTaskResult
     status: MrsTaskStatusUpdateStage
     message: string
     progress: number
+}
+
+interface IMrsScheduledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress"> {
+    status: "SCHEDULED"
 }
 
 export interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
@@ -1701,7 +1706,8 @@ interface IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
 }
 
 export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
-    IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    IMrsScheduledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     | IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     | IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     | IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
@@ -1785,13 +1791,20 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
                 return yield { data, message, status };
             }
 
-            const runningTaskReport = statusUpdate as IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+            if (statusUpdate.status === "SCHEDULED") {
+                // this is not a final status report, so the produced must be kept open
+                const { message, status } = statusUpdate;
 
-            if (progress) {
-                await progress(runningTaskReport);
+                yield { message, status };
+            } else {
+                const runningTaskReport = statusUpdate as IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+
+                if (progress) {
+                    await progress(runningTaskReport);
+                }
+
+                yield runningTaskReport;
             }
-
-            yield runningTaskReport;
 
             // Ensure potential future status updates are retrieved in subsequent event loop iterations to avoid CPU
             // churn

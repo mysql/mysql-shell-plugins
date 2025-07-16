@@ -3189,40 +3189,45 @@ Service - SDK Reference
 <span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]</span>
 <span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskStatusUpdate<span class="op">;</span></span>
-<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;RUNNING&quot;</span><span class="op">;</span></span>
-<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb75-23"><a href="#cb75-23" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskResult<span class="op">;</span></span>
-<span id="cb75-24"><a href="#cb75-24" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="op">;</span></span>
-<span id="cb75-25"><a href="#cb75-25" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb75-26"><a href="#cb75-26" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb75-27"><a href="#cb75-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-28"><a href="#cb75-28" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb75-29"><a href="#cb75-29" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;CANCELLED&quot;</span><span class="op">;</span></span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsScheduledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;SCHEDULED&quot;</span><span class="op">;</span></span>
+<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskStatusUpdate<span class="op">;</span></span>
+<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;RUNNING&quot;</span><span class="op">;</span></span>
+<span id="cb75-23"><a href="#cb75-23" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb75-24"><a href="#cb75-24" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb75-25"><a href="#cb75-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb75-26"><a href="#cb75-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-27"><a href="#cb75-27" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb75-28"><a href="#cb75-28" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskResult<span class="op">;</span></span>
+<span id="cb75-29"><a href="#cb75-29" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="op">;</span></span>
 <span id="cb75-30"><a href="#cb75-30" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
 <span id="cb75-31"><a href="#cb75-31" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb75-32"><a href="#cb75-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-33"><a href="#cb75-33" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsErrorTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb75-34"><a href="#cb75-34" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;ERROR&quot;</span><span class="op">;</span></span>
+<span id="cb75-33"><a href="#cb75-33" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb75-34"><a href="#cb75-34" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;CANCELLED&quot;</span><span class="op">;</span></span>
 <span id="cb75-35"><a href="#cb75-35" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
 <span id="cb75-36"><a href="#cb75-36" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb75-37"><a href="#cb75-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-38"><a href="#cb75-38" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTimedOutTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb75-39"><a href="#cb75-39" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;TIMEOUT&quot;</span><span class="op">;</span></span>
+<span id="cb75-38"><a href="#cb75-38" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsErrorTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb75-39"><a href="#cb75-39" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;ERROR&quot;</span><span class="op">;</span></span>
 <span id="cb75-40"><a href="#cb75-40" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
 <span id="cb75-41"><a href="#cb75-41" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb75-42"><a href="#cb75-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-43"><a href="#cb75-43" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMrsTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="op">=</span></span>
-<span id="cb75-44"><a href="#cb75-44" aria-hidden="true" tabindex="-1"></a>    IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
-<span id="cb75-45"><a href="#cb75-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
-<span id="cb75-46"><a href="#cb75-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
-<span id="cb75-47"><a href="#cb75-47" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsErrorTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
-<span id="cb75-48"><a href="#cb75-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsTimedOutTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;;</span></span></code></pre></div>
+<span id="cb75-43"><a href="#cb75-43" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTimedOutTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb75-44"><a href="#cb75-44" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;TIMEOUT&quot;</span><span class="op">;</span></span>
+<span id="cb75-45"><a href="#cb75-45" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb75-46"><a href="#cb75-46" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb75-47"><a href="#cb75-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-48"><a href="#cb75-48" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMrsTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="op">=</span></span>
+<span id="cb75-49"><a href="#cb75-49" aria-hidden="true" tabindex="-1"></a>    IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb75-50"><a href="#cb75-50" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb75-51"><a href="#cb75-51" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb75-52"><a href="#cb75-52" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsErrorTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb75-53"><a href="#cb75-53" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsTimedOutTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;;</span></span></code></pre></div>
                 <h3 data-number="5.21.3" id="example-watch"><span
                 class="header-section-number">5.21.3</span> Example
                 (watch)</h3>
@@ -5374,14 +5379,16 @@ Service - SDK Reference
                 client-standpoint, a Task can produce the following type
                 of events (status updates):</p>
                 <ul>
-                <li><code>TIMEOUT</code> if the routine does not produce
-                a result before a given timeout</li>
+                <li><code>SCHEDULED</code> starting the routine
+                schedules a new task</li>
                 <li><code>RUNNING</code> progress status updates whilst
                 the procedure is running</li>
-                <li><code>ERROR</code> runtime error whilst executing
-                the routine</li>
                 <li><code>COMPLETE</code> result produced by the routine
                 after it finishes</li>
+                <li><code>TIMEOUT</code> if the routine does not produce
+                a result before a given timeout</li>
+                <li><code>ERROR</code> runtime error whilst executing
+                the routine</li>
                 <li><code>CANCELLED</code> when the associated
                 asynchronous task is killed before the routine
                 finishes</li>

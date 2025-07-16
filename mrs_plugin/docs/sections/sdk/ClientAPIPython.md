@@ -1385,10 +1385,11 @@ mysql> CREATE FUNCTION delayed_hello_proc (name CHAR(20), out salute CHAR(40))
 
 Asynchronous Tasks are an MRS construct used to manage the life-cycle of a long-running procedure which clients can poll to monitor for status updates. From the client-standpoint, a Task can produce the following type of events (status updates):
 
-- `TIMEOUT` if the routine does not produce a result before a given timeout
+- `SCHEDULED` starting the routine schedules a new task
 - `RUNNING` progress status updates whilst the procedure is running
-- `ERROR` runtime error whilst executing the routine
 - `COMPLETE` result produced by the routine after it finishes
+- `TIMEOUT` if the routine does not produce a result before a given timeout
+- `ERROR` runtime error whilst executing the routine
 - `CANCELLED` when the associated asynchronous task is killed before the routine finishes
 
 ### Task.watch (PY)

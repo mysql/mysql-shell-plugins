@@ -13,6 +13,7 @@
 - BUG#38043368 Type check error when accessing OUT parameters for Async Procedure in the MRS TypeScript SDK
 - BUG#38094986 Python SDK: Service.authenticate() documentation
 - BUG#38160406 Python SDK vs. REST SERVICE SQL clause AUTHENTICATION PATH
+- BUG#38027483 Python SDK: async support and status=SCHEDULED
 -
 
 ## Changes in 1.19.14+9.3.1
