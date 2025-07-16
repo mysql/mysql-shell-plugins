@@ -852,6 +852,11 @@ interface IMrsProcedureResult<OutParams, ResultSet> {
     resultSets: ResultSet[]
 }
 
+interface IMrsScheduledTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    status: "SCHEDULED";
+    message: string;
+}
+
 interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
     data: MrsTaskStatusUpdate;
     status: "RUNNING";

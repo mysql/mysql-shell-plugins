@@ -426,7 +426,7 @@ type AuthApps = list[AuthApp]
 class IMrsTaskStatusUpdateResponse(TypedDict):
 
     data: Optional[dict[str, Any]]
-    status: Literal["RUNNING", "COMPLETED", "ERROR", "CANCELLED"]
+    status: Literal["SCHEDULED", "RUNNING", "COMPLETED", "ERROR", "CANCELLED"]
     message: str
     progress: int
 
@@ -476,6 +476,15 @@ class IMrsCompletedTaskReport(Generic[IMrsTaskResult]):
 
 
 @dataclass(init=False, repr=True)
+class IMrsScheduledTaskReport:
+    message: str
+    status: Literal["SCHEDULED"] = "SCHEDULED"
+
+    def __init__(self, status_update: IMrsTaskStatusUpdateResponse):
+        self.message = status_update["message"]
+
+
+@dataclass(init=False, repr=True)
 class IMrsRunningTaskReport:
     message: str
     progress: int
@@ -511,7 +520,8 @@ class IMrsTimeoutTaskReport:
 
 
 IMrsTaskReport = (
-    IMrsRunningTaskReport
+    IMrsScheduledTaskReport
+    | IMrsRunningTaskReport
     | IMrsCompletedTaskReport[IMrsTaskResult]
     | IMrsCancelledTaskReport
     | IMrsErrorTaskReport
@@ -1859,13 +1869,18 @@ class MrsBaseTaskWatch(Generic[IMrsTaskResult]):
                 )
 
                 # previous request didn't timeout, so we handle response
-                if status_update["status"] != "RUNNING":
+                if status_update["status"] not in ("SCHEDULED", "RUNNING"):
                     break
 
-                status_update = IMrsRunningTaskReport(status_update)
-                if progress:
-                    await progress(status_update)
-                yield status_update
+                # if a task is still scheduled, it means it will eventually run, so we cannot
+                # break the loop
+                if status_update["status"] == "SCHEDULED":
+                    yield IMrsScheduledTaskReport(status_update)
+                else:
+                    status_update = IMrsRunningTaskReport(status_update)
+                    if progress:
+                        await progress(status_update)
+                    yield status_update
 
                 # let's sleep and resume when `refresh_rate` secs have gone by,
                 # or when the timeout is reached.
@@ -1881,7 +1896,6 @@ class MrsBaseTaskWatch(Generic[IMrsTaskResult]):
                 if not timeout_triggered:
                     timeout_triggered = True
                     yield IMrsTimeoutTaskReport()
-
         if status_update["status"] == "ERROR":
             yield IMrsErrorTaskReport(status_update)
         elif status_update["status"] == "CANCELLED":
