@@ -213,10 +213,10 @@ auth_apps = await my_service.get_auth_apps()
 
 : REST Service Options for Authentication
 
-The following authentication application names are supported:
+The following authentication app vendors are supported:
 
 - *MRS*
-- *MySQL*
+- *MySQL Internal*
 
 #### Return Type (authenticate)
 
