@@ -2863,10 +2863,14 @@ class MrsService(ABC):
     """`Service` Interface."""
 
     @abstractmethod
-    def __init__(self, service_url: str, verify_tls_cert: bool | str = True) -> None:
+    def __init__(
+        self,
+        service_url: str,
+        auth_path: str = "/authentication",
+        verify_tls_cert: bool | str = True,
+    ) -> None:
         self._service_url: str = service_url
-        self._auth_path: str = "/authentication/login"
-        self._deauth_path: str = "/authentication/logout"
+        self._auth_path: str = auth_path
         self._session: MrsBaseSession = {"access_token": None, "gtid": None}
         self._verify_tls_cert: bool | str = verify_tls_cert
         self._tls_context: Optional[ssl.SSLContext] = None
@@ -2925,7 +2929,7 @@ class Authenticating(MrsService):
                 the data.
         """
         req = Request(
-            url=f"{self._service_url}/authentication/authApps",
+            url=f"{self._service_url}{self._auth_path}/authApps",
             headers={"Accept": "application/json"},
             method="GET",
         )
@@ -2952,7 +2956,7 @@ class Authenticating(MrsService):
         """
         request = MrsAuthenticate(
             service=self,
-            request_path=f"{self._service_url}{self._auth_path}",
+            request_path=f"{self._service_url}{self._auth_path}/login",
             **options,
         )
         return await request.submit()
@@ -2964,6 +2968,6 @@ class Authenticating(MrsService):
             DeauthenticationError: if no user is currently authenticated.
         """
         request = MrsDeauthenticate(
-            service=self, request_path=f"{self._service_url}{self._deauth_path}"
+            service=self, request_path=f"{self._service_url}{self._auth_path}/logout"
         )
         return await request.submit()

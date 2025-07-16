@@ -420,6 +420,7 @@ class ${service_class_name}(
     def __init__(self, base_url: str = "${service_url}", verify_tls_cert: bool | str = True) -> None:
         super().__init__(
             service_url=base_url,
+            auth_path="${service_auth_path}",
             verify_tls_cert=verify_tls_cert
         )
         # --- schemaLoopStart
