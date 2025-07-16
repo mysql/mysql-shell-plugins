@@ -631,6 +631,24 @@ def store_service_create_statement(session, service: dict,
         os.remove(file_path)
 
 
+def store_project_validations(session, destination: str, services: list, schemas: list, project_settings: dict, create_zip: bool):
+    for service_data in services:
+        service_name = service_data["name"]
+        service = get_service(session, url_context_root=service_name)
+        if service is None:
+            raise Exception(f"The service '{service_name}' was not found.")
+
+    for schema_request_path in schemas:
+        file_name = schema_request_path["file_name"]
+        if not (os.path.exists(file_name) and \
+            (os.path.isfile(file_name) or os.path.isdir(file_name))):
+
+            raise Exception(f"The given schema '{file_name}' was not found")
+
+    if project_settings["icon_path"]:
+        if not os.path.isfile(project_settings["icon_path"]):
+            raise Exception("The icon path is not valid.")
+
 def store_project(session, destination: str, services: list, schemas: list, project_settings: dict, create_zip: bool):
     config = {
         "name": project_settings["name"],

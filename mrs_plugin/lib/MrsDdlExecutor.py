@@ -3272,18 +3272,25 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         publisher: str | None = mrs_object.get("publisher")
 
         try:
+            project_settings = {
+                "name": project_name,
+                "icon_path": icon_path,
+                "description": description,
+                "publisher": publisher,
+                "version": version
+            }
             lib.core.validate_path_for_filesystem(destination)
+            lib.services.store_project_validations(self.session,
+                                       destination=destination,
+                                       services=services,
+                                       schemas=schemas,
+                                       project_settings=project_settings,
+                                       create_zip=create_zip)
             lib.services.store_project(self.session,
                                        destination=destination,
                                        services=services,
                                        schemas=schemas,
-                                       project_settings={
-                                           "name": project_name,
-                                           "icon_path": icon_path,
-                                           "description": description,
-                                           "publisher": publisher,
-                                           "version": version
-                                       },
+                                       project_settings=project_settings,
                                        create_zip=create_zip)
 
             result = [{"DUMP REST PROJECT ": f"Result stored in '{mrs_object["directory_file_path"]}'"}]

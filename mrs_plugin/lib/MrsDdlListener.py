@@ -2150,7 +2150,7 @@ class MrsDdlListener(MRSListener):
     def enterRestProjectName(self, ctx):
         self.mrs_object["project_name"] = get_text_without_quotes(ctx.textStringLiteral().getText())
 
-    def enterRestProjectVersionIdentifier(self, ctx):
+    def enterRestProjectVersion(self, ctx):
         self.mrs_object["version"] = get_text_without_quotes(ctx.textStringLiteral().getText())
 
     def exitDumpRestProjectStatement(self, ctx:MRSParser.DumpRestProjectStatementContext):
