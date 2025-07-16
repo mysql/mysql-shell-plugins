@@ -30,7 +30,7 @@ def test_get_interface_datatype():
         "field": {
             "name": "field"
         },
-        "sdk_language": "TypeScript",
+        "sdk_language": "typescript",
         "nullable": True,
     }
 
@@ -45,7 +45,7 @@ def test_get_interface_datatype():
     type = get_interface_datatype(**args)
     assert type == "string"
 
-    args["sdk_language"] = "Python"
+    args["sdk_language"] = "python"
     type = get_interface_datatype(**args)
     assert type == "str"
 
@@ -53,12 +53,12 @@ def test_get_interface_datatype():
         "datatype": "int",
         "not_null": False
     }
-    args["sdk_language"] = "TypeScript"
+    args["sdk_language"] = "typescript"
 
     type = get_interface_datatype(**args)
     assert type == "MaybeNull<number>"
 
-    args["sdk_language"] = "Python"
+    args["sdk_language"] = "python"
     type = get_interface_datatype(**args)
     assert type == "Optional[int]"
 
@@ -74,7 +74,7 @@ def test_get_interface_datatype():
 
 def test_get_datatype_mapping():
     datatype_map = {
-        "TypeScript": {
+        "typescript": {
             ("tinyint(1)", "bit(1)"): "boolean",
             (
                 "tinyint",
@@ -97,7 +97,7 @@ def test_get_datatype_mapping():
             ("MULTIPOLYGON",): "MultiPolygon",
             ("varchar",): "string",
         },
-        "Python": {
+        "python": {
             ("tinyint(1)", "bit(1)"): "bool",
             (
                 "tinyint",
@@ -143,7 +143,7 @@ def test_get_datatype_mapping():
 def test_datatype_is_primitive():
     args = {
         "client_datatype": "boolean",
-        "sdk_language": "TypeScript"
+        "sdk_language": "typescript"
     }
     is_native = datatype_is_primitive(**args)
     assert is_native is True
@@ -161,7 +161,7 @@ def test_datatype_is_primitive():
     assert is_native is False
 
     args["client_datatype"] = "bool"
-    args["sdk_language"] = "Python"
+    args["sdk_language"] = "python"
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
@@ -242,7 +242,7 @@ import {
 } from "somewhere";\n"""
 
     res = substitute_imports_in_template(
-        template=template, required_datatypes={"foo"}, sdk_language="TypeScript"
+        template=template, required_datatypes={"foo"}, sdk_language="typescript"
     )
     got = res.get("template")
 
@@ -254,7 +254,7 @@ import {
 } from "somewhere";\n"""
 
     res = substitute_imports_in_template(
-        template=template, required_datatypes={"foo", "bar"}, sdk_language="TypeScript"
+        template=template, required_datatypes={"foo", "bar"}, sdk_language="typescript"
     )
     got = res.get("template")
 
@@ -284,7 +284,7 @@ import {
     res = substitute_imports_in_template(
         template=template,
         enabled_crud_ops={"Read", "Create"},
-        sdk_language="TypeScript",
+        sdk_language="typescript",
     )
     got = res.get("template")
 
@@ -365,7 +365,7 @@ def test_generate_function_interface():
     obj_endpoint = "https://localhost:8443/myService/sakila/sumFunc"
 
     got, _ = generate_interfaces(
-        db_obj, obj, fields, class_name, "Python", db_object_crud_ops, obj_endpoint
+        db_obj, obj, fields, class_name, "python", db_object_crud_ops, obj_endpoint
     )
 
     want = """class IMyServiceSakilaSumFuncParams(TypedDict, total=False):
@@ -403,7 +403,7 @@ export interface IFooCursors {
 """
 
     got, _ = generate_interfaces(
-        db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops
+        db_obj, obj, fields, class_name, "typescript", db_object_crud_ops
     )
 
     assert got == want
@@ -430,7 +430,7 @@ export interface IFooCursors {
 """
 
     got, _ = generate_interfaces(
-        db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops
+        db_obj, obj, fields, class_name, "typescript", db_object_crud_ops
     )
 
     assert got == want
@@ -511,7 +511,7 @@ class I{name}Cursors(TypedDict, total=False):
         obj,
         fields,
         class_name,
-        "Python",
+        "python",
         db_object_crud_ops,
         obj_endpoint=obj_endpoint,
     )
@@ -525,7 +525,7 @@ class I{name}Cursors(TypedDict, total=False):
         fields=fields,
         class_name="Foo",
         db_object_crud_ops=["PROCEDURECALL"],
-        sdk_language="TypeScript",
+        sdk_language="typescript",
     )
 
     want = """export interface IFoo {
@@ -549,16 +549,16 @@ def test_generate_field_enum():
     field_enum = generate_field_enum("Foo", ["bar"])
     assert field_enum == ""
 
-    field_enum = generate_field_enum("Foo", ["bar"], "TypeScript")
+    field_enum = generate_field_enum("Foo", ["bar"], "typescript")
     assert field_enum == ""
 
-    field_enum = generate_field_enum("Foo", [], "Python")
+    field_enum = generate_field_enum("Foo", [], "python")
     assert field_enum == "IFooField: TypeAlias = None\n\n\n"
 
-    field_enum = generate_field_enum("Foo", None, "Python")
+    field_enum = generate_field_enum("Foo", None, "python")
     assert field_enum == "IFooField: TypeAlias = None\n\n\n"
 
-    field_enum = generate_field_enum("Foo", ["bar", "baz"], "Python")
+    field_enum = generate_field_enum("Foo", ["bar", "baz"], "python")
     assert field_enum == """IFooField: TypeAlias = Literal[
     "bar",
     "baz",
@@ -566,56 +566,56 @@ def test_generate_field_enum():
 
 
 def test_generate_type_declaration_field():
-    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="TypeScript")
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="typescript")
     assert type_declaration_field == "    foo: bar,\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="TypeScript", non_mandatory=True)
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="typescript", non_mandatory=True)
     assert type_declaration_field == "    foo?: bar,\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="Python")
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="python")
     assert type_declaration_field == "    foo: bar\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="Python", non_mandatory=True)
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="python", non_mandatory=True)
     assert type_declaration_field == "    foo: NotRequired[bar]\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="TypeScript")
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="typescript")
     assert type_declaration_field == "    foo: bar[],\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="TypeScript", non_mandatory=True)
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="typescript", non_mandatory=True)
     assert type_declaration_field == "    foo?: bar[],\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="Python")
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="python")
     assert type_declaration_field == "    foo: list[bar]\n"
 
-    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="Python", non_mandatory=True)
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="python", non_mandatory=True)
     assert type_declaration_field == "    foo: NotRequired[list[bar]]\n"
 
     # test that the language convention is being applied
-    type_declaration_field = generate_type_declaration_field(name="fooBar", value="baz", sdk_language="Python")
+    type_declaration_field = generate_type_declaration_field(name="fooBar", value="baz", sdk_language="python")
     assert type_declaration_field == "    foo_bar: baz\n"
 
-    type_declaration_field = generate_type_declaration_field(name="fooBar", value="baz", sdk_language="Python", non_mandatory=True)
+    type_declaration_field = generate_type_declaration_field(name="fooBar", value="baz", sdk_language="python", non_mandatory=True)
     assert type_declaration_field == "    foo_bar: NotRequired[baz]\n"
 
 
 def test_generate_type_declaration_placeholder():
     type_declaration_placeholder = generate_type_declaration_placeholder(
-        name="Foo", sdk_language="TypeScript"
+        name="Foo", sdk_language="typescript"
     )
     assert type_declaration_placeholder == "type IFoo = never;\n\n"
 
     type_declaration_placeholder = generate_type_declaration_placeholder(
-        name="Foo", sdk_language="Python"
+        name="Foo", sdk_language="python"
     )
     assert type_declaration_placeholder == "IFoo: TypeAlias = None\n\n\n"
 
     type_declaration_placeholder = generate_type_declaration_placeholder(
-        name="Foo", sdk_language="Python", is_unpacked=False
+        name="Foo", sdk_language="python", is_unpacked=False
     )
     assert type_declaration_placeholder == "IFoo: TypeAlias = None\n\n\n"
 
     type_declaration_placeholder = generate_type_declaration_placeholder(
-        name="Foo", sdk_language="Python", is_unpacked=True
+        name="Foo", sdk_language="python", is_unpacked=True
     )
     assert type_declaration_placeholder == "class IFoo(TypedDict):\n    pass\n\n\n"
 
@@ -637,7 +637,7 @@ def test_generate_type_declaration():
     )
 
     type_declaration = generate_type_declaration(
-        "Foo", ["Bar", "Baz"], {"qux": "quux"}, "Python"
+        "Foo", ["Bar", "Baz"], {"qux": "quux"}, "python"
     )
     assert type_declaration == (
         """class IFoo(TypedDict, Bar, Baz):
@@ -650,7 +650,7 @@ def test_generate_type_declaration():
     type_declaration = generate_type_declaration(
         name="Foo",
         fields={"bar": "baz", "qux": "quux"},
-        sdk_language="Python",
+        sdk_language="python",
         non_mandatory_fields={"qux"},
     )
     assert type_declaration == (
@@ -667,7 +667,7 @@ def test_generate_type_declaration():
         parents=["Bar", "Baz"],
         fields={"qux": "quux"},
         ignore_base_types=True,
-        sdk_language="Python",
+        sdk_language="python",
     )
     assert type_declaration == (
         """class IFoo(Bar, Baz):
@@ -705,7 +705,7 @@ def test_generate_type_declaration():
         name="Foo",
         fields=fields,
         non_mandatory_fields=set(fields),
-        sdk_language="Python",
+        sdk_language="python",
     )
     assert type_declaration == (
         """class IFoo(TypedDict, total=False):
@@ -719,7 +719,7 @@ def test_generate_type_declaration():
     type_declaration = generate_type_declaration(
         name="Foo",
         fields=fields,
-        sdk_language="Python",
+        sdk_language="python",
     )
     assert type_declaration == (
         """class IFoo(TypedDict):
@@ -731,7 +731,7 @@ def test_generate_type_declaration():
     )
 
     type_declaration = generate_type_declaration(
-        name="Foo", fields=fields, non_mandatory_fields={"qux"}, sdk_language="Python"
+        name="Foo", fields=fields, non_mandatory_fields={"qux"}, sdk_language="python"
     )
     assert type_declaration == (
         """class IFoo(TypedDict):
@@ -746,12 +746,12 @@ def test_generate_type_declaration():
     assert type_declaration == ""
 
     type_declaration = generate_type_declaration(
-        name="Foo", fields=[], requires_placeholder=True, sdk_language="TypeScript"
+        name="Foo", fields=[], requires_placeholder=True, sdk_language="typescript"
     )
     assert type_declaration == "type IFoo = never;\n\n"
 
     type_declaration = generate_type_declaration(
-        name="Foo", fields=[], requires_placeholder=True, sdk_language="Python"
+        name="Foo", fields=[], requires_placeholder=True, sdk_language="python"
     )
     assert type_declaration == "IFoo: TypeAlias = None\n\n\n"
 
@@ -760,12 +760,12 @@ def test_generate_data_class():
     # TypeScript
     fields = {"foo": "baz", "bar": "qux"}
     data_class = generate_data_class(
-        "Foobar", fields, "TypeScript", ["CREATE", "READ", "UPDATE", "DELETE"]
+        "Foobar", fields, "typescript", ["CREATE", "READ", "UPDATE", "DELETE"]
     )
     assert data_class == generate_type_declaration(
         name="Foobar",
         fields=fields,
-        sdk_language="TypeScript",
+        sdk_language="typescript",
         non_mandatory_fields=set(fields),
     )
 
@@ -804,7 +804,7 @@ def test_generate_data_class():
             data_class = generate_data_class(
                 name,
                 {"foo": "baz", "barBaz": "qux"},
-                "Python",
+                "python",
                 db_object_crud_ops + db_object_delete_op,
                 obj_endpoint=obj_endpoint,
                 primary_key_fields=obj_prk_fields,
@@ -827,10 +827,10 @@ def test_generate_data_class():
 
 
 def test_generate_literal_type():
-    literal = generate_literal_type(["foo", "bar"], "TypeScript")
+    literal = generate_literal_type(["foo", "bar"], "typescript")
     assert literal == '"foo" | "bar"'
 
-    literal = generate_literal_type(["foo", "bar"], "Python")
+    literal = generate_literal_type(["foo", "bar"], "python")
     assert (
         literal
         == """Literal[
@@ -841,10 +841,10 @@ def test_generate_literal_type():
 
 
 def test_generate_selectable():
-    selectable = generate_selectable("Foo", {"bar": "baz", "qux": "quux"}, "TypeScript")
+    selectable = generate_selectable("Foo", {"bar": "baz", "qux": "quux"}, "typescript")
     assert selectable == ""
 
-    selectable = generate_selectable("Foo", {"bar": "baz", "qux": "quux"}, "Python")
+    selectable = generate_selectable("Foo", {"bar": "baz", "qux": "quux"}, "python")
     assert selectable == (
         "class IFooSelectable(TypedDict, total=False):\n"
         + "    bar: bool\n"
@@ -853,36 +853,36 @@ def test_generate_selectable():
 
 
 def test_generate_sortable():
-    sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "TypeScript")
+    sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "typescript")
     assert sortable == 'export type IFooSortable = ["bar", "qux"];\n\n'
 
     sortable = generate_sortable(name="Foo")
     assert sortable == "export type IFooSortable = [];\n\n"
 
-    sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "Python")
+    sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "python")
     assert sortable == (
         "class IFooSortable(TypedDict, total=False):\n"
         + "    bar: Order\n"
         + "    qux: Order\n\n\n"
     )
 
-    sortable = generate_sortable(name="Foo", sdk_language="Python")
+    sortable = generate_sortable(name="Foo", sdk_language="python")
     assert sortable == "IFooSortable: TypeAlias = None\n\n\n"
 
 
 def test_generate_union():
-    union = generate_union("Foo", ["Bar", "Baz"], "TypeScript")
+    union = generate_union("Foo", ["Bar", "Baz"], "typescript")
     assert union == "export type Foo = Bar | Baz;\n\n"
 
-    union = generate_union("Foo", ["Bar", "Baz"], "Python")
+    union = generate_union("Foo", ["Bar", "Baz"], "python")
     assert union == "Foo: TypeAlias = Bar | Baz\n\n\n"
 
 
 def test_generate_sequence_constant():
-    constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "TypeScript")
+    constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "typescript")
     assert constant == 'const Foo = ["Bar", "Baz"] as const;\n'
 
-    constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "Python")
+    constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "python")
     assert constant == 'Foo: Sequence = ["Bar", "Baz"]\n\n'
 
 
@@ -984,10 +984,10 @@ def test_generate_identifier():
     value = generate_identifier(value="Foo", existing_identifiers=[])
     assert value == "foo"
 
-    value = generate_identifier(value="fooBar", sdk_language="Python", existing_identifiers=[])
+    value = generate_identifier(value="fooBar", sdk_language="python", existing_identifiers=[])
     assert value == "foo_bar"
 
-    value = generate_identifier(value="FooBar", sdk_language="Python", existing_identifiers=[])
+    value = generate_identifier(value="FooBar", sdk_language="python", existing_identifiers=[])
     assert value == "foo_bar"
 
     value = generate_identifier(value="/1", existing_identifiers=[])
@@ -1014,8 +1014,8 @@ def test_generate_tuple():
     tup = generate_tuple(name="Foo")
     assert tup == "export type Foo = [];\n\n"
 
-    tup = generate_tuple(name="Foo", values={"bar", "baz"}, sdk_language="Python")
+    tup = generate_tuple(name="Foo", values={"bar", "baz"}, sdk_language="python")
     assert tup == 'Foo: TypeAlias = tuple[Literal["bar"], Literal["baz"]]\n\n\n'
 
-    tup = generate_tuple(name="Foo", sdk_language="Python")
+    tup = generate_tuple(name="Foo", sdk_language="python")
     assert tup == "Foo: TypeAlias = tuple[()]\n\n\n"
