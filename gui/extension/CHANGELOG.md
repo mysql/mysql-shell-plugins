@@ -13,6 +13,7 @@
 - BUG#38096267 Python SDK: edge case schema name is authenticate, hides method
 - BUG#38248624 Documentation is not accurate for MRS's SDK
 - BUG#37767001 Python SDK: record.delete() returns None
+- BUG#37581087 MRS: Core REST APIs examples need updated results
 -
 
 ## Changes in 1.19.15+9.4.0

@@ -46,11 +46,11 @@ Result:
                 "links": [
                     {
                         "rel": "describes",
-                        "href": "http://localhost:8000/mrs/sakila/actor"
+                        "href": "/mrs/sakila/actor"
                     },
                     {
                         "rel": "canonical",
-                        "href": "http://localhost:8000/mrs/sakila/metadata-catalog/actor"
+                        "href": "/mrs/sakila/metadata-catalog/actor"
                     }
                 ]
             },
@@ -59,11 +59,11 @@ Result:
                 "links": [
                     {
                         "rel": "describes",
-                        "href": "http://localhost:8000/mrs/sakila/address"
+                        "href": "/mrs/sakila/address"
                     },
                     {
                         "rel": "canonical",
-                        "href": "http://localhost:8000/mrs/sakila/metadata-catalog/address"
+                        "href": "/mrs/sakila/metadata-catalog/address"
                     }
                 ]
             }
@@ -75,7 +75,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://localhost:8000/mrs/sakila/metadata-catalog/"
+                "href": "/mrs/sakila/metadata-catalog/"
             }
         ]
     }
@@ -125,16 +125,16 @@ Result:
         "links": [
             {
                 "rel": "collection",
-                "href": "http://mrs.example.com/mrs/sakila/metadata-catalog",
+                "href": "/mrs/sakila/metadata-catalog",
                 "mediaType": "application/json"
             },
             {
                 "rel": "canonical",
-                "href": "http://mrs.example.com/mrs/sakila/metadata-catalog/actor"
+                "href": "/mrs/sakila/metadata-catalog/actor"
             },
             {
                 "rel": "describes",
-                "href": "http://mrs.example.com/mrs/sakila/actor"
+                "href": "/mrs/sakila/actor"
             }
         ]
     }
@@ -159,7 +159,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.example.com/mrs/sakila/actor/1"
+                        "href": "/mrs/sakila/actor/1"
                     }
                 ],
                 "actor_id": 1,
@@ -171,7 +171,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.example.com/mrs/sakila/actor/2"
+                        "href": "/mrs/sakila/actor/2"
                     }
                 ],
                 "actor_id": 2,
@@ -183,7 +183,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.example.com/mrs/sakila/actor/3"
+                        "href": "/mrs/sakila/actor/3"
                     }
                 ],
                 "actor_id": 3,
@@ -215,7 +215,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.example.com/mrs/sakila/actor/11"
+                        "href": "/mrs/sakila/actor/11"
                     }
                 ],
                 "actor_id": 11,
@@ -227,7 +227,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.example.com/mrs/sakila/actor/12"
+                        "href": "/mrs/sakila/actor/12"
                     }
                 ],
                 "actor_id": 12,
@@ -243,19 +243,19 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.example.com/mrs/sakila/actor/"
+                "href": "/mrs/sakila/actor/"
             },
             {
                 "rel": "next",
-                "href": "http://mrs.example.com/mrs/sakila/actor/?offset=12&limit=2"
+                "href": "/mrs/sakila/actor/?offset=12&limit=2"
             },
             {
                 "rel": "prev",
-                "href": "http://mrs.example.com/mrs/sakila/actor/?offset=8&limit=2"
+                "href": "/mrs/sakila/actor/?offset=8&limit=2"
             },
             {
                 "rel": "first",
-                "href": "http://mrs.example.com/mrs/sakila/actor/?limit=2"
+                "href": "/mrs/sakila/actor/?limit=2"
             }
         ]
     }
@@ -280,7 +280,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.example.com/mrs/sakila/actor/97"
+                        "href": "/mrs/sakila/actor/97"
                     }
                 ],
                 "actor_id": 97,
@@ -296,7 +296,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.example.com/mrs/sakila/actor/"
+                "href": "/mrs/sakila/actor/"
             }
         ]
     }
@@ -323,7 +323,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.example.com/mrs/sakila/actor/53"
+                "href": "/mrs/sakila/actor/53"
             }
         ],
         "actor_id": 53,
@@ -352,7 +352,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://localhost:8000/mrs/sakila/actor/201"
+                "href": "/mrs/sakila/actor/201"
             }
         ],
         "actor_id": 201,
@@ -379,7 +379,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.example.com/mrs/sakila/actor/201"
+                "href": "/mrs/sakila/actor/201"
             }
         ],
         "actor_id": 201,
