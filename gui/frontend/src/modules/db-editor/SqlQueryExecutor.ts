@@ -104,6 +104,10 @@ export class SqlQueryExecutor {
 
     public handleDependentTasks?(options: IQueryExecutionOptions): void;
 
+    public set connection(value: ICdmConnectionEntry | undefined) {
+        this.#connection = value;
+    }
+
     /**
      * Called for SQL code from a code editor. All result sets start at 0 offset in this scenario.
      *
