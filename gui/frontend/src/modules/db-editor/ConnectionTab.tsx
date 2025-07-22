@@ -444,6 +444,8 @@ Execute \\help or \\? for help;`;
         if (connection) {
             const details = connection.details;
             if (details.id !== prevProps.connection?.details.id) {
+                this.sqlQueryExecutor.connection = connection;
+
                 requisitions.executeRemote("sqlSetCurrentSchema",
                     { id: id ?? "", schema: connection.currentSchema,
                         connectionInfo: getConnectionInfoFromDetails(details),
