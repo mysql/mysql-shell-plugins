@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,6 +38,27 @@ class AppDelegate: NSObject, AppProtocol, NSApplicationDelegate, WKNavigationDel
   var shellInstance: NSRunningApplication?;
   let shellProcess = Process();
   var userContentController: WKUserContentController?;
+    
+  //--------------------------------------------------------------------------------------------------------------------
+  
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+      return true
+  }
+
+  /// Returns the path to a bundled resource executable if found, otherwise nil.
+  func findBundledBinary(named name: String, inSubdirectory subdir: String) -> String? {
+    return Bundle.main.url(forResource: name, withExtension: nil, subdirectory: "\(subdir)/bin")?.path
+  }
+
+
+  /// Returns the path of a binary using bundled if exists, otherwise returns the binary name
+  func getBinaryPath(name: String, subdir: String) -> String {
+    if let bundled = findBundledBinary(named: name, inSubdirectory: subdir) {
+        return bundled
+    }
+  
+    return name;
+  }
 
   //--------------------------------------------------------------------------------------------------------------------
 
@@ -272,13 +293,15 @@ class AppDelegate: NSObject, AppProtocol, NSApplicationDelegate, WKNavigationDel
         Darwin.shutdown(socketFD, SHUT_RDWR);
         close(socketFD);
       }
+    
+      let shellPath = getBinaryPath(name: "mysqlsh", subdir: "shell");
 
       shellProcess.launchPath = "/bin/bash";
       shellProcess.arguments = [
         "-l",
         "-c",
         // Important: this must all be one argument to make it work.
-        "mysqlsh --py -e 'gui.start.web_server(port=\(port), secure={}, single_instance_token=\"\(token)\")'",
+        "\"\(shellPath)\" --py -e 'gui.start.web_server(port=\(port), secure={}, single_instance_token=\"\(token)\")'",
       ];
 
       // Replace the standard output pipe with an own one, which allows us to wait for the first output of the
