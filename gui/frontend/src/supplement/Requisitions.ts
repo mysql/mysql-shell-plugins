@@ -81,7 +81,11 @@ export class RequisitionHub {
             } else {
                 const chrome = (window as any).chrome;
                 if (chrome && chrome.webview) {
-                    this.remoteTarget = chrome.webview;
+                    this.remoteTarget = {
+                        postMessage : function(data: IEmbeddedMessage, origin:string) {
+                            chrome.webview.postMessage(data);
+                        }
+                    };
                 }
             }
 

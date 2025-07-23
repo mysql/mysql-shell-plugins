@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,8 +58,6 @@ namespace MysqlShellGui {
       this.webView.Location = new System.Drawing.Point(0, 33);
       this.webView.Name = "webView";
       this.webView.Size = new System.Drawing.Size(1200, 991);
-      //this.webView.Source = new System.Uri("https://localhost:8000?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8", System.UriKind.Absolute);
-      this.webView.Source = new System.Uri(Url, System.UriKind.Absolute);
       this.webView.TabIndex = 0;
       this.webView.ZoomFactor = 1D;
       //

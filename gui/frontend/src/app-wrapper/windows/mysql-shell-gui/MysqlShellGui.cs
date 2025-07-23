@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,17 +33,22 @@ using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IO;
 
 namespace MysqlShellGui {
   public partial class MysqlShellGui : Form {
 
     #region members
 
-    public const int START_PORT = 3001;
     protected string Url { get; set; }
 
+#if DEBUG
+    public const int START_PORT = 3001;
+    private string Token = "1234";
+#else
+    public const int START_PORT = 0;
     private string Token = "236d84bc-5965-11eb-b3f9-003ee1ce36e8";
-
+#endif
     private Process mysqlshell = null;
 
     private bool browserMode = false;
@@ -63,7 +68,40 @@ namespace MysqlShellGui {
       Logger.Write(LogEvent.Info, "Initializing components ...");
       if (!browserMode) {
         InitializeComponent();
+        InitializeWebView2Async();
       }
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------
+
+    private async void InitializeWebView2Async()
+    {
+      // Define a unique user data folder for the WebView2 instance.
+      // This is important to prevent conflicts, especially if you have multiple WebView2 controls
+      // or are debugging multiple instances.
+#if DEBUG
+      string userDataFolder = Path.Combine(Path.GetTempPath(), "MySQLShellWorkbench");
+
+      // Create the WebView2 environment with the remote debugging port argument
+      var env = await CoreWebView2Environment.CreateAsync(
+          browserExecutableFolder: null, // Use default Edge/Chromium installation
+          userDataFolder: userDataFolder,
+          options: new CoreWebView2EnvironmentOptions
+          {
+            // This is the key argument to enable remote debugging.
+            // You can choose any available port, 9222 is a common default.
+            AdditionalBrowserArguments = "--remote-debugging-port=9222"
+          });
+
+      // Ensure the WebView2 control is initialized with the configured environment
+      await this.webView.EnsureCoreWebView2Async(env);
+#endif
+
+      // Navigate to your desired URL (e.g., your web content)
+      this.webView.Source = new System.Uri(Url, System.UriKind.Absolute);
+
+      // Optional: You can open the DevTools window programmatically for initial inspection
+      // this.webView.CoreWebView2.OpenDevToolsWindow();
     }
 
     //--------------------------------------------------------------------------------------------------------------------
@@ -140,7 +178,9 @@ namespace MysqlShellGui {
           Logger.Write(LogEvent.Error, e.Message);
         }
 #endif
-        Url = string.Format("https://localhost:{0}?token={1}", port, Token);
+        // TODO (rennox): This should be fixed to use secured connection, which requires
+        // logic for certificate installation.
+        Url = string.Format("http://localhost:{0}?token={1}", port, Token);
       } else {
         mysqlshell = new Process();
         mysqlshell.StartInfo.FileName = "mysqlsh";
