@@ -3,10 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1FCBDA362E2D96F4003381CC /* shell in Resources */ = {isa = PBXBuildFile; fileRef = 1FCBDA352E2D96F4003381CC /* shell */; };
+		1FCBDA382E2D96FE003381CC /* router in Resources */ = {isa = PBXBuildFile; fileRef = 1FCBDA372E2D96FE003381CC /* router */; };
 		278C434725E53F900022840B /* DragTargetWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278C434125E53B9A0022840B /* DragTargetWebView.swift */; };
 		278E732C25615C4500BD5421 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278E732B25615C4500BD5421 /* AppDelegate.swift */; };
 		278E732E25615C4600BD5421 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 278E732D25615C4600BD5421 /* Assets.xcassets */; };
@@ -15,6 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1FCBDA352E2D96F4003381CC /* shell */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shell; path = "mysql-shell-gui/shell"; sourceTree = "<group>"; };
+		1FCBDA372E2D96FE003381CC /* router */ = {isa = PBXFileReference; lastKnownFileType = folder; name = router; path = "mysql-shell-gui/router"; sourceTree = "<group>"; };
 		278C434125E53B9A0022840B /* DragTargetWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragTargetWebView.swift; sourceTree = "<group>"; };
 		278E732825615C4500BD5421 /* MySQL Shell GUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MySQL Shell GUI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		278E732B25615C4500BD5421 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -39,6 +43,8 @@
 		278E731F25615C4500BD5421 = {
 			isa = PBXGroup;
 			children = (
+				1FCBDA372E2D96FE003381CC /* router */,
+				1FCBDA352E2D96F4003381CC /* shell */,
 				278E732A25615C4500BD5421 /* MySQL Shell GUI */,
 				278E732925615C4500BD5421 /* Products */,
 			);
@@ -76,6 +82,7 @@
 			buildPhases = (
 				278E732425615C4500BD5421 /* Sources */,
 				278E732525615C4500BD5421 /* Frameworks */,
+				1F194E562E2E8CF70094C56A /* ShellScript */,
 				278E732625615C4500BD5421 /* Resources */,
 			);
 			buildRules = (
@@ -124,12 +131,35 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1FCBDA382E2D96FE003381CC /* router in Resources */,
+				1FCBDA362E2D96F4003381CC /* shell in Resources */,
 				278E732E25615C4600BD5421 /* Assets.xcassets in Resources */,
 				278E733125615C4600BD5421 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1F194E562E2E8CF70094C56A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Ensures the referenced folders for shell and router are present to prevent the build from failing\nif [ ! -e \"${SOURCE_ROOT}/mysql-shell-gui/shell\" ]; then\n  mkdir -p \"${SOURCE_ROOT}/mysql-shell-gui/shell\"\nfi\n\nif [ ! -e \"${SOURCE_ROOT}/mysql-shell-gui/router\" ]; then\n  mkdir -p \"${SOURCE_ROOT}/mysql-shell-gui/router\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		278E732425615C4500BD5421 /* Sources */ = {

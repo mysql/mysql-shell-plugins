@@ -30,10 +30,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Windows.Forms;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.IO;
+using System.Windows.Forms;
 
 namespace MysqlShellGui {
   public partial class MysqlShellGui : Form {
@@ -148,6 +148,15 @@ namespace MysqlShellGui {
 
     //--------------------------------------------------------------------------------------------------------------------
 
+    private string findBundledBinary(string name, string inSubdirectory)
+    {
+      string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+      string filePath = Path.Combine(baseDirectory, inSubdirectory, "bin", name);
+      return File.Exists(filePath) ? filePath : name;
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------
+
     private void launchShell() {
       Url = "";
       if (!browserMode) {
@@ -156,7 +165,7 @@ namespace MysqlShellGui {
         port = nextFreePort(port);
         Logger.Write(LogEvent.Info, string.Format("Using port number: {0}", port));
         mysqlshell = new Process();
-        mysqlshell.StartInfo.FileName = "mysqlsh";
+        mysqlshell.StartInfo.FileName = findBundledBinary("mysqlsh.exe", "shell");
         mysqlshell.StartInfo.RedirectStandardOutput = true;
         mysqlshell.StartInfo.RedirectStandardError = true;
         mysqlshell.StartInfo.UseShellExecute = false;
@@ -183,7 +192,7 @@ namespace MysqlShellGui {
         Url = string.Format("http://localhost:{0}?token={1}", port, Token);
       } else {
         mysqlshell = new Process();
-        mysqlshell.StartInfo.FileName = "mysqlsh";
+        mysqlshell.StartInfo.FileName = findBundledBinary("mysqlsh.exe", "shell"); ;
         mysqlshell.StartInfo.RedirectStandardOutput = true;
         mysqlshell.StartInfo.RedirectStandardError = true;
         mysqlshell.StartInfo.UseShellExecute = false;
