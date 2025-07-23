@@ -1608,7 +1608,7 @@ async def _get_metadata(
     )
     response = await asyncio.to_thread(urlopen, req, context=tls_context)
 
-    return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
+    return json.loads(response.read())
 
 
 ####################################################################################

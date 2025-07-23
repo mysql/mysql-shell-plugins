@@ -805,7 +805,9 @@ async def test_get_metadata(
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
     mock_create_default_context.return_value = ssl.create_default_context()
 
-    _ = await rest_obj.get_metadata()
+    got = await rest_obj.get_metadata()
+    # check that case conversion does not happen
+    assert got.keys() == fictional_payload.keys()
 
     # check one request happened
     assert mock_request_class.call_count == 1

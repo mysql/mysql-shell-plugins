@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#38066815 Python SDK: application metadata and case change to keys
+-
 
 ## Changes in 1.19.15+9.4.0
 
