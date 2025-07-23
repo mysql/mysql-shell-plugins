@@ -65,6 +65,7 @@ from ..mrs_base_classes import (
     IMrsCancelledTaskReport,
     IMrsCompletedTaskReport,
     IMrsCompletedTaskReportDetails,
+    IMrsDeleteResponse,
     IMrsErrorTaskReport,
     IMrsProcedureResponse,
     IMrsResourceDetails,
@@ -3533,7 +3534,7 @@ async def test_dataclass_update(
 
 
 @pytest.mark.parametrize(
-    "data_details, expected_q_url",
+    "data_details, expected_q_url, delete_response",
     [
         (
             ActorDetails(
@@ -3548,6 +3549,9 @@ async def test_dataclass_update(
                 }
             ),
             "q=%7B%22actorId%22%3A65%7D",
+            {
+                "items_deleted": 1
+            },
         ),
     ],
 )
@@ -3559,6 +3563,7 @@ async def test_dataclass_delete(
     expected_q_url: str,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
+    delete_response: IMrsDeleteResponse,
 ):
     """Specifying `where`. Checking implicit filter."""
     document = ActorWithDeleteBehavior(
@@ -3572,6 +3577,7 @@ async def test_dataclass_delete(
         request=document,
         expected_url=f"{schema._request_path}/actor?{expected_q_url}",
         mock_request_class=mock_request_class,
+        fictional_response_from_router=delete_response
     )
 
     # Misc: simply verify the ultimate mixin works

@@ -2625,8 +2625,8 @@ Service - SDK Reference
                 <h3 data-number="5.11.2" id="return-type-delete"><span
                 class="header-section-number">5.11.2</span> Return Type
                 (delete)</h3>
-                <p>A JSON object containing the number of REST Documents
-                that were deleted (always 1).</p>
+                <p><code>true</code> if the document was deleted
+                successfully or <code>false</code> otherwise.</p>
                 <h3 data-number="5.11.3" id="reference-delete"><span
                 class="header-section-number">5.11.3</span> Reference
                 (delete)</h3>
@@ -2698,24 +2698,19 @@ Service - SDK Reference
                 id="return-type-deletemany"><span
                 class="header-section-number">5.12.2</span> Return Type
                 (deleteMany)</h3>
-                <p>A JSON object containing the number of REST Documents
-                that were deleted.</p>
+                <p>The number of REST Documents that were deleted.</p>
                 <h3 data-number="5.12.3" id="reference-deletemany"><span
                 class="header-section-number">5.12.3</span> Reference
                 (deleteMany)</h3>
                 <div class="sourceCode" id="cb61"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">deleteMany</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsDeleteResult<span class="op">&gt;</span> {</span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">deleteMany</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">number</span><span class="op">&gt;</span> {</span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IDeleteOptions<span class="op">&lt;</span>Filterable<span class="op">&gt;</span> {</span>
 <span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;;</span></span>
 <span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>    readOwnWrites<span class="op">:</span> <span class="dt">boolean</span><span class="op">;</span></span>
-<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb61-10"><a href="#cb61-10" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsDeleteResult {</span>
-<span id="cb61-11"><a href="#cb61-11" aria-hidden="true" tabindex="-1"></a>    itemsDeleted<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb61-12"><a href="#cb61-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h4 data-number="5.12.3.1" id="example-deletemany"><span
                 class="header-section-number">5.12.3.1</span> Example
                 (deleteMany)</h4>
@@ -2926,15 +2921,20 @@ Service - SDK Reference
                 enables the “DELETE” CRUD operation and specifies one or
                 more identifier fields.</p>
                 </blockquote>
-                <h3 data-number="5.16.1" id="reference-delete-1"><span
-                class="header-section-number">5.16.1</span> Reference
+                <h3 data-number="5.16.1" id="return-type-delete-1"><span
+                class="header-section-number">5.16.1</span> Return Type
+                (delete)</h3>
+                <p><code>true</code> if the document was deleted
+                successfully or <code>false</code> otherwise.</p>
+                <h3 data-number="5.16.2" id="reference-delete-1"><span
+                class="header-section-number">5.16.2</span> Reference
                 (delete)</h3>
                 <div class="sourceCode" id="cb69"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">delete</span>()<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> {</span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">delete</span>()<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">boolean</span><span class="op">&gt;</span> {</span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h3 data-number="5.16.2" id="example-delete-1"><span
-                class="header-section-number">5.16.2</span> Example
+                <h3 data-number="5.16.3" id="example-delete-1"><span
+                class="header-section-number">5.16.3</span> Example
                 (delete)</h3>
                 <div class="sourceCode" id="cb70"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
@@ -2943,8 +2943,12 @@ Service - SDK Reference
 <span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> actor <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">actor</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
 <span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (actor) {</span>
-<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor<span class="op">.</span><span class="fu">delete</span>()<span class="op">;</span></span>
-<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="cf">await</span> actor<span class="op">.</span><span class="fu">delete</span>()) {</span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Actor </span><span class="sc">${</span>actor<span class="op">.</span><span class="at">actorId</span><span class="sc">}</span><span class="vs"> was deleted.`</span>)</span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Actor </span><span class="sc">${</span>actor<span class="op">.</span><span class="at">actorId</span><span class="sc">}</span><span class="vs"> was not deleted.`</span>)</span>
+<span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h2 data-number="5.17" id="function-call-ts"><span
                 class="header-section-number">5.17</span> Function.call
                </h2>
@@ -4949,7 +4953,8 @@ Service - SDK Reference
                 id="return-type-delete---document"><span
                 class="header-section-number">6.5.2.2</span> Return Type
                 (delete - document)</h4>
-                <p><code>None</code>.</p>
+                <p><code>True</code> if the document was deleted
+                successfully or <code>False</code> otherwise.</p>
                 <h4 data-number="6.5.2.3"
                 id="example-delete---document"><span
                 class="header-section-number">6.5.2.3</span> Example

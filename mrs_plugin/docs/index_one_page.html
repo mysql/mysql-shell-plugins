@@ -10470,8 +10470,8 @@ roleService:
             <h3 data-number="29.11.2" id="return-type-delete"><span
             class="header-section-number">29.11.2</span> Return Type
             (delete)</h3>
-            <p>A JSON object containing the number of REST Documents
-            that were deleted (always 1).</p>
+            <p><code>true</code> if the document was deleted
+            successfully or <code>false</code> otherwise.</p>
             <h3 data-number="29.11.3" id="reference-delete"><span
             class="header-section-number">29.11.3</span> Reference
             (delete)</h3>
@@ -10540,24 +10540,19 @@ roleService:
             <h3 data-number="29.12.2" id="return-type-deletemany"><span
             class="header-section-number">29.12.2</span> Return Type
             (deleteMany)</h3>
-            <p>A JSON object containing the number of REST Documents
-            that were deleted.</p>
+            <p>The number of REST Documents that were deleted.</p>
             <h3 data-number="29.12.3" id="reference-deletemany"><span
             class="header-section-number">29.12.3</span> Reference
             (deleteMany)</h3>
             <div class="sourceCode" id="cb304"><pre
-            class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb304-1"><a href="#cb304-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">deleteMany</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsDeleteResult<span class="op">&gt;</span> {</span>
+            class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb304-1"><a href="#cb304-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">deleteMany</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">number</span><span class="op">&gt;</span> {</span>
 <span id="cb304-2"><a href="#cb304-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb304-3"><a href="#cb304-3" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb304-4"><a href="#cb304-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb304-5"><a href="#cb304-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IDeleteOptions<span class="op">&lt;</span>Filterable<span class="op">&gt;</span> {</span>
 <span id="cb304-6"><a href="#cb304-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;;</span></span>
 <span id="cb304-7"><a href="#cb304-7" aria-hidden="true" tabindex="-1"></a>    readOwnWrites<span class="op">:</span> <span class="dt">boolean</span><span class="op">;</span></span>
-<span id="cb304-8"><a href="#cb304-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb304-9"><a href="#cb304-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb304-10"><a href="#cb304-10" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsDeleteResult {</span>
-<span id="cb304-11"><a href="#cb304-11" aria-hidden="true" tabindex="-1"></a>    itemsDeleted<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb304-12"><a href="#cb304-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb304-8"><a href="#cb304-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
             <h4 data-number="29.12.3.1" id="example-deletemany"><span
             class="header-section-number">29.12.3.1</span> Example
             (deleteMany)</h4>
@@ -10764,15 +10759,20 @@ roleService:
             the “DELETE” CRUD operation and specifies one or more
             identifier fields.</p>
             </blockquote>
-            <h3 data-number="29.16.1" id="reference-delete-1"><span
-            class="header-section-number">29.16.1</span> Reference
+            <h3 data-number="29.16.1" id="return-type-delete-1"><span
+            class="header-section-number">29.16.1</span> Return Type
+            (delete)</h3>
+            <p><code>true</code> if the document was deleted
+            successfully or <code>false</code> otherwise.</p>
+            <h3 data-number="29.16.2" id="reference-delete-1"><span
+            class="header-section-number">29.16.2</span> Reference
             (delete)</h3>
             <div class="sourceCode" id="cb312"><pre
-            class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb312-1"><a href="#cb312-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">delete</span>()<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> {</span>
+            class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb312-1"><a href="#cb312-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">delete</span>()<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">boolean</span><span class="op">&gt;</span> {</span>
 <span id="cb312-2"><a href="#cb312-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb312-3"><a href="#cb312-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-            <h3 data-number="29.16.2" id="example-delete-1"><span
-            class="header-section-number">29.16.2</span> Example
+            <h3 data-number="29.16.3" id="example-delete-1"><span
+            class="header-section-number">29.16.3</span> Example
             (delete)</h3>
             <div class="sourceCode" id="cb313"><pre
             class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb313-1"><a href="#cb313-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
@@ -10781,8 +10781,12 @@ roleService:
 <span id="cb313-4"><a href="#cb313-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb313-5"><a href="#cb313-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> actor <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">actor</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
 <span id="cb313-6"><a href="#cb313-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (actor) {</span>
-<span id="cb313-7"><a href="#cb313-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor<span class="op">.</span><span class="fu">delete</span>()<span class="op">;</span></span>
-<span id="cb313-8"><a href="#cb313-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb313-7"><a href="#cb313-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="cf">await</span> actor<span class="op">.</span><span class="fu">delete</span>()) {</span>
+<span id="cb313-8"><a href="#cb313-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Actor </span><span class="sc">${</span>actor<span class="op">.</span><span class="at">actorId</span><span class="sc">}</span><span class="vs"> was deleted.`</span>)</span>
+<span id="cb313-9"><a href="#cb313-9" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb313-10"><a href="#cb313-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Actor </span><span class="sc">${</span>actor<span class="op">.</span><span class="at">actorId</span><span class="sc">}</span><span class="vs"> was not deleted.`</span>)</span>
+<span id="cb313-11"><a href="#cb313-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb313-12"><a href="#cb313-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
             <h2 data-number="29.17" id="function.call-ts"><span
             class="header-section-number">29.17</span> Function.call
             (TS)</h2>
@@ -12737,7 +12741,8 @@ roleService:
             id="return-type-delete---document"><span
             class="header-section-number">30.5.2.2</span> Return Type
             (delete - document)</h4>
-            <p><code>None</code>.</p>
+            <p><code>True</code> if the document was deleted
+            successfully or <code>False</code> otherwise.</p>
             <h4 data-number="30.5.2.3"
             id="example-delete---document"><span
             class="header-section-number">30.5.2.3</span> Example

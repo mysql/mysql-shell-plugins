@@ -1062,7 +1062,7 @@ No options are implemented because the data required to complete the operation i
 
 #### Return Type (delete - document)
 
-`None`.
+`True` if the document was deleted successfully or `False` otherwise.
 
 #### Example (delete - document)
 

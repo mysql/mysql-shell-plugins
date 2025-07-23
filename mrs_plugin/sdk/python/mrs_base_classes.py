@@ -740,7 +740,7 @@ class _MrsDocumentUpdateMixin(Generic[Data, DataClass, DataDetails], MrsDocument
 class _MrsDocumentDeleteMixin(Generic[Data, Filterable], MrsDocument[Data]):
     """Adds the `delete()` command to REST Document API."""
 
-    async def delete(self, read_own_writes: bool = False) -> None:
+    async def delete(self, read_own_writes: bool = False) -> bool:
         """Deletes the resource represented by the data class instance."""
         prk_name = self.get_primary_key_name()
         if not prk_name:
@@ -757,11 +757,13 @@ class _MrsDocumentDeleteMixin(Generic[Data, Filterable], MrsDocument[Data]):
             "read_own_writes": read_own_writes,
         }
 
-        _ = await MrsBaseObjectDelete[Filterable](
+        res = await MrsBaseObjectDelete[Filterable](
             schema=self._schema,
             request_path=self._request_path,
             options=cast(DeleteOptions, options),
         ).submit()
+
+        return res["items_deleted"] > 0
 
 
 ####################################################################################
@@ -2583,8 +2585,9 @@ class MrsBaseObjectDelete(Generic[Filterable]):
             urlopen, req, context=self._schema._service.tls_context
         )
 
-        delete_response = json.loads(
-            response.read(), object_hook=MrsJSONDataDecoder.convert_keys
+        delete_response = cast(
+            IMrsDeleteResponse,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
 
         # track the latest GTID

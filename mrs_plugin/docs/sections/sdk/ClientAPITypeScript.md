@@ -435,7 +435,7 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 ### Return Type (delete)
 
-A JSON object containing the number of REST Documents that were deleted (always 1).
+`true` if the document was deleted successfully or `false` otherwise.
 
 ### Reference (delete)
 
@@ -480,22 +480,18 @@ await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 
 ### Return Type (deleteMany)
 
-A JSON object containing the number of REST Documents that were deleted.
+The number of REST Documents that were deleted.
 
 ### Reference (deleteMany)
 
 ```TypeScript
-async function deleteMany (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> {
+async function deleteMany (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<number> {
     // ...
 }
 
 interface IDeleteOptions<Filterable> {
     where?: DataFilter<Filterable>;
     readOwnWrites: boolean;
-}
-
-interface IMrsDeleteResult {
-    itemsDeleted: number;
 }
 ```
 
@@ -658,10 +654,14 @@ if (actor) {
 
 > This function is only available if the REST View enables the "DELETE" CRUD operation and specifies one or more identifier fields.
 
+### Return Type (delete)
+
+`true` if the document was deleted successfully or `false` otherwise.
+
 ### Reference (delete)
 
 ```TypeScript
-async function delete(): Promise<void> {
+async function delete(): Promise<boolean> {
     // ...
 }
 ```
@@ -675,7 +675,11 @@ const myService = new MyService();
 
 const actor = await myService.sakila.actor.findFirst();
 if (actor) {
-    await actor.delete();
+    if (await actor.delete()) {
+        console.log(`Actor ${actor.actorId} was deleted.`)
+    } else {
+        console.log(`Actor ${actor.actorId} was not deleted.`)
+    }
 }
 ```
 

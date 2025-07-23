@@ -166,16 +166,17 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudUpdateOnlyEnd
     // --- crudDeleteUniqueOnlyStart
-    public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueFilterable, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Filterable>);
+    public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueFilterable, { many: false }>): Promise<boolean> => {
+        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Filterable>) > 0;
+
     };
     // --- crudDeleteUniqueOnlyEnd
     // --- crudDeleteOnlyStart
-    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Filterable>): Promise<IMrsDeleteResult> => {
+    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Filterable>): Promise<number> => {
         const request = new MrsBaseObjectDelete<I${obj_class_name}Filterable>(this.schema, this.requestPath, args);
         const response = await request.fetch();
 
-        return response;
+        return response.itemsDeleted;
     };
     // --- crudDeleteOnlyEnd
     // --- crudProcedureCallOnlyStart

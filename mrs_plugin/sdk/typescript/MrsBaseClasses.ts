@@ -1077,7 +1077,7 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         });
     }
 
-    private async delete(): Promise<void> {
+    private async delete(): Promise<boolean> {
         const queryFilter: Record<string, unknown> = {};
 
         // the proxy already guarantees that the primaryKeys property is always defined
@@ -1088,9 +1088,9 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const request = new MrsBaseObjectDelete(
             this.schema, this.requestPath, { where: queryFilter });
-        const _ = await request.fetch();
+        const res = await request.fetch();
 
-        return;
+        return res.itemsDeleted > 0;
     }
 
     private deserialize(): Omit<MrsDownstreamDocumentData<Doc>, "links" | "_metadata"> {
