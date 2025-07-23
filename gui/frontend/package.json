@@ -11,6 +11,7 @@
         "build": "bash ./scripts/production-build.sh",
         "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
+        "build-win-with-maps": "pwsh scripts/production-build.ps1 true && tsc -p tsconfig.json",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "unit-tests": "npm run unit-tests:generic && npm run unit-tests:mrs && npm run coverage:report",
         "unit-tests:debug": "node --max_old_space_size=8192 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage",
