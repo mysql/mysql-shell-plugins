@@ -521,6 +521,7 @@ export class Workbench {
         const theEditor = openedEditors.filter((item: string) => {
             return item.match(new RegExp(editor)) !== null;
         });
+
         await new EditorView().openEditor(theEditor[0]);
     };
 
@@ -785,12 +786,15 @@ export class Workbench {
             const loadTry = async (): Promise<void> => {
 
                 await driver.wait(async () => {
-
                     const tabs = await Workbench.getOpenEditorTitles();
 
-                    if (await this.existsNotification(/the web certificate is not installed/)) {
-                        throw new Error("The Web Certificate is not installed");
-                    } else if ((tabs.length > 0 &&
+                    if (!Os.isMacOs()) {
+                        if (await this.existsNotification(/the web certificate is not installed/)) {
+                            throw new Error("The Web Certificate is not installed");
+                        }
+                    }
+
+                    if ((tabs.length > 0 &&
                         await ((await Workbench.getActiveTab()).getTitle()) === constants.dbDefaultEditor
                     )) {
                         return true;

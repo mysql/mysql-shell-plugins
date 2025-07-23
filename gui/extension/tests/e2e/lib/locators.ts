@@ -1022,3 +1022,33 @@ export const createNewFolderDialog = {
     ok: By.id("ok"),
     cancel: By.id("cancel"),
 };
+
+export const createLibraryDialog = {
+    exists: By.id("createLibraryDialog"),
+    schemaName: By.id("schemaName"),
+    libraryName: By.id("libraryName"),
+    language: {
+        exists: By.id("language"),
+        label: By.css("#language label"),
+        selectList: {
+            exists: By.id("languagePopup"),
+            item: (itemName: string): By => {
+                return By.id(itemName);
+            },
+        },
+    },
+    loadFrom: {
+        exists: By.id("loadFrom"),
+        label: By.css("#loadFrom label"),
+        selectList: {
+            exists: By.id("loadFromPopup"),
+            item: (itemName: string): By => {
+                return By.id(itemName);
+            },
+        },
+    },
+    comment: By.id("comment"),
+    path: By.id("localFilePathBtn"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};

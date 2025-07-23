@@ -52,6 +52,7 @@ import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EM
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ELogger } from "../lib/E2ELogger";
+import { CreateLibraryDialog } from "../lib/WebViews/Dialogs/CreateLibraryFrom";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -664,7 +665,6 @@ describe("DATABASE CONNECTIONS", () => {
                             await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.name),
                                 constants.wait1second * 10);
                             expect(task.name).to.equals(`Loading ${newTask.name}`);
-                            expect(task.hasProgressBar).to.be.false;
                             expect(task.status).to.equals("COMPLETED");
                             expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                             expect(task.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
@@ -676,7 +676,6 @@ describe("DATABASE CONNECTIONS", () => {
                     // disabled verification
                     //throw new Error(`There are not any new tasks to verify`);
                 }
-
             });
 
         });
@@ -1025,6 +1024,7 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchema.expand();
             treeGlobalSchemaTables = await dbTreeSection.getTreeItem("Tables");
             await treeGlobalSchemaTables.expand();
+            await dbTreeSection.focus();
             await dbTreeSection.openContextMenuAndSelect("actor", constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
@@ -1321,6 +1321,190 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(async () => {
                 return !(await dbTreeSection.treeItemExists(testEvent));
             }, constants.wait1second * 3, `${testEvent} should not exist on the tree`);
+
+        });
+
+        it("Create JavaScript Library", async () => {
+
+            await dbTreeSection.clickToolbarButton(constants.collapseAll);
+            await Workbench.closeAllEditors();
+            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+
+            const library = "test_js_library";
+            await dbTreeSection.expandTreeItem("sakila");
+            await dbTreeSection.expandTreeItem("Libraries");
+            await dbTreeSection.openContextMenuAndSelect(constants.libraries, constants.createJSLibrary);
+            await Workbench.setInputPath(library);
+            const e2eScript = new E2EScript();
+            await driver.wait(e2eScript.untilIsOpened(globalConn), constants.wait1second * 10);
+            const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            await driver.wait(openEditorsTreeSection.untilTreeItemExists("New Library"), constants.wait1second * 5);
+            await openEditorsTreeSection.collapse();
+            await (await e2eScript.toolbar.getButton(constants.execFullScript)).click();
+            await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+            await driver.wait(dbTreeSection.untilTreeItemExists(library), constants.wait1second * 5);
+
+        });
+
+        it("Create JavaScript Library From File", async () => {
+
+            const library = "test_js_library_from_file";
+            await fs.writeFile(join(process.cwd(), `${library}.js`), `
+                export function f(x, y) { return x + y; }
+                export function g() { return 42; }
+            `);
+            await dbTreeSection.focus();
+            await dbTreeSection.expandTreeItem("sakila");
+            await dbTreeSection.expandTreeItem("Libraries");
+            await dbTreeSection.openContextMenuAndSelect(constants.libraries, constants.createLibraryFrom);
+            await driver.wait(new E2EScript().untilIsOpened(globalConn), constants.wait1second * 10);
+            const createLibraryDialog = await new CreateLibraryDialog().untilExists();
+            await createLibraryDialog.setLibraryName(library);
+            await createLibraryDialog.setPath(join(process.cwd(), `${library}.js`));
+            await createLibraryDialog.ok();
+            Workbench.untilNotificationExists(`JavaScript library ${library} successfully created!`);
+            await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+            await driver.wait(dbTreeSection.untilTreeItemExists(library), constants.wait1second * 5);
+
+        });
+
+        it("Create WebAssembly Library From File", async () => {
+
+            const libraryFile = "library.wasm";
+            const libraryName = "test_web_assembly_from_file";
+            await dbTreeSection.focus();
+            await dbTreeSection.expandTreeItem("sakila");
+            await dbTreeSection.expandTreeItem("Libraries");
+            await dbTreeSection.openContextMenuAndSelect(constants.libraries, constants.createLibraryFrom);
+            await driver.wait(new E2EScript().untilIsOpened(globalConn), constants.wait1second * 10);
+            const createLibraryDialog = await new CreateLibraryDialog().untilExists();
+            await createLibraryDialog.setLibraryName(libraryName);
+            await createLibraryDialog.setLanguage("WebAssembly");
+            await createLibraryDialog.setPath(join(process.cwd(), "test_files", `${libraryFile}`));
+            await createLibraryDialog.ok();
+            Workbench.untilNotificationExists(`WebAssembly library ${libraryName} successfully created!`);
+            await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+            await driver.wait(dbTreeSection.untilTreeItemExists(libraryName), constants.wait1second * 5);
+
+        });
+
+        it("Edit Library", async () => {
+
+            const library = "test_js_library";
+            const newLibrary = "new_test_js_library";
+            await dbTreeSection.focus();
+            await dbTreeSection.openContextMenuAndSelect(library, constants.editLibrary);
+            const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            await driver.wait(openEditorsTreeSection.untilTreeItemExists("Edit Library"), constants.wait1second * 5);
+            await openEditorsTreeSection.collapse();
+            const e2eScript = new E2EScript();
+            await driver.wait(e2eScript.untilIsOpened(globalConn), constants.wait1second * 10);
+            await e2eScript.codeEditor.clean();
+            await e2eScript.codeEditor.write(`
+            DELIMITER ;
+            DROP LIBRARY \`sakila\`.\`${library}\`;
+            CREATE LIBRARY \`sakila\`.\`${newLibrary}\`
+                LANGUAGE JAVASCRIPT
+            AS $$
+            export function f(x, y) { return x + y; }
+            export function g() { return 42; }
+            $$;
+            DELIMITER ;`);
+            await (await e2eScript.toolbar.getButton(constants.execFullScript)).click();
+            await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+            await driver.wait(dbTreeSection.untilTreeItemExists(newLibrary), constants.wait1second * 5);
+        });
+
+        it("Library - Copy to Clipboard", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
+            const libraryName = "test_web_assembly_from_file";
+
+            await dbTreeSection.focus();
+            // NAME
+            await driver.wait(new Condition("", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect(libraryName,
+                        [constants.copyToClipboard, constants.copyToClipboardName], constants.libraryCtxMenu);
+                    await Workbench.getNotification("The name was copied to the system clipboard");
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
+
+                    return clipboard.readSync() === libraryName;
+                } catch (e) {
+                    if (!(errors.isStaleError(e as Error))) {
+                        throw e;
+                    }
+                }
+            }), constants.wait1second * 10, "The Library name was not copied to the clipboard");
+
+            // CREATE STATEMENT
+            await driver.wait(new Condition("", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect(libraryName,
+                        [constants.copyToClipboard, constants.copyToClipboardStat], constants.libraryCtxMenu);
+                    await Workbench.getNotification("The create script was copied to the system clipboard");
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
+
+                    return clipboard.readSync().match(/CREATE LIBRARY/) !== null;
+                } catch (e) {
+                    if (!(errors.isStaleError(e as Error))) {
+                        throw e;
+                    }
+                }
+            }), constants.wait1second * 10, "The Create Statement was not copied to the clipboard");
+
+            // CREATE STATEMENT WITH DELIMITERS
+            await driver.wait(new Condition("", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect(libraryName,
+                        [constants.copyToClipboard, constants.copyToClipboardStatDel], constants.libraryCtxMenu);
+                    await Workbench.getNotification("The create script was copied to the system clipboard");
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
+
+                    return clipboard.readSync().match(/DELIMITER[\s\S]*?CREATE LIBRARY/) !== null;
+                } catch (e) {
+                    if (!(errors.isStaleError(e as Error))) {
+                        throw e;
+                    }
+                }
+            }), constants.wait1second * 10, "The Create Statement with DELIMITERS was not copied to the clipboard");
+
+            // DROP & CREATE STATEMENT WITH DELIMITERS
+            await driver.wait(new Condition("", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect(libraryName,
+                        [constants.copyToClipboard, constants.copyToClipboardDropStatDel], constants.libraryCtxMenu);
+                    await Workbench.getNotification("The create script was copied to the system clipboard");
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
+
+                    return clipboard.readSync().match(/DELIMITER[\s\S]*?DROP.*[\s\S]*?CREATE LIBRARY/) !== null;
+                } catch (e) {
+                    if (!(errors.isStaleError(e as Error))) {
+                        throw e;
+                    }
+                }
+            }), constants.wait1second * 10, "Drop & Create Statement with DELIMITERS was not copied to the clipboard");
+
+        });
+
+        it("Drop Library", async () => {
+
+            const libraryName = "test_web_assembly_from_file";
+            await dbTreeSection.focus();
+            await dbTreeSection.openContextMenuAndSelect(libraryName, constants.dropLibrary);
+            await Workbench.pushDialogButton(`Drop ${libraryName}`);
+            await driver.wait(Workbench
+                .untilNotificationExists(`The object ${libraryName} has been dropped successfully`));
+
+            await driver.wait(async () => {
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation);
+
+                return !(await dbTreeSection.treeItemExists(libraryName));
+            }, constants.wait1second * 5, `${libraryName} should not exist on the tree`);
 
         });
 

@@ -192,6 +192,272 @@ describe("NOTEBOOKS", () => {
             }
         });
 
+        it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
+            await notebook.codeEditor.clean();
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+
+            const row = 0;
+            const allColumns = Array.from(result.columnsMap.keys());
+
+            for (let i = 1; i <= allColumns.length - 1; i++) {
+
+                await driver.wait(async () => {
+                    try {
+                        const copy = await result.copyField(row, String(allColumns[i]));
+                        const clip = clipboard.readSync();
+
+                        if (copy.toString().match(new RegExp(clip.toString()))) {
+                            return true;
+                        } else {
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                        }
+                    } catch (e) {
+                        // the clipboard can have content with special chars from other tests
+                        if (!(e instanceof SyntaxError)) {
+                            throw e;
+                        }
+                    }
+                }, constants.wait1second * 10, "Copy field failed");
+
+                await driver.wait(async () => {
+                    try {
+                        const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
+                        const clip = clipboard.readSync();
+
+                        if (copy.toString() === clip.toString()) {
+                            return true;
+                        } else {
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                        }
+                    } catch (e) {
+                        // the clipboard can have content with special chars from other tests
+                        if (!(e instanceof SyntaxError)) {
+                            throw e;
+                        }
+                    }
+                }, constants.wait1second * 10, "Copy field unquoted failed");
+
+                await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
+                    constants.resultGridContextMenu.setFieldToNull);
+                expect(await result.getCellValue(row, String(allColumns[i])),
+                    `Set field to null (${String(allColumns[i])})`)
+                    .to.equals(constants.isNull);
+            }
+
+            await result.rollbackChanges();
+
+        });
+
+        it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
+
+            await notebook.codeEditor.clean();
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            const rowNumber = 0;
+            const rowColumn = "text_field";
+
+            const originalCellValue = await result.getCellValue(rowNumber, rowColumn);
+            await result.openCellContextMenuAndSelect(0, rowColumn,
+                constants.resultGridContextMenu.capitalizeText);
+            await driver.wait(result.untilCellsWereChanged(1), constants.wait1second * 5);
+
+            const capitalizedCellValue = await result.getCellValue(rowNumber, rowColumn);
+            expect(capitalizedCellValue,
+                `The cell value was not capitalized`).to.equals(`${originalCellValue.charAt(0)
+                    .toUpperCase()
+                    }${originalCellValue.slice(1)}`);
+
+            await result.openCellContextMenuAndSelect(0, rowColumn,
+                constants.resultGridContextMenu.convertTextToLowerCase);
+
+            const lowerCaseCellValue = await result.getCellValue(rowNumber, rowColumn);
+            expect(lowerCaseCellValue, "The cell value was not converted to lower case")
+                .to.equals(capitalizedCellValue.toLowerCase());
+
+            await result.openCellContextMenuAndSelect(0, rowColumn,
+                constants.resultGridContextMenu.convertTextToUpperCase);
+
+            const upperCaseCellValue = await result.getCellValue(rowNumber, rowColumn);
+            expect(upperCaseCellValue, "The cell value was not converted to upper case")
+                .to.equals(lowerCaseCellValue.toUpperCase());
+
+            await result.openCellContextMenuAndSelect(0, rowColumn,
+                constants.resultGridContextMenu.toggleForDeletion);
+            await driver.wait(result.untilRowIsMarkedForDeletion(rowNumber), constants.wait1second * 5);
+            await result.rollbackChanges();
+        });
+
+        it("Result grid context menu - Copy single row", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.actor limit 1;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+
+            const row = 0;
+            const column = "first_name";
+
+            // Copy row.
+            await driver.wait(async () => {
+                const copy = await result.copyRow(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy row failed`);
+
+            // Copy row with names.
+            await driver.wait(async () => {
+                const copy = await result.copyRowWithNames(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy row with names failed`);
+
+            // Copy row unquoted.
+            await driver.wait(async () => {
+                const copy = await result.copyRowUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy row unquoted failed`);
+
+            // Copy row with names, unquoted.
+            await driver.wait(async () => {
+                const copy = await result.copyRowWithNamesUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy row with names, unquoted failed`);
+
+            // Copy row with names, tab separated.
+            await driver.wait(async () => {
+                const copy = await result.copyRowWithNamesTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy row with names, tab separated failed`);
+
+            // Copy row, tab separated.
+            await driver.wait(async () => {
+                const copy = await result.copyRowTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy row, tab separated failed`);
+
+        });
+
+        it("Result grid context menu - Copy multiple rows", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
+            const maxRows = 2;
+            const result = await notebook.codeEditor
+                .execute(`select * from sakila.actor limit ${maxRows};`, true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+
+            const row = 0;
+            const column = "first_name";
+
+            // Copy all rows.
+            await driver.wait(async () => {
+                const copy = await result.copyAllRows(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy all rows failed`);
+
+            // Copy all rows with names.
+            await driver.wait(async () => {
+                const copy = await result.copyAllRowsWithNames(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy all rows with names failed`);
+
+            // Copy all rows unquoted.
+            await driver.wait(async () => {
+                const copy = await result.copyAllRowsUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy all rows unquoted failed`);
+
+            // Copy all rows with names unquoted.
+            await driver.wait(async () => {
+                const copy = await result.copyAllRowsWithNamesUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy all rows with names unquoted failed`);
+
+            // Copy all rows with names tab separated.
+            await driver.wait(async () => {
+                const copy = await result.copyAllRowsWithNamesTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait1second * 10, `Copy all rows with names tab separated failed`);
+
+        });
+
         it("Using a DELIMITER", async () => {
             const query =
                 `DELIMITER $$
@@ -567,6 +833,7 @@ describe("NOTEBOOKS", () => {
         it("Verify mysql data types - integer columns", async () => {
 
             await Workbench.toggleSideBar(false);
+            await notebook.codeEditor.languageSwitch("\\sql ");
             const result = await notebook.codeEditor
                 .execute("SELECT * from sakila.all_data_types_ints;", true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
@@ -686,6 +953,7 @@ describe("NOTEBOOKS", () => {
         it("Edit a result grid, verify query preview and commit - integer columns", async () => {
 
             await notebook.codeEditor.clean();
+            await notebook.codeEditor.languageSwitch("\\sql ");
             let result = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_ints;", true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
@@ -1017,272 +1285,6 @@ describe("NOTEBOOKS", () => {
             expect(testGeomCollection).to.equals(constants.geometry);
             const testBit = await result.getCellValue(rowToEdit, "test_bit");
             expect(testBit).to.equals("16383");
-        });
-
-        it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
-
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor
-                .execute("select * from sakila.result_sets;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-            const rowNumber = 0;
-            const rowColumn = "text_field";
-
-            const originalCellValue = await result.getCellValue(rowNumber, rowColumn);
-            await result.openCellContextMenuAndSelect(0, rowColumn,
-                constants.resultGridContextMenu.capitalizeText);
-            await driver.wait(result.untilCellsWereChanged(1), constants.wait1second * 5);
-
-            const capitalizedCellValue = await result.getCellValue(rowNumber, rowColumn);
-            expect(capitalizedCellValue,
-                `The cell value was not capitalized`).to.equals(`${originalCellValue.charAt(0)
-                    .toUpperCase()
-                    }${originalCellValue.slice(1)}`);
-
-            await result.openCellContextMenuAndSelect(0, rowColumn,
-                constants.resultGridContextMenu.convertTextToLowerCase);
-
-            const lowerCaseCellValue = await result.getCellValue(rowNumber, rowColumn);
-            expect(lowerCaseCellValue, "The cell value was not converted to lower case")
-                .to.equals(capitalizedCellValue.toLowerCase());
-
-            await result.openCellContextMenuAndSelect(0, rowColumn,
-                constants.resultGridContextMenu.convertTextToUpperCase);
-
-            const upperCaseCellValue = await result.getCellValue(rowNumber, rowColumn);
-            expect(upperCaseCellValue, "The cell value was not converted to upper case")
-                .to.equals(lowerCaseCellValue.toUpperCase());
-
-            await result.openCellContextMenuAndSelect(0, rowColumn,
-                constants.resultGridContextMenu.toggleForDeletion);
-            await driver.wait(result.untilRowIsMarkedForDeletion(rowNumber), constants.wait1second * 5);
-            await result.rollbackChanges();
-        });
-
-        it("Result grid context menu - Copy single row", async function () {
-
-            await TestQueue.push(this.test.title);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
-
-            const result = await notebook.codeEditor
-                .execute("select * from sakila.actor limit 1;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const row = 0;
-            const column = "first_name";
-
-            // Copy row.
-            await driver.wait(async () => {
-                const copy = await result.copyRow(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy row failed`);
-
-            // Copy row with names.
-            await driver.wait(async () => {
-                const copy = await result.copyRowWithNames(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy row with names failed`);
-
-            // Copy row unquoted.
-            await driver.wait(async () => {
-                const copy = await result.copyRowUnquoted(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy row unquoted failed`);
-
-            // Copy row with names, unquoted.
-            await driver.wait(async () => {
-                const copy = await result.copyRowWithNamesUnquoted(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy row with names, unquoted failed`);
-
-            // Copy row with names, tab separated.
-            await driver.wait(async () => {
-                const copy = await result.copyRowWithNamesTabSeparated(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy row with names, tab separated failed`);
-
-            // Copy row, tab separated.
-            await driver.wait(async () => {
-                const copy = await result.copyRowTabSeparated(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy row, tab separated failed`);
-
-        });
-
-        it("Result grid context menu - Copy multiple rows", async function () {
-
-            await TestQueue.push(this.test.title);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
-
-            const maxRows = 2;
-            const result = await notebook.codeEditor
-                .execute(`select * from sakila.actor limit ${maxRows};`, true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const row = 0;
-            const column = "first_name";
-
-            // Copy all rows.
-            await driver.wait(async () => {
-                const copy = await result.copyAllRows(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy all rows failed`);
-
-            // Copy all rows with names.
-            await driver.wait(async () => {
-                const copy = await result.copyAllRowsWithNames(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy all rows with names failed`);
-
-            // Copy all rows unquoted.
-            await driver.wait(async () => {
-                const copy = await result.copyAllRowsUnquoted(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy all rows unquoted failed`);
-
-            // Copy all rows with names unquoted.
-            await driver.wait(async () => {
-                const copy = await result.copyAllRowsWithNamesUnquoted(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy all rows with names unquoted failed`);
-
-            // Copy all rows with names tab separated.
-            await driver.wait(async () => {
-                const copy = await result.copyAllRowsWithNamesTabSeparated(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait1second * 10, `Copy all rows with names tab separated failed`);
-
-        });
-
-        it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
-
-            await TestQueue.push(this.test.title);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
-
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor
-                .execute("select * from sakila.result_sets;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const row = 0;
-            const allColumns = Array.from(result.columnsMap.keys());
-
-            for (let i = 1; i <= allColumns.length - 1; i++) {
-
-                await driver.wait(async () => {
-                    try {
-                        const copy = await result.copyField(row, String(allColumns[i]));
-                        const clip = clipboard.readSync();
-
-                        if (copy.toString().match(new RegExp(clip.toString()))) {
-                            return true;
-                        } else {
-                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
-                        }
-                    } catch (e) {
-                        // the clipboard can have content with special chars from other tests
-                        if (!(e instanceof SyntaxError)) {
-                            throw e;
-                        }
-                    }
-                }, constants.wait1second * 10, "Copy field failed");
-
-                await driver.wait(async () => {
-                    try {
-                        const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
-                        const clip = clipboard.readSync();
-
-                        if (copy.toString() === clip.toString()) {
-                            return true;
-                        } else {
-                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
-                        }
-                    } catch (e) {
-                        // the clipboard can have content with special chars from other tests
-                        if (!(e instanceof SyntaxError)) {
-                            throw e;
-                        }
-                    }
-                }, constants.wait1second * 10, "Copy field unquoted failed");
-
-                await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
-                    constants.resultGridContextMenu.setFieldToNull);
-                expect(await result.getCellValue(row, String(allColumns[i])),
-                    `Set field to null (${String(allColumns[i])})`)
-                    .to.equals(constants.isNull);
-            }
-
-            await result.rollbackChanges();
-
         });
 
         it("Select a Result Grid View", async () => {
@@ -1967,12 +1969,10 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("Persistent Notebooks", function () {
+    describe("Persistent Notebooks", () => {
 
         const destFile = `${process.cwd()}/a_test`;
         const notebook = new E2ENotebook();
-
-        this.retries(1);
 
         before(async function () {
             try {
@@ -2061,24 +2061,40 @@ describe("NOTEBOOKS", () => {
             await Workbench.closeAllEditors();
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
             const e2eTreeSection = new E2EAccordionSection("e2e");
-            await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
+
+            await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook",
+                constants.openNotebookWithConn);
             const input = await InputBox.create(constants.wait1second * 5);
-            await (await input.findQuickPick(globalConn.caption)).select();
-            await (await input.findQuickPick(globalConn.caption)).select()
-                .catch((e) => {
+            await driver.wait(async () => {
+                try {
+                    await input.selectQuickPick(globalConn.caption);
+
+                } catch (e) {
                     if (!(e instanceof error.ElementNotInteractableError)) {
                         throw e;
+                    } else {
+                        return true;
                     }
-                });
-            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait1second * 10);
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
+                }
+            }, constants.wait1second * 5, "Could not select the quick pick");
+
+            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait1second * 20);
+            try {
+                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 5);
+            } catch (e) {
+                await Misc.switchBackToTopFrame();
+                await Misc.switchToFrame();
+                const connOverview = new DatabaseConnectionOverview();
+                const conn = await connOverview.getConnection(globalConn.caption);
+                await conn.click();
+            }
+
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 5);
             await notebook.exists("SELECT VERSION");
 
         });
 
         it("Open the Notebook from file", async () => {
-
-            this.retries(1);
 
             await Workbench.closeAllEditors();
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
@@ -2109,15 +2125,14 @@ describe("NOTEBOOKS", () => {
         it("Open the Notebook from file with no DB connections", async () => {
 
             const conns = await dbTreeSection.getTreeDatabaseConnections();
-
             for (const conn of conns) {
                 await dbTreeSection.deleteDatabaseConnection(conn.name, conn.isMySQL);
             }
 
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl("Explorer"))?.openView();
-
             const e2eTreeSection = new E2EAccordionSection("e2e");
+
             const file = await e2eTreeSection.getTreeItem("a_test.mysql-notebook");
             await file.click();
             await Workbench.openEditor("a_test.mysql-notebook");
@@ -2128,7 +2143,6 @@ describe("NOTEBOOKS", () => {
             await Workbench.closeAllEditors();
             await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
             await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
-
         });
 
     });

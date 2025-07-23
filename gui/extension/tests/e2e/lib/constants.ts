@@ -420,15 +420,6 @@ export const routinesCtxMenu = new Map([
     [dropStoredRoutine, 4],
 ]);
 
-export const libraryCtxMenu = new Map([
-    [copyToClipboard, 2],
-    [copyToClipboardName, 0],
-    [copyToClipboardStat, 1],
-    [copyToClipboardStatDel, 2],
-    [copyToClipboardDropStatDel, 3],
-    [dropStoredRoutine, 4],
-]);
-
 export const eventsCtxMenu = new Map([
     [dropEvent, 1],
 ]);
@@ -443,6 +434,27 @@ export const restMainCtxMenu = new Map([
     [stopRouter, 8],
     [killRouters, 9],
     [browseRESTDocs, 10],
+]);
+
+export const createJSLibrary = "Create JavaScript Library...";
+export const createLibraryFrom = "Create Library From...";
+
+export const librariesCtxMenu = new Map([
+    [createJSLibrary, 1],
+    [createLibraryFrom, 2],
+]);
+
+export const editLibrary = "Edit Library...";
+export const dropLibrary = "Drop Library...";
+
+export const libraryCtxMenu = new Map([
+    [editLibrary, 1],
+    [copyToClipboard, 2],
+    [copyToClipboardName, 0],
+    [copyToClipboardStat, 1],
+    [copyToClipboardStatDel, 2],
+    [copyToClipboardDropStatDel, 3],
+    [dropLibrary, 3],
 ]);
 
 export const dumpRESTSchemaToSQL = "Rest Schema SQL...";
@@ -680,3 +692,4 @@ export const exportSqlScriptIncludingDBEndPoints = "Export SQL Script Including 
 export const exportSqlScriptIncludingDBAndStaticEndPoints = "Export SQL Script Including Database and Static Endpoints Only";
 export const exportSqlScriptFile = "Export SQL Script File";
 export const exportCompressedSQLScriptFile = "Export Compressed SQL Script File";
+export const libraries = "Libraries";

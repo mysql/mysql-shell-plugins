@@ -225,7 +225,7 @@ export class E2EPerformanceDashboard {
 
             const heapUsageGraph = await driver.findElement(performanceDashboardLocator.mleStatus.heapUsageGraph);
             const mleStatus = await (await driver.findElement(performanceDashboardLocator.mleStatus.mleStatus))
-                .getText();
+                .getAttribute("innerHTML");
             const mleMaxHeapSize = await (await driver
                 .findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getAttribute("innerHTML");
             const mleHeapUtilizationGraph = await driver

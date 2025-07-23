@@ -1,5 +1,5 @@
 -- E2E Extension tests Database configurations
--- Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+-- Copyright (c) 2023, 2025 Oracle and/or its affiliates.
 
 -- Redistribution and use in source and binary forms, with or without
 -- modification, are permitted provided that the following conditions are
@@ -83,8 +83,8 @@ DELIMITER ;
 DROP TABLE IF EXISTS `result_sets`; 
 CREATE TABLE result_sets (
     id INT PRIMARY key AUTO_INCREMENT,
-    text_field TEXT,
-    int_field INT
+    text_field TEXT DEFAULT NULL,
+    int_field INT DEFAULT NULL
 );
 
 INSERT INTO result_sets VALUES(

@@ -65,7 +65,7 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `result_sets`; 
 CREATE TABLE result_sets (
     id INT PRIMARY key AUTO_INCREMENT,
-    text_field TEXT,
+    text_field TEXT DEFAULT NULL,
     int_field INT
 );
 
