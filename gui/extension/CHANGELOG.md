@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#38066815 Python SDK: application metadata and case change to keys
+- BUG#37750541 Python SDK: find_unique does not require any parameter
 -
 
 ## Changes in 1.19.15+9.4.0

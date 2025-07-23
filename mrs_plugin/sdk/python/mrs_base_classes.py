@@ -1119,7 +1119,6 @@ class FindOptionsBase(
 class FindUniqueOptions(
     Generic[Filterable, Selectable, DataField, NestedField],
     FindOptionsBase[Selectable, DataField, NestedField],
-    total=False,
 ):
     """Options supported by `find_unique()` and `find_unique_or_throw()`.
 
@@ -1147,7 +1146,7 @@ class FindUniqueOptions(
         the query filter (a.k.a. `where`).
     """
 
-    where: Required[Filterable]
+    where: Filterable
 
 
 class FindFirstOptions(
