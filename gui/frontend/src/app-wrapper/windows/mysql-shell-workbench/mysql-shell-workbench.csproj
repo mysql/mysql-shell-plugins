@@ -9,8 +9,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E9DD9DAC-32F5-4E69-B9B2-6D581A0A2923}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>MysqlShellGui</RootNamespace>
-    <AssemblyName>mysql-shell-gui</AssemblyName>
+    <RootNamespace>MySQLShellWorkbench</RootNamespace>
+    <AssemblyName>MySQLShellWorkbench</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -36,6 +36,13 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Properties\MySQLWorkbench.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.7, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -92,16 +99,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="JSCallStruct.cs" />
-    <Compile Include="MysqlShellGui.cs">
+    <Compile Include="MySQLShellWorkbench.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MysqlShellGui.Designer.cs">
-      <DependentUpon>MysqlShellGui.cs</DependentUpon>
+    <Compile Include="MySQLShellWorkbench.Designer.cs">
+      <DependentUpon>MySQLShellWorkbench.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="MysqlShellGui.resx">
-      <DependentUpon>MysqlShellGui.cs</DependentUpon>
+    <EmbeddedResource Include="MySQLShellWorkbench.resx">
+      <DependentUpon>MySQLShellWorkbench.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">

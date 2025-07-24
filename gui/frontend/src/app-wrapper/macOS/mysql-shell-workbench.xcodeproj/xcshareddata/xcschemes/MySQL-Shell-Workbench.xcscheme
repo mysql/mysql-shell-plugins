@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "278E732725615C4500BD5421"
-               BuildableName = "MySQL Shell GUI.app"
-               BlueprintName = "MySQL Shell GUI"
-               ReferencedContainer = "container:mysql-shell-gui.xcodeproj">
+               BuildableName = "MySQL Shell Workbench.app"
+               BlueprintName = "MySQL Shell Workbench"
+               ReferencedContainer = "container:mysql-shell-workbench.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,9 +46,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "278E732725615C4500BD5421"
-            BuildableName = "MySQL Shell GUI.app"
-            BlueprintName = "MySQL Shell GUI"
-            ReferencedContainer = "container:mysql-shell-gui.xcodeproj">
+            BuildableName = "MySQL Shell Workbench.app"
+            BlueprintName = "MySQL Shell Workbench"
+            ReferencedContainer = "container:mysql-shell-workbench.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -63,9 +63,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "278E732725615C4500BD5421"
-            BuildableName = "MySQL Shell GUI.app"
-            BlueprintName = "MySQL Shell GUI"
-            ReferencedContainer = "container:mysql-shell-gui.xcodeproj">
+            BuildableName = "MySQL Shell Workbench.app"
+            BlueprintName = "MySQL Shell Workbench"
+            ReferencedContainer = "container:mysql-shell-workbench.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

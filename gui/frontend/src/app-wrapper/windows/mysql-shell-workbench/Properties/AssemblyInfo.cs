@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,12 +30,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("mysql-shell-gui")]
+[assembly: AssemblyTitle("MySQLShellWorkbench")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("mysql-shell-gui")]
-[assembly: AssemblyCopyright("Copyright (c) 2021, 2024 Oracle and/or its affiliates")]
+[assembly: AssemblyProduct("MySQLShellWorkbench")]
+[assembly: AssemblyCopyright("Copyright (c) 2021, 2025 Oracle and/or its affiliates")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

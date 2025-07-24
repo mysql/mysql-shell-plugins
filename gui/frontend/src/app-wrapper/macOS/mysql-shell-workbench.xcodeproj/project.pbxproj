@@ -17,15 +17,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1FCBDA352E2D96F4003381CC /* shell */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shell; path = "mysql-shell-gui/shell"; sourceTree = "<group>"; };
-		1FCBDA372E2D96FE003381CC /* router */ = {isa = PBXFileReference; lastKnownFileType = folder; name = router; path = "mysql-shell-gui/router"; sourceTree = "<group>"; };
+		1FCBDA352E2D96F4003381CC /* shell */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shell; path = "mysql-shell-workbench/shell"; sourceTree = "<group>"; };
+		1FCBDA372E2D96FE003381CC /* router */ = {isa = PBXFileReference; lastKnownFileType = folder; name = router; path = "mysql-shell-workbench/router"; sourceTree = "<group>"; };
 		278C434125E53B9A0022840B /* DragTargetWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragTargetWebView.swift; sourceTree = "<group>"; };
-		278E732825615C4500BD5421 /* MySQL Shell GUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MySQL Shell GUI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		278E732825615C4500BD5421 /* MySQL Shell Workbench.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MySQL Shell Workbench.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		278E732B25615C4500BD5421 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		278E732D25615C4600BD5421 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		278E733025615C4600BD5421 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		278E733225615C4600BD5421 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		278E733325615C4600BD5421 /* MySQL_Shell_GUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MySQL_Shell_GUI.entitlements; sourceTree = "<group>"; };
+		278E733325615C4600BD5421 /* MySQL_Shell_Workbench.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MySQL_Shell_Workbench.entitlements; sourceTree = "<group>"; };
 		27A986AA25E65FE400B1A3CA /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -45,7 +45,7 @@
 			children = (
 				1FCBDA372E2D96FE003381CC /* router */,
 				1FCBDA352E2D96F4003381CC /* shell */,
-				278E732A25615C4500BD5421 /* MySQL Shell GUI */,
+				278E732A25615C4500BD5421 /* MySQL Shell Workbench */,
 				278E732925615C4500BD5421 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,12 +53,12 @@
 		278E732925615C4500BD5421 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				278E732825615C4500BD5421 /* MySQL Shell GUI.app */,
+				278E732825615C4500BD5421 /* MySQL Shell Workbench.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		278E732A25615C4500BD5421 /* MySQL Shell GUI */ = {
+		278E732A25615C4500BD5421 /* MySQL Shell Workbench */ = {
 			isa = PBXGroup;
 			children = (
 				278E732B25615C4500BD5421 /* AppDelegate.swift */,
@@ -67,18 +67,18 @@
 				278E732D25615C4600BD5421 /* Assets.xcassets */,
 				278E732F25615C4600BD5421 /* MainMenu.xib */,
 				278E733225615C4600BD5421 /* Info.plist */,
-				278E733325615C4600BD5421 /* MySQL_Shell_GUI.entitlements */,
+				278E733325615C4600BD5421 /* MySQL_Shell_Workbench.entitlements */,
 			);
-			name = "MySQL Shell GUI";
-			path = "mysql-shell-gui";
+			name = "MySQL Shell Workbench";
+			path = "mysql-shell-workbench";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		278E732725615C4500BD5421 /* MySQL Shell GUI */ = {
+		278E732725615C4500BD5421 /* MySQL Shell Workbench */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 278E733625615C4600BD5421 /* Build configuration list for PBXNativeTarget "MySQL Shell GUI" */;
+			buildConfigurationList = 278E733625615C4600BD5421 /* Build configuration list for PBXNativeTarget "MySQL Shell Workbench" */;
 			buildPhases = (
 				278E732425615C4500BD5421 /* Sources */,
 				278E732525615C4500BD5421 /* Frameworks */,
@@ -89,9 +89,9 @@
 			);
 			dependencies = (
 			);
-			name = "MySQL Shell GUI";
-			productName = "MySQL Shell GUI";
-			productReference = 278E732825615C4500BD5421 /* MySQL Shell GUI.app */;
+			name = "MySQL Shell Workbench";
+			productName = "MySQL Shell Workbench";
+			productReference = 278E732825615C4500BD5421 /* MySQL Shell Workbench.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -108,7 +108,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 278E732325615C4500BD5421 /* Build configuration list for PBXProject "mysql-shell-gui" */;
+			buildConfigurationList = 278E732325615C4500BD5421 /* Build configuration list for PBXProject "mysql-shell-workbench" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -121,7 +121,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				278E732725615C4500BD5421 /* MySQL Shell GUI */,
+				278E732725615C4500BD5421 /* MySQL Shell Workbench */,
 			);
 		};
 /* End PBXProject section */
@@ -157,7 +157,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Ensures the referenced folders for shell and router are present to prevent the build from failing\nif [ ! -e \"${SOURCE_ROOT}/mysql-shell-gui/shell\" ]; then\n  mkdir -p \"${SOURCE_ROOT}/mysql-shell-gui/shell\"\nfi\n\nif [ ! -e \"${SOURCE_ROOT}/mysql-shell-gui/router\" ]; then\n  mkdir -p \"${SOURCE_ROOT}/mysql-shell-gui/router\"\nfi\n";
+			shellScript = "# Ensures the referenced folders for shell and router are present to prevent the build from failing\nif [ ! -e \"${SOURCE_ROOT}/mysql-shell-workbench/shell\" ]; then\n  mkdir -p \"${SOURCE_ROOT}/mysql-shell-workbench/shell\"\nfi\n\nif [ ! -e \"${SOURCE_ROOT}/mysql-shell-workbench/router\" ]; then\n  mkdir -p \"${SOURCE_ROOT}/mysql-shell-workbench/router\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -306,18 +306,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "mysql-shell-gui/MySQL_Shell_GUI.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "mysql-shell-workbench/MySQL_Shell_Workbench.entitlements";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 4P379L9Y2H;
-				INFOPLIST_FILE = "mysql-shell-gui/Info.plist";
+				INFOPLIST_FILE = "mysql-shell-workbench/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.oracle.MySQL-Shell-GUI";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.oracle.MySQL-Shell-Workbench";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -329,18 +329,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "mysql-shell-gui/MySQL_Shell_GUI.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "mysql-shell-workbench/MySQL_Shell_Workbench.entitlements";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 4P379L9Y2H;
-				INFOPLIST_FILE = "mysql-shell-gui/Info.plist";
+				INFOPLIST_FILE = "mysql-shell-workbench/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.oracle.MySQL-Shell-GUI";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.oracle.MySQL-Shell-Workbench";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -350,7 +350,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		278E732325615C4500BD5421 /* Build configuration list for PBXProject "mysql-shell-gui" */ = {
+		278E732325615C4500BD5421 /* Build configuration list for PBXProject "mysql-shell-workbench" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				278E733425615C4600BD5421 /* Debug */,
@@ -359,7 +359,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		278E733625615C4600BD5421 /* Build configuration list for PBXNativeTarget "MySQL Shell GUI" */ = {
+		278E733625615C4600BD5421 /* Build configuration list for PBXNativeTarget "MySQL Shell Workbench" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				278E733725615C4600BD5421 /* Debug */,

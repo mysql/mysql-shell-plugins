@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+/*
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,36 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-using System.Text.Json.Serialization;
+import Foundation
+import Cocoa;
 
-namespace MysqlShellGui {
-  public class JSCallStruct {
+public protocol AppProtocol {
+  func sendAppMessage(command: String, data: [Any]) -> Void;
+}
 
-    [JsonPropertyName("command")]
-    public string Command { get; set; }
+extension NSColor {
+  convenience init(hex: String) {
 
-    [JsonPropertyName("data")]
-    public object Data { get; set; }
+    let colorString = hex.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines);
+    let scanner = Scanner(string: colorString);
+
+    if colorString.hasPrefix("#") {
+      let _ = scanner.scanCharacter();
+    }
+
+    var colorCode: UInt64 = 0
+    scanner.scanHexInt64(&colorCode);
+
+    let mask: UInt64 = 0x000000FF;
+    let red = CGFloat((colorCode >> 16) & mask);
+    let green = CGFloat((colorCode >> 16) & mask);
+    let blue = CGFloat((colorCode >> 16) & mask);
+
+    self.init(
+      deviceRed: red / 255.0,
+      green: green / 255.0,
+      blue: blue / 255.0,
+      alpha: 1
+    );
   }
 }

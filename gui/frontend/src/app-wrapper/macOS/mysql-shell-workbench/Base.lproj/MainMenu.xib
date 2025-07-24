@@ -14,7 +14,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="MySQL_Shell_GUI" customModuleProvider="target">
+        <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="MySQL_Shell_Workbench" customModuleProvider="target">
             <connections>
                 <outlet property="background" destination="UBA-bC-Bcr" id="QPo-Jd-Gli"/>
                 <outlet property="browser" destination="mrU-4l-7SC" id="tDM-Qx-KJm"/>
@@ -25,11 +25,11 @@
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
-                <menuItem title="MySQL Shell GUI" id="1Xt-HY-uBw">
+                <menuItem title="MySQL Shell Workbench" id="1Xt-HY-uBw">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="MySQL Shell GUI" systemMenu="apple" id="uQy-DD-JDr">
+                    <menu key="submenu" title="MySQL Shell Workbench" systemMenu="apple" id="uQy-DD-JDr">
                         <items>
-                            <menuItem title="About MySQL Shell GUI" id="5kV-Vb-QxS">
+                            <menuItem title="About MySQL Shell Workbench" id="5kV-Vb-QxS">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="showAboutBoxWithSender:" target="Voe-Tx-rLC" id="OHI-eS-ktG"/>
@@ -47,7 +47,7 @@
                                 <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
-                            <menuItem title="Hide MySQL Shell GUI" keyEquivalent="h" id="Olw-nP-bQN">
+                            <menuItem title="Hide MySQL Shell Workbench" keyEquivalent="h" id="Olw-nP-bQN">
                                 <connections>
                                     <action selector="hide:" target="-1" id="PnN-Uc-m68"/>
                                 </connections>
@@ -65,7 +65,7 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
-                            <menuItem title="Quit MySQL Shell GUI" keyEquivalent="q" id="4sb-4s-VLi">
+                            <menuItem title="Quit MySQL Shell Workbench" keyEquivalent="q" id="4sb-4s-VLi">
                                 <connections>
                                     <action selector="terminate:" target="-1" id="Te7-pn-YzF"/>
                                 </connections>
@@ -194,7 +194,7 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Help" systemMenu="help" id="F2S-fz-NVQ">
                         <items>
-                            <menuItem title="MySQL Shell GUI Help" keyEquivalent="?" id="FKE-Sm-Kum">
+                            <menuItem title="MySQL Shell Workbench Help" keyEquivalent="?" id="FKE-Sm-Kum">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="y7X-2Q-9no"/>
                                 </connections>
@@ -205,7 +205,7 @@
             </items>
             <point key="canvasLocation" x="-120" y="-669"/>
         </menu>
-        <window title="MySQL Shell GUI" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" titlebarAppearsTransparent="YES" titleVisibility="hidden" id="QvC-M9-y7g">
+        <window title="MySQL Shell Workbench" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" titlebarAppearsTransparent="YES" titleVisibility="hidden" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="812" height="679"/>
@@ -225,9 +225,9 @@
                         <rect key="frame" x="398" y="332" width="32" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                     </progressIndicator>
-                    <wkWebView hidden="YES" wantsLayer="YES" allowsLinkPreview="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mrU-4l-7SC" customClass="DragTargetWebView" customModule="MySQL_Shell_GUI" customModuleProvider="target">
+                    <wkWebView hidden="YES" wantsLayer="YES" allowsLinkPreview="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mrU-4l-7SC" customClass="DragTargetWebView" customModule="MySQL_Shell_Workbench" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="652"/>
-                        <wkWebViewConfiguration key="configuration" allowsAirPlayForMediaPlayback="NO" applicationNameForUserAgent="MySQL Shell GUI">
+                        <wkWebViewConfiguration key="configuration" allowsAirPlayForMediaPlayback="NO" applicationNameForUserAgent="MySQL Shell Workbench">
                             <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
                             <wkPreferences key="preferences"/>
                         </wkWebViewConfiguration>

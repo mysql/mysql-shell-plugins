@@ -35,8 +35,8 @@ using System.Text.Json.Serialization;
 using System.IO;
 using System.Windows.Forms;
 
-namespace MysqlShellGui {
-  public partial class MysqlShellGui : Form {
+namespace MySQLShellWorkbench {
+  public partial class MySQLShellWorkbench : Form {
 
     #region members
 
@@ -57,7 +57,7 @@ namespace MysqlShellGui {
 
     //--------------------------------------------------------------------------------------------------------------------
 
-    public MysqlShellGui(bool installed) {
+    public MySQLShellWorkbench(bool installed) {
       browserMode = !installed;
 #if !DEBUG
       Guid g = Guid.NewGuid();
