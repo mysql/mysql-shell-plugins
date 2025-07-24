@@ -4,7 +4,9 @@
 
 ### Additions
 
-- Upgrade MySQL Shell to version 9.4.0
+- Added support to import MySQL Workbench connections
+- Added support for the LIBRARY object type
+- Upgraded MySQL Shell and Router to version 9.4.0
 
 ### Fixes
 
@@ -15,7 +17,6 @@
 - BUG#38160406 Python SDK vs. REST SERVICE SQL clause AUTHENTICATION PATH
 - BUG#38027483 Python SDK: async support and status=SCHEDULED
 - BUG#37052890 mrs.dump.sdkServiceFiles() sdk_language option validation: PythoN vs. python, ...
--
 
 ## Changes in 1.19.14+9.3.1
 
