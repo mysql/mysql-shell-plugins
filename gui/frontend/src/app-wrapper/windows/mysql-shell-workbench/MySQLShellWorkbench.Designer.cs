@@ -26,8 +26,8 @@
 using System;
 using System.Windows.Forms;
 
-namespace MysqlShellGui {
-  partial class MysqlShellGui {
+namespace MySQLShellWorkbench {
+  partial class MySQLShellWorkbench {
     /// <summary>
     /// Required designer variable.
     /// </summary>
@@ -40,7 +40,7 @@ namespace MysqlShellGui {
     /// the contents of this method with the code editor.
     /// </summary>
     private void InitializeComponent() {
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MysqlShellGui));
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MySQLShellWorkbench));
       this.webView = new Microsoft.Web.WebView2.WinForms.WebView2();
       this.printDocument1 = new System.Drawing.Printing.PrintDocument();
       this.menuStrip1 = new System.Windows.Forms.MenuStrip();
@@ -50,9 +50,9 @@ namespace MysqlShellGui {
       ((System.ComponentModel.ISupportInitialize)(this.webView)).BeginInit();
       this.menuStrip1.SuspendLayout();
       this.SuspendLayout();
-      //
+      // 
       // webView
-      //
+      // 
       this.webView.CreationProperties = null;
       this.webView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.webView.Location = new System.Drawing.Point(0, 33);
@@ -60,9 +60,10 @@ namespace MysqlShellGui {
       this.webView.Size = new System.Drawing.Size(1200, 991);
       this.webView.TabIndex = 0;
       this.webView.ZoomFactor = 1D;
-      //
+      // 
       // menuStrip1
-      //
+      // 
+      this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
       this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
       this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.helpToolStripMenuItem});
@@ -71,32 +72,32 @@ namespace MysqlShellGui {
       this.menuStrip1.Size = new System.Drawing.Size(1200, 33);
       this.menuStrip1.TabIndex = 1;
       this.menuStrip1.Text = "menuStrip1";
-      //
+      // 
       // helpToolStripMenuItem
-      //
+      // 
       this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.preferencesToolStripMenuItem,
             this.aboutToolStripMenuItem});
       this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
       this.helpToolStripMenuItem.Size = new System.Drawing.Size(65, 29);
       this.helpToolStripMenuItem.Text = "&Help";
-      //
+      // 
       // preferencesToolStripMenuItem
-      //
+      // 
       this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-      this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+      this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(204, 34);
       this.preferencesToolStripMenuItem.Text = "&Preferences";
       this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
-      //
+      // 
       // aboutToolStripMenuItem
-      //
+      // 
       this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-      this.aboutToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+      this.aboutToolStripMenuItem.Size = new System.Drawing.Size(204, 34);
       this.aboutToolStripMenuItem.Text = "&About";
       this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
-      //
-      // MysqlShellGui
-      //
+      // 
+      // MySQLShellWorkbench
+      // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(1200, 1024);
@@ -105,8 +106,8 @@ namespace MysqlShellGui {
       this.ForeColor = System.Drawing.SystemColors.ControlText;
       this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.MainMenuStrip = this.menuStrip1;
-      this.Name = "MysqlShellGui";
-      this.Text = "MSG";
+      this.Name = "MySQLShellWorkbench";
+      this.Text = "MySQL Shell Workbench";
       ((System.ComponentModel.ISupportInitialize)(this.webView)).EndInit();
       this.menuStrip1.ResumeLayout(false);
       this.menuStrip1.PerformLayout();

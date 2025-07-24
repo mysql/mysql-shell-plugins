@@ -42,8 +42,8 @@ yarn-error.log*
 #app wrapper
 frontend/src/app-wrapper/windows/.vs
 frontend/src/app-wrapper/windows/.cr
-frontend/src/app-wrapper/windows/mysql-shell-gui/bin
-frontend/src/app-wrapper/windows/mysql-shell-gui/obj
+frontend/src/app-wrapper/windows/mysql-shell-workbench/bin
+frontend/src/app-wrapper/windows/mysql-shell-workbench/obj
 frontend/src/app-wrapper/windows/packages
 frontend/src/tests/e2e/selenium
 
