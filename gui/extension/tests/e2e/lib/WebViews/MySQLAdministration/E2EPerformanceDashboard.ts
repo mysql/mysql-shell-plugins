@@ -224,18 +224,22 @@ export class E2EPerformanceDashboard {
         await driver.wait(async () => {
 
             const heapUsageGraph = await driver.findElement(performanceDashboardLocator.mleStatus.heapUsageGraph);
-            const mleStatus = await (await driver.findElement(performanceDashboardLocator.mleStatus.mleStatus)).getText();
-            const mleMaxHeapSize = await (await driver.findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getText();
-            const mleHeapUtilizationGraph = await driver.findElement(performanceDashboardLocator.mleStatus.mleHeapUtilizationGraph);
-            const currentHeapUsage = await (await driver.findElement(performanceDashboardLocator.mleStatus.currentHeapUsage)).getText();
+            const mleStatus = await (await driver.findElement(performanceDashboardLocator.mleStatus.mleStatus))
+                .getText();
+            const mleMaxHeapSize = await (await driver
+                .findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getAttribute("innerHTML");
+            const mleHeapUtilizationGraph = await driver
+                .findElement(performanceDashboardLocator.mleStatus.mleHeapUtilizationGraph);
+            const currentHeapUsage = await (await driver
+                .findElement(performanceDashboardLocator.mleStatus.currentHeapUsage)).getAttribute("innerHTML");
 
             if (mleStatus && mleMaxHeapSize && currentHeapUsage) {
                 this.mlePerformance = {
-                    heapUsageGraph: heapUsageGraph,
-                    mleStatus: mleStatus,
-                    mleMaxHeapSize: mleMaxHeapSize,
-                    mleHeapUtilizationGraph: mleHeapUtilizationGraph,
-                    currentHeapUsage: currentHeapUsage,
+                    heapUsageGraph,
+                    mleStatus,
+                    mleMaxHeapSize,
+                    mleHeapUtilizationGraph,
+                    currentHeapUsage,
                 };
 
                 return true;

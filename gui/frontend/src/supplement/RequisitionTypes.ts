@@ -551,7 +551,8 @@ export interface IRequestTypeMap {
     "newSession": (session: IShellSessionDetails) => Promise<boolean>;
 
     /** Triggers adding a new connection. */
-    "addNewConnection": (details: { mdsData?: IMySQLDbSystem; profileName?: string; }) => Promise<boolean>;
+    "addNewConnection":
+        (details: { mdsData?: IMySQLDbSystem; profileName?: string; user?: string; }) => Promise<boolean>;
 
     /** Triggers removing a connection */
     "removeConnection": (connectionInfo: IConnectionInfo) => Promise<boolean>;

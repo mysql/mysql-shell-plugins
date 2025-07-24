@@ -183,13 +183,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
      *
      * @param mdsData Additional data for MDS connections.
      * @param profileName The config profile name for MDS connections.
+     * @param user Default username used for the connection.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public addConnection(mdsData?: IMySQLDbSystem, profileName?: String): Promise<boolean> {
+    public addConnection(mdsData?: IMySQLDbSystem, profileName?: string, user?: string): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showPage", parameter: {} },
-            { requestType: "addNewConnection", parameter: { mdsData, profileName } },
+            { requestType: "addNewConnection", parameter: { mdsData, profileName, user } },
         ], "connections");
     }
 

@@ -736,7 +736,8 @@ describe("DB Connection Overview", () => {
                 constants.wait1second * 3);
 
             expect(await connectionOverview.getBreadCrumb()).to.equals(`/${dbConnection1.folderPath.value}/`);
-            expect(await dbTreeSection.treeItemExists(dbConnection1.folderPath.value)).to.equals(true);
+            await driver.wait(dbTreeSection.untilTreeItemExists(dbConnection1.folderPath.value),
+                constants.wait1second * 5);
 
             await driver.wait(dbTreeSection.untilTreeItemHasChildren(dbConnection1.folderPath.value),
                 constants.wait1second * 5);
@@ -757,10 +758,12 @@ describe("DB Connection Overview", () => {
             const group2 = dbConnection2.folderPath.value.split("/")[2];
 
             await connectionOverview.joinGroup(group1);
-            expect(await connectionOverview.existsGroup(group2)).to.be.true;
+            await driver.wait(connectionOverview.untilGroupExists(group2), constants.wait1second * 5);
+
             await connectionOverview.joinGroup(group2);
             expect(await connectionOverview.existsConnection(dbConnection2.caption)).to.be.true;
-            expect(await dbTreeSection.treeItemExists(group2)).to.be.true;
+            await driver.wait(dbTreeSection.untilTreeItemExists(group2),
+                constants.wait1second * 5);
 
             const group2TreeItem = await dbTreeSection.getTreeItem(group2);
             expect(await (await group2TreeItem.getChildren())[0].getLabel()).to.equals(dbConnection2.caption);
@@ -789,7 +792,8 @@ describe("DB Connection Overview", () => {
                 constants.wait1second * 3);
 
             expect(await connectionOverview.getBreadCrumb()).to.equals(`/${dbConnection.folderPath.value}/`);
-            expect(await dbTreeSection.treeItemExists(dbConnection.folderPath.value)).to.be.true;
+            await driver.wait(dbTreeSection.untilTreeItemExists(dbConnection.folderPath.value),
+                constants.wait1second * 5);
 
             await driver.wait(dbTreeSection.untilTreeItemHasChildren(dbConnection.folderPath.value),
                 constants.wait1second * 5);
@@ -823,10 +827,12 @@ describe("DB Connection Overview", () => {
             const sqliteGroup2 = dbConnection.folderPath.value.split("/")[2];
 
             await connectionOverview.joinGroup(sqliteGroup1);
-            expect(await connectionOverview.existsGroup(sqliteGroup2)).to.be.true;
+            await driver.wait(connectionOverview.untilGroupExists(sqliteGroup2), constants.wait1second * 5);
+
             await connectionOverview.joinGroup(sqliteGroup2);
             expect(await connectionOverview.existsConnection(dbConnection.caption)).to.be.true;
-            expect(await dbTreeSection.treeItemExists(sqliteGroup2)).to.be.true;
+            await driver.wait(dbTreeSection.untilTreeItemExists(sqliteGroup2),
+                constants.wait1second * 5);
 
             await driver.wait(dbTreeSection.untilTreeItemHasChildren(sqliteGroup2),
                 constants.wait1second * 5);
@@ -859,7 +865,7 @@ describe("DB Connection Overview", () => {
                 constants.addSubfolder);
             await Workbench.setInputPath(subFolder);
             await dbTreeSection.expandTreeItem(dbConnection.folderPath.value);
-            expect(await dbTreeSection.treeItemExists(subFolder)).to.be.true;
+            await driver.wait(dbTreeSection.untilTreeItemExists(subFolder), constants.wait1second * 5);
 
         });
 
@@ -868,7 +874,7 @@ describe("DB Connection Overview", () => {
             await dbTreeSection.openContextMenuAndSelect("2group", constants.addSubfolder);
             await Workbench.setInputPath("3group");
             await dbTreeSection.expandTreeItem("2group");
-            expect(await dbTreeSection.treeItemExists("3group")).to.equals(true);
+            await driver.wait(dbTreeSection.untilTreeItemExists("3group"), constants.wait1second * 5);
 
             await dbTreeSection.openContextMenuAndSelect("3group", constants.addSubfolder);
             await Workbench.setInputPath("4group");
@@ -981,7 +987,7 @@ describe("DB Connection Overview", () => {
             await Workbench.setInputPath("Edited group");
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await driver.wait(dbTreeSection.untilTreeItemExists(editedGroup), constants.waitForTreeItem);
-            expect(await connectionOverview.existsGroup(editedGroup)).to.be.true;
+            await driver.wait(connectionOverview.untilGroupExists(editedGroup), constants.wait1second * 5);
 
         });
 
@@ -992,9 +998,9 @@ describe("DB Connection Overview", () => {
                 constants.editFolder);
             await Workbench.setInputPath(editedFolderName);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            expect(await dbTreeSection.treeItemExists(editedFolderName)).to.be.true;
+            await driver.wait(dbTreeSection.untilTreeItemExists(editedFolderName), constants.waitForTreeItem);
             await connectionOverview.joinGroup(dbConnection1.folderPath.value);
-            expect(await connectionOverview.existsGroup(editedFolderName)).to.be.true;
+            await driver.wait(connectionOverview.untilGroupExists(editedFolderName), constants.wait1second * 5);
 
         });
 
@@ -1006,7 +1012,11 @@ describe("DB Connection Overview", () => {
                 // eslint-disable-next-line max-len
                 .untilNotificationExists(`The connection group "4group" has been deleted.`,
                     true, true), constants.wait1second * 5);
-            expect(await dbTreeSection.treeItemExists("4group")).to.be.false;
+
+            await driver.wait(async () => {
+                return !(await dbTreeSection.treeItemExists("4group"));
+            }, constants.wait1second * 5, "4group should not exist on the tree");
+
         });
 
         it("Remove folder with connections", async () => {
@@ -1018,7 +1028,10 @@ describe("DB Connection Overview", () => {
                 // eslint-disable-next-line max-len
                 .untilNotificationExists(`The connection group "${dbConnection1.folderPath.value}" has been deleted.`,
                     true, true), constants.wait1second * 5);
-            expect(await dbTreeSection.treeItemExists(dbConnection1.folderPath.value)).to.be.false;
+            await driver.wait(async () => {
+                return !(await dbTreeSection.treeItemExists(dbConnection1.folderPath.value));
+            }, constants.wait1second * 5, `${dbConnection1.folderPath.value} should not exist on the tree`);
+
         });
 
         it("Import MySQL Workbench DB Connections", async () => {

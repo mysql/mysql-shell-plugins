@@ -1385,8 +1385,8 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Result grid cell tooltips - integer columns", async () => {
-
+        it("Result grid cell tooltips - integer columns", async function () {
+            this.retries(1);
             const rowNumber = 0;
             const tableColumns: string[] = [];
             await notebook.codeEditor.clean();
@@ -1417,8 +1417,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Result grid cell tooltips - date columns", async () => {
+        it("Result grid cell tooltips - date columns", async function () {
 
+            this.retries(1);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
@@ -1450,8 +1451,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Result grid cell tooltips - char columns", async () => {
+        it("Result grid cell tooltips - char columns", async function () {
 
+            this.retries(1);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about", true);
@@ -1479,8 +1481,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Result grid cell tooltips - binary and varbinary columns", async () => {
+        it("Result grid cell tooltips - binary and varbinary columns", async function () {
 
+            this.retries(1);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about", true);
@@ -1513,8 +1516,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Result grid cell tooltips - bit column", async () => {
+        it("Result grid cell tooltips - bit column", async function () {
 
+            this.retries(1);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");

@@ -57,6 +57,14 @@ export interface ITileActionOptions {
     newTab?: boolean;
     target?: HTMLElement | null;
     editor?: "notebook" | "script";
+
+    id?: string;
+    endpoints?: Array<{ ipAddress: string; }>;
+    displayName?: string;
+    description?: string;
+    compartmentId?: string;
+    profileName?: string;
+    user?: string;
 }
 
 export interface IConnectionTileProperties extends IComponentProperties {
