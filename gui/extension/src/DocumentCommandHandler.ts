@@ -903,7 +903,7 @@ export class DocumentCommandHandler {
             (item?: OciDbSystemTreeItem) => {
                 if (item) {
                     const provider = this.host.currentProvider;
-                    void provider?.addConnection(item.dbSystem, item.profile.profile);
+                    void provider?.addConnection(item.dbSystem, item.profile.profile, "admin");
                 }
             }));
 

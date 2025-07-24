@@ -59,6 +59,7 @@ import {
 import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
+import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
@@ -326,10 +327,12 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         );
     }
 
-    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: string; }): Promise<boolean> => {
-        const options = details.mdsData as ITileActionOptions & { profileName?: string; };
+    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: string; user?: string; })
+        : Promise<boolean> => {
+        const options = details.mdsData as ITileActionOptions & { profileName?: string; user?: string; };
         if (options) {
             options.profileName = details.profileName;
+            options.user = details.user;
         }
         this.doHandleTileAction("new", undefined, options);
 
@@ -532,7 +535,39 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         if (entry?.type === CdmEntityType.Connection) {
             dbType = entry?.details ? entry.details.dbType : DBType.MySQL;
         } else if (action === "new") {
-            void this.editorRef.current?.show(DBType.MySQL, true, this.generateFolderPathFromCurrentGroup());
+            let connectionDetails: IConnectionDetails | undefined;
+            if (options?.id !== undefined) {
+                const { id, endpoints, displayName, description, compartmentId, profileName, user } = options;
+                let host;
+                if (endpoints && Array.isArray(endpoints) && endpoints.length > 0) {
+                    host = endpoints[0].ipAddress;
+                }
+
+                connectionDetails = {
+                    id: -1,
+                    index: 0,
+                    caption: displayName as string ?? "",
+                    dbType: DBType.MySQL,
+                    description: description as string ?? "",
+                    useMHS: true,
+                    useSSH: false,
+                    options: {
+                        user,
+                        /* eslint-disable @typescript-eslint/naming-convention */
+                        "compartment-id": compartmentId,
+                        "mysql-db-system-id": id,
+                        "profile-name": profileName ?? "DEFAULT",
+
+                        // Disable support for bastion to be stored in freeform tags for the time being
+                        // "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
+                        host,
+                        "scheme": MySQLConnectionScheme.MySQL,
+                    },
+                };
+            }
+
+            void this.editorRef.current?.show(DBType.MySQL, true, this.generateFolderPathFromCurrentGroup(),
+                connectionDetails);
 
             return;
         } else {

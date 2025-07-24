@@ -1065,7 +1065,7 @@ export class SidebarCommandHandler {
                 const dbSystem = entry as IOciDmDbSystem;
                 const profileData = dbSystem.parent.profileData;
                 await requisitions.execute("addNewConnection",
-                    { mdsData: dbSystem.details, profileName: profileData.profile });
+                    { mdsData: dbSystem.details, profileName: profileData.profile, user: "admin" });
 
                 break;
             }

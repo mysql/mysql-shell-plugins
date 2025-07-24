@@ -75,7 +75,7 @@
     font-size: 28pt;
     align-content: center;
 
-    color: var(--connectionTile-foreground);
+    background-color: var(--connectionTile-foreground);
 }
 
 .msg.connectionTile:not(:disabled).dropTarget,
