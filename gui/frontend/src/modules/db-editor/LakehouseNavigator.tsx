@@ -111,7 +111,7 @@ export interface ILakehouseNavigatorState extends IComponentState {
     filesForUploadPanelWidth?: number;
     taskListPanelHeight?: number;
 
-    heatWaveVersionSupported: boolean;
+    heatWaveVersionSupported?: boolean;
 }
 
 interface IUploadFileItem {
@@ -261,7 +261,6 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         this.state = {
             autoRefreshTablesAndTasks: true,
             activeTabId: LakehouseNavigatorTab.Overview,
-            heatWaveVersionSupported: true,
         };
 
         this.#objTreeItems = props.savedState.objTreeItems;
@@ -530,7 +529,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 </Container>
                 <Container className="stepSeparator step1to2">&gt;&gt;&gt;</Container>
                 <Container className="stepSeparator step2to3">&gt;&gt;&gt;</Container>
-                {!heatWaveVersionSupported &&
+                {heatWaveVersionSupported === false &&
                     <Container className="warningContainer">
                         <Label className="warningLabel">Unsupported HeatWave Version.<br />
                             Please update to 9.3.2 or later.</Label>
