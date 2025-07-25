@@ -451,7 +451,13 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) (KB|B)\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) (KB|B)\/s/);
             await mysqlAdministration.performanceDashboard.selectTab(constants.perfDashMLETab);
-            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+
+            await driver.wait(async () => {
+                await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+
+                return mysqlAdministration.performanceDashboard.mlePerformance.mleStatus === "Inactive";
+            }, constants.wait1second * 5, "MLE Status should be Inactive");
+
             expect(mysqlAdministration.performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
             expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Inactive");
             expect(mysqlAdministration.performanceDashboard.mlePerformance.mleMaxHeapSize).to.match(/(\d+).(\d+) GB/);

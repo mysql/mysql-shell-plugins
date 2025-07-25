@@ -361,6 +361,7 @@ describe("DB Connection Overview", () => {
             editConn.basic.protocol = "mysqlx";
             editConn.basic.port = 3305;
             editConn.basic.sshTunnel = true;
+            editConn.basic.ociBastion = false;
             editConn.ssl = {
                 mode: "Require",
                 ciphers: "ciphers, edited",
@@ -421,7 +422,6 @@ describe("DB Connection Overview", () => {
                 compressionLevel: "5",
                 disableHeatWave: true,
             };
-
         }
         delete (editConn.basic as interfaces.IConnBasicMySQL).password;
         const dbConnectionDialog = DatabaseConnectionDialog;
