@@ -3177,7 +3177,7 @@ Service - Reference Manual
             clause:</p>
             <div class="sourceCode" id="cb53"><pre
             class="sourceCode sql"><code class="sourceCode sql"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;globalRole&quot;</span> <span class="kw">ON</span> <span class="kw">ANY</span> SERVICE;</span></code></pre></div>
-            <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+            <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
             This program is free software; you can redistribute it and/or modify
             it under the terms of the GNU General Public License, version 2.0,
@@ -8127,7 +8127,7 @@ roleService:
 <span id="cb227-46"><a href="#cb227-46" aria-hidden="true" tabindex="-1"></a>    E-</span></code></pre></div>
             <p>The FilterObject must be encoded according to Section 2.1
             of RFC3986.</p>
-            <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+            <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
             This program is free software; you can redistribute it and/or modify
             it under the terms of the GNU General Public License, version 2.0,
@@ -8850,6 +8850,18 @@ roleService:
             </tr>
             </tbody>
             </table>
+            <p>Naming conflicts can also happen with the static
+            identifiers used the native SDK functions available at each
+            REST resource level (service, schema and/or object),
+            examples can be as follows (depending on the level):</p>
+            <ul>
+            <li><code>authenticate</code></li>
+            <li><code>deauthenticate</code></li>
+            <li><code>getMetadata</code>/<code>get_metadata</code></li>
+            <li><code>getAuthApps</code>/<code>get_auth_apps</code></li>
+            </ul>
+            <p>In this case, the non static identifiers used for schema
+            or object names will contain the corresponding suffix.</p>
             <p>Additionally, request paths with a leading numeric
             character are also perfectly valid, but without special
             handling, the resulting identifiers would lead to syntax

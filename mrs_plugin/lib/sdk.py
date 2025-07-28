@@ -350,7 +350,8 @@ def substitute_schemas_in_template(
 
     for loop in schema_loops:
         # for each schema loop, we should restart tracking the identifiers
-        existing_identifiers = []
+        # we should track reserved service level keywords as existing identifiers
+        existing_identifiers = get_top_level_keywords(sdk_language=sdk_language)
 
         schema_template = loop.group(1)
 
@@ -412,6 +413,22 @@ def substitute_schemas_in_template(
         "required_datatypes": required_datatypes,
         "requires_auth": requires_auth,
     }
+
+
+def get_top_level_keywords(
+    sdk_language: ProgrammingLanguage = "typescript",
+    resource: Literal["service", "schema", "object"] = "service",
+) -> list[str]:
+    keywords = {
+        "schema": {"getMetadata"},
+        "object": {"getMetadata"},
+        "service": {"authenticate", "deauthenticate", "getAuthApps", "getMetadata"},
+    }
+    if sdk_language == "python":
+        return sorted([
+            lib.core.convert_to_snake_case(keyword) for keyword in keywords[resource]
+        ])
+    return sorted(keywords[resource])
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -503,7 +520,8 @@ def substitute_objects_in_template(
 
     for loop in object_loops:
         # for each object loop, we need to restart tracking the identifiers
-        existing_identifiers = []
+        # we should track reserved schema level keywords as existing identifiers
+        existing_identifiers = get_top_level_keywords(resource="schema", sdk_language=sdk_language)
 
         filled_temp = ""
         for db_obj in db_objects:

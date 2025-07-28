@@ -1019,3 +1019,24 @@ def test_generate_tuple():
 
     tup = generate_tuple(name="Foo", sdk_language="python")
     assert tup == "Foo: TypeAlias = tuple[()]\n\n\n"
+
+
+def test_get_top_level_keywords():
+    keywords = get_top_level_keywords()
+    assert keywords == ["authenticate", "deauthenticate", "getAuthApps", "getMetadata"]
+
+    keywords = get_top_level_keywords(resource="schema")
+    assert keywords == ["getMetadata"]
+
+    keywords = get_top_level_keywords(resource="object")
+    assert keywords == ["getMetadata"]
+
+    keywords = get_top_level_keywords(resource="service", sdk_language="python")
+    assert keywords == ["authenticate", "deauthenticate", "get_auth_apps", "get_metadata"]
+
+    keywords = get_top_level_keywords(resource="schema", sdk_language="python")
+    assert keywords == ["get_metadata"]
+
+    keywords = get_top_level_keywords(resource="object", sdk_language="python")
+    assert keywords == ["get_metadata"]
+

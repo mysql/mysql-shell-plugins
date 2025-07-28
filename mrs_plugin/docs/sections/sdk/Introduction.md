@@ -151,4 +151,13 @@ These are generated using the most common convention for each language - TypeScr
 | `/my_request_path`  | `MyRequestPath`   | `MyRequestPath`   | `myRequestPath`     | `my_request_path`   |
 | `/myRequestPath`    | `MyRequestPath1`  | `MyRequestPath1`  | `myRequestPath1`    | `my_request_path1`  |
 
+Naming conflicts can also happen with the static identifiers used the native SDK functions available at each REST resource level (service, schema and/or object), examples can be as follows (depending on the level):
+
+- `authenticate`
+- `deauthenticate`
+- `getMetadata`/`get_metadata`
+- `getAuthApps`/`get_auth_apps`
+
+In this case, the non static identifiers used for schema or object names will contain the corresponding suffix.
+
 Additionally, request paths with a leading numeric character are also perfectly valid, but without special handling, the resulting identifiers would lead to syntax errors in both languages. In this case, following the common convention, the generated identifier contains an extra leading `_`.
