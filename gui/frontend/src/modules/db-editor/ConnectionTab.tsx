@@ -26,9 +26,10 @@
 import "./assets/document.css";
 
 import { ComponentChild, createRef } from "preact";
-import { SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async/dynamic";
+import { clearIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 import ts, { ScriptTarget } from "typescript";
 
+import { IMarkdownString } from "monaco-editor";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { IDictionary, IServicePasswordRequest, MessageType } from "../../app-logic/general-types.js";
@@ -49,10 +50,10 @@ import {
 } from "../../data-models/OpenDocumentDataModel.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
-import { SQLExecutionContext, type IRuntimeErrorResult } from "../../script-execution/SQLExecutionContext.js";
+import { IStacktraceInfo, SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import {
-    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState,
     currentNotebookVersion,
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState,
 } from "../../script-execution/index.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import {
@@ -63,7 +64,8 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
-    EditorLanguage, IScriptRequest, ISqlPageRequest,
+    convertRows,
+    EditorLanguage, generateColumnInfo, IScriptRequest, ISqlPageRequest,
 } from "../../supplement/index.js";
 import {
     convertErrorToString, getConnectionInfoFromDetails, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
@@ -143,6 +145,8 @@ export interface IConnectionPresentationState extends ISavedEditorState {
     currentExecutionHistoryIndex: number;
     executionHistoryUnsavedCode?: string;
     executionHistoryUnsavedCodeLanguage?: string;
+
+    hasExplainError: boolean;
 }
 
 /** Selecting an item requires different data, depending on the type of the item. */
@@ -156,6 +160,8 @@ export interface ISelectItemDetails {
     content?: string;
 
     is3rdLanguage?: boolean;
+    spName?: string;
+    schemaName?: string;
 }
 
 interface IConnectionTabProperties extends IComponentProperties {
@@ -315,7 +321,7 @@ Execute \\help or \\? for help;`;
     }
 
     private static shiftMLEStacktraceLineNumbers = (
-        stackTrace: QueryResult, jsStartLine: number): IRuntimeErrorResult | undefined => {
+        stackTrace: QueryResult, jsStartLine: number): IStacktraceInfo | undefined => {
         if (stackTrace?.rows && stackTrace.rows.length > 0) {
             const stackTraceRow = stackTrace.rows[0][0];
 
@@ -540,6 +546,7 @@ Execute \\help or \\? for help;`;
                             fontSize={appParameters.editorFontSize}
                             onScriptExecution={this.handleExecution}
                             onEdit={this.handleEdit}
+                            onExplainError={this.explainError}
                         />;
 
                         break;
@@ -766,6 +773,8 @@ Execute \\help or \\? for help;`;
                     document: script,
                     content: details.content,
                     is3rdLanguage: details.is3rdLanguage,
+                    spName: details.spName,
+                    schemaName: details.schemaName,
                 });
             }
         }
@@ -1110,7 +1119,8 @@ Execute \\help or \\? for help;`;
             return;
         }
 
-        const { statementCount, errorCount, startTime, jsStartLine, errorMessage, errorStatementIndex } = result;
+        const { statementCount, errorCount, startTime, jsStartLine,
+            errorMessage, errorStatementStr, errorStatementIndex, jsCreateStatementStr } = result;
 
         if (this.mrsSdkUpdateRequired) {
             // Enforce a refresh of the MRS Sdk Cache
@@ -1141,8 +1151,32 @@ Execute \\help or \\? for help;`;
                             content: updatedStacktrace.message + "\n",
                             language: "ansi",
                         });
-                        void context.addRuntimeErrorData(errorStatementIndex,
-                            { message: errorMessage, range: updatedStacktrace.range });
+
+                        const explainErrorCmd = `[Explain](command:explainError)`;
+                        const markdownValue = [
+                            "```", // Code block start
+                            errorMessage,
+                            "```", // Code block end
+                            "",    // Blank line for spacing
+                            explainErrorCmd,
+                        ].join("\n");
+
+                        const markdownString: IMarkdownString = {
+                            isTrusted: true,
+                            supportHtml: true,
+                            value: savedState.hasExplainError ?
+                                markdownValue
+                                : errorMessage,
+                        };
+                        void context.addRuntimeErrorData(
+                            {
+                                errorStatementStr,
+                                errorStatementIndex,
+                                jsCreateStatementStr,
+                                stacktraceInfo: { message: updatedStacktrace.message, range: updatedStacktrace.range },
+                                errorMessage,
+                                commandMessage: markdownString,
+                            });
                     }
                 } catch (error) {
                     console.error("Error while getting stack trace:\n" + String(error));
@@ -1864,6 +1898,103 @@ Execute \\help or \\? for help;`;
 
             onEditorChange?.(id, editorId);
         }
+    };
+
+    private explainError = async (context: ExecutionContext): Promise<boolean> => {
+        const { connection } = this.props;
+        const sqlContext = context as SQLExecutionContext;
+        const data = sqlContext.getRuntimeErrorData();
+        if (data) {
+            context.executionStarts();
+
+            try {
+                const spDef = data.createStatement;
+                const lowercaseSpDef = spDef.toLowerCase();
+                const isFunction = lowercaseSpDef.includes("create function") ? 1 : 0;
+                const query = data.queryStatement;
+                const error = data.errorMessage;
+                const currentSchema = sqlContext.currentSchema;
+                const currentSp = sqlContext.spName;
+
+                const queryOptions = `{"verbose": true, "printResponse": false}`;
+
+                const sqlQuery = `CALL sys.MLE_EXPLAIN_ERROR(?, ${isFunction}, ?, ?, '${queryOptions}', @explanation)`;
+                const resultId = uuid();
+
+                try {
+                    await connection?.backend.execute(sqlQuery,
+                        [`${currentSchema}.${currentSp}`, query, error], resultId, async (data) => {
+                            const result = data.result;
+                            if (result) {
+                                const rows = result.rows as string[][];
+                                const columnInfos = generateColumnInfo(connection.details.dbType, result.columns);
+                                const dictRows = convertRows(columnInfos, result.rows);
+                                if (rows && rows.length > 0 && rows[0].length > 0) {
+                                    await context.addResultData({
+                                        type: "resultSetRows",
+                                        rows: dictRows,
+                                        columns: columnInfos,
+                                        currentPage: 0,
+                                    }, { resultId },
+                                    );
+                                }
+                            }
+                        });
+
+                    const result = await connection?.backend.execute("SELECT @explanation");
+                    if (result) {
+                        const rows = result.rows as string[][];
+                        if (rows && rows.length > 0. && rows[0].length > 0) {
+                            await context.addResultData({
+                                type: "text",
+                                text: [{
+                                    type: MessageType.Log,
+                                    content: rows[0][0],
+                                    language: "ansi",
+                                }],
+                            }, { resultId: "" });
+                        }
+                    }
+                } catch (reason) {
+                    const msg = String(reason).replace(/^(Error: Error: )+/, "");
+
+                    await context?.clearResult();
+                    if (msg.includes("PROCEDURE sys.MLE_EXPLAIN_ERROR does not exist")) {
+                        await context?.addResultData({
+                            type: "text",
+                            text: [{
+                                type: MessageType.Info,
+                                content: "Please connect to a HeatWave instance that supports " +
+                                    "explaining error functionality.",
+                                language: "ansi",
+                            }],
+                        }, { resultId: "" });
+                    } else {
+                        this.sqlQueryExecutor.addTimedResult(sqlContext, {
+                            type: "text",
+                            text: [{
+                                type: MessageType.Error,
+                                index: 0,
+                                content: reason as string,
+                                language: "ansi",
+                            }],
+                            executionInfo: { text: "" },
+                        }, {
+                            resultId,
+                            index: 0,
+                            sql: sqlQuery,
+                        });
+                    }
+                }
+
+            } finally {
+                context.executionEnded();
+            }
+
+            return true;
+        }
+
+        return false;
     };
 
     /**

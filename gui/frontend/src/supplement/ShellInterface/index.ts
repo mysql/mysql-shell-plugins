@@ -84,6 +84,9 @@ export interface IConnectionDetails<OptionsType = IShellConnectionOptions> {
 
     /** Certain APIs set this member, when folders and connections are mixed. */
     type?: "connection";
+
+    /** Is the procedure sys.MLE_EXPLAIN_ERROR available on this server  */
+    hasExplainError?: boolean | undefined;
 }
 
 export interface IShellSessionDetails {

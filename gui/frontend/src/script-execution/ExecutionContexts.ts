@@ -53,6 +53,8 @@ export interface IExecutionContextsParameters {
     /** The current schema of the MySQL server. */
     currentSchema?: string;
 
+    spName?: string;
+
     /**
      * A callback to apply updates (usually from an edit operation).
      * @returns An error message or the number of affected rows if the update was successful.
@@ -73,6 +75,7 @@ export class ExecutionContexts implements IContextProvider {
     private store: StoreType;
     private sqlMode: string;
     private defaultSchema: string;
+    private spName: string;
 
     private updater: IResultSetUpdater;
 
@@ -81,6 +84,7 @@ export class ExecutionContexts implements IContextProvider {
         this.dbVersion = params.dbVersion ?? 80200;
         this.sqlMode = params.sqlMode ?? "";
         this.defaultSchema = params.currentSchema ?? "";
+        this.spName = params.spName ?? "";
 
         this.updater = updater ?? new ResultSetUpdater(this.store, params.runUpdates);
 
@@ -424,7 +428,7 @@ export class ExecutionContexts implements IContextProvider {
 
         if (presentation.isSQLLike) {
             return new SQLExecutionContext(presentation, this.store, this.dbVersion, this.sqlMode, this.defaultSchema,
-                statementSpans);
+                this.spName, statementSpans);
         }
 
         return new ExecutionContext(presentation, this.store);

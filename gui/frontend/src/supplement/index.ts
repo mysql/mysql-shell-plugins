@@ -136,6 +136,8 @@ export interface IScriptRequest {
     pageId?: string;
     connectionInfo?: IConnectionInfo;
     is3rdLanguage?: boolean;
+    spName?: string;
+    schemaName?: string;
 }
 
 /**

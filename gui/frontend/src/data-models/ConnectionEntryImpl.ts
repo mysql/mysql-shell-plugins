@@ -262,6 +262,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         this.details.heatWaveAvailable = connectionData.info.heatWaveAvailable;
         this.details.mleAvailable = connectionData.info.mleAvailable;
         this.details.isCloudInstance = connectionData.info.isCloudInstance;
+        this.details.hasExplainError = connectionData.info.hasExplainError;
 
         return true;
     }

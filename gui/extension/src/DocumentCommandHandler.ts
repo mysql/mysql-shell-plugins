@@ -1173,7 +1173,8 @@ export class DocumentCommandHandler {
         if (provider) {
             const { id: connectionId } = details;
             this.createNewScriptEditor(
-                provider, scriptName, sql, "mysql", connectionId, undefined, undefined, details, is3rdLanguage,
+                provider, scriptName, sql, "mysql", connectionId, undefined, undefined, details,
+                is3rdLanguage, name, schemaName,
             );
         }
     }
@@ -1475,7 +1476,8 @@ export class DocumentCommandHandler {
     private createNewScriptEditor = (
         dbProvider: DBConnectionViewProvider, name: string, content: string, language: string,
         connectionId: number, uri?: Uri, pageId?: string, details?: IConnectionDetails,
-        is3rdLanguage?: boolean): void => {
+        is3rdLanguage?: boolean,
+        spName?: string, schemaName?: string): void => {
         // A new script.
         const request: IScriptRequest = {
             id: uuid(),
@@ -1485,6 +1487,8 @@ export class DocumentCommandHandler {
             pageId,
             connectionInfo: details ? getConnectionInfoFromDetails(details) : undefined,
             is3rdLanguage,
+            spName,
+            schemaName,
         };
 
         let scripts = this.openScripts.get(dbProvider);

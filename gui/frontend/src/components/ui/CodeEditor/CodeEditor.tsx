@@ -38,16 +38,16 @@ import {
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import { EditorLanguage, isEditorLanguage, ITextRange } from "../../../supplement/index.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
-import { appParameters } from "../../../supplement/AppParameters.js";
 import {
     IEditorCommonExecutionOptions, IEditorExtendedExecutionOptions,
 } from "../../../supplement/RequisitionTypes.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
-
+import { editor } from "monaco-editor";
 import { MessageType } from "../../../app-logic/general-types.js";
 import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
 import { splitTextToLines } from "../../../utilities/string-helpers.js";
@@ -159,6 +159,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     onOptionsChanged?: () => void;
     onModelChange?: () => void;
     onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
+    onExplainError?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
 
     /** The presentation class depends on the place where the editor is used. */
     createResultPresentation?: ResultPresentationFactory;
@@ -222,13 +223,25 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
             "onScriptExecution", "onHelpCommand", "onOptionsChanged", "onContextLanguageChange",
-            "createResultPresentation",
+            "createResultPresentation", "onExplainError",
         );
 
         // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
         }
+
+        editor.registerCommand("explainError", () => {
+            const { onExplainError } = this.props;
+
+            const index = this.currentBlockIndex;
+            if (index > -1) {
+                const context = this.model?.executionContexts?.contextAt(index);
+                if (context) {
+                    void onExplainError?.(context, {}).then(() => { this.editor?.focus(); });
+                }
+            }
+        });
     }
 
     /**

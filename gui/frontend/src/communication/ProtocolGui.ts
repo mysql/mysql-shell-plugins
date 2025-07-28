@@ -478,6 +478,7 @@ export interface IOpenConnectionData {
         heatWaveAvailable?: boolean;
         mleAvailable?: boolean;
         isCloudInstance?: boolean;
+        hasExplainError?: boolean;
     };
 }
 

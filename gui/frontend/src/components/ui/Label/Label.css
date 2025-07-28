@@ -115,6 +115,7 @@
 .msg.resultText.log,
 .msg.label.log {
     padding: 0 4px;
+    text-wrap: wrap !important;
     color: var(--terminal-ansiBrightBlue);
 }
 

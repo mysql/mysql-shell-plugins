@@ -32,3 +32,4 @@ class MySQLData(enum.Enum):
     BASTION_SESSION = 5
     MLE_AVAILABLE = 6
     IS_CLOUD_INSTANCE = 7
+    HAS_EXPLAIN_ERROR = 8

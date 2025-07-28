@@ -370,6 +370,9 @@ class DbMysqlSession(DbSession):
         if common.MySQLData.IS_CLOUD_INSTANCE in self.data:
             ret_val["is_cloud_instance"] = self.data[common.MySQLData.IS_CLOUD_INSTANCE]
 
+        if common.MySQLData.HAS_EXPLAIN_ERROR in self.data:
+            ret_val["has_explain_error"] = self.data[common.MySQLData.HAS_EXPLAIN_ERROR]
+
         return ret_val
 
     @property

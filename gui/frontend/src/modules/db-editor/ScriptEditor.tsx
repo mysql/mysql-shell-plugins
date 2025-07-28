@@ -69,6 +69,7 @@ interface IScriptEditorProperties extends IComponentProperties {
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onEdit?: (id?: string) => void;
+    onExplainError?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
 }
 
 interface IScriptEditorState extends IComponentState {
@@ -102,7 +103,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         };
 
         this.addHandledProperties("standaloneMode", "toolbarItems", "extraLibs", "backend", "onScriptExecution",
-            "onEdit");
+            "onEdit", "onExplainError");
     }
 
     public static override getDerivedStateFromProps(newProps: IScriptEditorProperties,
@@ -154,7 +155,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
     public render(): ComponentChild {
         const { standaloneMode, savedState, toolbarItemsTemplate, backend, extraLibs, fontSize,
-            onScriptExecution } = this.props;
+            onScriptExecution, onExplainError } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
@@ -287,6 +288,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                                     horizontalScrollbarSize: 16,
                                 }}
                                 onScriptExecution={onScriptExecution}
+                                onExplainError={onExplainError}
                                 onModelChange={this.handleModelChange}
                                 createResultPresentation={this.createPresentation}
                             />,

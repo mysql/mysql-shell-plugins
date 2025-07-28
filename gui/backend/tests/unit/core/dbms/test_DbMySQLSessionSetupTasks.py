@@ -155,6 +155,7 @@ class TestHeatWaveCheckTask:
                                         common.MySQLData.MLE_AVAILABLE: False,
                                         common.MySQLData.HEATWAVE_AVAILABLE: False,
                                         common.MySQLData.IS_CLOUD_INSTANCE: False,
+                                        common.MySQLData.HAS_EXPLAIN_ERROR: False,
                                     })
         except Exception as e:
             assert False, f"Unexpected Error Happened: {str(e)}"
@@ -196,9 +197,11 @@ class TestHeatWaveCheckTask:
                     known_data[common.MySQLData.HEATWAVE_AVAILABLE] = known
                     known_data[common.MySQLData.IS_CLOUD_INSTANCE] = known
                     known_data[common.MySQLData.MLE_AVAILABLE] = False
+                    known_data[common.MySQLData.HAS_EXPLAIN_ERROR] = False
 
                 expected_data = {
                     common.MySQLData.MLE_AVAILABLE: False,
+                    common.MySQLData.HAS_EXPLAIN_ERROR: False,
                     common.MySQLData.HEATWAVE_AVAILABLE: expected,
                     common.MySQLData.IS_CLOUD_INSTANCE: expected
                 }
@@ -212,7 +215,13 @@ class TestHeatWaveCheckTask:
 
                     expected_queries = [(("""SELECT TABLE_NAME, @@version AS version FROM `information_schema`.`TABLES`
                     WHERE TABLE_SCHEMA = 'performance_schema'
-                        AND TABLE_NAME = 'rpd_nodes'""", None), result), (("SHOW STATUS LIKE 'mle_status'", None), result)]
+                        AND TABLE_NAME = 'rpd_nodes'""", None), result), (("SHOW STATUS LIKE 'mle_status'", None), result), (("""
+                                  SELECT ROUTINE_NAME
+                                  FROM information_schema.routines
+                                  WHERE ROUTINE_SCHEMA="sys"
+                                    AND ROUTINE_NAME="mle_explain_error"
+                                    AND ROUTINE_TYPE="PROCEDURE"
+                                  """, None), result)]
 
                 session = MockDbSession(Tasks.HeatWaveCheckTask,
                                         True,

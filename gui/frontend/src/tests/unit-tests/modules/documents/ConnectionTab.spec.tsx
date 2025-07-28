@@ -44,7 +44,7 @@ import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/Exe
 import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../../script-execution/PresentationInterface.js";
-import { SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
+import { IRuntimeErrorData, SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
 import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
 import type { IEditorExtendedExecutionOptions } from "../../../../supplement/RequisitionTypes.js";
@@ -56,6 +56,7 @@ import { uuid } from "../../../../utilities/helpers.js";
 import { notebookDocumentMock } from "../../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { nextProcessTick, setupShellForTests } from "../../test-helpers.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 interface IMLEStacktrace {
     stacktrace: string,
@@ -114,6 +115,7 @@ describe("DBConnectionTab tests", (): void => {
         documentStates: [edState],
         mleEnabled: false,
         isCloudInstance: false,
+        hasExplainError: false,
         activeEntry: "SQLEditor",
         graphData: {
             timestamp: new Date().getTime(),
@@ -861,7 +863,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultSaveValid = {
             resourceId: "saveChatOptions",
-            file: [{path: "/valid/path/to/save", content: new ArrayBuffer()}],
+            file: [{ path: "/valid/path/to/save", content: new ArrayBuffer() }],
         };
 
         const fileResultSaveInvalid = {
@@ -871,7 +873,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultLoadValid = {
             resourceId: "loadChatOptions",
-            file: [{path: "/valid/path/to/load", content: new ArrayBuffer()}],
+            file: [{ path: "/valid/path/to/load", content: new ArrayBuffer() }],
         };
 
         const fileResultLoadInvalid = {
@@ -881,7 +883,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultUnknown = {
             resourceId: "unknownResourceId",
-            file: [{path: "some/path", content: new ArrayBuffer()}],
+            file: [{ path: "some/path", content: new ArrayBuffer() }],
         };
         const options: IMdsChatData = { schemaName: "testSchema" };
 
@@ -921,6 +923,73 @@ describe("DBConnectionTab tests", (): void => {
 
         saveMdsChatOptionsMock.mockRestore();
         loadMdsChatOptionsMock.mockRestore();
+        component.unmount();
+    });
+
+
+    it("Test explainError function", async () => {
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
+                connection={connection}
+                savedState={savedState}
+                workerPool={wp}
+                showAbout={false}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+            />,
+        );
+
+        const backend = {
+            execute: jest.fn(),
+        } as unknown as ShellInterfaceSqlEditor;
+        Object.defineProperty(connection, "backend", backend);
+
+        const lowercaseSpDef = {
+            includes: jest.fn(),
+        } as unknown as string;
+
+        const spDef = {
+            toLowerCase: jest.fn().mockReturnValue(lowercaseSpDef),
+        } as unknown as string;
+
+        const getRuntimeErrorDataMock = jest.fn();
+        getRuntimeErrorDataMock.mockReturnValue(
+            {
+                queryStatement: "a query",
+                createStatement: spDef,
+                stacktraceInfo: {
+                    message: "a message",
+                    range: {
+                        startLineNumber: 0,
+                        startColumn: 0,
+                        endLineNumber: 1,
+                        endColumn: 1,
+                    },
+                },
+            } as IRuntimeErrorData,
+        );
+
+        const instance = component.instance();
+        const executionContext = {
+            id: "test-context-1",
+            code: "",
+            language: "sql",
+            clearResult: jest.fn(),
+            addResultData: jest.fn(),
+            getRuntimeErrorData: getRuntimeErrorDataMock,
+            executionStarts: jest.fn(),
+            executionEnded: jest.fn(),
+        } as unknown as SQLExecutionContext;
+
+        const result = await instance["explainError"](executionContext);
+
+        expect(result).toBe(true);
+        expect(executionContext.addResultData).not.toHaveBeenCalled();
+        expect(executionContext.getRuntimeErrorData).toHaveBeenCalled();
+        expect(executionContext.executionStarts).toHaveBeenCalled();
+        expect(spDef.toLowerCase).toHaveBeenCalled();
+        expect(lowercaseSpDef.includes).toHaveBeenCalled();
+        expect(executionContext.executionEnded).toHaveBeenCalled();
+
         component.unmount();
     });
 

@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition, IRange } from "monaco-editor";
+import { IMarkdownString, IPosition, IRange } from "monaco-editor";
 
 import type { StoreType } from "../app-logic/ApplicationDB.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
@@ -39,15 +39,33 @@ interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
 }
 
-export interface IRuntimeErrorResult {
+export interface IStacktraceInfo {
     message: string;
     range: IRange;
+}
+
+
+export interface IRuntimeErrorResult {
+    errorStatementStr: string;
+    errorStatementIndex: number;
+    jsCreateStatementStr: string;
+    stacktraceInfo: IStacktraceInfo;
+    errorMessage: string;
+    commandMessage: IMarkdownString,
+}
+
+export interface IRuntimeErrorData {
+    queryStatement: string;
+    createStatement: string;
+    stacktraceInfo: IStacktraceInfo;
+    errorMessage: string;
 }
 
 /**
  * This class specializes a base context to provide SQL specific functionality (statement splitting, optimized editing).
  */
 export class SQLExecutionContext extends ExecutionContext {
+
     private statementDetails: IStatementDetails[] = [];
 
     // A list of indices of statements that must be run through the statement splitter.
@@ -64,6 +82,8 @@ export class SQLExecutionContext extends ExecutionContext {
 
     private runtimeErrorDecorations: string[] | undefined;
 
+    private runtimeErrorData: IRuntimeErrorData | undefined;
+
     // A signal that is set when the splitter is currently running. Can be awaited to wait for the splitter to finish.
     #splitterSignal?: Semaphore<void>;
 
@@ -71,7 +91,7 @@ export class SQLExecutionContext extends ExecutionContext {
 
     public constructor(presentation: PresentationInterface, store: StoreType, public dbVersion: number,
         public sqlMode: string,
-        public currentSchema: string, statementSpans?: IStatementSpan[]) {
+        public currentSchema: string, public spName?: string, statementSpans?: IStatementSpan[]) {
         super(presentation, store);
 
         if (statementSpans) {
@@ -94,6 +114,10 @@ export class SQLExecutionContext extends ExecutionContext {
                 this.scheduleFullValidation();
             }, 0);
         }
+    }
+
+    public getRuntimeErrorData(): IRuntimeErrorData | undefined {
+        return this.runtimeErrorData;
     }
 
     /**
@@ -537,11 +561,18 @@ export class SQLExecutionContext extends ExecutionContext {
         this.presentation.selectRange(span);
     }
 
-    public addRuntimeErrorData(index: number, data: IRuntimeErrorResult): void {
+    /**
+     * Highlight error in the code and show a button on the margin if explain error feature is available
+     *
+     * @param data runtime error after executing MLE sp
+     */
+    public addRuntimeErrorData(data: IRuntimeErrorResult): void {
         const editorModel = this.presentation.backend?.getModel?.();
-        const details = this.statementDetails[index];
+
+        const details = this.statementDetails[data.errorStatementIndex];
+
         const decoration = [{
-            range: data.range,
+            range: data.stacktraceInfo.range,
             options: {
                 stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
                 isWholeLine: false,
@@ -550,14 +581,19 @@ export class SQLExecutionContext extends ExecutionContext {
                     position: Monaco.MinimapPosition.Inline,
                     color: "red",
                 },
-                hoverMessage: { value: data.message },
+                hoverMessage: data.commandMessage,
             },
         }];
-
         // Only add runtime error decoration if there is no existing syntax error decorations
         if (details.diagnosticDecorationIDs.length === 0) {
             this.runtimeErrorDecorations = editorModel?.deltaDecorations?.(details.diagnosticDecorationIDs, decoration);
         }
+        this.runtimeErrorData = {
+            stacktraceInfo: data.stacktraceInfo,
+            createStatement: data.jsCreateStatementStr,
+            queryStatement: data.errorStatementStr,
+            errorMessage: data.errorMessage,
+        };
     }
 
     public clearRuntimeErrorData(): void {

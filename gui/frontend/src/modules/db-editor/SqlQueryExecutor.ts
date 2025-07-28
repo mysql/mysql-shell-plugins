@@ -58,7 +58,9 @@ interface IRunSqlCodeResult {
     startTime: number;
     jsStartLine: number;
     errorMessage: string;
+    errorStatementStr: string;
     errorStatementIndex: number;
+    jsCreateStatementStr: string;
 }
 
 export const sendSqlUpdatesFromModel = async (afterCommit: (() => void) | undefined, backend: ShellInterfaceSqlEditor,
@@ -102,6 +104,11 @@ export class SqlQueryExecutor {
         this.#connection = connection;
     }
 
+    private static isJavascriptCreateStmt(statement: string): boolean {
+        return statement.includes("CREATE")
+            && statement.includes("LANGUAGE JAVASCRIPT") && statement.includes("$");
+    }
+
     public handleDependentTasks?(options: IQueryExecutionOptions): void;
 
     public set connection(value: ICdmConnectionEntry | undefined) {
@@ -141,6 +148,8 @@ export class SqlQueryExecutor {
         let jsStartLine = 0;
         let errorMessage: string = "";
         let errorStatementIndex: number = -1;
+        let jsCreateStatementStr: string = "";
+        let errorStatementStr: string = "";
 
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
@@ -162,10 +171,15 @@ export class SqlQueryExecutor {
                     break;
                 }
 
+                if (SqlQueryExecutor.isJavascriptCreateStmt(statement.text)) {
+                    jsCreateStatementStr = statement.text;
+                }
+
                 try {
                     await this.executeQuery(context, statement.index, 0, pageSize,
                         options, statement.text, undefined, tabId);
                 } catch (e) {
+                    errorStatementStr = statement.text;
                     errorCount += 1;
                     if (mleEnabled) {
                         const lines = context.model?.getLinesContent();
@@ -192,7 +206,11 @@ export class SqlQueryExecutor {
             }
         }
 
-        return { statementCount, errorCount, startTime, jsStartLine, errorMessage, errorStatementIndex };
+
+        return {
+            statementCount, errorCount, startTime, jsStartLine,
+            errorMessage, errorStatementStr, errorStatementIndex, jsCreateStatementStr,
+        };
     };
 
     /**

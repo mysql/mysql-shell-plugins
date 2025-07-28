@@ -70,6 +70,8 @@ class HeatWaveCheckTask(DbSessionSetupTask):
                 common.MySQLData.IS_CLOUD_INSTANCE, False)
             self.define_data(
                 common.MySQLData.MLE_AVAILABLE, False)
+            self.define_data(
+                common.MySQLData.HAS_EXPLAIN_ERROR, False)
 
     def on_connected(self):
         if not self._skip_hw_check:
@@ -95,6 +97,17 @@ class HeatWaveCheckTask(DbSessionSetupTask):
             result = self.execute("SHOW STATUS LIKE 'mle_status'").fetch_all()
             self.define_data(
                 common.MySQLData.MLE_AVAILABLE, len(result) > 0)
+
+            # Check if sys.EXPLAIN_ERROR procedure is available
+            result = self.execute("""
+                                  SELECT ROUTINE_NAME
+                                  FROM information_schema.routines
+                                  WHERE ROUTINE_SCHEMA="sys"
+                                    AND ROUTINE_NAME="mle_explain_error"
+                                    AND ROUTINE_TYPE="PROCEDURE"
+                                  """).fetch_all()
+            self.define_data(
+                common.MySQLData.HAS_EXPLAIN_ERROR, len(result) > 0)
 
 
 class BastionHandlerTask(DbSessionSetupTask):
