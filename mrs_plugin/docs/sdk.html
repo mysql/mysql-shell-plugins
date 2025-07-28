@@ -1060,7 +1060,7 @@ Service - SDK Reference
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="fu">authenticate</span>({ username<span class="op">:</span> <span class="st">&quot;foo&quot;</span><span class="op">,</span> password<span class="op">:</span> <span class="st">&quot;bar&quot;</span><span class="op">,</span> app<span class="op">:</span> <span class="st">&quot;baz&quot;</span> })</span></code></pre></div>
                 <p><strong><em>Python</em></strong></p>
                 <div class="sourceCode" id="cb10"><pre
-                class="sourceCode py"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>my_service.sakila.authenticate(username<span class="op">=</span><span class="st">&quot;foo&quot;</span>, password<span class="op">=</span><span class="st">&quot;bar&quot;</span>, auth_app<span class="op">=</span><span class="st">&quot;baz&quot;</span>)</span></code></pre></div>
+                class="sourceCode py"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>my_service.authenticate(username<span class="op">=</span><span class="st">&quot;foo&quot;</span>, password<span class="op">=</span><span class="st">&quot;bar&quot;</span>, app<span class="op">=</span><span class="st">&quot;baz&quot;</span>)</span></code></pre></div>
                 <h3 data-number="2.1.2"
                 id="mysql-internal-authentication"><span
                 class="header-section-number">2.1.2</span> MySQL
@@ -1079,7 +1079,7 @@ Service - SDK Reference
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="fu">authenticate</span>({ username<span class="op">:</span> <span class="st">&quot;foo&quot;</span><span class="op">,</span> password<span class="op">:</span> <span class="st">&quot;bar&quot;</span><span class="op">,</span> app<span class="op">:</span> <span class="st">&quot;qux&quot;</span> })</span></code></pre></div>
                 <p><strong><em>Python</em></strong></p>
                 <div class="sourceCode" id="cb14"><pre
-                class="sourceCode py"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>my_service.authenticate(username<span class="op">=</span><span class="st">&quot;foo&quot;</span>, password<span class="op">=</span><span class="st">&quot;bar&quot;</span>, auth_app<span class="op">=</span><span class="st">&quot;baz&quot;</span>)</span></code></pre></div>
+                class="sourceCode py"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>my_service.authenticate(username<span class="op">=</span><span class="st">&quot;foo&quot;</span>, password<span class="op">=</span><span class="st">&quot;bar&quot;</span>, app<span class="op">=</span><span class="st">&quot;baz&quot;</span>)</span></code></pre></div>
                 <p>After the authentication succeeds, every valid SDK
                 command that executes on top of a REST object that
                 requires authentication, should also succeed.</p>
@@ -3598,7 +3598,7 @@ Service - SDK Reference
                 application (as specified by the admin).</td>
                 </tr>
                 <tr class="even">
-                <td style="text-align: left;">user</td>
+                <td style="text-align: left;">username</td>
                 <td style="text-align: left;"><code>str</code></td>
                 <td style="text-align: left;">Yes</td>
                 <td style="text-align: left;">N/A</td>
@@ -3651,7 +3651,7 @@ Service - SDK Reference
 <span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a><span class="co"># `authenticate` will account for authentication</span></span>
 <span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a> <span class="cf">await</span> my_service.authenticate(</span>
 <span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>    app<span class="op">=</span><span class="st">&quot;MySQL&quot;</span>,</span>
-<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span><span class="st">&quot;Lucas&quot;</span>,</span>
+<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>    username<span class="op">=</span><span class="st">&quot;Lucas&quot;</span>,</span>
 <span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a>    password<span class="op">=</span><span class="st">&quot;S3cr3t&quot;</span>,</span>
 <span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a>    vendor_id<span class="op">=</span><span class="st">&quot;0x31000000000000000000000000000000&quot;</span></span>
 <span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -3713,7 +3713,7 @@ Service - SDK Reference
 <span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Log in - `authenticate` will account for authentication</span></span>
 <span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a> <span class="cf">await</span> my_service.authenticate(</span>
 <span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a>    app<span class="op">=</span><span class="st">&quot;MySQL&quot;</span>,</span>
-<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span><span class="st">&quot;Lucas&quot;</span>,</span>
+<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>    username<span class="op">=</span><span class="st">&quot;Lucas&quot;</span>,</span>
 <span id="cb87-9"><a href="#cb87-9" aria-hidden="true" tabindex="-1"></a>    password<span class="op">=</span><span class="st">&quot;S3cr3t&quot;</span></span>
 <span id="cb87-10"><a href="#cb87-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb87-11"><a href="#cb87-11" aria-hidden="true" tabindex="-1"></a></span>

@@ -207,7 +207,7 @@ auth_apps = await my_service.get_auth_apps()
 | Argument Name  | Data Type | Required | Default | Notes |
 | :-------- | :------- | :------- | :------- |  :--------------------- |
 | app | `str` | Yes | N/A | Name of the authentication application (as specified by the admin). |
-| user | `str` | Yes |  N/A | User name |
+| username | `str` | Yes |  N/A | User name |
 | password | `str` | No | `""` | If not provided, the empty string is assumed as the password |
 | vendor_id | `str` | No | `None` | ID of the underlying authentication mechanism. Specifying the vendor ID avoids an additional round-trip to the server |
 
@@ -236,7 +236,7 @@ my_service = MyService()
 # `authenticate` will account for authentication
  await my_service.authenticate(
     app="MySQL",
-    user="Lucas",
+    username="Lucas",
     password="S3cr3t",
     vendor_id="0x31000000000000000000000000000000"
 )
@@ -279,7 +279,7 @@ my_service = MyService()
 # Log in - `authenticate` will account for authentication
  await my_service.authenticate(
     app="MySQL",
-    user="Lucas",
+    username="Lucas",
     password="S3cr3t"
 )
 

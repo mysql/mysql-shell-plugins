@@ -946,7 +946,7 @@ class IMrsTaskStartResponse(TypedDict):
 
 class AuthenticateOptions(TypedDict):
     app: str
-    user: str
+    username: str
     password: NotRequired[str]
     vendor_id: NotRequired[Optional[str]]
 
@@ -2607,7 +2607,7 @@ class MrsAuthenticate:
         service: Authenticating,
         request_path: str,
         app: str,
-        user: str,
+        username: str,
         password: str = "",
         vendor_id: Optional[str] = None,
     ) -> None:
@@ -2615,7 +2615,7 @@ class MrsAuthenticate:
         self._request_path: str = request_path
         self._vendor_id: Optional[str] = vendor_id
         self._app: str = app
-        self._user: str = user
+        self._username: str = username
         self._password: str = password
 
     @staticmethod
@@ -2662,7 +2662,7 @@ class MrsAuthenticate:
             "auth_app": self._app,
             "nonce": nonce,
             "session_type": "bearer",
-            "user": self._user,
+            "username": self._username,
         }
 
         req = Request(
@@ -2690,7 +2690,7 @@ class MrsAuthenticate:
         challenge["salt"] = bytes(challenge["salt"])
 
         client_first, client_final = (
-            f"n={self._user},r={nonce}",
+            f"n={self._username},r={nonce}",
             f"r={challenge['nonce']}",
         )
         server_first = (
@@ -2746,7 +2746,7 @@ class MrsAuthenticate:
         client on the JSON request body.
         """
         data_auth = {
-            "username": self._user,
+            "username": self._username,
             "password": self._password,
             "authApp": self._app,
             "sessionType": "bearer",

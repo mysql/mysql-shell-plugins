@@ -1122,7 +1122,7 @@ async def test_auth_apps(
             # Expected behavior: vendor ID lookup should be skipped and authentication should succeed.
             {
                 "app": "MRS",
-                "user": "furbo",
+                "username": "furbo",
                 "password": "s3cr3t",
                 "vendor_id": "0x30000000000000000000000000000000",
             },
@@ -1181,7 +1181,7 @@ async def test_authenticate_with_mrs_native(
                 "authApp": options["app"],
                 "nonce": nonce,
                 "sessionType": "bearer",
-                "user": options["user"],
+                "username": options["username"],
             }
         ).encode(),
         method="POST",
@@ -1226,7 +1226,7 @@ async def test_authenticate_with_mrs_native(
             # Expected behavior: vendor ID lookup should be skipped and authentication should succeed.
             {
                 "app": "MySQL",
-                "user": "furbo",
+                "username": "furbo",
                 "password": "s3cr3t",
                 "vendor_id": "0x31000000000000000000000000000000",
             },
@@ -1243,7 +1243,7 @@ async def test_authenticate_with_mrs_native(
             # Expected behavior: vendor ID lookup should not be skipped and authentication should succeed.
             {
                 "app": "MySQL",
-                "user": "furbo",
+                "username": "furbo",
                 "password": "s3cr3t",
             },
             {"access_token": "85888969"},
@@ -1260,7 +1260,7 @@ async def test_authenticate_with_mrs_native(
             # should raise an authentication error.
             {
                 "app": "MySQL",
-                "user": "furbo",
+                "username": "furbo",
                 "password": "s3cr3t",
             },
             {"access_token": "85888969"},
@@ -1311,7 +1311,7 @@ async def test_authenticate_with_mysql_internal(
     # check that request is issued as expected
     request_path = f"{my_service._service_url}{my_service._auth_path}/login"
     data_auth = {
-        "username": options["user"],
+        "username": options["username"],
         "password": options["password"],
         "authApp": options["app"],
         "sessionType": "bearer",

@@ -11,6 +11,7 @@
 - BUG#38066815 Python SDK: application metadata and case change to keys
 - BUG#37750541 Python SDK: find_unique does not require any parameter
 - BUG#38096267 Python SDK: edge case schema name is authenticate, hides method
+- BUG#38248624 Documentation is not accurate for MRS's SDK
 -
 
 ## Changes in 1.19.15+9.4.0

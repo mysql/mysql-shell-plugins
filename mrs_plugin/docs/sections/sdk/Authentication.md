@@ -52,7 +52,7 @@ myService.authenticate({ username: "foo", password: "bar", app: "baz" })
 **_Python_**
 
 ```py
-my_service.sakila.authenticate(username="foo", password="bar", auth_app="baz")
+my_service.authenticate(username="foo", password="bar", app="baz")
 ```
 
 ### MySQL Internal Authentication
@@ -80,7 +80,7 @@ myService.authenticate({ username: "foo", password: "bar", app: "qux" })
 **_Python_**
 
 ```py
-my_service.authenticate(username="foo", password="bar", auth_app="baz")
+my_service.authenticate(username="foo", password="bar", app="baz")
 ```
 
 After the authentication succeeds, every valid SDK command that executes on top of a REST object that requires authentication, should also succeed.
