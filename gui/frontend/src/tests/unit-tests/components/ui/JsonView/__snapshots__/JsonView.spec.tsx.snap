@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`JsonView tests Component rendering should render with correct className and snapshot 1`] = `
+<JsonView
+  json={
+    {
+      "array": [
+        1,
+        2,
+        3,
+      ],
+      "boolean": true,
+      "nullValue": null,
+      "number": 42,
+      "object": {
+        "deep": {
+          "level": 3,
+        },
+        "nested": "value",
+      },
+      "relativeUrl": "/api/data",
+      "string": "test string",
+      "url": "https://example.com",
+    }
+  }
+>
+  <div
+    className="msg jsonView"
+    style={
+      {
+        "--arrayDelimiterColor": "#FF0000",
+        "--colonDelimiterColor": "#FF0000",
+        "--commaDelimiterColor": "#FF0000",
+        "--keyColor": "#FF0000",
+        "--keywordColor": "#FF0000",
+        "--objectDelimiterColor": "#FF0000",
+        "--valueColor": "#FF0000",
+      }
+    }
+  />
+</JsonView>
+`;
