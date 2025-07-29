@@ -779,8 +779,8 @@ def get_current_service_metadata(**kwargs):
         {id: string, host_ctx: string, metadata_version: string}
     """
     session = kwargs.get("session")
-    if session.database_type != "MySQL":
-        return {}
+    if session and session.database_type != "MySQL":
+        return lib.services.format_metadata() if lib.core.get_interactive_result() else {}
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         status = lib.general.get_status(session)
@@ -791,6 +791,9 @@ def get_current_service_metadata(**kwargs):
 
         service = lib.services.get_service(
             session=session, service_id=service_id)
+
+        if not service:
+            return lib.services.format_metadata() if lib.core.get_interactive_result() else {}
 
         # Lookup the last entry in the audit_log table that affects the service and use that as the
         # version int

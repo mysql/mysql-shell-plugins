@@ -32,6 +32,7 @@ import json
 import shutil
 from datetime import datetime
 import mysqlsh
+from typing import Optional
 
 
 def prompt_for_url_context_root(default=None):
@@ -97,7 +98,7 @@ def format_service_listing(services, print_header=False):
     return output
 
 
-def format_metadata(host_ctx, version):
+def format_metadata(host_ctx: Optional[str] = None, version: Optional[str] = None):
     """Formats the service metadata details
 
     Args:
@@ -107,7 +108,12 @@ def format_metadata(host_ctx, version):
     Returns:
         The metadata details in a tabular string
     """
-    return f"{'ID':>3} {'ROOT PATH':25} {'VERSION':15}\n{1:>3} {host_ctx[:24]:25} {version}"
+    table = f"{'ID':>3} {'ROOT PATH':25} {'VERSION':15}"
+
+    if host_ctx is None:
+        return table
+
+    return f"{table}\n{1:>3} {host_ctx[:24]:25} {version}"
 
 
 def add_service(session, url_host_name, service):

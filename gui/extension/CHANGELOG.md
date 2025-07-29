@@ -11,6 +11,7 @@
 - BUG#38336041 Unexpected compiler errors in the TypeScript SDK
 - BUG#38089763 Python SDK: Key Error: 'result_sets' when trying async execution of procedure
 - BUG#38043458 Type check error when monitoring async task reports for REST Function in the Python SDK
+- BUG#38252997 mrs.get.current_service_metadata() returns an error
 -
 
 ## Changes in 1.19.16+9.4.0

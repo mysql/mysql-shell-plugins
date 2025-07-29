@@ -348,6 +348,10 @@ def test_change_service(phone_book):
         assert set_current_service(**args) == True
         assert set_current_service(session=session, service_id=phone_book["service_id"]) == True
 
+        metadata = get_current_service_metadata(**args)
+        assert sorted(metadata.keys()) == ["host_ctx", "id", "metadata_version"]
+        assert metadata["id"] == lib.core.convert_id_to_string(phone_book["service_id"])
+
         with pytest.raises(Exception) as exc_info:
             set_url_context_root(**args, value="/test")
         assert str(exc_info.value) == "MySQL Error (1644): The request_path is already used by another entity."
