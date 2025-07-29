@@ -14,6 +14,8 @@
 - BUG#38248624 Documentation is not accurate for MRS's SDK
 - BUG#37767001 Python SDK: record.delete() returns None
 - BUG#37581087 MRS: Core REST APIs examples need updated results
+- BUG#38248183 Incorrect documentation for generating SDK
+- BUG#38250829 SDK documentation does not list requirement for Python version
 -
 
 ## Changes in 1.19.15+9.4.0

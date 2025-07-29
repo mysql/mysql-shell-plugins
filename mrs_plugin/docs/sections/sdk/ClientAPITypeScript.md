@@ -23,6 +23,8 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # TypeScript Client API Reference
 
+The MRS TypeScript SDK requires TypeScript 5.3.3+.
+
 ## getMetadata (TS)
 
 `getMetadata` is used to retrieve application-specific metadata attached to an MRS resource (REST Service, Schema and/or Object).

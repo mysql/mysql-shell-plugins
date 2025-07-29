@@ -23,6 +23,8 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Python Client API Reference
 
+The MRS Python SDK requires Python 3.12+.
+
 ## REST Resources
 
 The MRS Python SDK exposes a type-safe programmable interface for the MySQL REST Service that unifies, under a set of contextual commands, the available HTTP operations to access and use database objects (schemas, tables, views, functions, etc.) exposed as REST resources.

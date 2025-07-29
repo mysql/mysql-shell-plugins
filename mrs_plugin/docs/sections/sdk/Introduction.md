@@ -77,7 +77,7 @@ An constructor/initializer for the client-side REST service instance is generate
 
 ### Generating the SDK Files from MySQL Shell for VS Code
 
-To generate the SDK files for a development project, right click on the MRS Service and select `Export REST Service SDK Files ...`. This will allow you to select a destination folder inside your development project the files will be placed in.
+To generate the SDK files for a development project, right click on the MRS Service and select `Dump to Disk > Dump REST Client SDK Files ...`. This will allow you to select a destination folder inside your development project the files will be placed in.
 
 The following files will be placed in the selected folder.
 
