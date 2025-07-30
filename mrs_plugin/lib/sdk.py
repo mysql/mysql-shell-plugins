@@ -671,9 +671,18 @@ def substitute_objects_in_template(
             if object_is_routine(db_obj, of_type={"FUNCTION"}):
                 obj_function_result_datatype = "unknown"
                 if len(objects) > 1:
+                    # The SDK object reference is always available, even if it does not contain any field.
+                    result_obj = next(
+                        (obj for obj in objects if obj.get("kind") == "RESULT"), {}
+                    )
                     # BUG#37926204 Get object fields if they have not been retrieved beforehand
-                    fields = lib.db_objects.get_object_fields_with_references(
-                        session=session, object_id=objects[1].get("id")) if objects[1].get("fields") is None else objects[1].get("fields")
+                    fields = (
+                        lib.db_objects.get_object_fields_with_references(
+                            session=session, object_id=result_obj.get("id")
+                        )
+                        if result_obj.get("fields") is None
+                        else result_obj.get("fields")
+                    )
 
                     if len(fields) > 0:
                         db_column_info = field.get("db_column")

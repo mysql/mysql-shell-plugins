@@ -570,7 +570,8 @@ BEGIN
                             'sdk_options', sdk_options
                           )
                       FROM mysql_rest_service_metadata.object AS o
-                      WHERE o.db_object_id = db_object_id;
+                      WHERE o.db_object_id = db_object_id
+                      ORDER BY position;
                     DECLARE CONTINUE HANDLER FOR NOT FOUND SET object_loop_done = 1;
 
                     -- Initiate the list of objects with an empty JSON array

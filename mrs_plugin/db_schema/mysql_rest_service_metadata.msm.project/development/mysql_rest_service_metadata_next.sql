@@ -172,7 +172,7 @@ SOURCE './sections/170_roles.sql'[53:]; -- Remove copyright
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
     `major`,`minor`,`patch`) AS
-SELECT 4, 1, 3;
+SELECT 4, 1, 4;
 
 -- #############################################################################
 -- MSM Section 920: Server Variable Restoration
