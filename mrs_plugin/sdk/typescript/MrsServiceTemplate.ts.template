@@ -167,7 +167,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudUpdateOnlyEnd
     // --- crudDeleteUniqueOnlyStart
     public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueFilterable, { many: false }>): Promise<boolean> => {
-        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Filterable>) > 0;
+        return await this.deleteMany(args as IDeleteOptions<I${obj_class_name}Filterable>) > 0;
 
     };
     // --- crudDeleteUniqueOnlyEnd
