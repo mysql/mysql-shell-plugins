@@ -958,9 +958,6 @@ def dump_sdk_service_files(**kwargs):
         else:
             raise Exception("No directory given.")
 
-    # Ensure the directory path exists
-    Path(directory).mkdir(parents=True, exist_ok=True)
-
     # Try to read the mrs_config from the directory
     mrs_config = get_stored_sdk_options(directory=directory)
     if mrs_config is None and options is None:
@@ -971,44 +968,46 @@ def dump_sdk_service_files(**kwargs):
         mrs_config = {}
 
     mrs_config["serviceId"] = options.get("service_id", mrs_config.get("serviceId"))
-    # the config file should mention the conventional programming language name
-    mrs_config["sdkLanguage"] = lib.sdk.SUPPORTED_LANGUAGES.get(
-        options.get("sdk_language", mrs_config.get("sdkLanguage")).lower(),
-        options.get("sdk_language", ""),
-    )
     mrs_config["serviceUrl"] = options.get("service_url", mrs_config.get("serviceUrl"))
     mrs_config["addAppBaseClass"] = options.get("add_app_base_class", mrs_config.get("addAppBaseClass"))
     mrs_config["dbConnectionUri"] = options.get("db_connection_uri", mrs_config.get("dbConnectionUri"))
     mrs_config["version"] = options.get("version", mrs_config.get("version"))
 
+    # internally, we use the programming language name in lowercase
+    source_sdk_language = options.get(
+        "sdk_language", mrs_config.get("sdkLanguage", "TypeScript")
+    )
+    sdk_language = None if source_sdk_language is None else source_sdk_language.lower()
+
     mrs_config["generationDate"] = datetime.datetime.now(
-        datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        datetime.timezone.utc
+    ).strftime("%Y-%m-%d %H:%M:%S")
 
     if mrs_config.get("serviceUrl") is None:
         raise Exception("The service URL is required.")
 
-    # internally, we use the programming language name in lowercase
-    sdk_language = mrs_config["sdkLanguage"].lower()
-
-    mrs_config["header"] = options.get(
-        "header", default_copyright_header(sdk_language))
-
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+    with lib.core.MrsDbSession(
+        exception_handler=lib.core.print_exception, **kwargs
+    ) as session:
         if mrs_config.get("serviceId") is None:
             mrs_config["serviceId"] = lib.core.convert_id_to_base64_string(
-                    lib.services.get_current_service_id(session))
+                lib.services.get_current_service_id(session)
+            )
 
         serviceId = lib.core.id_to_binary(
-            mrs_config.get("serviceId"), "mrs.config.json", True)
+            mrs_config.get("serviceId"), "mrs.config.json", True
+        )
 
         if serviceId is None:
             raise Exception(
-                "No serviceId defined in mrs.config.json. Please export the MRS SDK again.")
+                "No serviceId defined in mrs.config.json. Please export the MRS SDK again."
+            )
 
         service = resolve_service(session, serviceId, True, True)
 
         service_name = lib.core.convert_path_to_camel_case(
-            service.get("url_context_root"))
+            service.get("url_context_root")
+        )
 
         if sdk_language == "typescript":
             file_type = "ts"
@@ -1033,9 +1032,17 @@ def dump_sdk_service_files(**kwargs):
             version = tomllib.loads(metadata).get("project").get("version")
 
         else:
-            raise lib.sdk.LanguageNotSupportedError(sdk_language)
+            raise lib.sdk.LanguageNotSupportedError(source_sdk_language)
 
+        # by now, we are sure the SDK language is, in fact, supported
+        mrs_config["sdkLanguage"] = lib.sdk.SUPPORTED_LANGUAGES.get(sdk_language)
+        mrs_config["header"] = options.get(
+            "header", default_copyright_header(sdk_language)
+        )
         mrs_config["version"] = version
+
+        # Ensure the directory path exists
+        Path(directory).mkdir(parents=True, exist_ok=True)
 
         base_classes = get_sdk_base_classes(
             sdk_language=sdk_language, session=session)
@@ -1058,18 +1065,18 @@ def dump_sdk_service_files(**kwargs):
             file_path = Path(os.path.dirname(path), "sdk", sdk_language, add_app_base_class)
             shutil.copy(file_path, os.path.join(directory, add_app_base_class))
 
-    # cspell:ignore timespec
-    conf_file = Path(directory, "mrs.config.json")
-    with open(conf_file, 'w') as f:
-        f.write(json.dumps(mrs_config, indent=4))
+        # cspell:ignore timespec
+        conf_file = Path(directory, "mrs.config.json")
+        with open(conf_file, 'w') as f:
+            f.write(json.dumps(mrs_config, indent=4))
 
-    # TODO: this should be in a separate function (maybe context-aware for each language)
-    if sdk_language == "python":
-        # In Python, we should create a "__init__.py" file to be able to import the directory as a regular package
-        package_file = Path(directory, "__init__.py")
-        with open(package_file, "w") as f:
-            copyright_header = mrs_config["header"]
-            f.write(copyright_header)
+        # TODO: this should be in a separate function (maybe context-aware for each language)
+        if sdk_language == "python":
+            # In Python, we should create a "__init__.py" file to be able to import the directory as a regular package
+            package_file = Path(directory, "__init__.py")
+            with open(package_file, "w") as f:
+                copyright_header = mrs_config["header"]
+                f.write(copyright_header)
 
     return True
 

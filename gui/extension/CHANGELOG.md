@@ -17,6 +17,7 @@
 - BUG#38248183 Incorrect documentation for generating SDK
 - BUG#38250829 SDK documentation does not list requirement for Python version
 - BUG#38262549 Unexpected compiler error for "delete" command in the TypeScript SDK
+- BUG#38260801 Unexpected error when generating the SDK for the default language
 -
 
 ## Changes in 1.19.15+9.4.0

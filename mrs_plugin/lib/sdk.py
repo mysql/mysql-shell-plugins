@@ -75,8 +75,9 @@ SDK_PYTHON_NON_NATIVE_TYPES = ("Date", "DateTime", "Time", "Year", "Vector")
 class LanguageNotSupportedError(Exception):
     supported_languages = ["TypeScript", "Python"]
 
-    def __init__(self, sdk_language = "Language"):
-        super().__init__(f"{sdk_language} not supported. The MRS SDK is only available for {", ".join(self.supported_languages[:-1])} and {self.supported_languages[-1]}.")
+    def __init__(self, sdk_language: Optional[ProgrammingLanguage]):
+        self._sdk_language = "Language" if sdk_language is None else sdk_language
+        super().__init__(f"{self._sdk_language} not supported. The MRS SDK is only available for {", ".join(self.supported_languages[:-1])} and {self.supported_languages[-1]}.")
 
 
 def get_base_classes(
