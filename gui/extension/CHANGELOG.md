@@ -19,6 +19,7 @@
 - BUG#38262549 Unexpected compiler error for "delete" command in the TypeScript SDK
 - BUG#38260801 Unexpected error when generating the SDK for the default language
 - BUG#38257852 MySQL REST Service generates error code with a function without parameters
+- BUG#38251258 Impossible to generate the SDK using the mrs object in MySQL Shell
 -
 
 ## Changes in 1.19.15+9.4.0

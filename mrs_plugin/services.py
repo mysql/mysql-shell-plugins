@@ -932,7 +932,9 @@ def dump_sdk_service_files(**kwargs):
         session (object): The database session to use.
 
     Allowed options for options:
-        service_id (str): The ID of the service the SDK should be generated for. If not specified, the default service
+        service_id (str): The ID of the service the SDK should be generated for. If not specified, the service
+            identified by the url_context_root parameter is used.
+        url_context_root (str): The request path of the service the SDK should be generated for. If not specified, the default service
             is used.
         db_connection_uri (str): The dbConnectionUri that was used to export the SDK files
         sdk_language (str): The SDK language to generate
@@ -947,6 +949,8 @@ def dump_sdk_service_files(**kwargs):
     """
     directory = kwargs.get("directory")
     options = kwargs.get("options", {})
+
+    lib.core.convert_ids_to_binary(["service_id"], options)
 
     if not directory:
         if lib.core.get_interactive_default():
@@ -967,7 +971,8 @@ def dump_sdk_service_files(**kwargs):
     if mrs_config is None:
         mrs_config = {}
 
-    mrs_config["serviceId"] = options.get("service_id", mrs_config.get("serviceId"))
+    config_service_id = mrs_config.get("serviceId")
+    service_id = options.get("service_id", None if config_service_id is None else lib.core.id_to_binary(config_service_id, "mrs.config.json"))
     mrs_config["serviceUrl"] = options.get("service_url", mrs_config.get("serviceUrl"))
     mrs_config["addAppBaseClass"] = options.get("add_app_base_class", mrs_config.get("addAppBaseClass"))
     mrs_config["dbConnectionUri"] = options.get("db_connection_uri", mrs_config.get("dbConnectionUri"))
@@ -989,21 +994,14 @@ def dump_sdk_service_files(**kwargs):
     with lib.core.MrsDbSession(
         exception_handler=lib.core.print_exception, **kwargs
     ) as session:
-        if mrs_config.get("serviceId") is None:
-            mrs_config["serviceId"] = lib.core.convert_id_to_base64_string(
-                lib.services.get_current_service_id(session)
-            )
+        url_context_root = options.get("url_context_root")
 
-        serviceId = lib.core.id_to_binary(
-            mrs_config.get("serviceId"), "mrs.config.json", True
-        )
+        service = resolve_service(session, url_context_root or service_id, True, True)
 
-        if serviceId is None:
-            raise Exception(
-                "No serviceId defined in mrs.config.json. Please export the MRS SDK again."
-            )
+        if service.get("enabled") == 0:
+            raise Exception("Generating the MRS SDK requires a service to be enabled.")
 
-        service = resolve_service(session, serviceId, True, True)
+        mrs_config["serviceId"] = lib.core.convert_id_to_base64_string(service.get("id"))
 
         service_name = lib.core.convert_path_to_camel_case(
             service.get("url_context_root")
@@ -1053,7 +1051,7 @@ def dump_sdk_service_files(**kwargs):
             service_name, sdk_language)
 
         service_classes = get_sdk_service_classes(
-            service_id=serviceId, service_url=mrs_config["serviceUrl"],
+            service_id=service.get("id"), service_url=mrs_config["serviceUrl"],
             sdk_language=sdk_language, session=session)
         with open(os.path.join(directory, f"{file_name}.{file_type}"), 'w') as f:
             f.write(service_classes)
