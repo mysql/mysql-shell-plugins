@@ -1,0 +1,171 @@
+<!--
+  Copyright (c) 2025, Oracle and/or its affiliates.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License, version 2.0,
+  as published by the Free Software Foundation.
+
+  This program is designed to work with certain software (including
+  but not limited to OpenSSL) that is licensed under separate terms,
+  as designated in a particular file or component or in included license
+  documentation.  The authors of MySQL hereby grant you an additional
+  permission to link the program and your derivative works with the
+  separately licensed software that they have either included with
+  the program or referenced in the documentation.
+
+  This program is distributed in the hope that it will be useful,  but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+  the GNU General Public License, version 2.0, for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+-->
+
+<?include "variables.wxi"?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+    xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+    RequiredVersion="4.0.5">
+
+    <Package ProductCode="$(var.PRODUCT_GUID)"
+        Name="MySQL Shell Workbench"
+        Language="1033"
+        Version="$(var.PACKAGE_VERSION)"
+        Manufacturer="Oracle Corporation"
+        UpgradeCode="$(var.UPGRADE_GUID)"
+        InstallerVersion="301"
+        Scope="perMachine">
+
+        <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+        <MajorUpgrade
+            Schedule="afterInstallInitialize"
+            AllowSameVersionUpgrades="yes"
+            DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
+
+        <WixVariable Id="WixUILicenseRtf" Value="$(var.LICENSE_RTF)" />
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALL_ROOT" />
+
+        <Property Id="ARPPRODUCTICON" Value="ProductIcon.ico" />
+        <Icon Id="ProductIcon.ico" SourceFile="$(var.PRODUCT_ICON)" />
+
+        <?ifdef UI_BANNER?>
+        <WixVariable Id="WixUIBannerBmp" Value="$(var.UI_BANNER)" />
+        <?endif?>
+
+        <?ifdef UI_DIALOG?>
+        <WixVariable Id="WixUIDialogBmp" Value="$(var.UI_DIALOG)" />
+        <?endif?>
+
+        <FeatureRef Id="ProductFeature">
+            <Component Id="UpdatePath" Directory="INSTALL_ROOT" Guid="0D572FF7-1AE6-493D-8991-D2DC99E1F5C1">
+                <CreateFolder />
+                <Environment Id="UpdatePathEnv" Action="set" Part="first" Name="PATH" Value="[INSTALL_ROOT]" />
+                <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\MySQLShellWorkbench">
+                    <RegistryValue Type="expandable" Name="EventMessageFile" Value="[INSTALL_ROOT]\MySQLShellWorkbench.exe">
+                        <!-- Give full access to the authenticated users, system and built-in administrators -->
+                        <PermissionEx Sddl="D:(A;;KA;;;AU)(A;;KA;;;SY)(A;;KA;;;BA)" />
+                    </RegistryValue>
+                    <!-- EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE == 7 -->
+                    <RegistryValue Type="integer" Name="TypesSupported" Value="7" />
+                </RegistryKey>
+            </Component>
+        </FeatureRef>
+
+        <UI>
+            <ui:WixUI Id="WixUI_InstallDir" />
+            <Publish Dialog="ExitDialog"
+                Control="Finish"
+                Event="DoAction"
+                Value="LaunchApplication"
+                Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+        </UI>
+
+        <!-- BUG#37033676 -->
+        <UIRef Id="WixUI_ErrorProgressText" />
+
+        <Property Id="VS14REDIST">
+            <RegistrySearch Id="FindRedistVS14"
+                Root="HKLM"
+                Key="SOFTWARE\Microsoft\DevDiv\vc\Servicing\14.0\RuntimeMinimum"
+                Name="Version"
+                Type="raw" />
+        </Property>
+
+        <Launch
+            Condition="Installed OR VS14REDIST"
+            Message="This application requires Visual Studio 2015-2022 Redistributable version 14.x or newer. Please install the Redistributable then run this installer again." />
+
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch MySQL Shell Workbench" />
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+        <Property Id="WixShellExecTarget" Value="[#MySQLShellWorkbench.exe]" />
+        <CustomAction Id="LaunchApplication" ExeCommand="" Execute="immediate" Impersonate="yes" Return="asyncNoWait" FileRef="$(var.MAIN_EXECUTABLE_FILE_ID)" />
+
+        <SetProperty
+            Id="CleanupPycPython"
+            Value="&quot;[SystemFolder]cmd.exe&quot; /c del /s /q /f &quot;[INSTALL_ROOT]*.pyc&quot; &quot;[INSTALL_ROOT]*.pyo&quot;"
+            Before="CleanupPycPython"
+            Sequence="execute" />
+        <CustomAction
+            Id="CleanupPycPython"
+            BinaryRef="Wix4UtilCA_X86"
+            DllEntry="WixQuietExec"
+            Execute="deferred"
+            Return="ignore"
+            HideTarget="no"
+            Impersonate="no" />
+        <SetProperty
+            Id="CleanupCachePython"
+            Value="&quot;[SystemFolder]cmd.exe&quot; /c FOR /d /r &quot;[INSTALL_ROOT]&quot; %d IN (&quot;__pycache__&quot;) DO @IF EXIST &quot;%d&quot; rd /s /q &quot;%d&quot;"
+            Before="CleanupCachePython"
+            Sequence="execute" />
+        <CustomAction
+            Id="CleanupCachePython"
+            BinaryRef="Wix4UtilCA_X86"
+            DllEntry="WixQuietExec"
+            Execute="deferred"
+            Return="ignore"
+            HideTarget="no"
+            Impersonate="no" />
+
+        <SetProperty
+            Id="CleanupLogs"
+            Value="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[INSTALL_ROOT]logs&quot;"
+            Before="CleanupLogs"
+            Sequence="execute" />
+        <CustomAction
+            Id="CleanupLogs"
+            BinaryRef="Wix4UtilCA_X86"
+            DllEntry="WixQuietExec"
+            Execute="deferred"
+            Return="ignore"
+            HideTarget="no"
+            Impersonate="no" />            
+
+        <SetProperty
+            Id="CleanupWebView2LeftOvers"
+            Value="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[INSTALL_ROOT]$(var.MAIN_EXECUTABLE_NAME).exe.WebView2&quot;"
+            Before="CleanupWebView2LeftOvers"
+            Sequence="execute" />
+        <CustomAction
+            Id="CleanupWebView2LeftOvers"
+            BinaryRef="Wix4UtilCA_X86"
+            DllEntry="WixQuietExec"
+            Execute="deferred"
+            Return="ignore"
+            HideTarget="no"
+            Impersonate="no" />            
+
+
+        <InstallExecuteSequence>
+            <Custom Action="CleanupPycPython" Before="CleanupCachePython" Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="CleanupCachePython" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="CleanupLogs" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="CleanupWebView2LeftOvers" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+        </InstallExecuteSequence>
+
+
+    </Package>
+</Wix>
