@@ -541,6 +541,61 @@ export type ITaggedFoo = {
 
     assert got == want
 
+    want = """public struct INewFoo: Encodable {
+    public var bar: String? = nil
+}
+
+public class IFoo: MrsDocument, SelfUpdatable, SelfDeletable {
+    public typealias DocumentType = IFoo
+    public typealias ModelType = FooDatabaseObject
+
+    public let bar: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case bar
+    }
+
+    public required init(from decoder: any Decoder) throws {
+        let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+        self.bar = try container.decodeIfPresent(String.self, forKey: .bar)
+        try super.init(from: decoder)
+    }
+
+    public override func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(bar, forKey: .bar)
+    }
+
+    public override func getPrimaryKeyName() -> String? {
+        return self.bar == nil ? nil : [String(self.bar!)].joined(separator: ",")
+    }
+}
+
+enum IFooSelectable: String, CaseIterable {
+    case bar = "bar"
+}
+
+enum IFooSortable: String, CaseIterable {
+    case bar = "bar"
+}
+
+public struct IFooUniqueFilterable {
+    public var bar: String
+}
+
+public struct IFooCursors {
+    public var bar: String
+}
+
+"""
+
+    fields[0]["db_column"]["is_primary"] = True
+    got, _ = generate_interfaces(
+        db_obj, obj, fields, class_name, "swift", db_object_crud_ops
+    )
+
+    assert got == want
+
 
 def test_generate_field_enum():
     field_enum = generate_field_enum("Foo")

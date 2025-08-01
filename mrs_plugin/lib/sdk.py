@@ -34,12 +34,13 @@ import string
 import random
 
 
-ProgrammingLanguage: TypeAlias = Literal["typescript", "python"]
+ProgrammingLanguage: TypeAlias = Literal["typescript", "python", "swift"]
 
 
 SUPPORTED_LANGUAGES = {
     "typescript": "TypeScript",
     "python": "Python",
+    "swift": "Swift",
 }
 
 
@@ -69,11 +70,39 @@ class I{name}({mixins}MrsDocument[I{name}Data]
 '''
 
 
+SDK_SWIFT_DATACLASS_TEMPLATE = """public class I{name}: {mixins} {{
+    public typealias DocumentType = I{name}
+    public typealias ModelType = {name}DatabaseObject
+
+{join_field_block}
+    private enum CodingKeys: String, CodingKey {{
+        case {join_field_name_block}
+    }}
+
+    public required init(from decoder: any Decoder) throws {{
+        let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+{join_init_assignments}
+        try super.init(from: decoder)
+    }}
+
+    public override func encode(to encoder: any Encoder) throws {{
+        var container = encoder.container(keyedBy: CodingKeys.self)
+{join_field_encode}
+    }}
+
+    public override func getPrimaryKeyName() -> String? {{
+        return {primary_key_name}
+    }}
+}}
+
+"""
+
+
 SDK_PYTHON_NON_NATIVE_TYPES = ("Date", "DateTime", "Time", "Year", "Vector")
 
 
 class LanguageNotSupportedError(Exception):
-    supported_languages = ["TypeScript", "Python"]
+    supported_languages = list(SUPPORTED_LANGUAGES.values())
 
     def __init__(self, sdk_language: Optional[ProgrammingLanguage]):
         self._sdk_language = "Language" if sdk_language is None else sdk_language
@@ -87,6 +116,8 @@ def get_base_classes(
         file_name = "MrsBaseClasses.ts"
     elif sdk_language == "python":
         file_name = "mrs_base_classes.py"
+    elif sdk_language == "swift":
+        file_name = str(Path("Sources", "MrsSdk", "MrsBaseClasses.swift"))
     else:
         raise LanguageNotSupportedError(sdk_language)
 
@@ -118,6 +149,10 @@ def generate_service_sdk(service, session, sdk_language: ProgrammingLanguage = "
         file_name = "MrsServiceTemplate.ts.template"
     elif sdk_language == "python":
         file_name = "mrs_service_template.py.template"
+    elif sdk_language == "swift":
+        file_name = str(Path("Sources", "MrsSdk", "MrsServiceTemplate.swift.template"))
+    else:
+        raise LanguageNotSupportedError(sdk_language)
 
     path = os.path.abspath(__file__)
     template = Path(os.path.dirname(path), "..", "sdk", sdk_language, file_name).read_text()
@@ -445,7 +480,7 @@ def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
 
 
 def language_comment_delimiter(sdk_language):
-    if sdk_language == "typescript":
+    if sdk_language in ("typescript", "swift"):
         return "//"
     if sdk_language == "python":
         return "#"
@@ -460,12 +495,14 @@ def generate_identifier(
     allowed_special_characters: Optional[set[str]] = None
 ) -> str:
     if primitive == "class":
-        identifier = f"{lib.core.convert_path_to_pascal_case(value, allowed_special_characters)}"
+        identifier = lib.core.convert_path_to_pascal_case(value, allowed_special_characters)
     elif sdk_language == "typescript":
         # variable and property names should be lowerCamelCase
-        identifier = f"{lib.core.convert_path_to_camel_case(path=value, allowed_special_characters=allowed_special_characters, lower=True)}"
+        identifier = lib.core.convert_path_to_camel_case(path=value, allowed_special_characters=allowed_special_characters, lower=True)
     elif sdk_language == "python":
-        identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value, allowed_special_characters))}"
+        identifier = lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value, allowed_special_characters))
+    elif sdk_language == "swift":
+        identifier = lib.core.convert_path_to_camel_case(value, allowed_special_characters)
     else:
         identifier = value
     # If the stripped identifier would result in an empty one, create a random one
@@ -543,8 +580,6 @@ def substitute_objects_in_template(
             getters_setters = ""
             obj_pk_list = []
             obj_quoted_pk_list = []
-            obj_string_pk_list = []
-            obj_string_args_where_pk_list = []
             obj_unique_list = []
             obj_meta_interfaces = []
             db_object_crud_ops = ""
@@ -568,10 +603,6 @@ def substitute_objects_in_template(
                         if field_is_pk(field) and "UPDATE" in db_obj.get("crud_operations", []):
                             obj_pk_list.append(field.get("name"))
                             obj_quoted_pk_list.append(f'"{field.get("name")}"')
-                            obj_string_pk_list.append(
-                                f'String({name}.{field.get("name")})')
-                            obj_string_args_where_pk_list.append(
-                                f'String(args.where.{field.get("name")})')
                         # Build Unique list
                         if field_is_unique(field):
                             obj_unique_list.append(field.get("name"))
@@ -742,10 +773,6 @@ def substitute_objects_in_template(
                 "obj_getters_setters": getters_setters,
                 "obj_pk_list": ", ".join(obj_pk_list),
                 "obj_quoted_pk_list": ", ".join(obj_quoted_pk_list),
-                "obj_string_pk_list": ", ".join(obj_string_pk_list),
-                "obj_string_args_where_pk_list": ", ".join(
-                    obj_string_args_where_pk_list
-                ),
                 "obj_function_result_datatype": obj_function_result_datatype,
                 "obj_procedure_result_set_datatype": obj_procedure_result_set_datatype,
             }
@@ -770,6 +797,24 @@ def substitute_objects_in_template(
                         # Delete the identified code block otherwise
                         obj_template = obj_template.replace(
                             crud_loop.group(), "")
+
+            # Trait-based API implementation (for now, only used on Swift).
+            obj_traits = ["MrsBaseObject"]
+
+            if "CREATE" in enabled_crud_ops:
+                obj_traits.append("Creatable")
+            if "READ" in enabled_crud_ops:
+                obj_traits.append("Readable")
+            if "READUNIQUE" in enabled_crud_ops:
+                obj_traits.append("UniquelyReadable")
+            if "UPDATE" in enabled_crud_ops:
+                obj_traits.append("Updatable")
+            if "DELETE" in enabled_crud_ops:
+                obj_traits.append("Deletable")
+            if "DELETEUNIQUE" in enabled_crud_ops:
+                obj_traits.append("UniquelyDeletable")
+
+            mapping["obj_traits"] = ", ".join(obj_traits)
 
             # Perform the substitution
             filled_temp += Template(obj_template).substitute(**mapping)
@@ -845,7 +890,30 @@ def get_datatype_mapping(db_datatype, sdk_language):
         if db_datatype.startswith("vector"):
             return "Vector"
         return "str"
-
+    if sdk_language == "swift":
+        if db_datatype.startswith(("tinyint(1)", "bit(1)")):
+            return "Bool"
+        if db_datatype.startswith("tinyint unsigned"):
+            return "UInt8"
+        if db_datatype.startswith("tinyint"):
+            return "Int8"
+        if db_datatype.startswith("smallint unsigned"):
+            return "UInt16"
+        if db_datatype.startswith("smallint"):
+            return "Int16"
+        if db_datatype.startswith(("mediumint unsigned", "int unsigned")):
+            return "UInt32"
+        if db_datatype.startswith(("mediumint", "int")):
+            return "Int32"
+        if db_datatype.startswith(("bigint unsigned")):
+            return "UInt64"
+        if db_datatype.startswith(("bigint")):
+            return "Int64"
+        if db_datatype.startswith("float"):
+            return "Float"
+        if db_datatype.startswith(("decimal", "numeric", "double")):
+            return "Double"
+        return "String"
     return "unknown"
 
 
@@ -863,7 +931,7 @@ def get_enhanced_datatype_mapping(db_datatype, sdk_language):
             "Vector": "VectorField",
         }
     }
-    if sdk_language == "typescript":
+    if sdk_language in ("typescript", "swift"):
         # In TypeScript, the fields of type ${DatabaseObject} are the same as type ${DatabaseObject}Params
         return get_datatype_mapping(db_datatype, sdk_language)
     if sdk_language == "python":
@@ -880,20 +948,10 @@ def maybe_null(client_datatype, sdk_language):
         return f"MaybeNull<{client_datatype}>"
     if sdk_language == "python":
         return f"Optional[{client_datatype}]"
-
-    return "unknown"
-
-
-def get_procedure_datatype_mapping(sp_datatype, sdk_language):
-    if sdk_language == "typescript":
-        if sp_datatype == "BOOLEAN":
-            return "boolean"
-        if sp_datatype in ("NUMBER", "INT"):
-            return "number"
-        if sp_datatype == "JSON":
-            return "object"
-        return "string"
-
+    if sdk_language == "swift":
+        # In Swift, a "null" value happens when an optional constant or variable is assigned "nil".
+        # Optionality is already specified by the client data type, so there is nothing to do.
+        return client_datatype
     return "unknown"
 
 
@@ -924,7 +982,9 @@ def get_interface_datatype(
     return f"I{class_name}{reference_class_name_suffix}{class_name_postfix}"
 
 
-def datatype_is_primitive(client_datatype, sdk_language):
+def datatype_is_primitive(
+    client_datatype: str, sdk_language: ProgrammingLanguage = "typescript"
+):
     # for now, consider only the data types we actually are able to map into
     if client_datatype is None:
         return False
@@ -936,6 +996,25 @@ def datatype_is_primitive(client_datatype, sdk_language):
     if sdk_language == "python":
         if client_datatype.startswith(
             ("bool", "float", "int", "str", "list", "tuple", "dict")
+        ):
+            return True
+        return False
+    if sdk_language == "swift":
+        if client_datatype.startswith(
+            (
+                "Bool",
+                "UInt8",
+                "Int8",
+                "UInt16",
+                "Int16",
+                "UInt32",
+                "Int32",
+                "UInt64",
+                "Int64",
+                "Float",
+                "Double",
+                "String",
+            )
         ):
             return True
         return False
@@ -1072,7 +1151,8 @@ def generate_type_declaration(
     name,
     parents=[],
     fields={},
-    sdk_language="typescript",
+    sdk_language: ProgrammingLanguage = "typescript",
+    construct_type="struct",
     ignore_base_types=False,
     non_mandatory_fields: set[str] = set(),  # Users may or not specify them
     requires_placeholder=False,
@@ -1128,10 +1208,25 @@ def generate_type_declaration(
         else:
             inheritance_block = f"({', '.join(ordered_parents)})"
         return f"class I{name}{inheritance_block}:\n" + "".join(field_block) + "\n\n"
+    if sdk_language == "swift":
+        field_block = [
+            generate_type_declaration_field(
+                name,
+                value,
+                sdk_language,
+                non_mandatory=(name in non_mandatory_fields),
+                readonly=(name in readonly_fields),
+            )
+            for name, value in fields.items()
+        ]
+        inheritance_block = f": {", ".join(parents)}" if len(parents) > 0 else ""
+
+        return f"public {construct_type} I{name}{inheritance_block} {{\n{"".join(field_block)}}}\n\n"
+    return ""
 
 
 def generate_type_declaration_field(
-    name, value, sdk_language, non_mandatory=False, allowed_special_characters=None, readonly=False
+    name, value, sdk_language, non_mandatory=False, allowed_special_characters=None, readonly=False, initialized=True
 ):
     name = generate_identifier(
         value=name,
@@ -1153,6 +1248,13 @@ def generate_type_declaration_field(
         else:
             hint = f"NotRequired[{value}]" if non_mandatory is True else f"{value}"
         return f'{indent}{name}: {hint}\n'
+    if sdk_language == "swift":
+        if isinstance(value, list):
+            hint = f"[{value[0]}]"
+        else:
+            hint = value
+        return f"{indent}public {'let' if readonly else 'var'} {name}: {hint}{'?' if non_mandatory else ''}{' = nil' if non_mandatory and initialized else ''}\n"
+    return ""
 
 
 def generate_data_class(
@@ -1160,6 +1262,7 @@ def generate_data_class(
     fields,
     sdk_language,
     db_object_crud_ops: list[str],
+    parents: list[str] = [],
     obj_endpoint: Optional[str] = None,
     primary_key_fields: set[str] = set(),
 ):
@@ -1174,7 +1277,8 @@ def generate_data_class(
             fields=fields,
             sdk_language=sdk_language,
             non_mandatory_fields=set(fields).difference({"update()", "delete()"}),
-            readonly_fields=primary_key_fields
+            readonly_fields=primary_key_fields,
+            parents=parents,
         )
 
     if sdk_language == "python":
@@ -1218,13 +1322,77 @@ def generate_data_class(
             ),
             mixins="".join(mixins),
         )
+    if sdk_language == "swift":
+        field_type_block = [
+            (
+                generate_type_declaration_field(
+                    name,
+                    value,
+                    sdk_language,
+                    non_mandatory=True,
+                    readonly=name in primary_key_fields,
+                    initialized=False,
+                )
+            )
+            for name, value in fields.items()
+        ]
+        assignment_block = [
+            f'{" " * 8}self.{field} = data.{field}\n'
+            for field in [
+                generate_identifier(value=field, sdk_language=sdk_language)
+                for field in [
+                    name for name in fields.keys() if name not in primary_key_fields
+                ]
+            ]
+        ]
+
+        mixins = parents
+        if len(primary_key_fields) > 0:
+            if "UPDATE" in db_object_crud_ops:
+                mixins.append("SelfUpdatable")
+            if "DELETE" in db_object_crud_ops:
+                mixins.append("SelfDeletable")
+
+        if len(primary_key_fields) > 0:
+            primary_key_field_names = [
+                generate_identifier(value=value, sdk_language=sdk_language)
+                for value in primary_key_fields
+            ]
+            primary_key_checks = " || ".join(
+                [f"self.{value} == nil" for value in primary_key_field_names]
+            )
+            primary_key_values = "".join(
+                [f"String(self.{value}!)" for value in primary_key_field_names]
+            )
+
+        init_assignment_block = [
+            f'{" " * 8}self.{field_name} = try container.decodeIfPresent({field_type}.self, forKey: .{field_name})'
+            for field_name, field_type in fields.items()
+        ]
+
+        field_encode_block = [
+            f'{" " * 8}try container.encode({field_name}, forKey: .{field_name})'
+            for field_name in fields.keys()
+        ]
+
+        return SDK_SWIFT_DATACLASS_TEMPLATE.format(
+            name=name,
+            join_field_block="".join(field_type_block),
+            join_field_name_block=", ".join([name for name in fields.keys()]),
+            join_assignment_block="".join(assignment_block).rstrip(),
+            join_init_assignments="\n".join(init_assignment_block),
+            join_field_encode="\n".join(field_encode_block),
+            primary_key_name=(
+                "nil"
+                if len(primary_key_fields) == 0
+                else f'{primary_key_checks} ? nil : [{primary_key_values}].joined(separator: ",")'
+            ),
+            mixins=", ".join(mixins),
+        )
+    return ""
 
 
-def generate_field_enum(name, fields=None, sdk_language="typescript"):
-    if sdk_language == "typescript":
-        # In TypeScript the field enum can be obtained using keyof on the original object type declaration, so there is
-        # no need for an additional type declaration.
-        return ""
+def generate_field_enum(name, fields=None, sdk_language: ProgrammingLanguage = "typescript"):
     if sdk_language == "python":
         if not fields or len(fields) == 0:
             # To avoid conditional logic in the template, we can generate a placeholder declaration regardless.
@@ -1232,6 +1400,10 @@ def generate_field_enum(name, fields=None, sdk_language="typescript"):
 
         fields_in_case = [lib.core.convert_to_snake_case(field) for field in fields]
         return generate_enum(f"{name}Field", fields_in_case, sdk_language)
+    # In TypeScript the field enum can be obtained using keyof on the original object type declaration, so there is
+    # no need for an additional type declaration.
+    # TODO: Check the Swift SDK API for selecting VIEW fields.
+    return ""
 
 
 def generate_enum(name, values, sdk_language):
@@ -1240,6 +1412,13 @@ def generate_enum(name, values, sdk_language):
         return f"export type I{name} = {enum_def};\n\n"
     if sdk_language == "python":
         return f"I{name}: TypeAlias = {enum_def}\n\n\n"
+    if sdk_language == "swift":
+        items = [f'{" " * 4}case {value} = "{value}"' for value in values]
+        return (f"enum I{name}: String, CaseIterable {{\n" +
+            f"{'\n'.join(items)}\n" +
+            "}\n\n"
+        )
+    return ""
 
 
 def generate_type_declaration_placeholder(name, sdk_language, is_unpacked=False):
@@ -1250,6 +1429,7 @@ def generate_type_declaration_placeholder(name, sdk_language, is_unpacked=False)
             return f"I{name}: TypeAlias = None\n\n\n"
         # Using an empty TypedDict helps to avoid issues with Unpack
         return f"class I{name}(TypedDict):\n    pass\n\n\n"
+    return ""
 
 
 def generate_literal_type(values, sdk_language):
@@ -1262,6 +1442,7 @@ def generate_literal_type(values, sdk_language):
         return (f"Literal[\n" +
             f"{s},\n" +
             "]")
+    return ""
 
 
 def generate_selectable(name, fields, sdk_language):
@@ -1270,6 +1451,9 @@ def generate_selectable(name, fields, sdk_language):
     if sdk_language == "python":
         return generate_type_declaration(name=f"{name}Selectable", fields={ field: "bool" for field in fields },
                                          sdk_language=sdk_language, non_mandatory_fields=set(fields))
+    if sdk_language == "swift":
+        return generate_enum(name=f"{name}Selectable", values=[field_name for field_name in fields], sdk_language=sdk_language)
+    return ""
 
 
 def generate_sortable(
@@ -1291,6 +1475,9 @@ def generate_sortable(
             non_mandatory_fields=set(fields),
             requires_placeholder=True,
         )
+    if sdk_language == "swift":
+        return generate_enum(name=f"{name}Sortable", values=[field_name for field_name in fields], sdk_language=sdk_language)
+    return ""
 
 
 def generate_union(name, types, sdk_language):
@@ -1298,13 +1485,15 @@ def generate_union(name, types, sdk_language):
         return f"export type {name} = {' | '.join(types)};\n\n"
     if sdk_language == "python":
         return f"{name}: TypeAlias = {' | '.join(types)}\n\n\n"
+    return ""
 
 
 def generate_sequence_constant(name, values, sdk_language):
     if sdk_language == "typescript":
         return f"const {name} = {json.dumps(values)} as const;\n"
-    elif sdk_language == "python":
+    if sdk_language == "python":
         return f"{name}: Sequence = {json.dumps(values)}\n\n"
+    return ""
 
 
 def generate_tuple(
@@ -1409,6 +1598,8 @@ def generate_interfaces(
                                 nested_datatype = f"{datatype}[]"
                             elif relationship == "1:n" and sdk_language == "python":
                                 nested_datatype = f"list[{datatype}]"
+                            elif relationship == "1:n" and sdk_language == "swift":
+                                nested_datatype = f"[{datatype}]"
                             interface_fields.update({field.get("name"): nested_datatype})
                             # Add all table fields that have allow_filtering set and SP params to the
                             # param_interface_fields
@@ -1471,9 +1662,10 @@ def generate_interfaces(
         creatable_type_alias_name = f"New{class_name}"
         updatable_type_alias_name = f"Update{class_name}"
 
-        if sdk_language != "typescript":
-            # These type declarations are not needed for TypeScript because it uses a Proxy to replace the interface
+        if sdk_language == "python":
+            # These type aliases are not needed for TypeScript because it uses a Proxy to replace the interface
             # and not a wrapper class. This might change in the future.
+            # In Swift, these are also not used because we cannot downcast them to types with different requirements.
             mrs_resource_type = "IMrsResourceDetails"
             required_datatypes.add(mrs_resource_type)
 
@@ -1508,6 +1700,7 @@ def generate_interfaces(
                     and field_is_required(field, obj) is False
                 ]
             )
+
             obj_interfaces.append(
                 generate_type_declaration(
                     name=creatable_type_alias_name,
@@ -1516,12 +1709,14 @@ def generate_interfaces(
                     non_mandatory_fields=obj_non_mandatory_fields,
                     nesting_fields=nesting_fields,
                     nested_value_prefix="New",
+                    parents=["Encodable"] if sdk_language == "swift" else [],
                 )
             )
             generated_type_aliases.add(creatable_type_alias_name)
 
         # Do not generate type aliases that have already been created whilst processing nested fields.
-        if "UPDATE" in db_object_crud_ops and updatable_type_alias_name not in generated_type_aliases:
+        # Do not generate CRUD-specific type aliases for Swift because we cannot downcast to them.
+        if "UPDATE" in db_object_crud_ops and updatable_type_alias_name not in generated_type_aliases and sdk_language in ("typescript", "python"):
             # TODO: No partial update is supported yet. Once it is, the
             # `non-mandatory_fields` argument should not change.
             # This way, users can know what fields are required and which ones aren't.
@@ -1554,6 +1749,7 @@ def generate_interfaces(
                     db_object_crud_ops=db_object_crud_ops,
                     obj_endpoint=obj_endpoint,
                     primary_key_fields=set(primary_key_fields),
+                    parents=["MrsDocument"] if sdk_language == "swift" else [],
                 )
             )
             generated_type_aliases.add(class_name)
@@ -1584,6 +1780,7 @@ def generate_interfaces(
         obj_interfaces.append(
             generate_selectable(class_name, interface_fields | reduced_to_datatype_fields, sdk_language)
         )
+
         obj_interfaces.append(
             generate_sortable(class_name, obj_sortable_fields, sdk_language)
         )
@@ -1600,7 +1797,7 @@ def generate_interfaces(
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
                 ignore_base_types=True,
-                non_mandatory_fields=set(param_interface_fields),
+                non_mandatory_fields=[] if sdk_language == "swift" else set(param_interface_fields),
             )
         )
 
@@ -1609,7 +1806,7 @@ def generate_interfaces(
                 name=f"{class_name}UniqueFilterable",
                 fields=obj_unique_fields,
                 sdk_language=sdk_language,
-                non_mandatory_fields=set(obj_unique_fields),
+                non_mandatory_fields=[] if sdk_language == "swift" else set(obj_unique_fields),
             )
         )
 
@@ -1618,7 +1815,7 @@ def generate_interfaces(
                 name=f"{class_name}Cursors",
                 fields=obj_cursor_fields,
                 sdk_language=sdk_language,
-                non_mandatory_fields=set(obj_cursor_fields),
+                non_mandatory_fields=[] if sdk_language == "swift" else set(obj_cursor_fields),
                 # To avoid conditional logic in the template, we should generate a void type declaration.
                 requires_placeholder=True,
             )
@@ -1777,13 +1974,20 @@ def generate_nested_interfaces(
             )
             generated_type_aliases.add(creatable_type_alias_name)
         # Do not generate type aliases that have already been created whilst processing top-level fields.
-        if "UPDATE" in allowed_crud_ops and updatable_type_alias_name not in generated_type_aliases:
+        # Do not generate CRUD-specific type aliases for Swift because we cannot downcast to them.
+        if (
+            "UPDATE" in allowed_crud_ops
+            and updatable_type_alias_name not in generated_type_aliases
+            and sdk_language in ("typescript", "python")
+        ):
             nullable_fields = [
                 field.get("name")
                 for field in fields
                 # exclude fields that are out of range (e.g. on different nesting levels)
-                if field.get("parent_reference_id") == parent_field.get("represents_reference_id")
-                and field_is_nullable(field) or field_has_row_ownership(field, reference_obj)
+                if field.get("parent_reference_id")
+                == parent_field.get("represents_reference_id")
+                and field_is_nullable(field)
+                or field_has_row_ownership(field, reference_obj)
             ]
             obj_interfaces.append(
                 generate_type_declaration(

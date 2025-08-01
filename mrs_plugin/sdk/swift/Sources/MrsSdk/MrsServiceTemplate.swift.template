@@ -1,0 +1,47 @@
+// Copyright (c) 2025, Oracle and/or its affiliates.
+
+// --- schemaLoopStart
+// --- objectLoopStart
+${obj_interfaces}
+public class ${obj_class_name}DatabaseObject: ${obj_traits} {
+    public override init(requestPath: String) {
+        super.init(requestPath: requestPath)
+    }
+
+    // --- crudCreateOnlyStart
+    public typealias NewDocumentType = INew${obj_class_name}
+    // --- crudCreateOnlyEnd
+    public typealias DocumentType = I${obj_class_name}
+    public typealias FilterType = I${obj_class_name}Filterable
+    public typealias UniqueFilterType = I${obj_class_name}UniqueFilterable
+}
+// --- objectLoopEnd
+
+public class ${schema_class_name}: MrsBaseSchema {
+    // --- objectLoopStart
+    public let ${obj_name}: ${obj_class_name}DatabaseObject
+    // --- objectLoopEnd
+
+    public override init(requestPath: String) {
+        // --- objectLoopStart
+        ${obj_name} = ${obj_class_name}DatabaseObject(requestPath: "\(requestPath)${obj_request_path}")
+        super.init(requestPath: requestPath)
+        ${obj_name}.schema = self
+        // --- objectLoopEnd
+    }
+}
+// --- schemaLoopEnd
+
+public class ${service_class_name}: MrsBaseService {
+    // --- schemaLoopStart
+    public let ${schema_name}: ${schema_class_name}
+    // --- schemaLoopEnd
+
+    public override init(baseUrl: String = "${service_url}") {
+        // --- schemaLoopStart
+        ${schema_name} = ${schema_class_name}(requestPath: "\(baseUrl)${schema_request_path}")
+        super.init(baseUrl: baseUrl)
+        ${schema_name}.service = self
+        // --- schemaLoopEnd
+    }
+}

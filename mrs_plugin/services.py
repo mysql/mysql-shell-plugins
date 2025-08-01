@@ -207,6 +207,8 @@ def call_update_service(op_text, **kwargs):
 def file_name_using_language_convention(name, sdk_language: Literal["typescript", "python"] = "typescript"):
     if sdk_language == "python":
         return lib.core.convert_to_snake_case(name)
+    if sdk_language == "swift":
+        return lib.core.convert_path_to_pascal_case(name)
     return name
 
 
@@ -1028,6 +1030,16 @@ def dump_sdk_service_files(**kwargs):
                 "pyproject.toml",
             ).read_text()
             version = tomllib.loads(metadata).get("project").get("version")
+
+        elif sdk_language == "swift":
+            file_type = "swift"
+            base_classes_file = os.path.join(directory, "MrsBaseClasses.swift")
+            version = Path(
+                os.path.dirname(os.path.abspath(__file__)),
+                "sdk",
+                sdk_language.lower(),
+                "VERSION",
+            ).read_text().split("\n")[1] # index 0 is the copyright notice
 
         else:
             raise lib.sdk.LanguageNotSupportedError(source_sdk_language)
