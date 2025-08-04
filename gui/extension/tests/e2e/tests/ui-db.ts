@@ -491,8 +491,13 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
             await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
             await mysqlAdministration.performanceDashboard.selectTab(constants.perfDashMLETab);
-            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
-            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
+
+            await driver.wait(async () => {
+                await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+
+                return mysqlAdministration.performanceDashboard.mlePerformance.mleStatus === "Active";
+            }, constants.wait1second * 5, "MLE Status should be Active");
+
             const currentHeap = await driver
                 .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
             await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
@@ -663,13 +668,13 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                 expect(latestTable.comment).to.equals(newTask.description);
 
+                await driver.wait(lakehouseTables.untilLakeHouseTasksAreCompleted(),
+                    constants.wait1second * 10);
                 const tasks = await lakehouseTables.getLakeHouseTasks();
 
                 if (tasks.length > 0) {
                     for (const task of tasks) {
                         if (task.name === `Loading ${newTask.name}`) {
-                            await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.name),
-                                constants.wait1second * 10);
                             expect(task.name).to.equals(`Loading ${newTask.name}`);
                             expect(task.status).to.equals("COMPLETED");
                             expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);

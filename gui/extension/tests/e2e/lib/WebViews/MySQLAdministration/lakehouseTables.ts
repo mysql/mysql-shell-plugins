@@ -255,12 +255,11 @@ export class LakehouseTables {
     };
 
     /**
-     * Verifies if the lakehouse task is completed
-     * @param taskName The task name
-     * @returns A promise resolving with true, if the task is completed, false otherwise
+     * Verifies if all the lakehouse tasks are completed
+     * @returns A promise resolving with true, if all the tasks are completed, false otherwise
      */
-    public untilLakeHouseTaskIsCompleted = (taskName: string): Condition<boolean> => {
-        return new Condition(` for lakehouse table '${taskName}' to be completed`, async () => {
+    public untilLakeHouseTasksAreCompleted = (): Condition<boolean> => {
+        return new Condition(`for lakehouse tasks to be completed`, async () => {
             const taskRows = await driver.wait(async () => {
                 const rows = await this.getLakeHouseTasks();
                 if (rows.length > 0) {
@@ -269,7 +268,7 @@ export class LakehouseTables {
             }, constants.wait1second * 5, "Could not find any lakehouse task");
 
             for (const task of taskRows) {
-                if (task.name === taskName && task.status !== "COMPLETED") {
+                if (task.status !== "COMPLETED") {
                     return false;
                 }
             }

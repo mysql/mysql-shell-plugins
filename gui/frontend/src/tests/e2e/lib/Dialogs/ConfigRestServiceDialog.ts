@@ -75,11 +75,13 @@ export class ConfigRestServiceDialog {
         if (restConfig!.currentVersion) {
             await dialog.findElement(locator.mrsConfigDialog.currentVersion.exists).click();
             const selectList = await driver.wait(until
-                .elementLocated(locator.mrsConfigDialog.currentVersion.selectList.exists), constants.wait1second * 3,
+                .elementLocated(locator.mrsConfigDialog.currentVersion.selectList.exists),
+                constants.wait1second * 3,
                 "Could not find the Update to Version select list");
             await selectList.findElement(locator.mrsConfigDialog.currentVersion.selectList
                 .item(restConfig!.currentVersion))
                 .click();
+            await driver.sleep(5000);
         }
 
         if (restConfig!.updateToVersion) {
@@ -280,8 +282,8 @@ export class ConfigRestServiceDialog {
 
         await dialog.findElement(locator.mrsConfigDialog.redirectsAndStaticContent.tab).click();
         const grids = (await dialog.findElements(locator.mrsConfigDialog.redirectsAndStaticContent.grid.exists));
-        const endPointResponseCacheGrid = grids![0];
-        const defaultRedirectsGrid = grids![1];
+        const endPointResponseCacheGrid = grids[0];
+        const defaultRedirectsGrid = grids[1];
 
         await driver.wait(async () => {
             return (await endPointResponseCacheGrid

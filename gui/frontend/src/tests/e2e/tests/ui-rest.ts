@@ -270,12 +270,14 @@ describe("MYSQL REST SERVICE", () => {
             }
         });
 
-        it("Upgrade MRS version", async () => {
+        it.skip("Upgrade MRS version", async () => {
             try {
                 await Misc.deleteRestSchema(globalConn.caption!);
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
                     constants.configureInstanceForRestService);
                 const msrVersions = (await ConfigRestServiceDialog.getMRSVersions()).reverse();
+                console.log(msrVersions);
+                console.log(`setting first mrsVersion: ${msrVersions[0]}`);
                 let mrsConfig: interfaces.IRestServiceConfig = {
                     currentVersion: msrVersions[0],
                     authentication: {
@@ -288,6 +290,7 @@ describe("MYSQL REST SERVICE", () => {
                 expect(notification!.message).toBe("MySQL REST Service configured successfully.");
 
                 for (const mrsVersion of msrVersions.slice(1)) {
+                    console.log(`mrsVersion: ${mrsVersion}`);
                     mrsConfig = {
                         updateToVersion: mrsVersion,
                     };

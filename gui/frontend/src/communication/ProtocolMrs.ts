@@ -487,8 +487,10 @@ export interface IShellMrsGetSdkServiceClassesKwargs {
 }
 
 export interface IShellMrsDumpSdkServiceFilesKwargsOptions {
-    /** The ID of the service the SDK should be generated for. If not specified, the default service is used. */
+    /** The ID of the service the SDK should be generated for. If not specified, the service identified by the url_context_root parameter is used. */
     serviceId?: string;
+    /** The request path of the service the SDK should be generated for. If not specified, the default service is used. */
+    urlContextRoot?: string;
     /** The dbConnectionUri that was used to export the SDK files */
     dbConnectionUri?: string;
     /** The SDK language to generate */
