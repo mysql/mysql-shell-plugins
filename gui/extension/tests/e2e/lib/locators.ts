@@ -23,6 +23,8 @@
 
 import { By } from "vscode-extension-tester";
 
+export const valueEditDialog = By.css(".visible.valueEditDialog");
+
 export const dbConnectionDialog = {
     exists: By.css(".visible.valueEditDialog"),
     tab: By.css(".tabArea label"),
@@ -1052,3 +1054,4 @@ export const createLibraryDialog = {
     ok: By.id("ok"),
     cancel: By.id("cancel"),
 };
+

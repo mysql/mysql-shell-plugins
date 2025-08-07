@@ -371,9 +371,11 @@ export class Workbench {
     public static setInputPath = async (path: string): Promise<void> => {
         await Misc.switchBackToTopFrame();
 
+        let input: InputBox | undefined;
+
         await driver.wait(async () => {
             try {
-                const input = await InputBox.create(constants.wait1second * 5);
+                input = await InputBox.create(constants.wait1second * 5);
                 await input.setText(path);
 
                 if ((await input.getText()).trim() === path) {
@@ -382,11 +384,15 @@ export class Workbench {
                     return true;
                 }
             } catch (e) {
-                if (!String(e).includes("Wait until element is visible")) {
+                if (e instanceof error.ElementClickInterceptedError) {
+                    const inputText = await input.findElement(locator.htmlTag.input);
+                    await inputText.sendKeys(Key.ENTER);
+
+                    return true;
+                } else if (!String(e).includes("Wait until element is visible")) {
                     throw e;
                 }
             }
-
         }, constants.wait1minute, `Could not set ${path} on input box`);
     };
 

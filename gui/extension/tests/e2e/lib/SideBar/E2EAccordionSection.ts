@@ -31,6 +31,10 @@ import {
     Button,
     EditorView,
     Key,
+    Workbench as extWorkbench,
+    ModalDialog,
+    EditorTab,
+    BottomBarPanel,
 } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "../constants";
@@ -631,75 +635,187 @@ export class E2EAccordionSection {
      * @param element The element name
      * @param ctxMenuItem The context menu item
      * @param itemMap The map of the item. On macOS, the item map is required
+     * @param repeat Repeat the action if extension is unresponsive
      */
     public openContextMenuAndSelect = async (
         element: string | RegExp | string[],
         ctxMenuItem: string | string[],
         itemMap?: Map<string, number>,
+        repeat = true,
     ): Promise<void> => {
 
-        if ((await Misc.insideIframe())) {
-            await Misc.switchBackToTopFrame();
-        }
+        let attempt = 1;
+        const masAttempts = 3;
+        let ok = false;
+        let errorMsg = "";
 
-        const treeItem = await this.getTreeItem(element);
+        while (attempt <= masAttempts) {
 
-        if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(this.untilIsNotLoading(), constants.waitSectionNoProgressBar);
-            const ociSection = new E2EAccordionSection(constants.ociTreeSection);
-            await driver.wait(ociSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
-        }
+            if ((await Misc.insideIframe())) {
+                await Misc.switchBackToTopFrame();
+            }
 
-        if (element) {
-            await driver.wait(async () => {
-                if (Os.isMacOs()) {
-                    await driver.actions()
-                        .move({ origin: treeItem })
-                        .press(Button.RIGHT)
-                        .pause(150)
-                        .perform();
+            const prevOpenedTabs = (await Workbench.getOpenEditorTitles());
+            let prevActiveTab: EditorTab | undefined;
 
-                    if (Array.isArray(ctxMenuItem)) {
-                        for (const item of ctxMenuItem) {
-                            await Os.selectItemMacOS(item, itemMap);
-                        }
-                    } else {
-                        await Os.selectItemMacOS(ctxMenuItem, itemMap);
-                    }
+            if (prevOpenedTabs) {
+                prevActiveTab = await Workbench.getActiveTab();
+            }
 
-                    return true;
-                } else {
-                    try {
-                        let ctxMenuItems: string | string[];
+            let prevVisibleItems = 0;
+            if (this.name === constants.openEditorsTreeSection) {
+                const section = await new SideBarView().getContent().getSection(this.name);
+                prevVisibleItems = (await section.getVisibleItems()).length;
+            }
+
+            const treeItem = await this.getTreeItem(element);
+
+            if (ctxMenuItem !== constants.openNotebookWithConn) {
+                await driver.wait(this.untilIsNotLoading(), constants.waitSectionNoProgressBar);
+                const ociSection = new E2EAccordionSection(constants.ociTreeSection);
+                await driver.wait(ociSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
+            }
+
+            if (element) {
+                await driver.wait(async () => {
+
+                    if (Os.isMacOs()) {
+                        await driver.actions()
+                            .move({ origin: treeItem })
+                            .press(Button.RIGHT)
+                            .pause(150)
+                            .perform();
+
                         if (Array.isArray(ctxMenuItem)) {
-                            ctxMenuItems = [ctxMenuItem[0], ctxMenuItem[1]];
+                            for (const item of ctxMenuItem) {
+                                await Os.selectItemMacOS(item, itemMap);
+                            }
                         } else {
-                            ctxMenuItems = [ctxMenuItem];
+                            await Os.selectItemMacOS(ctxMenuItem, itemMap);
                         }
 
-                        const menu = await treeItem.openContextMenu();
-                        const menuItem = await menu.getItem(ctxMenuItems[0].trim());
+                        return true;
+                    } else {
+                        try {
+                            let ctxMenuItems: string | string[];
+                            if (Array.isArray(ctxMenuItem)) {
+                                ctxMenuItems = [ctxMenuItem[0], ctxMenuItem[1]];
+                            } else {
+                                ctxMenuItems = [ctxMenuItem];
+                            }
 
-                        const anotherMenu = await menuItem.select();
+                            const menu = await treeItem.openContextMenu();
+                            const menuItem = await menu.getItem(ctxMenuItems[0].trim());
 
-                        if (ctxMenuItems.length > 1) {
-                            await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
+                            const anotherMenu = await menuItem.select();
+
+                            if (ctxMenuItems.length > 1) {
+                                await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
+                            }
+
+                            return driver.wait(until.stalenessOf(menuItem), constants.wait1second * 3)
+                                .then(() => { return true; })
+                                .catch(async () => {
+                                    await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+                                });
+
+                        } catch (e) {
+                            // try again
+                        }
+                    }
+                }, constants.wait1second * 5,
+                    `Could not select '${ctxMenuItem.toString()}' for tree item '${await treeItem.getLabel()}'`);
+            } else {
+                throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
+            }
+
+            if (repeat) {
+
+                try {
+                    await driver.wait(async () => {
+
+                        // A NEW TAB WAS OPENED
+                        const newTabWasOpened = prevOpenedTabs.length < (await Workbench.getOpenEditorTitles()).length;
+
+                        // ACTIVE TAB CHANGED
+                        let activeTabChanged: boolean | undefined;
+
+                        if (prevActiveTab) {
+                            activeTabChanged = await prevActiveTab.getTitle() !== await (await Workbench.getActiveTab())
+                                .getTitle();
                         }
 
-                        return driver.wait(until.stalenessOf(menuItem), constants.wait1second * 3)
-                            .then(() => { return true; })
-                            .catch(async () => {
-                                await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
-                            });
+                        // A WEB VIEW DIALOG WAS OPENED
+                        let webViewWasOpened: boolean | undefined;
+                        try {
+                            if ((await Workbench.getOpenEditorTitles()).length > 0) {
+                                await Misc.switchToFrame();
+                                webViewWasOpened = (await driver.findElements(locator.valueEditDialog)).length > 0 ||
+                                    (await driver.findElements(locator.passwordDialog.exists)).length > 0 ||
+                                    (await driver.findElements(locator.confirmDialog.exists)).length > 0;
+                                await Misc.switchBackToTopFrame();
+                            }
+                        } catch (e) {
+                            // continue, no dialog exists
+                        }
 
-                    } catch (e) {
-                        // try again
+                        // A NEW NOTIFICATION WAS GENERATED
+                        const newNotification = (await new extWorkbench().getNotifications()).length > 0;
+
+                        // THE BOTTOM BAR PANEL WAS OPENED
+                        const bottomBarIsOpened = await new BottomBarPanel().isDisplayed();
+
+                        // AN INPUT BOX WAS OPENED
+                        let existsNewInputBox = false;
+                        const inputBox = await driver.findElements(locator.inputBox.exists);
+                        if (inputBox.length > 0) {
+                            const display = await inputBox[0].getCssValue("display");
+
+                            if (display && display !== "none") {
+                                existsNewInputBox = true;
+                            }
+                        }
+
+                        // A MODAL DIALOG WAS OPENED
+                        const existsModalDialog = (await driver.findElements(locator.dialogBox.exists)).length > 0;
+
+                        // NEW TREE ITEM EXISTS
+                        let newTreeItemExists = false;
+                        if (this.name === constants.openEditorsTreeSection) {
+                            const section = await new SideBarView().getContent().getSection(this.name);
+                            if (prevVisibleItems <= (await section.getVisibleItems()).length) {
+                                newTreeItemExists = true;
+                            }
+                        }
+
+                        return newTabWasOpened ||
+                            activeTabChanged ||
+                            webViewWasOpened ||
+                            newNotification ||
+                            bottomBarIsOpened ||
+                            existsModalDialog ||
+                            existsNewInputBox ||
+                            newTreeItemExists;
+
+                    }, constants.wait1second * 3,
+                        `Right click on ${element.toString()}/${ctxMenuItem.toString()} did not worked`);
+
+                    ok = true;
+                    break;
+                } catch (e) {
+                    if (e instanceof error.TimeoutError) {
+                        errorMsg = String(e);
+                        attempt++;
                     }
                 }
-            }, constants.wait1second * 5,
-                `Could not select '${ctxMenuItem.toString()}' for tree item '${await treeItem.getLabel()}'`);
-        } else {
-            throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
+            } else {
+                ok = true;
+                break;
+            }
+        }
+
+        if (!ok) {
+            throw new Error(errorMsg);
         }
     };
 

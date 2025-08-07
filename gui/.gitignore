@@ -75,3 +75,4 @@ frontend/src/modules/mrs/sdk
 .nyc_output
 coverage-generic
 coverage-mrs
+frontend/src/tests/e2e/port_*

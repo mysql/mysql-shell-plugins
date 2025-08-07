@@ -858,7 +858,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
             await dbTreeSection.openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL).schema,
-                constants.setCurrentDBSchema, undefined);
+                constants.setCurrentDBSchema, undefined, false);
             await driver.wait(dbTreeSection.untilTreeItemIsDefault("sakila"), constants.wait1second * 5);
             await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
                 constants.openNewConnectionUsingNotebook);
@@ -872,7 +872,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await result.resultContext.getAttribute("innerHTML"))
                 .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
 
-            await dbTreeSection.openContextMenuAndSelect("world_x_cst", constants.setCurrentDBSchema, undefined);
+            await dbTreeSection.openContextMenuAndSelect("world_x_cst", constants.setCurrentDBSchema, undefined, false);
             await driver.wait(dbTreeSection.untilTreeItemIsDefault("world_x_cst"), constants.wait1second * 5);
 
             await driver.wait(async () => {
@@ -1103,6 +1103,7 @@ describe("DATABASE CONNECTIONS", () => {
             treeGlobalSchemaViews = await dbTreeSection.getTreeItem("Views");
             await treeGlobalSchemaViews.expand();
 
+            await Workbench.closeAllEditors();
             await dbTreeSection.openContextMenuAndSelect(testView, constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
@@ -1117,6 +1118,7 @@ describe("DATABASE CONNECTIONS", () => {
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
+            await dbTreeSection.focus();
             await driver.wait(new Condition("", async () => {
                 try {
                     await dbTreeSection.openContextMenuAndSelect(testView, [constants.copyToClipboard,
@@ -1151,6 +1153,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop View", async () => {
 
+            await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
             await treeGlobalSchema.expand();
             await treeGlobalSchemaViews.expand();
@@ -1164,8 +1167,12 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Show Data", async () => {
 
+            await dbTreeSection.focus();
+            await Workbench.closeAllEditors();
             await dbTreeSection.openContextMenuAndSelect("actor", constants.showData);
-            const result = await new E2EScript().getResult() as E2ECommandResultGrid;
+            const e2eScript = new E2EScript();
+            await driver.wait(e2eScript.untilIsOpened(globalConn), constants.waitConnectionOpen);
+            const result = await e2eScript.getResult() as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             await driver.wait(result.untilIsMaximized(), constants.wait1second * 5);
 
@@ -1174,6 +1181,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("View - Show Data", async () => {
 
             await dbTreeSection.focus();
+            await Workbench.closeAllEditors();
             await dbTreeSection.openContextMenuAndSelect(testView, constants.showData);
             const script = new E2EScript();
             await driver.wait(script.untilIsOpened(globalConn), constants.wait1second * 15);

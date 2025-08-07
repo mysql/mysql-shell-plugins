@@ -298,7 +298,8 @@ describe("Router", () => {
         const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
         await treeMySQLRestService.expand();
         await fs.truncate(await Os.getRouterLogFile());
-        await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.stopRouter);
+        await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.stopRouter,
+            undefined, false);
         await driver.wait(Os.untilRouterIsInactive(), constants.wait1second * 20);
     });
 
