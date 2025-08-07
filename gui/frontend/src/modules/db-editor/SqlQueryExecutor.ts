@@ -136,7 +136,7 @@ export class SqlQueryExecutor {
         }
 
         await context.clearResult();
-        if (mleEnabled) {
+        if (mleEnabled && options.is3rdLanguage) {
             // Reset MLE console log
             const param = context.dbVersion >= 90300 ? "'output'" : "";
             void await connection.backend.execute(`SELECT mle_session_reset(${param})`);

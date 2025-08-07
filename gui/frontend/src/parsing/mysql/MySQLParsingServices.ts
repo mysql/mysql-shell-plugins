@@ -680,12 +680,12 @@ export class MySQLParsingServices {
                                 if (dollarQuoteEndIndex > 0) {
                                     dollarQuoteEndStr = sql.substring(tail, dollarQuoteEndIndex + 1);
                                     tail = dollarQuoteEndIndex;
-                                }
-
-                                if (dollarQuoteStartStr !== dollarQuoteEndStr) {
-                                    dollarQuoteEndStr = "";
-                                } else {
-                                    break;
+                                    if (dollarQuoteStartStr !== dollarQuoteEndStr) {
+                                        dollarQuoteEndStr = "";
+                                        continue;
+                                    } else {
+                                        break;
+                                    }
                                 }
                             }
                             ++tail;

@@ -38,7 +38,7 @@ interface ITestFile {
 interface IDollarQuoteTestEntry {
     title: string;
     data: string;
-    delimiter?: string;
+    delimiter: string;
     expectedResult: string[];
     finishState: StatementFinishState[];
     version: number;
@@ -144,6 +144,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$$ console.log('mle'); $$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string$",
@@ -151,6 +152,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$mle$ console.log('mle'); $mle$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $$ in the start and $string$ in the sql body",
@@ -158,6 +160,15 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$$ console.log('mle $js$ $test$'); $$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
+        delimiter: ";",
+    },
+    {
+        title: "Statement splitter for $$ in the start and $ in the sql body",
+        data: queryStart + "$$ console.log('mle $'); $$;",
+        expectedResult: [queryStart + "$$ console.log('mle $'); $$;"],
+        finishState: [StatementFinishState.Complete],
+        version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string$ in the start and $$ in the sql body",
@@ -165,6 +176,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$mle$ console.log('mle $$'); $mle$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $$ in start and $$ in the sql body",
@@ -172,6 +184,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$$ console.log('$$'); $$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string$ in the start and $string$ in the sql body are different",
@@ -179,6 +192,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$mle$ console.log('mle $test$'); $mle$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string$ in the start and $string$ in the end is different",
@@ -186,6 +200,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$xyz$ console.log('mle'); $abc$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string$ in the start and $string$ in the sql body are same",
@@ -193,6 +208,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$mle$ console.log('mle $mle$'); $mle$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $$ in start and no $$",
@@ -200,6 +216,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + '$$ console.log("mle $$"); ;'],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: `Statement splitter for " in start, sql body and in end`,
@@ -207,6 +224,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + `" console.log('mle " "'); ";`],
         finishState: [StatementFinishState.Complete],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string in the start",
@@ -214,6 +232,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$mle console.log('mle'); $mle$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string in the start and delimiter in the body",
@@ -221,6 +240,39 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         expectedResult: [queryStart + "$mle$ console.log('$mle$;", "'); $mle$;"],
         finishState: [StatementFinishState.Complete, StatementFinishState.OpenString],
         version: 80100,
+        delimiter: ";",
+    },
+    {
+        title: "Statement splitter for $string in the start and delimiter in the body",
+        data: queryStart + "$mle$ console.log('$ml$;'); $mle$;",
+        expectedResult: [queryStart + "$mle$ console.log('$ml$;'); $mle$;"],
+        finishState: [StatementFinishState.Complete],
+        version: 80100,
+        delimiter: ";",
+    },
+    {
+        title: "Delimiter $mle$ with $$ inside",
+        data: queryStart + "$mle$ $$ $mle$;",
+        expectedResult: [queryStart + "$mle$ $$ $mle$;"],
+        finishState: [StatementFinishState.Complete],
+        version: 80100,
+        delimiter: ";",
+    },
+    {
+        title: "Delimiter $mle$ with $ inside",
+        data: queryStart + "$mle$ $ $mle$;",
+        expectedResult: [queryStart + "$mle$ $ $mle$;"],
+        finishState: [StatementFinishState.Complete],
+        version: 80100,
+        delimiter: ";",
+    },
+    {
+        title: "Delimiter $mle$ with $ inside, delimiter $$",
+        data: queryStart + "$mle$ $ $mle$$$",
+        expectedResult: [queryStart + "$mle$ $ $mle$$$"],
+        finishState: [StatementFinishState.Complete],
+        version: 80100,
+        delimiter: "$$",
     },
     {
         title: "Statement splitter for $$, version 8.0",
@@ -231,6 +283,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         ],
         finishState: [StatementFinishState.Complete, StatementFinishState.Complete],
         version: 80000,
+        delimiter: ";",
     },
     {
         title: "Statement splitter for $string$, version 8.0",
@@ -241,6 +294,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
         ],
         finishState: [StatementFinishState.Complete, StatementFinishState.Complete],
         version: 80000,
+        delimiter: ";",
     },
     {
         title: "Multiple statements mixed, version 9.2",
@@ -269,7 +323,7 @@ describe("MySQL Parsing Service test for dollar quote", () => {
             const data = entry.data;
 
             // Code to be measured check the number of statement ranges.
-            const ranges = services.determineStatementRanges(data, entry.delimiter ?? ";", entry.version);
+            const ranges = services.determineStatementRanges(data, entry.delimiter, entry.version);
             expect(ranges.length).toBe(entry.expectedResult.length);
 
             ranges.forEach((range, index) => {
