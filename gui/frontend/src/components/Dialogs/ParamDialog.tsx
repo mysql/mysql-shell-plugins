@@ -46,7 +46,9 @@ export const toKeyValueArray = (value?: IDictionary): IDictionary[] => {
     }
 
     return Object.entries(value)
-        .map(([key, value]) => { return { key, value }; });
+        .map(([key, value]) => {
+            return { key, value };
+        });
 };
 
 interface IParamDialogProperties extends IComponentProperties {
@@ -105,8 +107,8 @@ export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDia
                 </>
             }
             content={
-                <Grid columns={["128px", "auto", "auto"]} columnGap={8}>
-                    <GridCell rowSpan={4}><Icon src={Assets.misc.parametersIcon} width={128} height={128} /></GridCell>
+                <Grid columns={["100px", "40px", "auto"]} columnGap={8}>
+                    <GridCell rowSpan={2}><Icon src={Assets.misc.parametersIcon} width={90} height={90} /></GridCell>
                     <GridCell className="left" crossAlignment={ContentAlignment.Center}>Name:</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
                         <Input id="name" value={name} onChange={this.handleNameChange} />

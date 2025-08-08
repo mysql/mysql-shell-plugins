@@ -253,7 +253,7 @@ export interface IResourceDialogValue extends IBaseDialogValue {
     canSelectFiles?: boolean;
     canSelectFolders?: boolean;
 
-    doRead? : boolean;
+    doRead?: boolean;
 
     /** Called when the selection was changed. */
     onChange?: (value: File | null, dialog: ValueEditDialog) => void;

@@ -43,20 +43,20 @@ exports[`Param Dialog Tests Render Test 1`] = `
         columnGap={8}
         columns={
           [
-            "128px",
-            "auto",
+            "100px",
+            "40px",
             "auto",
           ]
         }
       >
         <GridCell
-          rowSpan={4}
+          rowSpan={2}
         >
           <Icon
             disabled={false}
-            height={128}
+            height={90}
             src="parameters.svg"
-            width={128}
+            width={90}
           />
         </GridCell>
         <GridCell
@@ -147,15 +147,15 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
     >
       <div
         class="msg grid"
-        style="grid-template-columns: 128px auto auto; column-gap: 8px;"
+        style="grid-template-columns: 100px 40px auto; column-gap: 8px;"
       >
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-row: span 4;"
+          style="flex-direction: row; grid-row: span 2;"
         >
           <div
             class="msg icon"
-            style="mask-image: url("parameters.svg"); width: 128px; height: 128px;"
+            style="mask-image: url("parameters.svg"); width: 90px; height: 90px;"
           />
         </div>
         <div
@@ -264,15 +264,15 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
     >
       <div
         class="msg grid"
-        style="grid-template-columns: 128px auto auto; column-gap: 8px;"
+        style="grid-template-columns: 100px 40px auto; column-gap: 8px;"
       >
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-row: span 4;"
+          style="flex-direction: row; grid-row: span 2;"
         >
           <div
             class="msg icon"
-            style="mask-image: url("parameters.svg"); width: 128px; height: 128px;"
+            style="mask-image: url("parameters.svg"); width: 90px; height: 90px;"
           />
         </div>
         <div

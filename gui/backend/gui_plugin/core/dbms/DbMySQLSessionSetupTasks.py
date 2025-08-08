@@ -155,9 +155,17 @@ class BastionHandlerTask(DbSessionSetupTask):
     def on_failed_connection(self):
         self.reset(include_data=False)
 
+
 class RemoveExternalOptionsTask(DbSessionSetupTask):
     def __init__(self, session) -> None:
         super().__init__(session)
 
     def on_connect(self):
         self.extract_option("mrs-service-host", False)
+
+        # The extra-options is an invalid option on the shell context, instead,
+        # the contained options should be part of the main dictionary
+        extra_options = self.extract_option("extra-options", None)
+        if extra_options is not None:
+            for option, value in extra_options.items():
+                self.define_option(option, value)

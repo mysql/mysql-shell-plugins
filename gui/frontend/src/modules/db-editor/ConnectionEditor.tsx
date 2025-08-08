@@ -491,6 +491,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "mysql-db-system-id": details.useMHS
                             ? mdsAdvancedSection.mysqlDbSystemId.value as string : undefined,
                         "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
+                        "extra-options": mysqlAdvancedSection.extraOptions.value as string,
                         /* eslint-enabled @typescript-eslint/naming-convention */
                     };
 
@@ -947,10 +948,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         CommonDialogValueOption.Grouped,
                     ],
                 },
-                others: {
+                extraOptions: {
                     type: "matrix",
                     caption: "Other Connection Options",
-                    value: optionsMySQL["connection-attributes"],
+                    value: optionsMySQL["extra-options"],
                     horizontalSpan: 8,
                 },
             },
