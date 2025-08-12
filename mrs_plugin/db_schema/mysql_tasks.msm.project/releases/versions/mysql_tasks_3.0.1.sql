@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,11 +24,12 @@
  */
 
 -- #############################################################################
--- MSM Section 000: Database Schema Development Script
+-- MSM Section 001: Database Schema Create Script
 -- -----------------------------------------------------------------------------
 -- This script contains the current development version of the database schema
 -- `mysql_tasks`
 -- #############################################################################
+
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
