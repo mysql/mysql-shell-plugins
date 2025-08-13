@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 import { ComponentChild } from "preact";
 import { lazy, Suspense } from "preact/compat";
 
@@ -31,8 +30,10 @@ import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
 import { AboutBox } from "../components/ui/AboutBox/AboutBox.js";
 import { ComponentBase, type IComponentProperties } from "../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
-import { ISplitterPane, SplitContainer,
-    type ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer.js";
+import {
+    ISplitterPane, SplitContainer,
+    type ISplitterPaneSizeInfo
+} from "../components/ui/SplitContainer/SplitContainer.js";
 import { StatusBarAlignment, type IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
 import { DocumentModule } from "../modules/db-editor/DocumentModule.js";
 import { appParameters } from "../supplement/AppParameters.js";
@@ -46,7 +47,7 @@ const CommunicationDebugger = lazy(async () => {
     return import("../components/CommunicationDebugger/CommunicationDebugger.js");
 });
 
-interface IApplicationHostProperties extends IComponentProperties {}
+interface IApplicationHostProperties extends IComponentProperties { }
 
 interface IApplicationHostState {
     settingsVisible: boolean;
@@ -93,7 +94,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
             this.aboutStatusItem.tooltip = "Show About";
             this.aboutStatusItem.command = "application:toggleAbout";
 
-            if (webSession.runMode === RunMode.LocalUser && !appParameters.embedded) {
+            if (webSession.runMode === RunMode.LocalUser) {
                 this.debuggerStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 8);
                 this.debuggerStatusItem.text = "$(debug)";
                 this.debuggerStatusItem.tooltip = "Toggle Communication Debugger";

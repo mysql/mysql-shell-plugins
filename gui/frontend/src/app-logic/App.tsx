@@ -61,7 +61,7 @@ import {
 import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
 import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
 
-void CodeEditorSetup.init();
+CodeEditorSetup.init();
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -122,10 +122,8 @@ export class App extends Component<{}, IAppState> {
                 }
             } else {
                 this.defaultProfile = data.activeProfile;
-                if (this.defaultProfile) {
-                    webSession.loadProfile(this.defaultProfile);
-                    this.setState({ loginInProgress: false });
-                }
+                webSession.loadProfile(this.defaultProfile);
+                this.setState({ loginInProgress: false });
             }
 
             return Promise.resolve(true);
@@ -142,10 +140,8 @@ export class App extends Component<{}, IAppState> {
             }
 
             this.defaultProfile = profile;
-            if (this.defaultProfile) {
-                webSession.loadProfile(this.defaultProfile);
-                this.setState({ loginInProgress: false });
-            }
+            webSession.loadProfile(this.defaultProfile);
+            this.setState({ loginInProgress: false });
 
             return Promise.resolve(true);
         });
@@ -264,7 +260,7 @@ export class App extends Component<{}, IAppState> {
 
     // IUILayer interface implementation
 
-    public showInformationMessage = <T extends string>(message: string, options: MessageOptions,
+    public showInformationMessage = <T extends string>(message: string, options: MessageOptions | undefined,
         ...items: T[]): Thenable<string | undefined> => {
         // Forward info messages to the hosting application.
         if (appParameters.embedded) {
@@ -281,9 +277,9 @@ export class App extends Component<{}, IAppState> {
             const request: IDialogRequest = {
                 id: "uiInformationMessage",
                 type: DialogType.Confirm,
-                description: options?.detail ? [options.detail] : undefined,
+                description: options.detail ? [options.detail] : undefined,
                 parameters: {
-                    title: options?.title ?? "Information",
+                    title: options.title ?? "Information",
                     prompt: message,
                     accept,
                     refuse,
@@ -361,7 +357,6 @@ export class App extends Component<{}, IAppState> {
 
         return StatusBar.createStatusBarItem(options);
     }
-
 
     public setStatusBarMessage = (message: string, timeout?: number): IDisposable => {
         return StatusBar.setStatusBarMessage(message, timeout);

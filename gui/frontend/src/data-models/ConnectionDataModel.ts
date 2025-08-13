@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// eslint-disable-next-line max-classes-per-file
 import { ui } from "../app-logic/UILayer.js";
 import type { DeepMutable, Mutable } from "../app-logic/general-types.js";
 import type {
@@ -546,7 +545,7 @@ export interface ICdmRestRootEntry extends ICdmBaseEntry {
 
     readonly type: CdmEntityType.MrsRoot;
 
-    readonly requiredRouterVersion: string;
+    readonly requiredRouterVersion?: string;
     serviceEnabled: boolean;
     showUpdateAvailable: boolean;
 
@@ -662,7 +661,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     private routerRefreshTime: number;
 
-    #initialized: boolean = false;
+    #initialized = false;
 
     /**
      * Creates a new instance of the connection data model.
@@ -696,11 +695,14 @@ export class ConnectionDataModel implements ICdmAccessManager {
             const connection = new ConnectionEntryImpl(details.caption, details, this, false);
             this.rootGroup.entries.push(connection);
         } else {
-            this.rootGroup.refresh = () => { return this.updateConnectionGroup(this.rootGroup); };
+            this.rootGroup.refresh = () => {
+                return this.updateConnectionGroup(this.rootGroup);
+            };
         }
 
         this.routerRefreshTime = refreshTime;
     }
+
     /**
      * @returns the list of connections a user has stored in the backend.
      */
@@ -826,10 +828,6 @@ export class ConnectionDataModel implements ICdmAccessManager {
         }
 
         const connection = entry.connection;
-        if (!connection) {
-            throw new Error(`Cannot drop the item ${entry.caption} as it is not a database object.`);
-        }
-
         const qualifiedName = this.getQualifiedName(entry);
         const typeName = cdbDbEntityTypeName.get(entry.type);
         if (typeName) {
@@ -1143,7 +1141,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @returns The connection entry with the given id, or `undefined` if no such entry exists.
      */
     public async findConnectionEntryById(id: number, folderPath?: string): Promise<ICdmConnectionEntry | undefined> {
-        return (await this.connectionList(folderPath)).find((entry) => { return entry.details.id === id; });
+        return (await this.connectionList(folderPath)).find((entry) => {
+            return entry.details.id === id;
+        });
     }
 
     /**
@@ -1152,9 +1152,11 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @param id The id of the connection group to find.
      * @param folderPath A path under which the group is organized.
      */
-    public async findConnectionGroupEntryById(id: number, folderPath = "/")
-        : Promise<ICdmConnectionGroupEntry | undefined> {
-        return (await this.groupList(folderPath)).find((entry) => { return entry.folderPath.id === id; });
+    public async findConnectionGroupEntryById(id: number,
+        folderPath = "/"): Promise<ICdmConnectionGroupEntry | undefined> {
+        return (await this.groupList(folderPath)).find((entry) => {
+            return entry.folderPath.id === id;
+        });
     }
 
     /**
@@ -1163,11 +1165,13 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @param caption The caption of the connection to find.
      */
     public async findConnectionEntryByCaption(caption: string): Promise<ICdmConnectionEntry | undefined> {
-        return (await this.connectionList()).find((entry) => { return entry.details.caption === caption; });
+        return (await this.connectionList()).find((entry) => {
+            return entry.details.caption === caption;
+        });
     }
 
-    public async updateConnectionDetails(data: IConnectionDetails | ICdmConnectionEntry)
-        : Promise<ICdmConnectionEntry | undefined> {
+    public async updateConnectionDetails(
+        data: IConnectionDetails | ICdmConnectionEntry): Promise<ICdmConnectionEntry | undefined> {
         let details: IConnectionDetails;
 
         let id;
@@ -1180,7 +1184,8 @@ export class ConnectionDataModel implements ICdmAccessManager {
             id = details.id;
         }
 
-        const entry = await this.findConnectionEntryById(id, details.folderPath) as Mutable<ICdmConnectionEntry>;
+        const entry =
+            await this.findConnectionEntryById(id, details.folderPath) as Mutable<ICdmConnectionEntry> | undefined;
         if (entry) {
             entry.details = details;
             entry.caption = details.caption;
@@ -1286,7 +1291,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
             if (group === undefined) {
                 const folderPath = await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, part,
-                    currentGroup?.folderPath.id);
+                    currentGroup.folderPath.id);
 
                 group = {
                     type: CdmEntityType.ConnectionGroup,
@@ -1296,8 +1301,12 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     entries: [],
                     state: createDataModelEntryState(false, false),
                     folderPath,
-                    getChildren: () => { return group!.entries; },
-                    refresh: () => { return this.updateConnectionGroup(group!); },
+                    getChildren: () => {
+                        return group!.entries;
+                    },
+                    refresh: () => {
+                        return this.updateConnectionGroup(group!);
+                    },
                 };
 
                 actions?.push({ action: "add", entry: group });
@@ -1456,7 +1465,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // schema entries.
             const newSchemaEntries: ICdmSchemaEntry[] = [];
             for (const schema of connection.schemaNames) {
-                const existing = connection.schemaEntries.find((e) => { return e.caption === schema; });
+                const existing = connection.schemaEntries.find((e) => {
+                    return e.caption === schema;
+                });
                 if (existing) {
                     newSchemaEntries.push(existing);
 
@@ -1470,7 +1481,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     state: createDataModelEntryState(false, true),
                     caption: schema,
                     connection,
-                    getChildren: () => { return []; }, // Updated below.
+                    getChildren: () => {
+                        return [];
+                    }, // Updated below.
                 };
 
                 const tablesSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.Table>> = {
@@ -1482,13 +1495,17 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     subType: CdmEntityType.Table,
                     members: [],
                     connection: schemaEntry.connection!,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 tablesSchemaGroup.refresh = () => {
                     return this.updateTablesSchemaGroup(tablesSchemaGroup);
                 };
-                tablesSchemaGroup.getChildren = () => { return tablesSchemaGroup.members; };
+                tablesSchemaGroup.getChildren = () => {
+                    return tablesSchemaGroup.members;
+                };
 
                 schemaEntry.tables = tablesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>;
 
@@ -1501,11 +1518,17 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     subType: CdmEntityType.View,
                     members: [],
                     connection: schemaEntry.connection!,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
-                viewsSchemaGroup.refresh = () => { return this.updateViewsSchemaGroup(viewsSchemaGroup); };
-                viewsSchemaGroup.getChildren = () => { return viewsSchemaGroup.members; };
+                viewsSchemaGroup.refresh = () => {
+                    return this.updateViewsSchemaGroup(viewsSchemaGroup);
+                };
+                viewsSchemaGroup.getChildren = () => {
+                    return viewsSchemaGroup.members;
+                };
 
                 schemaEntry.views = viewsSchemaGroup;
 
@@ -1518,14 +1541,18 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     subType: CdmEntityType.Event,
                     members: [],
                     connection: schemaEntry.connection!,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 eventsSchemaGroup.refresh = () => {
                     return this.updateEventsSchemaGroup(
                         eventsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>);
                 };
-                eventsSchemaGroup.getChildren = () => { return eventsSchemaGroup.members; };
+                eventsSchemaGroup.getChildren = () => {
+                    return eventsSchemaGroup.members;
+                };
 
                 schemaEntry.events = eventsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>;
 
@@ -1538,14 +1565,18 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     subType: CdmEntityType.StoredProcedure,
                     members: [],
                     connection: schemaEntry.connection!,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 proceduresSchemaGroup.refresh = () => {
                     return this.updateProceduresSchemaGroup(
                         proceduresSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>);
                 };
-                proceduresSchemaGroup.getChildren = () => { return proceduresSchemaGroup.members; };
+                proceduresSchemaGroup.getChildren = () => {
+                    return proceduresSchemaGroup.members;
+                };
 
                 schemaEntry.procedures = proceduresSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>;
 
@@ -1558,7 +1589,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     subType: CdmEntityType.StoredFunction,
                     members: [],
                     connection: schemaEntry.connection!,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 functionsSchemaGroup.refresh = () => {
@@ -1566,7 +1599,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                         functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>,
                     );
                 };
-                functionsSchemaGroup.getChildren = () => { return functionsSchemaGroup.members; };
+                functionsSchemaGroup.getChildren = () => {
+                    return functionsSchemaGroup.members;
+                };
 
                 schemaEntry.functions = functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>;
 
@@ -1579,7 +1614,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     subType: CdmEntityType.Library,
                     members: [],
                     connection: schemaEntry.connection!,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 librariesSchemaGroup.refresh = () => {
@@ -1587,7 +1624,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                         librariesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Library>,
                     );
                 };
-                librariesSchemaGroup.getChildren = () => { return librariesSchemaGroup.members; };
+                librariesSchemaGroup.getChildren = () => {
+                    return librariesSchemaGroup.members;
+                };
 
                 schemaEntry.libraries = librariesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Library>;
 
@@ -1641,7 +1680,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // table entries.
             const newTableEntries: ICdmTableEntry[] = [];
             for (const table of tableNames) {
-                const existing = tableGroup.members.find((e) => { return e.caption === table; });
+                const existing = tableGroup.members.find((e) => {
+                    return e.caption === table;
+                });
                 if (existing) {
                     newTableEntries.push(existing as ICdmTableEntry);
 
@@ -1666,7 +1707,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     id: uuid(),
                     subType: CdmEntityType.Column,
                     members: [],
-                    connection: tableEntry.connection as ICdmConnectionEntry,
+                    connection: tableEntry.connection!,
                 };
 
                 columnsTableGroup.refresh = () => {
@@ -1686,7 +1727,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     id: uuid(),
                     subType: CdmEntityType.Index,
                     members: [],
-                    connection: tableEntry.connection as ICdmConnectionEntry,
+                    connection: tableEntry.connection!,
                 };
 
                 indexesTableGroup.refresh = () => {
@@ -1707,8 +1748,10 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     id: uuid(),
                     subType: CdmEntityType.ForeignKey,
                     members: [],
-                    connection: tableEntry.connection as ICdmConnectionEntry,
-                    getChildren: () => { return []; },
+                    connection: tableEntry.connection!,
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 foreignKeysTableGroup.refresh = () => {
@@ -1729,7 +1772,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     state: createDataModelEntryState(false, true),
                     subType: CdmEntityType.Trigger,
                     members: [],
-                    connection: tableEntry.connection as ICdmConnectionEntry,
+                    connection: tableEntry.connection!,
                 };
 
                 triggersTableGroup.refresh = () => {
@@ -1791,7 +1834,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // view entries.
             const newViewEntries: ICdmViewEntry[] = [];
             for (const view of viewNames) {
-                const existing = viewGroup.members.find((e) => { return e.caption === view; });
+                const existing = viewGroup.members.find((e) => {
+                    return e.caption === view;
+                });
                 if (existing) {
                     newViewEntries.push(existing as ICdmViewEntry);
 
@@ -1851,7 +1896,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // event entries.
             const newEventEntries: ICdmEventEntry[] = [];
             for (const event of eventNames) {
-                const existing = eventGroup.members.find((e) => { return e.caption === event; });
+                const existing = eventGroup.members.find((e) => {
+                    return e.caption === event;
+                });
                 if (existing) {
                     newEventEntries.push(existing as ICdmEventEntry);
 
@@ -1895,7 +1942,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 .getRoutinesMetadata(schema);
 
             // Remove entries no longer in the procedure list.
-            const procedureNames = procedures.map((e) => { return e.name; });
+            const procedureNames = procedures.map((e) => {
+                return e.name;
+            });
             const removedProcedures = group.members.filter((e) => {
                 return !procedureNames.includes(e.caption);
             });
@@ -1909,7 +1958,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             const newProcedureEntries: ICdmRoutineEntry[] = [];
             for (const procedure of procedures) {
                 if (procedure.type === "PROCEDURE") {
-                    const existing = group.members.find((e) => { return e.caption === procedure.name; });
+                    const existing = group.members.find((e) => {
+                        return e.caption === procedure.name;
+                    });
                     if (existing) {
                         newProcedureEntries.push(existing as ICdmRoutineEntry);
 
@@ -1955,7 +2006,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 .getRoutinesMetadata(schema);
 
             // Remove entries no longer in the function list.
-            const functionNames = functions.map((e) => { return e.name; });
+            const functionNames = functions.map((e) => {
+                return e.name;
+            });
             const removedFunctions = group.members.filter((e) => {
                 return !functionNames.includes(e.caption);
             });
@@ -1969,7 +2022,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             const newFunctionEntries: ICdmRoutineEntry[] = [];
             for (const func of functions) {
                 if (func.type === "FUNCTION") {
-                    const existing = group.members.find((e) => { return e.caption === func.name; });
+                    const existing = group.members.find((e) => {
+                        return e.caption === func.name;
+                    });
                     if (existing) {
                         newFunctionEntries.push(existing as ICdmRoutineEntry);
 
@@ -2015,7 +2070,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 .getLibrariesMetadata(schema);
 
             // Remove entries no longer in the function list.
-            const libraryNames = libraries.map((e) => { return e.name; });
+            const libraryNames = libraries.map((e) => {
+                return e.name;
+            });
             const removedLibraries = group.members.filter((e) => {
                 return !libraryNames.includes(e.caption);
             });
@@ -2028,7 +2085,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // function entries.
             const newLibraryEntries: ICdmLibraryEntry[] = [];
             for (const lib of libraries) {
-                const existing = group.members.find((e) => { return e.caption === lib.name; });
+                const existing = group.members.find((e) => {
+                    return e.caption === lib.name;
+                });
                 if (existing) {
                     newLibraryEntries.push(existing as ICdmLibraryEntry);
 
@@ -2084,7 +2143,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // column entries.
             const newColumnEntries: ICdmColumnEntry[] = [];
             for (const column of columnNames) {
-                const existing = viewEntry.columns.find((e) => { return e.caption === column; });
+                const existing = viewEntry.columns.find((e) => {
+                    return e.caption === column;
+                });
                 if (existing) {
                     newColumnEntries.push(existing as ICdmColumnEntry);
 
@@ -2146,7 +2207,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             const newColumnEntries: ICdmColumnEntry[] = [];
             for (const column of columnNames) {
                 const info = await columnGroup.connection.backend.getTableObject(schema, table, "Column", column);
-                const existing = columnGroup.members.find((e) => { return e.caption === column; });
+                const existing = columnGroup.members.find((e) => {
+                    return e.caption === column;
+                });
                 if (existing) {
                     existing.inPK = info.isPk === 1;
                     existing.default = info.default;
@@ -2212,7 +2275,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // index entries.
             const newIndexEntries: ICdmIndexEntry[] = [];
             for (const index of indexNames) {
-                const existing = indexGroup.members.find((e) => { return e.caption === index; });
+                const existing = indexGroup.members.find((e) => {
+                    return e.caption === index;
+                });
                 if (existing) {
                     newIndexEntries.push(existing as ICdmIndexEntry);
 
@@ -2270,7 +2335,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // foreign key entries.
             const newForeignKeyEntries: ICdmForeignKeyEntry[] = [];
             for (const foreignKey of foreignKeyNames) {
-                const existing = foreignKeyGroup.members.find((e) => { return e.caption === foreignKey; });
+                const existing = foreignKeyGroup.members.find((e) => {
+                    return e.caption === foreignKey;
+                });
                 if (existing) {
                     newForeignKeyEntries.push(existing as ICdmForeignKeyEntry);
 
@@ -2297,7 +2364,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Cannot load foreign keys for table ${foreignKeyGroup.parent.caption}: ` +
-                `${message}`, {});
+                message, {});
 
             return false;
         }
@@ -2329,7 +2396,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // trigger entries.
             const newTriggerEntries: ICdmTriggerEntry[] = [];
             for (const foreignKey of triggerNames) {
-                const existing = triggerGroup.members.find((e) => { return e.caption === foreignKey; });
+                const existing = triggerGroup.members.find((e) => {
+                    return e.caption === foreignKey;
+                });
                 if (existing) {
                     newTriggerEntries.push(existing as ICdmTriggerEntry);
 
@@ -2455,7 +2524,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 });
 
                 let description: string;
-                if (router.options && router.options.developer) {
+                if (router.options.developer) {
                     description = `[${String(router.options.developer)}] ${router.version}`;
                 } else {
                     description = router.version;
@@ -2572,7 +2641,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     caption: `${schema.requestPath} (${schema.name})`,
                     dbObjects: [],
                     connection: serviceEntry.parent.parent as ICdmConnectionEntry,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 schemaEntry.refresh = () => {
@@ -2581,7 +2652,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
                 schemaEntry.getChildren = () => {
                     return schemaEntry.dbObjects.filter((s) => {
-                        return showPrivateItems || (s.details.enabled !== EnabledState.PrivateOnly);
+                        return showPrivateItems || ((s.details.enabled as EnabledState) !== EnabledState.PrivateOnly);
                     });
                 };
 
@@ -2601,7 +2672,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     caption: contentSet.requestPath,
                     files: [],
                     connection: serviceEntry.parent.parent as ICdmConnectionEntry,
-                    getChildren: () => { return []; },
+                    getChildren: () => {
+                        return [];
+                    },
                 };
 
                 contentSetEntry.refresh = () => {
@@ -2610,7 +2683,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
                 contentSetEntry.getChildren = () => {
                     return contentSetEntry.files.filter((s) => {
-                        return showPrivateItems || s.details.enabled !== EnabledState.PrivateOnly;
+                        return showPrivateItems || (s.details.enabled as EnabledState) !== EnabledState.PrivateOnly;
                     });
                 };
 
@@ -2651,7 +2724,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
     }
 
     private updateServiceFields(serviceEntry: ICdmRestServiceEntry) {
-        const developers = serviceEntry.details.inDevelopment?.developers?.join(",");
+        const developers = serviceEntry.details.inDevelopment?.developers.join(",");
         let description: string;
         if (serviceEntry.details.enabled && serviceEntry.details.inDevelopment?.developers) {
             description = `In Development [${developers}]`;
@@ -2739,7 +2812,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     id: uuid(),
                     state: createDataModelEntryState(true, true),
                     details: file,
-                    caption: `${file.requestPath}`,
+                    caption: file.requestPath,
                     description: formatBytes(file.size),
                     connection: contentSetEntry.connection,
                 };
@@ -2766,9 +2839,8 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // Check the host context without the host name filter applied to it.
             const hostCtx = schema.hostCtx.substring(schema.hostCtx.indexOf("/"));
             if (hostCtx !== mrsSchemaEntry.parent.caption) {
-                return this.updateMrsRoot(mrsSchemaEntry.parent.parent as Mutable<ICdmRestRootEntry>);
+                return await this.updateMrsRoot(mrsSchemaEntry.parent.parent as Mutable<ICdmRestRootEntry>);
             }
-
 
             mrsSchemaEntry.dbObjects.length = 0;
 
@@ -2847,7 +2919,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
     private createMrsServiceEntry(mrsRoot: ICdmRestRootEntry, service: IMrsServiceData,
         label: string): Mutable<ICdmRestServiceEntry> {
 
-        const developers = service.inDevelopment?.developers?.join(",");
+        const developers = service.inDevelopment?.developers.join(",");
         let description: string;
         if (service.enabled && service.inDevelopment?.developers) {
             description = `In Development [${developers}]`;
@@ -2867,7 +2939,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             contentSets: [],
             authApps: [],
             connection: mrsRoot.parent,
-            getChildren: () => { return []; },
+            getChildren: () => {
+                return [];
+            },
         };
 
         serviceEntry.refresh = () => {
@@ -2879,10 +2953,10 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
             return [
                 ...serviceEntry.schemas.filter((s) => {
-                    return showPrivateItems || s.details.enabled !== EnabledState.PrivateOnly;
+                    return showPrivateItems || (s.details.enabled as EnabledState) !== EnabledState.PrivateOnly;
                 }),
                 ...serviceEntry.contentSets.filter((s) => {
-                    return showPrivateItems || s.details.enabled !== EnabledState.PrivateOnly;
+                    return showPrivateItems || (s.details.enabled as EnabledState) !== EnabledState.PrivateOnly;
                 }),
                 ...serviceEntry.authApps,
             ];
@@ -2893,7 +2967,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     private createMrsRouterEntry(routerRoot: ICdmRestRouterGroupEntry, router: IMrsRouterData,
         description: string): Mutable<ICdmRestRouterEntry> {
-        const requiresUpgrade = routerRoot.parent.requiredRouterVersion !== undefined
+        const requiresUpgrade = routerRoot.parent.requiredRouterVersion
             ? compareVersionStrings(routerRoot.parent.requiredRouterVersion, router.version) > 0
             : false;
 
@@ -2908,13 +2982,17 @@ export class ConnectionDataModel implements ICdmAccessManager {
             requiresUpgrade,
             connection: routerRoot.parent.parent,
             services: [],
-            getChildren: () => { return []; },
+            getChildren: () => {
+                return [];
+            },
         };
 
         routerEntry.refresh = () => {
             return this.updateMrsRouter(routerEntry as ICdmRestRouterEntry);
         };
-        routerEntry.getChildren = () => { return routerEntry.services; };
+        routerEntry.getChildren = () => {
+            return routerEntry.services;
+        };
 
         return routerEntry;
     }
@@ -2993,8 +3071,12 @@ export class ConnectionDataModel implements ICdmAccessManager {
                         entries: [],
                         state: createDataModelEntryState(false, false),
                         folderPath: newEntry,
-                        getChildren: () => { return newGroup.entries; },
-                        refresh: () => { return this.updateConnectionGroup(newGroup); },
+                        getChildren: () => {
+                            return newGroup.entries;
+                        },
+                        refresh: () => {
+                            return this.updateConnectionGroup(newGroup);
+                        },
                         flattenedEntries: async (): Promise<IFlatGroupList> => {
                             return this.flattenGroupList(newGroup);
                         },

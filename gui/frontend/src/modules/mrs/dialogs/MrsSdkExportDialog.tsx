@@ -56,8 +56,9 @@ export class MrsSdkExportDialog extends AwaitableValueEditDialog {
         const appBaseClasses = request.parameters?.appBaseClasses as IMrsSdkAppClass[];
 
         const dialogValues = this.dialogValues(request, languages, serviceName, appBaseClasses);
-        const result = await this.doShow(() => { return dialogValues; },
-            { title: `Export MRS SDK for ${serviceName}` });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, { title: `Export MRS SDK for ${serviceName}` });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);
@@ -91,7 +92,7 @@ export class MrsSdkExportDialog extends AwaitableValueEditDialog {
         this.#serviceId = data.serviceId;
 
         const langAppBaseClasses = (appBaseClasses.find((appBaseClass) => {
-            return appBaseClass.language === (data.sdkLanguage ?? languages[0]);
+            return appBaseClass.language === data.sdkLanguage;
         })?.appBaseClasses ?? []);
 
         const mainSection: IDialogSection = {
@@ -120,7 +121,7 @@ export class MrsSdkExportDialog extends AwaitableValueEditDialog {
                     type: "choice",
                     caption: "SDK Client API Language",
                     choices: languages,
-                    value: data.sdkLanguage ?? languages[0],
+                    value: data.sdkLanguage,
                     horizontalSpan: 4,
                     description: "The development language that should be used for generation",
                 },
@@ -136,7 +137,7 @@ export class MrsSdkExportDialog extends AwaitableValueEditDialog {
                 header: {
                     type: "text",
                     caption: "SDK File Header",
-                    value: data.header as string ??
+                    value: data.header as string | undefined ??
                         `/* Copyright (c) ${new Date().getFullYear()}, Oracle and/or its affiliates. */`,
                     horizontalSpan: 8,
                     description: "The header that should be applied to the generated SDK files.",

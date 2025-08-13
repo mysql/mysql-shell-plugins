@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,7 +31,6 @@ import {
 } from "vscode";
 import { ShellInterfaceMrs } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceMrs.js";
 import { IMrsScriptModuleDefinition, IMrsScriptDefinition } from "../../frontend/src/communication/ProtocolMrs.js";
-
 
 /** Describes a block of code that was sent to the application. */
 export interface IMrsScriptCodeBlock {
@@ -159,7 +158,7 @@ export class MrsScriptBlocks {
         const scriptDefs = await mrs.getFileMrsScriptDefinitions(
             document.uri.path, "TypeScript");
 
-        if (scriptDefs !== undefined && scriptDefs.length > 0) {
+        if (scriptDefs.length > 0) {
             scriptDefs.forEach((schema) => {
                 // Mark the code block in the editor.
                 const span: IMrsScriptCodeBlock = {
@@ -280,9 +279,9 @@ export class MrsScriptBlocks {
                     return new Range(startPosition, endPosition);
                 });
 
-                window.activeTextEditor?.setDecorations(this.#blockDecorationType, ranges);
+                window.activeTextEditor.setDecorations(this.#blockDecorationType, ranges);
             } else {
-                window.activeTextEditor?.setDecorations(this.#blockDecorationType, []);
+                window.activeTextEditor.setDecorations(this.#blockDecorationType, []);
             }
         }
     }

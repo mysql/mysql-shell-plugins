@@ -47,10 +47,10 @@ describe("OPEN EDITORS", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME1),
+            port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME1PWD),
         },
     };
 
@@ -134,6 +134,7 @@ describe("OPEN EDITORS", () => {
             const loadScriptFromDisk = await treeOpenEditorsGlobalConn.getActionButton(
                 constants.loadSQLScriptFromDisk);
             await driver.executeScript("arguments[0].click()", loadScriptFromDisk);
+            // eslint-disable-next-line no-restricted-syntax
             await Misc.uploadFile(join(process.cwd(), "src", "tests", "e2e", "sql", sqlScript));
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             expect(currentEditor.label).toBe(sqlScript);

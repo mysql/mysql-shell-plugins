@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ export class E2ELoadIntoLakehouse {
 
     /**
      * Verifies if the Overview tab is selected
+     * 
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -46,6 +47,7 @@ export class E2ELoadIntoLakehouse {
 
     /**
      * Waits until a loading task exists
+     * 
      * @param caption The task caption
      * @returns A promise resolving when the task exists
      */
@@ -65,6 +67,7 @@ export class E2ELoadIntoLakehouse {
 
     /**
      * Sets the values for a new loading task
+     * 
      * @param task The task
      * @returns A promise resolving when the task is submitted to be loaded
      */
@@ -115,6 +118,7 @@ export class E2ELoadIntoLakehouse {
 
     /**
      * Clicks on the Start Loading Task button
+     * 
      * @returns A promise resolving when the button is clicked
      */
     public startLoadingTask = async (): Promise<void> => {

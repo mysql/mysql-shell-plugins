@@ -43,6 +43,7 @@ import type { IMrsDbObjectEditRequest } from "../../supplement/RequisitionTypes.
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { getMySQLDbConnectionUri } from "../../communication/MySQL.js";
+import { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 import { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
@@ -50,6 +51,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase } from "../../utilities/string-helpers.js";
 import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog.js";
+import { IMrsConfigurationDialogData, MrsConfigurationDialog } from "./dialogs/MrsConfigurationDialog.js";
 import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog.js";
 import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog.js";
 import { IMrsSchemaDialogData, MrsSchemaDialog } from "./dialogs/MrsSchemaDialog.js";
@@ -57,8 +59,6 @@ import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExp
 import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog.js";
 import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog.js";
 import { MrsDbObjectType } from "./types.js";
-import { IMrsConfigurationDialogData, MrsConfigurationDialog } from "./dialogs/MrsConfigurationDialog.js";
-import { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -265,11 +265,11 @@ export class MrsHub extends ComponentBase {
 
         const defaultOptions = {
             headers: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 "Access-Control-Allow-Credentials": "true",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             },
             http: {
@@ -362,7 +362,7 @@ export class MrsHub extends ComponentBase {
                 }
 
                 // Add the auth apps the user selected.
-                const linkedAuthAppIds = data.linkedAuthAppIds ?? [];
+                const linkedAuthAppIds = data.linkedAuthAppIds;
                 for (const authAppId of linkedAuthAppIds) {
                     await backend.mrs.linkAuthAppToService(authAppId, service.id);
                 }
@@ -397,7 +397,7 @@ export class MrsHub extends ComponentBase {
                 );
 
                 // Add or remove the auth apps as the user selected them.
-                const linkedAuthAppIds = data.linkedAuthAppIds ?? [];
+                const linkedAuthAppIds = data.linkedAuthAppIds;
 
                 // All apps that were previously linked but are no longer.
                 const appsToRemove = (linkedAuthApps ?? []).filter((app) => {
@@ -466,7 +466,7 @@ export class MrsHub extends ComponentBase {
                     enabled: !schema ? 1 : schema.enabled,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
-                    options: schema?.options ? JSON.stringify(schema?.options, undefined, 4) : "",
+                    options: schema?.options ? JSON.stringify(schema.options, undefined, 4) : "",
                     metadata: schema?.metadata ? JSON.stringify(schema.metadata, undefined, 4) : "",
                 },
             };
@@ -563,7 +563,7 @@ export class MrsHub extends ComponentBase {
                 undefined, undefined, dbObject.schemaName,
                 dbObject.objectType);
             rowOwnershipFields = tableColumnsWithReferences.filter((f) => {
-                return f.referenceMapping === undefined || f.referenceMapping === null;
+                return f.referenceMapping === undefined;
             }).map((f) => {
                 return f.name;
             });
@@ -589,15 +589,15 @@ export class MrsHub extends ComponentBase {
                 requiresAuth: dbObject.requiresAuth === 1,
                 enabled: dbObject.enabled,
                 itemsPerPage: dbObject.itemsPerPage,
-                comments: dbObject.comments ?? "",
+                comments: dbObject.comments,
                 objectType: dbObject.objectType,
                 crudOperations: dbObject.crudOperations,
                 crudOperationFormat: dbObject.crudOperationFormat,
                 autoDetectMediaType: dbObject.autoDetectMediaType === 1,
                 mediaType: dbObject.mediaType,
-                options: dbObject?.options,
+                options: dbObject.options,
                 authStoredProcedure: dbObject.authStoredProcedure,
-                metadata: dbObject?.metadata,
+                metadata: dbObject.metadata,
 
                 payload: {
                     backend,
@@ -623,7 +623,7 @@ export class MrsHub extends ComponentBase {
         const comments = data.comments;
         const enabled = data.enabled;
         const objectType = data.objectType;
-        const crudOperationFormat = data.crudOperationFormat ?? "FEED";
+        const crudOperationFormat = data.crudOperationFormat;
         const mediaType = data.mediaType;
         const autoDetectMediaType = data.autoDetectMediaType;
         const authStoredProcedure = data.authStoredProcedure;
@@ -703,7 +703,6 @@ export class MrsHub extends ComponentBase {
 
         void requisitions.execute("refreshMrsServiceSdk", {});
 
-
         return true;
     }
 
@@ -766,7 +765,7 @@ export class MrsHub extends ComponentBase {
                     requiresAuth: contentSet?.requiresAuth === 1,
                     enabled: !contentSet ? 1 : contentSet.enabled,
                     comments: contentSet?.comments ?? "",
-                    options: contentSet?.options ? JSON.stringify(contentSet?.options) : "",
+                    options: contentSet?.options ? JSON.stringify(contentSet.options) : "",
                     payload: {
                         backend,
                     },
@@ -840,7 +839,7 @@ export class MrsHub extends ComponentBase {
                                     addedContentSet = data.result;
                                 }
 
-                            return Promise.resolve();
+                                return Promise.resolve();
                             },
                         );
 
@@ -925,7 +924,7 @@ export class MrsHub extends ComponentBase {
                 enabled: authApp?.enabled ?? true,
                 limitToRegisteredUsers: authApp?.limitToRegisteredUsers ?? true,
                 defaultRoleId: defaultRole,
-                options: (authApp?.options !== undefined && authApp?.options !== null)
+                options: (authApp?.options !== undefined)
                     ? JSON.stringify(authApp.options, undefined, 4) : undefined,
             },
         };
@@ -944,11 +943,11 @@ export class MrsHub extends ComponentBase {
             return data.defaultRoleName === role.caption;
         })?.id ?? null;
 
-        const options = (data.options !== undefined) ? JSON.parse(data.options) : undefined;
+        const options = JSON.parse(data.options ?? "{}") as IShellDictionary;
 
         if (authApp) {
             try {
-                await backend.mrs.updateAuthApp(authApp.id as string, {
+                await backend.mrs.updateAuthApp(authApp.id!, {
                     authVendorId,
                     name: data.name,
                     description: data.description,
@@ -1027,11 +1026,11 @@ export class MrsHub extends ComponentBase {
 
         const title = user ? `Adjust the REST User` : `Enter new MySQL REST User Values`;
 
-        const availableRoles = await backend.mrs.listRoles(authApp?.serviceId);
+        const availableRoles = await backend.mrs.listRoles(authApp.serviceId);
 
         let userRoles: IMrsUserRoleData[] = [];
 
-        if (user && user.id) {
+        if (user?.id) {
             userRoles = await backend.mrs.listUserRoles(user.id);
         } else if (authApp.defaultRoleId) {
             userRoles = [{
@@ -1104,7 +1103,6 @@ export class MrsHub extends ComponentBase {
                     user.appOptions = data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : undefined;
                     user.authString = data.authString;
 
-
                     void requisitions.executeRemote("refreshConnection", undefined);
                     void ui.showInformationMessage(`The MRS User "${data.name}" has been updated.`, {});
                 } catch (reason) {
@@ -1114,7 +1112,7 @@ export class MrsHub extends ComponentBase {
             }
         } else {
             try {
-                if (authApp && authApp.id) {
+                if (authApp.id) {
                     await backend.mrs.addUser(authApp.id, data.name!, data.email!, data.vendorUserId!,
                         data.loginPermitted, data.mappedUserId!,
                         data.options ? JSON.parse(data.options) as IShellDictionary : null,
@@ -1203,8 +1201,7 @@ export class MrsHub extends ComponentBase {
 
         // Write SDK
         try {
-            await backend.mrs.dumpSdkServiceFiles(
-                data.directory, {
+            await backend.mrs.dumpSdkServiceFiles(data.directory, {
                 serviceId,
                 dbConnectionUri: getMySQLDbConnectionUri(
                     connectionDetails),
@@ -1227,7 +1224,7 @@ export class MrsHub extends ComponentBase {
         const type = request.type as MrsDialogType;
         if (!this.#runningDialogs.has(type)) {
             const ref = this.#dialogRefs.get(type);
-            if (ref && ref.current) {
+            if (ref?.current) {
                 this.#runningDialogs.set(type, document.activeElement);
                 const result = ref.current.show(request);
 

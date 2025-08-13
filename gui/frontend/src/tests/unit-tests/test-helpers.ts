@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable no-restricted-syntax */ // Allow "process".
+
 import { screen, waitFor } from "@testing-library/preact";
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import { ComponentChild } from "preact";
@@ -41,14 +43,14 @@ import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "./__mocks__/UILayerMock.js";
 
+import { IColumnInfo } from "../../app-logic/general-types.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../communication/MySQL.js";
 import { IMrsAuthAppData, IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { MrsDbObjectType, MrsObjectKind } from "../../modules/mrs/types.js";
+import { IResultSet } from "../../script-execution/index.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { uuidBinary16Base64 } from "../../utilities/helpers.js";
-import { IResultSet } from "../../script-execution/index.js";
-import { IColumnInfo } from "../../app-logic/general-types.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -220,6 +222,21 @@ export const checkMinStatementVersion = (statement: string, minimumVersion: numb
  */
 export const fail = (message: string): void => {
     throw new Error(message);
+};
+
+/**
+ * Helper function to be used when a mock implementation is needed. It enforces the correct parameter types and
+ * return type for the mock.
+ *
+ * @param implementation The implementation to use for the mock. It must be a function that takes the correct
+ *                       parameters and returns the correct type.
+ *
+ * @returns A jest mock function with the given implementation.
+ */
+export const createRequiredMock = <T, Args extends unknown[]>(
+    implementation: (...args: Args) => T
+): jest.Mock<T, Args> => {
+    return jest.fn(implementation);
 };
 
 /**
@@ -468,14 +485,14 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
             const symlinkTarget = path.resolve("../../../build");
             try {
                 fs.symlinkSync(symlinkTarget, symlinkDir);
-            } catch (error) {
+            } catch {
                 // Ignore the error if the link already exists.
             }
 
             appParameters.set("shellUserConfigDir", path.resolve(targetDir));
         } catch (error) {
             fs.rmSync(targetDir, { recursive: true });
-            reject(error);
+            reject(error as Error);
 
             return;
         }
@@ -688,6 +705,7 @@ export class DialogHelper {
 
     /**
      * Search for the `ok` button and click it.
+     *
      * @returns A promise to when the click is finished.
      */
     public clickOk(): Promise<void> {
@@ -702,6 +720,7 @@ export class DialogHelper {
 
     /**
      * Search for the `cancel` button and click it.
+     *
      * @returns A promise to when the click is finished.
      */
     public clickCancel(): Promise<void> {
@@ -733,17 +752,12 @@ export class DialogHelper {
      */
     public async setComboBoxItem(id: string, item: number): Promise<void> {
         const outer = this.searchChild<HTMLInputElement>({ id });
-
-        if (outer === null) {
-            return;
-        }
-
         outer.click();
         await nextRunLoop();
 
         const popup = searchElement<HTMLDivElement>({ id: `${id}Popup`, docRoot: this.docRoot });
 
-        if (popup === null || popup.firstChild === null) {
+        if (popup.firstChild === null) {
             return;
         }
 
@@ -754,9 +768,7 @@ export class DialogHelper {
     }
 
     public getTabItems(expectedTitles?: string[], query?: IElementQuery): HTMLDivElement[] {
-        if (query === undefined) {
-            query = { class: "tabItem" };
-        }
+        query ??= { class: "tabItem" };
 
         return this.searchChildren(query).map((value, index) => {
             if (expectedTitles !== undefined) {
@@ -803,25 +815,15 @@ export class DialogHelper {
     }
 
     public searchChildren(query: IElementQuery): Element[] {
-        if (query.parentId === undefined) {
-            query.parentId = this.id;
-        }
-
-        if (query.docRoot === undefined) {
-            query.docRoot = this.docRoot;
-        }
+        query.parentId ??= this.id;
+        query.docRoot ??= this.docRoot;
 
         return searchElements(query);
     }
 
     public searchChild<T = Element>(query: IElementQuery): T {
-        if (query.parentId === undefined) {
-            query.parentId = this.id;
-        }
-
-        if (query.docRoot === undefined) {
-            query.docRoot = this.docRoot;
-        }
+        query.parentId ??= this.id;
+        query.docRoot ??= this.docRoot;
 
         return searchElement(query);
     }
@@ -851,7 +853,7 @@ export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
     expect(folder.id).toBeGreaterThan(-1);
 
     testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-        testConnection, folder.id) ?? [-1, -1, -1])[0];
+        testConnection, folder.id))[0];
     expect(testConnection.id).toBeGreaterThan(-1);
 
     const backend = new ShellInterfaceSqlEditor();
@@ -976,7 +978,6 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
             },
         ]);
 
-
     newDbObjectId = uuidBinary16Base64();
     await backend.mrs.addDbObject("actor_count",
         MrsDbObjectType.Procedure, false, "/actor_count", 1,
@@ -1047,8 +1048,12 @@ export const ignoreSnapshotUuids = (): void => {
     const uuidRegex = /^[a-f0-9-]{36}$/;
 
     expect.addSnapshotSerializer({
-        test: (val: unknown): boolean => { return !!(typeof val === "string" && val.match(uuidRegex)); },
-        print: () => { return `""`; },
+        test: (val: unknown): boolean => {
+            return !!(typeof val === "string" && val.match(uuidRegex));
+        },
+        print: () => {
+            return `""`;
+        },
     });
 };
 

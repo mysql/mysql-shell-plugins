@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Param Dialog Tests Render Test 1`] = `
 <ParamDialog
@@ -22,7 +22,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
       }
     }
     caption={
-      <g>
+      <k>
         <Icon
           disabled={false}
           src={258}
@@ -30,7 +30,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
         <Label>
           Lorem Ipsum
         </Label>
-      </g>
+      </k>
     }
     className="msg paramDialog"
     container={

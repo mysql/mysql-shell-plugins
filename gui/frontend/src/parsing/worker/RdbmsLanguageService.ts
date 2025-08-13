@@ -182,8 +182,8 @@ export class RdbmsLanguageService {
                         if (model.symbols) {
                             this.localSymbols.removeDependency(model.symbols);
                         }
-                    }).catch((reason) => {
-                        reject(reason);
+                    }).catch((reason: unknown) => {
+                        reject(reason as Error);
                     });
                 } else {
                     resolve(undefined);
@@ -246,7 +246,7 @@ export class RdbmsLanguageService {
             return lhs.kind - rhs.kind;
         });
 
-        for await (const entry of data.dbObjects) {
+        for (const entry of data.dbObjects) {
             switch (entry.kind) {
                 case LanguageCompletionKind.Procedure:
                 case LanguageCompletionKind.Function:
@@ -341,10 +341,8 @@ export class RdbmsLanguageService {
 
         const addParens = kind === LanguageCompletionKind.Procedure || kind === LanguageCompletionKind.Function
             || kind === LanguageCompletionKind.Udf;
-        const sortKey = this.sortKeys.get(kind) || "";
-        if (!documentation) {
-            documentation = this.descriptionMap.get(kind) || "<no description available>";
-        }
+        const sortKey = this.sortKeys.get(kind) ?? "";
+        documentation ??= this.descriptionMap.get(kind) ?? "<no description available>";
 
         const symbols = await this.getSymbolsOfKind(parent, kind);
         for (const symbol of symbols) {

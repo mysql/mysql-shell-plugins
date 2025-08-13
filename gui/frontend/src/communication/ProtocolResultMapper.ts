@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
+/// <reference types="../typings/debugger-runtime.d.ts" />
 
 import { Protocol } from "./Protocol.js";
 import { IProtocolGuiResults, IShellProfile } from "./ProtocolGui.js";

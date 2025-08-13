@@ -30,8 +30,8 @@ import { getWideColumns, ResultView, updateWideColumnsCache } from "../../../../
 import { Menu } from "../../../../../components/ui/Menu/Menu.js";
 import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
-import { createResultSet, nextProcessTick } from "../../../test-helpers.js";
 import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
+import { createResultSet, nextProcessTick } from "../../../test-helpers.js";
 
 export const createColumn = (title: string, field: string, inPK = false): IColumnInfo => {
     return {
@@ -636,8 +636,10 @@ describe("Result View Tests", (): void => {
             });
 
         try {
-            // @ts-ignore, finding the menu items via enzyme does not work, so we have to do it manually.
-            const menuItems = menu.instance().itemRefs.map((item) => { return item.current; });
+            // @ts-expect-error, finding the menu items via enzyme does not work, so we have to do it manually.
+            const menuItems = menu.instance().itemRefs.map((item) => {
+                return item.current;
+            });
             expect(menuItems.length).toEqual(13); // There are four separator items without a ref.
 
             for (const item of menuItems) {
@@ -646,7 +648,7 @@ describe("Result View Tests", (): void => {
                 // Set the fake cell again on each round, as it is reset when the action handler is called.
                 wrapper.instance().setFakeCell(cell);
 
-                // @ts-ignore, itemRef is private
+                // @ts-expect-error, itemRef is private
                 const element = item!.itemRef.current!;
 
                 const command = item?.props.command.command;
@@ -958,7 +960,7 @@ describe("Test getWideColumns", (): void => {
             { 0: "42", 1: shortValue },
             { 0: "43", 1: shortValue },
         ];
-        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const columns = [createColumn("id", "0"), createColumn("value", "1")];
         const resultSet = createResultSet("abc", rows, columns);
 
         const wideColumns = getWideColumns(resultSet);
@@ -971,7 +973,7 @@ describe("Test getWideColumns", (): void => {
             { 0: "42", 1: shortValue },
             { 0: "43", 1: longValue },
         ];
-        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const columns = [createColumn("id", "0"), createColumn("value", "1")];
         const resultSet = createResultSet("abc", rows, columns);
 
         const wideColumns = getWideColumns(resultSet);
@@ -985,7 +987,7 @@ describe("Test getWideColumns", (): void => {
             { 0: "43", 1: longValue },
             { 0: "42", 1: shortValue },
         ];
-        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const columns = [createColumn("id", "0"), createColumn("value", "1")];
         const resultSet = createResultSet("abc", rows, columns);
 
         const wideColumns = getWideColumns(resultSet);
@@ -1000,13 +1002,13 @@ describe("Test updateWideColumnsCache", (): void => {
     const longValue = "long".repeat(100);
 
     it("Test short values", () => {
-        const columnsCache: Map<string, number> = new Map();
+        const columnsCache = new Map<string, number>();
 
         const rows = [
             { 0: "42", 1: shortValue },
             { 0: "43", 1: shortValue },
         ];
-        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const columns = [createColumn("id", "0"), createColumn("value", "1")];
         const resultSet = createResultSet("abc", rows, columns);
 
         updateWideColumnsCache(columnsCache, resultSet);
@@ -1015,7 +1017,7 @@ describe("Test updateWideColumnsCache", (): void => {
     });
 
     it("Test previous long values deleted", () => {
-        const columnsCache: Map<string, number> = new Map();
+        const columnsCache = new Map<string, number>();
         columnsCache.set("id", 400);
         columnsCache.set("value", 400);
 
@@ -1023,7 +1025,7 @@ describe("Test updateWideColumnsCache", (): void => {
             { 0: "42", 1: shortValue },
             { 0: "43", 1: shortValue },
         ];
-        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const columns = [createColumn("id", "0"), createColumn("value", "1")];
         const resultSet = createResultSet("abc", rows, columns);
 
         updateWideColumnsCache(columnsCache, resultSet);
@@ -1033,7 +1035,7 @@ describe("Test updateWideColumnsCache", (): void => {
     });
 
     it("Test with long value", () => {
-        const columnsCache: Map<string, number> = new Map();
+        const columnsCache = new Map<string, number>();
 
         const rows = [
             { 0: "42", 1: longValue, 2: shortValue },

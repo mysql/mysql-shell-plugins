@@ -24,9 +24,9 @@
  */
 
 import { IDictionary } from "../../app-logic/general-types.js";
-import { deepEqual, strictEval, uuid } from "../../utilities/helpers.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import { deepEqual, strictEval, uuid } from "../../utilities/helpers.js";
 
 /** The environment injected as global in the debugger scripts. */
 export class CommunicationDebuggerEnvironment {
@@ -182,7 +182,7 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
             try {
                 const response = await MessageScheduler.get.sendRawRequest(data, (data: INativeShellResponse) => {
                     if (currentIndex < expected.length) {
-                        failed = failed || !this.validateResponse(data, expected[currentIndex], currentIndex++);
+                        failed = !this.validateResponse(data, expected[currentIndex], currentIndex++);
                     }
 
                     return Promise.resolve();
@@ -190,9 +190,9 @@ Expected:\n${JSON.stringify(expected, undefined, 4)}\n*/`);
 
                 // The last check for the final response.
                 if (currentIndex < expected.length) {
-                    failed = failed || !this.validateResponse(response, expected[currentIndex], currentIndex++);
+                    failed = !this.validateResponse(response, expected[currentIndex], currentIndex++);
                 }
-            } catch (_) {
+            } catch {
                 failed = true;
             }
 

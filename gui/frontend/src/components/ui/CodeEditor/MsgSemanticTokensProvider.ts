@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { ICodeEditorModel } from "./CodeEditor.js";
 import {
     CancellationToken, DocumentSemanticTokensProvider, IDisposable, SemanticTokens, SemanticTokensLegend,
     tokenModifiers, tokenTypes,
 } from "./index.js";
-import { ICodeEditorModel } from "./CodeEditor.js";
 
 /** A record holding start + end line of changes and other info for a specific model. */
 interface IModelDetails {
@@ -98,7 +98,9 @@ export class MsgSemanticTokensProvider implements DocumentSemanticTokensProvider
             details.disposables.push(model.onWillDispose(() => {
                 const details = this.#changedLines.get(model.id);
                 if (details) {
-                    details.disposables.forEach((d) => { return d.dispose(); });
+                    details.disposables.forEach((d) => {
+                        d.dispose();
+                    });
                 }
                 this.#changedLines.delete(model.id);
             }));
@@ -128,7 +130,8 @@ export class MsgSemanticTokensProvider implements DocumentSemanticTokensProvider
         for (const index of indices) {
             await model.executionContexts.contextAt(index)?.updateTokenList();
 
-            if (cancellationToken.isCancellationRequested) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (cancellationToken.isCancellationRequested) { // eslint is wrong here.
                 return { data: new Uint32Array(0) };
             }
         }
@@ -168,7 +171,9 @@ export class MsgSemanticTokensProvider implements DocumentSemanticTokensProvider
         }
 
         // Allocate an array large enough to hold all sub lists.
-        const data = new Uint32Array(subLists.reduce((acc, val) => { return acc + val.length; }, 0));
+        const data = new Uint32Array(subLists.reduce((acc, val) => {
+            return acc + val.length;
+        }, 0));
         let offset = 0;
         for (const subList of subLists) {
             data.set(subList, offset);

@@ -49,7 +49,7 @@ export class WebviewProvider implements IWebviewProvider {
     protected requisitions?: RequisitionHub;
 
     #notifyOnDispose = true;
-    #caption: string;
+    #caption?: string;
 
     public constructor(
         protected url: URL,
@@ -127,11 +127,11 @@ export class WebviewProvider implements IWebviewProvider {
                     this.createPanel(placement).then(() => {
                         block().then(() => {
                             resolve(true);
-                        }).catch((reason) => {
-                            reject(reason);
+                        }).catch((reason: unknown) => {
+                            reject(reason as Error);
                         });
-                    }).catch((reason) => {
-                        reject(reason);
+                    }).catch((reason: unknown) => {
+                        reject(reason as Error);
                     });
                 } else {
                     resolve(false);
@@ -142,8 +142,8 @@ export class WebviewProvider implements IWebviewProvider {
                 }
                 block().then(() => {
                     resolve(true);
-                }).catch((reason) => {
-                    reject(reason);
+                }).catch((reason: unknown) => {
+                    reject(reason as Error);
                 });
             }
         });
@@ -154,14 +154,16 @@ export class WebviewProvider implements IWebviewProvider {
             void this.prepareEditorGroup(placement).then((viewColumn) => {
                 this.panel = window.createWebviewPanel(
                     "msg-webview",
-                    this.#caption,
+                    this.caption,
                     { viewColumn, preserveFocus: true },
                     {
                         enableScripts: true,
                         retainContextWhenHidden: true,
                     });
 
-                this.panel.onDidDispose(() => { this.handleDispose(); });
+                this.panel.onDidDispose(() => {
+                    this.handleDispose();
+                });
                 this.panel.iconPath = {
                     dark: Uri.file(path.join(__dirname, "..", "images", "dark", "mysql.svg")),
                     light: Uri.file(path.join(__dirname, "..", "images", "light", "mysql.svg")),
@@ -219,8 +221,10 @@ export class WebviewProvider implements IWebviewProvider {
         }
     }
 
-    private selectConnectionTab = (details: { connectionId: number, page: string;
-        pageId?: string }): Promise<boolean> => {
+    private selectConnectionTab = (details: {
+        connectionId: number, page: string;
+        pageId?: string;
+    }): Promise<boolean> => {
         // The app just opened or activated a new tab.
         if (this.panel) {
             return requisitions.execute("proxyRequest", {
@@ -300,8 +304,8 @@ export class WebviewProvider implements IWebviewProvider {
                 const parts = entry.key.split(".");
                 if (parts.length === 3) {
                     const configuration = workspace.getConfiguration(`msg.${parts[0]}`);
-                    void configuration.update(`${parts[1]}.${parts[2]}`, entry.value,
-                        ConfigurationTarget.Global).then(() => {
+                    void configuration.update(`${parts[1]}.${parts[2]}`, entry.value, ConfigurationTarget.Global)
+                        .then(() => {
                             resolve(true);
                         });
                 }

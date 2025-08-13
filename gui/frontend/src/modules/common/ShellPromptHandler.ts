@@ -51,7 +51,7 @@ export class ShellPromptHandler {
      * @returns True, if the result is a prompt request, otherwise false (and the result is not handled).
      */
     public static handleShellPrompt(result: IShellResultType | undefined, requestId: string,
-        backend: IPromptReplyBackend, canSavePassword: boolean = true, payload?: IDictionary): boolean {
+        backend: IPromptReplyBackend, canSavePassword = true, payload?: IDictionary): boolean {
         if (this.isShellPromptResult(result)) {
             switch (result.type) {
                 case "password": {
@@ -71,7 +71,7 @@ export class ShellPromptHandler {
                 }
 
                 case "confirm": {
-                    if (result.prompt?.startsWith("Save password") && !canSavePassword) {
+                    if (result.prompt.startsWith("Save password") && !canSavePassword) {
                         void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "");
                         break;
                     }
@@ -159,20 +159,30 @@ export class ShellPromptHandler {
         }
 
         return new Promise((resolve) => {
-            const backend = response.data?.backend as IPromptReplyBackend;
+            const backend = response.data?.backend as IPromptReplyBackend | undefined;
+            if (!backend) {
+                resolve(false);
+
+                return;
+            }
+
             const requestId = response.data?.requestId as string;
 
             const moduleSessionId = response.data?.moduleSessionId as string;
             const sendReply = (type: ShellPromptResponseType, reply: string) => {
                 backend.sendReply(requestId, type, reply, moduleSessionId)
-                    .then(() => { resolve(true); })
-                    .catch(() => { resolve(false); });
+                    .then(() => {
+                        resolve(true);
+                    })
+                    .catch(() => {
+                        resolve(false);
+                    });
             };
 
-            if (backend && requestId) {
+            if (requestId) {
                 switch (response.type) {
                     case DialogType.Confirm: {
-                        const replies = response.data?.replies as Map<DialogResponseClosure, string>;
+                        const replies = response.data?.replies as Map<DialogResponseClosure, string> | undefined;
                         if (replies) {
                             const reply = replies.get(response.closure);
                             if (!reply) { // Corresponds to DialogResponseClosure.Decline.
@@ -256,11 +266,11 @@ export class ShellPromptHandler {
     };
 
     private static isShellPromptResult(response?: unknown): response is IShellFeedbackRequest {
-        if (!response) {
+        if (!response || typeof response !== "object") {
             return false;
         }
 
-        return (response as IShellFeedbackRequest).prompt !== undefined;
+        return "prompt" in response;
     }
 }
 

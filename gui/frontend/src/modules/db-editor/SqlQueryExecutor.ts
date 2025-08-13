@@ -29,7 +29,7 @@ import { DBDataType, IColumnInfo, ISqlUpdateResult, IStatusInfo, MessageType } f
 import { ResponseError } from "../../communication/ResponseError.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
-import { QueryType } from "../../parsing/parser-common.js";
+import { QueryType, type IStatement } from "../../parsing/parser-common.js";
 import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../script-execution/index.js";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
@@ -77,7 +77,7 @@ export const sendSqlUpdatesFromModel = async (afterCommit: (() => void) | undefi
         }
         await backend.commitTransaction();
 
-        void afterCommit?.();
+        afterCommit?.();
 
         return { affectedRows: rowCount, errors: [] };
     } catch (reason) {
@@ -127,8 +127,8 @@ export class SqlQueryExecutor {
      * @returns IRunSqlCodeResult promise (or undefined).
      */
     public runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions,
-        pageSize: number, stopOnErrors: boolean, mleEnabled: boolean, tabId?: string)
-        : Promise<IRunSqlCodeResult | undefined> => {
+        pageSize: number, stopOnErrors: boolean, mleEnabled: boolean,
+        tabId?: string): Promise<IRunSqlCodeResult | undefined> => {
         const connection = this.#connection;
 
         if (!connection?.backend) {
@@ -432,7 +432,7 @@ export class SqlQueryExecutor {
                 "@@optimizer_trace_offset = @old_optimizer_trace_offset;", [], resultId);
 
             if (result) {
-                const rows = result.rows as string[][];
+                const rows = result.rows as string[][] | undefined;
                 if (rows && rows.length > 0 && rows[0].length > 1) {
                     const info = (rows[0][1] ?? rows[0][2]);
 
@@ -700,12 +700,12 @@ export class SqlQueryExecutor {
                     if (data.result.rowsAffected) {
                         status = {
                             text: `OK, ${formatWithNumber("row", data.result.rowsAffected)} affected in ` +
-                                `${formatTime(data.result.executionTime)}`,
+                                formatTime(data.result.executionTime),
                         };
                     } else {
                         status = {
                             text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
-                                `${formatTime(data.result.executionTime)}`,
+                                formatTime(data.result.executionTime),
                         };
                     }
                 }
@@ -731,7 +731,9 @@ export class SqlQueryExecutor {
                     if (options.updatable && options.fullTableName) {
                         if (options.pkColumns && options.pkColumns.length > 0) {
                             for (const pkColumn of options.pkColumns) {
-                                const column = columns.find((c) => { return c.title === pkColumn; });
+                                const column = columns.find((c) => {
+                                    return c.title === pkColumn;
+                                });
                                 if (!column) {
                                     options.updatable = false;
                                     break;
@@ -811,7 +813,9 @@ export class SqlQueryExecutor {
                     // Trigger column details update for this result set.
                     if (options.queryType === QueryType.Select) {
                         if (options.updatable && !options.showAsText && options.fullTableName) {
-                            const columnNames = columns.map((c) => { return c.title; });
+                            const columnNames = columns.map((c) => {
+                                return c.title;
+                            });
 
                             // Don't wait for the update.
                             void this.updateColumnDetails(resultId, options.fullTableName, columnNames);
@@ -889,7 +893,7 @@ export class SqlQueryExecutor {
 
                         // Then add the offset of the query within the block. The query index is one-based too.
                         const statements = await options.context.getExecutableStatements();
-                        const statement = statements[options.index - 1];
+                        const statement = statements[options.index - 1] as IStatement | undefined;
                         if (statement) {
                             line += statement.line;
 

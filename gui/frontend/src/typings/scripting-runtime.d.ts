@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
-
 declare interface IRequestState {
     type: string;
     msg: string;
@@ -40,12 +38,9 @@ declare interface IResultSetData {
     totalRowCount?: number;
 }
 
-declare interface IDataRecord {
-    [key: string]: unknown;
-}
+type IDataRecord = Record<string, unknown>;
 
 declare type DataRecords = IDataRecord[];
-
 
 /**
  * Adds the value (converted to a string) to the current block output or creates new output if nothing was shown so far.
@@ -79,8 +74,7 @@ declare function runSqlWithCallback(code: string, callback?: (res: IDataRecord[]
  * @param params Optional parameters for the query.
  * @returns A promise
  */
-declare async function runSql(code: string, params?: unknown): Promise<IDataRecord[]>;
-
+declare function runSql(code: string, params?: unknown): Promise<IDataRecord[]>;
 
 // ---------- Graph Structures ----------
 
@@ -197,9 +191,7 @@ declare type DatumDataType = string | number | Date;
 declare type ITabularGraphRow = DatumDataType[];
 declare type ITabularGraphData = ITabularGraphRow[];
 
-declare interface IJsonGraphEntry {
-    [key: string]: DatumDataType;
-}
+type IJsonGraphEntry = Record<string, DatumDataType>;
 
 declare type IJsonGraphData = IJsonGraphEntry[];
 
@@ -238,7 +230,6 @@ declare type LineGraphCurve =
     /** Stepwise curve (end x). */
     | "StepAfter"
     ;
-
 
 declare interface ILineGraphConfiguration extends IBaseGraphEntry {
     type: "line";
@@ -372,6 +363,6 @@ declare class PieGraph {
 }
 
 /** Define the global object that is persisted between code blocks. */
-declare interface IDictionary { [key: string]: unknown; }
+type IDictionary = Record<string, unknown>;
 
 declare let $: IDictionary;

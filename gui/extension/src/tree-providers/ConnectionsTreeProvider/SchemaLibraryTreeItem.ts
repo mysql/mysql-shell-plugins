@@ -25,9 +25,9 @@
 
 import { Command } from "vscode";
 
-import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
+import { type ICdmLibraryEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
-import { CdmEntityType, type ICdmLibraryEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
 export class SchemaLibraryTreeItem extends ConnectionBaseTreeItem<ICdmLibraryEntry> {
     public override contextValue = "schemaLibraryItem";

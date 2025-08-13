@@ -25,10 +25,10 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { CodeEditorMode, Monaco, Range } from "../../../components/ui/CodeEditor/index.js";
-import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { CodeEditorMode, Monaco, Range } from "../../../components/ui/CodeEditor/index.js";
 import { Divider } from "../../../components/ui/Divider/Divider.js";
+import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
 
@@ -178,8 +178,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         // If we have a result assigned, update that as well.
         if (this.zoneInfo) {
             this.zoneInfo.zone.afterLineNumber = this.endLineNumber;
-            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-                this.zoneInfo && changeAccessor.layoutZone(this.zoneInfo.zoneId);
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                if (this.zoneInfo) {
+                    changeAccessor.layoutZone(this.zoneInfo.zoneId);
+                }
             });
         }
     }
@@ -189,22 +191,22 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         const lineCount = this.endLine - this.startLine + 1;
 
-        const editorModel = this.backend?.getModel?.();
+        const editorModel = this.backend?.getModel();
         if (this.backend && editorModel && editorModel.getLineCount() >= this.endLine) {
             let sourceIDs = this.promptFirstDecorationID === "" ? [] : [this.promptFirstDecorationID];
-            let ids = editorModel.deltaDecorations?.(sourceIDs, [{
+            let ids = editorModel.deltaDecorations(sourceIDs, [{
                 range: new Range(this.startLine, 1, this.startLine, 2),
                 options: {
                     stickiness: Monaco.TrackedRangeStickiness.GrowsOnlyWhenTypingBefore,
                     isWholeLine: false,
                     linesDecorationsClassName: `editorPromptFirst.${this.language}.${this.loadingState}`,
                 },
-            }]) ?? [];
+            }]);
             this.promptFirstDecorationID = ids[0];
 
             if (lineCount >= 2) {
                 sourceIDs = this.promptOtherDecorationID === "" ? [] : [this.promptOtherDecorationID];
-                ids = editorModel.deltaDecorations?.(sourceIDs, [{
+                ids = editorModel.deltaDecorations(sourceIDs, [{
                     range: new Range(
                         this.startLine + 1, 1, this.endLine, editorModel.getLineLength(this.endLine)),
                     options: {
@@ -212,12 +214,12 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                         isWholeLine: false,
                         linesDecorationsClassName: "editorPrompt ." + this.language,
                     },
-                }]) ?? [];
+                }]);
 
                 this.promptOtherDecorationID = ids[0];
             } else if (lineCount === 1) {
                 // No other lines in the range, so remove the other-lines decoration.
-                editorModel.deltaDecorations?.([this.promptOtherDecorationID], []);
+                editorModel.deltaDecorations([this.promptOtherDecorationID], []);
                 this.promptOtherDecorationID = "";
             }
         }
@@ -225,8 +227,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         // If we have a result assigned, update that as well.
         if (this.zoneInfo && this.zoneInfo.zone.afterLineNumber !== this.endLineNumber) {
             this.zoneInfo.zone.afterLineNumber = this.endLineNumber;
-            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-                this.zoneInfo && changeAccessor.layoutZone(this.zoneInfo.zoneId);
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                if (this.zoneInfo) {
+                    changeAccessor.layoutZone(this.zoneInfo.zoneId);
+                }
             });
         }
     }
@@ -261,7 +265,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         super.updateRenderTarget(height);
 
         if (height !== undefined) {
-            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 if (this.zoneInfo && this.renderTarget) {
                     this.zoneInfo.zone.heightInPx = Math.max(height, this.minHeight);
                     changeAccessor.layoutZone(this.zoneInfo.zoneId);
@@ -289,20 +293,20 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         renderTarget.addEventListener("keydown", (e) => {
             if (e.altKey && e.key === KeyboardKeys.ArrowUp) {
-                this.backend?.setPosition?.({ lineNumber: this.startLine, column: 1 });
-                this.backend?.focus?.();
+                this.backend?.setPosition({ lineNumber: this.startLine, column: 1 });
+                this.backend?.focus();
 
                 e.stopPropagation();
             } else if (e.altKey && e.key === KeyboardKeys.ArrowDown) {
-                this.backend?.setPosition?.({ lineNumber: this.endLine + 1, column: 1 });
-                this.backend?.focus?.();
+                this.backend?.setPosition({ lineNumber: this.endLine + 1, column: 1 });
+                this.backend?.focus();
 
                 e.stopPropagation();
             }
         });
 
         if (this.zoneInfo?.zoneId === "") {
-            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.zoneInfo!.zoneId = changeAccessor.addZone(this.zoneInfo!.zone);
             });
         }
@@ -389,7 +393,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         if (this.resizingZone) {
             const delta = e.screenY - this.lastMouseY;
 
-            if (!this.currentHeight) {
+            if (this.currentHeight === undefined) {
                 const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
                 this.currentHeight = this.renderTarget?.getBoundingClientRect().height ?? maxAutoHeight;
             }
@@ -399,13 +403,13 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 this.dividerRef.current?.classList.remove("maximum");
 
                 const newHeight = (this.currentHeight ?? 0) + delta;
-                const minHeight = this.minHeight ?? 0;
+                const minHeight = this.minHeight;
                 if (newHeight >= minHeight && newHeight <= PresentationInterface.maxHeight) {
                     this.zoneInfo.zone.heightInPx = newHeight;
                     this.renderTarget!.style.height = `${newHeight}px`;
 
                     // Only adjust the zone height here. The manualHeight member is updated on mouse up.
-                    this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                    this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                         if (this.zoneInfo) {
                             this.zoneInfo.zone.heightInPx = newHeight;
                             changeAccessor.layoutZone(this.zoneInfo.zoneId);

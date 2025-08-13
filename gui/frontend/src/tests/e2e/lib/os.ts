@@ -1,5 +1,6 @@
+/* eslint-disable no-restricted-syntax */
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,7 +21,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 
 import { existsSync } from "fs";
 import { spawnSync } from "child_process";
@@ -85,11 +85,12 @@ export class Os {
 
     /**
      * Reads and returns the content of the clipboard
+     * 
      * @returns A promise revolved with the clipboard content
      */
     public static readClipboard = async (): Promise<string | undefined> => {
         try {
-            return driver.executeScript("return await navigator.clipboard.readText()");
+            return await driver.executeScript("return await navigator.clipboard.readText()");
         } catch (e) {
             if (e instanceof error.JavascriptError) {
                 return constants.jsError;
@@ -101,6 +102,7 @@ export class Os {
      * Gets the clipboard content and applies the following rules:
      * - Removes all line breaks (\n characters)
      * - Removes hours, minutes and seconds (useful for clipboard content coming from result grids)
+     * 
      * @returns A promise resolving with the clipboard content as a string or array of string, if there are line breaks
      */
     public static getClipboardContent = async (): Promise<string | string[] | undefined> => {
@@ -108,7 +110,9 @@ export class Os {
 
         await driver.wait(async () => {
             try {
-                const clipboardData = (await this.readClipboard())!.split("\n").filter((item) => { return item; });
+                const clipboardData = (await this.readClipboard())!.split("\n").filter((item) => {
+                    return item;
+                });
                 const replacers = [/\n/, / (\d+):(\d+):(\d+)/];
 
                 if (clipboardData.length > 1) {
@@ -126,7 +130,7 @@ export class Os {
                         clipboardData[0] = clipboardData[0].replace(replacer, "").trim();
                     }
 
-                    content = clipboardData;[0];
+                    content = clipboardData[0];
 
                     return true;
                 }
@@ -142,6 +146,7 @@ export class Os {
 
     /**
      * Writes content to the clipboard
+     * 
      * @param text The text to write
      * @returns A promise revolved when the clipboard ir written
      */
@@ -151,6 +156,7 @@ export class Os {
 
     /**
      * Checks if the credential helper exists/has errors
+     * 
      * @returns A promise revolved with the existence of the credentials helper
      */
     public static existsCredentialHelper = async (): Promise<boolean> => {
@@ -162,6 +168,7 @@ export class Os {
 
     /**
      * Verifies if the current os is macos
+     * 
      * @returns A promise resolving with true if the current os is macos, false otherwise
      */
     public static isMacOs = (): boolean => {
@@ -170,6 +177,7 @@ export class Os {
 
     /**
      * Verifies if the current os is linux
+     * 
      * @returns A promise resolving with true if the current os is macos, false otherwise
      */
     public static isLinux = (): boolean => {
@@ -178,6 +186,7 @@ export class Os {
 
     /**
      * Verifies if the current os is windows
+     * 
      * @returns A promise resolving with true if the current os is windows, false otherwise
      */
     public static isWindows = (): boolean => {
@@ -186,6 +195,7 @@ export class Os {
 
     /**
      * Presses CTRL+V
+     * 
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
      */
@@ -197,6 +207,7 @@ export class Os {
 
     /**
      * Presses CTRL+A
+     * 
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
      */
@@ -208,6 +219,7 @@ export class Os {
 
     /**
      * Presses CTRL+C
+     * 
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
      */
@@ -228,6 +240,7 @@ export class Os {
 
     /**
      * Selects and deletes the current line text
+     * 
      * @param line The line to delete
      */
     public static keyboardDeleteLine = async (line: string): Promise<void> => {
@@ -242,6 +255,7 @@ export class Os {
 
     /**
      * Presses CTRL+X
+     * 
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
      */
@@ -263,7 +277,7 @@ export class Os {
         const response = spawnSync("mysqlsh", params);
 
         if (response.status !== 0 && !this.isWindows()) {
-            throw response.error;
+            throw new Error(String(response.error));
         }
     };
 }

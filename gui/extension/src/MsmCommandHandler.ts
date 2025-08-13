@@ -102,7 +102,8 @@ export class MsmCommandHandler {
 
                             // Open the schema development file
                             void workspace.openTextDocument(
-                                Uri.file(projectInfo.schemaDevelopmentFilePath)).then((doc: TextDocument) => {
+                                Uri.file(projectInfo.schemaDevelopmentFilePath))
+                                .then((doc: TextDocument) => {
                                     void window.showTextDocument(doc, {
                                         preview: false,
                                         preserveFocus: false,
@@ -196,10 +197,11 @@ export class MsmCommandHandler {
                         });
                         if (releasedVersionStrings.includes(nextVersion)) {
                             if (await ui.showWarningMessage(
-                                `The release ${nextVersion} already exists.`, {
-                                modal: true,
-                                detail: "Are you sure you want to overwrite the existing files?",
-                            }, "Yes", "No") !== "Yes") {
+                                `The release ${nextVersion} already exists.`,
+                                {
+                                    modal: true,
+                                    detail: "Are you sure you want to overwrite the existing files?",
+                                }, "Yes", "No") !== "Yes") {
                                 return;
                             }
                         }
@@ -260,10 +262,11 @@ export class MsmCommandHandler {
                         });
                         if (deployedVersionStrings.includes(version)) {
                             if (await ui.showWarningMessage(
-                                `The deployment version ${version} already exists.`, {
-                                modal: true,
-                                detail: "Are you sure you want to overwrite the existing file?",
-                            }, "Yes", "No") !== "Yes") {
+                                `The deployment version ${version} already exists.`,
+                                {
+                                    modal: true,
+                                    detail: "Are you sure you want to overwrite the existing file?",
+                                }, "Yes", "No") !== "Yes") {
                                 return;
                             }
                         }

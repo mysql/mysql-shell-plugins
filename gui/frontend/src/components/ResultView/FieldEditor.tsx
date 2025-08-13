@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -98,9 +98,9 @@ export class FieldEditor extends AwaitableValueEditDialog {
 
         const firstPart = content.substring(0, 10).toLowerCase();
         let imagePrefix = "";
-        if (firstPart.indexOf("png") > -1) {
+        if (firstPart.includes("png")) {
             imagePrefix = "data:image/png;base64,";
-        } else if (firstPart.indexOf("jpg") > -1) {
+        } else if (firstPart.includes("jpg")) {
             imagePrefix = "data:image/jpg;base64,";
         }
 

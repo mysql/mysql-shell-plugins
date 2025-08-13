@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`MRS SDK Export dialog tests Show Create Library Dialog (snapshot) and escape 1`] = `
 <div
@@ -154,7 +154,6 @@ exports[`MRS SDK Export dialog tests Show Create Library Dialog (snapshot) and e
               id="comment"
               rows="3"
               spellcheck="true"
-              type="text"
             />
           </div>
         </div>
@@ -382,7 +381,6 @@ exports[`MRS SDK Export dialog tests Show Create Library Dialog and cancel 1`] =
               id="comment"
               rows="3"
               spellcheck="true"
-              type="text"
             />
           </div>
         </div>

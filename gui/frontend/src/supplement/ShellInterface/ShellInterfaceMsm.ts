@@ -32,8 +32,8 @@ export class ShellInterfaceMsm {
     public moduleSessionLookupId = "";
 
     public async createNewProjectFolder(schemaName: string, targetPath: string, copyrightHolder: string,
-        license?: string, allowSpecialChars: boolean = false, overwriteExisting: boolean = false,
-        enforceTargetPath: boolean = true,
+        license?: string, allowSpecialChars = false, overwriteExisting = false,
+        enforceTargetPath = true,
     ): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMsm.MsmCreateNewProjectFolder,
@@ -69,7 +69,7 @@ export class ShellInterfaceMsm {
     }
 
     public async prepareRelease(schemaProjectPath: string, version: string, nextVersion: string,
-        allowToStayOnSameVersion: boolean = false, overwriteExisting: boolean = false,
+        allowToStayOnSameVersion = false, overwriteExisting = false,
     ): Promise<string[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMsm.MsmPrepareRelease,
@@ -88,7 +88,7 @@ export class ShellInterfaceMsm {
     }
 
     public async generateDeploymentScript(schemaProjectPath: string, version: string,
-        overwriteExisting: boolean = false,
+        overwriteExisting = false,
     ): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMsm.MsmGenerateDeploymentScript,

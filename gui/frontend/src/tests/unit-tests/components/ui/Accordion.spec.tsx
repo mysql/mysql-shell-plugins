@@ -23,12 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 import { act } from "preact/test-utils";
 import { mount } from "enzyme";
 import { Accordion, IAccordionProperties } from "../../../../components/ui/Accordion/Accordion.js";
 import { Codicon } from "../../../../components/ui/Codicon.js";
 import { Assets } from "../../../../supplement/Assets.js";
+
+const icon = Assets.documents.overviewPageIcon as string;
 
 describe("Accordion component tests", (): void => {
 
@@ -80,19 +81,19 @@ describe("Accordion component tests", (): void => {
                                 id="item5"
                                 key="item5"
                                 caption="Item 5"
-                                picture={Assets.documents.overviewPageIcon}
+                                picture={icon}
                             />,
                             <Accordion.Item
                                 id="item6"
                                 key="item6"
                                 caption="Item 6"
-                                picture={Assets.documents.overviewPageIcon}
+                                picture={icon}
                             />,
                             <Accordion.Item
                                 id="item7"
                                 key="item7"
                                 caption="Item 7"
-                                picture={Assets.documents.overviewPageIcon}
+                                picture={icon}
                             />,
                         ],
                     },
@@ -111,13 +112,19 @@ describe("Accordion component tests", (): void => {
 
         expect(component).toBeTruthy();
         const instance = component.instance();
-        const section1 = component.findWhere((node) => { return node.text() === "FIRST SECTION"; }).first();
+        const section1 = component.findWhere((node) => {
+            return node.text() === "FIRST SECTION";
+        }).first();
         expect(section1).toHaveLength(1);
 
-        const section2 = component.findWhere((node) => { return node.text() === "SECOND SECTION"; }).first();
+        const section2 = component.findWhere((node) => {
+            return node.text() === "SECOND SECTION";
+        }).first();
         expect(section2).toHaveLength(1);
 
-        const section3 = component.findWhere((node) => { return node.text() === "THIRD SECTION"; }).first();
+        const section3 = component.findWhere((node) => {
+            return node.text() === "THIRD SECTION";
+        }).first();
         expect(section3).toHaveLength(1);
 
         const spyExpand = jest.spyOn(instance.props as IAccordionProperties, "onSectionExpand");
@@ -173,18 +180,18 @@ describe("Accordion component tests", (): void => {
                                 id="item5"
                                 key="item5"
                                 caption="Item 5"
-                                picture={Assets.documents.overviewPageIcon}
+                                picture={icon}
                             />,
                             <Accordion.Item
                                 id="item6"
                                 key="item6"
                                 caption="Item 6"
-                                picture={Assets.documents.overviewPageIcon}
+                                picture={icon}
                             />,
                             <Accordion.Item
                                 id="item7"
                                 key="item7"
-                                caption="Item 7" picture={Assets.documents.overviewPageIcon}
+                                caption="Item 7" picture={icon}
                             />,
                         ],
                     },

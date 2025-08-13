@@ -44,12 +44,13 @@ export class E2EToastNotification implements interfaces.INotification {
 
     /**
      * Creates a notification after finding it on the page
+     * 
      * @param id The notification id
      * @param timeout The time to wait for a notification to be displayed, default is 5 seconds
      * @returns The notification
      */
-    public create = async (id?: string, timeout = constants.wait10seconds):
-        Promise<E2EToastNotification | undefined> => {
+    public create = async (
+        id?: string, timeout = constants.wait10seconds): Promise<E2EToastNotification | undefined> => {
 
         let notification: WebElement | undefined;
 
@@ -96,6 +97,7 @@ export class E2EToastNotification implements interfaces.INotification {
 
     /**
      * Verifies if the notification exists
+     * 
      * @returns A promise resolving to true if exists, false otherwise
      */
     public exists = async (): Promise<boolean> => {
@@ -104,6 +106,7 @@ export class E2EToastNotification implements interfaces.INotification {
 
     /**
      * Closes the notification
+     * 
      * @returns The notification message as string
      */
     public close = async (): Promise<void> => {
@@ -132,6 +135,7 @@ export class E2EToastNotification implements interfaces.INotification {
 
     /**
      * Verifies if the notification was closed/does not exist
+     * 
      * @param timeout The time to wait for a notification to be closed, default is 5 seconds
      * @returns A condition resolving to true when the notification is closed
      */

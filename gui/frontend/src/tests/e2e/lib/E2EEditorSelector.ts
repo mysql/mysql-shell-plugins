@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,6 +34,7 @@ export class E2EEditorSelector {
 
     /**
      * Gets the current editor
+     * 
      * @returns A promise resolving with the editor
      */
     public getCurrentEditor = async (): Promise<interfaces.ICurrentEditor> => {
@@ -71,6 +72,7 @@ export class E2EEditorSelector {
 
     /**
      * Selects the current editor
+     * 
      * @param editorName The editor name
      * @param parentConnection The name of the parent connection
      * @returns A promise resolving when the editor is selected
@@ -82,8 +84,9 @@ export class E2EEditorSelector {
                 await driver.executeScript("arguments[0].click()", selector);
 
                 const list = await driver.wait(until
-                    .elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
-                    constants.wait2seconds, "The editor list was not displayed");
+                    .elementLocated(locator.notebook.toolbar.editorSelector.list.exists
+
+                    ), constants.wait2seconds, "The editor list was not displayed");
 
                 await driver.wait(async () => {
                     return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;

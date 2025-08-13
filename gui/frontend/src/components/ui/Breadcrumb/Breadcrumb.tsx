@@ -73,6 +73,7 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
             const separatorItem = typeof separator === "string"
                 ? <Label className="separator" caption={separator} />
                 : separator;
+
             content = path.map((segment): ComponentChild => {
                 return (
                     <>
@@ -89,7 +90,7 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
                 );
             });
 
-            if (content && showPicker) {
+            if (showPicker) {
                 content.push(
                     <Button key="picker" className="picker" caption="..." />,
                 );

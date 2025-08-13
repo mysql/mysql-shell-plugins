@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -70,6 +70,7 @@ export class E2EClientConnections {
 
     /**
      * Loads the Server Status page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public create = async (): Promise<void> => {
@@ -109,7 +110,6 @@ export class E2EClientConnections {
             wait3seconds, `abortedConnections should not be empty`);
         await driver.wait(until.elementTextMatches(errors, isNotEmpty),
             wait3seconds, `errors should not be empty`);
-
 
         this.threadsConnected = await threadsConnected.getText();
         this.threadsRunning = await threadsRunning.getText();

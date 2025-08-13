@@ -38,7 +38,7 @@ import type { ICodeEditorOptions } from "../components/ui/index.js";
 export type ResultTextLanguage =
     "ansi" | "typescript" | "javascript" | "mysql" | "sql" | "python" | "json" | "markdown" | "xml" | "ini";
 
-export const mapCompletionKind: Map<LanguageCompletionKind, languages.CompletionItemKind> = new Map([
+export const mapCompletionKind = new Map<LanguageCompletionKind, languages.CompletionItemKind>([
     [LanguageCompletionKind.Keyword, languages.CompletionItemKind.Keyword],
     [LanguageCompletionKind.Schema, languages.CompletionItemKind.Struct],
     [LanguageCompletionKind.Table, languages.CompletionItemKind.Constant],

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IThenableCallback } from "./index.js";
 import { IDictionary } from "../app-logic/general-types.js";
+import { ui } from "../app-logic/UILayer.js";
+import { IThenableCallback } from "./index.js";
 import { requisitions } from "./Requisitions.js";
 import { Settings } from "./Settings/Settings.js";
 import { WorkerCallback } from "./WorkerCallback.js";
@@ -32,8 +33,6 @@ import { WorkerCallback } from "./WorkerCallback.js";
 export type IdentifiedWorker = Worker & {
     id: string;
 };
-
-const debug = false;
 
 interface IWorkerTask<WorkerTaskType, WorkerResultType> {
     assignedWorker?: IdentifiedWorker; // Assigned as soon as the task is actually scheduled.
@@ -94,9 +93,13 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
 
         requisitions.unregister("settingsChanged", this.settingsChanged);
 
-        this.idleWorkers.forEach((worker) => { return worker.terminate(); });
+        this.idleWorkers.forEach((worker) => {
+            worker.terminate();
+        });
         this.idleWorkers = [];
-        this.runningTasks.forEach((task) => { return task.assignedWorker?.terminate(); });
+        this.runningTasks.forEach((task) => {
+            return task.assignedWorker?.terminate();
+        });
         this.runningTasks.clear();
     }
 
@@ -131,10 +134,6 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
     public continueTask(taskId: number, data: WorkerTaskType): void {
         const task = this.runningTasks.get(taskId);
         if (task) {
-            if (debug) {
-                console.log("Worker pool: added request to task " + String(task.taskId));
-            }
-
             task.data = data;
             task.assignedWorker!.postMessage({ taskId, data });
         }
@@ -185,16 +184,7 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
                     nextTask.assignedWorker = task.assignedWorker;
                     this.runningTasks.set(nextTask.taskId, nextTask);
                     nextTask.assignedWorker!.postMessage({ taskId: nextTask.taskId, data: nextTask.data });
-
-                    if (debug) {
-                        console.log("Worker pool: started pending task " + String(nextTask.taskId) + " on worker "
-                            + nextTask.assignedWorker!.id);
-                    }
                 } else {
-                    if (debug) {
-                        console.log("Worker pool: worker going idle: " + task.assignedWorker!.id);
-                    }
-
                     // Move the worker over to the idle workers list.
                     this.idleWorkers.push(task.assignedWorker!);
                 }
@@ -225,18 +215,12 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
             } else {
                 worker = this.setupNewWorker();
             }
-        } else if (debug) {
-            console.log("Worker pool: reuse worker " + worker.id);
         }
 
         if (worker) {
             task.assignedWorker = worker;
             this.runningTasks.set(task.taskId, task);
             worker.postMessage({ taskId: task.taskId, data: task.data });
-
-            if (debug) {
-                console.log("Worker pool: started task " + String(task.taskId));
-            }
         }
     }
 
@@ -259,13 +243,9 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
      *
      * @param event Event data.
      */
-    private handleWorkerMessage = (event: MessageEvent): void => {
-        const { taskId, data }: { taskId: number; data: IDictionary; } = event.data;
+    private handleWorkerMessage = (event: MessageEvent<{ taskId: number; data: IDictionary; }>): void => {
+        const { taskId, data } = event.data;
         const task = this.runningTasks.get(taskId);
-
-        if (debug) {
-            console.log("Worker pool: received data from task " + String(taskId));
-        }
 
         // If there's no task entry for the given id then the task has been cancelled and we ignore this message.
         // Otherwise run the callback and schedule the next waiting task, if there's any.
@@ -290,15 +270,9 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
     private setupNewWorker(): IdentifiedWorker {
         const worker = this.createNewWorker();
 
-        if (debug) {
-            console.log("Worker pool: created new worker " + worker.id);
-        }
-
         worker.addEventListener("message", this.handleWorkerMessage);
         worker.addEventListener("error", (event) => {
-            // TODO: better worker error handling.
-            console.log("Worker error encountered:");
-            console.log(event);
+            void ui.showErrorMessage(`Worker error encountered: ${event}`, {});
         });
 
         return worker;
@@ -339,9 +313,6 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
                 if (this.idleWorkers.length > this.minWorkerCount) {
                     const worker = this.idleWorkers.shift();
                     if (worker) {
-                        if (debug) {
-                            console.log("Worker pool: terminated worker " + worker.id);
-                        }
                         worker.terminate();
                     }
                 }

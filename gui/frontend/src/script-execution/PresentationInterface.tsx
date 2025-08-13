@@ -51,7 +51,7 @@ import { SQLExecutionContext } from "./SQLExecutionContext.js";
 export class PresentationInterface {
 
     /** A mapping from diagnostic categories to CSS class names. */
-    public static validationClass: Map<DiagnosticSeverity, string> = new Map([
+    public static validationClass = new Map<DiagnosticSeverity, string>([
         [DiagnosticSeverity.Error, "error"],
         [DiagnosticSeverity.Warning, "warning"],
         [DiagnosticSeverity.Message, "message"],
@@ -72,7 +72,7 @@ export class PresentationInterface {
     public currentHeight?: number;
 
     /** The currently selected result set (tab page). The value 0 represents the output page. */
-    public currentSet: number = 1;
+    public currentSet = 1;
 
     /** A flag which indicates if the result pane shall be maximized. */
     public maximizedResult?: boolean;
@@ -120,7 +120,7 @@ export class PresentationInterface {
     // Each line gets a margin decoration with varying content, depending where the context is used
     // and other conditions.
     private marginDecorationIDs: string[] = [];
-    private markedLines: Set<number> = new Set();
+    private markedLines = new Set<number>();
     private markerClass = "";
 
     // Editor decorations
@@ -159,9 +159,9 @@ export class PresentationInterface {
      * in the application database and loaded when the presentation is restored.
      */
     public freeze(): void {
-        const editorModel = this.#backend?.getModel?.();
+        const editorModel = this.#backend?.getModel();
         if (editorModel) {
-            editorModel.deltaDecorations?.(this.marginDecorationIDs, []);
+            editorModel.deltaDecorations(this.marginDecorationIDs, []);
         }
         this.marginDecorationIDs = [];
 
@@ -200,7 +200,7 @@ export class PresentationInterface {
 
     public get model(): Monaco.ITextModel | null {
         if (this.#backend) {
-            return this.#backend.getModel?.() ?? null;
+            return this.#backend.getModel() ?? null;
         }
 
         return null;
@@ -292,7 +292,7 @@ export class PresentationInterface {
      *
      * @param delta The number of lines we moved.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     public movePosition(delta: number): void {
         // Nothing to do here.
     }
@@ -326,7 +326,7 @@ export class PresentationInterface {
             switch (this.resultData.type) {
                 case "text": {
                     if (this.resultData.text) {
-                        const index = this.resultData.text?.findIndex((candidate) => {
+                        const index = this.resultData.text.findIndex((candidate) => {
                             return candidate.resultId === resultId;
                         });
 
@@ -379,6 +379,7 @@ export class PresentationInterface {
 
     /**
      * Called by the code execution code to indicate that a new request just started.
+     *
      * @param initialState The initial state to set the loading state to. If not set then the state is set to pending.
      */
     public executionStarts(initialState?: LoadingState): void {
@@ -478,10 +479,7 @@ export class PresentationInterface {
                 } else if (this.resultData.type === "resultSets") {
                     // There's result set data shown currently. In this case add the text to the output tab.
                     // If no output tab exists already, create it.
-                    if (!this.resultData.output) {
-                        this.resultData.output = [];
-                    }
-
+                    this.resultData.output ??= [];
                     if (data.text) {
                         this.resultData.output.push(...data.text);
                     }
@@ -499,7 +497,7 @@ export class PresentationInterface {
                         // If the last entry has the same language as the new data, then merge them.
                         const lastEntry = this.resultData.text[this.resultData.text.length - 1];
                         while (data.text.length > 0 && data.text[0].index === lastEntry.index
-                            && data.text[0].language === lastEntry?.language) {
+                            && data.text[0].language === lastEntry.language) {
                             lastEntry.content += data.text[0].content;
                             data.text.shift();
                         }
@@ -529,7 +527,7 @@ export class PresentationInterface {
                                 type: "resultSet",
                                 index: dataOptions.index,
                                 subIndex: dataOptions.subIndex,
-                                resultId: dataOptions?.resultId,
+                                resultId: dataOptions.resultId,
                                 sql: dataOptions.sql ?? "",
                                 columns: data.columns ?? [],
                                 data,
@@ -600,7 +598,7 @@ export class PresentationInterface {
                                         type: "resultSet",
                                         index: dataOptions.index,
                                         subIndex: dataOptions.subIndex,
-                                        resultId: dataOptions?.resultId,
+                                        resultId: dataOptions.resultId,
                                         sql: dataOptions.sql ?? "",
                                         columns: data.columns ?? [],
                                         data,
@@ -623,7 +621,7 @@ export class PresentationInterface {
                                     sets: [{
                                         type: "resultSet",
                                         index: dataOptions.index,
-                                        resultId: dataOptions?.resultId,
+                                        resultId: dataOptions.resultId,
                                         sql: dataOptions.sql ?? "",
                                         columns: data.columns ?? [],
                                         data,
@@ -644,7 +642,7 @@ export class PresentationInterface {
                                 sets: [{
                                     type: "resultSet",
                                     index: dataOptions.index,
-                                    resultId: dataOptions?.resultId,
+                                    resultId: dataOptions.resultId,
                                     sql: dataOptions.sql ?? "",
                                     columns: data.columns ?? [],
                                     data,
@@ -727,7 +725,7 @@ export class PresentationInterface {
      * Updates the margin decorations that are responsible to show statement starts and other information.
      */
     public updateMarginDecorations(): void {
-        const editorModel = this.#backend?.getModel?.();
+        const editorModel = this.#backend?.getModel();
         if (editorModel) {
             const newDecorations: Monaco.IModelDeltaDecoration[] = [];
             for (let i = this.startLine; i <= this.endLine; ++i) {
@@ -748,7 +746,7 @@ export class PresentationInterface {
                 });
             }
 
-            this.marginDecorationIDs = editorModel.deltaDecorations?.(this.marginDecorationIDs, newDecorations) ?? [];
+            this.marginDecorationIDs = editorModel.deltaDecorations(this.marginDecorationIDs, newDecorations);
         }
     }
 
@@ -758,7 +756,7 @@ export class PresentationInterface {
      * @param diagnostics Records of data describing the new diagnostics.
      */
     public updateDiagnosticsDecorations(diagnostics: IDiagnosticEntry[]): void {
-        const editorModel = this.#backend?.getModel?.();
+        const editorModel = this.#backend?.getModel();
 
         if (editorModel) {
             const newDecorations = diagnostics.map((entry: IDiagnosticEntry) => {
@@ -786,9 +784,8 @@ export class PresentationInterface {
                 };
             });
 
-
             // Update the decorations in the editor.
-            this.decorationIDs = editorModel.deltaDecorations?.(this.decorationIDs, newDecorations) ?? [];
+            this.decorationIDs = editorModel.deltaDecorations(this.decorationIDs, newDecorations);
         }
     }
 
@@ -799,7 +796,7 @@ export class PresentationInterface {
         // Go through all lines until a non-empty one is found.
         // Check its text for a command starter.
         let run = this.startLine;
-        const model = this.#backend?.getModel?.(); // Need the editor model here.
+        const model = this.#backend?.getModel(); // Need the editor model here.
         if (model) {
             const endLine = Math.min(this.endLine, model.getLineCount());
             while (run <= endLine) {
@@ -826,8 +823,8 @@ export class PresentationInterface {
     public selectRange(span: TextSpan): void {
         if (this.context && this.#backend) {
             const range = this.context.fromLocal(span);
-            this.#backend.setSelection?.(range);
-            this.#backend.revealLines?.(range.startLineNumber, range.endLineNumber);
+            this.#backend.setSelection(range);
+            this.#backend.revealLines(range.startLineNumber, range.endLineNumber);
         }
     }
 
@@ -925,9 +922,7 @@ export class PresentationInterface {
                 }],
             };
         } else if (this.resultData.type === "text") {
-            if (!this.resultData.text) {
-                this.resultData.text = [];
-            }
+            this.resultData.text ??= [];
 
             this.resultData.text.push({
                 type: data.executionInfo?.type ?? MessageType.Info,
@@ -937,9 +932,7 @@ export class PresentationInterface {
                 subIndex: dataOptions.subIndex,
             });
         } else if (this.resultData.type !== "chat" && this.resultData.type !== "about") {
-            if (!this.resultData.output) {
-                this.resultData.output = [];
-            }
+            this.resultData.output ??= [];
 
             this.resultData.output.push({
                 type: data.executionInfo?.type ?? MessageType.Info,
@@ -983,7 +976,7 @@ export class PresentationInterface {
         // requiring currentSet to be reset or adjusted to prevent an out-of-bounds index
         // when the new query(ies) produces fewer tabs than the previous one.
         // This has no impact on cases with output-only results.
-        if (this.resultData?.type === "resultSets" && this.currentSet > this.resultData.sets.length) {
+        if (this.resultData.type === "resultSets" && this.currentSet > this.resultData.sets.length) {
             this.currentSet = 1;
         }
 
@@ -1032,7 +1025,7 @@ export class PresentationInterface {
                         <ActionOutput
                             output={this.resultData.text}
                             contextId={contextId}
-                            showIndexes={options?.showIndexes}
+                            showIndexes={options.showIndexes}
                         />
                     </Container>;
                     this.minHeight = 28;
@@ -1042,7 +1035,7 @@ export class PresentationInterface {
             }
 
             case "resultSets": {
-                const hasOutput = this.resultData?.output && this.resultData.output.length > 0;
+                const hasOutput = this.resultData.output && this.resultData.output.length > 0;
 
                 // Switch the tab if we're currently on the output tab re-running the query,
                 // results are present but output is missing.
@@ -1144,7 +1137,9 @@ export class PresentationInterface {
         currentSet?: number): void => {
         if (this.context instanceof SQLExecutionContext) {
             if (this.resultPageChangeHandler) {
-                return this.resultPageChangeHandler(resultId, currentPage, sql, currentSet);
+                this.resultPageChangeHandler(resultId, currentPage, sql, currentSet);
+
+                return;
             }
             // Currently paging is only supported for SQL execution blocks.
             void requisitions.execute("sqlShowDataAtPage",
@@ -1252,6 +1247,7 @@ export class PresentationInterface {
      * Triggered by one of the toggle view state buttons.
      * It triggers the corresponding action needed to either show the result pane maximized (if this result view
      * is in a script editor) or to create a new script and show the result pane maximized.
+     *
      * @param currentResultSet Result set currently in use.
      */
     private handleResultToggle = (currentResultSet?: IResultSet): void => {

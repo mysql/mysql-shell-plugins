@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,13 +28,13 @@ import "./Selector.css";
 import { cloneElement, ComponentChild, createRef, VNode } from "preact";
 
 import {
-    ComponentBase, IComponentProperties, DragEventType, ClickEventCallback, DragEventCallback,
+    ClickEventCallback, ComponentBase, DragEventCallback, DragEventType, IComponentProperties,
 } from "../Component/ComponentBase.js";
 
-import { ISelectorItemProperties, SelectorItem } from "./SelectorItem.js";
-import { Codicon } from "../Codicon.js";
 import { collectVNodes } from "../../../utilities/preact-helpers.js";
-import { Orientation, Container } from "../Container/Container.js";
+import { Codicon } from "../Codicon.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { ISelectorItemProperties, SelectorItem } from "./SelectorItem.js";
 
 export interface ISelectorDef {
     id?: string;
@@ -252,7 +252,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
 
         if (element !== e.currentTarget) {
             this.setState({ activeItem: element });
-            onSelect?.(element?.id);
+            onSelect?.(element.id);
         }
     };
 
@@ -297,7 +297,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
 
         if (parent && stepperSize) {
             if (this.isHorizontal) {
-                const oL = element?.offsetLeft;
+                const oL = element.offsetLeft;
                 const sL = parent.scrollLeft;
                 if (oL - sL < stepperSize) {
                     parent.scrollLeft += oL - sL - stepperSize;
@@ -309,7 +309,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
                     parent.scrollLeft += right - (cW - stepperSize);
                 }
             } else {
-                const oT = element?.offsetTop;
+                const oT = element.offsetTop;
                 const sT = parent.scrollTop;
 
                 if (oT - sT < stepperSize) {
@@ -330,7 +330,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
             return false;
         }
 
-        const firstItem = this.stepDownRef.current?.nextElementSibling;
+        const firstItem = this.stepDownRef.current.nextElementSibling;
 
         return this.activeItemRef.current === firstItem;
     }
@@ -340,7 +340,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
             return false;
         }
 
-        const lastItem = this.stepUpRef.current?.previousElementSibling;
+        const lastItem = this.stepUpRef.current.previousElementSibling;
 
         return this.activeItemRef.current === lastItem;
     }
@@ -357,8 +357,8 @@ export class Selector extends ComponentBase<ISelectorProperties> {
             this.stepUpRef.current.style.display = "none";
         } else if (!wrapNavigation) {
             const parent = this.stepDownRef.current.parentElement;
-            const firstElement = this.stepDownRef.current?.nextElementSibling as HTMLElement;
-            const lastElement = this.stepUpRef.current?.previousElementSibling as HTMLElement;
+            const firstElement = this.stepDownRef.current.nextElementSibling as HTMLElement;
+            const lastElement = this.stepUpRef.current.previousElementSibling as HTMLElement;
 
             if (parent) {
                 if (this.isHorizontal) {

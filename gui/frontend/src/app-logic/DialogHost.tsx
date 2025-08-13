@@ -45,7 +45,7 @@ import {
  * They are all accessible via requisitions.
  */
 export class DialogHost extends ComponentBase {
-    static #instance: DialogHost;
+    static #instance?: DialogHost;
 
     // Used like stack. Last element is the element which was focused before the dialog was opened.
     #focusedElements: Array<Element | null> = [];
@@ -82,6 +82,10 @@ export class DialogHost extends ComponentBase {
      * @returns A promise which resolves to the user's response.
      */
     public static showDialog = async (request: IDialogRequest): Promise<IDialogResponse> => {
+        if (!this.#instance) {
+            throw new Error("DialogHost instance not initialized.");
+        }
+
         switch (request.type) {
             case DialogType.Prompt: {
                 if (this.#instance.#promptDialogSignal !== undefined) {
@@ -214,19 +218,18 @@ export class DialogHost extends ComponentBase {
                 this.#focusedElements.push(document.activeElement);
 
                 if (this.#mdsClusterDialogRef.current) {
-                    void this.#mdsClusterDialogRef.current.show(request, request.title ?? "");
+                    this.#mdsClusterDialogRef.current.show(request, request.title ?? "");
 
                     return Promise.resolve(true);
                 }
                 break;
             }
 
-
             case MdsDialogType.MdsHeatWaveLoadData: {
                 this.#focusedElements.push(document.activeElement);
 
                 if (this.#mdsLoadDataDialogRef.current) {
-                    void this.#mdsLoadDataDialogRef.current.show(request, request.title ?? "");
+                    this.#mdsLoadDataDialogRef.current.show(request, request.title ?? "");
 
                     return Promise.resolve(true);
                 }
@@ -237,7 +240,7 @@ export class DialogHost extends ComponentBase {
                 this.#focusedElements.push(document.activeElement);
 
                 if (this.#mdsEndpointDialogRef.current) {
-                    void this.#mdsEndpointDialogRef.current.show(request, request.title ?? "");
+                    this.#mdsEndpointDialogRef.current.show(request, request.title ?? "");
 
                     return Promise.resolve(true);
                 }
@@ -268,7 +271,7 @@ export class DialogHost extends ComponentBase {
                 input: {
                     type: "text",
                     caption: request.values?.prompt as string,
-                    value: request.values?.value as string ?? "",
+                    value: request.values?.value as string | undefined ?? "",
                     horizontalSpan: 8,
                     options: [CommonDialogValueOption.AutoFocus],
                 },
@@ -310,7 +313,7 @@ export class DialogHost extends ComponentBase {
         this.#focusedElements.push(document.activeElement);
 
         this.#confirmDialogRef.current?.show(
-            request.parameters?.prompt as string ?? "",
+            request.parameters?.prompt as string | undefined ?? "",
             {
                 accept: request.parameters?.accept as string,
                 refuse: request.parameters?.refuse as string,
@@ -351,7 +354,7 @@ export class DialogHost extends ComponentBase {
         });
 
         const choices = request.parameters?.options as string[];
-        const defaultValue: number | undefined = request.parameters?.default as number;
+        const defaultValue = request.parameters?.default as number | undefined;
         promptSection.values.input = {
             type: "choice",
             caption: request.parameters?.prompt as string,
@@ -382,7 +385,7 @@ export class DialogHost extends ComponentBase {
         const element = this.#focusedElements.pop();
 
         const response: IDialogResponse = {
-            id: data?.id as string ?? "",
+            id: data?.id as string | undefined ?? "",
             type,
             closure,
             data,
@@ -403,7 +406,7 @@ export class DialogHost extends ComponentBase {
     private handlePromptDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
         data?: IDictionary): Promise<void> => {
 
-        const type = data?.type as DialogType ?? DialogType.Prompt;
+        const type = data?.type as DialogType | undefined ?? DialogType.Prompt;
         const element = this.#focusedElements.pop();
 
         const promptSection = values.sections.get("prompt");
@@ -412,9 +415,9 @@ export class DialogHost extends ComponentBase {
             let text = promptSection.values.input.value as string;
             if (type === DialogType.Select) {
                 // Convert the text to an index in the choice list.
-                const index = value.choices?.findIndex((value) => {
+                const index = value.choices.findIndex((value) => {
                     return value === text;
-                }) ?? -1;
+                });
 
                 if (index > -1) {
                     text = String(index + 1);
@@ -423,7 +426,7 @@ export class DialogHost extends ComponentBase {
 
             const response: IDialogResponse = {
                 type: data?.type as DialogType,
-                id: data?.id as string ?? "",
+                id: data?.id as string | undefined ?? "",
                 closure,
                 values: {
                     input: value.value,
@@ -450,7 +453,7 @@ export class DialogHost extends ComponentBase {
         const element = this.#focusedElements.pop();
 
         const response: IDialogResponse = {
-            id: data?.id as string ?? "",
+            id: data?.id as string | undefined ?? "",
             type,
             closure,
             data,

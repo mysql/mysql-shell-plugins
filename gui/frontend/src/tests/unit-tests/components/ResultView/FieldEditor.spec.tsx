@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,28 +24,19 @@
  */
 
 import { mount } from "enzyme";
+
 import { DBDataType, DialogResponseClosure, DialogType, IDialogRequest } from "../../../../app-logic/general-types.js";
 import { IDialogSection, IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { FieldEditor, IFieldEditorData } from "../../../../components/ResultView/FieldEditor.js";
 import { DialogHelper, nextProcessTick } from "../../test-helpers.js";
 
+// @ts-expect-error, we need access to a private members here.
 class TestFieldEditor extends FieldEditor {
-    public testProcessResults = (dialogValues: IDialogValues): IDictionary => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
-        return this.processResults(dialogValues);
-    };
-
-    public testValidateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
-        return this.validateInput(closing, values);
-    };
-
-    public testDialogValues(request: IDialogRequest, dataType: DBDataType, data?: string | null): IDialogValues {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
-        return this.dialogValues(request, dataType, data);
-    }
+    public declare processResults: (dialogValues: IDialogValues) => IDictionary;
+    public declare validateInput: (closing: boolean, values: IDialogValues) => IDialogValidations;
+    public declare dialogValues: (request: IDialogRequest, dataType: DBDataType,
+        data?: string | null) => IDialogValues;
 }
-
 
 describe("FieldEditor basic tests", () => {
     let dialogHelper: DialogHelper;
@@ -140,7 +131,7 @@ describe("FieldEditor basic tests", () => {
 
         const testFieldEditor = new TestFieldEditor(component.instance().props);
 
-        const result = testFieldEditor.testProcessResults(dialogValues);
+        const result = testFieldEditor.processResults(dialogValues);
 
         const expected = {
             dataType: DBDataType.String,
@@ -175,10 +166,10 @@ describe("FieldEditor basic tests", () => {
 
         const testFieldEditor = new TestFieldEditor(component.instance().props);
 
-        let result = testFieldEditor.testValidateInput(false, request);
+        let result = testFieldEditor.validateInput(false, request);
         expect(result).toEqual(expected);
 
-        result = testFieldEditor.testValidateInput(true, request);
+        result = testFieldEditor.validateInput(true, request);
         expect(result).toEqual(expected);
 
         component.unmount();
@@ -210,14 +201,14 @@ describe("FieldEditor basic tests", () => {
 
         const testFieldEditor = new TestFieldEditor(component.instance().props);
 
-        let result = testFieldEditor.testDialogValues(pngRequest, DBDataType.Blob, pngImg);
+        let result = testFieldEditor.dialogValues(pngRequest, DBDataType.Blob, pngImg);
 
         const imageSection = result.sections.get("imageSection");
         expect(imageSection).toBeDefined();
         expect(imageSection?.caption).toBe("Image");
         expect(imageSection?.values.value).toMatchSnapshot("ImageSectionValues");
 
-        result = testFieldEditor.testDialogValues(jsonRequest, DBDataType.Json);
+        result = testFieldEditor.dialogValues(jsonRequest, DBDataType.Json);
         const jsonSection = result.sections.get("jsonSection");
         expect(jsonSection).toBeDefined();
         expect(jsonSection?.caption).toBe("JSON");

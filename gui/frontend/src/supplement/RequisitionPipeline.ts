@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -72,9 +72,7 @@ export class RequisitionPipeline {
         }));
 
         ++this.nextJobId;
-        if (!this.announceTimer) {
-            this.announceTimer = setInterval(this.announceRequest, RequisitionPipeline.announceInterval);
-        }
+        this.announceTimer ??= setInterval(this.announceRequest, RequisitionPipeline.announceInterval);
 
         return Promise.resolve(true);
     };
@@ -98,17 +96,15 @@ export class RequisitionPipeline {
                 } else {
                     this.announcePromise = undefined;
                 }
-            }).catch((e) => {
+            }).catch((e: unknown) => {
                 console.error(e);
                 this.removeTopRequest();
             });
 
             // Start the watch dog if not yet done.
-            if (!this.watchDog) {
-                this.watchDog = setTimeout(() => {
-                    this.cancelCurrentJob();
-                }, RequisitionPipeline.offeringTime * 1000);
-            }
+            this.watchDog ??= setTimeout(() => {
+                this.cancelCurrentJob();
+            }, RequisitionPipeline.offeringTime * 1000);
         }
     };
 

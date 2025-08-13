@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -55,42 +55,56 @@ export class E2ESettings {
 
     /**
      * Selects the Current Theme
+     * 
      * @param theme The theme
      */
     public selectCurrentTheme = async (theme: string): Promise<void> => {
 
-        const currentThemeValue = await driver.wait(until.elementLocated(locator
-            .settingsPage.themeSettings.currentTheme.exists), constants.wait5seconds)
-            .findElement(locator.htmlTag.label);
-
-        if (await currentThemeValue.getText() !== theme) {
-            const currentThemeInput = await driver.wait(until
-                .elementLocated(locator.settingsPage.themeSettings.currentTheme.exists), constants.wait3seconds,
-                "Could not find the Current Theme input");
-            await currentThemeInput.click();
-            const selectList = await driver.wait(until
-                .elementLocated(locator.settingsPage.themeSettings.currentTheme.selectList.exists),
-                constants.wait3seconds, "Could not find the Current Theme Select List");
-
-            const themeToSelect = await selectList.findElement(locator.settingsPage.themeSettings.currentTheme
-                .selectList.item(theme));
-            await driver.executeScript("arguments[0].click()", themeToSelect);
-
-            const notification = await new E2EToastNotification().create();
-            await notification!.close();
-
-            await driver.wait(async () => {
-                const currentThemeValue = await driver
-                    .findElement(locator.settingsPage.themeSettings.currentTheme.exists)
+        await driver.wait(async () => {
+            try {
+                const currentThemeValue = await driver.wait(until.elementLocated(locator
+                    .settingsPage.themeSettings.currentTheme.exists), constants.wait5seconds)
                     .findElement(locator.htmlTag.label);
 
-                return (await currentThemeValue.getText()) === theme;
-            }, constants.wait3seconds, `The Current Theme should be '${theme}'`);
-        }
+                if (await currentThemeValue.getText() !== theme) {
+                    const currentThemeInput = await driver.wait(until.elementLocated(
+                        locator.settingsPage.themeSettings.currentTheme.exists
+                    ), constants.wait3seconds, "Could not find the Current Theme input");
+
+                    await currentThemeInput.click();
+                    const selectList = await driver.wait(until
+                        .elementLocated(locator.settingsPage.themeSettings.currentTheme.selectList.exists
+
+                        ), constants.wait3seconds, "Could not find the Current Theme Select List");
+
+                    const themeToSelect = await selectList.findElement(locator.settingsPage.themeSettings.currentTheme
+                        .selectList.item(theme));
+                    await driver.executeScript("arguments[0].click()", themeToSelect);
+
+                    const notification = await new E2EToastNotification().create();
+                    await notification!.close();
+
+                    await driver.wait(async () => {
+                        const currentThemeValue = await driver
+                            .findElement(locator.settingsPage.themeSettings.currentTheme.exists)
+                            .findElement(locator.htmlTag.label);
+
+                        return (await currentThemeValue.getText()) === theme;
+                    }, constants.wait3seconds, `The Current Theme should be '${theme}'`);
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait1second * 5, `Could not select theme ${theme}`);
     };
 
     /**
      * Checks/Unchecks the confirmation on close checkbox
+     * 
      * @param checked True to check, false to uncheck
      */
     public confirmationOnClose = async (checked: boolean): Promise<void> => {

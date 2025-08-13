@@ -170,14 +170,14 @@ export interface IThenableCallback<T> {
 export type ValueType<T> = T extends string
     ? string
     : T extends number
-    ? number
-    : T extends boolean
-    ? boolean
-    : T extends undefined
-    ? undefined
-    : [T] extends [unknown]
-    ? T
-    : object;
+        ? number
+        : T extends boolean
+            ? boolean
+            : T extends undefined
+                ? undefined
+                : [T] extends [unknown]
+                    ? T
+                    : object;
 
 export const getDataTypeDetails = (dbType: DBType, dataType: string): IDBDataTypeDetails => {
     const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
@@ -343,9 +343,11 @@ export const parseDataTypeFromRaw = (dbType: DBType, rawType: string): string =>
     }
 
     const mainType = match[1];
-    const details = getDataTypeDetails(dbType, mainType);
+    //const details = getDataTypeDetails(dbType, mainType);
 
-    return details ? mainType : rawType;
+    //return details ? mainType : rawType;
+
+    return mainType;
 };
 
 const parseColumnLengthFromRaw = (rawType: string): number | undefined => {
@@ -354,7 +356,7 @@ const parseColumnLengthFromRaw = (rawType: string): number | undefined => {
     // Match the main type and parentheses content (if any).
     const match = normalizedType.match(dataTypeRegex);
 
-    if (!match || match[3] === undefined) {
+    if (match?.[3] === undefined) {
         return undefined;
     }
 
@@ -373,8 +375,8 @@ export const parseColumnLength = (rawType: string, characterMaximumLength?: numb
     return length;
 };
 
-export const parseSchemaTable = async (fullTableName: string, backend?: ShellInterfaceSqlEditor):
-    Promise<{ schema: string; table: string }> => {
+export const parseSchemaTable = async (fullTableName: string,
+    backend?: ShellInterfaceSqlEditor): Promise<{ schema: string; table: string; }> => {
 
     const parts = fullTableName.split(".");
     const table = unquote(parts.pop()!);

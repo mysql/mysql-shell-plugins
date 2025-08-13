@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
-
 import { ColumnComponent, ColumnDefinition } from "tabulator-tables";
 import { DBDataType, IColumnInfo } from "../../../app-logic/general-types.js";
 
@@ -37,9 +35,8 @@ const mockColumnsInfo: IColumnInfo = {
     autoIncrement: false,
 };
 
-
 export class ColumnComponentMock implements ColumnComponent {
-    public fieldType: string = "";
+    public fieldType = "";
 
     public getElement = jest.fn();
     public getTable = jest.fn();

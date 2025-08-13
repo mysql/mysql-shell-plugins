@@ -214,7 +214,7 @@ export enum QueryType {
  * This is the same as in typescript.TextSpan (hence the missing leading I), but we cannot include typescript in a
  * web worker or it will grow tremendously.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
+ 
 export interface TextSpan {
     start: number;
     length: number;
@@ -468,7 +468,6 @@ export interface IStatement {
     /** Ditto for the column. */
     column: number;
 
-
     /** The length of the delimiter given for this statement. */
     delimiterLength?: number;
 }
@@ -629,7 +628,7 @@ export class Scanner {
 
     private index = 0;
     private tokens: Token[] = [];
-    private tokenStack: Stack<number> = new Stack();
+    private tokenStack = new Stack<number>();
 
     public constructor(private input: BufferedTokenStream) {
         this.input.fill();

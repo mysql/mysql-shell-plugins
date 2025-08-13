@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -52,6 +52,7 @@ export class E2EMySQLAdministration {
 
     /**
      * Verifies if the page is opened and fully loaded
+     * 
      * @param connection The DB connection
      * @returns A condition resolving to true if the page is fully loaded, false otherwise
      */

@@ -284,7 +284,6 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
                       id="comments"
                       rows="3"
                       spellcheck="true"
-                      type="text"
                     />
                   </div>
                 </div>

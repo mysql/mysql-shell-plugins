@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = `
 <div
@@ -204,7 +204,9 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
           <label
             class="msg label description"
             data-tooltip="expand"
-          />
+          >
+            
+          </label>
           <label
             class="msg checkbox checked valueEditor"
             id="loginPermitted"
@@ -304,7 +306,6 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
                       id="options"
                       rows="8"
                       spellcheck="true"
-                      type="text"
                     />
                   </div>
                   <label

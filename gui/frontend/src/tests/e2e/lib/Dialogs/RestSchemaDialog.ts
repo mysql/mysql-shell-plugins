@@ -37,6 +37,7 @@ export class RestSchemaDialog {
 
     /**
      * Sets a Rest schema using the web view dialog
+     * 
      * @param restSchema The service
      * @returns A promise resolving when the schema is set and the dialog is closed
      */
@@ -70,8 +71,10 @@ export class RestSchemaDialog {
             const inAccessControl = await dialog.findElement(locator.mrsSchemaDialog.accessControl.exists);
             await inAccessControl.click();
             const popup = await driver.wait(until
-                .elementLocated(locator.mrsSchemaDialog.accessControl.selectList.exists),
-                constants.wait5seconds, "Access control drop down list was not found");
+                .elementLocated(locator.mrsSchemaDialog.accessControl.selectList.exists
+
+                ), constants.wait5seconds, "Access control drop down list was not found");
+
             if (restSchema.accessControl === constants.accessControlEnabled) {
                 await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.enabled).click();
             } else if (restSchema.accessControl === constants.accessControlDisabled) {
@@ -107,7 +110,7 @@ export class RestSchemaDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsSchemaDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The REST Schema Dialog was not closed");
 
         return restSchema;
@@ -115,6 +118,7 @@ export class RestSchemaDialog {
 
     /**
      * Gets a Rest schema using the web view dialog
+     * 
      * @returns A promise resolving with the rest schema
      */
     public static get = async (): Promise<interfaces.IRestSchema> => {
@@ -159,7 +163,7 @@ export class RestSchemaDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsSchemaDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restSchema;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,10 +33,11 @@ export class E2ETabContainer {
 
     /**
      * Gets a tab
+     * 
      * @param name The tab name
      * @returns A promise resolving with the tab
      */
-    public getTab = async (name: string | RegExp): Promise<WebElement> => {
+    public getTab = async (name: string | RegExp): Promise<WebElement | undefined> => {
         let tabRef: WebElement | undefined;
 
         await driver.wait(async () => {
@@ -74,6 +75,7 @@ export class E2ETabContainer {
 
     /**
      * Gets the tab names
+     * 
      * @returns A promise resolving with the existing tab names
      */
     public getTabs = async (): Promise<string[]> => {
@@ -107,19 +109,20 @@ export class E2ETabContainer {
 
     /**
      * Selects a tab
+     * 
      * @param name The tab name
      */
     public selectTab = async (name: string | RegExp): Promise<void> => {
         const action = async (): Promise<void> => {
             await driver.wait(async () => {
-                await (await this.getTab(name)).click();
+                await (await this.getTab(name))!.click();
                 const tab = await this.getTab(name);
 
-                return (await tab.getAttribute("class")).includes("selected");
+                return (await tab!.getAttribute("class")).includes("selected");
             }, constants.wait5seconds, `'${name}' was not selected`);
         };
 
-        await action().catch(async (e) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -130,6 +133,7 @@ export class E2ETabContainer {
 
     /**
      * Verifies if a tab exists
+     * 
      * @param name The tab name
      * @returns A condition resolving to true if the tab exists, false otherwise
      */
@@ -141,6 +145,7 @@ export class E2ETabContainer {
 
     /**
      * Verifies if a tab does not exists
+     * 
      * @param name The tab name
      * @returns A condition resolving to true if the tab does not exists, false otherwise
      */
@@ -152,6 +157,7 @@ export class E2ETabContainer {
 
     /**
      * Verifies if a tab exists
+     * 
      * @param name The tab name
      * @returns A condition resolving to true if the tab is opened, false otherwise
      */
@@ -163,11 +169,12 @@ export class E2ETabContainer {
 
     /**
      * Closes a tab
+     * 
      * @param name The tab name
      */
     public closeTab = async (name: string | RegExp): Promise<void> => {
         const tab = await this.getTab(name);
-        await (await tab.findElement(locator.tab.close)).click();
+        await (await tab!.findElement(locator.tab.close)).click();
     };
 
     /**
@@ -203,6 +210,7 @@ export class E2ETabContainer {
 
     /**
      * Right-clicks on the tab and selects an item from the context menu
+     * 
      * @param tabName The tab name
      * @param menuItem The menu item
      * @returns Promise resolving when the menu item is clicked
@@ -228,6 +236,7 @@ export class E2ETabContainer {
 
     /**
      * Verifies if a tab exists
+     * 
      * @param name The tab name
      * @returns A condition resolving to true if the tab exists, false otherwise
      */

@@ -62,7 +62,6 @@ const colorSchemes = new Map<ColorScheme, string[]>([
     ["grays", ["#FFFF", "#E7E7E7", "#D1D1D1", "#B6B6B6", "#9B9B9B", "#767676", "#6C6C6C", "#515151"]],
 ]);
 
-
 interface IPerformanceDashboardProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
 
@@ -217,7 +216,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             const maximumSampleCount = 200;
 
             const date = new Date();
-            let timestamp = date.getTime() - maximumSampleCount * PerformanceDashboard.sampleInterval;
+            let timestamp = date.getTime() - (maximumSampleCount * PerformanceDashboard.sampleInterval);
 
             const initialData: IXYDatum[] = [];
             const sqlStatementsData: IXYDatum[] = [];
@@ -323,7 +322,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const { mleEnabled, activeTabId } = this.state;
 
         const toolbar = <Toolbar id="dashboardToolbar" dropShadow={false} >
-            {toolbarItems?.navigation}
+            {toolbarItems.navigation}
             <Label caption="Graph Colors:" style={{ marginLeft: "8px" }} />
             <Dropdown
                 id="graphColorsDropdown"
@@ -349,9 +348,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 <DropdownItem caption="10 min" id="200" />
             </Dropdown>
             <div className="expander" />
-            {toolbarItems?.auxiliary}
+            {toolbarItems.auxiliary}
         </Toolbar>;
-
 
         const className = this.getEffectiveClassNames(["performanceDashboard"]);
         const pages = [
@@ -419,7 +417,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const timestamp = new Date().getTime();
         const xDomain: [number, number] = [
-            timestamp - PerformanceDashboard.sampleInterval * graphData.displayInterval,
+            timestamp - (PerformanceDashboard.sampleInterval * graphData.displayInterval),
             timestamp,
         ];
         let yDomain = this.findYDomainValues(incomingNetworkData, 0);
@@ -636,7 +634,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const timestamp = new Date().getTime();
         const xDomain: [number, number] = [
-            timestamp - PerformanceDashboard.sampleInterval * graphData.displayInterval,
+            timestamp - (PerformanceDashboard.sampleInterval * graphData.displayInterval),
             timestamp,
         ];
 
@@ -708,10 +706,10 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     MarkerType.None, "Cache for minimizing the number of times MySQL opens database tables when " +
                 "accessed.")}
 
-                {this.renderNameValuePair("Total Opened Tables", `${openedTables.toLocaleString("en")}`,
+                {this.renderNameValuePair("Total Opened Tables", openedTables.toLocaleString("en"),
                     MarkerType.None, "Total number of opened tables.")}
 
-                {this.renderNameValuePair("Total Transactions", `${trxBegin.toLocaleString("en")}`,
+                {this.renderNameValuePair("Total Transactions", trxBegin.toLocaleString("en"),
                     MarkerType.None, "Total number of started transactions.")}
 
             </GridCell>,
@@ -862,7 +860,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const timestamp = new Date().getTime();
         const xDomain: [number, number] = [
-            timestamp - PerformanceDashboard.sampleInterval * graphData.displayInterval,
+            timestamp - (PerformanceDashboard.sampleInterval * graphData.displayInterval),
             timestamp,
         ];
 
@@ -987,10 +985,10 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const { graphData } = this.state;
 
         const colors = colorSchemes.get(graphData.activeColorScheme)!;
-        const mleMemoryUsed = graphData.currentValues.get("mle_memory_used") as number;
+        const mleMemoryUsed = graphData.currentValues.get("mle_memory_used")!;
         const mleMemoryUsedPie = mleMemoryUsed / 100;
         const mleStatus = graphData.currentValues.get("mle_status");
-        const mleMemoryMax = graphData.currentValues.get("mle_memory_max") as number;
+        const mleMemoryMax = graphData.currentValues.get("mle_memory_max")!;
 
         const mleHeapUsageData = graphData.series.get("mleHeapUsageData") ?? [];
 
@@ -1018,7 +1016,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const timestamp = new Date().getTime();
         const xDomain: [number, number] = [
-            timestamp - PerformanceDashboard.sampleInterval * graphData.displayInterval,
+            timestamp - (PerformanceDashboard.sampleInterval * graphData.displayInterval),
             timestamp,
         ];
 
@@ -1087,7 +1085,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                         )}
                         {this.renderNameValuePair(
                             "MLE max heap size",
-                            `${formatBytes(mleMemoryMax)}`,
+                            formatBytes(mleMemoryMax),
                             MarkerType.None,
                             "MLE max heap size",
                         )}
@@ -1157,10 +1155,10 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         try {
             const result = await backend.execute(`show global status where variable_name in ("${list}")`);
             const mleMemoryMax = await backend.execute(`SELECT @@mle.memory_max`);
-            if (result && result.rows) {
+            if (result?.rows) {
                 const variables = result.rows as Array<[string, string]>;
                 try {
-                    if (mleMemoryMax && mleMemoryMax.rows) {
+                    if (mleMemoryMax?.rows) {
                         const mleMemoryMaxValue = mleMemoryMax.rows as Array<[[number]]>;
                         variables.push([
                             "mle_memory_max",
@@ -1176,8 +1174,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                             }
                         }
                     });
-                }
-                catch (_) {
+                } catch {
                     this.setState({ mleEnabled: false });
                 }
 
@@ -1185,7 +1182,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     const data = await backend.execute(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
                         `STORAGE_ENGINES->>'$."InnoDB"."LSN_checkpoint"' FROM performance_schema.log_status`);
 
-                    if (data && data.rows && data.rows.length > 0) {
+                    if (data?.rows && data.rows.length > 0) {
                         const row = data.rows[0] as number[];
                         this.updateData(variables, row[0]);
                     }
@@ -1193,7 +1190,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     this.updateData(variables);
                 }
             }
-        } catch (_) {
+        } catch {
             // Update with empty data, to show unreachable servers etc.
             this.updateData([]);
         }
@@ -1217,7 +1214,6 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const innoDBDiskWritesData = graphData.series.get("innoDBDiskWritesData") ?? [];
         const innoDBDiskReadsData = graphData.series.get("innoDBDiskReadsData") ?? [];
         const mleHeapUsageData = graphData.series.get("mleHeapUsageData") ?? [];
-
 
         const currentValues = this.extractCurrentValues(data);
         const time = new Date();
@@ -1527,7 +1523,6 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             return [0, 10];
         }
 
-
         return [smallest, largest];
     }
 
@@ -1655,7 +1650,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
     }
 
     private isPieDatum(datum: unknown): datum is IPieDatum {
-        return (datum as IPieDatum).value !== undefined;
+        return "value" in (datum as IPieDatum);
     }
 
     private handleColorsSelection = (accept: boolean, values: Set<string>): void => {

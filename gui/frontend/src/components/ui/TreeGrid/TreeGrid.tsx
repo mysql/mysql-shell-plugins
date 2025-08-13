@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "tabulator-tables//dist/css/tabulator_simple.min.css";
+import "tabulator-tables/dist/css/tabulator_simple.min.css";
 import "./TreeGrid.css";
 
 import {
@@ -224,7 +224,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     public override getSnapshotBeforeUpdate(): IDictionary {
         return {
-            currentTop: this.tabulator?.rowManager.scrollTop ?? 0,
+            currentTop: (this.tabulator?.rowManager as IDictionary).scrollTop ?? 0,
         };
     }
 
@@ -263,9 +263,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                     }
 
                     // Assign the table holder class our fixed scrollbar class too.
-                    if (this.hostRef.current) {
-                        (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
-                    }
+                    const lastChild = this.hostRef.current?.lastChild as HTMLElement | null;
+                    lastChild?.classList.add("fixedScrollbar");
 
                     if (topRowIndex != null) {
                         const topRow = this.tabulator!.getRowFromPosition(topRowIndex);
@@ -318,11 +317,17 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                     if (columns) {
                         // The call to setColumns does. Record the current position and restore it after the update.
                         // Also restore the column widths.
-                        const scrollTop = this.tabulator!.rowManager.element.scrollTop as number;
-                        const scrollLeft = this.tabulator!.columnManager.scrollLeft as number;
+                        const rowManager = this.tabulator!.rowManager as IDictionary;
+                        const columnManager = this.tabulator!.columnManager as IDictionary;
+                        const rowElement = rowManager.element as HTMLElement;
+
+                        const scrollTop = (rowManager.element as IDictionary).scrollTop as number;
+                        const scrollLeft = rowElement.scrollLeft;
 
                         const previousColumnComponents = this.tabulator!.getColumns(true);
-                        const widths = previousColumnComponents.map((component) => { return component.getWidth(); });
+                        const widths = previousColumnComponents.map((component) => {
+                            return component.getWidth();
+                        });
                         this.tabulator?.setColumns(columns);
 
                         const newColumnComponents = this.tabulator!.getColumns(true);
@@ -332,12 +337,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                             });
                         }
 
-                        this.tabulator!.rowManager.element.scrollTop = scrollTop;
+                        rowElement.scrollTop = scrollTop;
 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        this.tabulator!.rowManager.scrollHorizontal(scrollLeft);
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        this.tabulator!.columnManager.scrollHorizontal(scrollLeft);
+                        (rowManager.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
+                        (columnManager.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
                     }
 
                     // Both columns and rows have been set. Now update the UI.
@@ -400,8 +403,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.table.then(() => {
                 this.tabulator?.setColumns(columns);
                 resolve();
-            }).catch((reason) => {
-                reject(reason);
+            }).catch((reason: unknown) => {
+                reject(reason as Error);
             });
         });
     }
@@ -429,7 +432,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             }
 
             case SetDataAction.Set: {
-                await (table as Tabulator)?.setData(data);
+                await (table as Tabulator | undefined)?.setData(data);
 
                 break;
             }
@@ -750,7 +753,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 return;
             }
 
-            if (columns && columns?.length > 0 && columns[0].cellDblClick !== undefined) {
+            if (columns && columns.length > 0 && columns[0].cellDblClick !== undefined) {
                 // Toggle the selected row if this is actually a tree (after a delay to see if a double click follows).
                 this.toggleTimeoutId = setTimeout(() => {
                     this.toggleTimeoutId = null;

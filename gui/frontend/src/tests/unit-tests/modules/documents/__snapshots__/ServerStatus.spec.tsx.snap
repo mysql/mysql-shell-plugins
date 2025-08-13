@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Server status module tests Test ServerStatus instantiation: ServerStatus1 1`] = `
 <ServerStatus

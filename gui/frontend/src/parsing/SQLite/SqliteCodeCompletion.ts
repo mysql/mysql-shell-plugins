@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-underscore-dangle */
-
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
 import { BufferedTokenStream, CharStream, CommonTokenStream } from "antlr4ng";
 
@@ -32,8 +30,8 @@ import { SQLiteLexer } from "./generated/SQLiteLexer.js";
 import { SQLiteParser } from "./generated/SQLiteParser.js";
 
 import { Stack } from "../../supplement/Stack.js";
-import { ICompletionData, ICompletionObjectDetails, LanguageCompletionKind, Scanner } from "../parser-common.js";
 import { unquote } from "../../utilities/string-helpers.js";
+import { ICompletionData, ICompletionObjectDetails, LanguageCompletionKind, Scanner } from "../parser-common.js";
 import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon.js";
 
 interface ITableReference {
@@ -44,18 +42,18 @@ interface ITableReference {
 
 enum ObjectFlags {
     // For 3 part identifiers.
-    ShowSchemas = 1 << 0,
-    ShowTables = 1 << 1,
-    ShowColumns = 1 << 2,
+    ShowSchemas = 0x1,
+    ShowTables = 0x2,
+    ShowColumns = 0x4,
 
     // For 2 part identifiers.
-    ShowFirst = 1 << 3,
-    ShowSecond = 1 << 4,
+    ShowFirst = 0x8,
+    ShowSecond = 0x10,
 }
 
 // Context class for code completion results.
 class AutoCompletionContext {
-    private static noSeparatorRequiredFor: Set<number> = new Set([
+    private static noSeparatorRequiredFor = new Set<number>([
         SQLiteLexer.SCOL,
         SQLiteLexer.DOT,
         SQLiteLexer.OPEN_PAR,
@@ -92,7 +90,7 @@ class AutoCompletionContext {
     // A hierarchical view of all table references in the code, updated by visiting all relevant FROM clauses after
     // the candidate collection.
     // Organized as stack to be able to easily remove sets of references when changing nesting level.
-    private referencesStack: Stack<ITableReference[]> = new Stack();
+    private referencesStack = new Stack<ITableReference[]>();
 
     public constructor(private parser: SQLiteParser, private lexer: SQLiteLexer, private scanner: Scanner) {
     }
@@ -480,7 +478,9 @@ class AutoCompletionContext {
             while (true) {
                 let found = this.scanner.tokenType === SQLiteLexer.FROM_;
                 while (!found) {
-                    if (!this.scanner.next() || this.scanner.tokenIndex >= this.caretIndex) { break; }
+                    if (!this.scanner.next() || this.scanner.tokenIndex >= this.caretIndex) {
+                        break;
+                    }
 
                     switch (this.scanner.tokenType) {
                         case SQLiteLexer.OPEN_PAR:
@@ -556,7 +556,9 @@ class AutoCompletionContext {
                     }
 
                     case SQLiteLexer.CLOSE_PAR: {
-                        if (level > 0) { --level; }
+                        if (level > 0) {
+                            --level;
+                        }
                         break;
                     }
 
@@ -642,7 +644,7 @@ class AutoCompletionContext {
     }
 }
 
-const synonyms: Map<number, string[]> = new Map([
+const synonyms = new Map<number, string[]>([
 
 ]);
 
@@ -725,7 +727,6 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
             }
         }
     }
-
 
     for (const candidate of context.completionCandidates.rules) {
         // Restore the scanner position to the caret position and store that value again for the next round.
@@ -835,7 +836,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                                 break;
                             }
                         }
-                    } else if (context.references.length > 0 && candidate[0] === SQLiteParser.RULE_column_name) {
+                    } else {
                         for (const reference of context.references) {
                             tables.add(reference.table);
                         }

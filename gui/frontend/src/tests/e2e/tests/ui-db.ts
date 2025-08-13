@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /*
  * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
@@ -69,10 +70,10 @@ describe("DATABASE CONNECTIONS", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME1),
+            port: parseInt(String(globalThis.testConfig!.MYSQL_PORT), 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME1PWD),
         },
     };
 
@@ -143,7 +144,6 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-
     });
 
     describe("Connection Overview", () => {
@@ -166,7 +166,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         beforeEach(async () => {
             try {
-                await (await new E2ETabContainer().getTab(constants.connectionOverview)).click();
+                await (await new E2ETabContainer().getTab(constants.connectionOverview))!.click();
             } catch (e) {
                 await Misc.storeScreenShot("beforeEach_Connection_Overview");
                 throw e;
@@ -187,11 +187,8 @@ describe("DATABASE CONNECTIONS", () => {
                 const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                     constants.wait5seconds, "Connection dialog was not displayed");
 
-                const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
-                const hostname = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
-
-                await DialogHelper.clearInputField(caption);
-                await DialogHelper.clearInputField(hostname);
+                await DialogHelper.clearInputField(conDialog, locator.dbConnectionDialog.caption);
+                await DialogHelper.clearInputField(conDialog, locator.dbConnectionDialog.mysql.basic.hostname);
 
                 await conDialog.findElement(locator.dbConnectionDialog.ok).click();
                 await driver.wait(async () => {
@@ -204,6 +201,9 @@ describe("DATABASE CONNECTIONS", () => {
                         return item.getText();
                     }));
                 expect(errorMsgs).toContain("The user name must not be empty");
+
+                const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
+                const hostname = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
                 expect(await caption.getAttribute("value")).toContain("New Connection");
                 expect(await hostname.getAttribute("value")).toBe("localhost");
                 await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
@@ -224,9 +224,7 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.wait5seconds, "Database type popup was not found");
                 await popup.findElement(locator.dbConnectionDialog.databaseTypeSqlite).click();
 
-                const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
-                await DialogHelper.clearInputField(caption);
-
+                await DialogHelper.clearInputField(conDialog, locator.dbConnectionDialog.caption);
                 await conDialog.findElement(locator.dbConnectionDialog.ok).click();
                 await driver.wait(async () => {
                     return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
@@ -237,6 +235,8 @@ describe("DATABASE CONNECTIONS", () => {
                     dialogErrors.map((item: WebElement) => {
                         return item.getText();
                     }));
+
+                const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
                 expect(await caption.getAttribute("value")).toContain("New Connection");
                 expect(errorMsgs).toContain("Specify the path to an existing Sqlite DB file");
                 await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
@@ -253,9 +253,9 @@ describe("DATABASE CONNECTIONS", () => {
 
                 sslConn.ssl = {
                     mode: "Require and Verify CA",
-                    caPath: join(process.env.SSL_ROOT_FOLDER!, "ca.pem"),
-                    clientCertPath: join(process.env.SSL_ROOT_FOLDER!, "client-cert.pem"),
-                    clientKeyPath: join(process.env.SSL_ROOT_FOLDER!, "client-key.pem"),
+                    caPath: join(String(globalThis.testConfig!.SSL_ROOT_FOLDER), "ca.pem"),
+                    clientCertPath: join(String(globalThis.testConfig!.SSL_ROOT_FOLDER), "client-cert.pem"),
+                    clientKeyPath: join(String(globalThis.testConfig!.SSL_ROOT_FOLDER), "client-key.pem"),
                 };
 
                 await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
@@ -280,10 +280,6 @@ describe("DATABASE CONNECTIONS", () => {
                 const sqliteConn = Object.assign({}, globalConn);
                 sqliteConn.dbType = "Sqlite";
                 sqliteConn.caption = `e2eSqliteConnection`;
-
-                if (Os.isLinux()) {
-                    process.env.USERPROFILE = process.env.HOME;
-                }
 
                 const dbPath = join(process.cwd(), "src", "tests", "e2e",
                     `port_${String(shellServers.get(basename(__filename)))}`,
@@ -321,10 +317,10 @@ describe("DATABASE CONNECTIONS", () => {
                     description: "Local connection",
                     basic: {
                         hostname: "localhost",
-                        username: String(process.env.DBUSERNAME1),
-                        port: parseInt(process.env.MYSQL_PORT!, 10),
+                        username: String(globalThis.testConfig!.DBUSERNAME1),
+                        port: parseInt(String(globalThis.testConfig!.MYSQL_PORT), 10),
                         schema: "sakila",
-                        password: String(process.env.DBUSERNAME1PWD),
+                        password: String(globalThis.testConfig!.DBUSERNAME1PWD),
                     },
                 };
 
@@ -478,7 +474,7 @@ describe("DATABASE CONNECTIONS", () => {
                     caption: "e2eDuplicateFromGlobal",
                     basic: {
                         hostname: "localhost",
-                        username: String(process.env.DBUSERNAME1),
+                        username: String(globalThis.testConfig!.DBUSERNAME1),
                     },
                 };
                 await DatabaseConnectionDialog.setConnection(duplicate);
@@ -533,7 +529,7 @@ describe("DATABASE CONNECTIONS", () => {
                     description: "Local connection",
                     basic: {
                         hostname: "localhost",
-                        username: String(process.env.DBUSERNAME1),
+                        username: String(globalThis.testConfig!.DBUSERNAME1),
                     },
                 };
 
@@ -641,10 +637,10 @@ describe("DATABASE CONNECTIONS", () => {
                 description: "Local connection",
                 basic: {
                     hostname: "localhost",
-                    username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_PORT!, 10),
+                    username: String(globalThis.testConfig!.DBUSERNAME1),
+                    port: parseInt(String(globalThis.testConfig!.MYSQL_PORT), 10),
                     schema: "sakila",
-                    password: String(process.env.DBUSERNAME1PWD),
+                    password: String(globalThis.testConfig!.DBUSERNAME1PWD),
                 },
             };
 
@@ -654,13 +650,12 @@ describe("DATABASE CONNECTIONS", () => {
                 description: "Local connection",
                 basic: {
                     hostname: "localhost",
-                    username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_PORT!, 10),
+                    username: String(globalThis.testConfig!.DBUSERNAME1),
+                    port: parseInt(String(globalThis.testConfig!.MYSQL_PORT), 10),
                     schema: "sakila",
-                    password: String(process.env.DBUSERNAME1PWD),
+                    password: String(globalThis.testConfig!.DBUSERNAME1PWD),
                 },
             };
-
 
             try {
                 const tabContainer = new E2ETabContainer();
@@ -745,7 +740,6 @@ describe("DATABASE CONNECTIONS", () => {
                     }
                 }, constants.wait5seconds, "Could not find the Password Dialog for second connection");
 
-
                 await tabContainer.selectTab(constants.connectionOverview);
                 await new E2EDatabaseConnectionOverview().openNotebookUsingKeyboard(globalConn.caption!);
                 await driver.wait(async () => {
@@ -825,10 +819,10 @@ describe("DATABASE CONNECTIONS", () => {
                 dbType: "MySQL",
                 basic: {
                     hostname: "localhost",
-                    username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_PORT!, 10),
+                    username: String(globalThis.testConfig!.DBUSERNAME1),
+                    port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
                     schema: "sakila",
-                    password: String(process.env.DBUSERNAME1PWD),
+                    password: String(globalThis.testConfig!.DBUSERNAME1PWD),
                 },
             };
 
@@ -1549,10 +1543,10 @@ describe("DATABASE CONNECTIONS", () => {
                 caption: "e2eHeatWave Connection",
                 description: "Local connection",
                 basic: {
-                    hostname: String(process.env.HWHOSTNAME),
-                    username: String(process.env.HWUSERNAME),
+                    hostname: String(globalThis.testConfig!.HWHOSTNAME),
+                    username: String(globalThis.testConfig!.HWUSERNAME),
                     schema: "e2e_tests",
-                    password: String(process.env.HWPASSWORD),
+                    password: String(globalThis.testConfig!.HWPASSWORD),
                 },
             };
 
@@ -1630,7 +1624,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     await uploadToObjectStorage.objectStorageBrowser
                         .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"])
-                        .catch((e) => {
+                        .catch((e: unknown) => {
                             if (e instanceof E2EObjectStorageBrowserError) {
                                 skipTest = true;
                             }
@@ -1665,7 +1659,7 @@ describe("DATABASE CONNECTIONS", () => {
                         constants.wait10seconds);
                     await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
                         .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"])
-                        .catch((e) => {
+                        .catch((e: unknown) => {
                             if (e instanceof E2EObjectStorageBrowserError) {
                                 skipTest = true;
                             }
@@ -1791,7 +1785,6 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-
         afterAll(async () => {
             await fs.rm(dumpFolder, { force: true, recursive: true });
         });
@@ -1913,14 +1906,14 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.expandTreeItem(globalConn);
                 await tabContainer.closeAllTabs();
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-                await (await treeGlobalConn?.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
+                await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
 
                 await dbTreeSection.openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
                     .schema!, constants.setAsCurrentDatabaseSchema);
                 let treeSakila = await dbTreeSection.getTreeItem("sakila");
                 await driver.wait(treeSakila.untilIsDefault(), constants.wait3seconds);
-                await (await tabContainer.getTab(globalConn.caption!)).click();
+                await (await tabContainer.getTab(globalConn.caption!))!.click();
 
                 let result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
@@ -1930,9 +1923,9 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.openContextMenuAndSelect("world_x_cst", constants.setAsCurrentDatabaseSchema);
                 const treeWorldSchema = await dbTreeSection.getTreeItem("world_x_cst");
                 await driver.wait(treeWorldSchema.untilIsDefault(), constants.wait3seconds);
-                expect(await treeSakila?.isDefault()).toBe(false);
+                expect(await treeSakila.isDefault()).toBe(false);
 
-                await (await tabContainer.getTab(globalConn.caption!)).click();
+                await (await tabContainer.getTab(globalConn.caption!))!.click();
                 await notebook.codeEditor.clean();
                 result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
@@ -1964,8 +1957,8 @@ describe("DATABASE CONNECTIONS", () => {
                     [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.name]);
 
                 await driver.wait(notebook.untilExists(schemaName), constants.wait3seconds);
-                await dbTreeSection.openContextMenuAndSelect(schemaName, [constants.sendToSQLEditor.exists,
-                constants.sendToSQLEditor.createStatement]);
+                await dbTreeSection.openContextMenuAndSelect(schemaName,
+                    [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.createStatement]);
 
                 await driver.wait(notebook.untilExists("CREATE DATABASE"), constants.wait3seconds);
                 await notebook.codeEditor.clean();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,7 @@ export class E2EScript {
 
     /**
      * Waits until the shell session is opened
+     * 
      * @param connection The database connection
      * @returns A promise resolving when the shell session is opened
      */
@@ -80,8 +81,8 @@ export class E2EScript {
      * @param button The button to click, to trigger the execution
      * @returns A promise resolving when the command is executed
      */
-    public executeWithButton = async (cmd: string, button: string):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public executeWithButton = async (
+        cmd: string, button: string): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");

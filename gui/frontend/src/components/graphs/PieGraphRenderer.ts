@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -75,7 +75,7 @@ export class PieGraphRenderer {
         let svg;
         try {
             svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
-        } catch (reason) {
+        } catch {
             svg = hostSvg.select<SVGSVGElement>("__invalid__");
         }
 
@@ -168,9 +168,9 @@ export class PieGraphRenderer {
                 }
 
                 if (Number.isInteger(datum.data.value)) {
-                    text += `${datum.data.value.toLocaleString()}`;
+                    text += datum.data.value.toLocaleString();
                 } else {
-                    text += `${datum.data.value.toFixed(2)}`;
+                    text += datum.data.value.toFixed(2);
                 }
                 this.setAttribute("data-tooltip", text);
             })
@@ -208,7 +208,7 @@ export class PieGraphRenderer {
 
             const textOffset = outerRadius + 30;
             const midAngle = (d: d3.PieArcDatum<IPieDatum>): number => {
-                return d.startAngle + (d.endAngle - d.startAngle) / 2;
+                return d.startAngle + ((d.endAngle - d.startAngle) / 2);
             };
 
             const label = labels

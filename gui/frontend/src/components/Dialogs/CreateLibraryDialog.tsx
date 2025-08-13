@@ -23,14 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import * as ts from "typescript";
+
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../app-logic/general-types.js";
-import {
-    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
-    IResourceDialogValue,
-} from "./ValueEditDialog.js";
-import { AwaitableValueEditDialog } from "./AwaitableValueEditDialog.js";
 import { loadFileAsText, loadFileBinary } from "../../utilities/helpers.js";
-import ts from "typescript";
+import { AwaitableValueEditDialog } from "./AwaitableValueEditDialog.js";
+import {
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    type IResourceDialogValue,
+} from "./ValueEditDialog.js";
 
 export interface ICreateLibraryDialogData extends IDictionary {
     schemaName: string;
@@ -54,7 +55,7 @@ const humanFileSize = (bytes: number, si = false, dp = 1) => {
     const thresh = si ? 1000 : 1024;
 
     if (Math.abs(bytes) < thresh) {
-        return bytes + " B";
+        return `${bytes} B`;
     }
 
     const units = si
@@ -68,12 +69,11 @@ const humanFileSize = (bytes: number, si = false, dp = 1) => {
         ++u;
     } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
 
-
     return bytes.toFixed(dp) + " " + units[u];
 };
 
 const isValidESModule = (code: string): boolean => {
-     const result = ts.transpileModule(code, {
+    const result = ts.transpileModule(code, {
         compilerOptions: {
             allowJs: true,
             checkJs: true,
@@ -86,7 +86,9 @@ const isValidESModule = (code: string): boolean => {
     if (!result.diagnostics || result.diagnostics.length === 0) {
         return true;
     }
-    const errors = result.diagnostics.filter((d) => {return d.category === ts.DiagnosticCategory.Error;});
+    const errors = result.diagnostics.filter((d) => {
+        return d.category === ts.DiagnosticCategory.Error;
+    });
 
     return errors.length === 0;
 };
@@ -102,7 +104,9 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const dialogValues = this.dialogValues(request);
-        const result = await this.doShow(() => { return dialogValues; }, { title: "Create Library From" });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, { title: "Create Library From" });
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);
         }
@@ -125,7 +129,7 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
                 result.messages.libraryName = "Library name is missing";
             }
             const pathMissing = !mainSection.values.localFilePath.value ||
-                                (mainSection.values.localFilePath.value as string).length === 0;
+                (mainSection.values.localFilePath.value as string).length === 0;
             if (pathMissing) {
                 result.messages.localFilePath = "Path is missing";
                 // because only validateInput is called on every change, reset it here
@@ -149,12 +153,12 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
                 const lang = mainSection.values.language.value as string;
                 let correctExt = false;
                 if (lang === "JavaScript" && (
-                        this.selectedFile.name.endsWith(".js") || this.selectedFile.name.endsWith(".mjs"))) {
+                    this.selectedFile.name.endsWith(".js") || this.selectedFile.name.endsWith(".mjs"))) {
                     correctExt = true;
                     // load & check if correct ES module
                     this.selectedFileContent = loadFileAsText(this.selectedFile).then(
                         (txt) => {
-                            if(isValidESModule(txt)){
+                            if (isValidESModule(txt)) {
                                 return txt;
                             }
                             throw Error("Selected file is not a valid ES module");
@@ -254,7 +258,7 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
         };
     }
 
-private onLanguageChange = (value: string, dialog: ValueEditDialog): void => {
+    private onLanguageChange = (value: string, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
         dialog.updateInputValue(value, "language");
         const mainSection = values.sections.get("mainSection");
@@ -277,17 +281,17 @@ private onLanguageChange = (value: string, dialog: ValueEditDialog): void => {
         dialog.setDialogValues(values);
     };
 
-    private onFileChange = (_value: File | null, dialog: ValueEditDialog): void => {
+    private onFileChange = (value: File | null, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
         const mainSection = values.sections.get("mainSection");
 
         if (mainSection) {
-            if (!_value || _value.name.length === 0) {
+            if (!value || value.name.length === 0) {
                 this.selectedFile = undefined;
                 mainSection.values.localFilePath.description = undefined;
             } else {
-                this.selectedFile = _value;
-                mainSection.values.localFilePath.description = `File size: ${humanFileSize(_value.size)}`;
+                this.selectedFile = value;
+                mainSection.values.localFilePath.description = `File size: ${humanFileSize(value.size)}`;
             }
         }
         dialog.setDialogValues(values);

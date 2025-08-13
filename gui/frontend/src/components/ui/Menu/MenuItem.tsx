@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -96,7 +96,7 @@ export class MenuItem extends ComponentBase<IMenuItemProperties, IMenuItemState>
         const actualCaption = (altActive && altCommand) ? altCommand.title : command.title;
         const className = this.getEffectiveClassNames([
             "menuItem",
-            this.classFromProperty(disabled || isSeparator, "disabled"),
+            this.classFromProperty(disabled ?? isSeparator, "disabled"),
             this.classFromProperty(active, "active"),
         ]);
 
@@ -211,7 +211,7 @@ export class MenuItem extends ComponentBase<IMenuItemProperties, IMenuItemState>
 
         const element = e.currentTarget as HTMLElement;
         e.stopPropagation();
-        if (subMenuShowOnClick && e) {
+        if (subMenuShowOnClick) {
             this.menuRef.current?.open(element.getBoundingClientRect(), false);
         }
 

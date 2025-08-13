@@ -78,7 +78,6 @@
                 "--",
                 "-i",
                 "${file}",
-                "-t",
                 "--no-coverage",
             ],
             "console": "integratedTerminal",

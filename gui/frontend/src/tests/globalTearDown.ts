@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 202, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
-export { };
-
-// eslint-disable-next-line @typescript-eslint/require-await
-module.exports = async (_globalConfig: unknown, projectConfig: unknown) => {
-    // @ts-ignore
-    process.chdir(projectConfig.cwd as string);
+module.exports = (_globalConfig: unknown, projectConfig: { cwd: string; }) => {
+    // eslint-disable-next-line no-restricted-syntax
+    process.chdir(projectConfig.cwd);
 };

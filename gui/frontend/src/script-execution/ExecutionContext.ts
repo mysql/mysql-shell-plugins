@@ -47,29 +47,25 @@ import { uuidBinary16Base64 } from "../utilities/helpers.js";
 export class ExecutionContext implements IExecutionContext {
     private static nextId = 1;
 
+    public showNextResultMaximized = false;
+    public tokenList?: Uint32Array;
+
     protected disposed = false;
 
     private internalId: string;
-
-    #showNextResultMaximized = false;
-    #tokenList: Uint32Array | undefined;
-    #frozen = false;
+    private frozen = false;
 
     // Only used when the context is frozen.
-    #cachedResultIds: Set<string> = new Set();
+    private cachedResultIds = new Set<string>();
 
-    #cachedHeight: number | undefined;
-    #cachedSetIndex: number | undefined;
-    #cachedMaximized: boolean | undefined;
+    private cachedHeight: number | undefined;
+    private cachedSetIndex: number | undefined;
+    private cachedMaximized: boolean | undefined;
 
     public constructor(public presentation: PresentationInterface, private store: StoreType,
         public linkId?: number) {
         this.internalId = uuidBinary16Base64(); //`ec${ExecutionContext.nextId++}`;
         presentation.context = this;
-    }
-
-    public get tokenList(): Uint32Array | undefined {
-        return this.#tokenList;
     }
 
     /**
@@ -135,7 +131,6 @@ export class ExecutionContext implements IExecutionContext {
 
                     break;
                 }
-
 
                 default: {
                     result = data;
@@ -213,13 +208,13 @@ export class ExecutionContext implements IExecutionContext {
      * stores only the necessary information to restore the context when it is needed again.
      */
     public deactivate(): void {
-        this.#frozen = true;
+        this.frozen = true;
         this.presentation.resultIds.forEach((value) => {
             if (value) {
-                this.#cachedResultIds.add(value);
+                this.cachedResultIds.add(value);
             }
         });
-        this.#cachedHeight = this.presentation.cachedHeight;
+        this.cachedHeight = this.presentation.cachedHeight;
         this.clearDecorations();
         this.presentation.freeze();
     }
@@ -235,11 +230,11 @@ export class ExecutionContext implements IExecutionContext {
      */
     public startFrozen(cachedIds: string[], currentHeight: number | undefined, currentSet: number | undefined,
         showMaximized: boolean | undefined): void {
-        this.#frozen = true;
-        this.#cachedResultIds = new Set(cachedIds);
-        this.#cachedHeight = currentHeight;
-        this.#cachedSetIndex = currentSet;
-        this.#cachedMaximized = showMaximized;
+        this.frozen = true;
+        this.cachedResultIds = new Set(cachedIds);
+        this.cachedHeight = currentHeight;
+        this.cachedSetIndex = currentSet;
+        this.cachedMaximized = showMaximized;
     }
 
     /**
@@ -249,10 +244,10 @@ export class ExecutionContext implements IExecutionContext {
      * @param editor The editor to associate with this context.
      */
     public activate(editor: Monaco.IStandaloneCodeEditor): void {
-        this.#frozen = false;
-        this.presentation.activate(editor, this.#cachedHeight);
+        this.frozen = false;
+        this.presentation.activate(editor, this.cachedHeight);
 
-        if (this.#cachedResultIds.size > 0) {
+        if (this.cachedResultIds.size > 0) {
             // Convert result data references back to result data. Result set data is loaded from
             // the application DB, if possible.
             // Keep previously generated output text.
@@ -269,11 +264,11 @@ export class ExecutionContext implements IExecutionContext {
                 };
 
                 result.sets = sets;
-                this.#cachedResultIds.clear();
+                this.cachedResultIds.clear();
                 this.presentation.setResult(result, {
-                    manualHeight: this.#cachedHeight,
-                    maximized: this.#cachedMaximized,
-                    currentSet: this.#cachedSetIndex,
+                    manualHeight: this.cachedHeight,
+                    maximized: this.cachedMaximized,
+                    currentSet: this.cachedSetIndex,
                 });
             });
 
@@ -286,10 +281,6 @@ export class ExecutionContext implements IExecutionContext {
 
     public canClose(): Promise<boolean> {
         return this.presentation.canClose();
-    }
-
-    public showNextResultMaximized(): void {
-        this.#showNextResultMaximized = true;
     }
 
     /**
@@ -448,14 +439,14 @@ export class ExecutionContext implements IExecutionContext {
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
         presentationOptions?: IPresentationOptions, queryType?: QueryType): Promise<void> {
         if (!this.disposed) {
-            if (this.#frozen && data.type === "resultSetRows") {
-                this.#cachedResultIds.add(dataOptions.resultId);
+            if (this.frozen && data.type === "resultSetRows") {
+                this.cachedResultIds.add(dataOptions.resultId);
             }
 
             const options = presentationOptions ?? {};
-            if (this.#showNextResultMaximized) {
+            if (this.showNextResultMaximized) {
                 options.maximized = true;
-                this.#showNextResultMaximized = false;
+                this.showNextResultMaximized = false;
             }
 
             return this.presentation.addResultData(data, dataOptions, options, queryType);
@@ -473,7 +464,7 @@ export class ExecutionContext implements IExecutionContext {
      *
      * @param changes The original monaco-editor changes to apply.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     public applyEditorChanges(changes: Monaco.IModelContentChange[]): void {
         if (!this.disposed) {
             this.scheduleFullValidation();
@@ -571,7 +562,7 @@ export class ExecutionContext implements IExecutionContext {
             });
         });
 
-        this.#tokenList = new Uint32Array(data);
+        this.tokenList = new Uint32Array(data);
     }
 
     protected clearDecorations(): void {
@@ -594,7 +585,7 @@ export class ExecutionContext implements IExecutionContext {
         const sets: IResultSet[] = [];
 
         let index = 0;
-        for await (const id of this.#cachedResultIds) {
+        for (const id of this.cachedResultIds) {
             const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", id);
             const set: IResultSet = {
                 type: "resultSet",
@@ -648,7 +639,7 @@ export class ExecutionContext implements IExecutionContext {
     private isDbModuleResultData(data: unknown[]): data is IDocumentResultData[] {
         const array = data as IDocumentResultData[];
 
-        return array.length > 0 && array[0].tabId !== undefined;
+        return array.length > 0 && array[0].tabId.length > 0;
     }
 
 }

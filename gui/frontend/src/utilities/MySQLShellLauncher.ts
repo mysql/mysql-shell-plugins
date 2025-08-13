@@ -33,7 +33,7 @@ import * as os from "os";
 
 import { requisitions } from "../supplement/Requisitions.js";
 import { appParameters } from "../supplement/AppParameters.js";
-import { uuid } from "./helpers.js";
+import { convertErrorToString, uuid } from "./helpers.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { findExecutable } from "./file-utilities.js";
 
@@ -111,7 +111,8 @@ export class MySQLShellLauncher {
         let shellUserConfigDir: string;
 
         // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory.
-        shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR ?? "";
+        shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR ?? (
+            globalThis.testConfig?.MYSQLSH_GUI_CUSTOM_CONFIG_DIR ?? "");
         if (shellUserConfigDir.length === 0) {
             shellUserConfigDir = appParameters.get("shellUserConfigDir") ?? "";
         }
@@ -166,18 +167,19 @@ export class MySQLShellLauncher {
 
         // Spawn shell process
         const shellProcess = cp.spawn(shellPath, config.parameters, {
-            /* eslint-disable @typescript-eslint/naming-convention */
+
             env: {
+                // Since this code always runs in a Node.js environment, we can use the process.env directly.
+                // eslint-disable-next-line no-restricted-syntax
                 ...process.env,
                 LOG_LEVEL: config.logLevel,
                 MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
                 MYSQLSH_TERM_COLOR_MODE: "nocolor",
             },
-            /* eslint-enable @typescript-eslint/naming-convention */
         });
 
         // istanbul ignore else
-        if (shellProcess.stdin && config.processInput) {
+        if (config.processInput) {
             shellProcess.stdin.setDefaultEncoding("utf-8");
             shellProcess.stdin.write(`${config.processInput}\n`);
             shellProcess.stdin.end();
@@ -187,7 +189,7 @@ export class MySQLShellLauncher {
         const stdDataOut = (data: Buffer) => {
             config.onStdOutData(data.toString());
         };
-        shellProcess.stdout?.on("data", stdDataOut);
+        shellProcess.stdout.on("data", stdDataOut);
 
         // istanbul ignore next
         const onError = (error: Error) => {
@@ -205,7 +207,7 @@ export class MySQLShellLauncher {
 
             shellProcess.stderr.on("data", stdErrorDataOut);
         } else {
-            shellProcess.stderr?.on("data", stdDataOut);
+            shellProcess.stderr.on("data", stdDataOut);
         }
 
         // istanbul ignore else
@@ -368,12 +370,13 @@ export class MySQLShellLauncher {
                 // For external targets we don't pass on a shell config dir, as we probably cannot access it
                 // anyway (unless the target is on localhost).
                 MessageScheduler.get.connect({ url: new URL(target) }).then(() => {
-                    this.launchDetails.port = Number(url.port ?? 8000);
+                    this.launchDetails.port = Number(url.port.length > 0 ? url.port : 8000);
                     this.launchDetails.singleUserToken = url.searchParams.get("token") ?? "";
 
                     void requisitions.execute("connectedToUrl", url);
-                }).catch((reason) => {
-                    this.onOutput(`Could not establish websocket connection: ${String(reason)}`);
+                }).catch((reason: unknown) => {
+                    const message = convertErrorToString(reason);
+                    this.onOutput(`Could not establish websocket connection: ${message}`);
                     void requisitions.execute("connectedToUrl", undefined);
                 });
             } catch (e) {
@@ -414,26 +417,28 @@ export class MySQLShellLauncher {
                             forwardPort(url).then((redirectUrl) => {
                                 MessageScheduler.get.connect(options).then(() => {
                                     void requisitions.execute("connectedToUrl", redirectUrl);
-                                }).catch(/* istanbul ignore next */(reason) => {
+                                }).catch(/* istanbul ignore next */(reason: unknown) => {
                                     // Errors arriving here are directly reflected in test failures.
-                                    this.onError(
-                                        new Error(`Could not establish websocket connection: ${String(reason)}`));
+                                    const message = convertErrorToString(reason);
+                                    this.onError(new Error(`Could not establish websocket connection: ${message}`));
                                     void requisitions.execute("connectedToUrl", undefined);
                                 });
-                            }).catch((reason) => {
-                                this.onError(
-                                    new Error(`Could not establish the port forwarding: ${String(reason)}`));
+                            }).catch((reason: unknown) => {
+                                const message = convertErrorToString(reason);
+                                this.onError(new Error(`Could not establish the port forwarding: ${message}`));
                             });
                         } else {
                             MessageScheduler.get.connect(options).then(() => {
                                 void requisitions.execute("connectedToUrl", url);
-                            }).catch(/* istanbul ignore next */(reason) => {
+                            }).catch(/* istanbul ignore next */(reason: unknown) => {
                                 // Errors arriving here are directly reflected in test failures.
-                                this.onError(
-                                    new Error(`Could not establish websocket connection: ${String(reason)}`));
+                                const message = convertErrorToString(reason);
+                                this.onError(new Error(`Could not establish websocket connection: ${message}`));
                                 void requisitions.execute("connectedToUrl", undefined);
 
-                                setTimeout(() => { void this.exitProcess(); }, 0);
+                                setTimeout(() => {
+                                    void this.exitProcess();
+                                }, 0);
                             });
                         }
 
@@ -457,8 +462,11 @@ export class MySQLShellLauncher {
                 launchShellUsingPort(Math.floor(Math.random() * 20000) + 20000);
             } else {
                 let port = 33336;
-                if (process.env.MYSQLSH_GUI_CUSTOM_PORT !== undefined) {
-                    const customPort = parseInt(process.env.MYSQLSH_GUI_CUSTOM_PORT, 10);
+
+                if (process.env.MYSQLSH_GUI_CUSTOM_PORT) {
+                    port = parseInt(process.env.MYSQLSH_GUI_CUSTOM_PORT, 10);
+                } else if (globalThis.testConfig?.MYSQLSH_GUI_CUSTOM_PORT !== undefined) {
+                    const customPort = parseInt(globalThis.testConfig?.MYSQLSH_GUI_CUSTOM_PORT, 10);
                     if (!isNaN(customPort)) {
                         port = customPort;
                     } else {
@@ -474,7 +482,7 @@ export class MySQLShellLauncher {
                         this.onOutput("Finding free port...");
                         MySQLShellLauncher.findFreePort().then((port) => {
                             launchShellUsingPort(port);
-                        }).catch(/* istanbul ignore next */(error) => {
+                        }).catch(/* istanbul ignore next */(error: unknown) => {
                             // Errors arriving here are directly reflected in test failures.
                             if (error instanceof Error) {
                                 this.onError(error);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -95,6 +95,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Loads the Performance Dashboard/Server Performance page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public loadServerPerformance = async (): Promise<void> => {
@@ -170,7 +171,6 @@ export class E2EPerformanceDashboard {
             await (await driver.findElement(performanceDashboardLocator.innoDBStatus.reading)).getText(),
         ]);
 
-
         this.networkStatus = {
             incomingNetworkTrafficGraph,
             incomingData,
@@ -216,6 +216,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Loads the Performance Dashboard/MLE Performance page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public loadMLEPerformance = async (): Promise<void> => {
@@ -239,6 +240,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Verifies if the tab exists
+     * 
      * @param tabName The tab name
      * @returns A promise resolving to true if the tab exists, false otherwise
      */
@@ -254,6 +256,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Verifies if the tab exists
+     * 
      * @param tabName The tab name
      * @returns A condition resolving to true if the tab exists, false otherwise
      */
@@ -265,6 +268,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Verifies if the tab is selected
+     * 
      * @param tabName The tab name
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
@@ -283,6 +287,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Gets the tab
+     * 
      * @param tabName The tab name
      * @returns A promise resolving with the tab
      */

@@ -32,6 +32,7 @@ import { DialogResponseClosure, DialogType, IDialogResponse, IDictionary } from 
 import { IMySQLDbSystem } from "../../communication/index.js";
 import { Breadcrumb, type IBreadCrumbSegment } from "../../components/ui/Breadcrumb/Breadcrumb.js";
 
+import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 import { Codicon } from "../../components/ui/Codicon.js";
 import {
     ComponentBase, ComponentPlacement, IComponentProperties, type IComponentState,
@@ -59,7 +60,6 @@ import {
 import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
-import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
@@ -327,9 +327,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         );
     }
 
-    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: string; user?: string; })
-        : Promise<boolean> => {
-        const options = details.mdsData as ITileActionOptions & { profileName?: string; user?: string; };
+    private addNewConnection = (details: {
+        mdsData?: IMySQLDbSystem; profileName?: string;
+        user?: string;
+    }): Promise<boolean> => {
+        const options = details.mdsData as ITileActionOptions & { profileName?: string; user?: string; } | undefined;
         if (options) {
             options.profileName = details.profileName;
             options.user = details.user;
@@ -343,7 +345,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const { connectionId, folderPath } = connectionInfo;
         const connections = await this.dataModel?.connectionList(folderPath);
         const connection = connections?.find((candidate) => {
-            return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
+            return candidate.details.id === connectionId;
         });
 
         if (connection) {
@@ -360,7 +362,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const connections = await this.dataModel?.connectionList(folderPath);
 
         const connection = connections?.find((candidate) => {
-            return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
+            return candidate.details.id === connectionId;
         });
 
         if (connection) {
@@ -377,7 +379,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const connections = await this.dataModel?.connectionList(folderPath);
 
         const connection = connections?.find((candidate) => {
-            return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
+            return candidate.details.id === connectionId;
         });
 
         if (connection) {
@@ -410,7 +412,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
      */
     private refreshConnectionGroup = async (data?: IFolderPath): Promise<boolean> => {
         if (data?.id !== undefined && data.id >= 0) {
-            const context = this.context as DocumentContextType;
+            const context = this.context as DocumentContextType | undefined;
             if (context) {
                 const group = await context.connectionsDataModel.findConnectionGroupEntryById(data.id, data.caption);
                 if (group) {
@@ -440,7 +442,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
 
         const folderPath = this.generateFolderPathFromCurrentGroup();
-        const connections = await this.dataModel?.connectionList(folderPath);
+        const connections = await this.dataModel.connectionList(folderPath);
         const caption = `New Connection ${connections.length}`;
         const description = "A new Database Connection";
 
@@ -519,11 +521,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     private handleTileAction = (action: string, props: IConnectionTileProperties | undefined,
         options: unknown): void => {
 
-        const tileProps = props as IConnectionTileProperties;
+        const tileProps = props!;
         if (action === "new") {
             this.doHandleTileAction(action, undefined, options as IDictionary);
         } else {
-            this.doHandleTileAction(action, tileProps?.entry, options as IDictionary);
+            this.doHandleTileAction(action, tileProps.entry, options as IDictionary);
         }
     };
 
@@ -533,7 +535,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         let dbType: DBType | undefined;
 
         if (entry?.type === CdmEntityType.Connection) {
-            dbType = entry?.details ? entry.details.dbType : DBType.MySQL;
+            dbType = entry.details.dbType;
         } else if (action === "new") {
             let connectionDetails: IConnectionDetails | undefined;
             if (options?.id !== undefined) {
@@ -546,14 +548,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 connectionDetails = {
                     id: -1,
                     index: 0,
-                    caption: displayName as string ?? "",
+                    caption: displayName ?? "",
                     dbType: DBType.MySQL,
-                    description: description as string ?? "",
+                    description: description ?? "",
                     useMHS: true,
                     useSSH: false,
                     options: {
                         user,
-                        /* eslint-disable @typescript-eslint/naming-convention */
+
                         "compartment-id": compartmentId,
                         "mysql-db-system-id": id,
                         "profile-name": profileName ?? "DEFAULT",
@@ -574,7 +576,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             // Can only be group activation. If entry is undefined, we have to go up one level.
             if (!entry) {
                 let { currentGroup } = this.state;
-                if (currentGroup && currentGroup.parent) { // Just a sanity check. You cannot go up on root level.
+                if (currentGroup?.parent) { // Just a sanity check. You cannot go up on root level.
                     currentGroup = currentGroup.parent;
                     void currentGroup.refresh?.().then(() => {
                         if (currentGroup!.folderPath.caption === "/") {
@@ -616,26 +618,21 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "remove": {
-                if (entry) {
-                    this.confirmTileRemoval(entry);
-                }
+                this.confirmTileRemoval(entry);
 
                 break;
             }
 
             case "open": {
-                if (entry) {
-                    void requisitions.execute("openConnectionTab",
-                        {
-                            connection: entry,
-                            force: options?.newTab as boolean ?? false,
-                            initialEditor: options?.editor as ("notebook" | "script"),
-                        });
+                void requisitions.execute("openConnectionTab",
+                    {
+                        connection: entry,
+                        force: options?.newTab ?? false,
+                        initialEditor: options?.editor ?? "notebook",
+                    });
 
-                    // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
-                    requisitions.executeRemote("selectConnectionTab",
-                        { connectionId: entry?.details.id });
-                }
+                // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
+                requisitions.executeRemote("selectConnectionTab", { connectionId: entry.details.id });
 
                 break;
             }
@@ -643,8 +640,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             case "msg.newSessionUsingConnection": {
                 const details: IShellSessionDetails = {
                     sessionId: uuid(),
-                    dbConnectionId: entry?.details.id,
-                    caption: entry?.caption,
+                    dbConnectionId: entry.details.id,
+                    caption: entry.caption,
                 };
                 void requisitions.execute("openSession", details);
                 break;
@@ -710,7 +707,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
     private dialogResponse = async (response: IDialogResponse): Promise<boolean> => {
         if (response.id === "deleteConnection") {
-            const entry = response.data?.entry as ICdmConnectionEntry;
+            const entry = response.data?.entry as ICdmConnectionEntry | undefined;
             if (entry && response.closure === DialogResponseClosure.Accept && this.dataModel) {
                 const { onRemoveConnection } = this.props;
                 onRemoveConnection(entry);
@@ -746,11 +743,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private get roots(): Array<ICdmConnectionEntry | ICdmConnectionGroupEntry> {
-        return (this.context as DocumentContextType)?.connectionsDataModel.roots ?? [];
+        return (this.context as DocumentContextType | undefined)?.connectionsDataModel.roots ?? [];
     }
 
     private get dataModel(): ConnectionDataModel | undefined {
-        return (this.context as DocumentContextType)?.connectionsDataModel;
+        return (this.context as DocumentContextType | undefined)?.connectionsDataModel;
     }
 
     private dataModelChanged = (actions: Readonly<ConnectionDMActionList>): void => {

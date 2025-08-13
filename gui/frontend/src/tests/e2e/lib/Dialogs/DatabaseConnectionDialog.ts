@@ -39,6 +39,7 @@ export class DatabaseConnectionDialog {
 
     /**
      * Sets a Database connection data
+     * 
      * @param dbConfig The database config object
      * @returns A promise resolving when the connection dialog is set
      */
@@ -62,9 +63,8 @@ export class DatabaseConnectionDialog {
 
         if (dbConfig.folderPath) {
             await dialog.findElement(locator.dbConnectionDialog.folderPath.exists).click();
-            const selectList = await driver.wait(until
-                .elementLocated(locator.dbConnectionDialog.folderPath.selectList.exists),
-
+            const refLocator = locator.dbConnectionDialog.folderPath.selectList.exists;
+            const selectList = await driver.wait(until.elementLocated(refLocator),
                 constants.wait3seconds, "Could not find the Folder Path select list");
 
             if (dbConfig.folderPath.new === true) {
@@ -153,8 +153,8 @@ export class DatabaseConnectionDialog {
 
                             if (dbConfig.advanced.mode) {
 
-                                const getModeItem = async (item: keyof typeof dbConfig.advanced.mode):
-                                    Promise<WebElement> => {
+                                const getModeItem = async (
+                                    item: keyof typeof dbConfig.advanced.mode): Promise<WebElement> => {
 
                                     return driver.wait(until.elementLocated(locator.dbConnectionDialog.mysql
                                         .advanced.sqlModeItem[item]), constants.wait3seconds);
@@ -181,8 +181,8 @@ export class DatabaseConnectionDialog {
                                 await dialog.findElement(locator.dbConnectionDialog.mysql.advanced.compression).click();
                                 const list = await driver
                                     .wait(until.elementLocated(locator.dbConnectionDialog.mysql.advanced
-                                        .compressionPopup), constants.wait5seconds,
-                                        "Compression list was not displayed");
+                                        .compressionPopup), constants.wait5seconds, "Compression list not displayed");
+
                                 await list.findElement(By.id(dbConfig.advanced.compression)).click();
                             }
 
@@ -224,9 +224,10 @@ export class DatabaseConnectionDialog {
                             const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql
                                 .mds.profileName);
                             await inProfile.click();
+                            const refLocator = locator.dbConnectionDialog.mysql.mds.profileNameList;
                             await driver.wait(until
-                                .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList),
-                                constants.wait5seconds);
+                                .elementLocated(refLocator), constants.wait5seconds);
+
                             await driver.wait(until.elementLocated(By.id(dbConfig.mds.profile)),
                                 constants.wait5seconds).click();
                         }
@@ -279,12 +280,11 @@ export class DatabaseConnectionDialog {
                 }
                 if (dbConfig.advanced) {
                     await DialogHelper.selectTab(constants.advancedTab);
+
                     if (interfaces.isAdvancedSqlite(dbConfig.advanced)) {
-                        if ((dbConfig.advanced)) {
-                            await DialogHelper.setFieldText(dialog,
-                                locator.dbConnectionDialog.sqlite.advanced.otherParams,
-                                dbConfig.advanced.params!);
-                        }
+                        await DialogHelper.setFieldText(dialog,
+                            locator.dbConnectionDialog.sqlite.advanced.otherParams,
+                            dbConfig.advanced.params!);
                     } else {
                         throw new Error("Please define the params object field");
                     }
@@ -300,6 +300,7 @@ export class DatabaseConnectionDialog {
 
     /**
      * Gets the database connection details from the connection dialog
+     * 
      * @returns A promise resolving with the connection details
      */
     public static getConnectionDetails = async (): Promise<interfaces.IDBConnection> => {
@@ -463,6 +464,7 @@ export class DatabaseConnectionDialog {
 
     /**
      * Sets the database schema data to Heat Wave
+     * 
      * @param schemas The schemas
      * @param opMode The operational mode
      * @param output The output
@@ -538,7 +540,9 @@ export class DatabaseConnectionDialog {
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
             constants.wait5seconds, "Connection dialog was not displayed");
         await dialog.findElement(locator.dbConnectionDialog.clearPassword).click();
-        const confirmDialog = await new ConfirmDialog().untilExists(500).catch(() => { return undefined; });
+        const confirmDialog = await new ConfirmDialog().untilExists(500).catch(() => {
+            return undefined;
+        });
 
         if (confirmDialog) {
             await confirmDialog.accept();

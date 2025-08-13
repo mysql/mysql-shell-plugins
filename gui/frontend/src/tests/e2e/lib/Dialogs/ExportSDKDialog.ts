@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,10 +37,11 @@ export class ExportSDKDialog {
 
     /**
      * Sets a MRS SDK using the web view dialog
+     * 
      * @param data The MRS data
      * @returns A promise resolving when the MRS data is set and the dialog is closed
      */
-    public static set = async (data: interfaces.IExportMrsSdk): Promise<void> => {
+    public static set = async (data?: interfaces.IExportMrsSdk): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSdkDialog.exists), constants.wait10seconds,
             "Export MRS SDK dialog was not found");

@@ -27,8 +27,8 @@ import "./Checkbox.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
+import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase.js";
 
 export enum CheckState {
     Unchecked,
@@ -80,7 +80,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
             this.classFromProperty(checkState, ["unchecked", "checked", "indeterminate"]),
             this.classFromProperty(disabled, "disabled"),
         ]);
-        const content = caption || children;
+        const content = caption ?? children;
 
         return (
             <label

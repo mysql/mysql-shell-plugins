@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,6 +54,7 @@ export class E2ELakeHouseNavigator {
 
     /**
      * Selects a tab (Overview/Upload to Object Storage/Load into Lakehouse/Lakehouse Tables)
+     * 
      * @param tabName The tab name
      * @returns A promise resolving when the tab is selected
      */

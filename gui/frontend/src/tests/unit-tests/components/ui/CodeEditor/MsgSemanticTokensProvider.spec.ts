@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -112,7 +112,9 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
         const cancellationToken = {
             isCancellationRequested: false,
-            onCancellationRequested: () => { return { dispose: () => { /**/ } }; },
+            onCancellationRequested: () => {
+                return { dispose: () => { /**/ } }; 
+            },
         };
 
         const tokens = await provider.provideDocumentSemanticTokens(model, null, cancellationToken);
@@ -131,7 +133,9 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
         const cancellationToken = {
             isCancellationRequested: false,
-            onCancellationRequested: () => { return { dispose: () => { /**/ } }; },
+            onCancellationRequested: () => {
+                return { dispose: () => { /**/ } }; 
+            },
         };
 
         const presentation = new PresentationInterface("mysql");
@@ -156,7 +160,9 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
         const cancellationToken = {
             isCancellationRequested: false,
-            onCancellationRequested: () => { return { dispose: () => { /**/ } }; },
+            onCancellationRequested: () => {
+                return { dispose: () => { /**/ } }; 
+            },
         };
 
         const sqlPresentation = new EmbeddedPresentationInterface("sql");
@@ -220,7 +226,9 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
         const cancellationToken = {
             isCancellationRequested: false,
-            onCancellationRequested: () => { return { dispose: () => { /**/ } }; },
+            onCancellationRequested: () => {
+                return { dispose: () => { /**/ } }; 
+            },
         };
 
         const sqlPresentation = new EmbeddedPresentationInterface("sql");

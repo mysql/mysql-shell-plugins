@@ -116,7 +116,7 @@ describe("Value Edit Dialog Tests", (): void => {
             },
             matrix: { // A grid with a name and a value column.
                 type: "matrix",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 value: { "Option 11": 1, "Option 22": 2 },
             },
             upDown: { // A number UpDown component.
@@ -742,7 +742,7 @@ describe("Value Edit Dialog Tests", (): void => {
         // The items are actually not buttons, but simple div elements. However, they support the click event.
         (items[2] as HTMLButtonElement).click();
         expect(portals[0]).toMatchSnapshot();
-        expect(onSelectTab).toBeCalledWith("My Second Section");
+        expect(onSelectTab).toHaveBeenCalledWith("My Second Section");
 
         component.unmount();
     });

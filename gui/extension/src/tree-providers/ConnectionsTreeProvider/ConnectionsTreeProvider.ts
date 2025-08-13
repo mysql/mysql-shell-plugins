@@ -190,6 +190,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     /**
      * This is the factory method for tree items that wrap a single data model entry.
+     *
      * @param entry The data model entry to create a tree item for.
      *
      * @returns The tree item that wraps the data model entry.
@@ -459,7 +460,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         let sql = "";
 
         const configuration = workspace.getConfiguration(`msg.dbEditor`);
-        const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+        const uppercaseKeywords = configuration.get<boolean>("upperCaseKeywords", true);
         const procedureKeyword = uppercaseKeywords ? "PROCEDURE" : "procedure";
         const functionKeyword = uppercaseKeywords ? "FUNCTION" : "function";
         const libraryKeyword = uppercaseKeywords ? "LIBRARY" : "library";
@@ -546,7 +547,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         const message = `Do you want to drop the ${typeName} ${entry.caption}?`;
         const okText = `Drop ${entry.caption}`;
         void ui.showInformationMessage(message, { modal: true, detail: "This operation cannot be reverted!" },
-            okText).then(async (answer) => {
+            okText)
+            .then(async (answer) => {
                 if (answer === okText) {
                     try {
                         await this.dataModel.removeEntry(entry);
@@ -710,7 +712,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
                 case "remove": {
                     const parent = action.entry?.parent;
-                    if (parent?.type === CdmEntityType.ConnectionGroup && parent?.folderPath.id === 1) {
+                    if (parent?.type === CdmEntityType.ConnectionGroup && parent.folderPath.id === 1) {
                         // A top level entry was removed, so refresh the entire tree.
                         this.changeEvent.fire(undefined);
                     } else {
@@ -749,7 +751,6 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "");
         }
 
-
         return true;
     };
 
@@ -762,7 +763,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
      */
     private sortGroupMembers(children: ConnectionDataModelEntry[]) {
         const configuration = workspace.getConfiguration("msg.dbEditor");
-        const foldersFirst = configuration.get("connectionBrowser.sortFoldersFirst", false);
+        const foldersFirst = configuration.get<boolean>("connectionBrowser.sortFoldersFirst", false);
         if (foldersFirst) {
             children = children.sort((a, b) => {
                 const aIsGroup = a.type === CdmEntityType.ConnectionGroup;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import {
-    convertObjectKeysCamelToSnakeCase, convertCamelToTitleCase, convertPropValue, convertObjectKeysSnakeToCamelCase,
+    convertCamelToTitleCase, convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase, convertPropValue,
     convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, unquote,
 } from "../../../utilities/string-helpers.js";
 import { loremIpsum } from "../test-helpers.js";
@@ -121,7 +121,6 @@ describe("String Helpers Tests", () => {
         result = convertObjectKeysCamelToSnakeCase({}, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual({});
 
-        /* eslint-disable @typescript-eslint/naming-convention */
         const e = Symbol("§");
         const source = {
             _: true,
@@ -332,8 +331,6 @@ describe("String Helpers Tests", () => {
 
         result = convertObjectKeysSnakeToCamelCase(source, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual(camelCaseTarget);
-
-        /* eslint-enable @typescript-eslint/naming-convention */
 
         expect(convertCamelToTitleCase("")).toBe("");
         expect(convertCamelToTitleCase("ABC")).toBe("ABC");

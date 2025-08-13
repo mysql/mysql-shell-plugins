@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-/* eslint-disable jsdoc/no-undefined-types */ // Temporarily disabled. Will be fixed in a separate task.
 
 import type { IAccessibilityInformation } from "../../../app-logic/general-types.js";
 import type { ThemeColor } from "../../Theming/ThemeColor.js";
@@ -189,7 +187,7 @@ export class StatusBarItem implements IStatusBarItem {
         return this.#timeout;
     }
 
-    public set timeout(value: number) {
+    public set timeout(value: number | undefined) {
         this.#timeout = value;
         this.update();
     }

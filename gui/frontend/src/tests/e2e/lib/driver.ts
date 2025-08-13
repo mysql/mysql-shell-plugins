@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ export let driver: WebDriver;
 
 /**
  * Loads the webdriver object
+ * 
  * @param runInBackground True to run tests in background
  * @returns A promise resolving when the webdriver is loaded
  */
@@ -42,19 +43,20 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
     const options = new Options();
     options.setUserPreferences({
         download: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+
+            // eslint-disable-next-line no-restricted-syntax
             default_directory: process.cwd(),
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+
             prompt_for_download: "false",
         },
         profile: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+
             content_settings: {
                 exceptions: {
                     clipboard: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+
                         "[*.],*": {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+
                             last_modified: "1576491240619",
                             setting: 1,
                         },
@@ -64,13 +66,13 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
         },
     });
 
-    if (!process.env.E2E_DEBUG && runInBackground) {
+    if (!globalThis.testConfig!.E2E_DEBUG && runInBackground) {
         options.headless().windowSize({ width: 1300, height: 850 });
     }
 
     const createDriver = async (): Promise<WebDriver> => {
-        if (process.env.CHROMEDRIVER_PATH) {
-            const builder = new ServiceBuilder(process.env.CHROMEDRIVER_PATH);
+        if (globalThis.testConfig!.CHROMEDRIVER_PATH) {
+            const builder = new ServiceBuilder(globalThis.testConfig!.CHROMEDRIVER_PATH);
             driver = await new Builder()
                 .forBrowser(Browser.CHROME)
                 .setChromeOptions(options)
@@ -90,7 +92,9 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
         driver = await createDriver();
     } catch (e) {
         if (e instanceof error.SessionNotCreatedError) {
-            await new Promise((resolve) => { setTimeout(resolve, constants.wait5seconds); });
+            await new Promise((resolve) => {
+                setTimeout(resolve, constants.wait5seconds);
+            });
             E2ELogger.info("Creating again the driver ...");
             driver = await createDriver();
         } else {
@@ -99,7 +103,7 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
         }
     }
 
-    if (!runInBackground || process.env.E2E_DEBUG) {
+    if (!runInBackground || globalThis.testConfig!.E2E_DEBUG) {
         await driver.manage().window().maximize();
     }
 

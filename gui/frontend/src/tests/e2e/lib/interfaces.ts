@@ -376,7 +376,7 @@ export interface IRestAuthenticationApp {
     name: string;
     enabled?: boolean;
     limitToRegisteredUsers?: boolean;
-    settings: {
+    settings?: {
         description?: string;
         defaultRole?: string;
     },

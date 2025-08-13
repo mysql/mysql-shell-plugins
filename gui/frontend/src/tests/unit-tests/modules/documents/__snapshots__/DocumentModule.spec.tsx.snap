@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Document module tests Test DocumentModule instantiation 1`] = `
-<Provider
+<l
   value={
     {
       "connectionsDataModel": ConnectionDataModel {
@@ -74,7 +74,7 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
           "snap": true,
         },
         {
-          "content": <g>
+          "content": <k>
             <Tabview
               canCloseTab={[Function]}
               canReorderTabs={true}
@@ -86,7 +86,7 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
                 [
                   {
                     "caption": "Open Connection",
-                    "content": <g>
+                    "content": <k>
                       <ProgressIndicator
                         backgroundOpacity={0.95}
                         id="loadingProgressIndicator"
@@ -96,7 +96,7 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
                         caption=""
                         id="progressMessageId"
                       />
-                    </g>,
+                    </k>,
                     "icon": "overviewPage.svg",
                     "id": "progress",
                   },
@@ -109,7 +109,7 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
             />
             <MrsHub />
             <CreateLibraryDialog />
-          </g>,
+          </k>,
           "minSize": 500,
           "resizable": true,
           "stretch": true,
@@ -118,5 +118,5 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
     }
     splitterSize={4}
   />
-</Provider>
+</l>
 `;

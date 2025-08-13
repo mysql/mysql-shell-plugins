@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,10 +25,10 @@ import "./SQLPreview.css";
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
-import { Label } from "../Label/Label.js";
-import { Container, Orientation } from "../Container/Container.js";
 import { MessageType } from "../../../app-logic/general-types.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { Label } from "../Label/Label.js";
 
 export interface ISQLPreviewProperties extends IComponentProperties {
     /** The SQL statements to preview. This is a list of tuples: [statement-id, statement]. */
@@ -49,7 +49,7 @@ export class SQLPreview extends ComponentBase<ISQLPreviewProperties> {
 
         // Create a list of labels from the statements.
         const labels = statements.map((statement, index) => {
-            if (errors && errors[index]) {
+            if (errors[index]) {
                 return (
                     <Container
                         orientation={Orientation.TopDown}
@@ -63,7 +63,7 @@ export class SQLPreview extends ComponentBase<ISQLPreviewProperties> {
                         >
                             {`${statement[1]};`}
                         </Label>
-                        {errors && errors[index] && <Label type={MessageType.Error}>{errors[index]}</Label>}
+                        <Label type={MessageType.Error}>{errors[index]}</Label>
                     </Container>
                 );
             } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
+import {
+    CellComponent, ColumnComponent, PopupPosition, type RangeComponent, type RowComponent,
+} from "tabulator-tables";
 
 import {
-    CellComponent, ColumnComponent, PopupPosition,
-    type RowComponent, type RangeComponent,
-} from "tabulator-tables";
-import { IMrsObjectFieldTreeItem, MrsObjectFieldTreeEntryType }
-    from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
-import { RowComponentMock } from "./RowComponentMock.js";
+    IMrsObjectFieldTreeItem, MrsObjectFieldTreeEntryType
+} from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
+import { createRequiredMock } from "../test-helpers.js";
 import { ColumnComponentMock } from "./ColumnComponentMock.js";
-
+import { RowComponentMock } from "./RowComponentMock.js";
 
 export class CellComponentMock implements CellComponent {
     public parent?: RowComponentMock;
-    public getElement = jest.fn();
+    public getElement = createRequiredMock(() => {
+        return document.createElement("div");
+    });
     public getTable = jest.fn();
     public getType = jest.fn();
     public checkHeight = jest.fn();
@@ -50,12 +51,12 @@ export class CellComponentMock implements CellComponent {
     public validate = jest.fn();
 
     public data: IMrsObjectFieldTreeItem;
-    public fieldType: string = "json";
+    public fieldType = "json";
     public row: RowComponentMock;
     public value: unknown = "Animal";
 
     public constructor(data?: IMrsObjectFieldTreeItem) {
-        this.data = data || {
+        this.data = data ?? {
             type: MrsObjectFieldTreeEntryType.Field,
             expanded: false,
             expandedOnce: false,
@@ -173,7 +174,6 @@ export class CellComponentMock implements CellComponent {
         return true;
     };
 
-
     public isValid = (): boolean => {
         return true;
     };
@@ -182,7 +182,9 @@ export class CellComponentMock implements CellComponent {
         //
     };
 
-    public getRanges(): RangeComponent[] { return []; }
+    public getRanges(): RangeComponent[] {
+        return [];
+    }
     public getData = (): IMrsObjectFieldTreeItem => {
         return this.data;
     };

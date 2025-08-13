@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -56,7 +56,7 @@ const computePositionForPlacement = (placement: ComponentPlacement, content: HTM
         }
 
         case ComponentPlacement.TopCenter: {
-            left = (reference.left + reference.right) / 2 - contentBounds.width / 2;
+            left = ((reference.left + reference.right) / 2) - (contentBounds.width / 2);
             top = reference.top - contentBounds.height - offset;
             break;
         }
@@ -74,7 +74,7 @@ const computePositionForPlacement = (placement: ComponentPlacement, content: HTM
         }
 
         case ComponentPlacement.RightCenter: {
-            top = (reference.top + reference.bottom) / 2 - contentBounds.height / 2;
+            top = ((reference.top + reference.bottom) / 2) - (contentBounds.height / 2);
             left = reference.left + reference.width + offset;
             break;
         }
@@ -92,7 +92,7 @@ const computePositionForPlacement = (placement: ComponentPlacement, content: HTM
         }
 
         case ComponentPlacement.BottomCenter: {
-            left = (reference.left + reference.right) / 2 - contentBounds.width / 2;
+            left = ((reference.left + reference.right) / 2) - (contentBounds.width / 2);
             top = reference.top + reference.height + offset;
             break;
         }
@@ -110,7 +110,7 @@ const computePositionForPlacement = (placement: ComponentPlacement, content: HTM
         }
 
         case ComponentPlacement.LeftCenter: {
-            top = (reference.top + reference.bottom) / 2 - contentBounds.height / 2;
+            top = ((reference.top + reference.bottom) / 2) - (contentBounds.height / 2);
             left = reference.left - contentBounds.width - offset;
             break;
         }

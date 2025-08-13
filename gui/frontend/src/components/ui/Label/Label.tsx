@@ -25,16 +25,16 @@
 
 import "./Label.css";
 
+import Anser from "anser";
 import { ComponentChild, ComponentChildren, createRef } from "preact";
 import { CSSProperties } from "preact/compat";
 
-import Anser from "anser";
 import { editor as Monaco } from "monaco-editor/esm/vs/editor/editor.api.js";
 
-import { IComponentProperties, ComponentBase, IComponentState } from "../Component/ComponentBase.js";
-import { EditorLanguage } from "../../../supplement/index.js";
 import { MessageType } from "../../../app-logic/general-types.js";
+import { EditorLanguage } from "../../../supplement/index.js";
 import { ThemeManager } from "../../Theming/ThemeManager.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase.js";
 
 /** Semantically the same as ContentAlignment, but needs different values. */
 export enum TextAlignment {
@@ -114,7 +114,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
             actualStyle.textAlign = textAlignment;
         }
 
-        const content = caption || children;
+        const content = caption ?? children;
         if (language === "ansi" && labelEntries) {
             const className = this.getEffectiveClassNames([
                 "resultText",
@@ -170,7 +170,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
         const { caption, children, language } = this.props;
 
         if (language === "ansi") {
-            const content = caption || children;
+            const content = caption ?? children;
 
             const list = Anser.ansiToJson(String(content));
             const labelEntries = list.map((value, index) => {

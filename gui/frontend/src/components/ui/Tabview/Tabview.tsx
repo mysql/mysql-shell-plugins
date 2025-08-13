@@ -274,12 +274,9 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
         }
 
         const newStyle = {
-            ...style, ...{
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "--tabItem-border-width": convertPropValue(tabBorderWidth ?? 0),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "--content-separator-width": convertPropValue(contentSeparatorWidth ?? 0),
-            },
+            ...style,
+            "--tabItem-border-width": convertPropValue(tabBorderWidth ?? 0),
+            "--content-separator-width": convertPropValue(contentSeparatorWidth ?? 0),
         };
 
         const tabAreaClassName = "tabArea" + (stretchTabs ? " stretched" : "");
@@ -434,27 +431,27 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
             return;
         }
 
-        const items = e.dataTransfer?.items;
+        const sourceId = this.getDragSourceId(e);
+        if (sourceId) {
+            const { pages, onMoveTab } = this.props;
+            const sourceIndex = pages.findIndex((page: ITabviewPage) => {
+                return page.id === sourceId;
+            });
+            if (sourceIndex > -1) {
+                let targetIndex = pages.length - 1;
+                if (props.id && props.id.length > 0) {
+                    // Move the item to the position of the target item.
+                    targetIndex = pages.findIndex((page: ITabviewPage) => {
+                        return page.id === props.id;
+                    });
+                }
 
-        if (items) {
-            const sourceId = this.getDragSourceId(e);
-            if (sourceId) {
-                const { pages, onMoveTab } = this.props;
-                const sourceIndex = pages.findIndex((page: ITabviewPage) => { return page.id === sourceId; });
-                if (sourceIndex > -1) {
-                    let targetIndex = pages.length - 1;
-                    if (props.id && props.id?.length > 0) {
-                        // Move the item to the position of the target item.
-                        targetIndex = pages.findIndex((page: ITabviewPage) => { return page.id === props.id; });
-                    }
+                if (targetIndex > -1 && sourceIndex !== targetIndex) {
+                    const page = pages[sourceIndex];
+                    pages.splice(sourceIndex, 1);
+                    pages.splice(targetIndex, 0, page);
 
-                    if (targetIndex > -1 && sourceIndex !== targetIndex) {
-                        const page = pages[sourceIndex];
-                        pages.splice(sourceIndex, 1);
-                        pages.splice(targetIndex, 0, page);
-
-                        onMoveTab?.(sourceId, sourceIndex, targetIndex);
-                    }
+                    onMoveTab?.(sourceId, sourceIndex, targetIndex);
                 }
             }
         }
@@ -472,9 +469,8 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
             return undefined;
         }
 
-        const items = e.dataTransfer?.items;
-
-        if (items && items.length > 0) {
+        const items = e.dataTransfer.items;
+        if (items.length > 0) {
             const item = items[0];
             if (item.kind === "string" && item.type.startsWith("sourceid:")) {
                 return item.type.substring("sourceid:".length);
@@ -523,7 +519,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
     private handleSliderMove = (e: PointerEvent): void => {
         if (this.trackingSliderMove && this.sliderRef.current && this.tabAreaRef.current) {
             const clientWidth = this.tabAreaRef.current.clientWidth;
-            const sliderWidth = this.sliderRef.current?.clientWidth ?? 0;
+            const sliderWidth = this.sliderRef.current.clientWidth;
             const sliderLeftMax = clientWidth - sliderWidth;
             const delta = e.clientX - this.lastSliderPosition;
             let sliderLeft = this.sliderRef.current.offsetLeft + delta;
@@ -561,7 +557,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
 
         if (this.tabAreaRef.current && selectedId) {
             const tabArea = this.tabAreaRef.current;
-            const activeTab = document.getElementById(`${selectedId}`);
+            const activeTab = document.getElementById(selectedId);
             if (activeTab) {
                 const tabAreaRect = tabArea.getBoundingClientRect();
                 const activeTabRect = activeTab.getBoundingClientRect();
@@ -651,7 +647,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
             }
         }
 
-        void closeTabs?.(closingIds);
+        await closeTabs(closingIds);
     }
 
     private getClosingOtherTabIds(ownId: string): string[] {

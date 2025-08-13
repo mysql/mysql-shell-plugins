@@ -45,7 +45,7 @@ import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../supplement/WebSession.js";
 import { DialogResponseClosure } from "./general-types.js";
 
-interface IProfileSelectorState extends IComponentState {
+export interface IProfileSelectorState extends IComponentState {
     menuItems: ComponentChild[];
 }
 
@@ -84,7 +84,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
     }
 
     public open(currentTarget: DOMRect): void {
-        this.actionMenuRef?.current?.open(currentTarget, false);
+        this.actionMenuRef.current?.open(currentTarget, false);
     }
 
     public render(): ComponentChild {
@@ -191,7 +191,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
     private generatePopupMenuEntries = (): void => {
         const menuItems: ComponentChild[] = [];
-        this.activeProfiles?.forEach(
+        this.activeProfiles.forEach(
             (value: IShellProfile, index: number) => {
                 let icon;
                 if (value.id === webSession.currentProfileId) {
@@ -261,7 +261,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
             messages: {},
         };
 
-        const details = payload as { saveProfile: boolean; section: string; };
+        const details = payload as { saveProfile: boolean; section: string | undefined; };
         const sectionId = details.section ?? "add";
         const sectionValues = values.sections.get(sectionId)!.values;
         switch (sectionId) {
@@ -325,15 +325,14 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
             case "delete": {
                 const value = sectionValues.profileActivateDeactivate as ICheckListDialogValue;
-                const list = value.checkList;
-                list?.forEach((item) => {
-                    const data = item.data as ICheckboxProperties;
-                    if (String(this.defaultProfile?.id) === data.id && data.checkState === CheckState.Checked) {
+                value.checkList.forEach((item) => {
+                    if (String(this.defaultProfile?.id) === item.data.id
+                        && item.data.checkState === CheckState.Checked) {
                         result.messages.profileActivateDeactivate = "Default profile cannot be deleted";
                     }
 
-                    if (String(webSession.currentProfileId) === data.id
-                        && data.checkState === CheckState.Checked) {
+                    if (String(webSession.currentProfileId) === item.data.id
+                        && item.data.checkState === CheckState.Checked) {
                         result.messages.profileActivateDeactivate = "Active profile cannot be deleted";
                     }
                 });
@@ -367,7 +366,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                             const baseProfileName = sectionValues
                                 .definedProfiles.value as string;
                             baseProfile = this.activeProfiles.find(
-                                (item: IShellProfile) => { return item.name === baseProfileName; },
+                                (item: IShellProfile) => {
+                                    return item.name === baseProfileName;
+                                },
                             );
                         }
                         this.insertProfile(profileName, baseProfile);
@@ -393,16 +394,16 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
                     case "delete": {
                         const value = sectionValues.profileActivateDeactivate as ICheckListDialogValue;
-                        const list = value.checkList;
                         this.deleteList = [];
-                        list?.forEach((item) => {
-                            const data = item.data as ICheckboxProperties;
+                        value.checkList.forEach((item) => {
+                            const data = item.data;
                             if (data.checkState === CheckState.Checked) {
                                 const profile = this.activeProfiles.find(
                                     (profile: IShellProfile) => {
                                         return String(profile.id) === data.id;
                                     },
                                 );
+
                                 if (profile) {
                                     this.deleteList.push(profile);
                                 }
@@ -480,7 +481,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         for (const profile of this.deleteList) {
             await ShellInterface.users.deleteProfile(profile);
             const index = this.activeProfiles.findIndex(
-                (item: IShellProfile) => { return item.id === profile.id; },
+                (item: IShellProfile) => {
+                    return item.id === profile.id;
+                },
             );
 
             if (index > -1) {
@@ -559,7 +562,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                         this.activeProfiles.length > 0
                             ? this.activeProfiles[0].name
                             : "",
-                    choices: this.activeProfiles.map((item) => { return item.name; }),
+                    choices: this.activeProfiles.map((item) => {
+                        return item.name;
+                    }),
                     options: [CommonDialogValueOption.Disabled],
                     horizontalSpan: 8,
                 },
@@ -575,7 +580,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     caption: "Profile name:",
                     placeholder:
                         this.activeProfiles.find(
-                            (p) => { return p.id === webSession.currentProfileId; },
+                            (p) => {
+                                return p.id === webSession.currentProfileId;
+                            },
                         )?.name ?? this.activeProfiles[0].name,
                     horizontalSpan: 8,
                 },
@@ -584,7 +591,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     caption: "default profile",
                     value:
                         this.activeProfiles.find(
-                            (p) => { return p.id === webSession.currentProfileId; },
+                            (p) => {
+                                return p.id === webSession.currentProfileId;
+                            },
                         )?.id === this.defaultProfile?.id,
                     horizontalSpan: 8,
                 },

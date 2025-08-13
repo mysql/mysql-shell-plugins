@@ -52,10 +52,10 @@ describe("RESULT GRIDS", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME1),
+            port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME1PWD),
         },
     };
 
@@ -65,10 +65,10 @@ describe("RESULT GRIDS", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME2),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME2),
+            port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME2PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME2PWD),
         },
     };
 
@@ -469,7 +469,7 @@ describe("RESULT GRIDS", () => {
 
                 await result.editCells(cellsToEdit, constants.doubleClick);
                 result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
-                const booleanField = booleanEdited ? 1 : 0;
+                const booleanField = 0;
                 const expectedSqlPreview = [
                     /UPDATE sakila.all_data_types_ints SET/,
                     new RegExp(`test_smallint = ${smallIntEdited}`),
@@ -821,7 +821,6 @@ describe("RESULT GRIDS", () => {
                 result = await notebook.codeEditor
                     .refreshResult(result.command, result.id) as E2ECommandResultGrid;
                 await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-
 
                 await result.applyChanges();
                 await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);

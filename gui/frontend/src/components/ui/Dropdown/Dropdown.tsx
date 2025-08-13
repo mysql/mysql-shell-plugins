@@ -105,6 +105,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         withoutArrow: false,
     };
 
+    private static lastClickTarget?: HTMLElement;
+
     private readonly containerRef = createRef<HTMLDivElement>();
     private readonly listRef = createRef<HTMLDivElement>();
     private readonly popupRef = createRef<Popup>();
@@ -137,7 +139,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     }
 
     public override componentDidUpdate(): void {
-        if ((!this.popupRef.current || !this.popupRef.current.isOpen) && (this.containerRef.current != null)) {
+        if ((!this.popupRef.current?.isOpen) && (this.containerRef.current != null)) {
             // Set back the focus to the drop down, once the popup was closed.
             // This is independent of the auto focus property, because for the popup to show
             // the dropdown had to have the focus anyway.
@@ -159,7 +161,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         const { hotId } = this.state;
 
         const currentSelection = typeof selection === "string" ? new Set([selection]) : selection;
-        const currentDescription = this.descriptionFromId(hotId || currentSelection?.values().next().value as string);
+        const selectionValue = currentSelection?.values().next().value;
+        const currentDescription = this.descriptionFromId(hotId ?? selectionValue);
 
         const className = this.getEffectiveClassNames([
             "dropdown",
@@ -176,7 +179,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             let checked = false;
 
             const { id: childId, caption: childCaption, picture } = child.props;
-            if (currentSelection?.has(childId as string)) {
+            if (currentSelection?.has(childId!)) {
                 tags.push({ id: childId ?? "", caption: childCaption, picture });
                 checked = true;
             }
@@ -197,7 +200,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
 
         if (optional) {
             // Being optional means we have an entry with no value.
-            content?.splice(0, 0,
+            content.splice(0, 0,
                 <DropdownItem
                     id="empty"
                     caption="empty"
@@ -295,10 +298,10 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             // This is handled as a cancel event, since any selection by click or keyboard is already accepted.
             // There's one exception, however: If the focus is shifted to the popup itself, the user might want to
             // select an item from the list.
-            const element = e.relatedTarget as HTMLElement;
-            if (element && !element.classList.contains("dropdownList")) {
+            const element = Dropdown.lastClickTarget?.closest(".dropdownList");
+            if (!element) {
                 if (this.popupRef.current?.isOpen) {
-                    this.popupRef.current?.close(true);
+                    this.popupRef.current.close(true);
                 } else {
                     // If the dropdown isn't shown currently, the close event isn't called by the popup.
                     // So do it manually.
@@ -356,7 +359,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 }
 
                 const current = childArray[this.currentSelectionIndex];
-                const id = current?.props.id;
+                const id = current.props.id;
                 if (id && !this.popupRef.current?.isOpen) {
                     this.toggleSelectedItem(id, false, true, current.props.payload);
                 }
@@ -380,7 +383,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 }
 
                 const current = childArray[this.currentSelectionIndex];
-                const id = current?.props.id;
+                const id = current.props.id;
                 if (id && !this.popupRef.current?.isOpen) {
                     this.toggleSelectedItem(id, false, true, current.props.payload);
                 }
@@ -541,7 +544,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         if ((currentSelection != null) && currentSelection.size > 0) {
             const selectedId = currentSelection.keys().next().value;
 
-            return this.findSelectedIndex(selectedId as string);
+            return this.findSelectedIndex(selectedId);
         } else {
             return -1;
         }
@@ -564,4 +567,10 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             return element.props.id === selectedId;
         });
     };
+
+    static {
+        document.addEventListener("mousedown", (e: MouseEvent): void => {
+            Dropdown.lastClickTarget = e.target as HTMLElement;
+        });
+    }
 }

@@ -217,7 +217,6 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
                       id="description"
                       rows="8"
                       spellcheck="true"
-                      type="text"
                     />
                   </div>
                   <label

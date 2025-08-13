@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,15 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-underscore-dangle */
-
 import { Lexer, Token } from "antlr4ng";
 
 import { QueryType } from "../parser-common.js";
 
 import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
 import {
-    IMySQLRecognizerCommon, SqlMode, isReservedKeyword, numberToVersion, isKeyword,
+    IMySQLRecognizerCommon, SqlMode, isKeyword, isReservedKeyword, numberToVersion,
 } from "./MySQLRecognizerCommon.js";
 
 /** The base lexer class provides a number of functions needed in actions in the lexer (grammar). */
@@ -43,11 +41,11 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
     /** Enable Multi Language Extension support. */
     public supportMle = true;
 
-    public readonly charsets: Set<string> = new Set(); // Used to check repertoires.
+    public readonly charsets = new Set<string>(); // Used to check repertoires.
     protected inVersionComment = false;
 
     private pendingTokens: Token[] = [];
-    private symbols: Map<string, number> = new Map(); // A list of all defined symbols for lookup.
+    private symbols = new Map<string, number>(); // A list of all defined symbols for lookup.
 
     static #longString = "2147483647";
     static #longLength = 10;
@@ -276,7 +274,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         }
 
         const symbol = this.vocabulary.getSymbolicName(type);
-        if (symbol && symbol.endsWith("_SYMBOL")) {
+        if (symbol?.endsWith("_SYMBOL")) {
             if (!isReservedKeyword(symbol.substring(0, symbol.length - "_SYMBOL".length),
                 numberToVersion(this.serverVersion))) {
                 return true;
@@ -306,7 +304,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             const max = this.vocabulary.maxTokenType;
             for (let i = 0; i <= max; ++i) {
                 const symbolName = this.vocabulary.getSymbolicName(i);
-                if (symbolName && symbolName.endsWith("_SYMBOL")) {
+                if (symbolName?.endsWith("_SYMBOL")) {
                     this.symbols.set(symbolName.substring(0, symbolName.length - "_SYMBOL".length).toUpperCase(), i);
                 }
             }
@@ -775,7 +773,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                     }
 
                     case MySQLMRSLexer.IDENTIFIER: {
-                        const text = (token.text || "").toLowerCase();
+                        const text = (token.text ?? "").toLowerCase();
                         if (text === "autocommit") {
                             return QueryType.SetAutoCommit;
                         }
@@ -1457,7 +1455,6 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             if (token.channel === Token.DEFAULT_CHANNEL) {
                 return token;
             }
-
         } while (true);
     }
 
@@ -1479,9 +1476,13 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             token = this.nextDefaultChannelToken();
             if (token.type === MySQLMRSLexer.OPEN_PAR_SYMBOL) {
                 token = this.nextDefaultChannelToken();
-                if (token.type !== MySQLMRSLexer.CLOSE_PAR_SYMBOL) { return false; }
+                if (token.type !== MySQLMRSLexer.CLOSE_PAR_SYMBOL) {
+                    return false;
+                }
                 token = this.nextDefaultChannelToken();
-                if (token.type === Token.EOF) { return false; }
+                if (token.type === Token.EOF) {
+                    return false;
+                }
             }
 
             return true;

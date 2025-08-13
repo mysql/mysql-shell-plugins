@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,7 @@ export class E2EToolbar {
 
     /**
      * Verifies if a toolbar button exists
+     * 
      * @param button The button
      * @returns A promise resolving with true if the button exists, false otherwise
      */
@@ -55,6 +56,7 @@ export class E2EToolbar {
 
     /**
      * Gets a toolbar button
+     * 
      * @param button The button name
      * @returns A promise resolving with the button
      */

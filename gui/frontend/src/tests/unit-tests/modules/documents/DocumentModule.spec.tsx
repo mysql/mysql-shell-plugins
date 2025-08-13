@@ -23,10 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable dot-notation */
-
 import { mount, shallow } from "enzyme";
-import { type ComponentChild } from "preact";
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
@@ -38,6 +35,7 @@ import { DropdownItem } from "../../../../components/ui/Dropdown/DropdownItem.js
 import { ConnectionDataModel, type ICdmConnectionEntry } from "../../../../data-models/ConnectionDataModel.js";
 import { DocumentModule, type IDocumentModuleState } from "../../../../modules/db-editor/DocumentModule.js";
 import type { IDocumentSideBarSectionState } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
+import { sendSqlUpdatesFromModel } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
@@ -49,41 +47,22 @@ import { IExecutionContext, INewEditorRequest, type EditorLanguage } from "../..
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import {
-    getDbCredentials, ignoreSnapshotUuids, nextProcessTick, nextRunLoop,
-    setupShellForTests,
+    getDbCredentials, ignoreSnapshotUuids, nextProcessTick, nextRunLoop, setupShellForTests,
 } from "../../test-helpers.js";
-import { sendSqlUpdatesFromModel } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 
 /**
  * This test module exists to isolate the different calls to private methods in the super class.
  * It's necessary to do it this way, because triggering these methods using the built-in handling requires way too
  * much setup and teardown.
  */
+// @ts-expect-error, we need access to a private members here.
 class TestDocumentModule extends DocumentModule {
-    public testHandleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
-        return this["handleHelpCommand"](command, language);
-    };
-
-    public testHandleEditorRename = (id: string, editorId: string, newCaption: string): void => {
-        this["handleEditorRename"](id, editorId, newCaption);
-    };
-
-    public testHandleAddConnection = (entry: ICdmConnectionEntry): void => {
-        this["handleAddConnection"](entry);
-    };
-
-    public testHandleUpdateConnection = (entry: ICdmConnectionEntry): void => {
-        this["handleUpdateConnection"](entry);
-    };
-
+    declare public handleHelpCommand: (command: string, language: EditorLanguage) => string | undefined;
+    declare public handleEditorRename: (id: string, editorId: string, newCaption: string) => void;
+    declare public handleAddConnection: (entry: ICdmConnectionEntry) => void;
+    declare public handleUpdateConnection: (entry: ICdmConnectionEntry) => void;
     public dataModel(): ConnectionDataModel {
         return (this.context as DocumentContextType).connectionsDataModel;
-    }
-
-    public override render(): ComponentChild {
-        const result = super.render();
-
-        return result;
     }
 }
 
@@ -433,13 +412,13 @@ EXAMPLES
     WHERE name = ? /*=mike*/
 `;
 
-        let result = instance.testHandleHelpCommand("test command", "javascript");
+        let result = instance.handleHelpCommand("test command", "javascript");
         expect(result).toBe(expectedHelpJavaScript);
 
-        result = instance.testHandleHelpCommand("test command", "typescript");
+        result = instance.handleHelpCommand("test command", "typescript");
         expect(result).toBe(expectedHelpTypeScript);
 
-        result = instance.testHandleHelpCommand("test command", "mysql");
+        result = instance.handleHelpCommand("test command", "mysql");
         expect(result).toBe(expectedHelpMySQL);
 
         component.unmount();
@@ -464,7 +443,7 @@ EXAMPLES
 
         expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
 
-        instance.testHandleEditorRename(editorTab.dataModelEntry.id, String(connectionId), "newName");
+        instance.handleEditorRename(editorTab.dataModelEntry.id, String(connectionId), "newName");
 
         component.unmount();
     });
@@ -491,7 +470,7 @@ EXAMPLES
 
         await nextProcessTick();
 
-        instance.testHandleAddConnection(entry);
+        instance.handleAddConnection(entry);
         expect(instance.state.connectionTabs).toHaveLength(1);
 
         component.unmount();
@@ -519,7 +498,7 @@ EXAMPLES
 
         await nextProcessTick();
 
-        instance.testHandleUpdateConnection(entry);
+        instance.handleUpdateConnection(entry);
 
         component.unmount();
     });

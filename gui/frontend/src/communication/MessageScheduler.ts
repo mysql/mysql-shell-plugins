@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
-
 import { ui } from "../app-logic/UILayer.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { appParameters } from "../supplement/AppParameters.js";
@@ -127,9 +125,7 @@ export class MessageScheduler {
     #traceEnabled = false;
 
     public static get get(): MessageScheduler {
-        if (!MessageScheduler.instance) {
-            MessageScheduler.instance = this.createInstance();
-        }
+        MessageScheduler.instance ??= this.createInstance();
 
         return MessageScheduler.instance;
     }
@@ -244,7 +240,6 @@ export class MessageScheduler {
      */
     public sendRawRequest(details: INativeShellRequest,
         callback?: DataCallback<"native">): Promise<INativeShellResponse> {
-        details.request_id = details.request_id ?? uuid();
 
         return new Promise((resolve, reject) => {
             if (this.traceEnabled) {
@@ -272,7 +267,6 @@ export class MessageScheduler {
      *
      * @returns A new websocket instance.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected createWebSocket(target: URL, options: IConnectionOptions): WebSocket {
         return new WebSocket(target);
     }

@@ -56,7 +56,7 @@ describe("Grid component test", (): void => {
                 </GridCell>
                 <GridCell>
                     <Button id="loginButton" round>
-                        <Icon src={Assets.misc.chevronIcon} />
+                        <Icon src={Assets.misc.chevronIcon as string} />
                     </Button>
                 </GridCell>
             </Grid>,

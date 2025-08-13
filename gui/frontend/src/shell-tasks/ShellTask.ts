@@ -98,7 +98,9 @@ export class ShellTask {
             } else if (this.isShellSimpleResult(data)) {
                 // Extract the "{percentage}% completed" to indicate the progress
                 if (data.info && this.statusCallback !== undefined) {
-                    const group = Array.from(data.info.matchAll(/(\d+)%\scompleted/gm), (m) => { return m[1]; });
+                    const group = Array.from(data.info.matchAll(/(\d+)%\scompleted/gm), (m) => {
+                        return m[1];
+                    });
                     if (group.length > 0) {
                         const percentage = parseInt(group[0], 10);
                         if (!isNaN(percentage) && this.currentProgress !== percentage) {
@@ -165,7 +167,7 @@ export class ShellTask {
     }
 
     private isShellFeedbackRequest(response: IShellResultType): response is IShellFeedbackRequest {
-        return (response as IShellFeedbackRequest).type !== undefined;
+        return "type" in (response as IShellFeedbackRequest);
     }
 
     private isShellSimpleResult(response: IShellResultType): response is IShellSimpleResult {

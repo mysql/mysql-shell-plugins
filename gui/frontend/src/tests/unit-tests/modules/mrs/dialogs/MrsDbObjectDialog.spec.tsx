@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable dot-notation */
-
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
@@ -124,7 +122,6 @@ describe("MRS Db Object dialog tests", () => {
         const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
         await dialogHelper.waitForDialog();
 
-
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
 
@@ -177,7 +174,7 @@ describe("MRS Db Object dialog tests", () => {
 
             // cell 3
             expect(gridCells[2].children[0].textContent).toBe("Comments");
-            const commentsInput = gridCells[2].children[1].firstElementChild as HTMLInputElement;
+            const commentsInput = gridCells[2].children[1].firstElementChild as HTMLInputElement | null;
             expect(commentsInput?.value).toBe("<this is a comment>");
 
             // cell 4
@@ -219,13 +216,13 @@ describe("MRS Db Object dialog tests", () => {
 
             //  cell 1
             expect(gridCells[0].children[0].textContent).toBe("Options");
-            let element = gridCells[0].children[1].firstElementChild as HTMLInputElement;
+            let element = gridCells[0].children[1].firstElementChild as HTMLInputElement | null;
             expect(element?.value).toBe("");
             expect(gridCells[0].children[2].textContent).toBe("Additional options in JSON format");
 
             //  cell 2
             expect(gridCells[1].children[0].textContent).toBe("Metadata");
-            element = gridCells[1].children[1].firstElementChild as HTMLInputElement;
+            element = gridCells[1].children[1].firstElementChild as HTMLInputElement | null;
             expect(element?.value).toBe("");
             expect(gridCells[1].children[2].textContent).toBe("Metadata settings in JSON format");
         }
@@ -423,7 +420,6 @@ describe("MRS Db Object dialog tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [dataMappingTab, _settingsTab, _authorizationsTab, _optionsTab]
             = dialogHelper.getTabItems(["Data Mapping", "Settings", "Authorization", "Options"]);
 
@@ -437,7 +433,6 @@ describe("MRS Db Object dialog tests", () => {
         });
 
         expect(sqlTextLines.length).toBeGreaterThan(0);
-
 
         await dialogHelper.clickButton({ class: "msg button imageOnly sqlCopyBtn" });
 

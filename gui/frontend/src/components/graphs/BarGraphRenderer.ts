@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -61,7 +61,7 @@ export class BarGraphRenderer {
         let svg;
         try {
             svg = hostSvg.select<SVGSVGElement>(`#${config.id}`);
-        } catch (reason) {
+        } catch {
             svg = hostSvg.select<SVGSVGElement>("__invalid__");
         }
         let root;
@@ -240,7 +240,7 @@ export class BarGraphRenderer {
                     })
                     .attr("height", (index) => {
                         // istanbul ignore next
-                        return (yScaleBandTime(0) ?? 0) - (yScaleBandTime(yValues[index] as Date) ?? 0);
+                        return yScaleBandTime(0) - yScaleBandTime(yValues[index] as Date);
                     });
             } else {
                 bars
@@ -255,7 +255,7 @@ export class BarGraphRenderer {
                     })
                     .attr("height", (index) => {
                         // istanbul ignore next
-                        return (yScaleBandTime(0) ?? 0) - (yScaleBandTime(yValues[index] as Date) ?? 0);
+                        return yScaleBandTime(0) - yScaleBandTime(yValues[index] as Date);
                     });
             }
         } else if (yDataType === "number") {
@@ -286,7 +286,7 @@ export class BarGraphRenderer {
                     })
                     .attr("height", (index) => {
                         // istanbul ignore next
-                        return (yScaleBandLinear(0) ?? 0) - (yScaleBandLinear(yValues[index] as number) ?? 0);
+                        return yScaleBandLinear(0) - yScaleBandLinear(yValues[index] as number);
                     });
             } else {
                 bars
@@ -300,7 +300,7 @@ export class BarGraphRenderer {
                     })
                     .attr("height", (index) => {
                         // istanbul ignore next
-                        return (yScaleBandLinear(0) ?? 0) - (yScaleBandLinear(yValues[index] as number) ?? 0);
+                        return yScaleBandLinear(0) - yScaleBandLinear(yValues[index] as number);
                     });
             }
         } else {
@@ -331,7 +331,7 @@ export class BarGraphRenderer {
                     })
                     .attr("height", (index) => {
                         // istanbul ignore next
-                        return (yScaleBandOrdinal(0) ?? 0) - (yScaleBandOrdinal(yValues[index]) ?? 0);
+                        return yScaleBandOrdinal(0) - yScaleBandOrdinal(yValues[index]);
                     });
             } else {
                 bars
@@ -345,7 +345,7 @@ export class BarGraphRenderer {
                     })
                     .attr("height", (index) => {
                         // istanbul ignore next
-                        return (yScaleBandOrdinal(0) ?? 0) - (yScaleBandOrdinal(yValues[index]) ?? 0);
+                        return yScaleBandOrdinal(0) - yScaleBandOrdinal(yValues[index]);
                     });
             }
         }

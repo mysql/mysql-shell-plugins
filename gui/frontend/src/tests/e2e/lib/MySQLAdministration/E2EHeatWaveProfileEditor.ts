@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,6 +33,7 @@ export class E2EHeatWaveProfileEditor {
 
     /**
      * Verifies if the HeatWave Profile Editor is opened
+     * 
      * @returns A promise resolving to true if the HeatWave Profile Editor is opened, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -41,6 +42,7 @@ export class E2EHeatWaveProfileEditor {
 
     /**
      * Verifies if the HeatWave Profile Editor is opened
+     * 
      * @returns A condition resolving to true if the tab is selected, false otherwise
      */
     public untilIsOpened = (): Condition<boolean> => {
@@ -51,6 +53,7 @@ export class E2EHeatWaveProfileEditor {
 
     /**
      * Gets the history rows
+     * 
      * @returns A promise resolving with the history rows
      */
     public getHistory = async (): Promise<interfaces.IHeatWaveProfileHistory[]> => {
@@ -68,6 +71,7 @@ export class E2EHeatWaveProfileEditor {
 
     /**
      * Gets the database tables
+     * 
      * @returns A promise resolving with the database tables
      */
     public getDatabaseTables = async (): Promise<string[]> => {
@@ -81,6 +85,7 @@ export class E2EHeatWaveProfileEditor {
 
     /**
      * Gets the matched documents
+     * 
      * @returns A promise resolving with the database tables
      */
     public getMatchedDocuments = async (): Promise<interfaces.IHeatWaveProfileMatchedDocument[]> => {
@@ -98,6 +103,7 @@ export class E2EHeatWaveProfileEditor {
 
     /**
      * Selects a model
+     * 
      * @param model The model
      * @returns A promise resolving when the model is selected
      */

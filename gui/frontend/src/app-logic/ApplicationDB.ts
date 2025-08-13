@@ -28,7 +28,7 @@
 import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
 import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
-import { uuid } from "../utilities/helpers.js";
+import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import { IColumnInfo, IDictionary, IStatusInfo } from "./general-types.js";
 import { ui } from "./UILayer.js";
 
@@ -228,7 +228,7 @@ export class ApplicationDB {
         const transaction = ApplicationDB.appDB.transaction(store, "readwrite");
         const tabIndex = transaction.store.index("resultIndex");
         const cursor = await tabIndex.openCursor(IDBKeyRange.only(details.resultId));
-        if (cursor && cursor.value.columns && cursor.value.columns.length === details.columns.length) {
+        if (cursor?.value.columns && cursor.value.columns.length === details.columns.length) {
             for (const [index, column] of cursor.value.columns.entries()) {
                 column.inPK = details.columns[index].inPK;
                 column.default = details.columns[index].default;
@@ -288,16 +288,16 @@ export class ApplicationDB {
                         db.clear(StoreType.Shell),
                     ]).then(() => {
                         resolve();
-                    }).catch(/* istanbul ignore next */(reason) => {
-                        reject(reason);
+                    }).catch(/* istanbul ignore next */(reason: unknown) => {
+                        reject(reason as Error);
                     });
                 } else {
                     resolve();
                 }
-            }).catch(/* istanbul ignore next */(reason) => {
-                const message = reason instanceof Error ? reason.message : String(reason);
+            }).catch(/* istanbul ignore next */(reason: unknown) => {
+                const message = convertErrorToString(reason);
                 void ui.showErrorMessage(`IndexedDB Error: ${message}`, {});
-                reject(reason);
+                reject(reason as Error);
             });
         });
     }

@@ -94,8 +94,8 @@ export const categoryFromPath = (path: string): [string, ISettingCategory] => {
     }
 
     let category = settingCategories;
-    do {
-        const part = parts.shift();
+    let part = parts.shift();
+    while (part) {
         if (!part) {
             break;
         }
@@ -105,8 +105,10 @@ export const categoryFromPath = (path: string): [string, ISettingCategory] => {
             throw new Error(`The setting category path "${path}" is invalid.`);
         }
 
+        // Using an intermediate variable here to avoid eslint complaints about unsafe access to the part variable.
+        const currentPart = part;
         const entry = category.children.find((child) => {
-            return child.key === part;
+            return child.key === currentPart;
         });
 
         /* istanbul ignore if */
@@ -115,7 +117,9 @@ export const categoryFromPath = (path: string): [string, ISettingCategory] => {
         }
 
         category = entry;
-    } while (true);
+
+        part = parts.shift();
+    }
 
     return [key, category];
 };
@@ -132,16 +136,13 @@ const registerSettingCategory = (path: string, title: string, description: strin
     const [key, category] = categoryFromPath(path);
 
     /* istanbul ignore if */
-    if (category.children && category.children.find((child) => {
+    if (category.children?.find((child) => {
         return child.key === key;
     })) {
         throw new Error(`Attempt to register an existing setting category (${path}).`);
     }
 
-    if (!category.children) {
-        category.children = [];
-    }
-
+    category.children ??= [];
     category.children.push({
         title,
         key,

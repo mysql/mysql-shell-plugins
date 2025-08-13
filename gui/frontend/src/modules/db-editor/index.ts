@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/// <reference types="./assets/typings/scripting-runtime.d.ts" />
+/// <reference types="../../typings/scripting-runtime.d.ts" />
 
 import { ComponentChild, createContext } from "preact";
 
@@ -47,7 +47,7 @@ export interface IBaseTreeItem<T> {
 }
 
 /** Comprises the parts of a fully qualified name. */
-export type QualifiedName = {
+export interface QualifiedName {
     /** Not assigned for connections. */
     schema?: string;
 
@@ -56,7 +56,7 @@ export type QualifiedName = {
 
     /** Assigned only for entries that have either a table or a schema as parent. */
     name?: string;
-};
+}
 
 /** Represents the visual expression of a connection data model entry. */
 export interface IConnectionTreeItem extends IBaseTreeItem<ConnectionDataModelEntry> {
@@ -112,19 +112,19 @@ export interface ISavedGraphData {
     currentValues: Map<string, number>;
 
     /** Computed values for labels and pie graphs.  */
-    computedValues: { [key: string]: number; };
+    computedValues: Record<string, number>;
 
     /** Stored data per line graph. */
     series: Map<string, IXYDatum[]>;
 }
 
 /** The preact context holding shared data for all pages in the DB editor module. */
-export type DocumentContextType = {
+export interface DocumentContextType {
     connectionsDataModel: ConnectionDataModel;
     documentDataModel: OpenDocumentDataModel;
     ociDataModel: OciDataModel;
     shellTaskDataModel: ShellTaskDataModel;
-};
+}
 
 /**
  * The context class for the DB editor module. This is used to share data between the various

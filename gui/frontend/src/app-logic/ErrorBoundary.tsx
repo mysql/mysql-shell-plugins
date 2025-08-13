@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -65,7 +65,6 @@ export class ErrorBoundary extends ComponentBase<IErrorBoundaryProperties, IErro
     }
 
     /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public override componentDidCatch(error: Error, errorInfo: unknown): void {
         // log the error errorInfo.componentStack;
     }

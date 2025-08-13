@@ -154,7 +154,6 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and e
               id="header"
               rows="4"
               spellcheck="true"
-              type="text"
             />
           </div>
           <label
@@ -355,7 +354,6 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] =
               id="header"
               rows="4"
               spellcheck="true"
-              type="text"
             />
           </div>
           <label

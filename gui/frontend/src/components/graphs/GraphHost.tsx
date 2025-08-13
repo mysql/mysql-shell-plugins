@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { ComponentChild, createRef } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { ComponentBase, IComponentProperties } from "../ui/Component/ComponentBase.js";
 
 import { BarGraphRenderer } from "./BarGraphRenderer.js";
 import { LineGraphRenderer } from "./LineGraphRenderer.js";
@@ -67,7 +65,6 @@ export class GraphHost extends ComponentBase<IGraphHostProps> {
         const width = options.viewport?.width ?? 1200;
         const height = options.viewport?.height ?? 900;
 
-
         return (
             <svg
                 ref={this.svgRef}
@@ -89,7 +86,7 @@ export class GraphHost extends ComponentBase<IGraphHostProps> {
 
             for (let i = 0; i < existing.length; ++i) {
                 const element = existing.item(i);
-                if (element && element.id) {
+                if (element?.id) {
                     const index = options.series?.findIndex((candidate) => {
                         return candidate.id === element.id;
                     }) ?? -1;
@@ -104,28 +101,25 @@ export class GraphHost extends ComponentBase<IGraphHostProps> {
                 switch (entry.type) {
                     case "pie": {
                         const renderer = new PieGraphRenderer();
-                        if (!entry.colors) {
-                            entry.colors = options.colors;
-                        }
+                        entry.colors ??= options.colors;
                         renderer.render(this.svgRef.current!, entry);
+
                         break;
                     }
 
                     case "line": {
                         const renderer = new LineGraphRenderer();
-                        if (!entry.colors) {
-                            entry.colors = options.colors;
-                        }
+                        entry.colors ??= options.colors;
                         renderer.render(this.svgRef.current!, entry);
+
                         break;
                     }
 
                     case "bar": {
                         const renderer = new BarGraphRenderer();
-                        if (!entry.colors) {
-                            entry.colors = options.colors;
-                        }
+                        entry.colors ??= options.colors;
                         renderer.render(this.svgRef.current!, entry);
+
                         break;
                     }
 

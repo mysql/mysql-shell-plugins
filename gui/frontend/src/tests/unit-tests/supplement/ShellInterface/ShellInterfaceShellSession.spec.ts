@@ -45,6 +45,7 @@ describe("ShellInterfaceShellSession Tests", () => {
         credentials = getDbCredentials();
         testConnection = {
             id: -1,
+            index: -1,
 
             dbType: DBType.MySQL,
             caption: "ShellInterfaceDb Test Connection 1",
@@ -62,7 +63,7 @@ describe("ShellInterfaceShellSession Tests", () => {
         };
 
         testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection) ?? [-1, -1, -1])[0];
+            testConnection))[0];
         expect(testConnection.id).toBeGreaterThan(-1);
     });
 

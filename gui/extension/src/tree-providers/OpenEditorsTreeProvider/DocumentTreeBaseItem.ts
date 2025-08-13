@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@
 
 import * as path from "path";
 
-import { TreeItem, TreeItemCollapsibleState } from "vscode";
+import { TreeItem, TreeItemCollapsibleState, Uri } from "vscode";
 
 import type { OpenDocumentDataModelEntry } from "../../../../frontend/src/data-models/OpenDocumentDataModel.js";
 
@@ -38,8 +38,8 @@ export class DocumentTreeBaseItem<T extends OpenDocumentDataModelEntry> extends 
         super(dataModelEntry.caption, hasChildren ? TreeItemCollapsibleState.Expanded : TreeItemCollapsibleState.None);
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "images", "dark", iconName),
+            light: Uri.file(path.join(__dirname, "..", "images", "light", iconName)),
+            dark: Uri.file(path.join(__dirname, "..", "images", "dark", iconName)),
         };
 
         this.command = {

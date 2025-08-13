@@ -155,7 +155,9 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
                         break;
                     }
 
-                    const index = tags?.findIndex((tag: ITag) => { return tag.caption === value; });
+                    const index = tags.findIndex((tag: ITag) => {
+                        return tag.caption === value;
+                    });
                     if (index === -1) {
                         onAdd?.(value, this.props);
                     }
@@ -178,7 +180,7 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
         // Button in the label makes the entire label act like a button (but we only want the button to act so).
         if ((e.target as HTMLElement).className === "msg icon") {
             e.stopPropagation();
-            onRemove?.(props.id || "", this.props);
+            onRemove?.(props.id ?? "", this.props);
         }
     };
 

@@ -64,12 +64,14 @@ const compartment1: ICompartment = {
 
 /** The data model entry created from the profile record. */
 const ociProfile1 = {
-    id: expect.any(String),
-    state: expect.objectContaining({ expanded: false, expandedOnce: false, isLeaf: false, initialized: false }),
+    id: expect.any(String) as unknown,
+    state: expect.objectContaining({
+        expanded: false, expandedOnce: false, isLeaf: false, initialized: false
+    }) as unknown,
     caption: "DEFAULT (us-phoenix-1)",
     type: OciDmEntityType.ConfigurationProfile,
-    profileData: expect.objectContaining(profile1),
-    compartments: expect.any(Array),
+    profileData: expect.objectContaining(profile1) as unknown,
+    compartments: expect.any(Array) as unknown,
 };
 
 const dbSystem1: IMySQLDbSystem = {
@@ -97,6 +99,9 @@ const dbSystem1: IMySQLDbSystem = {
         timeCreated: new Date("2024-01-01"),
         timeUpdated: new Date("2024-01-01"),
     },
+    dataStorage: {},
+    databaseMode: DbSystem.DatabaseMode.ReadWrite,
+    accessMode: DbSystem.AccessMode.Unrestricted
 };
 
 const dbSystem2: IMySQLDbSystem = {
@@ -116,6 +121,9 @@ const dbSystem2: IMySQLDbSystem = {
     timeCreated: new Date("2024-01-01"),
     timeUpdated: new Date("2024-01-01"),
     isSupportedForHwCluster: false,
+    dataStorage: {},
+    databaseMode: DbSystem.DatabaseMode.ReadWrite,
+    accessMode: DbSystem.AccessMode.Unrestricted
 };
 
 const computeInstance1: IComputeInstance = {
@@ -170,7 +178,7 @@ const loadBalancer1: LoadBalancer = {
 
 jest.mock("../../../supplement/ShellInterface/ShellInterfaceMhs.js", () => {
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         ShellInterfaceMhs: jest.fn().mockImplementation(() => {
             return {
                 getMdsConfigProfiles: jest.fn().mockResolvedValue([
@@ -349,7 +357,6 @@ describe("OciDataModel", () => {
         expect(dataModelChanged).toHaveBeenCalledTimes(5);
         checkNoUiWarningsOrErrors();
     });
-
 
     it("Load balancers", async () => {
         await dataModel.profiles[0].refresh?.();

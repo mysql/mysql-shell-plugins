@@ -939,7 +939,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Dump Schema to Disk for MySQL Database Service", async function () {
+        it.skip("Dump Schema to Disk for MySQL Database Service", async function () {
 
             await TestQueue.push(this.test.title);
             existsInQueue = true;

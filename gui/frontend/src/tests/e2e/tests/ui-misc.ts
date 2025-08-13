@@ -85,7 +85,7 @@ describe("Token Verification", () => {
 
     it("No token", async () => {
         try {
-            const noToken = String(url).replace(String(process.env.TOKEN), "");
+            const noToken = String(url).replace(String(globalThis.testConfig!.TOKEN), "");
             await driver.get(noToken);
 
             expect(driver.wait(until.elementsLocated(locator.adminPage.headingText), constants.wait5seconds,
@@ -139,7 +139,7 @@ describe("Login", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(String(process.env.SHELL_UI_MU_HOSTNAME));
+        await driver.get(String(globalThis.testConfig!.SHELL_UI_MU_HOSTNAME));
 
         await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
     });
@@ -193,10 +193,10 @@ describe("Notifications", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME1),
+            port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME1PWD),
         },
     };
 
@@ -498,7 +498,7 @@ describe("Single Server Mode", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(String(process.env.SHELL_UI_SS_HOSTNAME));
+        await driver.get(String(globalThis.testConfig!.SHELL_UI_SS_HOSTNAME));
         await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
     });
 
@@ -531,8 +531,8 @@ describe("Single Server Mode", () => {
     it("Login", async () => {
         try {
             const login = new E2ELogin();
-            await login.setUsername(String(process.env.DBUSERNAME1));
-            await login.setPassword(String(process.env.DBUSERNAME1PWD));
+            await login.setUsername(String(globalThis.testConfig!.DBUSERNAME1));
+            await login.setPassword(String(globalThis.testConfig!.DBUSERNAME1PWD));
             await login.login();
 
             const tabContainer = new E2ETabContainer();
@@ -611,10 +611,10 @@ describe("Single Server Mode", () => {
 
     it("Auto logout", async () => {
         try {
-            console.log(`TEST_AUTO_LOGOUT_TIMEOUT: ${String(process.env.TEST_AUTO_LOGOUT_TIMEOUT)}`);
+            await driver.executeScript("window.testConfig = arguments[0]", globalThis.testConfig);
             const login = new E2ELogin();
-            await login.setUsername(String(process.env.DBUSERNAME1));
-            await login.setPassword(String(process.env.DBUSERNAME1PWD));
+            await login.setUsername(String(globalThis.testConfig!.DBUSERNAME1));
+            await login.setPassword(String(globalThis.testConfig!.DBUSERNAME1PWD));
             await login.login();
 
             const tabContainer = new E2ETabContainer();

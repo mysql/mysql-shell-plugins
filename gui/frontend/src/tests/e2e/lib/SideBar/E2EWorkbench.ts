@@ -32,6 +32,7 @@ import { driver } from "../driver.js";
 export class E2EWorkbench {
     /**
      * Selects a context menu item from the Workbench submenu
+     * 
      *  @param itemName The context menu item name
      */
     public selectFromSubmenu = async (itemName: string): Promise<void> => {

@@ -30,17 +30,14 @@ import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables"
 
 import type { IDictionary } from "../../app-logic/general-types.js";
 import { settingCategories, type ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { CheckState, Checkbox, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
-import {
-    ComponentBase, SelectionType,
-    type IComponentState,
-} from "../ui/Component/ComponentBase.js";
+import { ComponentBase, SelectionType, type IComponentState, } from "../ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
 import { Search, type ISearchProperties, type ISearchValues } from "../ui/Search/Search.js";
 import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { SettingsEditorList } from "./SettingsEditorList.js";
-import { RunMode, webSession } from "../../supplement/WebSession.js";
 
 interface ISettingsEditorState extends IComponentState {
     settingsTree: ISettingCategory[];
@@ -228,7 +225,7 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
             }
 
             // Collapse and deselect the currently active node.
-            void this.treeRef.current?.table.then((table) => {
+            void this.treeRef.current.table.then((table) => {
                 this.treeRef.current?.getSelectedRows().forEach((row) => {
                     if (!top.startsWith((row.getData() as IDictionary).id as string)) {
                         let current: RowComponent | false = row;
@@ -273,7 +270,9 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
             this.filterTimer = null;
         }
 
-        this.setState({ searchValues: values }, () => { this.runFilterTimer(); });
+        this.setState({ searchValues: values }, () => {
+            this.runFilterTimer();
+        });
 
     };
 
@@ -283,7 +282,7 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
             if (values.useRegExp) {
                 filter = new RegExp(values.value ?? "", values.matchCase ? undefined : "i");
             } else {
-                let pattern = `${values.value ?? ""}`;
+                let pattern = values.value ?? "";
                 if (values.matchWholeWord) {
                     pattern = `\\b${pattern}\\b`;
                 }

@@ -103,6 +103,7 @@ export class CodeEditorSetup {
         Monaco.createModel("", "javascript").dispose();
         Monaco.createModel("", "json").dispose();
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (languages.typescript) { // This field is not set when running under Jest.
             const compilerOptions: languages.typescript.CompilerOptions = {
                 allowNonTsExtensions: true,
@@ -135,13 +136,13 @@ export class CodeEditorSetup {
         Monaco.remeasureFonts();
 
         // Convert all color values to CSS hex form.
-        const entries: { [key: string]: string; } = {};
-        for (const [key, value] of Object.entries(values.colors || {})) {
+        const entries: Record<string, string> = {};
+        for (const [key, value] of Object.entries(values.colors ?? {})) {
             entries[key] = (new Color(value)).hexa();
         }
 
         const tokenRules: Monaco.ITokenThemeRule[] = [];
-        (values.tokenColors || []).forEach((value: ITokenEntry): void => {
+        (values.tokenColors ?? []).forEach((value: ITokenEntry): void => {
             const scopeValue = value.scope || [];
             const scopes = Array.isArray(scopeValue) ? scopeValue : scopeValue.split(",");
             scopes.forEach((scope: string): void => {

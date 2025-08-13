@@ -28,8 +28,8 @@ import "./NotificationCenter.css";
 import { createRef, type ComponentChild, type RefObject } from "preact";
 
 import { type Resolver } from "../../../app-logic/general-types.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
 import { appParameters } from "../../../supplement/AppParameters.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import type { EditorLanguage } from "../../../supplement/index.js";
 import { Button } from "../Button/Button.js";
 import { Codicon } from "../Codicon.js";
@@ -266,7 +266,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
             return (<Container
                 key={toast.id}
-                id={"toast-" + toast.id}
+                id={`"toast-" + ${toast.id}`}
                 innerRef={toast.ref}
                 className={toastClassName}
                 orientation={Orientation.TopDown}
@@ -303,7 +303,9 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     private renderHistory(): ComponentChild {
         const { history } = this.state;
 
-        const newlyAdded = history.filter((toast) => { return toast.isNew; }).length;
+        const newlyAdded = history.filter((toast) => {
+            return toast.isNew;
+        }).length;
         let caption = "";
         if (history.length === 0) {
             caption = "NO NOTIFICATIONS";
@@ -343,7 +345,6 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
                 </Button>
             </Container>
         );
-
 
         const content = history.map((toast, index) => {
             const details = toast.details;
@@ -545,12 +546,16 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         const remove = () => {
             const { mainList, history } = this.state;
 
-            let index = history.findIndex((item) => { return item.id === toast.id; });
+            let index = history.findIndex((item) => {
+                return item.id === toast.id;
+            });
             if (index > -1) {
                 history.splice(index, 1);
             }
 
-            index = mainList.findIndex((item) => { return item.id === toast.id; });
+            index = mainList.findIndex((item) => {
+                return item.id === toast.id;
+            });
             if (index > -1) {
                 mainList.splice(index, 1);
             }
@@ -579,6 +584,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
     /**
      * A handler for global key down. We are only interested in the escape key to close the first open toast.
+     *
      * @param e The keyboard event.
      */
     private handleKeyDown = (e: KeyboardEvent): void => {
@@ -606,7 +612,9 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
                     text = "$(bell)";
                 }
             } else {
-                const newlyAdded = history.filter((toast) => { return toast.isNew; }).length;
+                const newlyAdded = history.filter((toast) => {
+                    return toast.isNew;
+                }).length;
                 if (silent) {
                     text = newlyAdded === 0 ? "$(bell-slash)" : "$(bell-slash-dot)";
                 } else {

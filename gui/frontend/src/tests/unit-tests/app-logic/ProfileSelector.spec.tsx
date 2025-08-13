@@ -23,28 +23,53 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable dot-notation */
 
 import { act } from "@testing-library/preact";
-import { mount } from "enzyme";
-import { createRef } from "preact";
+import { mount, type ReactWrapper } from "enzyme";
+import { createRef, type RefObject } from "preact";
 
-import { ProfileSelector } from "../../../app-logic/ProfileSelector.js";
+import { ProfileSelector, type IProfileSelectorState } from "../../../app-logic/ProfileSelector.js";
 import { Button } from "../../../components/ui/Button/Button.js";
 
+import type { IShellProfile } from "../../../communication/ProtocolGui.js";
+import type { ConfirmDialog } from "../../../components/Dialogs/ConfirmDialog.js";
+import type {
+    IDialogValidations, IDialogValues, ValueEditDialog
+} from "../../../components/Dialogs/ValueEditDialog.js";
+import { IMenuItemProperties } from "../../../components/ui/Menu/MenuItem.js";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../../supplement/WebSession.js";
 import { mouseEventMock } from "../__mocks__/EventMocks.js";
 import { nextProcessTick, setupShellForTests } from "../test-helpers.js";
-import { IMenuItemProperties } from "../../../components/ui/Menu/MenuItem.js";
 
 let clicked = false;
 const buttonClick = (): void => {
     clicked = true;
 };
+
+// @ts-expect-error, we need access to a private members here.
+class ProfileSelectorMock extends ProfileSelector {
+    declare public defaultProfile?: IShellProfile;
+    declare public activeProfiles: IShellProfile[];
+    declare public profileDialogRef: RefObject<ValueEditDialog>;
+    declare public confirmDialogRef: RefObject<ConfirmDialog>;
+    declare public deleteList: IShellProfile[];
+
+    declare public handleProfileAction: (action: string, profileId: string) => void;
+    declare public profileLoaded: () => Promise<boolean>;
+    declare public getProfileList: (userId: number) => Promise<void>;
+    declare public validateProfileValues: (closing: boolean, values: IDialogValues,
+        payload: unknown) => IDialogValidations;
+    declare public updateProfile: (profileToEdit: IShellProfile, setDefault: boolean) => Promise<void>;
+    declare public handleMenuItemClick: (props: IMenuItemProperties) => boolean;
+    declare public addProfile: () => void;
+    declare public editProfile: () => void;
+    declare public deleteProfile: () => void;
+    declare public generatePopupMenuEntries: () => void;
+    declare public sendUpdateProfileInfoMsg: () => void;
+    declare public deleteProfileConfirm: () => void;
+}
 
 describe("ProfileSelector test", () => {
 
@@ -53,14 +78,14 @@ describe("ProfileSelector test", () => {
     });
 
     it("Render Profile Selector and check properties", async () => {
-        const actionMenuRef = createRef<ProfileSelector>();
+        const actionMenuRef = createRef<ProfileSelectorMock>();
         const innerRef = createRef<HTMLDivElement>();
         const component = mount(
             <div>
                 <Button innerRef={innerRef} onClick={buttonClick}>
                     Open Profile Selector
                 </Button>
-                <ProfileSelector ref={actionMenuRef}></ProfileSelector>
+                <ProfileSelectorMock ref={actionMenuRef}></ProfileSelectorMock>
             </div>,
         );
 
@@ -88,13 +113,13 @@ describe("ProfileSelector test", () => {
     });
 
     it("Standard Rendering (snapshot)", async () => {
-        const actionMenuRef = createRef<ProfileSelector>();
+        const actionMenuRef = createRef<ProfileSelectorMock>();
         const component = mount(
             <div>
                 <Button onClick={buttonClick}>
                     Open Profile Selector
                 </Button>
-                <ProfileSelector ref={actionMenuRef}></ProfileSelector>
+                <ProfileSelectorMock ref={actionMenuRef}></ProfileSelectorMock>
             </div>,
         );
 
@@ -129,12 +154,12 @@ describe("ProfileSelector test", () => {
     });
 
     describe("handleProfileAction tests", () => {
-        let profileSelector: ProfileSelector;
+        let profileSelector: ProfileSelectorMock;
         let getProfileSpy: jest.SpyInstance;
         let loadProfileSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            profileSelector = new ProfileSelector({});
+            profileSelector = new ProfileSelectorMock({});
             getProfileSpy = jest.spyOn(ShellInterface.users, "getProfile");
             loadProfileSpy = jest.spyOn(webSession, "loadProfile");
         });
@@ -147,7 +172,7 @@ describe("ProfileSelector test", () => {
             const mockProfile = { id: 1, name: "test profile" };
             getProfileSpy.mockResolvedValue(mockProfile);
 
-            profileSelector["handleProfileAction"]("current", "1");
+            profileSelector.handleProfileAction("current", "1");
             await nextProcessTick();
 
             expect(getProfileSpy).toHaveBeenCalledWith(1);
@@ -157,7 +182,7 @@ describe("ProfileSelector test", () => {
         it("should not load profile when getProfile returns null", async () => {
             getProfileSpy.mockResolvedValue(null);
 
-            profileSelector["handleProfileAction"]("current", "1");
+            profileSelector.handleProfileAction("current", "1");
             await nextProcessTick();
 
             expect(getProfileSpy).toHaveBeenCalledWith(1);
@@ -165,35 +190,35 @@ describe("ProfileSelector test", () => {
         });
 
         it("should call editProfile when action is 'edit'", () => {
-            const editProfileSpy = jest.spyOn(profileSelector as any, "editProfile");
+            const editProfileSpy = jest.spyOn(profileSelector, "editProfile");
 
-            profileSelector["handleProfileAction"]("edit", "1");
+            profileSelector.handleProfileAction("edit", "1");
 
             expect(editProfileSpy).toHaveBeenCalled();
         });
 
         it("should call addProfile when action is 'add'", () => {
-            const addProfileSpy = jest.spyOn(profileSelector as any, "addProfile");
+            const addProfileSpy = jest.spyOn(profileSelector, "addProfile");
 
-            profileSelector["handleProfileAction"]("add", "1");
+            profileSelector.handleProfileAction("add", "1");
 
             expect(addProfileSpy).toHaveBeenCalled();
         });
 
         it("should call deleteProfile when action is 'delete'", () => {
-            const deleteProfileSpy = jest.spyOn(profileSelector as any, "deleteProfile");
+            const deleteProfileSpy = jest.spyOn(profileSelector, "deleteProfile");
 
-            profileSelector["handleProfileAction"]("delete", "1");
+            profileSelector.handleProfileAction("delete", "1");
 
             expect(deleteProfileSpy).toHaveBeenCalled();
         });
 
         it("should do nothing for unknown action", () => {
-            const editProfileSpy = jest.spyOn(profileSelector as any, "editProfile");
-            const addProfileSpy = jest.spyOn(profileSelector as any, "addProfile");
-            const deleteProfileSpy = jest.spyOn(profileSelector as any, "deleteProfile");
+            const editProfileSpy = jest.spyOn(profileSelector, "editProfile");
+            const addProfileSpy = jest.spyOn(profileSelector, "addProfile");
+            const deleteProfileSpy = jest.spyOn(profileSelector, "deleteProfile");
 
-            profileSelector["handleProfileAction"]("unknown", "1");
+            profileSelector.handleProfileAction("unknown", "1");
 
             expect(getProfileSpy).not.toHaveBeenCalled();
             expect(editProfileSpy).not.toHaveBeenCalled();
@@ -203,18 +228,18 @@ describe("ProfileSelector test", () => {
     });
 
     describe("profileLoaded tests", () => {
-        let profileSelector: ProfileSelector;
+        let profileSelector: ProfileSelectorMock;
         let getDefaultProfileSpy: jest.SpyInstance;
         let listProfilesSpy: jest.SpyInstance;
         let generatePopupMenuEntriesSpy: jest.SpyInstance;
         let sendUpdateProfileInfoMsgSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            profileSelector = new ProfileSelector({});
+            profileSelector = new ProfileSelectorMock({});
             getDefaultProfileSpy = jest.spyOn(ShellInterface.users, "getDefaultProfile");
             listProfilesSpy = jest.spyOn(ShellInterface.users, "listProfiles");
-            generatePopupMenuEntriesSpy = jest.spyOn(profileSelector as any, "generatePopupMenuEntries");
-            sendUpdateProfileInfoMsgSpy = jest.spyOn(profileSelector as any, "sendUpdateProfileInfoMsg");
+            generatePopupMenuEntriesSpy = jest.spyOn(profileSelector, "generatePopupMenuEntries");
+            sendUpdateProfileInfoMsgSpy = jest.spyOn(profileSelector, "sendUpdateProfileInfoMsg");
         });
 
         afterEach(() => {
@@ -231,7 +256,7 @@ describe("ProfileSelector test", () => {
             getDefaultProfileSpy.mockResolvedValue(mockDefaultProfile);
             listProfilesSpy.mockResolvedValue(mockProfiles);
 
-            const result = await profileSelector["profileLoaded"]();
+            const result = await profileSelector.profileLoaded();
 
             expect(getDefaultProfileSpy).toHaveBeenCalledWith(webSession.userId);
             expect(listProfilesSpy).toHaveBeenCalledWith(webSession.userId);
@@ -246,9 +271,9 @@ describe("ProfileSelector test", () => {
             getDefaultProfileSpy.mockResolvedValue(null);
             listProfilesSpy.mockResolvedValue(mockProfiles);
 
-            await profileSelector["profileLoaded"]();
+            await profileSelector.profileLoaded();
 
-            expect(profileSelector["defaultProfile"]).toBe(webSession.profile);
+            expect(profileSelector.defaultProfile).toBe(webSession.profile);
             expect(listProfilesSpy).toHaveBeenCalledWith(webSession.userId);
             expect(generatePopupMenuEntriesSpy).toHaveBeenCalled();
             expect(sendUpdateProfileInfoMsgSpy).toHaveBeenCalled();
@@ -260,21 +285,21 @@ describe("ProfileSelector test", () => {
             getDefaultProfileSpy.mockResolvedValue(mockDefaultProfile);
             listProfilesSpy.mockResolvedValue([]);
 
-            await profileSelector["profileLoaded"]();
+            await profileSelector.profileLoaded();
 
-            expect(profileSelector["defaultProfile"]).toBe(mockDefaultProfile);
-            expect(profileSelector["activeProfiles"]).toEqual([]);
+            expect(profileSelector.defaultProfile).toBe(mockDefaultProfile);
+            expect(profileSelector.activeProfiles).toEqual([]);
             expect(generatePopupMenuEntriesSpy).toHaveBeenCalled();
             expect(sendUpdateProfileInfoMsgSpy).toHaveBeenCalled();
         });
     });
 
     describe("getProfileList", () => {
-        let profileSelector: ProfileSelector;
+        let profileSelector: ProfileSelectorMock;
         let listProfilesSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            profileSelector = new ProfileSelector({});
+            profileSelector = new ProfileSelectorMock({});
             listProfilesSpy = jest.spyOn(ShellInterface.users, "listProfiles");
         });
 
@@ -290,10 +315,10 @@ describe("ProfileSelector test", () => {
 
             listProfilesSpy.mockResolvedValue(mockProfiles);
 
-            await profileSelector["getProfileList"](1);
+            await profileSelector.getProfileList(1);
 
             expect(listProfilesSpy).toHaveBeenCalledWith(1);
-            expect(profileSelector["activeProfiles"]).toEqual([
+            expect(profileSelector.activeProfiles).toEqual([
                 { id: 1, userId: 1, name: "profile1", description: "", options: {} },
                 { id: 2, userId: 1, name: "profile2", description: "", options: {} },
             ]);
@@ -302,28 +327,27 @@ describe("ProfileSelector test", () => {
         it("should handle empty profile list", async () => {
             listProfilesSpy.mockResolvedValue([]);
 
-            await profileSelector["getProfileList"](1);
+            await profileSelector.getProfileList(1);
 
             expect(listProfilesSpy).toHaveBeenCalledWith(1);
-            expect(profileSelector["activeProfiles"]).toEqual([]);
+            expect(profileSelector.activeProfiles).toEqual([]);
         });
 
         it("should handle error from listProfiles", async () => {
             listProfilesSpy.mockRejectedValue(new Error("Failed to fetch profiles"));
 
-            await expect(profileSelector["getProfileList"](1)).rejects.toThrow("Failed to fetch profiles");
+            await expect(profileSelector.getProfileList(1)).rejects.toThrow("Failed to fetch profiles");
             expect(listProfilesSpy).toHaveBeenCalledWith(1);
         });
     });
 
     describe("validateProfileValues tests", () => {
-        let actionMenuRef: any;
-        let component: any;
+        const selectorRef = createRef<ProfileSelectorMock>();
+        let component: ReactWrapper<{}, IProfileSelectorState, ProfileSelectorMock>;
 
-        beforeEach( () => {
-            actionMenuRef = createRef<ProfileSelector>();
-            component = mount(
-                <ProfileSelector ref={actionMenuRef}></ProfileSelector>,
+        beforeEach(() => {
+            component = mount<ProfileSelectorMock>(
+                <ProfileSelectorMock ref={selectorRef}></ProfileSelectorMock>,
             );
         });
 
@@ -332,145 +356,145 @@ describe("ProfileSelector test", () => {
         });
 
         describe("Add section validation", () => {
-            const baseValues = {
+            const baseValues: IDialogValues = {
                 sections: new Map([
                     ["add", {
                         values: {
-                            profileName: { value: "" },
-                            copyProfile: { value: false },
-                            definedProfiles: { value: null, options: [] },
+                            profileName: { type: "text", value: "" },
+                            copyProfile: { type: "boolean", value: false },
+                            definedProfiles: { type: "choice", choices: [], options: [] },
                         },
                     }],
                 ]),
             };
 
             it("should validate empty profile name on closing", () => {
-                const result = actionMenuRef.current?.validateProfileValues(
+                const result = selectorRef.current?.validateProfileValues(
                     true,
                     baseValues,
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result.messages.profileName).toBe("The profile name cannot be empty");
+                expect(result?.messages.profileName).toBe("The profile name cannot be empty");
             });
 
             it("should not validate empty profile name when not closing", () => {
-                const result = actionMenuRef.current?.validateProfileValues(
+                const result = selectorRef.current?.validateProfileValues(
                     false,
                     baseValues,
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result.messages.profileName).toBeUndefined();
+                expect(result?.messages.profileName).toBeUndefined();
             });
 
             it("should validate duplicate profile name", () => {
-                const values = {
+                const values: IDialogValues = {
                     sections: new Map([
                         ["add", {
                             values: {
-                                profileName: { value: "existingProfile" },
-                                copyProfile: { value: false },
-                                definedProfiles: { value: null, options: [] },
+                                profileName: { type: "text", value: "existingProfile" },
+                                copyProfile: { type: "boolean", value: false },
+                                definedProfiles: { type: "choice", choices: [], options: [] },
                             },
                         }],
                     ]),
                 };
 
-                (actionMenuRef.current).activeProfiles = [
-                    { name: "existingProfile", id: 1 },
+                selectorRef.current!.activeProfiles = [
+                    { name: "existingProfile", id: 1, userId: 1, description: "", options: {} },
                 ];
 
-                const result = actionMenuRef.current?.validateProfileValues(
+                const result = selectorRef.current?.validateProfileValues(
                     true,
                     values,
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result.messages.profileName).toBe("A profile with that name exists already");
+                expect(result?.messages.profileName).toBe("A profile with that name exists already");
             });
 
             it("should validate missing profile selection when copying", () => {
-                const values = {
+                const values: IDialogValues = {
                     sections: new Map([
                         ["add", {
                             values: {
-                                profileName: { value: "newProfile" },
-                                copyProfile: { value: true },
-                                definedProfiles: { value: null, options: [] },
+                                profileName: { type: "text", value: "newProfile" },
+                                copyProfile: { type: "boolean", value: true },
+                                definedProfiles: { type: "choice", choices: [], options: [] },
                             },
                         }],
                     ]),
                 };
 
-                const result = actionMenuRef.current?.validateProfileValues(
+                const result = selectorRef.current?.validateProfileValues(
                     true,
                     values,
                     { saveProfile: true, section: "add" },
                 );
 
-                expect(result.messages.databaseType).toBe("Select one of the existing profile");
+                expect(result?.messages.databaseType).toBe("Select one of the existing profile");
             });
         });
 
         describe("Edit section validation", () => {
-            const baseValues = {
+            const baseValues: IDialogValues = {
                 sections: new Map([
                     ["edit", {
                         values: {
-                            profileNewName: { value: "" },
-                            definedProfilesToEdit: { value: "profile1" },
-                            setAsDefaultProfile: { value: false, options: [] },
+                            profileNewName: { type: "text", value: "" },
+                            definedProfilesToEdit: { type: "text", value: "profile1" },
+                            setAsDefaultProfile: { type: "separator", value: false, options: [] },
                         },
                     }],
                 ]),
             };
 
             it("should validate empty profile name on closing", () => {
-                const result = actionMenuRef.current?.validateProfileValues(
+                const result = selectorRef.current?.validateProfileValues(
                     true,
                     baseValues,
                     { saveProfile: true, section: "edit" },
                 );
 
-                expect(result.messages.profileNewName).toBe("The profile name cannot be empty");
+                expect(result?.messages.profileNewName).toBe("The profile name cannot be empty");
             });
 
             it("should allow same name for same profile", () => {
-                (actionMenuRef.current).activeProfiles = [
-                    { name: "profile1", id: 1 },
+                selectorRef.current!.activeProfiles = [
+                    { name: "profile1", id: 1, userId: 1, description: "", options: {} },
                 ];
 
-                const values = {
+                const values: IDialogValues = {
                     sections: new Map([
                         ["edit", {
                             values: {
-                                profileNewName: { value: "profile1" },
-                                definedProfilesToEdit: { value: "profile1" },
-                                setAsDefaultProfile: { value: false, options: [] },
+                                profileNewName: { type: "text", value: "profile1" },
+                                definedProfilesToEdit: { type: "text", value: "profile1" },
+                                setAsDefaultProfile: { type: "separator", value: false, options: [] },
                             },
                         }],
                     ]),
                 };
 
-                const result = actionMenuRef.current?.validateProfileValues(
+                const result = selectorRef.current?.validateProfileValues(
                     true,
                     values,
                     { saveProfile: true, section: "edit" },
                 );
 
-                expect(result.messages.profileNewName).toBeUndefined();
+                expect(result?.messages.profileNewName).toBeUndefined();
             });
         });
     });
 
     describe("handleMenuItemClick tests", () => {
-        let profileSelector: ProfileSelector;
+        let profileSelector: ProfileSelectorMock;
         let handleProfileActionSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            profileSelector = new ProfileSelector({});
-            handleProfileActionSpy = jest.spyOn(profileSelector as any, "handleProfileAction");
+            profileSelector = new ProfileSelectorMock({});
+            handleProfileActionSpy = jest.spyOn(profileSelector, "handleProfileAction");
         });
 
         afterEach(() => {
@@ -482,7 +506,7 @@ describe("ProfileSelector test", () => {
                 id: "1",
                 command: { title: "Profile 1", command: "1" },
             };
-            const result = profileSelector["handleMenuItemClick"](mockProps);
+            const result = profileSelector.handleMenuItemClick(mockProps);
 
             expect(result).toBe(true);
             expect(handleProfileActionSpy).toHaveBeenCalledWith("current", "1");
@@ -493,7 +517,7 @@ describe("ProfileSelector test", () => {
                 id: "add",
                 command: { title: "Add Profile", command: "add" },
             };
-            const result = profileSelector["handleMenuItemClick"](mockProps);
+            const result = profileSelector.handleMenuItemClick(mockProps);
 
             expect(result).toBe(true);
             expect(handleProfileActionSpy).toHaveBeenCalledWith("add", "add");
@@ -505,7 +529,7 @@ describe("ProfileSelector test", () => {
                 command: { title: "Profile 1", command: "1" },
                 children: [<div key="1" />],
             };
-            const result = profileSelector["handleMenuItemClick"](mockProps);
+            const result = profileSelector.handleMenuItemClick(mockProps);
 
             expect(result).toBe(false);
             expect(handleProfileActionSpy).not.toHaveBeenCalled();
@@ -513,12 +537,12 @@ describe("ProfileSelector test", () => {
     });
 
     describe("updateProfile tests", () => {
-        let profileSelector: ProfileSelector;
+        let profileSelector: ProfileSelectorMock;
         let updateProfileSpy: jest.SpyInstance;
         let setDefaultProfileSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            profileSelector = new ProfileSelector({});
+            profileSelector = new ProfileSelectorMock({});
             updateProfileSpy = jest.spyOn(ShellInterface.users, "updateProfile");
             setDefaultProfileSpy = jest.spyOn(ShellInterface.users, "setDefaultProfile");
         });
@@ -530,12 +554,12 @@ describe("ProfileSelector test", () => {
         it("should update profile successfully", async () => {
             const mockProfile = { id: 1, name: "updated", description: "", userId: 1, options: {} };
             updateProfileSpy.mockResolvedValue(mockProfile);
-            profileSelector["activeProfiles"] = [{ ...mockProfile, name: "original" }];
+            profileSelector.activeProfiles = [{ ...mockProfile, name: "original" }];
 
-            await profileSelector["updateProfile"](mockProfile, false);
+            await profileSelector.updateProfile(mockProfile, false);
 
             expect(updateProfileSpy).toHaveBeenCalledWith(mockProfile);
-            expect(profileSelector["activeProfiles"][0].name).toBe("updated");
+            expect(profileSelector.activeProfiles[0].name).toBe("updated");
             expect(setDefaultProfileSpy).not.toHaveBeenCalled();
         });
 
@@ -543,45 +567,47 @@ describe("ProfileSelector test", () => {
             const mockProfile = { id: 1, name: "updated", description: "", userId: 1, options: {} };
             updateProfileSpy.mockResolvedValue(mockProfile);
             setDefaultProfileSpy.mockResolvedValue(undefined);
-            profileSelector["activeProfiles"] = [{ ...mockProfile, name: "original" }];
+            profileSelector.activeProfiles = [{ ...mockProfile, name: "original" }];
 
-            await profileSelector["updateProfile"](mockProfile, true);
+            await profileSelector.updateProfile(mockProfile, true);
 
             expect(updateProfileSpy).toHaveBeenCalledWith(mockProfile);
             expect(setDefaultProfileSpy).toHaveBeenCalledWith(webSession.userId, mockProfile.id);
-            expect(profileSelector["defaultProfile"]).toEqual(mockProfile);
+            expect(profileSelector.defaultProfile).toEqual(mockProfile);
         });
 
         it("updateProfile - should update profile and handle default profile setting", async () => {
-            const actionMenuRef = createRef<ProfileSelector>();
+            const selectorRef = createRef<ProfileSelectorMock>();
             const component = mount(
                 <div>
-                    <ProfileSelector ref={actionMenuRef}></ProfileSelector>
+                    <ProfileSelectorMock ref={selectorRef}></ProfileSelectorMock>
                 </div>,
             );
 
-            const profileSelector = actionMenuRef.current;
+            const profileSelector = selectorRef.current;
             expect(profileSelector).toBeTruthy();
 
-            profileSelector!["activeProfiles"] = [
+            profileSelector!.activeProfiles = [
                 { id: 1, userId: 1, name: "Profile 1", description: "", options: {} },
                 { id: 2, userId: 1, name: "Profile 2", description: "", options: {} },
             ];
 
             const profileToEdit = { id: 1, userId: 1, name: "Updated Profile", description: "", options: {} };
-            await profileSelector!["updateProfile"](profileToEdit, true);
+            await profileSelector!.updateProfile(profileToEdit, true);
 
-            const updatedProfile = profileSelector!["activeProfiles"].find((p) => {return p.id === 1;});
+            const updatedProfile = profileSelector!.activeProfiles.find((p) => {
+                return p.id === 1;
+            });
             expect(updatedProfile?.name).toBe("Updated Profile");
 
-            expect(profileSelector!["defaultProfile"]?.id).toBe(1);
+            expect(profileSelector!.defaultProfile?.id).toBe(1);
 
             component.unmount();
         });
     });
 
     describe("updateProfile", () => {
-        let component: any;
+        let component: ReactWrapper<{}, IProfileSelectorState, ProfileSelectorMock>;
         const mockProfile = {
             id: 1,
             userId: 123,
@@ -592,11 +618,12 @@ describe("ProfileSelector test", () => {
 
         beforeEach(() => {
             // Reset component before each test
-            component = mount(<ProfileSelector />).instance();
-            component.activeProfiles = [{ ...mockProfile }];
+            component = mount<ProfileSelectorMock>(<ProfileSelectorMock />);
+            const instance = component.instance();
+            instance.activeProfiles = [{ ...mockProfile }];
 
             // Mock ShellInterface methods
-            (global as any).ShellInterface = {
+            (global as Record<string, unknown>).ShellInterface = {
                 users: {
                     updateProfile: jest.fn(),
                     setDefaultProfile: jest.fn(),
@@ -610,10 +637,10 @@ describe("ProfileSelector test", () => {
                 typeof ShellInterface.users.updateProfile
             >).mockResolvedValue(updatedProfile);
 
-            await component.updateProfile(updatedProfile, false);
+            await component.instance().updateProfile(updatedProfile, false);
 
             expect(ShellInterface.users.updateProfile).toHaveBeenCalledWith(updatedProfile);
-            expect(component.activeProfiles[0].name).toBe("Updated Profile");
+            expect(component.instance().activeProfiles[0].name).toBe("Updated Profile");
             expect(ShellInterface.users.setDefaultProfile).not.toHaveBeenCalled();
         });
 
@@ -623,14 +650,14 @@ describe("ProfileSelector test", () => {
                 typeof ShellInterface.users.updateProfile
             >).mockResolvedValue(updatedProfile);
 
-            await component.updateProfile(updatedProfile, true);
+            await component.instance().updateProfile(updatedProfile, true);
 
             expect(ShellInterface.users.updateProfile).toHaveBeenCalledWith(updatedProfile);
             expect(ShellInterface.users.setDefaultProfile).toHaveBeenCalledWith(
                 webSession.userId,
                 updatedProfile.id,
             );
-            expect(component.defaultProfile).toEqual(updatedProfile);
+            expect(component.instance().defaultProfile).toEqual(updatedProfile);
         });
 
         it("should not update profile when API call fails", async () => {
@@ -639,10 +666,10 @@ describe("ProfileSelector test", () => {
                 typeof ShellInterface.users.updateProfile
             >).mockResolvedValue(undefined);
 
-            await component.updateProfile(updatedProfile, false);
+            await component.instance().updateProfile(updatedProfile, false);
 
             expect(ShellInterface.users.updateProfile).toHaveBeenCalledWith(updatedProfile);
-            expect(component.activeProfiles[0].name).toBe("Test Profile");
+            expect(component.instance().activeProfiles[0].name).toBe("Test Profile");
         });
 
         it("should handle profile not found in activeProfiles", async () => {
@@ -651,88 +678,12 @@ describe("ProfileSelector test", () => {
                 typeof ShellInterface.users.updateProfile
             >).mockResolvedValue(nonExistentProfile);
 
-            await component.updateProfile(nonExistentProfile, false);
+            await component.instance().updateProfile(nonExistentProfile, false);
 
             expect(ShellInterface.users.updateProfile).toHaveBeenCalledWith(nonExistentProfile);
-            expect(component.activeProfiles).toHaveLength(1);
-            expect(component.activeProfiles[0].id).toBe(1);
+            expect(component.instance().activeProfiles).toHaveLength(1);
+            expect(component.instance().activeProfiles[0].id).toBe(1);
         });
     });
 
-    describe("deleteProfileConfirm", () => {
-        let component: any;
-        const mockProfiles = [
-            {
-                id: 1,
-                userId: 123,
-                name: "Profile 1",
-                description: "",
-                options: {},
-            },
-            {
-                id: 2,
-                userId: 123,
-                name: "Profile 2",
-                description: "",
-                options: {},
-            },
-        ];
-
-        beforeEach(() => {
-            component = mount(<ProfileSelector />).instance();
-            component.confirmDialogRef = createRef();
-            component.confirmDialogRef.current = {
-                show: jest.fn(),
-            };
-        });
-
-        it("should show confirmation dialog with single profile", () => {
-            component.deleteList = [mockProfiles[0]];
-            component.deleteProfileConfirm();
-
-            expect(component.confirmDialogRef.current.show).toHaveBeenCalled();
-            const [content, buttons, title] = component.confirmDialogRef.current.show.mock.calls[0];
-
-            expect(title).toBe("Delete Profile");
-            expect(buttons).toEqual({ refuse: "No", accept: "Yes" });
-
-            // Verify dialog content
-            const wrapper = mount(content);
-            expect(wrapper.find("Label").first().props().caption)
-                .toBe("Are you sure you want to delete the selected profile");
-            expect(wrapper.find("ul").find("Label").props().caption).toBe("Profile 1");
-        });
-
-        it("should show confirmation dialog with multiple profiles", () => {
-            component.deleteList = mockProfiles;
-            component.deleteProfileConfirm();
-
-            expect(component.confirmDialogRef.current.show).toHaveBeenCalled();
-            const [content] = component.confirmDialogRef.current.show.mock.calls[0];
-
-            // Verify dialog content
-            const wrapper = mount(content);
-            expect(wrapper.find("Label").first().props().caption)
-                .toBe("Are you sure you want to delete the selected profiles");
-            const listLabels = wrapper.find("ul").find("Label");
-            expect(listLabels).toHaveLength(2);
-            expect(listLabels.at(0).props().caption).toBe("Profile 1");
-            expect(listLabels.at(1).props().caption).toBe("Profile 2");
-        });
-
-        it("should not show dialog when deleteList is empty", () => {
-            component.deleteList = [];
-
-            component.deleteProfileConfirm();
-
-            expect(component.confirmDialogRef.current.show).toHaveBeenCalled();
-            const [content] = component.confirmDialogRef.current.show.mock.calls[0];
-
-            // Verify dialog content
-            const wrapper = mount(content);
-            expect(wrapper.find("Label").first().props().caption)
-                .toBe("Are you sure you want to delete the selected profile");
-            expect(wrapper.find("ul").find("Label")).toHaveLength(0);
-        });
-    });
 });

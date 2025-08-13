@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-
 import { mount, shallow } from "enzyme";
 
 import ApplicationHost from "../../../app-logic/ApplicationHost.js";
@@ -42,7 +40,6 @@ describe("Application host tests", () => {
         appParameters.launchWithDebugger = true;
         registerUiLayer(uiLayerMock);
     });
-
 
     afterAll(() => {
         appParameters.launchWithDebugger = false;
@@ -193,8 +190,8 @@ describe("Application host tests", () => {
         debugComponent = component.find(`#${id}`);
 
         const element = debugComponent.last().getDOMNode();
-        expect(element?.getAttribute("id")).toEqual(id);
-        expect(element?.classList.contains("stretch")).toBeTruthy();
+        expect(element.getAttribute("id")).toEqual(id);
+        expect(element.classList.contains("stretch")).toBeTruthy();
 
         component.unmount();
     });

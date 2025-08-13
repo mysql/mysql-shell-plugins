@@ -52,6 +52,7 @@ describe("ShellInterfaceDbConnection Tests", () => {
         };
         const testConnection: IConnectionDetails = {
             id: -1,
+            index: -1,
             dbType: DBType.MySQL,
             caption: "ShellInterfaceDb Test Connection 1",
             description: "ShellInterfaceDb Test Connection",
@@ -64,7 +65,7 @@ describe("ShellInterfaceDbConnection Tests", () => {
         const folder = await ShellInterface.dbConnections.addFolderPath(
             webSession.currentProfileId, "unit-tests", -1);
         testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection, folder.id) ?? [-1, -1, -1])[0];
+            testConnection, folder.id))[0];
         expect(testConnection.id).toBeGreaterThan(-1);
 
         connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, 1);
@@ -79,13 +80,14 @@ describe("ShellInterfaceDbConnection Tests", () => {
         // Add the same connection again, this time with no folder path.
         await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id);
         testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection) ?? [-1, -1, -1])[0];
+            testConnection))[0];
         expect(testConnection.id).toBeGreaterThan(-1);
 
         const connection = await ShellInterface.dbConnections.getDbConnection(testConnection.id);
         expect(connection).toBeDefined();
-        expect(connection).not.toBe(testConnection);
-        expect(connection).toEqual(testConnection);
+        expect(connection).not.toBe(testConnection); // Not the same object.
+        connection!.index = -1; // getDbConnection() returns no index.
+        expect(connection).toEqual(testConnection); // Same content.
 
         (connection!.options as IMySQLConnectionOptions).user = "Paul";
         await ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, connection!);

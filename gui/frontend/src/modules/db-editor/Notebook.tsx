@@ -363,7 +363,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             // At this point the result view data must be in the application DB.
             const editorState = this.getActiveEditorState();
             if (editorState?.model.executionContexts) {
-                void editorState.model.executionContexts.restoreFromStates(this.#editorRef.current,
+                editorState.model.executionContexts.restoreFromStates(this.#editorRef.current,
                     this.createPresentation, content.contexts);
             }
 
@@ -540,7 +540,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     private navigateHistory(backwards = true): void {
         const { onNavigateHistory } = this.props;
 
-        onNavigateHistory?.(backwards);
+        onNavigateHistory(backwards);
         this.forceUpdate();
     }
 }

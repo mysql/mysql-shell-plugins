@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /*
  * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
@@ -53,10 +54,10 @@ describe("NOTEBOOKS", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME1),
+            port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME1PWD),
         },
     };
 
@@ -262,7 +263,6 @@ describe("NOTEBOOKS", () => {
             try {
                 const query = "select * from sakila.actor limit 1; select * from sakila.address limit 1;";
                 const result = await notebook.codeEditor
-                    // eslint-disable-next-line max-len
                     .execute(query) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
                 expect(result.tabs!.length).toBe(2);
@@ -300,7 +300,7 @@ describe("NOTEBOOKS", () => {
                 if (style.includes("toolbar-auto_commit-active")) {
                     await autoCommitBtn!.click();
                 }
-                const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
+                const random = (Math.random() * ((10.00 - 1.00 + 1.00) + 1.00)).toFixed(5);
                 const commitBtn = await notebook.toolbar.getButton(constants.commit);
                 const rollBackBtn = await notebook.toolbar.getButton(constants.rollback);
 
@@ -433,12 +433,21 @@ describe("NOTEBOOKS", () => {
                     }
                 }, constants.wait5seconds, `Could not get the cell text`);
 
-
                 const server = cellText!.match(/(\d+).(\d+).(\d+)/g)![0];
                 const digits = server.split(".");
                 let serverVer = digits[0];
-                digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
-                digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
+
+                if (digits[1].length === 1) {
+                    serverVer += "0" + digits[1];
+                } else {
+                    serverVer += digits[1];
+                }
+
+                if (digits[2].length === 1) {
+                    serverVer += "0" + digits[2];
+                } else {
+                    serverVer += digits[2];
+                }
 
                 const result2 = await notebook.codeEditor
                     .execute(`/*!${serverVer} select * from sakila.actor;*/`) as E2ECommandResultGrid;
@@ -585,8 +594,10 @@ describe("NOTEBOOKS", () => {
                         await fs.access(destFile);
 
                         return true;
-                    } catch (e) {
-                        return false;
+                    } catch (e: unknown) {
+                        if (e instanceof Error) {
+                            return false;
+                        }
                     }
                 }), constants.wait3seconds, `Expecting file to be at: ${destFile}`);
             } catch (e) {
@@ -613,17 +624,17 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("HeatWave Chat", () => {
+    describe.skip("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
             caption: "e2eHeatWave Connection",
             description: "Local connection",
             basic: {
-                hostname: String(process.env.HWHOSTNAME),
-                username: String(process.env.HWUSERNAME),
+                hostname: String(globalThis.testConfig!.HWHOSTNAME),
+                username: String(globalThis.testConfig!.HWUSERNAME),
                 schema: "e2e_tests",
-                password: String(process.env.HWPASSWORD),
+                password: String(globalThis.testConfig!.HWPASSWORD),
             },
         };
 

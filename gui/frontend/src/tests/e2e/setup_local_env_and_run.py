@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 import typing
-
+import json
 import task_utils
 
 arg_parser = argparse.ArgumentParser()
@@ -87,9 +87,6 @@ SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila_cst.sql")
 WORLD_SQL_PATH = os.path.join(WORKING_DIR, "sql", "world_x_cst.sql")
 USERS_PATH = os.path.join(WORKING_DIR, "sql", "users.sql")
 PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")
-MAX_WORKERS = os.getenv('MAX_WORKERS') if os.getenv('MAX_WORKERS') != None else "3"
-TOKEN = "1234test"
-
 TESTS_TIMEOUT = 30*60
 
 class SetEnvironmentVariablesTask:
@@ -103,34 +100,21 @@ class SetEnvironmentVariablesTask:
     def run(self) -> None:
         """Runs the task"""
 
-        self.environment["TOKEN"] = TOKEN
-        self.environment["MAX_WORKERS"] = MAX_WORKERS
-        self.environment["SHELL_UI_HOSTNAME"] = "http://localhost"
-        self.environment["DBHOSTNAME"] = "localhost"
         self.environment["DBUSERNAME"] = argv.db_root_user
         self.environment["DBPASSWORD"] = DB_ROOT_PASSWORD
-        self.environment["MYSQL_PORT"] = argv.db_port
-        self.environment["MYSQL_REST_PORT"] = "2207"
-        self.environment["DBPORTX"] = argv.db_port + "0"
-        self.environment["DBUSERNAMESHELL"] = "clientqa"
-        self.environment["DBPASSWORDSHELL"] = "dummy"
-        self.environment["DBUSERNAME1"] = "dbuser1"
-        self.environment["DBUSERNAME1PWD"] = "dummy"
-        self.environment["DBUSERNAME2"] = "dbuser2"
-        self.environment["DBUSERNAME2PWD"] = "dummy"
-        self.environment["DBUSERNAME3"] = "dbuser3"
-        self.environment["DBUSERNAME3PWD"] = "dummy"
-        self.environment["MU_USERNAME"] = "client"
-        self.environment["MU_PASSWORD"] = "client"
-        self.environment["TEST_AUTO_LOGOUT_TIMEOUT"] = "5000"
+
+        with open(os.path.join(WORKING_DIR, "..", ".env.test.json"), "r") as file:
+            data = json.load(file)
 
         for server in self.servers:
             if server.multi_user:
-                self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{server.port}"
+                #self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{server.port}"
+                data['SHELL_UI_MU_HOSTNAME'] = f"http://localhost:{server.port}"
             if server.single_server:
-                self.environment["SHELL_UI_SS_HOSTNAME"] = f"http://localhost:{server.port}"
+                #self.environment["SHELL_UI_SS_HOSTNAME"] = f"http://localhost:{server.port}"
+                data['SHELL_UI_SS_HOSTNAME'] = f"http://localhost:{server.port}"
 
-        self.environment["SQLITE_PATH_FILE"] = os.path.join(
+        data["SQLITE_PATH_FILE"] = os.path.join(
             self.dir_name,
             "mysqlsh",
             "plugin_data",
@@ -138,7 +122,8 @@ class SetEnvironmentVariablesTask:
             "mysqlsh_gui_backend.sqlite3",
         )
 
-        self.environment["HEADLESS"] = argv.headless
+        with open(os.path.join(WORKING_DIR, "..", ".env.test.json"), 'w') as file:
+            json.dump(data, file, indent=4) 
 
         task_utils.Logger.success("Environment variables have been set")
 
@@ -249,21 +234,6 @@ def main() -> None:
     test_failed = False
     with tempfile.TemporaryDirectory() as tmp_dirname:
         executor = task_utils.TaskExecutor(tmp_dirname)
-
-        if (os.environ["HWHOSTNAME"]) is None:
-            raise "Please define environment variable 'HWHOSTNAME'"
-        if (os.environ["HWUSERNAME"]) is None:
-            raise "Please define environment variable 'HWUSERNAME'"
-        if (os.environ["HWPASSWORD"]) is None:
-            raise "Please define environment variable 'HWPASSWORD'"
-        if (os.environ["MYSQLSH_OCI_CONFIG_FILE"]) is None:
-            raise "Please define environment variable 'MYSQLSH_OCI_CONFIG_FILE'"
-        if (os.environ["OCI_BASTION_HOSTNAME"]) is None:
-            raise "Please define environment variable 'OCI_BASTION_HOSTNAME'"
-        if (os.environ["OCI_BASTION_USERNAME"]) is None:
-            raise "Please define environment variable 'OCI_BASTION_USERNAME'"
-        if (os.environ["OCI_BASTION_PASSWORD"]) is None:
-            raise "Please define environment variable 'OCI_BASTION_PASSWORD'"
         
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Shell"))
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Server"))
@@ -303,7 +273,11 @@ def main() -> None:
 
         executor.add_task(task_utils.ClearCredentials(executor.environment))
         executor.add_task(task_utils.DisableTests)
-        executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
+
+        with open(os.path.join(WORKING_DIR, "..", ".env.test.json"), "r") as file:
+            data = json.load(file)
+
+        executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={data["MAX_WORKERS"]}"]))
         
         if executor.check_prerequisites():
             try:

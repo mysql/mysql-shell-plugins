@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,6 +29,7 @@ import {
     IMySQLDbSystemShapeSummary, LoadBalancer, type IBucketListObjects, type IBucketSummary,
 } from "../../communication/index.js";
 import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
+import type { IShellDictionary } from "../../communication/Protocol.js";
 import {
     IMdsChatData, IMdsChatResult, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
     IShellMdsSetCurrentCompartmentKwargs, ShellAPIMds, type IMdsChatStatus,
@@ -79,7 +80,6 @@ export class ShellInterfaceMhs {
 
         return response.result;
     }
-
 
     public async getMdsMySQLDbSystems(configProfile: string, compartmentId: string): Promise<IMySQLDbSystem[]> {
         const response = await MessageScheduler.get.sendRequest({
@@ -258,7 +258,7 @@ export class ShellInterfaceMhs {
                     prompt,
                 },
                 kwargs: {
-                    options,
+                    options: options as IShellDictionary,
                     moduleSessionId,
                 },
             },
@@ -292,7 +292,7 @@ export class ShellInterfaceMhs {
                     filePath,
                 },
                 kwargs: {
-                    options,
+                    options: options as IShellDictionary,
                 },
             },
         });

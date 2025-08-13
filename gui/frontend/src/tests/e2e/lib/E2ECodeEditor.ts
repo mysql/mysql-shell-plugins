@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,7 @@ export class E2ECodeEditor {
 
     /**
      * Loads the code editor command results and returns the code editor object
+     * 
      * @returns The last result id
      */
     public build = async (): Promise<E2ECodeEditor> => {
@@ -58,8 +59,9 @@ export class E2ECodeEditor {
     public setLastResultId = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
-                const results = await driver.wait(until
-                    .elementsLocated(locator.notebook.codeEditor.editor.result.exists), constants.wait3seconds,
+                const refLocator = locator.notebook.codeEditor.editor.result.exists;
+                const results = await driver.wait(until.elementsLocated(refLocator), constants.wait3seconds,
+
                     "Could not find any command results");
                 this.lastResultId = parseInt((await results[results.length - 1].getAttribute("monaco-view-zone"))
                     .match(/(\d+)/)![1], 10);
@@ -86,6 +88,7 @@ export class E2ECodeEditor {
 
     /**
      * Verifies if a word in the last query in the editor is identified as keyword
+     * 
      * @param line The line of the command
      * @returns A condition resolving to true when a keyword is found, false otherwise
      */
@@ -147,15 +150,18 @@ export class E2ECodeEditor {
                     if (!ignoreKeywords) {
                         try {
                             await driver.wait(this.untilKeywordExists(lines[i]), constants.wait3seconds);
-                        } catch (e) {
-                            if (retryNumber <= maxRetries) {
-                                await Os.keyboardDeleteLine(lines[i]);
-                                i--; // repeat the line writing
-                                retryNumber++;
-                                continue;
-                            } else {
-                                throw new Error(`Could not write line '${lines[i]}' (repeated 3 times)`);
+                        } catch (e: unknown) {
+                            if (e instanceof Error) {
+                                if (retryNumber <= maxRetries) {
+                                    await Os.keyboardDeleteLine(lines[i]);
+                                    i--; // repeat the line writing
+                                    retryNumber++;
+                                    continue;
+                                } else {
+                                    throw new Error(`Could not write line '${lines[i]}' (repeated 3 times)`);
+                                }
                             }
+
                         }
                     }
 
@@ -181,6 +187,7 @@ export class E2ECodeEditor {
 
     /**
      * Cleans the editor
+     * 
      * @returns A promise resolving when the editor is cleaned
      */
     public clean = async (): Promise<void> => {
@@ -208,6 +215,7 @@ export class E2ECodeEditor {
 
     /**
      * Builds a command result
+     * 
      * @param cmd The command
      * @param resultId The result id. If not provided, it will build the last existing result on the editor
      * @returns A promise resolving with the result
@@ -224,7 +232,7 @@ export class E2ECodeEditor {
             commandResult = new E2ECommandResultGrid(cmd, resultId!);
             commandResult.resultContext = result;
 
-            if (this.expectTabs(cmd) === true) {
+            if (this.expectTabs(cmd)) {
                 await commandResult.setTabs();
             }
 
@@ -234,7 +242,7 @@ export class E2ECodeEditor {
             commandResult = new E2ECommandResultData(cmd, resultId!);
             commandResult.resultContext = result;
 
-            if (this.expectTabs(cmd) === true) {
+            if (this.expectTabs(cmd)) {
                 await commandResult.setTabs();
             }
 
@@ -281,6 +289,7 @@ export class E2ECodeEditor {
 
     /**
      * Refreshes a command result, rebuilding it
+     * 
      * @param cmd The command
      * @param resultId The result id. If not provided, it will build the last existing result on the editor
      * @returns A promise resolving with the result
@@ -295,6 +304,7 @@ export class E2ECodeEditor {
 
     /**
      * Updates the object with the last existing command result on the editor
+     * 
      * @param waitForIncomingResult Wait for a command result that will be executed
      * @returns A promise resolving with the last cmd result
      */
@@ -320,8 +330,9 @@ export class E2ECodeEditor {
      * @param ignoreKeywords True to ignore the keywords
      * @returns A promise resolving when the command is executed
      */
-    public execute = async (cmd: string, ignoreKeywords = false):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public execute = async (
+        cmd: string, ignoreKeywords = false): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'languageSwitch()'");
         }
@@ -342,10 +353,10 @@ export class E2ECodeEditor {
         return commandResult;
     };
 
-
     /**
      * Gets the result block for an expected result id
      * When the nextId is undefined, the method will return the last existing command result on the editor
+     * 
      * @param cmd The command
      * @param resultId The next expected result id. If undefined, it assumes it comes from a script
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
@@ -359,9 +370,8 @@ export class E2ECodeEditor {
 
         if (resultId) {
             try {
-                result = await driver.wait(until
-                    .elementLocated(locator.notebook.codeEditor.editor.result
-                        .existsById(String(resultId))),
+                const refLocator = locator.notebook.codeEditor.editor.result.existsById(String(resultId));
+                result = await driver.wait(until.elementLocated(refLocator),
                     constants.wait5seconds, `Could not find result id ${String(resultId)} for ${cmd}`);
             } catch (e) {
                 if (e instanceof error.TimeoutError) {
@@ -397,6 +407,7 @@ export class E2ECodeEditor {
 
     /**
      * Gets the result type
+     * 
      * @param cmd The command
      * @param context The context
      * @returns A promise resolving with the result type
@@ -515,6 +526,7 @@ export class E2ECodeEditor {
 
     /**
      * Sets a new line on the notebook editor
+     * 
      * @returns A promise resolving when the new line is set
      */
     public setNewLine = async (): Promise<void> => {
@@ -539,7 +551,7 @@ export class E2ECodeEditor {
                 await textArea.sendKeys(Key.RETURN);
                 await driver.sleep(200);
 
-                return driver.wait(async () => {
+                return await driver.wait(async () => {
                     return (await getLastLineNumber()) > lastLineNumber;
                 }, constants.wait150MilliSeconds)
                     .catch(() => {
@@ -555,6 +567,7 @@ export class E2ECodeEditor {
 
     /**
      * Gets the auto complete menu items
+     * 
      * @returns A promise resolving with the menu items
      */
     public getAutoCompleteMenuItems = async (): Promise<string[]> => {
@@ -580,6 +593,7 @@ export class E2ECodeEditor {
 
     /**
      * Verifies if the notebook's editor has a new prompt/line
+     * 
      * @returns A condition resolving to true, if the new prompt exists, false otherwise
      */
     public untilNewPromptExists = (): Condition<boolean> => {
@@ -593,6 +607,7 @@ export class E2ECodeEditor {
 
     /**
      * Returns true if the given text exists on the editor
+     * 
      * @param text The text to search for
      * @returns A promise resolving with the truthiness of the function
      */
@@ -636,6 +651,7 @@ export class E2ECodeEditor {
      * - \\d
      * - \\py
      * - \\python
+     * 
      * @param cmd The command
      * @returns A promise resolving when the command is marked as special or not special
      */
@@ -648,7 +664,8 @@ export class E2ECodeEditor {
      */
     private closeSuggestionWidget = async (): Promise<void> => {
         const suggestionsWidget = await driver.wait(until.elementLocated(locator.suggestWidget.exists),
-            constants.wait150MilliSeconds).catch(() => {
+            constants.wait150MilliSeconds)
+            .catch(() => {
                 // continue
             });
 
@@ -672,6 +689,7 @@ export class E2ECodeEditor {
 
     /**
      * Gets the line number where a word is found
+     * 
      * @param wordRef The word
      * @returns A promise resolving with the line number
      */
@@ -692,6 +710,7 @@ export class E2ECodeEditor {
     /**
      * Returns true if it is expected that the given command will return a result with tabs (ex. Multiple
      * select queries)
+     * 
      * @param cmd The command
      * @returns A promise resolving with true if there are tabs expected, false otherwise
      */

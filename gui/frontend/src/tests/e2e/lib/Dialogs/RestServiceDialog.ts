@@ -37,10 +37,12 @@ export class RestServiceDialog {
 
     /**
      * Sets a Rest service using the web view dialog
+     * 
      * @param restService The service
      * @returns A promise resolving when the service is set and the dialog is closed
      */
     public static set = async (restService: interfaces.IRestService): Promise<interfaces.IRestService> => {
+
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
             constants.wait20seconds, "MRS Service dialog was not displayed");
 
@@ -63,13 +65,26 @@ export class RestServiceDialog {
 
         // Options
         if (restService.options) {
+            await driver.wait(async () => {
+                await dialog.findElement(locator.mrsServiceDialog.optionsTab).click();
+
+                return (await (dialog.findElement(locator.mrsServiceDialog.optionsTab))
+                    .getAttribute("class")).includes("selected");
+            }, constants.wait3seconds, `Options tab was not select`);
+
             await dialog.findElement(locator.mrsServiceDialog.optionsTab).click();
             await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.options.options,
                 restService.options);
         }
 
         if (restService.authentication) {
-            await dialog.findElement(locator.mrsServiceDialog.authenticationTab).click();
+            await driver.wait(async () => {
+                await dialog.findElement(locator.mrsServiceDialog.authenticationTab).click();
+
+                return (await (dialog.findElement(locator.mrsServiceDialog.authenticationTab))
+                    .getAttribute("class")).includes("selected");
+            }, constants.wait3seconds, `Options tab was not select`);
+
             if (restService.authentication.authenticationPath) {
                 await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authentication.authPath,
                     restService.authentication.authenticationPath);
@@ -94,7 +109,7 @@ export class RestServiceDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restService;
@@ -102,6 +117,7 @@ export class RestServiceDialog {
 
     /**
      * Gets a Rest service using  the web view dialog
+     * 
      * @returns A promise resolving the rest service
      */
     public static get = async (): Promise<interfaces.IRestService> => {
@@ -146,7 +162,7 @@ export class RestServiceDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restService;

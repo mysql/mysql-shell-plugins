@@ -23,9 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
-import { PrivateWorker } from "../console.worker-types.js";
 import { IDictionary } from "../../../app-logic/general-types.js";
+import { PrivateWorker } from "../console.worker-types.js";
 
 /** This is a global var only in the current worker and used for all user-visible APIs. */
 export let currentWorker!: PrivateWorker;
@@ -99,10 +98,10 @@ export const execute = async (worker: PrivateWorker, code: string,
     /* eslint-enable @typescript-eslint/no-unused-vars */
 
     try {
-        // eslint-disable-next-line no-eval
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const res = eval(code);
 
-        return Promise.resolve(res);
+        return res;
     } catch (e) {
         if (e instanceof Error) {
             const stack = e.stack;
@@ -128,7 +127,7 @@ export const isCloneable = (value: unknown): boolean => {
         new MessageChannel().port1.postMessage(value);
 
         return true;
-    } catch (e) {
+    } catch {
         return false;
     }
 };

@@ -48,6 +48,7 @@ export class E2ETreeItem extends WebElement {
 
     /**
      * Verifies if the tree element exists
+     * 
      * @returns A promise resolving with true if the element exists, false otherwise
      */
     public exists = async (): Promise<boolean> => {
@@ -74,6 +75,7 @@ export class E2ETreeItem extends WebElement {
 
     /**
      * Gets the tree item caption
+     * 
      * @returns The tree item caption
      */
     public getCaption = async (): Promise<string> => {
@@ -111,6 +113,7 @@ export class E2ETreeItem extends WebElement {
 
     /**
      * Verifies if a DBSystem is stopped
+     * 
      * @returns A promise resolving with true if the DB System is stopped, false otherwise
      */
     public hasRedMark = async (): Promise<boolean> => {
@@ -122,6 +125,7 @@ export class E2ETreeItem extends WebElement {
 
     /**
      * Gets an action button from a tree element
+     * 
      * @param actionButton The action button d
      * @returns A promise resolving with the button
      */
@@ -145,8 +149,7 @@ export class E2ETreeItem extends WebElement {
         } else if (actionButton === constants.closeEditor) {
             treeItemActionButton = await this
                 .findElement(locator.section.tree.element.actions.closeEditor);
-        }
-        else {
+        } else {
             throw new Error(`Unknown action button ${actionButton}`);
         }
 
@@ -158,6 +161,7 @@ export class E2ETreeItem extends WebElement {
 
     /**
      * Verifies if the tree item is marked as default
+     * 
      * @returns A promise resolving to true when the item is marked as default
      */
     public isDefault = async (): Promise<boolean> => {
@@ -169,30 +173,13 @@ export class E2ETreeItem extends WebElement {
 
     /**
      * Verifies if the tree item is marked as default
+     * 
      * @returns A condition resolving to true when the item is marked as default
      */
     public untilIsDefault = (): Condition<boolean> => {
         return new Condition(`for ${this.caption} to be DEFAULT`, async () => {
             return this.isDefault();
         });
-    };
-
-    /**
-     * Gets the tree item type (connection or group)
-     * @returns A promise resolving with the item type
-     */
-    public getType = async (): Promise<string> => {
-        const el = await this.findElement(locator.section.tree.element.icon.exists);
-        const isConnection = (await el.getCssValue("mask-image")).includes("connection");
-        const isGroup = (await el.getAttribute("class")).includes("codicon-type-hierarchy-sub");
-
-        if (isConnection) {
-            return constants.treeItemConnection;
-        } else if (isGroup) {
-            return constants.treeItemGroup;
-        } else {
-            throw new Error(`Could not check the tree item type for '${this.caption}'`);
-        }
     };
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,10 +27,10 @@ import { ComponentChild, createRef } from "preact";
 
 import { IShellPromptValues } from "../../communication/ProtocolGui.js";
 import { Breadcrumb } from "../../components/ui/Breadcrumb/Breadcrumb.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 
 import { requisitions } from "../../supplement/Requisitions.js";
 
@@ -167,7 +167,9 @@ export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPro
 
     private updateShellPrompt = (values: IShellPromptValues): Promise<boolean> => {
         return new Promise((resolve) => {
-            this.setState({ values }, () => { resolve(true); });
+            this.setState({ values }, () => {
+                resolve(true);
+            });
         });
     };
 
@@ -175,7 +177,7 @@ export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPro
         const { getSchemas } = this.props;
 
         e.stopPropagation();
-        void getSchemas?.().then((schemaNames) => {
+        void getSchemas().then((schemaNames) => {
             this.setState({ schemaNames }, () => {
                 const clientRect = (e.target as Element).getBoundingClientRect();
                 const targetRect = new DOMRect(clientRect.x, clientRect.y + clientRect.height, 1, 1);
@@ -186,7 +188,7 @@ export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPro
 
     private handleSchemaItemClick = (props: IMenuItemProperties): boolean => {
         const { onSelectSchema } = this.props;
-        onSelectSchema?.(props.command.title.substring(2) ?? "");
+        onSelectSchema?.(props.command.title.substring(2));
 
         return true;
     };

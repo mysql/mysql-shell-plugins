@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,8 +27,8 @@ import "./ProgressIndicator.css";
 
 import { ComponentChild } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 
 interface IProgressIndicatorProperties extends IComponentProperties {
     /** The opacity of the indicator host container (default: 1). */
@@ -77,7 +77,7 @@ export class ProgressIndicator extends ComponentBase<IProgressIndicatorPropertie
             height = indicatorHeight ?? 80;
 
             const circleClassName = position == null ? "circleBackground animated" : "circleBackground";
-            const radius = (width - 2 * strokeWidth) / 2;
+            const radius = (width - (2 * strokeWidth)) / 2;
             const offset = (width - strokeWidth) / 2;
             indicator = <svg className={circleClassName}>
                 <circle cx={offset} cy={offset} r={radius} />
@@ -86,15 +86,12 @@ export class ProgressIndicator extends ComponentBase<IProgressIndicatorPropertie
         }
 
         const indicatorStyle = {
-            ...{
-                /* eslint-disable @typescript-eslint/naming-convention */
-                "opacity": backgroundOpacity,
-                "--position": position ?? 0,
-                "--width": width,
-                "--height": height,
-                "--strokeWidth": strokeWidth,
-                /* eslint-enable @typescript-eslint/naming-convention */
-            }, ...style,
+            "opacity": backgroundOpacity,
+            "--position": position ?? 0,
+            "--width": width,
+            "--height": height,
+            "--strokeWidth": strokeWidth,
+            ...style,
         };
 
         return (

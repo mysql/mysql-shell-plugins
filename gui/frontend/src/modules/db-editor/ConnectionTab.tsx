@@ -26,7 +26,7 @@
 import "./assets/document.css";
 
 import { ComponentChild, createRef } from "preact";
-import { clearIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+import { SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async/dynamic";
 import ts, { ScriptTarget } from "typescript";
 
 import { IMarkdownString } from "monaco-editor";
@@ -50,10 +50,10 @@ import {
 } from "../../data-models/OpenDocumentDataModel.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
-import { IStacktraceInfo, SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { SQLExecutionContext, type IRuntimeErrorResult, type IStacktraceInfo } from "../../script-execution/SQLExecutionContext.js";
 import {
-    currentNotebookVersion,
     IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState,
+    currentNotebookVersion,
 } from "../../script-execution/index.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import {
@@ -64,8 +64,10 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
+    EditorLanguage,
+    IScriptRequest, ISqlPageRequest,
     convertRows,
-    EditorLanguage, generateColumnInfo, IScriptRequest, ISqlPageRequest,
+    generateColumnInfo,
 } from "../../supplement/index.js";
 import {
     convertErrorToString, getConnectionInfoFromDetails, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
@@ -90,9 +92,9 @@ interface IResultTimer {
     results: Array<[IExecutionResult, IResponseDataOptions]>;
 }
 
-type QueryResult = {
+export interface QueryResult {
     rows?: string[][];
-};
+}
 
 /**
  * Just the minimal information about existing editors.
@@ -299,7 +301,7 @@ Execute \\help or \\? for help;`;
     // that doesn't work in this component.
     private documentDataModel: OpenDocumentDataModel | undefined;
 
-    private mrsSdkUpdateRequired: boolean = false;
+    private mrsSdkUpdateRequired = false;
 
     private sqlQueryExecutor: SqlQueryExecutor;
 
@@ -322,14 +324,16 @@ Execute \\help or \\? for help;`;
 
     private static shiftMLEStacktraceLineNumbers = (
         stackTrace: QueryResult, jsStartLine: number): IStacktraceInfo | undefined => {
-        if (stackTrace?.rows && stackTrace.rows.length > 0) {
+        if (stackTrace.rows && stackTrace.rows.length > 0) {
             const stackTraceRow = stackTrace.rows[0][0];
 
             if (stackTraceRow) {
 
                 let range!: Range;
 
-                let rowValue = stackTraceRow.split("\n").filter((val) => { return val !== ""; });
+                let rowValue = stackTraceRow.split("\n").filter((val) => {
+                    return val !== "";
+                });
 
                 if (rowValue.length > 50) {
                     rowValue = rowValue.slice(0, 50);
@@ -558,7 +562,7 @@ Execute \\help or \\? for help;`;
                         switch (activeEditor.document.pageType) {
                             case "serverStatus": {
                                 document = <ServerStatus
-                                    backend={connection?.backend}
+                                    backend={connection.backend}
                                     toolbarItems={toolbarItems}
                                 />;
 
@@ -567,7 +571,7 @@ Execute \\help or \\? for help;`;
 
                             case "clientConnections": {
                                 document = <ClientConnections
-                                    backend={connection?.backend}
+                                    backend={connection.backend}
                                     toolbarItems={toolbarItems}
                                     refreshInterval={5000}
                                 />;
@@ -577,7 +581,7 @@ Execute \\help or \\? for help;`;
 
                             case "performanceDashboard": {
                                 document = <PerformanceDashboard
-                                    backend={connection?.backend}
+                                    backend={connection.backend}
                                     toolbarItems={toolbarItems}
                                     graphData={savedState.graphData}
                                     onGraphDataChange={this.handleGraphDataChange}
@@ -590,7 +594,7 @@ Execute \\help or \\? for help;`;
 
                             case "lakehouseNavigator": {
                                 document = <LakehouseNavigator
-                                    backend={connection?.backend}
+                                    backend={connection.backend}
                                     toolbarItems={toolbarItems}
                                     savedState={savedState.adminPageStates.lakehouseNavigatorState}
                                     onLakehouseNavigatorStateChange={this.handleLakehouseNavigatorStateChange} />;
@@ -823,7 +827,7 @@ Execute \\help or \\? for help;`;
         await this.updateMrsServiceSdkCache();
 
         // Get payload
-        const payload: IMrsAuthRequestPayload = request.payload as IMrsAuthRequestPayload;
+        const payload = request.payload as IMrsAuthRequestPayload | undefined;
         if (payload?.contextId) {
             this.addContextResultMessage(payload.contextId, `\nAuthentication cancelled.`);
 
@@ -854,7 +858,7 @@ Execute \\help or \\? for help;`;
                     this.addContextResultMessage(payload.contextId,
                         `\nUser '${data.request.user}' logged in successfully.`);
 
-                    return Promise.resolve(true);
+                    return true;
                 }
             } else /* istanbul ignore next */ {
                 if (payload.contextId) {
@@ -889,7 +893,7 @@ Execute \\help or \\? for help;`;
          * @param text The content to load into the notebook.
          */
         const createNotebook = async (text: string): Promise<void> => {
-            let content: INotebookFileFormat;
+            let content: Partial<INotebookFileFormat>;
             if (text.length === 0) {
                 content = {
                     type: "MySQLNotebook",
@@ -902,8 +906,8 @@ Execute \\help or \\? for help;`;
                 };
             } else {
                 try {
-                    content = JSON.parse(text);
-                } catch (reason) {
+                    content = JSON.parse(text) as INotebookFileFormat;
+                } catch {
                     void ui.showErrorMessage("The notebook file is not valid JSON.", {});
 
                     return;
@@ -933,13 +937,13 @@ Execute \\help or \\? for help;`;
                         if (content.caption) {
                             openState!.document.caption = content.caption;
                         }
-                        persistentState.model.setValue(content.content);
-                        persistentState.options = content.options;
+                        persistentState.model.setValue(content.content ?? "");
+                        persistentState.options = content.options ?? {};
 
                         // Restore the result data in the application DB.
                         const transaction = ApplicationDB.db.transaction(StoreType.Document, "readwrite");
                         const objectStore = transaction.objectStore(StoreType.Document);
-                        for (const context of content.contexts) {
+                        for (const context of content.contexts ?? []) {
                             // Create new result IDs for the data, to avoid multiple result views pointing to the
                             // same data, for example when the same notebook is loaded twice.
                             const idMap = new Map<string, string>();
@@ -962,7 +966,7 @@ Execute \\help or \\? for help;`;
                         }
 
                         setTimeout(() => {
-                            this.notebookRef.current?.restoreNotebook(content);
+                            this.notebookRef.current?.restoreNotebook(content as INotebookFileFormat);
                             this.loadingNotebook = false;
                         }, 10);
                     }
@@ -1021,7 +1025,7 @@ Execute \\help or \\? for help;`;
                 parameters: {
                     pageId: id,
                     id: uuid(),
-                    connection: connection?.details,
+                    connection: connection.details,
                     pageType: "lakehouseNavigator",
                     caption: "Lakehouse Navigator",
                 },
@@ -1053,14 +1057,13 @@ Execute \\help or \\? for help;`;
      * @param source If set to "viaKeyboardShortcut" the requisition was sent from a keyboard shortcut
      *
      * @returns A promise that resolves to true if the notebook was saved, false if the request could not be fulfilled.
-     *
      */
     private editorSaveNotebook = async (source?: string): Promise<boolean> => {
         const openState = this.findActiveEditor();
 
         if (openState) {
             const persistentState: IEditorPersistentState | undefined = openState.state;
-            if (persistentState && persistentState.model.executionContexts) {
+            if (persistentState?.model.executionContexts) {
                 const content: INotebookFileFormat = {
                     type: "MySQLNotebook",
                     version: currentNotebookVersion,
@@ -1122,6 +1125,7 @@ Execute \\help or \\? for help;`;
         const { statementCount, errorCount, startTime, jsStartLine,
             errorMessage, errorStatementStr, errorStatementIndex, jsCreateStatementStr } = result;
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (this.mrsSdkUpdateRequired) {
             // Enforce a refresh of the MRS Sdk Cache
             this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
@@ -1134,12 +1138,12 @@ Execute \\help or \\? for help;`;
         if (savedState.mleEnabled && options.is3rdLanguage) {
             const resultData: ITextResultEntry[] = [];
             // Clear any existing runtime error decorations as they become obsolete after new execution
-            void context.clearRuntimeErrorData();
+            context.clearRuntimeErrorData();
 
             // Only get the stack trace if there is an error.
             if (errorCount !== 0) {
                 try {
-                    const stackTrace: QueryResult = await connection?.backend?.execute(
+                    const stackTrace: QueryResult = await connection.backend.execute(
                         `SELECT mle_session_state("stack_trace")`) as QueryResult;
 
                     const updatedStacktrace = ConnectionTab.shiftMLEStacktraceLineNumbers(stackTrace, jsStartLine);
@@ -1183,15 +1187,15 @@ Execute \\help or \\? for help;`;
                 }
 
                 try {
-                    const consoleError: QueryResult = await connection.backend?.execute(
-                        `SELECT mle_session_state("stderr")`) as QueryResult;
+                    const consoleError = await connection.backend.execute(
+                        `SELECT mle_session_state("stderr")`) as QueryResult | undefined;
 
                     if (consoleError?.rows && consoleError.rows.length > 0) {
                         const consoleErrorRow = consoleError.rows[0][0];
 
                         if (consoleErrorRow) {
                             for (const row of consoleError.rows) {
-                                const consoleErrorInfo: string = `${row[0]}`.trim();
+                                const consoleErrorInfo: string = row[0].trim();
 
                                 resultData.push({
                                     type: MessageType.Warning,
@@ -1208,15 +1212,15 @@ Execute \\help or \\? for help;`;
             }
 
             try {
-                const consoleLog: QueryResult = await connection.backend.execute(
-                    `SELECT mle_session_state("stdout")`) as QueryResult;
+                const consoleLog = await connection.backend.execute(
+                    `SELECT mle_session_state("stdout")`) as QueryResult | undefined;
 
                 if (consoleLog?.rows && consoleLog.rows.length > 0) {
                     const consoleLogRow = consoleLog.rows[0][0];
 
                     if (consoleLogRow) {
                         for (const row of consoleLog.rows) {
-                            const consoleLogInfo: string = `${row[0]}`.trim();
+                            const consoleLogInfo: string = row[0].trim();
 
                             resultData.push({
                                 type: MessageType.Log,
@@ -1231,7 +1235,7 @@ Execute \\help or \\? for help;`;
                 console.error("Error while getting console log:\n " + String(error));
             }
 
-            void await context.addResultData({
+            await context.addResultData({
                 type: "text",
                 text: resultData,
             }, { resultId: uuid() });
@@ -1266,13 +1270,12 @@ Execute \\help or \\? for help;`;
             reportProgress: true,
         };
 
-        if (connection && connection.backend.moduleSessionId) {
+        if (connection?.backend.moduleSessionId) {
             const chatQueryId = context.id;
             currentChatOptions.reRun = false;
-            if (currentChatOptions.chatHistory &&
-                currentChatOptions.chatHistory.find((entry) => {
-                    return entry.chatQueryId === chatQueryId;
-                })) {
+            if (currentChatOptions.chatHistory?.find((entry) => {
+                return entry.chatQueryId === chatQueryId;
+            })) {
                 currentChatOptions.reRun = true;
             }
 
@@ -1289,58 +1292,56 @@ Execute \\help or \\? for help;`;
                     context.code, connection.backend.moduleSessionId, options, (data) => {
                         let info;
                         const chatData = data.result.data;
-                        if (chatData) {
-                            if (chatData.error) {
-                                this.sqlQueryExecutor.addTimedResult(context, {
-                                    type: "chat",
-                                    error: chatData.error,
-                                    chatQueryId,
-                                }, {
-                                    resultId: chatQueryId,
-                                });
-
-                                return Promise.resolve();
-                            }
-
-                            currentChatOptions = {
-                                ...currentChatOptions,
-                                ...chatData,
-                                info: undefined,
-                            };
-
-                            if (chatData.info) {
-                                info = chatData.info;
-                            }
-                            if (chatData.usage) {
-                                info = `Used ${chatData.usage?.usedUnits.inputTokens} input tokens, ` +
-                                    `${chatData.usage?.usedUnits.outputTokens} output tokens.`;
-                            }
-
-                            // If tokens come in, concatenate them
-                            if (chatData.token) {
-                                tokens += chatData.token.replaceAll("\\n", "\n");
-                                currentChatOptions.token = undefined;
-                            } else if (chatData.response) {
-                                tokens = chatData.response;
-                                currentChatOptions.response = undefined;
-                            }
-
-                            void context.addResultData({
+                        if (chatData.error) {
+                            this.sqlQueryExecutor.addTimedResult(context, {
                                 type: "chat",
+                                error: chatData.error,
                                 chatQueryId,
-                                info,
-                                answer: tokens.trim(),
-                                options: currentChatOptions as IDictionary,
-                                chatOptionsVisible: savedState.chatOptionsState.chatOptionsExpanded,
-                                updateOptions: this.updateChatOptionsState,
                             }, {
                                 resultId: chatQueryId,
-                            }).then(() => {
-                                // Store chat options and refresh UI
-                                this.updateChatOptionsState({ options: currentChatOptions });
                             });
 
+                            return Promise.resolve();
                         }
+
+                        currentChatOptions = {
+                            ...currentChatOptions,
+                            ...chatData,
+                            info: undefined,
+                        };
+
+                        if (chatData.info) {
+                            info = chatData.info;
+                        }
+
+                        if (chatData.usage) {
+                            info = `Used ${chatData.usage.usedUnits.inputTokens} input tokens, ` +
+                                `${chatData.usage.usedUnits.outputTokens} output tokens.`;
+                        }
+
+                        // If tokens come in, concatenate them
+                        if (chatData.token) {
+                            tokens += chatData.token.replaceAll("\\n", "\n");
+                            currentChatOptions.token = undefined;
+                        } else if (chatData.response) {
+                            tokens = chatData.response;
+                            currentChatOptions.response = undefined;
+                        }
+
+                        void context.addResultData({
+                            type: "chat",
+                            chatQueryId,
+                            info,
+                            answer: tokens.trim(),
+                            options: currentChatOptions as IDictionary,
+                            chatOptionsVisible: savedState.chatOptionsState.chatOptionsExpanded,
+                            updateOptions: this.updateChatOptionsState,
+                        }, {
+                            resultId: chatQueryId,
+                        }).then(() => {
+                            // Store chat options and refresh UI
+                            this.updateChatOptionsState({ options: currentChatOptions });
+                        });
 
                         return Promise.resolve();
                     });
@@ -1467,9 +1468,8 @@ Execute \\help or \\? for help;`;
                 const serviceMetadata = await connection.backend.mrs.getCurrentServiceMetadata();
 
                 // Check if there is a current MRS service set and if the cached
-                if (serviceMetadata.id !== undefined && serviceMetadata.id !== null &&
-                    serviceMetadata.hostCtx !== undefined && serviceMetadata.hostCtx !== null &&
-                    serviceMetadata.metadataVersion !== undefined) {
+                if (serviceMetadata.id !== undefined && serviceMetadata.hostCtx !== undefined
+                    && serviceMetadata.metadataVersion !== undefined) {
                     if (this.cachedMrsServiceSdk.schemaId !== serviceMetadata.id ||
                         this.cachedMrsServiceSdk.schemaMetadataVersion !== serviceMetadata.metadataVersion) {
                         let firstLoad = false;
@@ -1477,7 +1477,7 @@ Execute \\help or \\? for help;`;
                         let code = "";
 
                         // Add the mrsLoginResult constant at top, if defined
-                        if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
+                        if (this.mrsLoginResult?.authApp && this.mrsLoginResult.jwt) {
                             code = "const mrsLoginResult = { " +
                                 `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n`;
                             authenticated = true;
@@ -1527,7 +1527,7 @@ Execute \\help or \\? for help;`;
                             const action = firstLoad
                                 ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
                             const authInfo = authenticated ? " User authenticated." : "";
-                            void ui.setStatusBarMessage(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
+                            ui.setStatusBarMessage(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
                                 `${action}.${authInfo}`);
                         }
                     }
@@ -1572,7 +1572,7 @@ Execute \\help or \\? for help;`;
     private getGenAiStatus = async () => {
         const { connection } = this.props;
 
-        if (connection?.backend?.moduleSessionId) {
+        if (connection?.backend.moduleSessionId) {
             const genAiStatus = await connection.backend.mhs.getMdsGetGenAiStatus(connection.backend.moduleSessionId);
             this.setState({ genAiStatus });
         }
@@ -1592,12 +1592,11 @@ Execute \\help or \\? for help;`;
         // Store this execution in the ExecutionHistory list for the connection in the backend database
         const storeHistoryEntry = async (connection: ICdmConnectionEntry | undefined, code: string, language: string,
             savedState: IConnectionPresentationState) => {
-            if (connection && connection.backend) {
+            if (connection?.backend) {
                 try {
-                    await connection.backend?.addExecutionHistoryEntry(connection.details.id, code,
-                        language);
+                    await connection.backend.addExecutionHistoryEntry(connection.details.id, code, language);
 
-                    // Reset the currentExecutionHistoryIndex
+                    // Reset the index.
                     savedState.currentExecutionHistoryIndex = 0;
 
                     this.forceUpdate();
@@ -1608,7 +1607,7 @@ Execute \\help or \\? for help;`;
             }
         };
 
-        const command = context.code?.trim() ?? "";
+        const command = context.code.trim();
         if (command.length === 0) {
             return false;
         }
@@ -1621,15 +1620,15 @@ Execute \\help or \\? for help;`;
             switch (temp) {
                 case "\\about": {
                     if (webSession.runMode === RunMode.SingleServer) {
-                        await context?.addResultData({
+                        await context.addResultData({
                             type: "about", title: "MySQL AI", info: "Machine Learning and GenAI Solution",
                         }, { resultId: "" });
                     } else if (savedState.heatWaveEnabled) {
-                        await context?.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
+                        await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
                     } else {
                         const isMac = navigator.userAgent.includes("Macintosh");
                         const content = ConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
-                        await context?.addResultData({
+                        await context.addResultData({
                             type: "text",
                             text: [{ type: MessageType.Info, content, language: "ansi" }],
                         }, { resultId: "" });
@@ -1639,7 +1638,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 case "\\reconnect": {
-                    await context?.addResultData({
+                    await context.addResultData({
                         type: "text",
                         text: [{
                             type: MessageType.Info,
@@ -1733,9 +1732,9 @@ Execute \\help or \\? for help;`;
             return;
         }
 
-        await context?.clearResult();
+        await context.clearResult();
         if (!query) {
-            await context?.addResultData({
+            await context.addResultData({
                 type: "text",
                 text: [{
                     type: MessageType.Info,
@@ -1747,7 +1746,7 @@ Execute \\help or \\? for help;`;
             return;
         }
 
-        await context?.addResultData({
+        await context.addResultData({
             type: "text",
             text: [{
                 type: MessageType.Info,
@@ -1757,7 +1756,7 @@ Execute \\help or \\? for help;`;
         }, { resultId: "", replaceData: true });
 
         const sql = `CALL sys.NL_SQL(?, @nl_out, '{` +
-            ((connection?.currentSchema !== undefined && connection?.currentSchema !== "")
+            ((connection.currentSchema !== "")
                 ? `"schemas": ["${connection.currentSchema}"], `
                 : "")
             + `"execute": false}')`;
@@ -1769,31 +1768,27 @@ Execute \\help or \\? for help;`;
                 const result = await connection.backend.execute("SELECT @nl_out");
 
                 if (result) {
-                    const rows = result.rows as string[][];
+                    const rows = result.rows as string[][] | undefined;
                     if (rows && rows.length > 0 && rows[0].length > 0) {
-                        const nlResult = JSON.parse(rows[0][0]);
-                        if (!nlResult) {
-                            throw new Error(`The natural language query ${query} could not be processed.`);
-                        }
+                        const nlResult = JSON.parse(rows[0][0]) as IDictionary;
+
                         const isValidSql = nlResult.is_sql_valid as boolean;
                         const schemaList = nlResult.schemas as string[];
                         const tableList = nlResult.tables as string[];
                         let sqlQuery = nlResult.sql_query as string;
 
                         // Add linebreaks
-                        sqlQuery = sqlQuery.replaceAll(
-                            /("[^"]*"|'[^']*')|\b(FROM|WHERE|ORDER|HAVING|GROUP|LIMIT)\b/g,
-                            ($0, $1: string, $2: string) => {
+                        sqlQuery = sqlQuery.replaceAll(/("[^"]*"|'[^']*')|\b(FROM|WHERE|ORDER|HAVING|GROUP|LIMIT)\b/g,
+                            ($0, $1, $2) => {
                                 return ($1 === undefined) ? `\n${$2}` : String($1);
                             });
-                        sqlQuery = sqlQuery.replaceAll(
-                            /("[^"]*"|'[^']*')|\b(INNER JOIN|JOIN|AND|OR)\b/g,
-                            ($0, $1: string, $2: string) => {
+                        sqlQuery = sqlQuery.replaceAll(/("[^"]*"|'[^']*')|\b(INNER JOIN|JOIN|AND|OR)\b/g,
+                            ($0, $1, $2) => {
                                 return ($1 === undefined) ? `\n    ${$2}` : String($1);
                             });
 
-                        await context?.clearResult();
-                        await context?.addResultData({
+                        await context.clearResult();
+                        await context.addResultData({
                             type: "text",
                             text: [{
                                 type: MessageType.Info,
@@ -1802,9 +1797,7 @@ Execute \\help or \\? for help;`;
                                 tooltip: `Schema` + (
                                     schemaList.length > 1 ? "s" : ""
                                 ) + `: ${schemaList.join(", ")};\n`
-                                    + `Table` + (
-                                        tableList.length > 1 ? "s" : ""
-                                    ) + `: ${tableList.join(", ")}`,
+                                    + `Table` + (tableList.length > 1 ? "s" : "") + `: ${tableList.join(", ")}`,
                             }],
                         }, { resultId: "" });
 
@@ -1812,8 +1805,8 @@ Execute \\help or \\? for help;`;
                             options = {
                                 ...options,
                                 errorCallback: async (_errorMessage) => {
-                                    await context?.clearResult();
-                                    await context?.addResultData({
+                                    await context.clearResult();
+                                    await context.addResultData({
                                         type: "text",
                                         text: [{
                                             type: MessageType.Info,
@@ -1827,10 +1820,10 @@ Execute \\help or \\? for help;`;
                                 },
                             };
 
-                            await this.sqlQueryExecutor.executeQuery(context as SQLExecutionContext,
-                                0, 0, 1024, options, sqlQuery ?? "", undefined, this.props.id);
+                            await this.sqlQueryExecutor.executeQuery(context as SQLExecutionContext, 0, 0, 1024,
+                                options, sqlQuery, undefined, this.props.id);
                         } else if (!isValidSql) {
-                            await context?.addResultData({
+                            await context.addResultData({
                                 type: "text",
                                 text: [{
                                     type: MessageType.Info,
@@ -1847,9 +1840,9 @@ Execute \\help or \\? for help;`;
             } catch (e) {
                 const msg = String(e).replace(/^(Error: Error: )+/, "");
 
-                await context?.clearResult();
+                await context.clearResult();
                 if (msg.includes("PROCEDURE sys.NL_SQL does not exist")) {
-                    await context?.addResultData({
+                    await context.addResultData({
                         type: "text",
                         text: [{
                             type: MessageType.Info,
@@ -1859,7 +1852,7 @@ Execute \\help or \\? for help;`;
                         }],
                     }, { resultId: "" });
                 } else {
-                    await context?.addResultData({
+                    await context.addResultData({
                         type: "text",
                         text: [{
                             type: MessageType.Info,
@@ -2013,8 +2006,8 @@ Execute \\help or \\? for help;`;
                 case ScriptingApi.QueryStatus: {
                     const result = data.result as IResultSetData;
                     const status = `${result.requestState.type}, ` +
-                        `${formatWithNumber("record", result.totalRowCount || 0)} retrieved in ` +
-                        `${formatTime(result.executionTime)}`;
+                        `${formatWithNumber("record", result.totalRowCount ?? 0)} retrieved in ` +
+                        formatTime(result.executionTime);
 
                     const context = this.runningContexts.get(data.contextId);
                     if (context) {
@@ -2248,10 +2241,7 @@ Execute \\help or \\? for help;`;
                 case ScriptingApi.MrsEditService: {
                     if (connection && data.serviceId && typeof data.serviceId === "string") {
                         const service = await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
-                        if (service !== undefined) {
-                            void requisitions.execute("showMrsServiceDialog", service);
-                        }
-
+                        void requisitions.execute("showMrsServiceDialog", service);
                     } else {
                         void requisitions.execute("showMrsServiceDialog", undefined);
                     }
@@ -2261,14 +2251,11 @@ Execute \\help or \\? for help;`;
 
                 case ScriptingApi.MrsExportServiceSdk: {
                     if (connection && data.serviceId && typeof data.serviceId === "string") {
-                        const service = await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
-                        if (service !== undefined) {
-                            void requisitions.execute("showMrsSdkExportDialog", {
-                                serviceId: data.serviceId,
-                                connectionId: connection.details.id,
-                            });
-                        }
-
+                        await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
+                        void requisitions.execute("showMrsSdkExportDialog", {
+                            serviceId: data.serviceId,
+                            connectionId: connection.details.id,
+                        });
                     }
 
                     break;
@@ -2276,15 +2263,12 @@ Execute \\help or \\? for help;`;
 
                 case ScriptingApi.MrsAddContentSet: {
                     if (connection && data.serviceId && typeof data.serviceId === "string") {
-                        const service = await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
-                        if (service !== undefined) {
-                            void requisitions.execute("showMrsContentSetDialog", {
-                                serviceId: data.serviceId,
-                                directory: data.directory,
-                                connectionId: connection.details.id,
-                            });
-                        }
-
+                        await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
+                        void requisitions.execute("showMrsContentSetDialog", {
+                            serviceId: data.serviceId,
+                            directory: data.directory,
+                            connectionId: connection.details.id,
+                        });
                     }
 
                     break;
@@ -2319,14 +2303,11 @@ Execute \\help or \\? for help;`;
                 case ScriptingApi.MrsEditSchema: {
                     if (connection && data.schemaId && typeof data.schemaId === "string") {
                         const schema = await connection.backend.mrs.getSchema(data.schemaId);
-                        if (schema !== undefined) {
-                            const editRequest: IMrsSchemaEditRequest = {
-                                schemaName: schema.name,
-                                schema,
-                            };
-                            void requisitions.execute("showMrsSchemaDialog", editRequest);
-                        }
-
+                        const editRequest: IMrsSchemaEditRequest = {
+                            schemaName: schema.name,
+                            schema,
+                        };
+                        void requisitions.execute("showMrsSchemaDialog", editRequest);
                     }
 
                     break;
@@ -2335,14 +2316,11 @@ Execute \\help or \\? for help;`;
                 case ScriptingApi.MrsEditDbObject: {
                     if (connection && data.dbObjectId && typeof data.dbObjectId === "string") {
                         const dbObject = await connection.backend.mrs.getDbObject(data.dbObjectId);
-                        if (dbObject !== undefined) {
-                            const editRequest: IMrsDbObjectEditRequest = {
-                                dbObject,
-                                createObject: false,
-                            };
-                            void requisitions.execute("showMrsDbObjectDialog", editRequest);
-                        }
-
+                        const editRequest: IMrsDbObjectEditRequest = {
+                            dbObject,
+                            createObject: false,
+                        };
+                        void requisitions.execute("showMrsDbObjectDialog", editRequest);
                     }
 
                     break;
@@ -2437,7 +2415,7 @@ Execute \\help or \\? for help;`;
                         title: "Save Chat Profile",
                         saveLabel: "Save",
                         filters: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+
                             HeatWaveChatOptions: ["json"],
                         },
                     };
@@ -2457,7 +2435,7 @@ Execute \\help or \\? for help;`;
                         canSelectFolders: false,
                         canSelectMany: false,
                         filters: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+
                             HeatWaveChatOptions: ["json"],
                         },
                     };
@@ -2496,7 +2474,7 @@ Execute \\help or \\? for help;`;
                         ...savedState.chatOptionsState.options,
                     };
                     try {
-                        void await connection?.backend.mhs.saveMdsChatOptions(fileResult.file[0].path, options);
+                        await connection?.backend.mhs.saveMdsChatOptions(fileResult.file[0].path, options);
 
                         void ui.showInformationMessage(
                             `The HeatWave options have been saved successfully to ${fileResult.file[0].path}`, {});
@@ -2517,7 +2495,6 @@ Execute \\help or \\? for help;`;
                         void ui.showErrorMessage(content, {});
                     }
                 }
-
 
                 break;
             }
@@ -2586,13 +2563,14 @@ Execute \\help or \\? for help;`;
                     currentTimestamp: new Date().toISOString(),
                 };
 
-                this.notebookRef.current?.restoreHistoryState(historyEntry);
+                this.notebookRef.current.restoreHistoryState(historyEntry);
                 savedState.currentExecutionHistoryIndex = 0;
             } else {
                 // Load the next/prev history entry and restore the state in the notebook.
                 savedState.currentExecutionHistoryIndex += backwards ? +1 : -1;
                 void connection.backend.getExecutionHistoryEntry(connection.details.id,
-                    savedState.currentExecutionHistoryIndex - 1).then((historyEntry) => {
+                    savedState.currentExecutionHistoryIndex - 1)
+                    .then((historyEntry) => {
                         this.notebookRef.current?.restoreHistoryState(historyEntry);
                     });
             }

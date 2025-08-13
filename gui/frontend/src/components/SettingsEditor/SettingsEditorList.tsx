@@ -98,9 +98,13 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
 
         const { settingsTree } = this.props;
         if (prevProps.settingsTree !== settingsTree) {
-            this.setState({ selectedId: "", settingsList: this.collectSettingsValues() }, () => { scrollTree(); });
+            this.setState({ selectedId: "", settingsList: this.collectSettingsValues() }, () => {
+                scrollTree(); 
+            });
         } else {
-            setTimeout(() => { scrollTree(); }, 0);
+            setTimeout(() => {
+                scrollTree(); 
+            }, 0);
         }
     }
 
@@ -168,7 +172,9 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         if (this.saveTimer) {
             clearTimeout(this.saveTimer);
         }
-        this.saveTimer = setTimeout(() => { Settings.saveSettings(); }, 1000);
+        this.saveTimer = setTimeout(() => {
+            Settings.saveSettings(); 
+        }, 1000);
 
         const selectedRows = this.gridRef.current?.getSelectedRows() ?? [];
         if (selectedRows.length > 0) {

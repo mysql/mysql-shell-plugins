@@ -22,6 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+/* eslint-disable no-restricted-syntax */
 
 import type { IAppParameters } from "./RequisitionTypes.js";
 
@@ -33,6 +34,12 @@ export const appParameters: Map<string, string> & IAppParameters = new Map<strin
  * It also converts URL parameters to a map, for consumption in the app.
  */
 export const parseAppParameters = (): void => {
+    appParameters.embedded = false;
+    appParameters.hideStatusBar = false;
+    appParameters.testsRunning = false;
+    appParameters.inDevelopment = false;
+    appParameters.inExtension = false;
+
     if (typeof window !== "undefined") {
         const search = new URLSearchParams(window.location.search);
 
@@ -57,15 +64,18 @@ export const parseAppParameters = (): void => {
         }
     }
 
-    if (process.env.NODE_ENV === "test") {
+    if (globalThis.testConfig) {
         appParameters.testsRunning = true;
-    } else if (process.env.NODE_ENV === "development") {
+    } else if (globalThis.VITE_MODE === "development") { // Will be replaced by Vite, but is not defined in tests.
         appParameters.inDevelopment = true;
     }
 
     // Test Explorer tests also run under VS Code control, but must not be treated as embedded.
-    if (process.env.VSCODE_PID !== undefined && process.env.JEST_WORKER_ID === undefined) {
+    if (typeof process === "undefined") {
+        return;
+    }
+    const env = process.env;
+    if (env.VSCODE_PID !== undefined && env.JEST_WORKER_ID === undefined) {
         appParameters.inExtension = true;
     }
 };
-

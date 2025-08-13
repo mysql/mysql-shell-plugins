@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-/* eslint-disable @typescript-eslint/naming-convention */
 
 declare interface INativeShellDictionary {
     [key: string]: string | number | boolean | undefined | INativeShellDictionary[] | INativeShellDictionary;
@@ -88,7 +86,7 @@ declare class DebuggerWebSocket {
      * @returns a special value which indicates that the member in an object or array should be ignored
      * when comparing the owning object/array to another object/array.
      */
-    public get ignore(): Symbol;
+    public get ignore(): symbol;
 
     /** Opens the web socket connection to the backend (ignored if already connected). */
     public connect(): void;
@@ -175,7 +173,7 @@ declare class DebuggerWebSocket {
      *
      * @param pattern The pattern to match.
      */
-    public matchRegexp(pattern: string): Symbol;
+    public matchRegexp(pattern: string): symbol;
 }
 
 declare const ws: DebuggerWebSocket;

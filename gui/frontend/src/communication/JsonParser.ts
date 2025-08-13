@@ -56,7 +56,7 @@ const enum TokenType {
  * It only provides the minimal functionality needed for handling responses from the MySQL Shell.
  */
 export class JsonParser {
-    public tokenText: string = "";
+    public tokenText = "";
 
     static readonly #singleTokenMap = new Map<string, TokenType>([
         ["{", TokenType.OpenBrace],
@@ -241,11 +241,11 @@ export class JsonParser {
         while (digits < count) {
             const ch = this.#input.codePointAt(this.#currentPosition)!;
             if (ch >= 0x30 && ch <= 0x39) { // 0 - 9
-                value = value * 16 + ch - 0x30;
+                value = (value * 16) + ch - 0x30;
             } else if (ch >= 0x41 && ch <= 0x46) { // A - F
-                value = value * 16 + ch - 0x41 + 10;
+                value = (value * 16) + ch - 0x41 + 10;
             } else if (ch >= 0x61 && ch <= 0x66) { // a - f
-                value = value * 16 + ch - 0x61 + 10;
+                value = (value * 16) + ch - 0x61 + 10;
             } else {
                 break;
             }

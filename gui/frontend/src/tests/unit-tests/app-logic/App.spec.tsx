@@ -103,7 +103,8 @@ describe("Application tests", () => {
 
         // Pretend we are embedded.
         appParameters.embedded = true;
-        const listener = (event: MessageEvent): void => {
+        const listener = (
+            event: MessageEvent<{ command: string, source: string; data: { name: string; type: string; }; }>): void => {
             if (event.data.command === "themeChanged" && event.data.source === "app") {
                 if (event.data.data.name === "My Theme" && event.data.data.type === "dark") {
                     messageSent = true;

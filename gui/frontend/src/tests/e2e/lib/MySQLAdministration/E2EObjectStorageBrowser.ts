@@ -36,6 +36,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Selects an OCI profile
+     * 
      * @param ociProfileName The profile name
      * @returns A promise resolving when the profile is selected
      */
@@ -43,8 +44,7 @@ export class E2EObjectStorageBrowser {
         const objStorageBrowser = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser;
         await driver.findElement(objStorageBrowser.ociProfile)
             .click();
-        const list = await driver.wait(until
-            .elementLocated(objStorageBrowser.ociProfileList.exists),
+        const list = await driver.wait(until.elementLocated(objStorageBrowser.ociProfileList.exists),
             constants.wait5seconds, "OCI Profile List was not found");
         await (await list.findElement(objStorageBrowser.ociProfileList.item(ociProfileName))).click();
         await driver.wait(this.untilItemsAreLoaded(), constants.wait30seconds,
@@ -53,6 +53,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Waits until all Object Storage items are loaded
+     * 
      * @returns A promise resolving when the Object Storage items are loaded
      */
     public untilItemsAreLoaded = (): Condition<boolean> => {
@@ -66,6 +67,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Gets an object storage item on a specific level
+     * 
      * @param itemName The item name
      * @param level The item level
      * @returns A promise resolving when the compartments are expanded and loaded
@@ -106,6 +108,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Verifies if an object storage item exists
+     * 
      * @param itemName The item name
      * @param level The item level
      * @returns A promise resolving when the compartments are expanded and loaded
@@ -147,6 +150,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Verifies if the tree element has children
+     * 
      * @param caption The item caption
      * @returns A condition resolving to true if the element has children, false otherwise
      */
@@ -178,6 +182,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Verifies if the tree element is expanded
+     * 
      * @param caption The item caption
      * @returns A condition resolving to true if the element is expanded, false otherwise
      */
@@ -203,6 +208,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Expands the tree item
+     * 
      * @param caption The item caption
      */
     public expandItem = async (caption: string): Promise<void> => {
@@ -214,7 +220,7 @@ export class E2EObjectStorageBrowser {
                     const itemToggle = await item.findElement(objStorageItem.treeToggle);
                     await driver.executeScript("arguments[0].click()", itemToggle);
 
-                    return this.itemIsExpanded(caption);
+                    return await this.itemIsExpanded(caption);
                 } else {
                     return true;
                 }
@@ -229,6 +235,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Expands object storage compartments
+     * 
      * @param path The compartments as a tree path
      * @returns A promise resolving when the compartments are expanded and loaded
      */
@@ -291,6 +298,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Clicks on the object storage item checkbox
+     * 
      * @param itemName The item name
      * @returns A promise resolving when the checkbox is clicked
      */
@@ -315,41 +323,33 @@ export class E2EObjectStorageBrowser {
                 const item = await this.getItem(itemName);
                 await driver.executeScript("arguments[0].scrollIntoView()", item);
                 const checkbox = await item.findElement(objectStorageItem.item.checkbox);
-                let isChecked = false;
                 await driver.executeScript("arguments[0].click()", checkbox);
                 await driver.sleep(500);
                 await driver.wait(untilItemIsChecked(), constants.wait3seconds)
-                    .then(() => {
-                        isChecked = true;
-                    })
                     .catch(() => {
                         // continue
                     });
 
-                if (!isChecked) {
-                    return false;
-                } else {
-                    return driver.wait(async () => {
-                        const path = await driver
-                            .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.path);
-                        if (path.length > 0) {
-                            return (await path[0].getAttribute("value")).includes(itemName);
-                        }
+                return await driver.wait(async () => {
+                    const path = await driver
+                        .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.path);
+                    if (path.length > 0) {
+                        return (await path[0].getAttribute("value")).includes(itemName);
+                    }
 
-                        const loadingTasks = await driver
-                            .findElements(locator.lakeHouseNavigator.loadIntoLakeHouse.newLoadingTask
-                                .loadingTaskItem.caption);
-                        if (loadingTasks.length > 0) {
-                            return (await loadingTasks[0].getText()).includes(itemName);
-                        }
-                    }, constants.wait2seconds, "checkbox was not checked")
-                        .then(() => {
-                            return true;
-                        })
-                        .catch(() => {
-                            return false;
-                        });
-                }
+                    const loadingTasks = await driver
+                        .findElements(locator.lakeHouseNavigator.loadIntoLakeHouse.newLoadingTask
+                            .loadingTaskItem.caption);
+                    if (loadingTasks.length > 0) {
+                        return (await loadingTasks[0].getText()).includes(itemName);
+                    }
+                }, constants.wait2seconds, "checkbox was not checked")
+                    .then(() => {
+                        return true;
+                    })
+                    .catch(() => {
+                        return false;
+                    });
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
@@ -360,6 +360,7 @@ export class E2EObjectStorageBrowser {
 
     /**
      * Clicks on the refresh button of the Object Storage Browser
+     * 
      * @returns A promise resolving when Object Storage Browser is refreshed
      */
     public refreshObjectStorageBrowser = async (): Promise<void> => {

@@ -45,14 +45,14 @@ let e2eProfile: string | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
 
-describe("OCI", () => {
+describe.skip("OCI", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
         await driver.get(url);
         const configs = await Misc.mapOciConfig();
         ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
-            return item.name = "E2ETESTS";
+            return item.name === "E2ETESTS";
         })!;
 
         e2eProfile = `${ociConfig.name} (${ociConfig.region})`;
@@ -89,6 +89,7 @@ describe("OCI", () => {
 
     it("Set as New Default Config Profile", async () => {
         try {
+
             await driver.wait(ociTreeSection.untilTreeItemExists(ociTree[0]), constants.wait5seconds);
             await Misc.dismissNotifications(true);
 

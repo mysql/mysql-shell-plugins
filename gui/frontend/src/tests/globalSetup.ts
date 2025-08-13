@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
-import type { Config } from "jest";
 import { access, link, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
+
+import type { Config } from "jest";
 
 const generateMrsSdkResourceLinks = async () => {
     const targetDir = resolve(__dirname, "..", "modules", "mrs", "sdk");
@@ -37,11 +36,11 @@ const generateMrsSdkResourceLinks = async () => {
 
     try {
         await access(target);
-    } catch (err) {
+    } catch {
         // file link does not exist
         try {
             await access(targetDir);
-        } catch (err) {
+        } catch {
             // directory does not exist
             await mkdir(targetDir, { recursive: true });
         } finally {
@@ -53,5 +52,6 @@ const generateMrsSdkResourceLinks = async () => {
 
 module.exports = async (_globalConfig: unknown, _projectConfig: Config) => {
     await generateMrsSdkResourceLinks();
+    // eslint-disable-next-line no-restricted-syntax
     process.chdir("./src/tests/unit-tests");
 };

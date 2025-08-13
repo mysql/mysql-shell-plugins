@@ -409,7 +409,8 @@ export class OpenDocumentDataModel {
                 }
             });
 
-            if (!found) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!found) { // eslint false positive.
                 return caption;
             }
 
@@ -534,7 +535,9 @@ export class OpenDocumentDataModel {
                         documents: [],
                     };
 
-                    page.getChildren = () => { return page!.documents; };
+                    page.getChildren = () => {
+                        return page!.documents;
+                    };
                     pageList.push(page);
                     actions.push({ action: "add", entry: page });
                 }
@@ -604,7 +607,9 @@ export class OpenDocumentDataModel {
                         documents: [],
                     };
 
-                    page.getChildren = () => { return page!.documents; };
+                    page.getChildren = () => {
+                        return page!.documents;
+                    };
                     pageList.push(page);
                     actions.push({ action: "add", entry: page });
                 }
@@ -764,9 +769,11 @@ export class OpenDocumentDataModel {
                 state: createDataModelEntryState(),
                 parent: entry,
                 details: connection,
-                caption: caption || connection.caption,
+                caption: caption ?? connection.caption,
                 documents: [],
-                getChildren: () => { return newPage.documents; },
+                getChildren: () => {
+                    return newPage.documents;
+                },
             };
 
             pageList.push(newPage);
@@ -1095,7 +1102,6 @@ export class OpenDocumentDataModel {
      * @param provider If given only the documents of the given provider are returned.
      *
      * @returns all documents in the given or all providers.
-     *
      */
     private getAllDocuments(provider?: IOdmAppProviderEntry): LeafDocumentEntry[] {
         const result: LeafDocumentEntry[] = [];
@@ -1157,7 +1163,6 @@ export class OpenDocumentDataModel {
                 entry.shellSessionRoot!,
             ];
         };
-
 
         return entry as IOdmAppProviderEntry;
     }

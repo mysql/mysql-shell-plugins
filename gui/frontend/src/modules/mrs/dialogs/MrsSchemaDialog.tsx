@@ -27,7 +27,7 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMrsServiceData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
-    IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
 } from "../../../components/Dialogs/ValueEditDialog.js";
 import { EnabledState, getEnabledState } from "../mrs-helpers.js";
 
@@ -49,10 +49,12 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
     }
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
-        const services = request.parameters?.services as IMrsServiceData[] ?? [];
+        const services = request.parameters?.services as IMrsServiceData[] | undefined ?? [];
 
         const dialogValues = this.dialogValues(request, services);
-        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Schema" });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, { title: "MySQL REST Schema" });
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values, services);
         }
@@ -86,7 +88,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 if (optionsSection.values.options.value) {
                     try {
                         JSON.parse(optionsSection.values.options.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.options = "Please provide a valid JSON object.";
                     }
                 }
@@ -97,7 +99,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 if (metadataSection.values.metadata.value) {
                     try {
                         JSON.parse(metadataSection.values.metadata.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.metadata = "Please provide a valid JSON object.";
                     }
                 }
@@ -113,11 +115,9 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
             return service.id === request.values?.serviceId;
         });
 
-        if (selectedService === undefined) {
-            selectedService = services.find((service) => {
-                return service.isCurrent === 1;
-            });
-        }
+        selectedService ??= services.find((service) => {
+            return service.isCurrent === 1;
+        });
 
         if (services.length > 0 && !selectedService) {
             selectedService = services[0];

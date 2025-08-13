@@ -27,7 +27,7 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMrsConfigData, IMrsStatusData, IStringDict } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
+    CommonDialogValueOption, IChoiceDialogValue, IDialogSection, IDialogValidations, IDialogValues,
 } from "../../../components/Dialogs/ValueEditDialog.js";
 
 export interface IMrsConfigurationDialogData extends IDictionary {
@@ -46,11 +46,12 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const dialogValues = this.dialogValues(request);
-        const result = await this.doShow(() => { return dialogValues; },
-            {
-                title: "MySQL REST Service",
-                contexts: request.parameters?.init ? ["init"] : ["config"],
-            });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, {
+            title: "MySQL REST Service",
+            contexts: request.parameters?.init ? ["init"] : ["config"],
+        });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);
@@ -68,10 +69,10 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
         if (closing) {
             const authSection = values.sections.get("authSection");
             if (authSection && this.dialog?.activeContexts.has("init")) {
-                if (authSection.values.mrsAdminUser?.value && !authSection.values.mrsAdminUserPassword?.value) {
+                if (authSection.values.mrsAdminUser.value && !authSection.values.mrsAdminUserPassword.value) {
                     result.messages.mrsAdminUserPassword = "Please specify a password for the MRS Admin User.";
-                } else if (authSection.values.mrsAdminUser?.value
-                    && authSection.values.mrsAdminUserPassword?.value) {
+                } else if (authSection.values.mrsAdminUser.value
+                    && authSection.values.mrsAdminUserPassword.value) {
                     // Enforce password strength
                     const pwd = (authSection.values.mrsAdminUserPassword.value as string);
                     if (pwd.length < 8) {
@@ -89,8 +90,8 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                     }
                 }
 
-                if (authSection.values.mrsAdminCreation?.value && !authSection.values.mrsAdminUser?.value
-                    && !authSection.values.mrsAdminUserPassword?.value) {
+                if (authSection.values.mrsAdminCreation.value && !authSection.values.mrsAdminUser.value
+                    && !authSection.values.mrsAdminUserPassword.value) {
                     result.messages.mrsAdminCreation = "Please specify a REST user name or disable this option to "
                         + "skip the creation of the default REST authentication app.";
                 }
@@ -101,7 +102,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                 if (optionsSection.values.options.value) {
                     try {
                         JSON.parse(optionsSection.values.options.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.options = "Please provide a valid JSON object.";
                     }
                 }
@@ -115,7 +116,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
         if (request.values) {
             const values = request.values as IMrsConfigurationDialogData;
             const status = request.parameters?.status as IMrsStatusData;
-            const versions = request.parameters?.versionsAvailable as string[] ?? [values.version];
+            const versions = request.parameters?.versionsAvailable as string[] | undefined ?? [values.version];
             const showUpdateSelection = !request.parameters?.init && !request.parameters?.isCloudInstance
                 && status.serviceUpgradeable;
 
@@ -229,7 +230,6 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                 },
             };
 
-
             const authThrottlingSection: IDialogSection = {
                 contexts: ["config"],
                 caption: "Authentication Throttling",
@@ -308,9 +308,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                     responseCacheMaxCacheSize: {
                         type: "text",
                         caption: "Endpoint Response Cache",
-                        value: values.options.responseCache?.maxCacheSize
-                            ? values.options.responseCache?.maxCacheSize
-                            : "",
+                        value: values.options.responseCache?.maxCacheSize ?? "",
                         horizontalSpan: 4,
                         description: "Global options for the REST endpoint response cache, which keeps an in-memory "
                             + "cache of responses to GET requests on tables, views, procedures and functions. To "
@@ -321,9 +319,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                     fileCacheMaxCacheSize: {
                         type: "text",
                         caption: "Static File Cache",
-                        value: values.options.fileCache?.maxCacheSize
-                            ? values.options.fileCache?.maxCacheSize
-                            : "",
+                        value: values.options.fileCache?.maxCacheSize ?? "",
                         horizontalSpan: 4,
                         description: "Global options for the static file data cache, which keeps an in-memory cache "
                             + "of responses to GET requests on content set files. Maximum size of the cache. Default "
@@ -448,12 +444,11 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
         const contentRedirectSection = dialogValues.sections.get("contentRedirectSection");
         const cacheSection = dialogValues.sections.get("cacheSection");
 
-
         if (mainSection && authThrottlingSection && optionsSection && authSection && contentRedirectSection
             && cacheSection) {
             let options: IMrsConfigData;
             try {
-                options = JSON.parse(optionsSection.values.options.value as string);
+                options = JSON.parse(optionsSection.values.options.value as string) as IMrsConfigData;
             } catch {
                 options = {};
             }
@@ -531,22 +526,27 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                 directoryIndexDirective: contentRedirectSection.values.directoryIndexDirective.value as string[],
             };
 
+            let updateToVersion: IChoiceDialogValue | undefined;
+            if ("updateToVersion" in mainSection.values) {
+                updateToVersion = mainSection.values.updateToVersion as IChoiceDialogValue;
+            }
+
             const values: IMrsConfigurationDialogData = {
                 enabled: mainSection.values.enabled.value === "Enabled",
-                version: mainSection.values.updateToVersion?.value
-                    && mainSection.values.updateToVersion?.value !== "No Update"
-                    ? mainSection.values.updateToVersion?.value as string
+                version: updateToVersion?.value
+                    && updateToVersion.value !== "No Update"
+                    ? updateToVersion.value
                     : mainSection.values.version.value as string,
                 options,
-                mrsAdminUser: authSection.values.mrsAdminCreation?.value && authSection?.values.mrsAdminUser?.value
+                mrsAdminUser: authSection.values.mrsAdminCreation.value && authSection.values.mrsAdminUser.value
                     ? authSection.values.mrsAdminUser.value as string
                     : undefined,
-                mrsAdminUserPassword: authSection.values.mrsAdminCreation?.value
-                    && authSection?.values.mrsAdminUserPassword?.value
+                mrsAdminUserPassword: authSection.values.mrsAdminCreation.value
+                    && authSection.values.mrsAdminUserPassword.value
                     ? authSection.values.mrsAdminUserPassword.value as string
                     : undefined,
-                performUpdate: mainSection.values.updateToVersion?.value
-                    && mainSection.values.updateToVersion?.value !== "No Update"
+                performUpdate: updateToVersion?.value
+                    && updateToVersion.value !== "No Update"
                     ? true
                     : undefined,
             };

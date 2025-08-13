@@ -26,7 +26,8 @@
 import { mount } from "enzyme";
 import { act } from "@testing-library/preact";
 
-import { JsonView, JsonValue } from "../../../../../components/ui/JsonView/JsonView.js";
+import { JsonView } from "../../../../../components/ui/JsonView/JsonView.js";
+import { JsonValue } from "../../../../../app-logic/general-types.js";
 
 describe("JsonView tests", (): void => {
 
@@ -137,7 +138,7 @@ describe("JsonView tests", (): void => {
             // Should parse JSON string and render the content
             expect(content).toContain("updated");
             expect(content).toContain("data");
-            expect(content).toMatch(/<span class="n"><\/span>/);
+            expect(content).toMatch(/<span class="n">42<\/span>/);
 
             component.unmount();
         });
@@ -327,7 +328,9 @@ describe("JsonView tests", (): void => {
 
             if (expandableEntry) {
                 Object.defineProperty(window, "getSelection", {
-                    value: () => {return { type: "Range" };},
+                    value: () => {
+                        return { type: "Range" };
+                    },
                     writable: true,
                 });
 
@@ -335,7 +338,9 @@ describe("JsonView tests", (): void => {
                 expect(expandableEntry.classList.contains("collapsed")).toBe(false);
 
                 Object.defineProperty(window, "getSelection", {
-                    value: () => {return { type: "None" };},
+                    value: () => {
+                        return { type: "None" };
+                    },
                     writable: true,
                 });
             }
@@ -421,6 +426,8 @@ describe("JsonView tests", (): void => {
                 largeObject[`key${i}`] = `value${i}`;
             }
 
+            largeObject.key1000 = "";
+
             const component = mount<JsonView>(
                 <JsonView json={largeObject} />,
             );
@@ -431,6 +438,7 @@ describe("JsonView tests", (): void => {
             // Should render without errors
             expect(content).toBeTruthy();
             expect(content).toContain("key0");
+            expect(content).toMatch(/<span class="s">value0<\/span>/);
             // JsonView renders empty strings as empty spans
             expect(content).toMatch(/<span class="s"><\/span>/);
 

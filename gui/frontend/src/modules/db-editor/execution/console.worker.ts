@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,16 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-restricted-globals */
+import { Buffer } from "buffer";
 
 import { IDictionary } from "../../../app-logic/general-types.js";
 import {
     PrivateWorker, ScriptingApi, IConsoleWorkerResultData, IConsoleWorkerTaskData,
 } from "../console.worker-types.js";
-
 import { execute } from "../runtime/execute.js";
-
-import { Buffer } from "buffer";
 
 // Looks strange, but this two-step approach is used to prevent vite from trying to load this constant as a source map.
 const sourceMapPrefix = "//# source";
@@ -165,7 +162,7 @@ const extractSourceMappings = (sourceMap: string): SourceMappings => {
         });
 
         return decoded;
-    } catch (e) {
+    } catch {
         // Ignore errors here. This case should never happen, as the map is created by Typescript.
         return [];
     }
@@ -220,8 +217,8 @@ worker.addEventListener?.("error", (event: ErrorEvent) => {
     event.preventDefault();
 });
 
-worker.addEventListener?.("message", (event: MessageEvent) => {
-    const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData; } = event.data;
+worker.addEventListener?.("message", (event: MessageEvent<{ taskId: number; data: IConsoleWorkerTaskData; }>) => {
+    const { taskId, data } = event.data;
 
     worker.currentContext = data.contextId ?? "";
     worker.currentTaskId = taskId;
@@ -251,13 +248,13 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
                 result,
                 final: true,
             });
-        }).catch((e) => {
+        }).catch((e: unknown) => {
             let lineInfo = "";
             // Extract lineInfo from exception stack
             if (e instanceof Error) {
                 if (e.stack) {
                     const groups = [...e.stack.matchAll(/<anonymous>:(\d*?):(\d*?)\)/gm)][0];
-                    if (groups?.length === 3) {
+                    if (groups.length === 3) {
                         lineInfo = getErrorLineInfo(parseInt(groups[1], 10), parseInt(groups[2], 10));
                     }
                 }
@@ -266,7 +263,7 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
             worker.postContextMessage?.(worker.currentTaskId, {
                 api: ScriptingApi.Result,
                 contextId: worker.currentContext,
-                result: `ERROR: ${String(e.message)} ${lineInfo}`,
+                result: `ERROR: ${String((e as Error).message)} ${lineInfo}`,
                 isError: true,
                 final: true,
             });

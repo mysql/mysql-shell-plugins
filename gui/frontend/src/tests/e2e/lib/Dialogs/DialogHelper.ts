@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,12 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { By, WebElement, Locator, Key, until } from "selenium-webdriver";
+import { By, WebElement, Locator, Key, until, error } from "selenium-webdriver";
 import { driver } from "../../lib/driver.js";
 import * as locator from "../locators.js";
 import * as constants from "../constants.js";
 import { ConfirmDialog } from "./ConfirmationDialog.js";
+import { Os } from "../os.js";
 
 /**
  * This class aggregates the function helpers used inside dialogs
@@ -35,6 +36,7 @@ export class DialogHelper {
 
     /**
      * Sets a checkbox value
+     * 
      * @param el The web element id or the web element
      * @param checked True to check, false otherwise
      * @returns A promise resolving with the text
@@ -69,6 +71,7 @@ export class DialogHelper {
 
     /**
      * Gets a checkbox value
+     * 
      * @param el The web element id or the web element
      * @returns A promise resolving with the checkbox value (true if checked, false otherwise)
      */
@@ -86,6 +89,7 @@ export class DialogHelper {
 
     /**
      * Sets a text on an input field, by clearing it first
+     * 
      * @param dialog The dialog where the input belongs to
      * @param fieldLocator The field locator
      * @param text The text
@@ -93,12 +97,13 @@ export class DialogHelper {
      */
     public static setFieldText = async (dialog: WebElement, fieldLocator: Locator, text: string): Promise<void> => {
         const field = await dialog.findElement(fieldLocator);
-        await this.clearInputField(field);
+        await this.clearInputField(dialog, fieldLocator);
         await field.sendKeys(text);
     };
 
     /**
      * Gets the value from an input field
+     * 
      * @param dialog The dialog where the input belongs to
      * @param fieldLocator The field locator
      * @returns A promise resolving when the field text is returned
@@ -111,36 +116,42 @@ export class DialogHelper {
 
     /**
      * Clears an input field
-     * @param el The element
+     * 
+     * @param context The Web element context
+     * @param locator The element locator
      * @returns A promise resolving when the field is cleared
      */
-    public static clearInputField = async (el: WebElement): Promise<void> => {
+    public static clearInputField = async (context: WebElement, locator: Locator): Promise<void> => {
+        const el = await context.findElement(locator);
         await driver.wait(async () => {
-            await el.clear();
-            const value = await el.getAttribute("value");
+            try {
+                await el.clear();
 
-            if (value !== "") {
-                const letters = value.split("");
-
-                for (let i = 0; i <= letters.length - 1; i++) {
+                return true;
+            } catch (e) {
+                if (e instanceof error.InvalidElementStateError) {
+                    await el.click();
+                    await el.sendKeys(Key.chord(Os.isMacOs() ? Key.COMMAND : Key.CONTROL), "a");
                     await el.sendKeys(Key.BACK_SPACE);
-                }
+                    await driver.executeScript("arguments[0].click()", el);
 
+                    return (await el.getAttribute("value")).length === 0;
+                } else if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
 
-            await driver.executeScript("arguments[0].click()", el);
-
-            return (await el.getAttribute("value")).length === 0;
-        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+        }, constants.wait5seconds, `Element (${locator.toString()}) was not cleaned`);
     };
 
     /**
      * Verifies if a dialog exists inside the web view
+     * 
      * @param wait wait 5 seconds for the dialog to be displayed
      * @returns A promise resolving with true if the dialog exists, false otherwise
      */
     public static existsDialog = async (wait = false): Promise<boolean> => {
-        if (wait === false) {
+        if (!wait) {
             return (await driver.findElements(locator.genericDialog.exists)).length > 0;
         } else {
             return driver.wait(async () => {
@@ -156,6 +167,7 @@ export class DialogHelper {
 
     /**
      * Selects a Database connection tab
+     * 
      * @param name The tab name
      * @returns A promise resolving when the tab is selected
      */
@@ -175,6 +187,7 @@ export class DialogHelper {
 
     /**
      * Verifies if a Database connection tab exists
+     * 
      * @param name The tab name
      * @returns A promise resolving with true if the tab exists, false otherwise
      */

@@ -40,8 +40,7 @@ import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/S
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import type { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
-    CdmEntityType,
-    ConnectionDataModel, type ICdmConnectionEntry, type ICdmSchemaEntry,
+    ConnectionDataModel, type ICdmConnectionEntry, type ICdmSchemaEntry
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import type {
     IEditorExtendedExecutionOptions, IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues,
@@ -90,20 +89,21 @@ export class ExtensionHost {
     // A mapping from data type captions to data type ids.
     private moduleDataCategories = new Map<string, IShellModuleDataCategoriesEntry>();
 
-    #statusbarItems = new Map<string, [StatusBarItem, ReturnType<typeof setTimeout> | undefined]>();
+    private statusbarItems = new Map<string, [StatusBarItem, ReturnType<typeof setTimeout> | undefined]>();
 
     // Set when a status message was set, to allow disposing it before its timeout.
-    #statusMessageDisposable?: Disposable;
-    #connectionsDataModel: ConnectionDataModel;
+    private statusMessageDisposable?: Disposable;
+
+    private connectionsDataModel: ConnectionDataModel;
 
     public constructor(public context: ExtensionContext) {
         // Access the node specific message scheduler once to create the correct version of it.
         void NodeMessageScheduler.get;
 
-        this.#connectionsDataModel = new ConnectionDataModel(false);
-        void this.#connectionsDataModel.initialize(); // Async init, but don't wait.
+        this.connectionsDataModel = new ConnectionDataModel(false);
+        void this.connectionsDataModel.initialize(); // Async init, but don't wait.
 
-        this.connectionsProvider = new ConnectionsTreeDataProvider(this.#connectionsDataModel);
+        this.connectionsProvider = new ConnectionsTreeDataProvider(this.connectionsDataModel);
         this.documentCommandHandler = new DocumentCommandHandler(this.connectionsProvider);
         this.mrsCommandHandler = new MRSCommandHandler(this.connectionsProvider);
         this.msmCommandHandler = new MsmCommandHandler(this.connectionsProvider);
@@ -121,7 +121,7 @@ export class ExtensionHost {
                         if (profile) {
                             void this.onAuthentication(profile);
                         }
-                    }).catch((reason) => {
+                    }).catch((reason: unknown) => {
                         printChannelOutput("Internal error: " + String(reason), true);
                     });
                 }
@@ -138,7 +138,7 @@ export class ExtensionHost {
     }
 
     public extensionInitialized(): boolean {
-        return this.#connectionsDataModel.initialized;
+        return this.connectionsDataModel.initialized;
     }
 
     /**
@@ -178,13 +178,15 @@ export class ExtensionHost {
      */
     public determineConnection = async (dbType?: DBType,
         forcePicker?: boolean, showErrorMessages = true): Promise<ICdmConnectionEntry | undefined> => {
-        let connections: ICdmConnectionEntry[] = await this.#connectionsDataModel.connectionList();
+        let connections: ICdmConnectionEntry[] = await this.connectionsDataModel.connectionList();
 
         let title = "Select a connection for SQL execution";
         if (!forcePicker) {
             const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
             if (connectionName) {
-                const connection = connections.find((entry) => { return entry.details.caption === connectionName; });
+                const connection = connections.find((entry) => {
+                    return entry.details.caption === connectionName;
+                });
 
                 if (!connection) {
                     if (showErrorMessages) {
@@ -208,7 +210,7 @@ export class ExtensionHost {
         // If a specific dbType was specified, filter connections by that DBType
         if (dbType) {
             connections = connections.filter((entry) => {
-                return entry.type === CdmEntityType.Connection && entry.details.dbType === dbType;
+                return entry.details.dbType === dbType;
             });
         }
 
@@ -314,7 +316,7 @@ export class ExtensionHost {
      * @param connectionId The id of the connection to check.
      */
     public isValidConnectionId(connectionId: number): Promise<boolean> {
-        return this.#connectionsDataModel.isValidConnectionId(connectionId);
+        return this.connectionsDataModel.isValidConnectionId(connectionId);
     }
 
     /**
@@ -334,7 +336,7 @@ export class ExtensionHost {
             const configuration = workspace.getConfiguration(`msg.debugLog`);
             const level = configuration.get<string>("level", "INFO");
 
-            void ShellInterface.core.setLogLevel(level).catch((error) => {
+            void ShellInterface.core.setLogLevel(level).catch((error: unknown) => {
                 const message = convertErrorToString(error);
                 void ui.showErrorMessage(`Error while setting log level: ${message}`, {});
             });
@@ -379,10 +381,10 @@ export class ExtensionHost {
                             targetUri[0].fsPath,
                         ];
 
-                        void this.addNewShellTask(`Dump Schema ${entry.caption} to Disk`, shellArgs,
-                            entry.connection.details.id).then(() => {
-                                this.shellTasksTreeDataProvider.refresh();
-                            });
+                        const caption = `Dump Schema ${entry.caption} to Disk`;
+                        void this.addNewShellTask(caption, shellArgs, entry.connection.details.id).then(() => {
+                            this.shellTasksTreeDataProvider.refresh();
+                        });
                     }
                 });
             }
@@ -413,10 +415,10 @@ export class ExtensionHost {
                                 "strip_definers,strip_restricted_grants,strip_tablespaces",
                             ];
 
-                            void this.addNewShellTask(`Dump Schema ${entry.caption} to Disk`, shellArgs,
-                                entry.connection.details.id).then(() => {
-                                    this.shellTasksTreeDataProvider.refresh();
-                                });
+                            const caption = `Dump Schema ${entry.caption} to Disk for MDS`;
+                            void this.addNewShellTask(caption, shellArgs, entry.connection.details.id).then(() => {
+                                this.shellTasksTreeDataProvider.refresh();
+                            });
                         }
                     });
                 }
@@ -544,8 +546,8 @@ export class ExtensionHost {
                     const updateFromChildren = async (children?: ISettingCategory[],
                         configuration?: WorkspaceConfiguration): Promise<void> => {
                         if (children && configuration) {
-                            for await (const child of children) {
-                                for await (const value of child.values) {
+                            for (const child of children) {
+                                for (const value of child.values) {
                                     const setting = Settings.get(value.id);
                                     const currentValue = configuration.get(`${child.key}.${value.key}`);
                                     if (setting !== currentValue) {
@@ -559,10 +561,10 @@ export class ExtensionHost {
                         }
                     };
 
-                    for await (const category of categories) {
+                    for (const category of categories) {
                         if (category.key !== "theming") {
                             const configuration = workspace.getConfiguration(`msg.${category.key}`);
-                            for await (const value of category.values) {
+                            for (const value of category.values) {
                                 const setting = Settings.get(value.id);
                                 const currentValue = configuration.get(value.key);
                                 if (setting !== currentValue) {
@@ -661,10 +663,10 @@ export class ExtensionHost {
 
         // When all providers are closed, remove the status bar items.
         if (this.providers.length === 0) {
-            this.#statusbarItems.forEach((entry) => {
+            this.statusbarItems.forEach((entry) => {
                 entry[0].dispose();
             });
-            this.#statusbarItems.clear();
+            this.statusbarItems.clear();
         }
 
         if (this.lastActiveProvider === provider) {
@@ -727,9 +729,10 @@ export class ExtensionHost {
             case "refreshConnection": {
                 return new Promise((resolve) => {
                     void requisitions.broadcastRequest(request.provider, request.original.requestType,
-                        request.original.parameter).then(() => {
-                            resolve(true);
-                        });
+                        request.original.parameter
+                    ).then(() => {
+                        resolve(true);
+                    });
                 });
             }
 
@@ -760,10 +763,10 @@ export class ExtensionHost {
                 // Show the item or create it if it does not exist.
                 if (item.id === "msg.fe.statusBarMessage") {
                     // This special id indicates a status message.
-                    this.#statusMessageDisposable = window.setStatusBarMessage(item.text ?? "<text not set>",
+                    this.statusMessageDisposable = window.setStatusBarMessage(item.text ?? "<text not set>",
                         item.timeout ?? 5000);
                 } else {
-                    const entry = this.#statusbarItems.get(item.id);
+                    const entry = this.statusbarItems.get(item.id);
                     if (entry) {
                         if (entry[1]) {
                             clearTimeout(entry[1]);
@@ -779,12 +782,12 @@ export class ExtensionHost {
 
                         if (item.timeout) {
                             entry[1] = setTimeout(() => {
-                                entry?.[0].dispose();
-                                this.#statusbarItems.delete(item.id);
+                                entry[0].dispose();
+                                this.statusbarItems.delete(item.id);
                             }, item.timeout);
                         }
 
-                        this.#statusbarItems.set(item.id, entry);
+                        this.statusbarItems.set(item.id, entry);
                         entry[0].show();
                     } else {
                         // Have to create the item.
@@ -801,10 +804,10 @@ export class ExtensionHost {
                         if (item.timeout) {
                             timeout = setTimeout(() => {
                                 newItem.dispose();
-                                this.#statusbarItems.delete(item.id);
+                                this.statusbarItems.delete(item.id);
                             }, item.timeout);
                         }
-                        this.#statusbarItems.set(item.id, [newItem, timeout]);
+                        this.statusbarItems.set(item.id, [newItem, timeout]);
                     }
                 }
 
@@ -813,12 +816,12 @@ export class ExtensionHost {
 
             case "hide": {
                 if (item.id === "msg.fe.statusBarMessage") {
-                    if (this.#statusMessageDisposable) {
-                        this.#statusMessageDisposable.dispose();
-                        this.#statusMessageDisposable = undefined;
+                    if (this.statusMessageDisposable) {
+                        this.statusMessageDisposable.dispose();
+                        this.statusMessageDisposable = undefined;
                     }
                 } else {
-                    const entry = this.#statusbarItems.get(item.id);
+                    const entry = this.statusbarItems.get(item.id);
                     if (entry) {
                         if (entry[1]) {
                             clearTimeout(entry[1]);
@@ -833,7 +836,7 @@ export class ExtensionHost {
 
             case "keep": {
                 // Change attributes, but keep the current state.
-                const entry = this.#statusbarItems.get(item.id);
+                const entry = this.statusbarItems.get(item.id);
                 if (entry) {
                     if (item.text) {
                         entry[0].text = item.text;
@@ -848,19 +851,19 @@ export class ExtensionHost {
 
             case "dispose": {
                 if (item.id === "msg.fe.statusBarMessage") {
-                    if (this.#statusMessageDisposable) {
-                        this.#statusMessageDisposable.dispose();
-                        this.#statusMessageDisposable = undefined;
+                    if (this.statusMessageDisposable) {
+                        this.statusMessageDisposable.dispose();
+                        this.statusMessageDisposable = undefined;
                     }
                 } else {
-                    const entry = this.#statusbarItems.get(item.id);
+                    const entry = this.statusbarItems.get(item.id);
                     if (entry) {
                         if (entry[1]) {
                             clearTimeout(entry[1]);
                             entry[1] = undefined;
                         }
                         entry[0].dispose();
-                        this.#statusbarItems.delete(item.id);
+                        this.statusbarItems.delete(item.id);
                     }
                 }
 

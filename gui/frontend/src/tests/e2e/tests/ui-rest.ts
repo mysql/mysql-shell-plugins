@@ -53,10 +53,10 @@ const globalConn: interfaces.IDBConnection = {
     description: "Local connection",
     basic: {
         hostname: "localhost",
-        username: String(process.env.DBUSERNAME1),
-        port: parseInt(process.env.MYSQL_REST_PORT!, 10),
+        username: String(globalThis.testConfig!.DBUSERNAME1),
+        port: parseInt(globalThis.testConfig!.MYSQL_REST_PORT, 10),
         schema: "sakila",
-        password: String(process.env.DBUSERNAME1PWD),
+        password: String(globalThis.testConfig!.DBUSERNAME1PWD),
     },
 };
 
@@ -95,7 +95,6 @@ describe("MYSQL REST SERVICE", () => {
         await driver.quit();
     });
 
-
     describe("Rest Service Configuration", () => {
 
         beforeEach(async () => {
@@ -119,6 +118,7 @@ describe("MYSQL REST SERVICE", () => {
         });
 
         it("Add new Configuration with Authentication App", async () => {
+
             try {
                 const mrsConfig: interfaces.IRestServiceConfig = {
                     status: "disabled",
@@ -372,10 +372,11 @@ describe("MYSQL REST SERVICE", () => {
             }
         });
 
-
         it("Show Private Items", async () => {
             try {
-                let notification = await new E2EToastNotification().create().catch(() => { return undefined; });
+                let notification = await new E2EToastNotification().create().catch(() => {
+                    return undefined;
+                });
 
                 if (notification && notification.message === "MySQL REST Service configured successfully.") {
                     await driver.wait(async () => {
@@ -554,7 +555,7 @@ describe("MYSQL REST SERVICE", () => {
                     try {
                         const treeGlobalService = await dbTreeSection.getTreeItem(service1.servicePath);
 
-                        return treeGlobalService.isDefault();
+                        return await treeGlobalService.isDefault();
                     } catch (e) {
                         if (!(e instanceof error.StaleElementReferenceError)) {
                             throw e;
@@ -593,7 +594,7 @@ describe("MYSQL REST SERVICE", () => {
                     enabled: true,
                     default: true,
                     settings: {
-                        comments: "change testing",
+                        comments: "changed",
                     },
                     options: `{"test":"value"}`,
                     authentication: {
@@ -791,9 +792,11 @@ describe("MYSQL REST SERVICE", () => {
                     expect(notification!.message).toBe("The MRS schema has been added successfully.");
                     await notification!.close();
                     await dbTreeSection.expandTreeItem(service2.servicePath);
-                    await driver.wait(dbTreeSection.untilTreeItemExists(`${service2.restSchemas![i]
-                        .restSchemaPath} (${service2.restSchemas![i].settings?.schemaName})`),
-                        constants.wait10seconds);
+
+                    const treeItem = `${service2.restSchemas![i]
+                        .restSchemaPath} (${service2.restSchemas![i].settings?.schemaName})`;
+                    await driver.wait(dbTreeSection.untilTreeItemExists(treeItem), constants.wait10seconds);
+
                 }
             } catch (e) {
                 testFailed = true;
@@ -936,8 +939,10 @@ describe("MYSQL REST SERVICE", () => {
                 notification = await new E2EToastNotification().create();
                 expect(notification!.message).toBe("The MRS schema has been added successfully.");
                 await notification!.close();
-                await driver.wait(dbTreeSection.untilTreeItemExists(`${service3.restSchemas![0]
-                    .restSchemaPath} (${service3.restSchemas![0].settings?.schemaName})`),
+
+                const treeItem = `${service3.restSchemas![0]
+                    .restSchemaPath} (${service3.restSchemas![0].settings?.schemaName})`;
+                await driver.wait(dbTreeSection.untilTreeItemExists(treeItem),
                     constants.wait10seconds);
 
                 await dbTreeSection.openContextMenuAndSelect(service3.servicePath, constants.setAsCurrentREST);
@@ -1132,7 +1137,6 @@ describe("MYSQL REST SERVICE", () => {
                     },
                     options: `{"test":"value"}`,
                 };
-
 
                 await dbTreeSection.openContextMenuAndSelect(service3.restSchemas![0].restObjects![0].restObjectPath!,
                     constants.editRESTObj);

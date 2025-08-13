@@ -6629,52 +6629,52 @@ dumpRestServiceStatement:
 
 dumpRestProjectStatement:
     DUMP_SYMBOL REST_SYMBOL PROJECT_SYMBOL
-    projectName VERSION_SYMBOL projectVersionIdentifier
-    (dumpProjectServiceSegment)+
-    (dumpProjectDatabaseSchemaSegment)*
-    (projectSettings)?
+    restProjectName VERSION_SYMBOL restProjectVersion
+    (dumpRestProjectService)+
+    (dumpRestProjectDatabaseSchema)*
+    (dumpRestProjectSettings)?
     TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
 ;
 
 // Named identifiers ========================================================
 
-dumpProjectServiceSegment:
+dumpRestProjectService:
     SERVICE_SYMBOL serviceRequestPath
         INCLUDING_SYMBOL ((DATABASE_SYMBOL (AND_SYMBOL STATIC_SYMBOL (AND_SYMBOL DYNAMIC_SYMBOL)?)?) | ALL_SYMBOL) ENDPOINTS_SYMBOL
 ;
 
-dumpProjectDatabaseSchemaSegment:
-    DATABASE_SYMBOL schemaName (FROM_SYMBOL schemaFilePath)?
+dumpRestProjectDatabaseSchema:
+    DATABASE_SYMBOL schemaName (FROM_SYMBOL restProjectDatabaseSchemaFilePath)?
 ;
 
-projectSettings: (
-        ICON_SYMBOL FROM_SYMBOL projectIconFilePath
-        | DESCRIPTION_SYMBOL projectDescription
-        | PUBLISHER_SYMBOL projectPublisher
+dumpRestProjectSettings: (
+        ICON_SYMBOL FROM_SYMBOL restProjectIconFilePath
+        | DESCRIPTION_SYMBOL restProjectDescription
+        | PUBLISHER_SYMBOL restProjectPublisher
     )+
 ;
 
-projectName:
+restProjectName:
     textStringLiteral
 ;
 
-schemaFilePath:
+restProjectDatabaseSchemaFilePath:
     textStringLiteral
 ;
 
-projectIconFilePath:
+restProjectIconFilePath:
     textStringLiteral
 ;
 
-projectDescription:
+restProjectDescription:
     textStringLiteral
 ;
 
-projectPublisher:
+restProjectPublisher:
     textStringLiteral
 ;
 
-projectVersionIdentifier:
+restProjectVersion:
     textStringLiteral
 ;
 

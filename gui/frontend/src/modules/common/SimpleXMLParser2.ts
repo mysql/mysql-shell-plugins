@@ -44,9 +44,10 @@ export interface ISimpleXMLContent extends ISimpleXMLEntry {
  * It does not use DOMParser or any other complex XML parsing libraries.
  * It is designed to handle simple XML structures and is not suitable for complex XML documents.
  */
-export class SimpleXMLParser {
+export class SimpleXMLParser2 {
     /**
      * Parses a simple XML string and returns an object representation.
+     *
      * @param xmlString - The XML string to parse.
      * @returns An object representing the XML structure.
      */

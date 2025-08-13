@@ -59,7 +59,9 @@ export const showMessageWithTimeout = (message: string, timeout = 3000): void =>
         },
 
         async (progress): Promise<void> => {
-            await waitFor(timeout, () => { return false; });
+            await waitFor(timeout, () => {
+                return false;
+            });
             progress.report({ increment: 100 });
         },
     );

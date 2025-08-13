@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import * as path from "path";
-import { TreeItemCollapsibleState } from "vscode";
+import { TreeItemCollapsibleState, Uri } from "vscode";
 
 import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication/index.js";
 import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
@@ -52,8 +52,8 @@ export class OciHWClusterTreeItem extends OciBaseTreeItem {
         }
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "images", "dark", iconName),
+            light: Uri.file(path.join(__dirname, "..", "images", "light", iconName)),
+            dark: Uri.file(path.join(__dirname, "..", "images", "dark", iconName)),
         };
     }
 }

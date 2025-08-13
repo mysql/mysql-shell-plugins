@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import {
     binarySearch, clampValue, flattenObject, selectFileInBrowser, sleep, strictEval, uuid, waitFor, deepEqual,
 } from "../../../utilities/helpers.js";
@@ -83,24 +81,50 @@ describe("Utilities Tests", (): void => {
         });
 
         expect(index).toEqual(3);
-        index = binarySearch(entries, (current) => { return "".localeCompare(current.name); });
-        expect(index).toEqual(-1);
-        index = binarySearch(entries, (current) => { return "z".localeCompare(current.name); });
-        expect(index).toEqual(-7);
-        index = binarySearch(entries, (current) => { return "aac".localeCompare(current.name); });
-        expect(index).toEqual(-5);
-        index = binarySearch(entries, (current) => { return "123".localeCompare(current.name); });
-        expect(index).toEqual(0);
-        index = binarySearch(entries, (current) => { return "xxx".localeCompare(current.name); });
-        expect(index).toEqual(5);
-        index = binarySearch([] as IEntry[], (current) => { return "test".localeCompare(current.name); });
+
+        index = binarySearch(entries, (current) => {
+            return "".localeCompare(current.name);
+        });
         expect(index).toEqual(-1);
 
-        index = binarySearch(entries, (current) => { return 5 - current.id; });
-        expect(index).toEqual(4);
-        index = binarySearch(entries, (current) => { return -current.id; });
+        index = binarySearch(entries, (current) => {
+            return "z".localeCompare(current.name);
+        });
+        expect(index).toEqual(-7);
+
+        index = binarySearch(entries, (current) => {
+            return "aac".localeCompare(current.name);
+        });
+        expect(index).toEqual(-5);
+
+        index = binarySearch(entries, (current) => {
+            return "123".localeCompare(current.name);
+        });
+        expect(index).toEqual(0);
+
+        index = binarySearch(entries, (current) => {
+            return "xxx".localeCompare(current.name);
+        });
+        expect(index).toEqual(5);
+
+        index = binarySearch([] as IEntry[], (current) => {
+            return "test".localeCompare(current.name);
+        });
         expect(index).toEqual(-1);
-        index = binarySearch(entries, (current) => { return 5e4 - current.id; });
+
+        index = binarySearch(entries, (current) => {
+            return 5 - current.id;
+        });
+        expect(index).toEqual(4);
+
+        index = binarySearch(entries, (current) => {
+            return -current.id;
+        });
+        expect(index).toEqual(-1);
+
+        index = binarySearch(entries, (current) => {
+            return 5e4 - current.id;
+        });
         expect(index).toEqual(-7);
     });
 
@@ -135,8 +159,9 @@ describe("Utilities Tests", (): void => {
         const result = await strictEval("1+2+3");
         expect(result).toBe(6);
 
-        expect(() => { strictEval("nonExistingVariable + 1"); })
-            .toThrowError("nonExistingVariable is not defined");
+        expect(() => {
+            strictEval("nonExistingVariable + 1");
+        }).toThrow("nonExistingVariable is not defined");
 
         expect(uuid()).toMatch(uuidPattern);
 

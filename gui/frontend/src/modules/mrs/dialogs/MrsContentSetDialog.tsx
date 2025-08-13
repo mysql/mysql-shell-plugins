@@ -164,7 +164,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         let buildFolder = "build";
         let scriptingLanguage = "";
         let staticContentFolder = "";
-        if (request.values && request.values.options) {
+        if (request.values?.options) {
             const options = JSON.parse(request.values.options as string) as IMrsContentSetOptions;
             if (options[KnownMrsContentSetFieldNames.ContainsMrsScripts] === true) {
                 containsMrsScripts = true;
@@ -421,6 +421,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         this.updateMrsScriptSection(values).then((values) => {
             dialog.setDialogValues(values);
         }).catch(() => {
+            // If we cannot update the MRS script section, just ignore it.
         });
     };
 
@@ -467,14 +468,14 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 settingsSection.values.containsMrsScripts.options = [];
 
                 // If there are errors, list them
-                if (mrsScriptDefinitions?.errors && mrsScriptDefinitions?.errors.length > 0) {
+                if (mrsScriptDefinitions?.errors && mrsScriptDefinitions.errors.length > 0) {
                     scriptErrorsSection.values.errors.value = mrsScriptDefinitions.errors.map((error) => {
                         if (error.script) {
                             return `SCRIPT ERROR: ${error.message} [${error.fileInfo?.relativeFileName ?? ""}: ` +
                                 `Ln ${error.script.codePosition.lineNumberStart}++]`;
                         } else if (error.interface) {
                             return `INTERFACE ERROR: ${error.message} [${error.fileInfo?.relativeFileName ?? ""}: ` +
-                                `Ln ${error.interface?.codePosition.lineNumberStart}++]`;
+                                `Ln ${error.interface.codePosition.lineNumberStart}++]`;
                         } else {
                             return `ERROR: ${error.message}`;
                         }
@@ -509,7 +510,8 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         const scriptSection = dialogValues.sections.get("scriptSection");
 
         if (mainSection && settingsSection && optionsSection && scriptSection) {
-            const options = JSON.parse(optionsSection.values.options.value as string || "{}");
+            const value = optionsSection.values.options.value as string | undefined;
+            const options = JSON.parse(value ?? "{}") as IDictionary;
             options[KnownMrsContentSetFieldNames.ContainsMrsScripts] =
                 settingsSection.values.containsMrsScripts.value as boolean;
             if (options[KnownMrsContentSetFieldNames.ContainsMrsScripts]) {

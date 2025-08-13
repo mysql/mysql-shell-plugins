@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,6 +40,7 @@ export class ConfirmDialog {
 
     /**
      * Verifies if confirm dialog exists
+     * 
      * @returns A promise resolving to true if the dialog is displayed, false otherwise
      */
     public exists = async (): Promise<boolean> => {
@@ -48,6 +49,7 @@ export class ConfirmDialog {
 
     /**
      * Gets the dialog text
+     * 
      * @returns A promise resolving with the dialog text
      */
     public getText = async (): Promise<string> => {
@@ -58,6 +60,7 @@ export class ConfirmDialog {
 
     /**
      * Verifies if confirm dialog exists
+     * 
      * @param timeout The timeout
      * @returns A promise resolving with the dialog if the dialog exists, false otherwise
      */

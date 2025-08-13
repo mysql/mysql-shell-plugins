@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -56,20 +56,16 @@ export class Misc {
      * @returns A promise resolving when the url is set
      */
     public static getUrl = (filename: string): string => {
-        let url = process.env.SHELL_UI_HOSTNAME;
-
-        if (process.env.MAX_WORKERS) {
-            const port = shellServers.get(filename);
-            url += `:${String(port)}/?token=${String(process.env.TOKEN)}`;
-        } else {
-            url += `:${String(process.env.HOSTNAME_PORT)}/?token=${String(process.env.TOKEN)}`;
-        }
+        let url = globalThis.testConfig!.SHELL_UI_HOSTNAME;
+        const port = shellServers.get(filename);
+        url += `:${String(port)}/?token=${String(globalThis.testConfig!.TOKEN)}`;
 
         return String(url);
     };
 
     /**
      * Waits until the homepage loads
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public static untilHomePageIsLoaded = (): Condition<boolean> => {
@@ -102,6 +98,7 @@ export class Misc {
 
     /**
      * Returns the background color of the page
+     * 
      * @param driver The webdriver
      * @returns Promise resolving to the background color
      */
@@ -123,6 +120,7 @@ export class Misc {
 
     /**
      * Takes a screen shot of the current browser window and stores it on disk.
+     * 
      * @param name test name
      * @returns file path
      */
@@ -144,6 +142,7 @@ export class Misc {
 
     /**
      * Transforms a given string into a string with escaped characters to be used as regex
+     * 
      * @param value The word
      *  @returns A regex with escaped characters
      */
@@ -163,6 +162,7 @@ export class Misc {
 
     /**
      * Converts a time to a 12h time string (AM/PM)
+     * 
      * @param time The time
      * @returns The converted time
      */
@@ -177,6 +177,7 @@ export class Misc {
 
     /**
      * Converts a date to ISO format
+     * 
      * @param date The date
      * @returns The converted date
      */
@@ -189,6 +190,7 @@ export class Misc {
 
     /**
      * Gets the toast notification displayed on the page
+     * 
      * @param wait True to wait for notifications to be displayed, false otherwise
      *  @returns A promise resolving with the notifications
      */
@@ -223,6 +225,7 @@ export class Misc {
 
     /**
      * Closes all the existing notifications
+     * 
      * @param ignoreErrors True to ignore notifications with errors, false otherwise
      */
     public static dismissNotifications = async (ignoreErrors = false): Promise<void> => {
@@ -253,6 +256,7 @@ export class Misc {
 
     /**
      * Verifies if a notification exists
+     * 
      * @param text The notification text
      * @returns A condition resolving to true if the notification exists, false otherwise
      */
@@ -270,22 +274,23 @@ export class Misc {
 
     /**
      * Uploads a file
+     * 
      * @param path The path to the file
      */
     public static uploadFile = async (path: string): Promise<void> => {
         await driver.wait(until
-            .elementLocated(locator.fileSelect),
-            constants.wait5seconds, "Could not find the input file box")
+            .elementLocated(locator.fileSelect), constants.wait5seconds, "Could not find the input file box")
             .sendKeys(path);
     };
 
     /**
-     * Reads the oci configuration file from process.env.MYSQLSH_OCI_CONFIG_FILE and maps it
+     * Reads the oci configuration file from testConfig.MYSQLSH_OCI_CONFIG_FILE and maps it
      * into a key=value pair object
+     * 
      *  @returns A promise resolving with the configuration object
      */
     public static mapOciConfig = async (): Promise<IOciProfileConfig[]> => {
-        const config = await fs.readFile(String(process.env.MYSQLSH_OCI_CONFIG_FILE), "utf-8");
+        const config = await fs.readFile(String(globalThis.testConfig!.MYSQLSH_OCI_CONFIG_FILE), "utf-8");
         const configLines = config.split("\n");
         const ociConfig: IOciProfileConfig[] = [];
         for (let line of configLines) {
@@ -312,6 +317,7 @@ export class Misc {
 
     /**
      * Removes the "mysql_rest_schema_metadata" for the given connection caption
+     * 
      * @param caption The DB Connection caption
      *  @returns A promise resolving with the configuration object
      */

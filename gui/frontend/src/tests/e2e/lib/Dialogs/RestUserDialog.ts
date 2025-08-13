@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,7 @@ export class RestUserDialog {
 
     /**
      * Sets a Rest User using the web view dialog
+     * 
      * @param restUser The user
      * @returns A promise resolving when the user is set and the dialog is closed
      */
@@ -94,7 +95,7 @@ export class RestUserDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The MRS User dialog was not closed");
 
         return restUser;
@@ -102,6 +103,7 @@ export class RestUserDialog {
 
     /**
      * Gets a Rest User using the web view dialog
+     * 
      * @returns A promise resolving with the user
      */
     public static get = async (): Promise<interfaces.IRestUser> => {
@@ -127,7 +129,7 @@ export class RestUserDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsUserDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The MRS User dialog was not closed");
 
         return restUser;

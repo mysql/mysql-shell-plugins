@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,10 +35,10 @@ import * as helpers from "../../../../components/ui/html-helpers.js";
 // because all named imports are already resolved and spy won't function correctly otherwise
 jest.mock("../../../../components/ui/html-helpers.js", (): unknown => {
     return {
-      __esModule: true, // this is important
-      ...jest.requireActual("../../../../components/ui/html-helpers.js"),
+        __esModule: true, // this is important
+        ...jest.requireActual("../../../../components/ui/html-helpers.js"),
     };
-  });
+});
 
 describe("Tooltip component tests", (): void => {
     const delay = 200;
@@ -90,7 +90,7 @@ describe("Tooltip component tests", (): void => {
     });
 
     it("Tooltip from JSON", async () => {
-        const json = {key: "value"};
+        const json = { key: "value" };
         const tooltip = "tooltip";
         const testId = "expandable";
 
@@ -200,7 +200,7 @@ describe("Tooltip component tests", (): void => {
         const element = rendered.getByTestId(testId);
         expect(element).not.toBe(null);
 
-        fireEvent.mouseOver(element as Element);
+        fireEvent.mouseOver(element);
 
         await waitFor(() => {
             expect(queryTooltipElement()).toBeInTheDocument();

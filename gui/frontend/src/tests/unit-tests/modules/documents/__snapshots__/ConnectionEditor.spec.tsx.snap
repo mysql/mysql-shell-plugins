@@ -31,13 +31,13 @@ exports[`ConnectionEditor tests Test ConnectionEditor match snapshot 1`] = `
         }
       }
       caption={
-        <g>
+        <k>
           <Icon
             disabled={false}
             src={391}
           />
           <Label />
-        </g>
+        </k>
       }
       className="msg valueEditDialog"
       container={
@@ -85,7 +85,7 @@ exports[`ConnectionEditor tests Test ConnectionEditor match snapshot 1`] = `
         }
       }
       caption={
-        <g>
+        <k>
           <Icon
             disabled={false}
             src={278}
@@ -93,7 +93,7 @@ exports[`ConnectionEditor tests Test ConnectionEditor match snapshot 1`] = `
           <Label>
             Confirm
           </Label>
-        </g>
+        </k>
       }
       className="msg confirmDialog"
       container={
@@ -136,7 +136,7 @@ exports[`ConnectionEditor tests Test ConnectionEditor match snapshot 1`] = `
         }
       }
       caption={
-        <g>
+        <k>
           <Icon
             disabled={false}
             src={278}
@@ -144,7 +144,7 @@ exports[`ConnectionEditor tests Test ConnectionEditor match snapshot 1`] = `
           <Label>
             Confirm
           </Label>
-        </g>
+        </k>
       }
       className="msg confirmDialog"
       container={

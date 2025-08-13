@@ -23,9 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable max-classes-per-file */
-
 export class EventTargetMock implements EventTarget {
     public getBoundingClientRect = jest.fn();
     public parentElement = {
@@ -74,14 +71,22 @@ export class EventMock implements Event {
         this.target = this.currentTarget;
     }
 
-    public composedPath(): EventTarget[] { return []; }
+    public composedPath(): EventTarget[] {
+        return []; 
+    }
+
     public initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {
         this.type = type;
         this.bubbles = bubbles ?? false;
         this.cancelable = cancelable ?? false;
     }
-    public preventDefault(): void { this.defaultPrevented = true; }
+
+    public preventDefault(): void {
+        this.defaultPrevented = true; 
+    }
+
     public stopImmediatePropagation(): void { /**/ }
+
     public stopPropagation(): void { /**/ }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import * as path from "path";
-import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { Command, TreeItem, TreeItemCollapsibleState, Uri } from "vscode";
 
 import { ShellTask } from "../../../../frontend/src/shell-tasks/ShellTask.js";
 
@@ -54,8 +54,8 @@ export class ShellTaskTreeItem extends TreeItem {
         }
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", taskIcon),
-            dark: path.join(__dirname, "..", "images", "dark", taskIcon),
+            light: Uri.file(path.join(__dirname, "..", "images", "light", taskIcon)),
+            dark: Uri.file(path.join(__dirname, "..", "images", "dark", taskIcon)),
         };
         this.command = command;
     }

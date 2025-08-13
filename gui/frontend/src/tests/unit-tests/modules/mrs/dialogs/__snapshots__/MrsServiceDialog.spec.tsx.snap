@@ -278,7 +278,6 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                       id="comments"
                       rows="4"
                       spellcheck="true"
-                      type="text"
                     />
                   </div>
                   <label

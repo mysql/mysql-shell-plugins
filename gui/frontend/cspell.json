@@ -233,7 +233,6 @@
         "gtid"
     ],
     "ignorePaths": [
-        ".eslintrc.json",
         "src/parsing/mysql/data",
         "src/parsing/SQLite/data",
         "src/components/Theming/Preview/assets",

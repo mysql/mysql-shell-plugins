@@ -24,7 +24,7 @@
  */
 
 /** A type to describe arbitrary result data. */
-export type ShellDictionaryType = string | number | boolean | undefined | unknown | null | IShellDictionary;
+export type ShellDictionaryType = string | number | boolean | undefined | null | IShellDictionary;
 export interface IShellDictionary {
     [key: string]: ShellDictionaryType | ShellDictionaryType[];
 }

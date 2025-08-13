@@ -25,7 +25,7 @@
 
 import * as path from "path";
 
-import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { Command, TreeItem, TreeItemCollapsibleState, Uri } from "vscode";
 
 import type { ConnectionDataModelEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
@@ -39,8 +39,8 @@ export class ConnectionBaseTreeItem<T extends ConnectionDataModelEntry> extends 
         super(dataModelEntry.caption, hasChildren ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None);
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "images", "dark", iconName),
+            light: Uri.file(path.join(__dirname, "..", "images", "light", iconName)),
+            dark: Uri.file(path.join(__dirname, "..", "images", "dark", iconName)),
         };
         this.command = command;
         this.description = dataModelEntry.description;

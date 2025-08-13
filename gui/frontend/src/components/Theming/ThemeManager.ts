@@ -49,14 +49,12 @@ import lightVs from "./assets/themes/light-vs-color-theme.json";
 import Color from "color";
 import { ColorManipulator } from "../../utilities/ColorManipulator.js";
 
+import { appParameters } from "../../supplement/AppParameters.js";
 import type { IHostThemeData } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { appParameters } from "../../supplement/AppParameters.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 
-export interface IColors {
-    [key: string]: string;
-}
+export type IColors = Record<string, string>;
 
 export interface ITokenEntry {
     name?: string;
@@ -114,10 +112,10 @@ export interface IThemeChangeData {
 /** A class to manage application themes. */
 export class ThemeManager {
 
-    private static instance: ThemeManager;
+    private static instance?: ThemeManager;
     private colorManipulator = new ColorManipulator();
 
-    private themeDefinitions: Map<string, IThemeDefinition> = new Map();
+    private themeDefinitions = new Map<string, IThemeDefinition>();
     private themeStyleElement?: HTMLStyleElement;
     private currentTheme = "";
     private safeThemeName = "";
@@ -181,9 +179,7 @@ export class ThemeManager {
     }
 
     public static get get(): ThemeManager {
-        if (!ThemeManager.instance) {
-            ThemeManager.instance = new ThemeManager();
-        }
+        ThemeManager.instance ??= new ThemeManager();
 
         return ThemeManager.instance;
     }
@@ -213,7 +209,7 @@ export class ThemeManager {
      * This can be used to directly manipulate the values. Useful mostly for the theme editor.
      */
     public get themeStyleNode(): CSSStyleDeclaration {
-        return ((this.themeStyleElement?.sheet as CSSStyleSheet).cssRules[0] as CSSStyleRule).style;
+        return (this.themeStyleElement?.sheet?.cssRules[0] as CSSStyleRule).style;
     }
 
     public get currentThemeAsText(): string {
@@ -245,7 +241,7 @@ export class ThemeManager {
     public getTokenForegroundColor(scope: string): string | undefined {
         const definitions = this.themeDefinitions.get(this.currentTheme);
         if (definitions) {
-            const tokenColors = definitions.json.tokenColors || definitions.json.settings;
+            const tokenColors = definitions.json.tokenColors ?? definitions.json.settings;
             if (tokenColors) {
                 // Start by collecting all entries with scopes that either fully match the given scope, or
                 // at are a suffix of the given scope.
@@ -337,10 +333,7 @@ export class ThemeManager {
                 throw new Error("This theme contains references to local files, which cannot be loaded automatically.");
             }
 
-            if (!values.tokenColors) {
-                values.tokenColors = [];
-            }
-
+            values.tokenColors ??= [];
             this.themeDefinitions.set(values.name, { type, css, json: values });
         }
 
@@ -358,7 +351,7 @@ export class ThemeManager {
         return "--" + name.replace(/\./g, "-");
     }
 
-    public stylesToString(styles: { [key: string]: string; }): string {
+    public stylesToString(styles: Record<string, string>): string {
         return Object.entries(styles)
             .map(([key, value]) => {
                 return `\t${this.themeValueNameToCssVariable(key)}: ${value};\n`;
@@ -417,12 +410,10 @@ export class ThemeManager {
         return theme;
     }
 
-    public getFontVariables(font?: IFont): { [key: string]: string; } {
-        if (!font) {
-            font = {};
-        }
+    public getFontVariables(font?: IFont): Record<string, string> {
+        font ??= {};
 
-        const fontVariables: { [key: string]: string; } = {};
+        const fontVariables: Record<string, string> = {};
 
         fontVariables["msg-standard-font-family"] = font.fontFamily ?? "'Helvetica Neue', Helvetica, Arial, sans-serif";
         fontVariables["msg-standard-font-weight"] = font.fontWeight ?? "400";
@@ -430,8 +421,13 @@ export class ThemeManager {
             ?? "'SourceCodePro+Powerline+Awesome+MySQL', monospace";
         fontVariables["msg-standard-font-size"] = font.fontSize ?? "14px";
 
-        font.editorFontSize && (fontVariables["msg-monospace-font-size"] = font.editorFontSize);
-        font.editorFontWeight && (fontVariables["msg-monospace-font-weight"] = font.editorFontWeight);
+        if (font.editorFontSize) {
+            (fontVariables["msg-monospace-font-size"] = font.editorFontSize);
+        }
+
+        if (font.editorFontWeight) {
+            (fontVariables["msg-monospace-font-weight"] = font.editorFontWeight);
+        }
 
         return fontVariables;
     }
@@ -439,7 +435,7 @@ export class ThemeManager {
     public isValidColor(color: string): boolean {
         try {
             new Color(color);
-        } catch (e) {
+        } catch {
             return false;
         }
 
@@ -484,9 +480,7 @@ export class ThemeManager {
     };
 
     private setFont(theme: IThemeObject, property: string, value: string): void {
-        if (!theme.font) {
-            theme.font = {};
-        }
+        theme.font ??= {};
 
         if (property.match(/^font-size$/)) {
             theme.font.fontSize = value;

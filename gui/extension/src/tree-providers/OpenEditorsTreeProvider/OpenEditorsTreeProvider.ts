@@ -46,20 +46,20 @@ import { DocumentTreeItem } from "./DocumentTreeItem.js";
 export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumentDataModelEntry> {
     // Tracks the highest suffix number used for entries with the same connectionId,
     // ensuring that suffixes remain unchanged even after an entry is closed.
-    private maxConnectionDocumentSuffix: Map<string, number> = new Map();
+    private maxConnectionDocumentSuffix = new Map<string, number>();
 
     // Maintains the previous caption for a connection,
     // preserving it even if other entry with that connectionId is closed.
-    private connectionDocumentSuffixes: Map<string, string> = new Map();
+    private connectionDocumentSuffixes = new Map<string, string>();
 
-    #lastSelectedItems = new Map<IWebviewProvider, OpenDocumentDataModelEntry>();
-    #dataModel: OpenDocumentDataModel;
+    private lastSelectedItems = new Map<IWebviewProvider, OpenDocumentDataModelEntry>();
+    private dataModel: OpenDocumentDataModel;
 
     #changeEvent = new EventEmitter<OpenDocumentDataModelEntry | undefined>();
     #selectCallback: (item: OpenDocumentDataModelEntry | undefined) => void;
 
     public constructor(dataModel: OpenDocumentDataModel) {
-        this.#dataModel = dataModel;
+        this.dataModel = dataModel;
         requisitions.register("proxyRequest", this.proxyRequest);
         requisitions.register("editorSaved", this.editorSaved);
     }
@@ -89,7 +89,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
      * @returns True if the list of open providers is empty after the removal, false otherwise.
      */
     public clear(provider?: IWebviewProvider): boolean {
-        const result = this.#dataModel.closeProvider(provider);
+        const result = this.dataModel.closeProvider(provider);
 
         this.#changeEvent.fire(undefined);
 
@@ -102,7 +102,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
      * @param provider The provider to get the connection ID for.
      */
     public currentConnectionId(provider: IWebviewProvider): number | null {
-        const item = this.#lastSelectedItems.get(provider);
+        const item = this.lastSelectedItems.get(provider);
         if (!item) {
             return null;
         }
@@ -175,7 +175,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
     public getChildren(element?: OpenDocumentDataModelEntry): ProviderResult<OpenDocumentDataModelEntry[]> {
         if (!element) {
-            return this.#dataModel.roots;
+            return this.dataModel.roots;
         }
 
         switch (element.type) {
@@ -211,7 +211,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
      * @returns The open document entry if found, undefined otherwise.
      */
     public findAdminDocument(provider: IWebviewProvider, connectionId: number, pageId?: string): IOdmAdminEntry[] {
-        return this.#dataModel.findConnectionDocumentsByType(provider, OdmEntityType.AdminPage,
+        return this.dataModel.findConnectionDocumentsByType(provider, OdmEntityType.AdminPage,
             connectionId, pageId) as IOdmAdminEntry[];
     }
 
@@ -231,15 +231,15 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         switch (request.original.requestType) {
             case "documentOpened": {
                 // pageId is always present.
-                const response = request.original.parameter as IDocumentOpenData & { pageId: string };
-                const dmProvider = this.#dataModel.findProvider(request.provider);
+                const response = request.original.parameter as IDocumentOpenData & { pageId: string; };
+                const dmProvider = this.dataModel.findProvider(request.provider);
 
                 if (!response.connection) {
                     break;
                 }
 
                 const connectionId = response.connection.id;
-                const document = this.#dataModel.openDocument(request.provider, {
+                const document = this.dataModel.openDocument(request.provider, {
                     type: response.documentDetails.type,
                     parameters: {
                         ...response.documentDetails,
@@ -264,7 +264,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
             case "documentClosed": {
                 const response = request.original.parameter as IDocumentCloseData;
-                this.#dataModel.closeDocument(request.provider, response);
+                this.dataModel.closeDocument(request.provider, response);
                 this.#changeEvent.fire(undefined);
                 this.#selectCallback(undefined);
 
@@ -272,8 +272,10 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
             }
 
             case "selectDocument": {
-                const response = request.original.parameter as { connectionId?: number, documentId: string,
-                    pageId?: string; };
+                const response = request.original.parameter as {
+                    connectionId?: number, documentId: string,
+                    pageId?: string;
+                };
                 setTimeout(() => {
                     void this.selectItem(request.provider, response.connectionId, response.documentId,
                         response.pageId);
@@ -296,7 +298,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
             case "sessionAdded": {
                 const response = request.original.parameter as IShellSessionDetails;
-                this.#dataModel.addShellSession(request.provider, response);
+                this.dataModel.addShellSession(request.provider, response);
                 this.refresh();
 
                 return Promise.resolve(true);
@@ -304,7 +306,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
             case "sessionRemoved": {
                 const response = request.original.parameter as IShellSessionDetails;
-                this.#dataModel.removeShellSession(request.provider, response.sessionId);
+                this.dataModel.removeShellSession(request.provider, response.sessionId);
                 this.refresh();
 
                 return Promise.resolve(true);
@@ -321,20 +323,20 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         // If no connection was given and the document id is empty then select the last active item
         // for the given provider.
         if (!connectionId && !documentId) {
-            const lastItem = this.#lastSelectedItems.get(provider);
+            const lastItem = this.lastSelectedItems.get(provider);
             if (lastItem) {
                 this.#selectCallback(lastItem);
             } else {
                 // No last item found, so the provider is not open.
                 // We need to open the provider and select the connection overview.
-                let entry = this.#dataModel.findProvider(provider);
+                let entry = this.dataModel.findProvider(provider);
                 if (!entry) {
-                    entry = this.#dataModel.openProvider(provider);
+                    entry = this.dataModel.openProvider(provider);
                     this.#changeEvent.fire(undefined);
                 }
 
                 if (entry) {
-                    this.#lastSelectedItems.set(provider, entry.connectionOverview);
+                    this.lastSelectedItems.set(provider, entry.connectionOverview);
                     this.#selectCallback(entry.connectionOverview);
                 }
             }
@@ -344,22 +346,22 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
         let document;
         if (connectionId) {
-            document = this.#dataModel.findConnectionDocument(provider, documentId ?? "", connectionId, pageId);
+            document = this.dataModel.findConnectionDocument(provider, documentId ?? "", connectionId, pageId);
         } else {
             // Must be a shell session document.
-            document = this.#dataModel.findSessionDocument(provider, documentId!);
+            document = this.dataModel.findSessionDocument(provider, documentId!);
         }
 
         if (document) {
-            this.#lastSelectedItems.set(provider, document);
+            this.lastSelectedItems.set(provider, document);
             this.#selectCallback(document);
             if (document.alternativeCaption) {
                 provider.caption = document.alternativeCaption;
             }
         } else {
-            const entry = this.#dataModel.findProvider(provider);
-            if (entry && entry.type === OdmEntityType.AppProvider) {
-                this.#lastSelectedItems.set(provider, entry.connectionOverview);
+            const entry = this.dataModel.findProvider(provider);
+            if (entry) {
+                this.lastSelectedItems.set(provider, entry.connectionOverview);
 
                 provider.caption = entry.caption;
                 this.#selectCallback(entry.connectionOverview);
@@ -370,9 +372,9 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
     };
 
     private refreshSessions = (provider: IWebviewProvider, sessions: IShellSessionDetails[]): Promise<boolean> => {
-        this.#dataModel.updateSessions(provider, sessions);
+        this.dataModel.updateSessions(provider, sessions);
 
-        const appProvider = this.#dataModel.findProvider(provider);
+        const appProvider = this.dataModel.findProvider(provider);
         this.#changeEvent.fire(appProvider?.shellSessionRoot);
 
         return Promise.resolve(true);
@@ -382,7 +384,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         // There's no information about which provider sent the request so we have to search for the
         // scriptId in all providers.
         // TODO: pass the provider reference in the request.
-        const document = this.#dataModel.findConnectionDocument(undefined, details.id);
+        const document = this.dataModel.findConnectionDocument(undefined, details.id);
         if (document) {
             document.caption = details.newName;
             this.#changeEvent.fire(document);
@@ -392,7 +394,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
     };
 
     private resolveConnectionLabelSuffix(entry: OpenDocumentDataModelEntry): string {
-        if (entry?.type !== OdmEntityType.ConnectionPage || !entry.parent) {
+        if (entry.type !== OdmEntityType.ConnectionPage || !entry.parent) {
             return "";
         }
         if (this.connectionDocumentSuffixes.has(entry.id)) {

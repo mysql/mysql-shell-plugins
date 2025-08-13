@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -42,7 +42,9 @@ describe("JsonParser", () => {
         fileList.forEach((file) => {
             const json = readFileSync(`./data/json/accept/${file}`, { encoding: "utf-8" });
 
-            expect(() => { JsonParser.parseJson(json); }).not.toThrow();
+            expect(() => {
+                JsonParser.parseJson(json); 
+            }).not.toThrow();
         });
     });
 
@@ -51,7 +53,9 @@ describe("JsonParser", () => {
         fileList.forEach((file) => {
             const json = readFileSync(`./data/json/reject/${file}`, { encoding: "utf-8" });
 
-            expect(() => { JsonParser.parseJson(json); }).toThrow();
+            expect(() => {
+                JsonParser.parseJson(json); 
+            }).toThrow();
         });
     });
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,7 @@ export const reservedMySQLKeywords = new Map<MySQLVersion, Set<string>>();
 // TODO: change implementation to use keyword diffs instead of full lists.
 // TODO: separate non-standard keywords (MHS, MRS, etc.) from standard keywords. They might also be version-specific.
 void import("./data/keywords.json").then((keywords) => {
-    const content: IDictionary = keywords.default ?? keywords;
+    const content: IDictionary = keywords.default;
     Object.keys(content).forEach((versionKey: string) => {
         const currentVersion = MySQLVersion[versionKey as keyof typeof MySQLVersion];
         const set = new Set<string>();

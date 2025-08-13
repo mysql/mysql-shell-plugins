@@ -50,6 +50,7 @@ describe("PerformanceDashboard Tests", (): void => {
         credentials = getDbCredentials();
         testConnection = {
             id: -1,
+            index: -1,
 
             dbType: DBType.MySQL,
             caption: "PerformanceDashboard Test Connection 1",
@@ -67,7 +68,7 @@ describe("PerformanceDashboard Tests", (): void => {
         };
 
         testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection) ?? [-1, -1, -1])[0];
+            testConnection))[0];
         expect(testConnection.id).toBeGreaterThan(-1);
 
         backend = new ShellInterfaceSqlEditor();

@@ -284,7 +284,6 @@ export class MdsEndpointDialog extends ValueDialogBase {
                 values.portForwarding = featuresSection.values.portForwarding.value as boolean;
                 values.mrs = featuresSection.values.mrs.value as boolean;
 
-
                 values.jwtSecret = mrsSection.values.jwtSecret.value as string;
 
                 onClose(closure, values);

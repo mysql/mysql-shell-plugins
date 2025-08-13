@@ -65,7 +65,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 parameters: { args: {} },
             });
 
-            if (response.result?.moduleSessionId) {
+            if (response.result.moduleSessionId) {
                 webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
             }
         }
@@ -182,16 +182,12 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 }
 
                 if (entry.result.rows) {
-                    if (!result.rows) {
-                        result.rows = [];
-                    }
+                    result.rows ??= [];
                     result.rows.push(...entry.result.rows);
                 }
 
                 if (entry.result.columns) {
-                    if (!result.columns) {
-                        result.columns = [];
-                    }
+                    result.columns ??= [];
                     result.columns.push(...entry.result.columns);
                 }
 

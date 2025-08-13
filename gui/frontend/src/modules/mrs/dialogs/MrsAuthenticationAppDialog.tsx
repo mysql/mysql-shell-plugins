@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -42,7 +42,7 @@ export interface IMrsAuthenticationAppDialogData extends IDictionary {
     enabled: boolean;
     limitToRegisteredUsers: boolean;
     defaultRoleName: string;
-    options: string;
+    options?: string;
 }
 
 export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
@@ -61,8 +61,9 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
         }
 
         const dialogValues = this.dialogValues(request, authVendors, roles);
-        const result = await this.doShow(() => { return dialogValues; },
-            { title: "MySQL REST Authentication App", contexts });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, { title: "MySQL REST Authentication App", contexts });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);
@@ -90,16 +91,16 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
 
                 if (mainSection.values.authVendorName.value !== "MRS" &&
                     mainSection.values.authVendorName.value !== "MySQL Internal") {
-                        const oAuthSection = values.sections.get("oAuthSection");
-                        if (!oAuthSection?.values.url.value) {
-                            result.messages.url = "The App URL must not be empty for OAuth2 auth apps.";
-                        }
-                        if (!oAuthSection?.values.appId.value) {
-                            result.messages.appId = "The App ID must not be empty for OAuth2 auth apps.";
-                        }
-                        if (!oAuthSection?.values.accessToken.value) {
-                            result.messages.accessToken = "The App Secret must not be empty for OAuth2 auth apps.";
-                        }
+                    const oAuthSection = values.sections.get("oAuthSection");
+                    if (!oAuthSection?.values.url.value) {
+                        result.messages.url = "The App URL must not be empty for OAuth2 auth apps.";
+                    }
+                    if (!oAuthSection?.values.appId.value) {
+                        result.messages.appId = "The App ID must not be empty for OAuth2 auth apps.";
+                    }
+                    if (!oAuthSection?.values.accessToken.value) {
+                        result.messages.accessToken = "The App Secret must not be empty for OAuth2 auth apps.";
+                    }
                 }
             }
 
@@ -108,7 +109,7 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                 if (optionsSection.values.options.value) {
                     try {
                         JSON.parse(optionsSection.values.options.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.options = "Please provide a valid JSON object.";
                     }
                 }
@@ -136,17 +137,17 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                 authVendorName: {
                     type: "choice",
                     caption: "Vendor",
-                    choices: authVendors ? authVendors.map((authVendor) => {
+                    choices: authVendors.map((authVendor) => {
                         return authVendor.name;
-                    }) : [],
+                    }),
                     value: appData.authVendorName,
                     description: "The authentication vendor",
                     horizontalSpan: 2,
                     onChange: (value: DialogValueType, dialog: ValueEditDialog): void => {
                         if (value as string === "MRS" || value as string === "MySQL Internal") {
-                            dialog.updateActiveContexts({remove: ["oAuth"]});
+                            dialog.updateActiveContexts({ remove: ["oAuth"] });
                         } else {
-                            dialog.updateActiveContexts({add: ["oAuth"]});
+                            dialog.updateActiveContexts({ add: ["oAuth"] });
                         }
                     },
                 },
@@ -203,9 +204,9 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                 defaultRoleName: {
                     type: "choice",
                     caption: "Default Role",
-                    choices: roles ? roles.map((role) => {
+                    choices: roles.map((role) => {
                         return role.caption;
-                    }) : [],
+                    }),
                     value: appData.defaultRoleId ?? "",
                     description: "The default role for users",
                     optional: true,

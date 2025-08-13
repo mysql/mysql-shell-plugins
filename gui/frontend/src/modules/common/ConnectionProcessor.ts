@@ -35,7 +35,7 @@ import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.j
 import { DBType, type IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
-import { SimpleXMLParser, type ISimpleXMLTag } from "./SImpleXMLParser.js";
+import { SimpleXMLParser2, type ISimpleXMLTag } from "./SimpleXMLParser2.js";
 
 /**
  * A class to handle adding new connections to the connection data model.
@@ -59,7 +59,7 @@ export class ConnectionProcessor {
         const validSqlModes = Object.values(MySQLSqlMode);
 
         try {
-            const xml = SimpleXMLParser.parse(xmlString);
+            const xml = SimpleXMLParser2.parse(xmlString);
 
             // Validate the XML file.
             if (xml.length === 0) {
@@ -72,7 +72,7 @@ export class ConnectionProcessor {
             }
 
             const topValue = root.content[0];
-            if (!topValue || topValue.type !== "tag"
+            if (topValue.type !== "tag"
                 || topValue.attributes["content-struct-name"] !== "db.mgmt.Connection") {
                 throw new Error("No data found.");
             }
@@ -287,16 +287,13 @@ export class ConnectionProcessor {
         try {
             const connectionDetails = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
                 entry.details, group.folderPath.id);
-            if (connectionDetails !== undefined) {
-                entry.details.id = connectionDetails[0];
-                await dataModel.addConnectionEntry(entry);
+            entry.details.id = connectionDetails[0];
+            await dataModel.addConnectionEntry(entry);
 
-                requisitions.executeRemote("connectionAdded", entry.details);
-            }
+            requisitions.executeRemote("connectionAdded", entry.details);
         } catch (reason) {
             const message = convertErrorToString(reason);
             void requisitions.execute("showError", "Cannot add DB connection: " + message);
-
         }
     }
 

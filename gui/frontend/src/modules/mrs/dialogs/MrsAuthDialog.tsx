@@ -43,6 +43,7 @@ import { Label } from "../../../components/ui/Label/Label.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { IMrsAuthApp, IMrsLoginResult, MrsBaseService } from "../sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../types.js";
+import { convertErrorToString } from "../../../utilities/helpers.js";
 
 interface IMrsAuthDialogState extends IComponentState {
     request?: IServicePasswordRequest,
@@ -216,7 +217,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
                         return app.name === requestAuthApp;
                     }) ? requestAuthApp : authApps[0]?.name;
                     this.setState({ authAppList: authApps, error: undefined, errorCode: undefined, selectedAuthApp });
-                }).catch((reason) => {
+                }).catch((reason: unknown) => {
                     this.setState({ error: String(reason) });
                 });
 
@@ -257,9 +258,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
             if (cancelled) {
                 void requisitions.execute("cancelMrsAuthentication", request);
             } else {
-                if (request.payload === undefined) {
-                    request.payload = {};
-                }
+                request.payload ??= {};
                 request.payload.loginResult = this.loginResult;
                 void requisitions.execute("acceptMrsAuthentication", { request, password });
             }
@@ -273,15 +272,16 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
             } else {
                 this.setState({ error: this.loginResult.errorMessage });
             }
-        }).catch((e) => {
-            this.setState({ error: String(e) });
+        }).catch((e: unknown) => {
+            const message = convertErrorToString(e);
+            this.setState({ error: message });
         });
     };
 
     private doAuthenticate = async (): Promise<boolean> => {
         const { authAppList = [], request, userName, password, selectedAuthApp } = this.state;
 
-        if (request && request.service && selectedAuthApp && userName) {
+        if (request?.service && selectedAuthApp && userName) {
             const mrsService = new MrsBaseService(request.service);
 
             this.setState({ authenticating: true });
@@ -311,7 +311,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
     private getAuthApps = async (): Promise<IMrsAuthApp[] | undefined> => {
         const { request } = this.state;
 
-        if (request && request.service) {
+        if (request?.service) {
             const mrsService = new MrsBaseService(
                 request.service,
                 request.payload
@@ -320,18 +320,18 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
 
             let authApps = await mrsService.getAuthApps();
 
-            if (authApps?.length === 0) {
+            if (authApps.length === 0) {
                 throw new Error("No Authentication Apps have been defined for this service. Please add an MRS " +
                     "or MySQL Internal Authentication App to the service first.");
             }
 
             // Filter out all unsupported authApps
-            authApps = authApps?.filter((authApp) => {
+            authApps = authApps.filter((authApp) => {
                 return (authApp.vendorId === "0x30000000000000000000000000000000" ||
                     authApp.vendorId === "0x31000000000000000000000000000000");
             });
 
-            if (authApps?.length === 0) {
+            if (authApps.length === 0) {
                 throw new Error("The embedded MRS SDK only supports MRS or MySQL Internal Authentication Apps. " +
                     "Please add a MRS or MySQL Internal Authentication App to the service first.");
             }

@@ -21,12 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file, @typescript-eslint/no-use-before-define */
-
+import { BaseSymbol, RoutineSymbol, ScopedSymbol, SymbolTable, TypedSymbol, VariableSymbol } from "antlr4-c3";
 import { ParserRuleContext, ParseTree, TerminalNode } from "antlr4ng";
-import { SymbolTable, BaseSymbol, ScopedSymbol, RoutineSymbol, TypedSymbol, VariableSymbol } from "antlr4-c3";
 
-import { SymbolKind, ISymbolInfo, ISymbolDefinition } from "./parser-common.js";
+import { ISymbolDefinition, ISymbolInfo, SymbolKind } from "./parser-common.js";
 
 export class CatalogSymbol extends ScopedSymbol {
 }
@@ -95,7 +93,7 @@ export class SystemFunctionSymbol extends BaseSymbol {
 export class DBSymbolTable extends SymbolTable {
 
     // @ts-expect-error: we use the constructors only for lookup.
-    private static symbolToKindMap: Map<typeof BaseSymbol, SymbolKind> = new Map([
+    private static symbolToKindMap = new Map<typeof BaseSymbol, SymbolKind>([
         [CatalogSymbol, SymbolKind.Catalog],
         [SchemaSymbol, SymbolKind.Schema],
         [TableSymbol, SymbolKind.Table],
@@ -125,7 +123,7 @@ export class DBSymbolTable extends SymbolTable {
     // TODO: set the tree actually.
     //public tree: ParserRuleContext; // Set by the owning service context after each parse run.
 
-    private symbolReferences: Map<string, number> = new Map();
+    private symbolReferences = new Map<string, number>();
 
     /**
      * Converts a symbol class to a symbol kind in a way that is compatible with minified class names.
@@ -155,8 +153,8 @@ export class DBSymbolTable extends SymbolTable {
      *
      * @returns True if the symbol was found, false otherwise.
      */
-    public symbolExists(name: string, kind: SymbolKind, localOnly: boolean): boolean {
-        return this.getSymbolOfKind(name, kind, localOnly) !== undefined;
+    public async symbolExists(name: string, kind: SymbolKind, localOnly: boolean): Promise<boolean> {
+        return (await this.getSymbolOfKind(name, kind, localOnly)) !== undefined;
     }
 
     /**
@@ -235,7 +233,9 @@ export class DBSymbolTable extends SymbolTable {
             result.span = { start: ctx.symbol.start, length: ctx.symbol.stop - ctx.symbol.start + 1 };
         }
 
-        if (keepQuotes || result.text.length < 2) { return result; }
+        if (keepQuotes || result.text.length < 2) {
+            return result;
+        }
 
         const quoteChar = result.text[0];
         if ((quoteChar === '"' || quoteChar === "`" || quoteChar === "'") &&
@@ -246,7 +246,6 @@ export class DBSymbolTable extends SymbolTable {
         return result;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<void> {
         return Promise.resolve();
     }

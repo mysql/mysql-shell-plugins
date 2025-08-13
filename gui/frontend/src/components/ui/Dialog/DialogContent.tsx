@@ -112,13 +112,13 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
                                 className="leftItems"
                                 orientation={Orientation.LeftToRight}
                             >
-                                {actions?.begin}
+                                {actions.begin}
                             </Container>
                             <Container
                                 className="rightItems"
                                 orientation={Orientation.RightToLeft}
                             >
-                                {actions?.end}
+                                {actions.end}
                             </Container>
 
                         </div>}

@@ -102,7 +102,6 @@ describe("DocumentToolbar tests", (): void => {
             column: 1,
         });
 
-
         component.unmount();
     });
 
@@ -119,7 +118,6 @@ describe("DocumentToolbar tests", (): void => {
 
         const id = component.state().currentContext?.id;
         await requisitions.execute("editorContextStateChanged", id ?? "");
-
 
         component.unmount();
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,7 +43,7 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
 
     public static init(): void {
         void import("./data/builtin-functions.json").then((systemFunctions) => {
-            const functions = systemFunctions.default as { [key: string]: string[]; };
+            const functions = systemFunctions.default as Record<string, string[]>;
             for (const [key, value] of Object.entries(functions)) {
                 SQLiteLanguageService.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key, value);
             }

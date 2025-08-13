@@ -23,10 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
-
-/* eslint-disable max-len */
-
 import { Protocol, ShellPromptResponseType } from "./Protocol.js";
 import { IProtocolGuiParameters } from "./ProtocolGui.js";
 import { IProtocolMdsParameters } from "./ProtocolMds.js";
@@ -43,5 +39,8 @@ export interface IProtocolParameters extends IProtocolGuiParameters, IProtocolMd
 
     [Protocol.UserAuthenticate]: { username: string; password: string; };
     [Protocol.LogOut]: {};
-    [Protocol.PromptReply]: { requestId: string; type: ShellPromptResponseType; reply: string; moduleSessionId: string; };
+    [Protocol.PromptReply]: {
+        requestId: string; type: ShellPromptResponseType; reply: string;
+        moduleSessionId: string;
+    };
 }

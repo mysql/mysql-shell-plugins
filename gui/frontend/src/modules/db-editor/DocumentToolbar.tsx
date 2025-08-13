@@ -106,7 +106,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
 
             const contexts = currentEditor?.state?.model.executionContexts;
             if (contexts) {
-                const context = contexts.contextFromPosition(contexts.cursorPosition) as ExecutionContext;
+                const context = contexts.contextFromPosition(contexts.cursorPosition);
                 if (context) {
                     this.setState({
                         currentEditor,
@@ -292,7 +292,9 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                     data-tooltip="Stop execution of the current statement/script in case of errors"
                     imageOnly={true}
                     onClick={
-                        () => { void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors); }
+                        () => {
+                            void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors);
+                        }
                     }
                 >
                     <Icon src={stopOnErrorIcon} data-tooltip="inherit" />
@@ -364,7 +366,9 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                 key="editorToggleSoftWrapButton"
                 data-tooltip="Soft wrap lines"
                 imageOnly={true}
-                onClick={() => { Settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on"); }}
+                onClick={() => {
+                    Settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on");
+                }}
             >
                 <Icon src={wordWrapIcon} data-tooltip="inherit" />
             </Button>,
@@ -521,10 +525,10 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
     private updateState(position?: IPosition): void {
         const { currentEditor, currentContext } = this.state;
 
-        if (currentEditor?.state?.model?.executionContexts) {
+        if (currentEditor?.state?.model.executionContexts) {
             position ??= currentEditor.state.model.executionContexts.cursorPosition;
             const context = currentEditor.state.model.executionContexts
-                .contextFromPosition(position) as ExecutionContext;
+                .contextFromPosition(position);
             if (context) {
                 if (context !== currentContext) {
                     this.setState({
@@ -550,8 +554,8 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                 this.setState({ autoCommit: value ?? false }, () => {
                     resolve();
                 });
-            }).catch((reason) => {
-                reject(reason);
+            }).catch((reason: unknown) => {
+                reject(reason as Error);
             });
         });
     };

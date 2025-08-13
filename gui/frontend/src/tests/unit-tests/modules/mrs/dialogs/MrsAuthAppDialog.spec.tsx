@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable dot-notation */
-
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
@@ -116,8 +114,8 @@ describe("MRS AuthApp dialog tests", () => {
 
         const promise = hubRef.current!.showMrsAuthAppDialog(backend);
 
-        backend.mrs.addAuthApp = (authApp: IMrsAuthAppData, registerUsers: [], serviceId?: string)
-            : Promise<IMrsAddAuthAppData> => {
+        backend.mrs.addAuthApp = (authApp: IMrsAuthAppData, registerUsers: [],
+            serviceId?: string): Promise<IMrsAddAuthAppData> => {
             expect(serviceId?.length).toBeGreaterThan(0);
             expect(authApp.name).toBe("MyAuthApp");
             expect(authApp.appId?.length).toBeGreaterThan(0);

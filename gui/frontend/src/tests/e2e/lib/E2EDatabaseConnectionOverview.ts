@@ -41,6 +41,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Verifies if the Connection Overview page is opened
+     * 
      * @returns A condition resolving to true if the page exists, false otherwise
      */
     public untilExists = (): Condition<boolean> => {
@@ -51,6 +52,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Adds a new connection
+     * 
      * @param connection The DB Connection
      */
     public addNewConnection = async (connection: IDBConnection): Promise<void> => {
@@ -62,6 +64,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Gets a Database connection from the DB Connection Overview
+     * 
      * @param name The database connection caption
      * @returns A promise resolving with the connection
      */
@@ -76,7 +79,9 @@ export class E2EDatabaseConnectionOverview {
                         return host;
                     }
                 } catch (e) {
-                    return undefined;
+                    if (e instanceof Error) {
+                        return undefined;
+                    }
                 }
             }
 
@@ -88,6 +93,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Clicks on a group and waits until the breadcrumb has the group name, ensuring the user is inside the group
+     * 
      * @param name The group caption
      * @returns A promise resolving with the group
      */
@@ -107,6 +113,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Clicks on a database connection more actions button
+     * 
      * @param dbConnection The database connection caption
      * @param option The option to click
      */
@@ -133,6 +140,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Verifies if a Database connection exists on the DB Connection Overview
+     * 
      * @param dbConnection The database connection caption
      * @returns A promise resolving with the connection
      */
@@ -165,6 +173,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Verifies if a group exists on the DB Connection Overview
+     * 
      * @param name The group name
      * @returns A promise resolving to true if the group exists, false otherwise
      */
@@ -197,6 +206,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Verifies if a group exists on the DB Connection Overview
+     * 
      * @param name The group name
      * @returns A condition resolving to true if the group exists, false otherwise
      */
@@ -208,6 +218,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Verifies if a Database connection exists on the DB Connection Overview
+     * 
      * @param dbConnection The database connection caption
      * @returns A condition resolving to true if the connection exists, false otherwise
      */
@@ -228,6 +239,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Opens a new notebook with (CMD|ALT)+click
+     * 
      * @param dbConnectionCaption The DB Connection caption
      */
     public openNotebookUsingKeyboard = async (dbConnectionCaption: string): Promise<void> => {
@@ -243,6 +255,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Gets the breadcrumb item links
+     * 
      * @returns A promise resolving with the breadcrumb items as an array of WebElements
      */
     public getBreadCrumbLinks = async (): Promise<WebElement[]> => {
@@ -253,6 +266,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Gets the breadcrumb items as full path
+     * 
      * @returns A promise resolving with the breadcrumb items as an array of WebElements
      */
     public getBreadCrumb = async (): Promise<string> => {
@@ -279,6 +293,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Verifies if the breadcrumb is equal to a value
+     * 
      * @param value The breadcrumb value
      * @returns A condition resolving to true when the breadcrumb is equal to the value
      */
@@ -290,6 +305,7 @@ export class E2EDatabaseConnectionOverview {
 
     /**
      * Gets a group from the DB Connection Overview
+     * 
      * @param name The group caption
      * @returns A promise resolving with the group
      */
@@ -305,7 +321,9 @@ export class E2EDatabaseConnectionOverview {
                         return grp;
                     }
                 } catch (e) {
-                    return undefined;
+                    if (e instanceof Error) {
+                        return undefined;
+                    }
                 }
             }
 

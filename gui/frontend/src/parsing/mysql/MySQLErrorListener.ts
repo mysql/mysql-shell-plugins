@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,27 +21,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-underscore-dangle */
-
 import {
-    ATNSimulator,
-    BaseErrorListener, FailedPredicateException, InputMismatchException, IntervalSet, Lexer, NoViableAltException,
-    Parser, RecognitionException, Recognizer, Token, Vocabulary,
+    ATNSimulator, BaseErrorListener, FailedPredicateException, InputMismatchException, IntervalSet, Lexer,
+    NoViableAltException, Parser, RecognitionException, Recognizer, Token, Vocabulary,
 } from "antlr4ng";
 
-import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
-import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
-import { MySQLBaseLexer } from "./MySQLBaseLexer.js";
 import { ErrorReportCallback } from "../parser-common.js";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
+import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
+import { MySQLBaseLexer } from "./MySQLBaseLexer.js";
 
 export class MySQLErrorListener extends BaseErrorListener {
 
-    private static simpleRules: Set<number> = new Set([
+    private static simpleRules = new Set<number>([
         MySQLMRSParser.RULE_identifier,
         MySQLMRSParser.RULE_qualifiedIdentifier,
     ]);
 
-    private static objectNames: Map<number, string> = new Map([
+    private static objectNames = new Map<number, string>([
         [MySQLMRSParser.RULE_columnName, "column"],
         [MySQLMRSParser.RULE_columnRef, "column"],
         [MySQLMRSParser.RULE_columnInternalRef, "column"],
@@ -108,7 +105,7 @@ export class MySQLErrorListener extends BaseErrorListener {
             }
 
             const errorLength = token.stop - token.start + 1;
-            let wrongText = token.text || "";
+            let wrongText = token.text ?? "";
 
             // getExpectedTokens() ignores predicates, so it might include the token for which we got this syntax error,
             // if that was excluded by a predicate (which in our case is always a version check).

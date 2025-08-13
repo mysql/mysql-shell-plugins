@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import Color from "color";
+import Color, { type ColorInstance } from "color";
+
 import { IColors, ThemeType } from "../components/Theming/ThemeManager.js";
 import colorAdjustments from "../components/Theming/assets/color-adjustments.json";
 
@@ -38,14 +39,10 @@ interface IHSL {
 
 interface IColorAdjustmentConfig {
     baseColorKey: string;
-    colorAdjustment: {
-        [key in ThemeType]?: IHSL;
-    }
+    colorAdjustment: Partial<Record<ThemeType, IHSL>>;
 }
 
-interface IColorAdjustments {
-    [colorKey: string]: IColorAdjustmentConfig | string;
-}
+type IColorAdjustments = Record<string, IColorAdjustmentConfig | string | undefined>;
 
 export class ColorManipulator {
     public get colorAdjustments(): IColorAdjustments {
@@ -61,7 +58,7 @@ export class ColorManipulator {
         const colorAdjustmentValue = colorAdjustments[colorKey];
         if (typeof colorAdjustmentValue === "object") {
             const baseColorKey = colorAdjustmentValue.baseColorKey;
-            if (baseColorKey[0] === "$") {
+            if (baseColorKey.startsWith("$")) {
                 throw new Error(
                     `Variables as a baseColorKey are not supported, "${baseColorKey}" provided`,
                 );
@@ -70,7 +67,7 @@ export class ColorManipulator {
             return colorAdjustmentValue;
         }
 
-        if (colorAdjustmentValue[0] !== "$") {
+        if (!colorAdjustmentValue.startsWith("$")) {
             throw new Error(
                 `Color adjustment config has to be either object or variable, "${colorAdjustmentValue}" provided`,
             );
@@ -86,15 +83,17 @@ export class ColorManipulator {
 
     public getAdjustedColors(baseColors: IColors, colorAdjustments: IColorAdjustments, type: ThemeType): IColors {
         const adjustedColors: IColors = {};
-        for (const [ colorKey ] of Object.entries(colorAdjustments)) {
+        for (const [colorKey] of Object.entries(colorAdjustments)) {
             const resolvedColorAdjustment = this.resolveColorAdjustment(
                 baseColors,
                 colorAdjustments,
                 colorKey,
             );
+
             if (resolvedColorAdjustment === undefined) {
                 continue;
             }
+
             if (typeof resolvedColorAdjustment === "string") {
                 adjustedColors[colorKey] = resolvedColorAdjustment;
 
@@ -107,12 +106,12 @@ export class ColorManipulator {
                 continue;
             }
 
-            const hslColorAdjustment = colorAdjustment?.[type];
+            const hslColorAdjustment = colorAdjustment[type];
             if (!hslColorAdjustment) {
                 continue;
             }
-            const adjustedColor = this.calculateHsl(baseColor, hslColorAdjustment);
 
+            const adjustedColor = this.calculateHsl(baseColor, hslColorAdjustment);
             adjustedColors[colorKey] = adjustedColor;
         }
 
@@ -123,7 +122,7 @@ export class ColorManipulator {
         let color = new Color(baseColor);
         const { hue, saturation, lightness, alpha } = hsl;
 
-        if (hue && hue.absolute !== undefined) {
+        if (hue?.absolute !== undefined) {
             color = this.adjustHueAbsolute(color, hue.absolute);
         }
 
@@ -152,37 +151,37 @@ export class ColorManipulator {
         return color.hex().toLowerCase();
     }
 
-    public adjustHueAbsolute(color: Color, hue: number): Color {
+    public adjustHueAbsolute(color: ColorInstance, hue: number): ColorInstance {
         return color.rotate(hue);
     }
 
-    public adjustSaturationRelative(color: Color, saturation: number): Color {
+    public adjustSaturationRelative(color: ColorInstance, saturation: number): ColorInstance {
         return saturation > 0
-          ? color.saturate(saturation)
-          : color.desaturate(-saturation);
+            ? color.saturate(saturation)
+            : color.desaturate(-saturation);
     }
 
-    public adjustSaturationAbsolute(color: Color, saturation: number): Color {
+    public adjustSaturationAbsolute(color: ColorInstance, saturation: number): ColorInstance {
         return color.saturationl(color.saturationl() + saturation);
     }
 
-    public adjustLightnessRelative(color: Color, lightness: number): Color {
+    public adjustLightnessRelative(color: ColorInstance, lightness: number): ColorInstance {
         return lightness > 0
-          ? color.lighten(lightness)
-          : color.darken(-lightness);
+            ? color.lighten(lightness)
+            : color.darken(-lightness);
     }
 
-    public adjustLightnessAbsolute(color: Color, lightness: number): Color {
+    public adjustLightnessAbsolute(color: ColorInstance, lightness: number): ColorInstance {
         return color.lightness(color.lightness() + lightness);
     }
 
-    public adjustAlphaRelative(color: Color, alpha: number): Color {
+    public adjustAlphaRelative(color: ColorInstance, alpha: number): ColorInstance {
         return alpha > 0 ?
-          color.opaquer(alpha) :
-          color.fade(-alpha);
+            color.opaquer(alpha) :
+            color.fade(-alpha);
     }
 
-    public adjustAlphaAbsolute(color: Color, alpha: number): Color {
+    public adjustAlphaAbsolute(color: ColorInstance, alpha: number): ColorInstance {
         return color.alpha(color.alpha() + alpha);
     }
 }

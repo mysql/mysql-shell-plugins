@@ -34,7 +34,6 @@ import type { IServicePasswordRequest } from "./general-types.js";
  * @see {@link ui.showWarningMessage showWarningMessage}
  * @see {@link ui.showErrorMessage showErrorMessage}
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface MessageOptions {
     /** Indicates that this message should be modal. */
     modal?: boolean;
@@ -59,10 +58,10 @@ export interface MessageOptions {
  *
  * Copied from VS Code.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface Thenable<T> {
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
+     *
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.

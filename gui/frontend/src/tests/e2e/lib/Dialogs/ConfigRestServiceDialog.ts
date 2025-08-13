@@ -40,9 +40,10 @@ export class ConfigRestServiceDialog {
             constants.wait1second * 5, "MRS Config dialog was not displayed");
 
         await dialog.findElement(locator.mrsConfigDialog.currentVersion.exists).click();
-        const selectList = await driver.wait(until
-            .elementLocated(locator.mrsConfigDialog.currentVersion.selectList.exists), constants.wait1second * 3,
-            "Could not find the Update to Version select list");
+        const selectList = await driver.wait(until.elementLocated(
+            locator.mrsConfigDialog.currentVersion.selectList.exists
+
+        ), constants.wait1second * 3, "Could not find the Update to Version select list");
 
         const allItems = await selectList.findElements(locator.mrsConfigDialog.currentVersion.selectList.allItems);
 
@@ -57,6 +58,7 @@ export class ConfigRestServiceDialog {
 
     /**
      * Sets a Rest configuration using the web view dialog
+     * 
      * @param restConfig The rest configuration
      */
     public static set = async (restConfig?: interfaces.IRestServiceConfig): Promise<void> => {
@@ -67,17 +69,20 @@ export class ConfigRestServiceDialog {
         if (restConfig!.status) {
             await dialog.findElement(locator.mrsConfigDialog.status.exists).click();
             const selectList = await driver.wait(until
-                .elementLocated(locator.mrsConfigDialog.status.selectList.exists), constants.wait1second * 3,
-                "Could not find the Status select list");
+                .elementLocated(
+                    locator.mrsConfigDialog.status.selectList.exists
+                ), constants.wait1second * 3, "Could not find the Status select list");
+
             await selectList.findElement(locator.mrsConfigDialog.status.selectList.item(restConfig!.status)).click();
         }
 
         if (restConfig!.currentVersion) {
             await dialog.findElement(locator.mrsConfigDialog.currentVersion.exists).click();
-            const selectList = await driver.wait(until
-                .elementLocated(locator.mrsConfigDialog.currentVersion.selectList.exists),
-                constants.wait1second * 3,
-                "Could not find the Update to Version select list");
+            const selectList = await driver.wait(until.elementLocated(
+                locator.mrsConfigDialog.currentVersion.selectList.exists
+
+            ), constants.wait1second * 3, "Could not find the Update to Version select list");
+
             await selectList.findElement(locator.mrsConfigDialog.currentVersion.selectList
                 .item(restConfig!.currentVersion))
                 .click();
@@ -87,8 +92,10 @@ export class ConfigRestServiceDialog {
         if (restConfig!.updateToVersion) {
             await dialog.findElement(locator.mrsConfigDialog.updateToVersion.exists).click();
             const selectList = await driver.wait(until
-                .elementLocated(locator.mrsConfigDialog.updateToVersion.selectList.exists), constants.wait1second * 3,
-                "Could not find the Update to Version select list");
+                .elementLocated(locator.mrsConfigDialog.updateToVersion.selectList.exists
+
+                ), constants.wait1second * 3, "Could not find the Update to Version select list");
+
             await selectList.findElement(locator.mrsConfigDialog.updateToVersion.selectList
                 .item(restConfig!.updateToVersion))
                 .click();
@@ -97,8 +104,9 @@ export class ConfigRestServiceDialog {
         if (restConfig!.authentication) {
             if (restConfig!.authentication.createDefaultApp !== undefined) {
                 await DialogHelper.setCheckboxValue(await dialog
-                    .findElement(locator.mrsConfigDialog.authentication.createDefaultApp),
-                    restConfig!.authentication.createDefaultApp);
+                    .findElement(locator.mrsConfigDialog.authentication.createDefaultApp
+
+                    ), restConfig!.authentication.createDefaultApp);
 
                 if (restConfig!.authentication.username) {
                     await DialogHelper.setFieldText(dialog, locator.mrsConfigDialog.authentication.username,
@@ -118,29 +126,34 @@ export class ConfigRestServiceDialog {
             if (restConfig!.authenticationThrottling.preAccountThrottling) {
 
                 if (restConfig!.authenticationThrottling.preAccountThrottling.minTimeBetweenRequests) {
-                    await DialogHelper.setFieldText(dialog, locator.mrsConfigDialog.authenticationThrottling
-                        .preAccountThrottling.minTimeRequests,
+                    await DialogHelper.setFieldText(dialog,
+                        locator.mrsConfigDialog.authenticationThrottling.preAccountThrottling.minTimeRequests,
+
                         restConfig!.authenticationThrottling.preAccountThrottling.minTimeBetweenRequests);
                 }
 
                 if (restConfig!.authenticationThrottling.preAccountThrottling.maxAttemptsPerMinute) {
-                    await DialogHelper.setFieldText(dialog, locator.mrsConfigDialog.authenticationThrottling
-                        .preAccountThrottling.maxAttemptsPerMin,
+                    await DialogHelper.setFieldText(dialog,
+                        locator.mrsConfigDialog.authenticationThrottling
+                            .preAccountThrottling.maxAttemptsPerMin,
                         restConfig!.authenticationThrottling.preAccountThrottling.maxAttemptsPerMinute);
+
                 }
             }
 
             if (restConfig!.authenticationThrottling.perHostThrottling) {
 
                 if (restConfig!.authenticationThrottling.perHostThrottling.minTimeBetweenRequests) {
-                    await DialogHelper.setFieldText(dialog, locator.mrsConfigDialog.authenticationThrottling
-                        .perHostThrottling.minTimeRequests,
+                    await DialogHelper.setFieldText(dialog,
+                        locator.mrsConfigDialog.authenticationThrottling
+                            .perHostThrottling.minTimeRequests,
                         restConfig!.authenticationThrottling.perHostThrottling.minTimeBetweenRequests);
+
                 }
 
                 if (restConfig!.authenticationThrottling.perHostThrottling.maxAttemptsPerMinute) {
-                    await DialogHelper.setFieldText(dialog, locator.mrsConfigDialog.authenticationThrottling
-                        .perHostThrottling.maxAttemptsPerMin,
+                    await DialogHelper.setFieldText(dialog,
+                        locator.mrsConfigDialog.authenticationThrottling.perHostThrottling.maxAttemptsPerMin,
                         restConfig!.authenticationThrottling.perHostThrottling.maxAttemptsPerMinute);
                 }
             }
@@ -226,13 +239,14 @@ export class ConfigRestServiceDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsConfigDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait1second * 10, "The MySQL Rest Configuration Dialog was not closed");
 
     };
 
     /**
      * Gets a Rest Config using the web view dialog
+     * 
      * @param closeDialog True to close the dialog, false otherwise
      * @returns A promise resolving with the rest configuration
      */
@@ -240,7 +254,6 @@ export class ConfigRestServiceDialog {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsConfigDialog.exists),
             constants.wait1second * 20, "MRS Configuration dialog was not displayed");
-
 
         const mrsConfig: interfaces.IRestServiceConfig = {
             status: await (await dialog.findElement(locator.mrsConfigDialog.status.label)).getText(),
@@ -293,15 +306,17 @@ export class ConfigRestServiceDialog {
 
         const endPointResponseCacheKeys = await Promise.all((await endPointResponseCacheGrid
             .findElements(locator.mrsConfigDialog.redirectsAndStaticContent
-                .grid.key)).map(async (item: WebElement) => {
-                    return item.getText();
-                }));
+                .grid.key))
+            .map(async (item: WebElement) => {
+                return item.getText();
+            }));
 
         const endPointResponseCacheValues = await Promise.all((await endPointResponseCacheGrid
             .findElements(locator.mrsConfigDialog.redirectsAndStaticContent
-                .grid.value)).map(async (item: WebElement) => {
-                    return (await item.getText()).substring(0, 30);
-                }));
+                .grid.value))
+            .map(async (item: WebElement) => {
+                return (await item.getText()).substring(0, 30);
+            }));
 
         const endPointResponseCacheOpts: interfaces.IOption[] = [];
         for (const key of endPointResponseCacheKeys) {
@@ -317,15 +332,17 @@ export class ConfigRestServiceDialog {
 
         const defaultRedirectsKeys = await Promise.all((await defaultRedirectsGrid
             .findElements(locator.mrsConfigDialog.redirectsAndStaticContent
-                .grid.key)).map(async (item: WebElement) => {
-                    return item.getText();
-                }));
+                .grid.key))
+            .map(async (item: WebElement) => {
+                return item.getText();
+            }));
 
         const defaultRedirectsValues = await Promise.all((await defaultRedirectsGrid
             .findElements(locator.mrsConfigDialog.redirectsAndStaticContent
-                .grid.value)).map(async (item: WebElement) => {
-                    return (await item.getText()).substring(0, 30);
-                }));
+                .grid.value))
+            .map(async (item: WebElement) => {
+                return (await item.getText()).substring(0, 30);
+            }));
 
         const defaultRedirectsOpts: interfaces.IOption[] = [];
         for (const key of defaultRedirectsKeys) {
@@ -351,7 +368,7 @@ export class ConfigRestServiceDialog {
             await driver.wait(async () => {
                 await dialog.findElement(locator.mrsConfigDialog.cancel).click();
 
-                return (await DialogHelper.existsDialog()) === false;
+                return !(await DialogHelper.existsDialog());
             }, constants.wait1second * 10, "The MRS Config dialog was not closed");
         }
 

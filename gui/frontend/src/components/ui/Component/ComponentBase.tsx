@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -189,7 +189,6 @@ export interface IComponentProperties {
     onDrop?: DragEventCallback;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IComponentState {
     // Nothing in this base component.
 }
@@ -323,10 +322,8 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
             }
 
             return c[value as number];
-        } else {
-            if (!value) {
-                return undefined;
-            }
+        } else if (value === false || value === 0 || value === "") {
+            return undefined;
         }
 
         return c;
@@ -467,7 +464,6 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
      *
      * @returns True if the associated callback function should be called.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         return true;
     }
@@ -480,7 +476,6 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
      *
      * @returns True if the associated callback function should be called.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected handleKeyboardEvent(type: KeyboardEventType, e: KeyboardEvent): boolean {
         return true;
     }
@@ -493,7 +488,6 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
      *
      * @returns True if the associated callback function should be called.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected handleFocusEvent(type: FocusEventType, e: FocusEvent): boolean {
         return true;
     }
@@ -506,7 +500,6 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
      *
      * @returns True if the associated callback function should be called.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected handlePointerEvent(type: PointerEventType, e: PointerEvent): boolean {
         return true;
     }
@@ -519,7 +512,6 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
      *
      * @returns True if the associated callback function should be called.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
         return true;
     }

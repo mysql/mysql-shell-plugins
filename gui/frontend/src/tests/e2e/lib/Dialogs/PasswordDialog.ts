@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,7 @@ export class PasswordDialog {
 
     /**
      * Verifies if the Open MySQL Connection dialog is displayed
+     * 
      * @returns A promise resolving to true if the dialog is displayed, false otherwise
      */
     public static exists = async (): Promise<boolean> => {
@@ -45,6 +46,7 @@ export class PasswordDialog {
 
     /**
      * Verifies if the Open MySQL Connection dialog is displayed
+     * 
      * @returns A condition resolving to the dialog if the dialog is displayed, undefined otherwise
      */
     public static untilExists = (): Condition<PasswordDialog | undefined> => {
@@ -57,6 +59,7 @@ export class PasswordDialog {
 
     /**
      * Sets the database credentials on the password dialog
+     * 
      * @param data The credentials
      * @returns A promise resolving when the credentials are set
      */
@@ -67,6 +70,7 @@ export class PasswordDialog {
 
     /**
      * Cancels the connection
+     * 
      * @returns A promise resolving when the cancel button is clicked
      */
     public static cancel = async (): Promise<void> => {
@@ -77,6 +81,7 @@ export class PasswordDialog {
 
     /**
      * Sets the database connection password
+     * 
      * @param dbConfig The database configuration
      * @returns A promise resolving when the password is set
      */
@@ -90,6 +95,7 @@ export class PasswordDialog {
 
     /**
      * Sets the database connection confirm dialog
+     * 
      * @param value The value. (Y, N, A)
      * @returns A promise resolving when the password is set
      */

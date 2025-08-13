@@ -35,7 +35,7 @@ import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import { IResultSetUpdater, ResultSetUpdater } from "./ResultSetUpdater.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
-import { IContextProvider, IExecutionContextDetails, IResultSet } from "./index.js";
+import { IContextProvider, IExecutionContextDetails } from "./index.js";
 
 /**
  * A collection of optional parameters for the execution context list.
@@ -57,6 +57,7 @@ export interface IExecutionContextsParameters {
 
     /**
      * A callback to apply updates (usually from an edit operation).
+     *
      * @returns An error message or the number of affected rows if the update was successful.
      */
     runUpdates?: (sql: string[]) => Promise<ISqlUpdateResult>;
@@ -193,7 +194,7 @@ export class ExecutionContexts implements IContextProvider {
         }
 
         this.content.forEach((context: ExecutionContext) => {
-            return context.dispose();
+            context.dispose();
         });
 
         this.content = [];
@@ -441,7 +442,7 @@ export class ExecutionContexts implements IContextProvider {
     private isDbModuleResultData(data: unknown[]): data is IDocumentResultData[] {
         const array = data as IDocumentResultData[];
 
-        return array.length > 0 && array[0].tabId !== undefined;
+        return array.length > 0 && array[0].tabId.length > 0;
     }
 
 }

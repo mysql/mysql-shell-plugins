@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { Config } from 'jest';
+import type { Config } from "jest";
 
 const config: Config = {
     // All imported modules in your tests should be mocked automatically
@@ -80,7 +80,6 @@ const config: Config = {
     // The configuration minimum threshold enforcement for coverage results
     // is now made by nyc (check .nycrc file)
 
-
     // A path to a custom dependency extractor
     // dependencyExtractor: undefined,
 
@@ -106,8 +105,10 @@ const config: Config = {
     // A set of global variables that need to be available in all test environments
     // globals: {},
 
-    // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
-    //maxWorkers: "50%",
+    // The maximum amount of workers used to run your tests. Can be specified as % or a number.
+    // For example maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number.
+    // maxWorkers: 2 will use a maximum of 2 workers.
+    // maxWorkers: "50%",
 
     // An array of directory names to be searched recursively up from the requiring module's location
     // moduleDirectories: [
@@ -128,18 +129,20 @@ const config: Config = {
         "node"
     ],
 
-    // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
+    // A map from regular expressions to module names or to arrays of module names that allow to stub out resources
+    // with a single module.
     moduleNameMapper: {
         "monaco-editor$": "monaco-editor/esm/vs/editor/editor.api",
         "tabulator-tables$": "tabulator-tables/dist/js/tabulator_esm.js",
         ".+\\.worker\\?worker$": "<rootDir>/src/tests/unit-tests/__mocks__/workerMock.ts",
         "^react$": "preact/compat",
-        '^react/jsx-runtime$': 'preact/jsx-runtime',
+        "^react/jsx-runtime$": "preact/jsx-runtime",
         ".*\\?raw": "@glen/jest-raw-loader",
         "^(\\.\\.?\\/.+)\\.js$": "$1", // For imports with the .js extension.
     },
 
-    // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
+    // An array of regexp pattern strings, matched against all module paths before considered 'visible' to
+    // the module loader.
     // modulePathIgnorePatterns: [],
 
     // Activates notifications for test results
@@ -237,12 +240,12 @@ const config: Config = {
     // A map from regular expressions to paths to transformers
     transform: {
         "^.+\\.(ts|js|mjs|tsx|jsx)$": [
-            '@swc/jest',
+            "@swc/jest",
             {
                 jsc: {
                     transform: {
                         react: {
-                            runtime: 'automatic',
+                            runtime: "automatic",
                         },
                     },
                 },
@@ -252,12 +255,14 @@ const config: Config = {
         "^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)": "<rootDir>/src/tests/fileTransform.cjs",
     },
 
-    // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
+    // An array of regexp pattern strings that are matched against all source file paths, matched files will
+    // skip transformation.
     transformIgnorePatterns: [
         "<rootDir>/../node_modules/"
     ],
 
-    // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
+    // An array of regexp pattern strings that are matched against all modules before the module loader will
+    // automatically return a mock for them.
     // unmockedModulePathPatterns: undefined,
 
     // Indicates whether each individual test should be reported during the run

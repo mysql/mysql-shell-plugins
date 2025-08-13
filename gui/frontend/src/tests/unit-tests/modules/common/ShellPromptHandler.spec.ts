@@ -57,7 +57,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             title: "<Some Title>",
             description: ["<This is a description>"],
         },
-            "<requestId>", backend);
+        "<requestId>", backend);
 
         expect(result).toBe(true);
     });
@@ -76,7 +76,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             title: "<Some Title>",
             description: ["<This is a description>"],
         },
-            "requestId", backend);
+        "requestId", backend);
 
         expect(result).toBeTruthy();
     });
@@ -96,7 +96,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             description: ["<This is a description>"],
             options: [],
         },
-            "<requestId>", backend);
+        "<requestId>", backend);
 
         expect(result).toBeTruthy();
     });
@@ -115,7 +115,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             title: "<Some Title>",
             description: ["<This is a description>"],
         },
-            "<requestId>", backend);
+        "<requestId>", backend);
 
         expect(result).toBeTruthy();
     });

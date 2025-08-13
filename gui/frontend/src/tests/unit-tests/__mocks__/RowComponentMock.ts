@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Oracle and/or its affiliates.
+* Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,6 @@ import { CellComponent, GroupComponent, RowComponent } from "tabulator-tables";
 import { GroupComponentMock } from "./GroupComponentMock.js";
 import { IMrsObjectFieldTreeItem } from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export class RowComponentMock implements RowComponent {
     public element: HTMLElement;
     public row: IMrsObjectFieldTreeItem | undefined;
@@ -83,8 +82,7 @@ export class RowComponentMock implements RowComponent {
     public move: (
         lookup: RowComponent | HTMLElement | number,
         belowTarget?: boolean
-    ) => void = (lookup, belowTarget) => {
-    };
+    ) => void = (lookup, belowTarget) => { /**/ };
 
     public update: (data: {}) => Promise<void> = (data) => {
         return Promise.resolve();
@@ -106,8 +104,7 @@ export class RowComponentMock implements RowComponent {
         rowData: {},
         position?: boolean,
         existingRow?: RowComponent
-    ) => void = (rowData, position, existingRow) => {
-    };
+    ) => void = (rowData, position, existingRow) => { /**/ };
 
     public isTreeExpanded: () => boolean = () => {
         return false;
@@ -121,8 +118,16 @@ export class RowComponentMock implements RowComponent {
         return false;
     };
 
-    public getData = (): IMrsObjectFieldTreeItem => { return this.row!; };
-    public getElement = (): HTMLElement => { return this.element; };
-    public getPrevRow = (): RowComponent | false => { return this.prevRow; };
-    public getNextRow = (): RowComponent | false => { return this.nextRow; };
+    public getData = (): IMrsObjectFieldTreeItem => {
+        return this.row!;
+    };
+    public getElement = (): HTMLElement => {
+        return this.element;
+    };
+    public getPrevRow = (): RowComponent | false => {
+        return this.prevRow;
+    };
+    public getNextRow = (): RowComponent | false => {
+        return this.nextRow;
+    };
 }

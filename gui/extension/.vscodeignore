@@ -4,8 +4,8 @@ scripts/**
 src/**
 **/*.map
 .gitignore
-.eslintrc.json
 tsconfig.json
+eslint.config.mjs
 cspell.json
 **/.antlr
 packaging/**

@@ -37,6 +37,7 @@ import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { StatusMark } from "../../components/ui/StatusMark/StatusMark.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import { Assets } from "../../supplement/Assets.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { IToolbarItems } from "./index.js";
@@ -148,7 +149,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
         this.addHandledProperties("backend", "rowGap", "toolbarItems");
         this.showWindowsAuth = (typeof os.platform === "function" && os.platform() === "win32"
-            && process.env.JEST_WORKER_ID === undefined);
+            && !appParameters.testsRunning);
     }
 
     public override componentDidMount(): void {
@@ -265,7 +266,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 </GridCell>
                 <GridCell key="cell17" className="left">Running Since:</GridCell>
                 <GridCell key="cell18" data-testid="runningSince">
-                    {serverStatus?.runningSince ?? "none"}
+                    {serverStatus.runningSince ?? "none"}
                 </GridCell>
             </Grid>
         );
@@ -322,12 +323,12 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
                 <GridCell key="cell32" className="left">Firewall:</GridCell>
                 <GridCell key="cell33" data-testid="firewall">
-                    {serverFeatures?.firewall ?? "none"}
+                    {serverFeatures.firewall ?? "none"}
                 </GridCell>
 
                 <GridCell key="cell34" className="left">Firewall Trace:</GridCell>
                 <GridCell key="cell35" data-testid="firewallTrace">
-                    {serverFeatures?.firewallTrace ?? "none"}
+                    {serverFeatures.firewallTrace ?? "none"}
                 </GridCell>
             </Grid>
         );
@@ -492,7 +493,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         );
     };
 
-
     private drawBoolean = (value: TriState): ComponentChild => {
         if (value === undefined) {
             return (<StatusMark statusState={CheckState.Indeterminate} text={"none"} />);
@@ -521,16 +521,16 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
         try {
             let result = await backend.execute("show variables");
-            if (result && result.rows) {
+            if (result?.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
 
                 serverStatus.host = values.get("hostname") ?? "none";
                 serverStatus.socket = values.get("socket") ?? "none";
                 serverStatus.port = values.get("port") ?? "none";
                 serverStatus.compiledFor = values.get("version_compile_os") ?? "none";
-                serverStatus.version = `${values.get("version_comment") ?? "none"}` +
+                serverStatus.version = (values.get("version_comment") ?? "none") +
                     `(${values.get("version") ?? "none"})`;
-                serverStatus.shortVersion = `${values.get("version_comment") ?? "none"}`;
+                serverStatus.shortVersion = values.get("version_comment") ?? "none";
 
                 // server directories
                 serverDirectories.baseDirectory = values.get("basedir") ?? "none";
@@ -606,12 +606,12 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             }
 
             result = await backend.execute("show global status");
-            if (result && result.rows) {
+            if (result?.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 const ut = Number(values.get("Uptime") ?? 0);
                 if (ut > 0) {
                     const uptime = new Date(ut);
-                    serverStatus.runningSince = `${this.formatDuration(uptime.getTime())}`;
+                    serverStatus.runningSince = this.formatDuration(uptime.getTime());
                 } else {
                     serverStatus.runningSince = "none";
                 }
@@ -619,14 +619,14 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             }
 
             result = await backend.execute("show plugins");
-            if (result && result.rows) {
+            if (result?.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached"), "ACTIVE");
                 serverFeatures.windowsAuth = this.checkTriState(values.get("authentication_windows"), "ACTIVE");
                 serverFeatures.pamAuth = this.checkTriState(values.get("authentication_pam"), "ACTIVE");
                 this.setState({ serverFeatures });
             }
-        } catch (_) {
+        } catch {
             this.setState({ runStatus: "stopped" });
         }
     }

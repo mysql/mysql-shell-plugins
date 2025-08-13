@@ -70,7 +70,6 @@ export class AwaitableValueEditDialog extends ComponentBase {
      *
      * @returns A promise resolving to DialogResponseClosure.Cancel.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         return Promise.resolve(DialogResponseClosure.Cancel);
     }
@@ -94,7 +93,6 @@ export class AwaitableValueEditDialog extends ComponentBase {
      *
      * @returns A dictionary of validation messages.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         return { messages: {} };
     };

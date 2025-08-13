@@ -25,7 +25,7 @@
 
 import "./CommunicationDebugger.css";
 
-import typings from "./debugger-runtime.d.ts?raw";
+import typings from "../../typings/debugger-runtime.d.ts?raw";
 
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent } from "tabulator-tables";
@@ -42,7 +42,9 @@ import { CodeEditor, type ICodeEditorModel, type IEditorPersistentState } from "
 import { CodeEditorMode, Monaco } from "../ui/CodeEditor/index.js";
 import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment.js";
 
+import { ui } from "../../app-logic/UILayer.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { Assets } from "../../supplement/Assets.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { Accordion } from "../ui/Accordion/Accordion.js";
 import { Button } from "../ui/Button/Button.js";
@@ -57,8 +59,6 @@ import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
 import { Toolbar } from "../ui/Toolbar/Toolbar.js";
 import { SetDataAction, TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { defaultEditorOptions } from "../ui/index.js";
-import { ui } from "../../app-logic/UILayer.js";
-import { Assets } from "../../supplement/Assets.js";
 
 enum ScriptTreeType {
     Folder,
@@ -449,7 +449,7 @@ export default class CommunicationDebugger
                 });
 
                 this.setState({ activeInputTab: name, scriptTabs });
-            }).catch((e) => {
+            }).catch((e: unknown) => {
                 const message = convertErrorToString(e);
                 void ui.showErrorMessage(`Internal Error ${message}`, {});
             });
@@ -497,7 +497,9 @@ export default class CommunicationDebugger
                 const top = parts.shift();
 
                 if (top) {
-                    let entry = parent.find((candidate) => { return candidate.name === top; });
+                    let entry = parent.find((candidate) => {
+                        return candidate.name === top;
+                    });
                     if (!entry) {
                         const isScript = parts.length === 0;
                         entry = {
@@ -536,7 +538,7 @@ export default class CommunicationDebugger
                 void this.scriptTreeRef.current?.setData(scripts, SetDataAction.Set);
             });
 
-        }).catch((event) => {
+        }).catch((event: unknown) => {
             const message = convertErrorToString(event);
             void ui.showErrorMessage(`Loading Debugger Scripts: , ${message}`, {});
         });
@@ -565,7 +567,6 @@ export default class CommunicationDebugger
             this.messageOutputRef.current.clear();
         }
     };
-
 
     private changeTrace = (checkState: CheckState): void => {
         MessageScheduler.get.traceEnabled = checkState === CheckState.Checked;
@@ -624,11 +625,13 @@ export default class CommunicationDebugger
 
     private executeScript = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const models = Monaco.getModels();
-        const model = models.find((candidate) => { return candidate.id === props.id; });
+        const model = models.find((candidate) => {
+            return candidate.id === props.id;
+        });
 
         if (model) {
             // Temporarily make the environment known globally.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             (window as any).ws = this.environment;
 
             const code = model.getValue();
@@ -646,7 +649,10 @@ export default class CommunicationDebugger
                         this.printOutput(`/* ERROR: ${JSON.stringify(e, undefined, 4)} */\n`, OutputType.Error);
                     }
                 } finally {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    /*
+                        eslint-disable-next-line @typescript-eslint/no-explicit-any,
+                        @typescript-eslint/no-unsafe-member-access
+                    */
                     (window as any).ws = undefined;
                 }
             });
@@ -736,7 +742,7 @@ export default class CommunicationDebugger
      * @returns A promise which resolves to true.
      */
     private handleTraceEvent = (data: IDebuggerData): Promise<boolean> => {
-        const debuggerValidate = false; // TODO: event.context.messageClass === "debuggerValidate";
+        //const debuggerValidate = false; // TODO: event.context.messageClass === "debuggerValidate";
 
         if (data.request) {
             // A request sent to the server.
@@ -751,9 +757,9 @@ export default class CommunicationDebugger
                 : OutputType.Normal;
 
             // Don't print responses while doing a debugger validation run.
-            if (!debuggerValidate) {
-                this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)}; `, outputType);
-            }
+            //if (!debuggerValidate) {
+            this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)}; `, outputType);
+            //}
 
         }
 

@@ -52,8 +52,8 @@ export const uiLayerMock: IUILayer = {
     createStatusBarItem: jest.fn().mockImplementation(() => {
         return statusBarItemMock;
     }),
-    setStatusBarMessage: jest.fn().mockImplementation(() => { }),
-    confirm: jest.fn().mockImplementation(() => { }),
+    setStatusBarMessage: jest.fn().mockImplementation(() => { /**/ }),
+    confirm: jest.fn().mockImplementation(() => { /**/ }),
     requestPassword: jest.fn().mockImplementation(() => {
         return Promise.resolve(undefined);
     }),

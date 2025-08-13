@@ -28,7 +28,6 @@ import { IShellDictionary } from "./Protocol.js";
 
 /* eslint-disable max-len */
 
-
 export enum ShellAPIGui {
     /** Indicates whether this module is a GUI backend module */
     GuiClusterIsGuiModuleBackend = "gui.cluster.is_gui_module_backend",
@@ -449,10 +448,10 @@ export interface IWebSessionData {
     requestState: { msg: string; };
     sessionUuid?: string;
     localUserMode: boolean;
-	singleServerMode: boolean;
+    singleServerMode: boolean;
     activeProfile: IShellProfile;
 }
-
+ 
 export interface IAuthenticationData {
     activeProfile: IShellProfile;
 }
@@ -490,7 +489,6 @@ export interface IRequestState {
     type: string;
     msg: string;
 }
-
 
 export interface IShellPromptValues {
     promptDescriptor?: {
@@ -540,7 +538,6 @@ export interface IDbEditorResultSetData {
  * The members of this record come with pascal case naming, which is not processed by our snake-to-camel
  * case processing. So for now we define this with the original names here, until this is fixed.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
 export interface IShellColumnMetadataEntry {
     Name: string;
     OrgName: string;
@@ -555,11 +552,8 @@ export interface IShellColumnMetadataEntry {
     Decimals: number;
     Flags: string;
 }
-/* eslint-enable @typescript-eslint/naming-convention */
 
-export interface IShellColumnsMetaData {
-    [key: string]: IShellColumnMetadataEntry;
-}
+export type IShellColumnsMetaData = Record<string, IShellColumnMetadataEntry>;
 
 export interface IShellRowData extends IShellResultData {
     rows: unknown[];

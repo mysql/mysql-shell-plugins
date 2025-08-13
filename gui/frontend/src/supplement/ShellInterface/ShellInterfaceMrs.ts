@@ -245,7 +245,6 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-
     /**
      * Creates a new authentication app.
      *
@@ -255,8 +254,8 @@ export class ShellInterfaceMrs {
      *
      * @returns A promise resolving to the new authentication app data.
      */
-    public async addAuthApp(authApp: IMrsAuthAppData, registerUsers: string[], serviceId?: string)
-        : Promise<IMrsAddAuthAppData> {
+    public async addAuthApp(authApp: IMrsAuthAppData, registerUsers: string[],
+        serviceId?: string): Promise<IMrsAddAuthAppData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddAuthenticationApp,
             parameters: {
@@ -584,7 +583,7 @@ export class ShellInterfaceMrs {
                     enabled,
                     crudOperationFormat,
                     requiresAuth,
-                    itemsPerPage: itemsPerPage === null ? undefined : itemsPerPage,
+                    itemsPerPage: itemsPerPage ?? undefined,
                     comments,
                     mediaType,
                     autoDetectMediaType,
@@ -760,8 +759,8 @@ export class ShellInterfaceMrs {
         return webSession.moduleSessionId(this.moduleSessionLookupId);
     }
 
-    public async dumpSchema(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
-        schemaId?: string | undefined, schemaName?: string | undefined): Promise<void> {
+    public async dumpSchema(path: string, serviceId?: string, serviceName?: string,
+        schemaId?: string, schemaName?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpSchema,
             parameters: {
@@ -779,9 +778,9 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async dumpObject(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
-        schemaId?: string | undefined, schemaName?: string | undefined, objectId?: string | undefined,
-        objectName?: string | undefined): Promise<void> {
+    public async dumpObject(path: string, serviceId?: string, serviceName?: string,
+        schemaId?: string, schemaName?: string, objectId?: string,
+        objectName?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpObject,
             parameters: {
@@ -801,8 +800,8 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async loadSchema(path: string, serviceId?: string | undefined,
-        serviceName?: string | undefined): Promise<void> {
+    public async loadSchema(path: string, serviceId?: string,
+        serviceName?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsLoadSchema,
             parameters: {
@@ -818,8 +817,8 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async loadObject(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
-        schemaId?: string | undefined, schemaName?: string | undefined): Promise<void> {
+    public async loadObject(path: string, serviceId?: string, serviceName?: string,
+        schemaId?: string, schemaName?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsLoadObject,
             parameters: {
@@ -996,7 +995,6 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
-
 
     public async getTableColumnsWithReferences(requestPath?: string, dbObjectName?: string,
         dbObjectId?: string, schemaId?: string, schemaName?: string,
@@ -1191,7 +1189,6 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-
     public async getContentSetCreateStatement(contentSetId: string): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetContentSetCreateStatement,
@@ -1205,7 +1202,6 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
-
 
     public async getContentFileCreateStatement(contentFileId: string): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({

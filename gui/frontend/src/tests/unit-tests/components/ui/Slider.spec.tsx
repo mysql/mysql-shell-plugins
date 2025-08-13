@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,11 +50,12 @@ describe("Slider component tests", (): void => {
             />,
         );
         expect(component).toMatchSnapshot();
-        const instance = component.instance();
 
-        const spyOnChange = jest.spyOn(instance.props, "onChange");
+        const instance = component.instance();
+        const spyOnChange = jest.spyOn(instance.props, "onChange") as jest.SpyInstance<void, [number], unknown>;
         instance.value = 0.8;
-        expect(spyOnChange).toBeCalledWith(0.8);
+
+        expect(spyOnChange).toHaveBeenCalledWith(0.8);
 
         component.unmount();
     });

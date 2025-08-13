@@ -25,8 +25,10 @@
 
 import "./CodeEditor.css";
 
-import { SymbolTable } from "antlr4-c3";
 import { ComponentChild, createRef } from "preact";
+
+import { SymbolTable } from "antlr4-c3";
+import { editor } from "monaco-editor";
 
 import "./userWorker.js";
 
@@ -34,7 +36,6 @@ import {
     CodeEditorMode, ICodeEditorViewState, IDisposable, IPosition, IProviderEditorModel,
     IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco, Range, Selection,
 } from "./index.js";
-
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
@@ -47,7 +48,6 @@ import {
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
-import { editor } from "monaco-editor";
 import { MessageType } from "../../../app-logic/general-types.js";
 import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
 import { splitTextToLines } from "../../../utilities/string-helpers.js";
@@ -297,13 +297,12 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             combinedLanguage = language === "msg";
             model = Object.assign(Monaco.createModel(initialContent ?? "", language), {
                 executionContexts: new ExecutionContexts({
-                    dbVersion: Settings.get("editor.dbVersion", undefined),
+                    dbVersion: Settings.get<number | undefined>("editor.dbVersion", undefined),
                     sqlMode: Settings.get("editor.sqlMode", ""),
                 }),
                 symbols: new SymbolTable("default", { allowDuplicateSymbols: true }),
                 editorMode: CodeEditorMode.Standard,
             });
-
 
             if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
                 model.setEOL(Monaco.EndOfLineSequence.LF);
@@ -336,7 +335,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             },
             "links": detectLinks,
             "colorDecorators": true,
-            "contextmenu": model?.editorMode !== CodeEditorMode.Terminal,
+            "contextmenu": model.editorMode !== CodeEditorMode.Terminal,
             "suggest": suggest ?? { preview: false },
             "inlineSuggest": { enabled: true },
             "quickSuggestions": true,
@@ -363,7 +362,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             lineNumbers,
             "scrollBeyondLastLine": false,
             "lineDecorationsWidth": lineDecorationsWidth ?? (combinedLanguage ? 49 : 20),
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             "semanticHighlighting.enabled": true,
 
             model,
@@ -371,15 +369,13 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         this.editor = Monaco.create(this.hostRef.current, options);
 
-        if (model) {
-            if (model.executionContexts && model.executionContexts.count > 0) {
-                void model.executionContexts.activateContexts(this.editor);
+        if (model.executionContexts && model.executionContexts.count > 0) {
+            model.executionContexts.activateContexts(this.editor);
+        } else {
+            if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
+                this.generateExecutionBlocksFromContent();
             } else {
-                if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
-                    this.generateExecutionBlocksFromContent();
-                } else {
-                    this.addInitialBlock(model);
-                }
+                this.addInitialBlock(model);
             }
         }
 
@@ -392,6 +388,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         this.prepareUse();
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (languages.typescript) {
             extraLibs?.forEach((entry) => {
                 this.disposables.push(languages.typescript.typescriptDefaults.addExtraLib(entry.code, entry.path));
@@ -439,7 +436,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         this.disposables.forEach((d: IDisposable) => {
-            return d.dispose();
+            d.dispose();
         });
         this.disposables = [];
 
@@ -451,7 +448,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         const editor = this.backend;
         if (editor && savedState?.model !== editor.getModel()) {
-            if (prevProps.savedState && editor) {
+            if (prevProps.savedState) {
                 // Save the current state before switching to the new model.
                 prevProps.savedState.viewState = editor.saveViewState();
                 prevProps.savedState.model.executionContexts?.deactivateContexts();
@@ -460,11 +457,11 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
             if (savedState) {
                 if (!savedState.model.isDisposed()) {
-                    editor?.setModel(savedState.model);
+                    editor.setModel(savedState.model);
                 }
 
                 if (savedState.viewState) {
-                    editor?.restoreViewState(savedState.viewState);
+                    editor.restoreViewState(savedState.viewState);
                 }
                 this.options = savedState.options;
             }
@@ -476,7 +473,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
 
                 if (model.executionContexts && model.executionContexts.count > 0) {
-                    void model.executionContexts?.activateContexts(editor);
+                    model.executionContexts.activateContexts(editor);
                 } else {
                     if (!savedState) {
                         model.setValue(initialContent ?? "");
@@ -561,12 +558,13 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @returns The new version number of the lib
      */
     public addOrUpdateExtraLib(code: string, path: string): number {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (languages.typescript) {
             this.disposables.push(languages.typescript.typescriptDefaults.addExtraLib(code, path));
 
             // Return the new version of the extra lib
             const extraLibs = languages.typescript.typescriptDefaults.getExtraLibs();
-            const lib = extraLibs[path];
+            const lib = extraLibs[path] as languages.typescript.IExtraLib | undefined;
             if (lib) {
                 return lib.version;
             }
@@ -613,7 +611,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const model = this.model;
         const backend = this.backend;
         if (model && backend) {
-            const selection = backend.getSelection() || new Range(0, 0, 0, 0);
+            const selection = backend.getSelection() ?? new Range(0, 0, 0, 0);
             const id = { major: 1, minor: 1 };
             const op = { identifier: id, range: selection, text, forceMoveMarkers: true };
             backend.executeEdits("", [op]);
@@ -667,7 +665,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         let block;
 
         const model = this.model;
-        if (model && model.executionContexts) {
+        if (model?.executionContexts) {
             if (index === -1 || index === model.executionContexts.count - 1) {
                 this.addingNewContext = true;
                 try {
@@ -759,7 +757,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     public get currentBlockIndex(): number {
         const editor = this.backend;
         const model = this.model;
-        if (editor && model && model.executionContexts) {
+        if (editor && model?.executionContexts) {
             return model.executionContexts.contextIndexFromPosition(editor.getPosition());
         }
 
@@ -769,7 +767,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     public get currentBlock(): ExecutionContext | undefined {
         const editor = this.backend;
         const model = this.model;
-        if (editor && model && model.executionContexts) {
+        if (editor && model?.executionContexts) {
             return model.executionContexts.contextFromPosition(editor.getPosition());
         }
 
@@ -884,7 +882,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 2,
             precondition,
-            run: () => { return this.doExecuteContext({}); },
+            run: () => {
+                this.doExecuteContext({});
+            },
         }));
 
         this.disposables.push(editor.addAction({
@@ -894,7 +894,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 3,
             precondition,
-            run: () => { return this.doExecuteContext({ atCaret: true }); },
+            run: () => {
+                this.doExecuteContext({ atCaret: true });
+            },
         }));
 
         this.disposables.push(editor.addAction({
@@ -904,7 +906,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 4,
             precondition,
-            run: () => { return this.doExecuteContext({ atCaret: true, advance: true, asText: true }); },
+            run: () => {
+                this.doExecuteContext({ atCaret: true, advance: true, asText: true });
+            },
         }));
 
         if (appParameters.embedded) {
@@ -994,7 +998,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyU],
                     contextMenuGroupId: "4_linked",
                     precondition,
-                    run: () => { this.runContextCommand("sendBlockUpdates"); },
+                    run: () => {
+                        this.runContextCommand("sendBlockUpdates");
+                    },
                 }));
             }
 
@@ -1003,7 +1009,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 id: "deleteBackwards",
                 label: "Delete Backwards",
                 keybindings: [KeyCode.Backspace],
-                run: () => { this.handleBackspace(); },
+                run: () => {
+                    this.handleBackspace();
+                },
                 precondition,
             }));
 
@@ -1011,7 +1019,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 id: "deleteForward",
                 label: "Delete Forward",
                 keybindings: [KeyCode.Delete],
-                run: () => { this.handleDelete(); },
+                run: () => {
+                    this.handleDelete();
+                },
                 precondition,
             }));
 
@@ -1021,7 +1031,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.UpArrow],
                 contextMenuGroupId: "navigation",
                 precondition,
-                run: () => { this.jumpToBlockStart(); },
+                run: () => {
+                    this.jumpToBlockStart();
+                },
             }));
 
             this.disposables.push(editor.addAction({
@@ -1030,7 +1042,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.DownArrow],
                 contextMenuGroupId: "navigation",
                 precondition,
-                run: () => { this.jumpToBlockEnd(); },
+                run: () => {
+                    this.jumpToBlockEnd();
+                },
             }));
         }
 
@@ -1083,7 +1097,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "3_results",
             contextMenuOrder: 1,
             precondition,
-            run: () => { void this.removeAllResults(); },
+            run: () => {
+                void this.removeAllResults();
+            },
         }));
 
         this.disposables.push(editor.addAction({
@@ -1092,7 +1108,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "9_cutcopypaste",
             contextMenuOrder: 5,
             precondition,
-            run: () => { this.useNotebookAsTemplate(); },
+            run: () => {
+                this.useNotebookAsTemplate();
+            },
         }));
 
         this.disposables.push(editor.addAction({
@@ -1102,14 +1120,18 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "9_cutcopypaste",
             contextMenuOrder: 6,
             precondition,
-            run: () => { this.appendFromTemplate(); },
+            run: () => {
+                this.appendFromTemplate();
+            },
         }));
 
         this.disposables.push(editor.addAction({
             id: "focusExecutionBlockResultAbove",
             label: "Focus Execution Block Result Above",
             keybindings: [KeyMod.Alt | KeyCode.UpArrow],
-            run: () => { this.focusExecutionContextResult(true); },
+            run: () => {
+                this.focusExecutionContextResult(true);
+            },
             precondition,
         }));
 
@@ -1117,7 +1139,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             id: "focusExecutionBlockResultBelow",
             label: "Focus Execution Block Result Above",
             keybindings: [KeyMod.Alt | KeyCode.DownArrow],
-            run: () => { this.focusExecutionContextResult(false); },
+            run: () => {
+                this.focusExecutionContextResult(false);
+            },
             precondition,
         }));
 
@@ -1125,7 +1149,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
             if (language === "msg") {
                 const model = this.model;
-                if (model && model.executionContexts) {
+                if (model?.executionContexts) {
                     model.executionContexts.cursorPosition = e.position;
                 }
             }
@@ -1261,7 +1285,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     if (context) { // Should always be assigned.
                         // Do nothing with this position if the user going to remove the line break that separates
                         // execution contexts.
-                        let endColumn = model.getLineMaxColumn(context.endLine ?? 0);
+                        let endColumn = model.getLineMaxColumn(context.endLine);
                         if (context.endLine === selection.startLineNumber && selection.startColumn === endColumn) {
                             // Do nothing.
                         } else {
@@ -1523,8 +1547,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                             if (this.handleInternalCommand(index) === "unhandled") {
                                 const { onScriptExecution } = this.props;
 
-                                let position = options.atCaret
-                                    ? editor.getPosition() as IPosition ?? undefined
+                                let position: IPosition | undefined = options.atCaret
+                                    ? editor.getPosition() ?? undefined
                                     : undefined;
                                 if (position) {
                                     position = context.toLocal(position);
@@ -1602,7 +1626,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         const model = this.model;
-        if (model && model.executionContexts) {
+        if (model?.executionContexts) {
             const contexts = model.executionContexts;
 
             // Go through each change individually and send it to the affected blocks.
@@ -1695,7 +1719,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      */
     private scanForLanguageSwitches(range: ITextRange): void {
         const model = this.model;
-        if (model && model.executionContexts) {
+        if (model?.executionContexts) {
             const contextsToUpdate = this.contextIndicesFromRange(range);
 
             if (contextsToUpdate.length > 0) {
@@ -1768,7 +1792,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      */
     private contextIndicesFromRange(range: ITextRange): number[] {
         const model = this.model;
-        if (model && model.executionContexts) {
+        if (model?.executionContexts) {
             return model.executionContexts.contextIndicesFromRange(range);
         }
 
@@ -1843,7 +1867,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             lines = splitTextToLines(startOrText);
 
             currentLanguage = (language === "msg" ? startLanguage : language) ?? "javascript";
-            if (currentLanguage && allowedLanguages.length > 0) {
+            if (allowedLanguages.length > 0) {
                 if (!allowedLanguages.includes(currentLanguage)) {
                     // The current language is not allowed. Pick the first one in the allowed languages list.
                     currentLanguage = allowedLanguages[0];
@@ -1953,7 +1977,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const { allowedLanguages = [] } = this.props;
 
         const model = this.model;
-        if (model && model.executionContexts) {
+        if (model?.executionContexts) {
             const terminalMode = model.editorMode === CodeEditorMode.Terminal;
             const block = model.executionContexts.contextAt(index)!;
             if (block.isInternal) {
@@ -2078,7 +2102,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const advance = (language === "msg") && options.advance;
         this.doExecuteContext(
             {
-                advance: advance || terminalMode,
+                advance: advance ?? terminalMode,
                 forceSecondaryEngine: options.forceSecondaryEngine,
                 asText: options.asText,
                 is3rdLanguage: options.is3rdLanguage,
@@ -2100,7 +2124,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             {
                 ...options,
                 atCaret: true,
-                advance: advance || terminalMode,
+                advance: advance ?? terminalMode,
             });
         editor?.focus();
 
@@ -2116,7 +2140,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         if (action) {
             return new Promise((resolve) => {
-                void action.run().then(() => { resolve(true); });
+                void action.run().then(() => {
+                    resolve(true);
+                });
             });
         } else {
             return Promise.resolve(false);
@@ -2131,7 +2157,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         if (action) {
             return new Promise((resolve) => {
-                void action.run().then(() => { resolve(true); });
+                void action.run().then(() => {
+                    resolve(true);
+                });
             });
         } else {
             return Promise.resolve(false);
@@ -2196,7 +2224,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     private useNotebookAsTemplate = (): void => {
         const model = this.model;
-        if (model && model.executionContexts) {
+        if (model?.executionContexts) {
             this.templateCodeBlocks = [];
             this.templatePastePosition = 0;
             for (let i = 0; i < model.executionContexts.count; i++) {

@@ -39,7 +39,7 @@ export class MrsContentSetTreeItem extends MrsTreeBaseItem<ICdmRestContentSetEnt
         let iconName = value.contentType === "SCRIPTS" ? "mrsContentSetScripts" : "mrsContentSet";
         if (value.enabled === 0) {
             iconName += "Disabled";
-        } else if (value.enabled === EnabledState.PrivateOnly) {
+        } else if ((value.enabled as EnabledState) === EnabledState.PrivateOnly) {
             iconName += "Private";
         } else if (value.requiresAuth === 1) {
             iconName += "Locked";

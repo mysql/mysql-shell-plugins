@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@
 
 import "./Toggle.css";
 
-import Color from "color";
+import { type ColorInstance } from "color";
 import { ComponentChild, createRef } from "preact";
 
 import { convertPropValue } from "../../../utilities/string-helpers.js";
@@ -39,8 +39,8 @@ export interface IToggleProperties extends IComponentProperties {
     caption?: string;
 
     borderWidth?: number;
-    color?: Color;
-    checkedColor?: Color;
+    color?: ColorInstance;
+    checkedColor?: ColorInstance;
 
     onChange?: (e: InputEvent, checkState: CheckState) => void;
 }
@@ -48,7 +48,7 @@ export interface IToggleProperties extends IComponentProperties {
 export class Toggle extends ComponentBase<IToggleProperties> {
 
     public static override defaultProps = {
-        checkState: CheckState?.Unchecked,
+        checkState: CheckState.Unchecked,
         disabled: false,
         round: true,
     };
@@ -94,16 +94,14 @@ export class Toggle extends ComponentBase<IToggleProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, id = "", disabled, round, caption } = this.props;
+        const { children, id = "", round, caption } = this.props;
         const className = this.getEffectiveClassNames([
             "toggle",
             this.classFromProperty(round, "round"),
         ]);
 
         let content = children;
-        if (content == null) {
-            content = caption;
-        }
+        content ??= caption;
 
         return (
             <>
@@ -123,7 +121,6 @@ export class Toggle extends ComponentBase<IToggleProperties> {
                     htmlFor={id}
                     className={className}
                     tabIndex={0}
-                    disabled={disabled}
                     onClick={this.handleClick}
                     onKeyPress={this.handleInput}
                 >

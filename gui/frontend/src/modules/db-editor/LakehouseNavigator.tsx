@@ -24,8 +24,8 @@
 import "./assets/LakehouseNavigator.css";
 
 import { ComponentChild, createRef, render } from "preact";
-
 import { CellComponent, EmptyCallback, RowComponent } from "tabulator-tables";
+
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { DialogResponseClosure, DialogType } from "../../app-logic/general-types.js";
@@ -51,10 +51,10 @@ import { Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toggle } from "../../components/ui/Toggle/Toggle.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import { Assets } from "../../supplement/Assets.js";
 import { IOpenFileDialogResult } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { appParameters } from "../../supplement/AppParameters.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString, selectFileInBrowser, uuidBinary16Base64 } from "../../utilities/helpers.js";
 import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
@@ -233,8 +233,7 @@ export interface IObjectStorageTreeItem {
     children?: IObjectStorageTreeItem[];
 }
 
-const isTask = (data: ILakehouseTask | ILakehouseTaskItem):
-    data is ILakehouseTask => {
+const isTask = (data: ILakehouseTask | ILakehouseTaskItem): data is ILakehouseTask => {
     return (data as ILakehouseTask).name !== undefined;
 };
 
@@ -253,6 +252,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     #lakehouseTablesHash: string | undefined;
     #lakehouseTasks: ILakehouseTask[] | undefined;
     #lakehouseTasksHash: string | undefined;
+
+    // eslint-disable-next-line no-unused-private-class-members
     #lakehouseTaskRunning = false;
 
     public constructor(props: ILakehouseNavigatorProperties) {
@@ -420,7 +421,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 key="ensureUserPrivileges"
                 data-tooltip="Assign the required privileges to a MySQL user"
                 imageOnly={true}
-                onClick={() => { void this.handleEnsureUserPrivileges(); }}
+                onClick={() => {
+                    void this.handleEnsureUserPrivileges();
+                }}
             >
                 <Icon src={Assets.misc.ensurePrivilegesIcon} data-tooltip="inherit" />
             </Button>,
@@ -590,7 +593,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                     caption={item.fileSize !== undefined &&
                                         item.bytesUploadedTotal !== undefined
                                         ? `Uploaded: ${formatBytes(item.bytesUploadedTotal)} / `
-                                        + `${formatBytes(item.fileSize)}`
+                                        + formatBytes(item.fileSize)
                                         : "Uploaded: -"} />
                             </Container>
                             {!item.uploadComplete && item.bytesUploadedTotal !== undefined
@@ -695,7 +698,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         onClick={(_e, _props) => {
                             void this.onStartFileUploadClick();
                         }}
-                        disabled={!(filesForUpload !== undefined && filesForUpload?.length > 0
+                        disabled={!(filesForUpload !== undefined && filesForUpload.length > 0
                             && uploadTarget !== undefined) || uploadRunning === true}>
                         <Label caption="Start File Upload" /><Icon src={Codicon.ArrowRight} />
                     </Button>
@@ -837,8 +840,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             formats, lastTaskScheduleError, newTaskPanelWidth } = this.state;
         const { genAiStatus: getAiStatus } = this.props;
 
-        const taskItems = (task?.items !== undefined && task?.items?.length > 0)
-            ? task?.items : [];
+        const taskItems = (task?.items !== undefined && task.items.length > 0)
+            ? task.items : [];
 
         const languageSupportEnabled = getAiStatus?.languageSupport;
 
@@ -895,11 +898,15 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                     })}
                                 </Dropdown>
                                 <Button id="loadTaskAddSchemaBtn" imageOnly={true}
-                                    onClick={(_e, _props) => { void this.onAddSchemaBtnClick(); }} >
+                                    onClick={(_e, _props) => {
+                                        void this.onAddSchemaBtnClick();
+                                    }} >
                                     <Icon src={Codicon.Add} />
                                 </Button>
                                 <Button id="refreshTaskAddSchemaBtn" imageOnly={true}
-                                    onClick={(_e, _props) => { this.refreshAvailableDatabaseSchemas(); }}>
+                                    onClick={(_e, _props) => {
+                                        this.refreshAvailableDatabaseSchemas();
+                                    }}>
                                     <Icon src={Codicon.Refresh} />
                                 </Button>
                             </Container>
@@ -908,8 +915,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     <Container className="taskInputLabelContainer" orientation={Orientation.TopDown}>
                         <Label caption="Formats:" />
                         <Dropdown id="loadTaskFormatsDropdown"
-                            selection={task?.activeFormat === undefined
-                                ? "all" : task.activeFormat}
+                            selection={task?.activeFormat ?? "all"}
                             onSelect={this.handleFormatSelection}>
                             <DropdownItem caption="All Supported Formats" id="all" />
                             {formats?.map((format) => {
@@ -922,7 +928,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         <Container className="taskInputLabelContainer" orientation={Orientation.TopDown}>
                             <Label caption="Language:" />
                             <Dropdown id="loadTaskLanguageDropdown"
-                                selection={task?.languageId === undefined ? "en" : task.languageId}
+                                selection={task?.languageId ?? "en"}
                                 onSelect={this.handleLanguageSelection}>
                                 <DropdownItem caption="English" id="en" />
                                 <DropdownItem caption="German" id="de" />
@@ -971,7 +977,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                 crossAlignment={ContentAlignment.Stretch}
                             >
                                 <Icon className="remove" src={Codicon.Close}
-                                    onClick={(e) => { this.handleRemoveTaskItem(e, item.id); }} />
+                                    onClick={(e) => {
+                                        this.handleRemoveTaskItem(e, item.id);
+                                    }} />
                                 <Container className="iconLabel">
                                     <Icon src={item.iconSrc} />
                                     <Label id={`taskItemLbl${index}`} className="itemCaption"
@@ -1023,9 +1031,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         crossAlignment={ContentAlignment.Stretch}
                     >
                         <Button id="loadStartLoadingTaskBtn"
-                            onClick={(_e, _props) => { void this.onStartLoadingTaskClick(); }}
+                            onClick={(_e, _props) => {
+                                void this.onStartLoadingTaskClick();
+                            }}
                             disabled={taskItems.length === 0 || task?.schemaName === undefined
-                                || task?.schemaName === ""}>
+                                || task.schemaName === ""}>
                             <Label caption="Start Loading Task" /><Icon src={Codicon.ArrowRight} />
                         </Button>
                     </Container>
@@ -1110,11 +1120,17 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 </Container>
                 <Container className="placeHolder" />
                 <Button id="lakehouseReloadTablesBtn" caption="Reload Tables"
-                    onClick={(_e, _props) => { void this.reloadSelectedTables(); }} />
+                    onClick={(_e, _props) => {
+                        void this.reloadSelectedTables();
+                    }} />
                 <Button id="lakehouseUnloadTablesBtn" caption="Unload Tables"
-                    onClick={(_e, _props) => { void this.unloadSelectedTables(); }} />
+                    onClick={(_e, _props) => {
+                        void this.unloadSelectedTables();
+                    }} />
                 <Button id="lakehouseDeleteTablesBtn" imageOnly={true}
-                    onClick={(_e, _props) => { void this.deleteSelectedTables(); }}>
+                    onClick={(_e, _props) => {
+                        void this.deleteSelectedTables();
+                    }}>
                     <Icon src={Codicon.Trash} />
                 </Button>
                 <Toggle id="lakehouseAutoRefreshToggle"
@@ -1275,7 +1291,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             >
                 <Container className="placeHolder" />
                 <Button id="lakehouseTaskCancelBtn"
-                    caption="Cancel Tasks" onClick={(_e, _props) => { void this.cancelSelectedTasks(); }} />
+                    caption="Cancel Tasks" onClick={(_e, _props) => {
+                        void this.cancelSelectedTasks();
+                    }} />
             </Container>
             <Container
                 className="taskListContainer"
@@ -1393,7 +1411,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         name !== "mysql_shell_metadata";
                 }),
             });
-        }).catch((_reason) => {
+        }).catch(() => {
             // Ignore for now
         });
     }
@@ -1426,7 +1444,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             const profiles = await backend.mhs.getMdsConfigProfiles();
             this.setState({
                 profiles,
-                activeProfile: profiles.find((item) => { return item.isCurrent; }),
+                activeProfile: profiles.find((item) => {
+                    return item.isCurrent;
+                }),
             });
         }
 
@@ -1505,7 +1525,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 currentCompartment = await backend.mhs.getCompartmentById(
                     activeProfile.profile, currentCompartmentId);
             }
-        } catch (e) {
+        } catch {
             // Ignore
         }
 
@@ -1632,20 +1652,20 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         } else if (parent.data.type === ObjectStorageTreeItemType.Bucket ||
             parent.data.type === ObjectStorageTreeItemType.Prefix) {
             try {
-                let bucketName = parent.data?.name ?? "<unknown>";
+                let bucketName = parent.data.name;
                 let namespace: string;
                 let compartmentId: string;
                 let prefix;
                 if (parent.data.type === ObjectStorageTreeItemType.Bucket) {
-                    bucketName = (parent.data as IBucketSummary)?.name;
-                    namespace = (parent.data as IBucketSummary)?.namespace;
-                    compartmentId = (parent.data as IBucketSummary)?.compartmentId;
+                    bucketName = (parent.data as IBucketSummary).name;
+                    namespace = (parent.data as IBucketSummary).namespace;
+                    compartmentId = (parent.data as IBucketSummary).compartmentId;
                 } else {
                     const bucketPrefix = parent.data;
-                    bucketName = bucketPrefix?.bucketName;
-                    namespace = bucketPrefix?.namespace;
-                    compartmentId = bucketPrefix?.compartmentId;
-                    prefix = bucketPrefix?.name;
+                    bucketName = bucketPrefix.bucketName;
+                    namespace = bucketPrefix.namespace;
+                    compartmentId = bucketPrefix.compartmentId;
+                    prefix = bucketPrefix.name;
                 }
 
                 const listObjects = await backend.mhs.getMdsBucketObjects(
@@ -1685,7 +1705,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         });
                     }
                 });
-            } catch (e) {
+            } catch {
                 // Ignore error
             }
         }
@@ -1706,7 +1726,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         let iconSrc;
         let iconClassName = "";
         let labelClassName = "itemCaption";
-        let caption = cellData.data?.name ?? "";
+        let caption = cellData.data.name ?? "";
         switch (cellData.data.type) {
             case ObjectStorageTreeItemType.Compartment: {
                 iconSrc = Codicon.Folder;
@@ -1762,10 +1782,14 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         let checkState = CheckState.Unchecked;
         if (activeTabId === LakehouseNavigatorTab.Load) {
             if (cellData.id &&
-                task?.items?.find((item) => { return item.id === cellData.id; }) !== undefined) {
+                task?.items?.find((item) => {
+                    return item.id === cellData.id;
+                }) !== undefined) {
                 checkState = CheckState.Checked;
             } else if (cellData.parent?.id !== undefined &&
-                task?.items?.find((item) => { return item.id === cellData.parent?.id; }) !== undefined) {
+                task?.items?.find((item) => {
+                    return item.id === cellData.parent?.id;
+                }) !== undefined) {
                 checkState = CheckState.Indeterminate;
             }
         } else if (activeTabId === LakehouseNavigatorTab.Upload) {
@@ -1782,7 +1806,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 <Checkbox
                     id={cellData.id + "CheckboxIcon"}
                     checkState={checkState}
-                    onClick={(e) => { this.objTreeToggleSelectedState(e, cell); }}
+                    onClick={(e) => {
+                        this.objTreeToggleSelectedState(e, cell);
+                    }}
                 />
             }
             <Icon src={iconSrc} className={iconClassName} />
@@ -1813,7 +1839,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             case "size": {
                 className = "sizeField";
                 caption = cellData.data.type === ObjectStorageTreeItemType.File ?
-                    formatBytes((cellData.data as IBucketObjectSummary).size || 0, true) : "-";
+                    formatBytes((cellData.data as IBucketObjectSummary).size ?? 0, true) : "-";
                 break;
             }
             case "modified": {
@@ -1833,10 +1859,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         }
 
         onRendered(() => {
-            if (className !== undefined) {
-                const element = cell.getElement();
-                element.classList.add(className);
-            }
+            const element = cell.getElement();
+            element.classList.add(className);
         });
 
         return caption;
@@ -1937,7 +1961,6 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
         });
 
-
         let content;
         const lbl = <Label caption={caption} />;
         if (iconSrc !== null) {
@@ -2004,18 +2027,14 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
                 case "startingTime": {
                     host.classList.add("dateField");
-                    caption = cellData.startingTime !== null
-                        ? (cellData.startingTime?.slice(undefined, -3) ?? "-") : "-";
+                    caption = cellData.startingTime !== undefined ? cellData.startingTime.slice(undefined, -3) : "-";
                     break;
                 }
 
                 case "estimatedCompletionTime": {
                     host.classList.add("dateField");
-                    if ((cellData.status === "SCHEDULED" || cellData.status === "RUNNING")
-                        && cellData.estimatedCompletionTime === null) {
-                        caption = "-";
-                    } else if (cellData.status === "RUNNING" && cellData.estimatedCompletionTime !== null) {
-                        caption = `~ ${cellData.estimatedCompletionTime?.slice(undefined, -3)}`;
+                    if (cellData.status === "RUNNING" && cellData.estimatedCompletionTime !== undefined) {
+                        caption = `~ ${cellData.estimatedCompletionTime.slice(undefined, -3)}`;
                         if (cellData.estimatedRemainingTime !== undefined
                             && !Number.isNaN(cellData.estimatedRemainingTime)) {
                             let estTimeRemaining = cellData.estimatedRemainingTime ?? -1;
@@ -2030,10 +2049,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             }
                             caption += ` (${estTimeRemaining.toFixed(0)}${unit})`;
                         }
+                    } else if (cellData.status === "SCHEDULED" || cellData.status === "RUNNING") {
+                        caption = "-";
                     } else {
-                        caption = cellData.estimatedCompletionTime === null
+                        caption = cellData.estimatedCompletionTime === undefined
                             ? cellData.logTime?.slice(undefined, -3) ?? "-"
-                            : cellData.estimatedCompletionTime?.slice(undefined, -3) ?? "-";
+                            : cellData.estimatedCompletionTime.slice(undefined, -3);
                     }
                     break;
                 }
@@ -2050,7 +2071,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     const parent = cell.getRow().getTreeParent();
                     let schemaName = "";
                     if (typeof parent !== "boolean") {
-                        schemaName = (parent.getData as ILakehouseTask).schemaName + ".";
+                        schemaName = ((parent.getData as ILakehouseTask).schemaName ?? "") + ".";
                     }
                     caption = `${schemaName}${cellData.tableName ?? "table"}`;
                     iconSrc = Assets.db.tableIcon;
@@ -2063,7 +2084,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 }
 
                 case "description": {
-                    caption = cellData.uri ?? "";
+                    caption = cellData.uri;
                     break;
                 }
 
@@ -2143,7 +2164,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     private objTreeIsRowExpanded = (row: RowComponent): boolean => {
         const item = row.getData() as IObjectStorageTreeItem;
 
-        const doExpand = item.expanded || false;
+        const doExpand = item.expanded ?? false;
 
         if (doExpand) {
             this.objTreeHandleRowExpanded(row);
@@ -2170,11 +2191,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     schemaName: activeSchema,
                     items: [],
                 };
-            } else if (theTask.items === undefined) {
-                theTask.items = [];
+            } else {
+                theTask.items ??= [];
             }
 
-            if (cellData.id && cellData.data && theTask.items) {
+            if (cellData.id && theTask.items) {
                 if (theTask.items.find((item) => {
                     return item.id === cellData.id;
                 })) {
@@ -2183,7 +2204,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     });
                 } else {
                     let iconSrc;
-                    let caption = cellData.data?.name ?? "Object Storage Item";
+                    let caption = cellData.data.name ?? "Object Storage Item";
                     switch (cellData.data.type) {
                         case ObjectStorageTreeItemType.Bucket: {
                             iconSrc = Codicon.Inbox;
@@ -2203,7 +2224,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
                         case ObjectStorageTreeItemType.File: {
                             iconSrc = Codicon.File;
-                            caption = caption.split("/").pop() || caption;
+                            caption = caption.split("/").pop() ?? caption;
                             break;
                         }
 
@@ -2222,7 +2243,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
                         case ObjectStorageTreeItemType.Prefix:
                         case ObjectStorageTreeItemType.File: {
-                            uri += cellData.data.bucketName + "/" + cellData.data?.name;
+                            uri += cellData.data.bucketName + "/" + cellData.data.name;
                             let parentItem = cellData.parent;
                             while (parentItem !== undefined
                                 && parentItem.data.type !== ObjectStorageTreeItemType.Bucket) {
@@ -2249,7 +2270,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             if (theTask.userModified !== true) {
                 theTask.tableName = this.generateVectorTableName(theTask.items ?? []);
-            } else if (theTask.userModified && theTask.tableName === "") {
+            } else if (theTask.tableName === "") {
                 theTask.userModified = false;
                 theTask.tableName = this.generateVectorTableName(theTask.items ?? []);
             }
@@ -2416,7 +2437,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
         this.setState({ lastTaskScheduleError: undefined });
 
-        if (task !== undefined && task.items !== undefined && task.items.length > 0
+        if (task?.items !== undefined && task.items.length > 0
             && task.schemaName !== undefined) {
             // Build SQL string and parameter list, start by adding the schemaName
             const params = [task.schemaName];
@@ -2645,7 +2666,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     };
 
     private getDefaultTaskDescription = (task?: ILakehouseTask): string => {
-        if (task === undefined || task.items === undefined || task.items.length === 0) {
+        if (task?.items === undefined || task.items.length === 0) {
             return "Data from Object Storage";
         } else {
             const bucketName = task.items[0].uri.slice(6).split("/")[0];
@@ -2841,7 +2862,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         }
 
         let count = 0;
-        selectedRows?.forEach((row) => {
+        selectedRows.forEach((row) => {
             const task = row.getData() as ILakehouseTask;
 
             if (task.id !== undefined && task.status === "RUNNING") {
@@ -2884,11 +2905,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (this.#objTreeRef.current !== null && this.#objTreeItems !== undefined) {
             // Remember selected tables
             const selectedRows: string[] = [];
-            this.#objTreeRef.current?.getSelectedRows()?.forEach((row) => {
+            this.#objTreeRef.current.getSelectedRows().forEach((row) => {
                 const obj = row.getData() as IObjectStorageTreeItem;
-                if (obj.id !== undefined) {
-                    selectedRows.push(obj.id);
-                }
+                selectedRows.push(obj.id);
             });
 
             // Do the actual data replace operation
@@ -2908,13 +2927,13 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (this.#tablesTreeRef.current !== null && this.#lakehouseTables !== undefined) {
             // Remember selected tables
             const selectedTables: string[] = [];
-            this.#tablesTreeRef.current?.getSelectedRows()?.forEach((row) => {
+            this.#tablesTreeRef.current.getSelectedRows().forEach((row) => {
                 const table = row.getData() as ILakehouseTable;
                 selectedTables.push(`${table.schemaName}.${table.tableName}`);
             });
 
             // Do the actual data replace operation
-            void this.#tablesTreeRef.current?.setData(this.#lakehouseTables, SetDataAction.Replace).then(() => {
+            void this.#tablesTreeRef.current.setData(this.#lakehouseTables, SetDataAction.Replace).then(() => {
                 // Restore selected tables
                 if (selectedTables.length > 0) {
                     // Clear row selection
@@ -2930,7 +2949,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (this.#tasksTreeRef.current !== null && this.#lakehouseTasks !== undefined) {
             // Remember selected tables
             const selectedTasks: string[] = [];
-            this.#tasksTreeRef.current?.getSelectedRows()?.forEach((row) => {
+            this.#tasksTreeRef.current.getSelectedRows().forEach((row) => {
                 const task: ILakehouseTask = row.getData();
                 if (task.id !== undefined) {
                     selectedTasks.push(task.id);
@@ -2994,9 +3013,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 this.setState({ uploadRunning: true, uploadComplete: false });
                 try {
                     let error = 0;
-                    void await backend.mhs.createMdsBucketObjects(
+                    await backend.mhs.createMdsBucketObjects(
                         activeProfile.profile,
-                        filesForUpload.map((file) => { return file.filePath; }),
+                        filesForUpload.map((file) => {
+                            return file.filePath;
+                        }),
                         prefix,
                         bucketName,
                         compartmentId,

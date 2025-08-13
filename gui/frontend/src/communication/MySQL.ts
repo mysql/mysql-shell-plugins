@@ -28,8 +28,6 @@ import { IConnectionDetails } from "../supplement/ShellInterface/index.js";
 // Have to disable naming convention rule as we list a number of values here that cannot be
 // changed to conform to our rules.
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 export enum MySQLConnectionScheme {
     MySQL = "mysql",
     MySQLx = "mysqlx",
@@ -183,7 +181,7 @@ export interface IMySQLConnectionOptions {
     "compression-level"?: number;
 
     /** List of connection attributes to be registered at the PERFORMANCE_SCHEMA connection attributes tables. */
-    "connection-attributes"?: { [key: string]: string; };
+    "connection-attributes"?: Record<string, string>;
 
     /** Enable/disable LOAD DATA LOCAL INFILE. */
     "local-infile"?: boolean;

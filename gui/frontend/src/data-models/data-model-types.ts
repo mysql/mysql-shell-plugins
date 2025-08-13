@@ -34,7 +34,7 @@ export const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", 
  * This is the same interface as defined by VS Code. By defining a copy here we can use duck typing to
  * use both interfaces interchangeably.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
+ 
 export interface Command {
     /** Title of the command, like `save`. */
     title: string;

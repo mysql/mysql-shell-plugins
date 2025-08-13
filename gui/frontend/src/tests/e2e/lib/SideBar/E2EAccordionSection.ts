@@ -46,6 +46,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets the section web element
+     * 
      * @param sectionName The section name
      * @returns A promise resolving with the element
      */
@@ -74,6 +75,7 @@ export class E2EAccordionSection {
 
     /**
      * Clicks a section toolbar button
+     * 
      * @param button The button
      * @returns A promise resolving when the button is clicked
      */
@@ -153,6 +155,7 @@ export class E2EAccordionSection {
 
     /**
      * Creates a database connection from the DATABASE CONNECTIONS section toolbar
+     * 
      * @param dbConfig The database configuration data
      * @returns A promise resolving when the connection is created
      */
@@ -163,6 +166,7 @@ export class E2EAccordionSection {
 
     /**
      * Focus the section, by expanding the section and collapsing all the other sections
+     * 
      * @returns A promise resolving when the section is focused
      */
     public focus = async (): Promise<void> => {
@@ -177,8 +181,11 @@ export class E2EAccordionSection {
             try {
                 for (const section of sections) {
                     if (await this.exists(section)) {
-                        section !== this.accordionSectionName ? await this.collapse(section)
-                            : await this.expand(section);
+                        if (section !== this.accordionSectionName) {
+                            await this.collapse(section);
+                        } else {
+                            await this.expand(section);
+                        }
                     }
                 }
 
@@ -195,6 +202,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the section is expanded
+     * 
      * @param section The section name. Default is this section
      * @returns A promise resolving with true if the section is expanded, false otherwise
      */
@@ -204,6 +212,7 @@ export class E2EAccordionSection {
 
     /**
      * Expands the section
+     * 
      * @param section The section name. Default is this section
      * @returns A promise resolving when the section is expanded
      */
@@ -221,6 +230,7 @@ export class E2EAccordionSection {
 
     /**
      * Collapse the section
+     * 
      * @param section The section name. Default is this section
      * @returns A promise resolving when the section is collapsed
      */
@@ -237,6 +247,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets the database connections from the DATABASE CONNECTIONS section
+     * 
      * @returns A promise resolving with the database connections
      */
     public getDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
@@ -266,6 +277,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets all the visible elements in the tree
+     * 
      * @returns A promise resolving with the elements
      */
     public getVisibleTreeItems = async (): Promise<WebElement[]> => {
@@ -274,6 +286,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the section is not loading
+     * 
      * @returns A condition resolving to true if the section is not loading, false otherwise
      */
     public untilIsNotLoading = (): Condition<boolean> => {
@@ -284,6 +297,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets an item from the tree
+     * 
      * @param caption The caption
      * @param subCaption The sub caption
      * @returns A promise resolving with the item
@@ -315,7 +329,7 @@ export class E2EAccordionSection {
                             if (subCaption) {
                                 const refSubCaption = await (await webElement
                                     .findElement(locator.section.tree.element.subCaption)).getText()
-                                    .catch((e) => {
+                                    .catch((e: unknown) => {
                                         if (e instanceof error.NoSuchElementError) {
                                             return undefined;
                                         }
@@ -360,14 +374,14 @@ export class E2EAccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait5seconds,
-            `Could not find '${caption}' on section ${this.accordionSectionName}`);
+        }, constants.wait5seconds, `Could not find '${caption}' on section ${this.accordionSectionName}`);
 
         return el!;
     };
 
     /**
      * Expands an item on the tree
+     * 
      * @param data The caption or the database connection
      */
     public expandTreeItem = async (data: string | interfaces.IDBConnection): Promise<void> => {
@@ -383,6 +397,7 @@ export class E2EAccordionSection {
                         await toggle.click();
 
                         if (typeof data !== "string") {
+                            const err = `The password dialog was not displayed nor the ${data.caption!} has children`;
                             await driver.wait(async () => {
                                 if (await PasswordDialog.exists()) {
                                     await PasswordDialog.setCredentials(data);
@@ -393,8 +408,8 @@ export class E2EAccordionSection {
                                 } else if (await this.treeItemHasChildren(data.caption!)) {
                                     return true;
                                 }
-                            }, constants.wait10seconds,
-                                `The password dialog was not displayed nor the ${data.caption!} has children`);
+                            }, constants.wait10seconds, err);
+
                         }
                     }
 
@@ -405,7 +420,7 @@ export class E2EAccordionSection {
             }, constants.wait5seconds, `Could not expand ${data.toString()}`);
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -416,6 +431,7 @@ export class E2EAccordionSection {
 
     /**
      * Right-clicks on an element to open the context menu
+     * 
      * @param caption The tree item caption
      */
     public openContextMenu = async (caption: string): Promise<void> => {
@@ -433,7 +449,7 @@ export class E2EAccordionSection {
             }, constants.wait3seconds, `Context menu was not displayed on element ${caption}`);
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -444,6 +460,7 @@ export class E2EAccordionSection {
 
     /**
      * Selects the item on the context menu
+     * 
      * @param ctxMenuItem The context menu item
      */
     public selectFromContextMenu = async (ctxMenuItem: string | string[]): Promise<void> => {
@@ -483,6 +500,7 @@ export class E2EAccordionSection {
 
     /**
      * Right-clicks on an element and selects the item on the context menu
+     * 
      * @param caption Tree item caption
      * @param ctxMenuItem The context menu item
      */
@@ -492,7 +510,7 @@ export class E2EAccordionSection {
             await this.selectFromContextMenu(ctxMenuItem);
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError ||
                 (String(e).includes(`Could not find context menu item`))
             ) {
@@ -505,6 +523,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets an element from the tree by its oci type
+     * 
      * @param type The type (ociDbSystem, ociBastion)
      * @returns A promise resolving with the element
      */
@@ -544,6 +563,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets the items on the opened context menu (disabled items are not returned)
+     * 
      * @param caption The context menu item
      * @returns A promise resolving with the context menu items
      */
@@ -569,10 +589,10 @@ export class E2EAccordionSection {
         };
 
         try {
-            return action();
+            return await action();
         } catch (e) {
             if (e instanceof error.StaleElementReferenceError) {
-                return action();
+                return await action();
             } else {
                 throw e;
             }
@@ -583,6 +603,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if a section exists
+     * 
      * @param sectionName The section name
      * @returns A promise resolving with true if the section exists, false otherwise
      */
@@ -611,6 +632,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if an element exists on the tree
+     * 
      * @param caption The element caption
      * @returns A promise resolving to true if the element exists, false otherwise
      */
@@ -669,6 +691,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if an element exists on the tree
+     * 
      * @param element The element
      * @returns A condition resolving to true if the element exists, false otherwise
      */
@@ -680,6 +703,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if an element does not exist on the tree
+     * 
      * @param element The element
      * @returns A condition resolving to true if the element does not exist, false otherwise
      */
@@ -691,6 +715,7 @@ export class E2EAccordionSection {
 
     /**
      * Expands a tree
+     * 
      * @param tree The elements to expand
      * @param timeout The amount of time to wait until each tree element has children
      */
@@ -712,6 +737,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the tree element has children
+     * 
      * @param caption The tree item caption
      * @returns A promise resolving with true if the element has children, false otherwise
      */
@@ -723,6 +749,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets the tree items under the current item. It expands the current item
+     * 
      * @param caption The tree item caption
      * @returns A promise resolving with the child items of the current item
      */
@@ -730,10 +757,10 @@ export class E2EAccordionSection {
 
         let items: E2ETreeItem[] = [];
 
-        const getNextSibling = async (el: E2ETreeItem, rootLevel: number): Promise<E2ETreeItem> => {
+        const getNextSibling = async (el: E2ETreeItem, rootLevel: number): Promise<E2ETreeItem | undefined> => {
             let item: E2ETreeItem | undefined;
 
-            const nextSibling: WebElement = await driver
+            const nextSibling: WebElement | undefined = await driver
                 .executeScript("return arguments[0].nextElementSibling;", el);
 
             if (nextSibling) {
@@ -763,7 +790,7 @@ export class E2EAccordionSection {
             }
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 items = [];
                 await action();
@@ -772,12 +799,12 @@ export class E2EAccordionSection {
             }
         });
 
-
         return items;
     };
 
     /**
      * Verifies if the tree element can be expanded
+     * 
      * @param caption The tree item caption
      * @returns A promise resolving with true if the element can be expanded, false otherwise
      */
@@ -789,7 +816,7 @@ export class E2EAccordionSection {
             isExpandable = (await treeItem.findElements(locator.section.tree.element.toggle)).length > 0;
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -802,6 +829,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the tree element is expanded
+     * 
      * @param caption The tree item caption
      * @returns A promise resolving with true if the section is expanded, false otherwise
      */
@@ -813,7 +841,7 @@ export class E2EAccordionSection {
             isExpanded = (await treeItem.findElements(locator.section.tree.element.isExpanded)).length > 0;
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -827,6 +855,7 @@ export class E2EAccordionSection {
 
     /**
      * Collapses th is item on the tree
+     * 
      * @param caption The tree item caption
      */
     public collapseTreeItem = async (caption: string): Promise<void> => {
@@ -842,7 +871,7 @@ export class E2EAccordionSection {
             }, constants.wait3seconds, `Could not collapse ${caption}`);
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -853,6 +882,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if this tree item has children
+     * 
      * @param caption The tree item caption
      * @returns A condition resolving with true if the element has children, false otherwise
      */
@@ -864,6 +894,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the tree item is marked as default
+     * 
      * @param caption The tree item caption
      * @returns A promise resolving to true when the item is marked as default
      */
@@ -875,7 +906,7 @@ export class E2EAccordionSection {
             isDefault = await treeItem.isDefault();
         };
 
-        await action().catch(async (e: Error) => {
+        await action().catch(async (e: unknown) => {
             if (e instanceof error.StaleElementReferenceError) {
                 await action();
             } else {
@@ -888,6 +919,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the tree item is marked as default
+     * 
      * @param caption The tree item caption
      * @returns A condition resolving to true when the item is marked as default
      */
@@ -899,6 +931,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets the tree items that are database connections from the DATABASE CONNECTIONS section
+     * 
      * @returns A promise resolving with the database connections
      */
     public getTreeDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
@@ -930,6 +963,7 @@ export class E2EAccordionSection {
 
     /**
      * Removes a DB Connection by right-clicking on its tree element and selection "Delete DB Connection"
+     * 
      * @param caption The DB connection caption
      */
     public removeDatabaseConnection = async (caption: string): Promise<void> => {

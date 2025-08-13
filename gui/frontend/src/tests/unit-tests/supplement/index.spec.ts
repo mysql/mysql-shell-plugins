@@ -25,8 +25,10 @@
 
 import { mysqlInfo } from "../../../app-logic/RdbmsInfo.js";
 import { DBDataType, IColumnInfo } from "../../../app-logic/general-types.js";
-import { convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet, getDataTypeDetails,
-    parseColumnLength, parseDataTypeFromRaw, parseSchemaTable } from "../../../supplement/index.js";
+import {
+    convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet, getDataTypeDetails,
+    parseColumnLength, parseDataTypeFromRaw, parseSchemaTable
+} from "../../../supplement/index.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { QueryType } from "../../../parsing/parser-common.js";

@@ -113,10 +113,10 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties,
                                 if (!action.choices) {
                                     return <Icon
                                         src={action.icon}
-                                        id={action.command?.command ?? String(index)}
+                                        id={action.command.command}
                                         key={String(index)}
                                         className="accordionAction"
-                                        data-tooltip={action.command?.tooltip}
+                                        data-tooltip={action.command.tooltip}
                                         tabIndex={0}
                                         onKeyPress={this.handleActionKeyPress.bind(this, action.command)}
                                         onClick={this.handleActionClick.bind(this, action.command)}
@@ -134,7 +134,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties,
                                             onItemClick={this.handleActionMenuClick}
                                         >
                                             {
-                                                action.choices?.map((value: IAccordionActionChoice) => {
+                                                action.choices.map((value: IAccordionActionChoice) => {
                                                     return <MenuItem
                                                         key={value.command.command}
                                                         command={value.command}
@@ -217,15 +217,11 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties,
         // was triggered. This in turn hides the action bar (because this is how actions work).
         // Without that item the submenu has no anchor anymore and moves to the top/left corner.
         // We use a dedicated CSS class to prevent this behavior when the submenu is visible.
-        if (this.sectionRef?.current) {
-            this.sectionRef.current.classList.add("nohide");
-        }
+        this.sectionRef.current?.classList.add("nohide");
     };
 
     private handleActionMenuClose = (): void => {
-        if (this.sectionRef?.current) {
-            this.sectionRef.current.classList.remove("nohide");
-        }
+        this.sectionRef.current?.classList.remove("nohide");
     };
 
 }

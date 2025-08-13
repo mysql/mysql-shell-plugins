@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /*
  * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
@@ -390,5 +391,4 @@ export const invalidXMLConnection = `
             <value type="string" key="schema"></value>
             <value type="string" key="serverVersion">9.1.0-commercial</value>
             <value type="string" key="sslCA"></value>`;
-
 

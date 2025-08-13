@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,23 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
-import { type languages } from "monaco-editor/esm/vs/editor/editor.api.js";
 import {
     conf as baseMysqlConfig, language as baseMySQLLanguage,
 } from "monaco-editor/esm/vs/basic-languages/mysql/mysql";
+import { type languages } from "monaco-editor/esm/vs/editor/editor.api.js";
 
-export const languageConfiguration: languages.LanguageConfiguration = {
+export const languageConfiguration = {
     ...baseMysqlConfig,
-};
+} as languages.LanguageConfiguration;
 
 /**
  * Defines the Monarch tokenizer, which is used until the semantic highlighter kicks in.
  * This is a copy of the Monaco Editor MySQL tokenizer, with a change: brackets/braces are treated as strings.
  * Otherwise they appear colorized on top of the semantic highlighter.
  */
-export const language: languages.IMonarchLanguage = {
+export const language = {
     ...baseMySQLLanguage,
     defaultToken: "operator",
     tokenPostfix: ".sql",
@@ -110,4 +108,4 @@ export const language: languages.IMonarchLanguage = {
         ],
         scopes: [],
     },
-};
+} as languages.IMonarchLanguage;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -56,6 +56,7 @@ export abstract class E2ECommandResult {
 
     /**
      * Gets the command
+     * 
      * @returns The command
      */
     public get command(): string {
@@ -64,6 +65,7 @@ export abstract class E2ECommandResult {
 
     /**
      * Gets the id
+     * 
      * @returns The id
      */
     public get id(): number {
@@ -71,31 +73,8 @@ export abstract class E2ECommandResult {
     }
 
     /**
-     * Gets the result context
-     * @returns The result context
-     */
-    public get resultContext(): WebElement | undefined {
-        return this.#resultContext;
-    }
-
-    /**
-     * Gets the tabs
-     * @returns The tabs
-     */
-    public get tabs(): interfaces.ICommandResultTab[] | undefined {
-        return this.#tabs;
-    }
-
-    /**
-     * Sets the result context
-     * @param context The result context
-     */
-    public set resultContext(context: WebElement) {
-        this.#resultContext = context;
-    }
-
-    /**
      * Sets the id
+     *
      * @param newId The new id
      */
     public set id(newId: number) {
@@ -103,7 +82,35 @@ export abstract class E2ECommandResult {
     }
 
     /**
+     * Gets the result context
+     * 
+     * @returns The result context
+     */
+    public get resultContext(): WebElement | undefined {
+        return this.#resultContext;
+    }
+
+    /**
+     * Sets the result context
+     *
+     * @param context The result context
+     */
+    public set resultContext(context: WebElement | undefined) {
+        this.#resultContext = context;
+    }
+
+    /**
+     * Gets the tabs
+     * 
+     * @returns The tabs
+     */
+    public get tabs(): interfaces.ICommandResultTab[] | undefined {
+        return this.#tabs;
+    }
+
+    /**
      * Verifies if the result is maximized
+     * 
      * @returns A condition resolving to true if the result is maximized, false otherwise
      */
     public untilIsMaximized = (): Condition<boolean> => {
@@ -116,6 +123,7 @@ export abstract class E2ECommandResult {
 
     /**
      * Normalize the result grid
+     * 
      * @returns A promise resolving when the result is normalized
      */
     public normalize = async (): Promise<void> => {
@@ -125,6 +133,7 @@ export abstract class E2ECommandResult {
 
     /**
      * Verifies if the result is maximized
+     * 
      * @returns A condition resolving to true if the result is maximized, false otherwise
      */
     public untilIsNormalized = (): Condition<boolean> => {
@@ -135,6 +144,7 @@ export abstract class E2ECommandResult {
 
     /**
      * Sets the result grids
+     * 
      * @returns A promise resolving with the graph
      */
     public setTabs = async (): Promise<void> => {
@@ -165,6 +175,7 @@ export abstract class E2ECommandResult {
 
     /**
      * Right-clicks on the tab and selects an item from the context menu
+     * 
      * @param tabName The tab name
      * @param menuItem The menu item
      * @returns Promise resolving when the menu item is clicked

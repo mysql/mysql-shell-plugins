@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,13 +27,13 @@ import "./Search.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Button } from "../Button/Button.js";
 import { Codicon } from "../Codicon.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, Orientation } from "../Container/Container.js";
 import { Icon } from "../Icon/Icon.js";
 import { Input } from "../Input/Input.js";
 import { Label } from "../Label/Label.js";
-import { Button } from "../Button/Button.js";
 
 // Input and output structure for search data.
 export interface ISearchValues {
@@ -173,7 +173,7 @@ export class Search extends ComponentBase<ISearchProperties> {
         const { values } = this.props;
 
         if (e.currentTarget && "id" in e.currentTarget) {
-            switch (e.currentTarget?.id) {
+            switch (e.currentTarget.id) {
                 case "toggleCase": {
                     this.sendChange(e, { matchCase: !(values?.matchCase ?? false) });
                     break;
@@ -208,9 +208,9 @@ export class Search extends ComponentBase<ISearchProperties> {
         if (change) {
             onChange?.(e, this.props, {
                 value: change.value ?? values?.value,
-                matchCase: change.matchCase === undefined ? values?.matchCase : change.matchCase,
-                matchWholeWord: change.matchWholeWord === undefined ? values?.matchWholeWord : change.matchWholeWord,
-                useRegExp: change.useRegExp === undefined ? values?.useRegExp : change.useRegExp,
+                matchCase: values?.matchCase ?? change.matchCase,
+                matchWholeWord: values?.matchWholeWord ?? change.matchWholeWord,
+                useRegExp: values?.useRegExp ?? change.useRegExp,
             });
         } else {
             onConfirm?.(e, this.props, values ?? {});

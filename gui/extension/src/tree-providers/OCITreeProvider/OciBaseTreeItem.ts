@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@
 
 import * as path from "path";
 
-import { TreeItem, TreeItemCollapsibleState } from "vscode";
+import { TreeItem, TreeItemCollapsibleState, Uri } from "vscode";
 
 import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 
@@ -37,8 +37,8 @@ export class OciBaseTreeItem extends TreeItem {
         super(name, collapsibleState);
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", this.iconName),
-            dark: path.join(__dirname, "..", "images", "dark", this.iconName),
+            light: Uri.file(path.join(__dirname, "..", "images", "light", this.iconName)),
+            dark: Uri.file(path.join(__dirname, "..", "images", "dark", this.iconName)),
         };
 
     }

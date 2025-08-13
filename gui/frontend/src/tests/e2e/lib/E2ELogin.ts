@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,6 +33,7 @@ export class E2ELogin {
 
     /**
      * Sets the username
+     * 
      * @param username The username
      */
     public setUsername = async (username: string): Promise<void> => {
@@ -43,6 +44,7 @@ export class E2ELogin {
 
     /**
      * Sets the username
+     * 
      * @param password The username
      */
     public setPassword = async (password: string): Promise<void> => {
@@ -60,6 +62,7 @@ export class E2ELogin {
 
     /**
      * Gets the error on the page
+     * 
      * @returns A promise resolving with the error text
      */
     public getError = async (): Promise<string> => {

@@ -313,7 +313,9 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
     }
 
     private handleDispose(): void {
-        this.#disposables.forEach((d) => { d.dispose(); });
+        this.#disposables.forEach((d) => {
+            d.dispose();
+        });
         this.#panel = undefined;
     }
 
@@ -382,7 +384,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             canSelectFolders: false,
             canSelectMany: false,
             filters: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 "MySQL Notebook": ["mysql-notebook"],
             },
             openLabel: "Open Notebook",

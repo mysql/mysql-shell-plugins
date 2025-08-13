@@ -156,9 +156,11 @@ const processTypings = (folder: string, names: string[]) => {
     fs.writeFileSync(indexFile, indexContent);
 };
 
-/*if (fs.existsSync(targetFolder)) {
-    fs.rmdirSync(targetFolder, { recursive: true });
-}*/
+/*
+if (fs.existsSync(targetFolder)) {
+    fs.rmSync(targetFolder, { recursive: true });
+}
+//*/
 
 if (!fs.existsSync(targetFolder)) {
     console.log("Processing OCI type definitions...");
@@ -185,7 +187,8 @@ if (!fs.existsSync(targetFolder)) {
         "shape-memory-encryption-options", "shape-symmetric-multi-threading-enabled-platform-options",
         "shape-access-control-service-enabled-platform-options", "shape-virtual-instructions-enabled-platform-options",
         "shape-input-output-memory-management-unit-enabled-platform-options", "percentage-of-cores-enabled-options",
-        "preemption-action", "shape-secure-boot-options",
+        "preemption-action", "shape-secure-boot-options", "compute-bare-metal-host-placement-constraint-details",
+        "host-group-placement-constraint-details", "placement-constraint-details", "licensing-config",
     ]);
 
     processTypings("oci-identity/lib/model", [
@@ -200,7 +203,9 @@ if (!fs.existsSync(targetFolder)) {
         "point-in-time-recovery-details", "certificate-generation-type", "db-system-source", "channel-target-dbSystem",
         "channel-source-mysql", "pitr-policy", "channel-source", "pem-ca-certificate", "error-on-anonymous-handling",
         "assign-manual-uuid-handling", "assign-target-uuid-handling", "anonymous-transactions-handling",
-        "channel-target-db-system", "ca-certificate", "channel-target", "channel-filter",
+        "channel-target-db-system", "ca-certificate", "channel-target", "channel-filter", "rest-details",
+        "data-storage", "customer-contact", "read-endpoint-details", "soft-delete", "copy-policy",
+        "rest-configuration-type",
     ]);
 
     processTypings("oci-loadbalancer/lib/model", [

@@ -32,11 +32,16 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem<ICdmRestContentFileE
 
     public constructor(dataModelEntry: ICdmRestContentFileEntry) {
         const value = dataModelEntry.details;
-        super(dataModelEntry, value.enabled === EnabledState.PrivateOnly ? "mrsContentFilePrivate.svg" :
-            value.enabled === EnabledState.Enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
+        super(dataModelEntry, (value.enabled as EnabledState) === EnabledState.PrivateOnly
+            ? "mrsContentFilePrivate.svg"
+            : (value.enabled as EnabledState) === EnabledState.Enabled
+                ? "mrsContentFile.svg"
+                : "mrsContentFileDisabled.svg", false);
 
-        this.tooltip = value.requestPath + "\nAccess: " + (value.enabled === EnabledState.PrivateOnly ? "PRIVATE" :
-            value.enabled === EnabledState.Enabled ? "ENABLED" : "DISABLED") + "\nAuthentication: " +
-            (!value.requiresAuth && "NOT ") + "REQUIRED";
+        this.tooltip = value.requestPath + "\nAccess: " + ((value.enabled as EnabledState) === EnabledState.PrivateOnly
+            ? "PRIVATE"
+            : (value.enabled as EnabledState) === EnabledState.Enabled
+                ? "ENABLED"
+                : "DISABLED") + "\nAuthentication: " + (!value.requiresAuth ? "NOT " : "") + "REQUIRED";
     }
 }

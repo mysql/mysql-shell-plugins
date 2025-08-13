@@ -67,8 +67,10 @@ export class DBConnectionViewProvider extends WebviewProvider {
         }
 
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { connectionId: details?.id, editor, connectionInfo } }],
-            "newConnection",
+            {
+                requestType: "showPage",
+                parameter: { connectionId: details?.id, editor, connectionInfo }
+            }], "newConnection",
         );
     }
 
@@ -95,7 +97,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return this.runCommand("job", [
             {
                 requestType: "showPage",
-                parameter: { connectionId:connectionInfo.connectionId, suppressAbout: true, connectionInfo },
+                parameter: { connectionId: connectionInfo.connectionId, suppressAbout: true, connectionInfo },
             },
             { requestType: "editorRunCode", parameter: details },
         ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
@@ -457,13 +459,13 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 const dialogOptions: SaveDialogOptions = {
                     title: "",
                     filters: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+
                         "MySQL Notebook": ["mysql-notebook"],
                     },
                     saveLabel: "Save Notebook",
                 };
 
-                void window.showSaveDialog(dialogOptions).then((uri: Uri) => {
+                void window.showSaveDialog(dialogOptions).then((uri) => {
                     if (uri !== undefined) {
                         this.#lastNotebookUri = uri;
 
@@ -471,18 +473,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
                         writeFile(path, content).then(() => {
                             window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
 
-                            return resolve(true);
+                            resolve(true);
                         }).catch(() => {
                             void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
 
-                            return resolve(false);
+                            resolve(false);
                         });
                     } else {
-                        return resolve(false);
+                        resolve(false);
+
+                        return;
                     }
                 });
             } else {
-                return resolve(false);
+                resolve(false);
+
+                return;
             }
         });
     };
@@ -497,15 +503,17 @@ export class DBConnectionViewProvider extends WebviewProvider {
                     writeFile(path, content).then(() => {
                         window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
 
-                        return resolve(true);
+                        resolve(true);
                     }).catch(() => {
                         void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
 
-                        return resolve(false);
+                        resolve(false);
                     });
                 }
             } else {
-                return resolve(false);
+                resolve(false);
+
+                return;
             }
         });
     };
@@ -527,7 +535,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 canSelectFolders: false,
                 canSelectMany: false,
                 filters: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+
                     "MySQL Notebook": ["mysql-notebook"],
                 },
                 openLabel: "Open Notebook",

@@ -20,7 +20,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
       Open Profile Selector
     </div>
   </Button>
-  <ProfileSelector>
+  <ProfileSelectorMock>
     <ValueEditDialog
       id="profileCreating"
       onClose={[Function]}
@@ -46,13 +46,13 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <g>
+          <k>
             <Icon
               disabled={false}
               src={391}
             />
             <Label />
-          </g>
+          </k>
         }
         className="msg valueEditDialog"
         container={
@@ -69,7 +69,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 style="flex-direction: column; left: 0px; top: 0px;"
               >
                 <div
-                  class="msg divider horizontal menuItem disabled separator"
+                  class="msg divider horizontal menuItem separator"
                   id="-"
                   style="--thickness: 4px;"
                 />
@@ -148,7 +148,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   style="flex-direction: column; left: 0px; top: 0px;"
                 >
                   <div
-                    class="msg divider horizontal menuItem disabled separator"
+                    class="msg divider horizontal menuItem separator"
                     id="-"
                     style="--thickness: 4px;"
                   />
@@ -223,7 +223,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <g>
+          <k>
             <Icon
               disabled={false}
               src={278}
@@ -231,7 +231,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             <Label>
               Confirm
             </Label>
-          </g>
+          </k>
         }
         className="msg confirmDialog"
         container={
@@ -248,7 +248,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 style="flex-direction: column; left: 0px; top: 0px;"
               >
                 <div
-                  class="msg divider horizontal menuItem disabled separator"
+                  class="msg divider horizontal menuItem separator"
                   id="-"
                   style="--thickness: 4px;"
                 />
@@ -329,7 +329,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   style="flex-direction: column; left: 0px; top: 0px;"
                 >
                   <div
-                    class="msg divider horizontal menuItem disabled separator"
+                    class="msg divider horizontal menuItem separator"
                     id="-"
                     style="--thickness: 4px;"
                   />
@@ -393,6 +393,6 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
       orientation="column"
       placement="top-start"
     />
-  </ProfileSelector>
+  </ProfileSelectorMock>
 </div>
 `;

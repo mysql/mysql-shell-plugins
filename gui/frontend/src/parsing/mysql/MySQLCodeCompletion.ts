@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// cspell: disable
-
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
 import { BufferedTokenStream, CharStream, CommonTokenStream, ParseTreeListener, ParseTreeWalker } from "antlr4ng";
 
@@ -33,18 +31,18 @@ import { ICompletionData, LanguageCompletionKind, QueryType, Scanner } from "../
 import { MySQLTableRefListener } from "./MySQLTableRefListener.js";
 
 import { unquote } from "../../utilities/string-helpers.js";
-import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
 import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
+import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
 
 enum ObjectFlags {
     // For 3 part identifiers.
-    ShowSchemas = 1 << 0,
-    ShowTables = 1 << 1,
-    ShowColumns = 1 << 2,
+    ShowSchemas = 0x1,
+    ShowTables = 0x2,
+    ShowColumns = 0x4,
 
     // For 2 part identifiers.
-    ShowFirst = 1 << 3,
-    ShowSecond = 1 << 4,
+    ShowFirst = 0x8,
+    ShowSecond = 0x10,
 }
 
 interface ITableReference {
@@ -53,7 +51,7 @@ interface ITableReference {
     alias: string;
 }
 
-const synonyms: Map<number, string[]> = new Map([
+const synonyms = new Map<number, string[]>([
     [MySQLMRSLexer.CHAR_SYMBOL, ["CHARACTER"]],
     [MySQLMRSLexer.NOW_SYMBOL, ["CURRENT_TIMESTAMP", "LOCALTIME", "LOCALTIMESTAMP"]],
     [MySQLMRSLexer.DAY_SYMBOL, ["DAYOFMONTH"]],
@@ -93,7 +91,7 @@ const synonyms: Map<number, string[]> = new Map([
 
 // Context class for code completion results.
 export class AutoCompletionContext {
-    private static noSeparatorRequiredFor: Set<number> = new Set([
+    private static noSeparatorRequiredFor = new Set<number>([
         MySQLMRSLexer.EQUAL_OPERATOR,
         MySQLMRSLexer.ASSIGN_OPERATOR,
         MySQLMRSLexer.NULL_SAFE_EQUAL_OPERATOR,
@@ -138,7 +136,7 @@ export class AutoCompletionContext {
     // A hierarchical view of all table references in the code, updated by visiting all relevant FROM clauses after
     // the candidate collection.
     // Organized as stack to be able to easily remove sets of references when changing nesting level.
-    private referencesStack: Stack<ITableReference[]> = new Stack();
+    private referencesStack = new Stack<ITableReference[]>();
 
     public constructor(private parser: MySQLMRSParser, private scanner: Scanner, private lexer: MySQLMRSLexer) {
     }
@@ -499,7 +497,9 @@ export class AutoCompletionContext {
             while (true) {
                 let found = this.scanner.tokenType === MySQLMRSLexer.FROM_SYMBOL;
                 while (!found) {
-                    if (!this.scanner.next() || this.scanner.tokenIndex >= this.caretIndex) { break; }
+                    if (!this.scanner.next() || this.scanner.tokenIndex >= this.caretIndex) {
+                        break;
+                    }
 
                     switch (this.scanner.tokenType) {
                         case MySQLMRSLexer.OPEN_PAR_SYMBOL:
@@ -679,10 +679,8 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
 
     let queryType = QueryType.Unknown;
     const lexer = parser.inputStream.tokenSource as MySQLMRSLexer;
-    if (lexer) {
-        lexer.reset(); // Set back the input position to the beginning for query type determination.
-        queryType = lexer.determineQueryType();
-    }
+    lexer.reset(); // Set back the input position to the beginning for query type determination.
+    queryType = lexer.determineQueryType();
 
     const context = new AutoCompletionContext(parser, scanner, lexer);
     context.collectCandidates();
@@ -763,7 +761,6 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                     if (info.qualifier.length === 0) {
                         info.qualifier = defaultSchema;
                     }
-
 
                     result.dbObjects.push({
                         kind: LanguageCompletionKind.Function,
@@ -859,7 +856,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 // If no schema is given but we have table references use the schemas from them.
                 // Otherwise use the default schema.
                 // TODO: case sensitivity.
-                const schemas: Set<string> = new Set();
+                const schemas = new Set<string>();
 
                 if (info.schema.length > 0) {
                     schemas.add(info.schema);
@@ -907,7 +904,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                     // If a table is given, list only columns from this (use the set of schemas from above).
                     // If not and we have table references then show columns from them.
                     // Otherwise show no columns.
-                    let tables: Set<string> = new Set();
+                    let tables = new Set<string>();
                     if (info.table.length > 0) {
                         tables.add(info.table);
 

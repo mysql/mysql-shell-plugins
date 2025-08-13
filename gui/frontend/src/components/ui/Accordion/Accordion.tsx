@@ -123,8 +123,6 @@ export interface IAccordionProperties extends IComponentProperties {
 }
 
 export class Accordion extends ComponentBase<IAccordionProperties> {
-
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     public static Item = AccordionItem;
 
     private containerRef = createRef<SplitContainer>();
@@ -198,10 +196,10 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
                             if (!action.choices) {
                                 return <Icon
                                     src={action.icon}
-                                    id={action.command?.command ?? String(index)}
+                                    id={action.command.command}
                                     key={String(index)}
                                     className="accordionAction"
-                                    data-tooltip={action.command?.tooltip}
+                                    data-tooltip={action.command.tooltip}
                                     tabIndex={0}
                                     onKeyPress={this.handleActionKeyPress.bind(this, action.command)}
                                     onClick={this.handleActionClick.bind(this, action.command)}
@@ -219,7 +217,7 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
                                         onItemClick={this.handleActionMenuClick}
                                     >
                                         {
-                                            action.choices?.map((value: IAccordionActionChoice) => {
+                                            action.choices.map((value: IAccordionActionChoice) => {
                                                 return <MenuItem
                                                     key={value.command.command}
                                                     command={value.command}
@@ -254,7 +252,7 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
     private toggleSectionExpandState = (props: IAccordionSectionProperties): void => {
         const { onSectionExpand } = this.props;
 
-        onSectionExpand?.(this.props, props.id || "", !props.expanded);
+        onSectionExpand?.(this.props, props.id ?? "", !props.expanded);
     };
 
     private handleSectionAction = (command?: Command): void => {

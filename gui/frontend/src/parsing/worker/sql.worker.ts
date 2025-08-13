@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-restricted-globals */
-
 import { ILanguageWorkerResultData, ILanguageWorkerTaskData, ServiceLanguage } from "../parser-common.js";
 
 import { MySQLParseUnit } from "../mysql/MySQLServiceTypes.js";
@@ -46,8 +44,8 @@ const postResultMessage = (taskId: number, data: ILanguageWorkerResultData): voi
 };
 worker.pendingRequests = new Map<string, (res: unknown) => void>();
 
-worker.addEventListener?.("message", (event: MessageEvent) => {
-    const { taskId, data }: { taskId: number; data: ILanguageWorkerTaskData; } = event.data;
+worker.addEventListener?.("message", (event: MessageEvent<{ taskId: number; data: ILanguageWorkerTaskData; }>) => {
+    const { taskId, data } = event.data;
 
     let services;
     switch (data.language) {
@@ -110,7 +108,6 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
                 final: true,
             });
 
-
             break;
         }
 
@@ -121,7 +118,6 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
                 ...result,
                 final: true,
             });
-
 
             break;
         }
@@ -134,7 +130,6 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
                 final: true,
             });
 
-
             break;
         }
 
@@ -143,7 +138,6 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
                 parameters: services.extractQueryParameters(data.sql, data.version, data.sqlMode),
                 final: true,
             });
-
 
             break;
         }
@@ -155,7 +149,6 @@ worker.addEventListener?.("message", (event: MessageEvent) => {
                     final: true,
                 });
             });
-
 
             break;
         }

@@ -108,9 +108,8 @@ export class Input extends ComponentBase<IInputProperties> {
                     onInput={this.handleInput}
                     onKeyDown={this.handleKeyDown}
                     className={className}
-                    type={password ? "password" : "text"}
                     value={value}
-                    spellCheck={spellCheck}
+                    spellcheck={spellCheck}
                     rows={multiLineCount}
                     style={{ textAlign: textAlignment }}
                     readOnly={readOnly}
@@ -127,7 +126,7 @@ export class Input extends ComponentBase<IInputProperties> {
                     className={className}
                     type={password ? "password" : "text"}
                     value={value}
-                    spellCheck={spellCheck}
+                    spellcheck={spellCheck}
                     style={{ textAlign: textAlignment }}
                     readOnly={readOnly}
                     {...this.unhandledProperties}

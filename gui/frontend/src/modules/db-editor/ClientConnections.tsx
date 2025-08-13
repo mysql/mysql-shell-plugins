@@ -156,7 +156,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                     void this.updateValues();
                 }
             })
-            .catch((error) => {
+            .catch((error: unknown) => {
                 const message = convertErrorToString(error);
                 void ui.showErrorMessage("Cannot load performance schema: " + message, {});
             });
@@ -191,7 +191,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
         const className = this.getEffectiveClassNames(["clientConnections"]);
 
-        const field = this.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
+        const field = this.columns.find((x) => {
+            return x.title === "PROCESSLIST_ID";
+        });
 
         const options: ITreeGridOptions = {
             layout: "fitColumns",
@@ -366,8 +368,12 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     private getClientConnectionAttributes = (): ComponentChild => {
         const { attributes } = this.state;
 
-        const nameField = this.attrColumns.find((x) => { return x.title === "ATTR_NAME"; });
-        const valueField = this.attrColumns.find((x) => { return x.title === "ATTR_VALUE"; });
+        const nameField = this.attrColumns.find((x) => {
+            return x.title === "ATTR_NAME";
+        });
+        const valueField = this.attrColumns.find((x) => {
+            return x.title === "ATTR_VALUE";
+        });
         const columns: ColumnDefinition[] = [
             { title: "Name", field: nameField?.field ?? "1" },
             { title: "Value", field: valueField?.field ?? "2" },
@@ -384,7 +390,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 style={{ fontSize: "10pt" }}
                 options={options}
                 columns={columns}
-                tableData={attributes?.data.rows}
+                tableData={attributes.data.rows}
             />
         );
     };
@@ -592,7 +598,6 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         }
     };
 
-
     private updateValues = async (): Promise<void> => {
         if (this.gotPerformanceSchema) {
             await this.updateProcessList();
@@ -626,7 +631,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             const result = await backend.execute("show variables where VARIABLE_NAME like '%version_comment%'");
             if (result) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
-                const value = `${values.get("version_comment") ?? "none"}`;
+                const value = values.get("version_comment") ?? "none";
                 this.setState({ version: value });
             }
         }
@@ -648,8 +653,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         });
 
         const where = `WHERE 1 = 1` +
-            `${this.hideBackgroundThreads ? " AND t.TYPE <> 'BACKGROUND'" : ""}` +
-            `${this.hideSleepingConnections ? " AND t.PROCESSLIST_COMMAND NOT LIKE 'Sleep%'" : ""}`;
+            (this.hideBackgroundThreads ? " AND t.TYPE <> 'BACKGROUND'" : "") +
+            (this.hideSleepingConnections ? " AND t.PROCESSLIST_COMMAND NOT LIKE 'Sleep%'" : "");
 
         const query = `SELECT ${cols.join(", ")} FROM performance_schema.threads t ` +
             `LEFT OUTER JOIN performance_schema.session_connect_attrs a ON ` +
@@ -679,16 +684,16 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         const status = await backend.execute("show global status");
         if (status) {
             const values = new Map<string, string>(status.rows as Array<[string, string]>);
-            globalStatus.abortedClients = parseInt(`${values.get("Aborted_clients") ?? "0"}`, 10);
-            globalStatus.abortedConnections = parseInt(`${values.get("Aborted_connects") ?? "0"}`, 10);
-            globalStatus.threadConnected = parseInt(`${values.get("Threads_connected") ?? "0"}`, 10);
-            globalStatus.threadsCached = parseInt(`${values.get("Threads_cached") ?? "0"}`, 10);
-            globalStatus.threadRunning = parseInt(`${values.get("Threads_running") ?? "0"}`, 10);
-            globalStatus.threadsCreated = parseInt(`${values.get("Threads_created") ?? "0"}`, 10);
+            globalStatus.abortedClients = parseInt(values.get("Aborted_clients") ?? "0", 10);
+            globalStatus.abortedConnections = parseInt(values.get("Aborted_connects") ?? "0", 10);
+            globalStatus.threadConnected = parseInt(values.get("Threads_connected") ?? "0", 10);
+            globalStatus.threadsCached = parseInt(values.get("Threads_cached") ?? "0", 10);
+            globalStatus.threadRunning = parseInt(values.get("Threads_running") ?? "0", 10);
+            globalStatus.threadsCreated = parseInt(values.get("Threads_created") ?? "0", 10);
 
             globalStatus.abortedConnections =
-                parseInt(`${values.get("Connection_errors_max_connections") ?? "0"}`, 10);
-            globalStatus.totalConnections = parseInt(`${values.get("Connections") ?? "0"}`, 10);
+                parseInt(values.get("Connection_errors_max_connections") ?? "0", 10);
+            globalStatus.totalConnections = parseInt(values.get("Connections") ?? "0", 10);
             globalStatus.connectionLimit = 0;
             globalStatus.errors = 0;
 
@@ -808,9 +813,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private getSelectedRowValue = (key: string): string => {
         if (key && this.selectedRow) {
-            const field = this.columns.find((x) => { return x.title === key; });
+            const field = this.columns.find((x) => {
+                return x.title === key;
+            });
             if (field) {
-                return this.selectedRow[field.field] as string ?? "";
+                return this.selectedRow[field.field] as string | undefined ?? "";
             }
         }
 
@@ -866,11 +873,21 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         if (result) {
             const columns = generateColumnInfo(DBType.MySQL, result.columns);
             const rows = convertRows(columns, result.rows);
-            const statusField = columns.find((x) => { return x.title === "LOCK_STATUS"; });
-            const typeField = columns.find((x) => { return x.title === "OBJECT_TYPE"; });
-            const schemaField = columns.find((x) => { return x.title === "OBJECT_SCHEMA"; });
-            const nameField = columns.find((x) => { return x.title === "OBJECT_NAME"; });
-            const durationField = columns.find((x) => { return x.title === "LOCK_DURATION"; });
+            const statusField = columns.find((x) => {
+                return x.title === "LOCK_STATUS";
+            });
+            const typeField = columns.find((x) => {
+                return x.title === "OBJECT_TYPE";
+            });
+            const schemaField = columns.find((x) => {
+                return x.title === "OBJECT_SCHEMA";
+            });
+            const nameField = columns.find((x) => {
+                return x.title === "OBJECT_NAME";
+            });
+            const durationField = columns.find((x) => {
+                return x.title === "LOCK_DURATION";
+            });
 
             rows.forEach((item) => {
                 const status = item[statusField?.field ?? 0] as string;
@@ -928,7 +945,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
                 this.setState({ waitingText });
             }
-        }).catch((reason) => {
+        }).catch((reason: unknown) => {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Error looking up metadata lock information error: ${message}`, {});
         });
@@ -964,7 +981,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 };
                 this.setState({ grantedLocks: resultSet });
             }
-        }).catch((error: Error) => {
+        }).catch((error: unknown) => {
             const message = convertErrorToString(error);
             void ui.showErrorMessage(`Error looking up metadata lock information error: ${message}`, {});
         });
@@ -998,11 +1015,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     };
 
     private handleDialogResponse = async (response: IDialogResponse): Promise<boolean> => {
-        if (response?.id !== "clientConnectionsConfirmDialog") {
+        if (response.id !== "clientConnectionsConfirmDialog") {
             return Promise.resolve(false);
         }
 
-        const backend = response.data?.backend as IPromptReplyBackend;
+        const backend = response.data?.backend as IPromptReplyBackend | undefined;
         if (backend) {
             switch (response.type) {
                 case DialogType.Confirm: {
@@ -1033,18 +1050,23 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         const currentSelectedThread = this.getSelectedRowValue("THREAD_ID");
 
         if (id === "attrTab") {
-            const field = attributes?.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
+            const field = attributes?.columns.find((x) => {
+                return x.title === "PROCESSLIST_ID";
+            });
+
             if (!attributes || !field ||
-                (field && attributes?.data.rows[0][field.field] as string !== currentSelectedRow)) {
+                (attributes.data.rows[0][field.field] as string !== currentSelectedRow)) {
                 void this.updateAttributes(currentSelectedRow).then(() => {
                     this.setState({ selectedTab: id });
                 });
             }
         } else if (id === "locksTab") {
-            const field = grantedLocks?.columns.find((x) => { return x.title === "THREAD_ID"; });
-            if (!grantedLocks
-                || !field
-                || (field && grantedLocks?.data.rows[0][field.field] as string !== currentSelectedThread)) {
+            const field = grantedLocks?.columns.find((x) => {
+                return x.title === "THREAD_ID";
+            });
+
+            if (!grantedLocks || !field
+                || (grantedLocks.data.rows[0][field.field] as string !== currentSelectedThread)) {
                 void this.updateLocks(parseInt(currentSelectedThread, 10)).then(() => {
                     this.setState({ selectedTab: id });
                 });

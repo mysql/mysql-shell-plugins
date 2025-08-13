@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-underscore-dangle */
-
 // This file contains the main interface to all language services for Python.
 
 import {
@@ -34,8 +32,8 @@ import { Python3Lexer } from "./generated/Python3Lexer.js";
 import { Python3Parser } from "./generated/Python3Parser.js";
 import { PythonErrorListener } from "./PythonErrorListener.js";
 
-import { IParserErrorInfo } from "../parser-common.js";
 import { unquote } from "../../utilities/string-helpers.js";
+import { IParserErrorInfo } from "../parser-common.js";
 
 export enum PythonParseUnit {
     Generic
@@ -78,9 +76,7 @@ export class PythonParsingServices {
      * @returns The singleton instance of the parsing services.
      */
     public static get instance(): PythonParsingServices {
-        if (!PythonParsingServices.services) {
-            PythonParsingServices.services = new PythonParsingServices();
-        }
+        PythonParsingServices.services ??= new PythonParsingServices();
 
         return PythonParsingServices.services;
     }
@@ -156,7 +152,7 @@ export class PythonParsingServices {
 
                 ++index;
             }
-        } catch (reason) {
+        } catch {
             return undefined;
         }
 

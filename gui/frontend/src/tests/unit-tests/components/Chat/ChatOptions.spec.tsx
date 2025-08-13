@@ -23,21 +23,42 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable dot-notation */
-
 import { mount } from "enzyme";
 import { CellComponent } from "tabulator-tables";
+
 import { IMdsChatData, IMdsChatTable } from "../../../../communication/ProtocolMds.js";
 import {
     ChatOptionAction, ChatOptions, IChatOptionsProperties, IChatOptionsState,
 } from "../../../../components/Chat/ChatOptions.js";
 import { IAccordionProperties } from "../../../../components/ui/Accordion/Accordion.js";
+import type { IComponentProperties } from "../../../../components/ui/Component/ComponentBase.js";
 import { IInputChangeProperties } from "../../../../components/ui/Input/Input.js";
+import type { ITagInputProperties } from "../../../../components/ui/TagInput/TagInput.js";
+
+// @ts-expect-error, we need access to a private members here.
+class ChatOptionsMock extends ChatOptions {
+    declare public handleSectionExpand: (props: IAccordionProperties, sectionId: string, expanded: boolean) => void;
+    declare public handleStartNewChatClick: (e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>) => void;
+    declare public handleSaveOptionsBtnClick: (e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>) => void;
+    declare public handleLoadOptionsBtnClick: (e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>) => void;
+    declare public handleSchemaChange: (accept: boolean, ids: Set<string>) => void;
+    declare public handleModelIdChange: (accept: boolean, ids: Set<string>) => void;
+    declare public handleModelLanguageChange: (accept: boolean, ids: Set<string>) => void;
+    declare public handleLanguageModelIdChange: (accept: boolean, ids: Set<string>) => void;
+    declare public handlePreambleChange: (e: InputEvent, props: IInputChangeProperties) => void;
+    declare public handleTranslationLanguageChange: (accept: boolean, ids: Set<string>) => void;
+    declare public handleModelOptionChange: (e: FocusEvent, props: Readonly<IComponentProperties>) => void;
+    declare public removeVectorTable: (id: string, props: ITagInputProperties) => void;
+    declare public historyMessageColumnFormatter: (cell: CellComponent) => string | HTMLElement;
+}
 
 describe("ChatOptions", () => {
     it("Standard Rendering (snapshot)", () => {
-        const component = mount<ChatOptions>(
-            <ChatOptions
+        const component = mount<ChatOptionsMock>(
+            <ChatOptionsMock
                 savedState={{
                     chatOptionsExpanded: true,
                     chatOptionsWidth: 300,
@@ -127,8 +148,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update section state when expanding a section", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -139,7 +160,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSectionExpand"]({} as IAccordionProperties, "testSection", true);
+            component.instance().handleSectionExpand({} as IAccordionProperties, "testSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
                 sectionStates: new Map([["testSection", { expanded: true }]]),
@@ -151,8 +172,8 @@ describe("ChatOptions", () => {
                 ["existingSection", { expanded: false, size: 100 }],
             ]);
 
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -163,7 +184,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSectionExpand"]({} as IAccordionProperties, "existingSection", true);
+            component.instance().handleSectionExpand({} as IAccordionProperties, "existingSection", true);
 
             const expectedMap = new Map([
                 ["existingSection", { expanded: true, size: 100 }],
@@ -174,8 +195,8 @@ describe("ChatOptions", () => {
         });
 
         it("should set returnPrompt to true when expanding promptSection", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -189,7 +210,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSectionExpand"]({} as IAccordionProperties, "promptSection", true);
+            component.instance().handleSectionExpand({} as IAccordionProperties, "promptSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(2);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -203,8 +224,8 @@ describe("ChatOptions", () => {
         });
 
         it("should not set returnPrompt when expanding promptSection if already true", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -218,7 +239,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSectionExpand"]({} as IAccordionProperties, "promptSection", true);
+            component.instance().handleSectionExpand({} as IAccordionProperties, "promptSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -236,8 +257,8 @@ describe("ChatOptions", () => {
         });
 
         it("should trigger StartNewChat action", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -248,15 +269,15 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleStartNewChatClick"]({} as MouseEvent, {});
+            component.instance().handleStartNewChatClick({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.StartNewChat);
         });
 
         it("should handle keyboard event", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -267,7 +288,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleStartNewChatClick"]({} as KeyboardEvent, {});
+            component.instance().handleStartNewChatClick({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.StartNewChat);
@@ -283,8 +304,8 @@ describe("ChatOptions", () => {
         });
 
         it("should trigger SaveChatOptions action", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -295,15 +316,15 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSaveOptionsBtnClick"]({} as MouseEvent, {});
+            component.instance().handleSaveOptionsBtnClick({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.SaveChatOptions);
         });
 
         it("should handle keyboard event", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -314,7 +335,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSaveOptionsBtnClick"]({} as KeyboardEvent, {});
+            component.instance().handleSaveOptionsBtnClick({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.SaveChatOptions);
@@ -330,8 +351,8 @@ describe("ChatOptions", () => {
         });
 
         it("should trigger LoadChatOptions action", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -342,15 +363,15 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleLoadOptionsBtnClick"]({} as MouseEvent, {});
+            component.instance().handleLoadOptionsBtnClick({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.LoadChatOptions);
         });
 
         it("should handle keyboard event", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -361,7 +382,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleLoadOptionsBtnClick"]( {} as KeyboardEvent, {});
+            component.instance().handleLoadOptionsBtnClick({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.LoadChatOptions);
@@ -377,8 +398,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update schema name when selecting a specific schema", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -392,7 +413,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSchemaChange"](true, new Set(["newSchema"]));
+            component.instance().handleSchemaChange(true, new Set(["newSchema"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -403,8 +424,8 @@ describe("ChatOptions", () => {
         });
 
         it("should set schema name to undefined when selecting 'All Schemas'", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -418,7 +439,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSchemaChange"](true, new Set(["schemaDropdownAllSchemas"]));
+            component.instance().handleSchemaChange(true, new Set(["schemaDropdownAllSchemas"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -429,8 +450,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve other options when updating schema", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -446,7 +467,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleSchemaChange"](true, new Set(["newSchema"]));
+            component.instance().handleSchemaChange(true, new Set(["newSchema"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -468,8 +489,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update modelId when modelOptions exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -486,7 +507,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelIdChange"](true, new Set(["newModel"]));
+            component.instance().handleModelIdChange(true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -500,8 +521,8 @@ describe("ChatOptions", () => {
         });
 
         it("should create modelOptions when they don't exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -513,7 +534,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelIdChange"](true, new Set(["newModel"]));
+            component.instance().handleModelIdChange(true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -526,8 +547,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve other options when updating modelId", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -546,7 +567,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelIdChange"](true, new Set(["newModel"]));
+            component.instance().handleModelIdChange(true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -571,8 +592,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update model language when modelOptions exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -589,7 +610,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelLanguageChange"](true, new Set(["en"]));
+            component.instance().handleModelLanguageChange(true, new Set(["en"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -603,8 +624,8 @@ describe("ChatOptions", () => {
         });
 
         it("should create modelOptions when they don't exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -616,7 +637,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelLanguageChange"](true, new Set(["es"]));
+            component.instance().handleModelLanguageChange(true, new Set(["es"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -629,8 +650,8 @@ describe("ChatOptions", () => {
         });
 
         it("should clear languageOptions.language when setting non-English model language", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -651,7 +672,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelLanguageChange"](true, new Set(["es"]));
+            component.instance().handleModelLanguageChange(true, new Set(["es"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -669,8 +690,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve languageOptions.language when setting English model language", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -691,7 +712,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleModelLanguageChange"](true, new Set(["en"]));
+            component.instance().handleModelLanguageChange(true, new Set(["en"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -718,8 +739,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update modelId when languageOptions exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -736,7 +757,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
+            component.instance().handleLanguageModelIdChange(true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -750,8 +771,8 @@ describe("ChatOptions", () => {
         });
 
         it("should create languageOptions when they don't exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -763,7 +784,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
+            component.instance().handleLanguageModelIdChange(true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -776,8 +797,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve other options when updating language modelId", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -800,7 +821,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
+            component.instance().handleLanguageModelIdChange(true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -829,8 +850,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update preamble when options exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -850,7 +871,7 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance()["handlePreambleChange"](mockEvent, {} as IInputChangeProperties );
+            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -861,8 +882,8 @@ describe("ChatOptions", () => {
         });
 
         it("should create options with preamble when options don't exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -879,7 +900,7 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance()["handlePreambleChange"](mockEvent, {} as IInputChangeProperties );
+            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -890,8 +911,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve other options when updating preamble", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -916,7 +937,7 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance()["handlePreambleChange"](mockEvent, {} as IInputChangeProperties );
+            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -932,8 +953,8 @@ describe("ChatOptions", () => {
         });
 
         it("should handle empty preamble value", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -953,7 +974,7 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance()["handlePreambleChange"](mockEvent, {} as IInputChangeProperties );
+            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -973,8 +994,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update translation language when languageOptions exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -991,7 +1012,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleTranslationLanguageChange"](true, new Set(["fr"]));
+            component.instance().handleTranslationLanguageChange(true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1005,8 +1026,8 @@ describe("ChatOptions", () => {
         });
 
         it("should create languageOptions when they don't exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1018,7 +1039,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleTranslationLanguageChange"](true, new Set(["fr"]));
+            component.instance().handleTranslationLanguageChange(true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1031,8 +1052,8 @@ describe("ChatOptions", () => {
         });
 
         it("should set language to undefined when selecting 'noTranslation'", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1049,7 +1070,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleTranslationLanguageChange"](true, new Set(["noTranslation"]));
+            component.instance().handleTranslationLanguageChange(true, new Set(["noTranslation"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1063,8 +1084,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve other options when updating translation language", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1087,7 +1108,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["handleTranslationLanguageChange"](true, new Set(["fr"]));
+            component.instance().handleTranslationLanguageChange(true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1116,8 +1137,8 @@ describe("ChatOptions", () => {
         });
 
         it("should update model option when modelOptions exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1140,7 +1161,7 @@ describe("ChatOptions", () => {
                     value: "0.9",
                 },
             } as unknown as FocusEvent;
-            component.instance()["handleModelOptionChange"](e, {});
+            component.instance().handleModelOptionChange(e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1154,8 +1175,8 @@ describe("ChatOptions", () => {
         });
 
         it("should create modelOptions when they don't exist", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1173,7 +1194,7 @@ describe("ChatOptions", () => {
                     value: "0.9",
                 },
             } as unknown as FocusEvent;
-            component.instance()["handleModelOptionChange"](e, {});
+            component.instance().handleModelOptionChange(e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1186,8 +1207,8 @@ describe("ChatOptions", () => {
         });
 
         it("should preserve other options when updating model option", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1216,7 +1237,7 @@ describe("ChatOptions", () => {
                     value: "0.9",
                 },
             } as unknown as FocusEvent;
-            component.instance()["handleModelOptionChange"](e, {});
+            component.instance().handleModelOptionChange(e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1245,8 +1266,8 @@ describe("ChatOptions", () => {
         });
 
         it("should remove vector table from vectorTables array", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1264,7 +1285,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["removeVectorTable"]("schema1.table1", {});
+            component.instance().removeVectorTable("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1278,8 +1299,8 @@ describe("ChatOptions", () => {
         });
 
         it("should handle removing the last vector table", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1293,7 +1314,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["removeVectorTable"]("schema1.table1", {});
+            component.instance().removeVectorTable("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1304,8 +1325,8 @@ describe("ChatOptions", () => {
         });
 
         it("should handle case when vectorTables is undefined", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1317,7 +1338,7 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance()["removeVectorTable"]("schema1.table1", {});
+            component.instance().removeVectorTable("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1337,8 +1358,8 @@ describe("ChatOptions", () => {
         });
 
         it("should format message without truncation", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1352,14 +1373,14 @@ describe("ChatOptions", () => {
             const message = {
                 getValue: jest.fn().mockReturnValue("Hello, this is a test message"),
             } as unknown as CellComponent;
-            const result = component.instance()["historyMessageColumnFormatter"](message);
+            const result = component.instance().historyMessageColumnFormatter(message);
 
             expect(result).toMatchSnapshot();
         });
 
         it("should handle empty message", () => {
-            const component = mount<ChatOptions>(
-                <ChatOptions
+            const component = mount<ChatOptionsMock>(
+                <ChatOptionsMock
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1373,7 +1394,7 @@ describe("ChatOptions", () => {
             const message = {
                 getValue: jest.fn().mockReturnValue(""),
             } as unknown as CellComponent;
-            const result = component.instance()["historyMessageColumnFormatter"](message);
+            const result = component.instance().historyMessageColumnFormatter(message);
 
             expect(result).toMatchSnapshot();
         });

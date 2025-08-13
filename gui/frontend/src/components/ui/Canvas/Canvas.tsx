@@ -26,15 +26,10 @@ import "./Canvas.css";
 import { ComponentChild, createRef } from "preact";
 import Color from "color";
 import { Application, Container, Ticker } from "pixi.js";
-// @ts-expect-error: has no exported member 'Viewport'
-import { Viewport, IViewportOptions } from "pixi-viewport";
+import type { IViewportOptions } from "pixi-viewport";
+import { Viewport } from "pixi-viewport";
 
-
-import {
-    ComponentBase,
-    IComponentProperties,
-    MouseEventType,
-} from "../Component/ComponentBase.js";
+import { ComponentBase, IComponentProperties, MouseEventType, } from "../Component/ComponentBase.js";
 
 export interface ICanvasProperties extends IComponentProperties {
     offsetWidth?: number;
@@ -104,9 +99,9 @@ export default class Canvas extends ComponentBase<ICanvasProperties> {
                 antialias: true,
                 backgroundColor: background,
                 sharedTicker: true,
-                width: this.hostRef.current?.offsetWidth || 0,
+                width: this.hostRef.current.offsetWidth || 0,
                 height: Math.max(
-                    this.hostRef.current?.offsetHeight || 0,
+                    this.hostRef.current.offsetHeight || 0,
                     window.innerHeight - 20,
                 ),
                 resizeTo: window,
@@ -119,10 +114,10 @@ export default class Canvas extends ComponentBase<ICanvasProperties> {
                 }
                 this.initPixiApp();
                 this.initViewPort();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
                 Canvas.viewport?.addChild(objects);
             });
-        if (this.resizeObserver && this.hostRef.current) {
+        if (this.resizeObserver) {
             this.resizeObserver.observe(this.hostRef.current);
         }
     }
@@ -179,7 +174,7 @@ export default class Canvas extends ComponentBase<ICanvasProperties> {
 
     private handleResize = (_entries: readonly ResizeObserverEntry[]): void => {
         if (this.app && this.hostRef.current) {
-            this.app.renderer?.resize(
+            this.app.renderer.resize(
                 this.hostRef.current.offsetWidth,
                 this.hostRef.current.offsetHeight,
             );
@@ -197,7 +192,7 @@ export default class Canvas extends ComponentBase<ICanvasProperties> {
     private initViewPort(): void {
         const { offsetWidth, offsetHeight } = this.props;
         if (!Canvas.viewport) {
-            if (!this.app?.renderer?.events) {
+            if (!this.app?.renderer.events) {
                 throw new Error("Renderer events system is not initialized.");
             }
             const options: IViewportOptions = {
@@ -207,11 +202,11 @@ export default class Canvas extends ComponentBase<ICanvasProperties> {
                 worldHeight: offsetHeight,
                 events: this.app.renderer.events,
             };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
             Canvas.viewport = new Viewport(options);
         }
         this.app?.stage.addChild(Canvas.viewport);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         Canvas.viewport.drag().pinch().wheel().decelerate().setZoom(1);
     }
 }

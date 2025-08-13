@@ -48,7 +48,9 @@ const requestButtonClick = (): Promise<boolean> => {
 };
 
 const sleepAsync = (callback: (flag: boolean) => void): ReturnType<typeof setTimeout> => {
-    return setTimeout(() => { callback(clicked); }, 0);
+    return setTimeout(() => {
+        callback(clicked);
+    }, 0);
 };
 
 describe("Button component tests", (): void => {
@@ -139,7 +141,7 @@ describe("Button component tests", (): void => {
                         Button<h2>with content</h2>
                     </Button>
                     <Button id="button4">
-                        <Image src={Assets.misc.closeIcon} />
+                        <Image src={Assets.misc.closeIcon as string} />
                         Image Button
                     </Button>
                 </Container>
@@ -158,7 +160,7 @@ describe("Button component tests", (): void => {
                 <Container>
                     <Button round>M</Button>
                     <Button round>
-                        <Image src={Assets.misc.closeIcon} />
+                        <Image src={Assets.misc.closeIcon as string} />
                     </Button>
                 </Container>
             </div>,

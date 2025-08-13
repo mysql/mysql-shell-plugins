@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,6 +47,7 @@ export class E2ENotebook {
 
     /**
      * Verifies if the Notebook is opened and fully loaded
+     * 
      * @param connection The database connection
      * @param timeout The timeout
      * @returns A condition resolving to true if the page is opened, false otherwise
@@ -108,6 +109,7 @@ export class E2ENotebook {
 
     /**
      * Verifies if a word exists on the notebook
+     * 
      * @param word The word
      * @returns A promise resolving with true if the word is found, false otherwise
      */
@@ -119,6 +121,7 @@ export class E2ENotebook {
 
     /**
      * Verifies if a word exists on the notebook
+     * 
      * @param word The word
      * @returns A promise resolving with true if the word is found, false otherwise
      */
@@ -161,8 +164,8 @@ export class E2ENotebook {
      * @param button The button to click, to trigger the execution
      * @returns A promise resolving when the command is executed
      */
-    public executeWithButton = async (cmd: string, button: string):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public executeWithButton = async (
+        cmd: string, button: string): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
@@ -183,12 +186,13 @@ export class E2ENotebook {
     /**
      * Searches for a command on the editor, and execute it,
      * using the Exec Caret button Verify the result on this result id
+     * 
      * @param cmd The command
      * @param resultId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public findAndExecute = async (cmd: string, resultId: number):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public findAndExecute = async (
+        cmd: string, resultId: number): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
@@ -214,8 +218,8 @@ export class E2ENotebook {
      * @param item The context menu item to click, to trigger the execution
      * @returns A promise resolving when the command is executed
      */
-    public executeWithContextMenu = async (cmd: string, item: string):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public executeWithContextMenu = async (
+        cmd: string, item: string): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
@@ -232,6 +236,7 @@ export class E2ENotebook {
 
     /**
      * Clicks on a context menu item
+     * 
      * @param item The item
      * @returns A promise resolving when the click is performed
      */

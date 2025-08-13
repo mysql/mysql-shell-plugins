@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -82,7 +82,7 @@ export class Base64Convert {
         let i;
         let p = 0;
 
-        if (base64[base64.length - 1] === "=") {
+        if (base64.endsWith("=")) {
             bufferLength--;
             if (base64[base64.length - 2] === "=") {
                 bufferLength--;

@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import Anser from "anser";
 import { window } from "vscode";
 
 import { ShellPromptResponseType } from "../../frontend/src/communication/Protocol.js";
@@ -33,12 +32,11 @@ import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInte
 const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;
 
-    return candidate?.prompt !== undefined;
+    return "prompt" in candidate;
 };
 
-
 const isStatusCodeData = (response?: unknown): response is IStatusData => {
-    return (response as IStatusData).result !== undefined && typeof ((response as IStatusData).result) === "string";
+    return "result" in (response as IStatusData) && typeof ((response as IStatusData).result) === "string";
 };
 
 /**
@@ -54,28 +52,16 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
     await sqlEditor.openConnection(connectionId, undefined, undefined, (data, requestId) => {
         const result = data.result;
         if (isShellPromptResult(result)) {
-            if (result.type === "password") {
-                void window.showInputBox({ title: result.prompt, password: true }).then((value) => {
-                    if (value !== undefined) {
-                        void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
-                    } else {
-                        void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");
-                    }
-                });
-            } else if (result.prompt) {
-                void window.showInputBox({ title: Anser.ansiToText(result.prompt), password: false, value: "N" })
-                    .then((value) => {
-                        if (value) {
-                            void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
-                        } else {
-                            void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");
-                        }
-                    });
-            }
+            // Must be a password request, since IOpenConnectionData and IStatusData are not prompt types.
+            void window.showInputBox({ title: result.prompt, password: true }).then((value) => {
+                if (value !== undefined) {
+                    void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
+                } else {
+                    void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");
+                }
+            });
         } else if (progress) {
-            if (data.requestState !== undefined &&
-                data.requestState.msg !== undefined &&
-                data.requestState.msg !== "") {
+            if (data.requestState.msg !== "") {
                 progress(data.requestState.msg);
             } else if (isStatusCodeData(data)) {
                 progress(data.result);

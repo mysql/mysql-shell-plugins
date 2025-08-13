@@ -34,10 +34,9 @@ import { Container, Orientation } from "../ui/Container/Container.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { JsonView } from "../ui/JsonView/JsonView.js";
 import { Label } from "../ui/Label/Label.js";
+import type { JsonValue } from "../../app-logic/general-types.js";
 
 // Have to declare this here because the type definition is missing in the TypeScript standard library:
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
 interface CaretPosition {
     offsetNode: Node;
     offset: number;
@@ -107,12 +106,12 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             try {
                 // Avoid throwing an exception for something which is obviously not JSON.
                 if (entry.content.match(/^\s*{/)) {
-                    const json = JSON.parse(entry.content);
+                    const json = JSON.parse(entry.content) as JsonValue;
                     cells.push(<JsonView json={json} />);
                 } else {
                     useLabel = true;
                 }
-            } catch (e) {
+            } catch {
                 useLabel = true;
             }
 
@@ -175,7 +174,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             }
         }
 
-        if (label && label.id) {
+        if (label?.id) {
             const { contextId } = this.props;
 
             void requisitions.execute("editorSelectStatement", { contextId, statementIndex: parseInt(label.id, 10) });
@@ -183,7 +182,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
     };
 
     /**
-     * Implements our special selection handling for render targets. Ths is needed because by default monaco-editor
+     * Implements our special selection handling for render targets. This is needed because by default monaco-editor
      * does not allow to select text in view zones and simply enabling user-select on the render target does not work.
      *
      * @param e The mouse event.
@@ -243,7 +242,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             range = document.createRange();
             range.setStart(caretPosition.offsetNode, caretPosition.offset);
         } else {
-            range = document.caretRangeFromPoint(x, y);
+            range = window.document.caretRangeFromPoint(x, y);
         }
 
         return range;
@@ -260,7 +259,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             const selection = window.getSelection();
             let text = selection?.toString() ?? "";
             if (text === "") {
-                text = this.outputRef.current.innerText ?? "";
+                text = this.outputRef.current.innerText;
             }
 
             if (text.length > 0) {

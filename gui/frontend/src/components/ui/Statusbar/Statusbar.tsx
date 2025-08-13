@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,8 +50,7 @@ interface IStatusBarState extends IComponentState {
  * Statusbar updates are matched using the item id.
  */
 export class StatusBar extends ComponentBase<{}, IStatusBarState> {
-
-    #scheduledTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+    private scheduledTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
     public constructor() {
         super({});
@@ -111,7 +110,9 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
         if (singleton.current) {
             const { items } = singleton.current.state;
 
-            let item = items.find((item) => { return item.id === details.id; });
+            let item = items.find((item) => {
+                return item.id === details.id;
+            });
             if (!item) {
                 item = new StatusBarItem(singleton.current.update, details);
                 items.push(item);
@@ -119,21 +120,19 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
                 item.text = text;
 
                 // Is there a timer for this item? If so, remove it and set a new timer.
-                const timer = singleton.current.#scheduledTimers.get(item.id);
+                const timer = singleton.current.scheduledTimers.get(item.id);
                 if (timer) {
                     clearTimeout(timer);
-                    singleton.current.#scheduledTimers.delete(item.id);
+                    singleton.current.scheduledTimers.delete(item.id);
                 }
             }
 
             if (timeoutOrPromise === undefined || typeof timeoutOrPromise === "number") {
                 item.timeout = timeoutOrPromise ?? 5000;
-                if (item.timeout !== undefined) {
-                    const timer = setTimeout(() => {
-                        item.hide();
-                    }, item.timeout);
-                    singleton.current.#scheduledTimers.set(item.id, timer);
-                }
+                const timer = setTimeout(() => {
+                    item.hide();
+                }, item.timeout);
+                singleton.current.scheduledTimers.set(item.id, timer);
             } else {
                 timeoutOrPromise.then(() => {
                     item.hide();
@@ -167,11 +166,11 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
 
     public override componentWillUnmount(): void {
         // Clear the timers before unmounting
-        if (this.#scheduledTimers.size > 0) {
-            for (const [_, timer] of this.#scheduledTimers) {
+        if (this.scheduledTimers.size > 0) {
+            for (const [_, timer] of this.scheduledTimers) {
                 clearTimeout(timer);
             }
-            this.#scheduledTimers = new Map();
+            this.scheduledTimers = new Map();
         }
     }
 
@@ -291,7 +290,7 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
                 data-command={item.command}
                 title={item.tooltip}
                 disabled={!item.command}
-                imageOnly={item.text?.length === 0}
+                imageOnly={item.text.length === 0}
                 style={{
                     color,
                     backgroundColor,

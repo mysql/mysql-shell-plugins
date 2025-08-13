@@ -50,10 +50,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         description: "Local connection",
         basic: {
             hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
+            username: String(globalThis.testConfig!.DBUSERNAME1),
+            port: parseInt(globalThis.testConfig!.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
+            password: String(globalThis.testConfig!.DBUSERNAME1PWD),
         },
     };
 
@@ -66,7 +66,6 @@ describe("MYSQL SHELL CONSOLES", () => {
     let shellConsole: E2EShellConsole;
 
     beforeAll(async () => {
-
         await loadDriver(true);
         await driver.get(url);
 
@@ -97,8 +96,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         const shellConn = Object.assign({}, globalConn);
         shellConn.caption = "shellConn";
-        (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBUSERNAME2);
-        (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBUSERNAME2PWD);
+        (shellConn.basic as interfaces.IConnBasicMySQL).username = String(globalThis.testConfig!.DBUSERNAME2);
+        (shellConn.basic as interfaces.IConnBasicMySQL).password = String(globalThis.testConfig!.DBUSERNAME2PWD);
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
         let testFailed = false;
 
@@ -123,7 +122,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                     constants.wait5seconds);
                 await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                     constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
-                await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
+                await driver.wait(until.elementTextContains(schemaEl, schema),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);
             } catch (e) {
                 testFailed = true;
@@ -159,7 +158,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                     constants.wait5seconds, "Schema tab was not found");
                 await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                     constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
-                await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
+                await driver.wait(until.elementTextContains(schemaEl, schema),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);
             } catch (e) {
                 testFailed = true;
@@ -185,7 +184,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                     constants.wait5seconds);
                 await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                     constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
-                await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
+                await driver.wait(until.elementTextContains(schemaEl, schema),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);
             } catch (e) {
                 testFailed = true;
@@ -228,10 +227,12 @@ describe("MYSQL SHELL CONSOLES", () => {
                     constants.wait5seconds);
                 const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
                     constants.wait5seconds);
+
+                const err = `Server tab does not contain '${hostname}:${port}'`;
                 await driver.wait(until.elementTextContains(server,
-                    `${hostname}:${port}0`),
-                    constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
-                await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
+                    `${hostname}:${port}0`), constants.wait5seconds, err);
+
+                await driver.wait(until.elementTextContains(schemaEl, schema),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_Sessions");

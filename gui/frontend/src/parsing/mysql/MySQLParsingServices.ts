@@ -23,11 +23,9 @@
 
 // This file contains the main interface to all language services for MySQL.
 
-/* eslint-disable no-underscore-dangle */
-
 import {
     BailErrorStrategy, CharStream, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
-    ParseTree, PredictionMode, TokenStreamRewriter, XPath, Token,
+    ParseTree, PredictionMode, Token, TokenStreamRewriter, XPath,
 } from "antlr4ng";
 
 import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
@@ -36,16 +34,16 @@ import {
     TableFactorContext,
 } from "./generated/MySQLMRSParser.js";
 
-import { MySQLErrorListener } from "./MySQLErrorListener.js";
-import { MySQLParseUnit } from "./MySQLServiceTypes.js";
 import {
     ICompletionData, IParserErrorInfo, IPreprocessResult, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo,
     QueryType, StatementFinishState, SymbolKind, TextSpan, tokenFromPosition,
 } from "../parser-common.js";
+import { MySQLErrorListener } from "./MySQLErrorListener.js";
+import { MySQLParseUnit } from "./MySQLServiceTypes.js";
 
-import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable.js";
-import { getCodeCompletionItems } from "./MySQLCodeCompletion.js";
 import { unquote } from "../../utilities/string-helpers.js";
+import { DBSymbolTable, SystemFunctionSymbol, SystemVariableSymbol } from "../DBSymbolTable.js";
+import { getCodeCompletionItems } from "./MySQLCodeCompletion.js";
 import { isKeyword, numberToVersion } from "./MySQLRecognizerCommon.js";
 import { MySQLVersion } from "./mysql-keywords.js";
 
@@ -112,9 +110,7 @@ export class MySQLParsingServices {
      * @returns The singleton instance of the parsing services.
      */
     public static get instance(): MySQLParsingServices {
-        if (!MySQLParsingServices.services) {
-            MySQLParsingServices.services = new MySQLParsingServices();
-        }
+        MySQLParsingServices.services ??= new MySQLParsingServices();
 
         return MySQLParsingServices.services;
     }
@@ -188,7 +184,7 @@ export class MySQLParsingServices {
         const token = tokenFromPosition(this.tokenStream, offset);
         if (token) {
             this.tokenStream.seek(token.tokenIndex);
-            const tokenText = (token.text || "").toLowerCase();
+            const tokenText = (token.text ?? "").toLowerCase();
             switch (token.type) {
                 case MySQLMRSLexer.IDENTIFIER:
                 case MySQLMRSLexer.BACK_TICK_QUOTED_ID: {
@@ -559,7 +555,7 @@ export class MySQLParsingServices {
                         result.push({
                             delimiter,
                             span: { start, length: tail - start },
-                            contentStart: haveContent ? head : start,
+                            contentStart: head,
                             state: StatementFinishState.OpenString,
                         });
                         start = tail;
@@ -697,7 +693,7 @@ export class MySQLParsingServices {
                             result.push({
                                 delimiter,
                                 span: { start, length: tail - start },
-                                contentStart: haveContent ? head : start,
+                                contentStart: head,
                                 state: StatementFinishState.OpenString,
                             });
                             start = tail;
@@ -758,7 +754,7 @@ export class MySQLParsingServices {
         let low = 0;
         let high = list.length - 1;
         while (low < high) {
-            const middle = low + (high - low + 1) / 2;
+            const middle = low + ((high - low + 1) / 2);
             if (list[middle].start > offset) {
                 high = middle - 1;
             } else {
@@ -811,7 +807,7 @@ export class MySQLParsingServices {
         count: number, forceSecondaryEngine?: boolean): IPreprocessResult {
 
         this.applyServerDetails(serverVersion, sqlMode);
-        const tree = this.startParsing(query, false, MySQLParseUnit.Generic) as QueryContext;
+        const tree = this.startParsing(query, false, MySQLParseUnit.Generic) as QueryContext | undefined;
         if (!tree || this.errors.length > 0) {
             return { query, changed: false, updatable: false };
         }
@@ -823,7 +819,7 @@ export class MySQLParsingServices {
         const expressions = XPath.findAll(tree, "/query/simpleStatement//queryExpression", this.parser);
         if (expressions.size > 0) {
             // There can only be one top-level query expression where we can add a LIMIT clause.
-            const candidate: ParseTree = expressions.values().next().value;
+            const candidate: ParseTree = expressions.values().next().value!;
 
             // Check if the candidate comes from a subquery.
             let run: ParseTree | null = candidate;
@@ -908,13 +904,13 @@ export class MySQLParsingServices {
         const expressions = XPath.findAll(tree, "/query", this.parser);
         if (expressions.size > 0) {
             // There can only be one top-level query.
-            const candidate: ParseTree = expressions.values().next().value;
+            const candidate: ParseTree = expressions.values().next().value!;
 
             // Top level query expression here. Check if there's already a LIMIT clause before adding one.
             const context = candidate as QueryContext;
             if (!context.SEMICOLON_SYMBOL()) {
                 const statementContext = context.simpleStatement();
-                if (statementContext && statementContext.stop) {
+                if (statementContext?.stop) {
                     rewriter.insertAfter(statementContext.stop, ";");
                     changed = true;
                 }
@@ -1197,7 +1193,7 @@ export class MySQLParsingServices {
     private isUpdatable(tree: QueryContext): boolean {
         const select = tree.simpleStatement()?.selectStatement();
         let updatable = select != null;
-        if (!select || select.selectStatementWithInto() || select?.lockingClauseList()) {
+        if (!select || select.selectStatementWithInto() || select.lockingClauseList()) {
             updatable = false;
         } else {
             const expression = select.queryExpression()!; // Must be assigned at this point.

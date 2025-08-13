@@ -32,19 +32,21 @@ import { Label } from "../../../../components/ui/Label/Label.js";
 import { Selector } from "../../../../components/ui/Selector/Selector.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
+const icon = Assets.documents.overviewPageIcon as string;
+
 describe("Selector component tests", (): void => {
 
     const itemArray = [
-        { caption: "1", icon: Assets.documents.overviewPageIcon },
-        { caption: "2", icon: Assets.documents.overviewPageIcon },
-        { caption: "3", icon: Assets.documents.overviewPageIcon },
-        { caption: "4", icon: Assets.documents.overviewPageIcon },
-        { caption: "5", icon: Assets.documents.overviewPageIcon },
-        { caption: "6", icon: Assets.documents.overviewPageIcon },
-        { caption: "7", icon: Assets.documents.overviewPageIcon },
-        { caption: "8", icon: Assets.documents.overviewPageIcon },
-        { caption: "9", icon: Assets.documents.overviewPageIcon },
-        { caption: "10", icon: Assets.documents.overviewPageIcon },
+        { caption: "1", icon },
+        { caption: "2", icon },
+        { caption: "3", icon },
+        { caption: "4", icon },
+        { caption: "5", icon },
+        { caption: "6", icon },
+        { caption: "7", icon },
+        { caption: "8", icon },
+        { caption: "9", icon },
+        { caption: "10", icon },
     ];
 
     it("Test Selector onSelect callback", async () => {
@@ -55,16 +57,16 @@ describe("Selector component tests", (): void => {
                 smoothScroll={true}
                 onSelect={jest.fn()}
                 items={[
-                    { caption: "1", icon: Assets.documents.overviewPageIcon },
-                    { caption: "2", icon: Assets.documents.overviewPageIcon },
-                    { caption: "3", icon: Assets.documents.overviewPageIcon },
-                    { caption: "4", icon: Assets.documents.overviewPageIcon },
-                    { caption: "5", icon: Assets.documents.overviewPageIcon },
-                    { caption: "6", icon: Assets.documents.overviewPageIcon },
-                    { caption: "7", icon: Assets.documents.overviewPageIcon },
-                    { caption: "8", icon: Assets.documents.overviewPageIcon },
-                    { caption: "9", icon: Assets.documents.overviewPageIcon },
-                    { caption: "10", icon: Assets.documents.overviewPageIcon },
+                    { caption: "1", icon },
+                    { caption: "2", icon },
+                    { caption: "3", icon },
+                    { caption: "4", icon },
+                    { caption: "5", icon },
+                    { caption: "6", icon },
+                    { caption: "7", icon },
+                    { caption: "8", icon },
+                    { caption: "9", icon },
+                    { caption: "10", icon },
                 ]}
             />,
         );

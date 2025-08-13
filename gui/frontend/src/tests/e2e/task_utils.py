@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import time
 import typing
+import json
 
 VERBOSE = True
 THIS_FILE_PATH = pathlib.Path(os.path.realpath(__file__))
@@ -477,8 +478,13 @@ class SetMySQLServerTask(ShellTask):
     def run(self) -> None:
         """Runs the task"""
 
+        with open(os.path.join(WORKING_DIR, "..", ".env.test.json"), 'r') as file:
+            data = json.load(file)
+
         if self.set_ssl_root_folder:
-            self.environment["SSL_ROOT_FOLDER"] = f"{self.dir_name}/{self.port}/sandboxdata"
+            data['SSL_ROOT_FOLDER'] = f"{self.dir_name}/{self.port}/sandboxdata"
+            with open(os.path.join(WORKING_DIR, "..", ".env.test.json"), 'w') as file:
+                json.dump(data, file, indent=4)  
         existing_uri = ''
         if 'MYSQL_URI' in self.environment:
             existing_uri = self.environment['MYSQL_URI']
@@ -487,7 +493,9 @@ class SetMySQLServerTask(ShellTask):
             if not ssl_root_folder.joinpath("ca.pem").exists():
                 raise RuntimeError(
                     f"Unable to find SSL certificates for {existing_uri} in {ssl_root_folder}")
-            self.environment['SSL_ROOT_FOLDER'] = ssl_root_folder
+            data['SSL_ROOT_FOLDER'] = ssl_root_folder
+            with open(os.path.join(WORKING_DIR, "..", ".env.test.json"), 'w') as file:
+                json.dump(data, file, indent=4)  
 
         conn_string = (
             f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.port}"

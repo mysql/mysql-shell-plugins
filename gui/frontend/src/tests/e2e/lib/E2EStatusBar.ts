@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ export class E2EStatusBar {
 
     /**
      * Gets the editor position on a notebook or script
+     * 
      * @returns A promise resolving with the editor position on a notebook or script as a string
      */
     public getEditorPosition = async (): Promise<string> => {
@@ -40,6 +41,7 @@ export class E2EStatusBar {
 
     /**
      * Gets the editor ident on a notebook or script
+     * 
      * @returns A promise resolving with the editor ident on a notebook or script as a string
      */
     public getEditorIdent = async (): Promise<string> => {
@@ -49,6 +51,7 @@ export class E2EStatusBar {
 
     /**
      * Gets the editor EOL on a notebook or script
+     * 
      * @returns A promise resolving with the editor EOL on a notebook or script as a string
      */
     public getEditorEOL = async (): Promise<string> => {
@@ -58,6 +61,7 @@ export class E2EStatusBar {
 
     /**
      * Gets the editor language on a notebook or script
+     * 
      * @returns A promise resolving with the editor language on a notebook or script as a string
      */
     public getEditorLanguage = async (): Promise<string> => {
@@ -67,6 +71,7 @@ export class E2EStatusBar {
 
     /**
      * Gets the notifications history element
+     * 
      * @returns {WebElement} A promise resolving with the notifications history element
      */
     public getNotificationsHistory = async (): Promise<WebElement> => {
@@ -76,6 +81,7 @@ export class E2EStatusBar {
 
     /**
      * Verifies if there are notifications on the bell icon
+     * 
      * @returns {Promise<boolean>} A promise resolving with true if there are new notifications, false otherwise
      */
     public hasNotifications = async (): Promise<boolean> => {
@@ -93,6 +99,7 @@ export class E2EStatusBar {
 
     /**
      * Verifies if the silent mode is on
+     * 
      * @returns {Promise<boolean>} A promise resolving with true if the silent mode is on, false otherwise
      */
     public isOnSilentMode = async (): Promise<boolean> => {

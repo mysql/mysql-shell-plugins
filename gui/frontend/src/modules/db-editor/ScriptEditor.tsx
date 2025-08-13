@@ -86,12 +86,12 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     private editorRef = createRef<CodeEditor>();
     private resultRef = createRef<HTMLDivElement>();
 
-    #presentationInterface?: StandalonePresentationInterface;
+    private presentationInterface?: StandalonePresentationInterface;
 
-    #editorLanguageSbEntry!: IStatusBarItem;
-    #editorEolSbEntry!: IStatusBarItem;
-    #editorIndentSbEntry!: IStatusBarItem;
-    #editorPositionSbEntry!: IStatusBarItem;
+    private editorLanguageSbEntry!: IStatusBarItem;
+    private editorEolSbEntry!: IStatusBarItem;
+    private editorIndentSbEntry!: IStatusBarItem;
+    private editorPositionSbEntry!: IStatusBarItem;
 
     public constructor(props: IScriptEditorProperties) {
         super(props);
@@ -128,10 +128,10 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         requisitions.register("editorInsertText", this.doInsertText);
         requisitions.register("editorCaretMoved", this.handleCaretMove);
 
-        this.#editorPositionSbEntry = ui.createStatusBarItem("editorPosition", StatusBarAlignment.Right, 990);
-        this.#editorIndentSbEntry = ui.createStatusBarItem("editorIndent", StatusBarAlignment.Right, 985);
-        this.#editorEolSbEntry = ui.createStatusBarItem("editorEOL", StatusBarAlignment.Right, 980);
-        this.#editorLanguageSbEntry = ui.createStatusBarItem("editorLanguage", StatusBarAlignment.Right, 975);
+        this.editorPositionSbEntry = ui.createStatusBarItem("editorPosition", StatusBarAlignment.Right, 990);
+        this.editorIndentSbEntry = ui.createStatusBarItem("editorIndent", StatusBarAlignment.Right, 985);
+        this.editorEolSbEntry = ui.createStatusBarItem("editorEOL", StatusBarAlignment.Right, 980);
+        this.editorLanguageSbEntry = ui.createStatusBarItem("editorLanguage", StatusBarAlignment.Right, 975);
 
         this.updateStatusItems();
         this.updatePresentationInterface();
@@ -143,10 +143,10 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public override componentWillUnmount(): void {
-        this.#editorLanguageSbEntry.dispose();
-        this.#editorIndentSbEntry.dispose();
-        this.#editorPositionSbEntry.dispose();
-        this.#editorEolSbEntry.dispose();
+        this.editorLanguageSbEntry.dispose();
+        this.editorIndentSbEntry.dispose();
+        this.editorPositionSbEntry.dispose();
+        this.editorEolSbEntry.dispose();
 
         requisitions.unregister("connectionItemDefaultAction", this.doConnectionEntryDefaultAction);
         requisitions.unregister("editorInsertText", this.doInsertText);
@@ -159,7 +159,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
-        const resultPaneHeight = this.#presentationInterface?.currentHeight ?? 300;
+        const resultPaneHeight = this.presentationInterface?.currentHeight ?? 300;
 
         const activeEditorState = this.activeEditorState;
         const language = activeEditorState.state?.model.getLanguageId() ?? "";
@@ -330,14 +330,14 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         return new Promise((resolve) => {
             if (this.editorRef.current) {
                 // There's only one block in a script editor.
-                const block = this.editorRef.current?.lastExecutionBlock;
+                const block = this.editorRef.current.lastExecutionBlock;
                 if (block instanceof SQLExecutionContext) {
                     const continueExecution = (id: string): Promise<boolean> => {
                         if (id === block.id) {
                             requisitions.unregister("editorValidationDone", continueExecution);
                             if (this.editorRef.current) {
                                 const { onScriptExecution } = this.props;
-                                block.showNextResultMaximized();
+                                block.showNextResultMaximized = true;
                                 void onScriptExecution?.(block, { forceSecondaryEngine }).then(() => {
                                     resolve(true); // For the outer promise.
                                 });
@@ -392,9 +392,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     private handleCaretMove = (position: IPosition): Promise<boolean> => {
-        if (this.#editorPositionSbEntry) {
-            this.#editorPositionSbEntry.text = `Ln ${position.lineNumber || 1}, Col ${position.column || 1}`;
-        }
+        this.editorPositionSbEntry.text = `Ln ${position.lineNumber || 1}, Col ${position.column || 1}`;
 
         return Promise.resolve(true);
     };
@@ -426,38 +424,38 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 const position = editorState.viewState?.cursorState[0].position;
                 const language = editorState.model.getLanguageId() as EditorLanguage;
 
-                this.#editorLanguageSbEntry.text = language;
-                this.#editorEolSbEntry.text = editorState.options.defaultEOL || "LF";
+                this.editorLanguageSbEntry.text = language;
+                this.editorEolSbEntry.text = editorState.options.defaultEOL ?? "LF";
 
                 if (editorState.options.insertSpaces) {
-                    this.#editorIndentSbEntry.text = `Spaces: ${editorState.options.indentSize ?? 4}`;
+                    this.editorIndentSbEntry.text = `Spaces: ${editorState.options.indentSize ?? 4}`;
                 } else {
-                    this.#editorIndentSbEntry.text = `Tab Size: ${editorState.options.tabSize ?? 4}`;
+                    this.editorIndentSbEntry.text = `Tab Size: ${editorState.options.tabSize ?? 4}`;
                 }
 
-                this.#editorPositionSbEntry.text = `Ln ${position?.lineNumber ?? 1}, Col ${position?.column ?? 1}`;
+                this.editorPositionSbEntry.text = `Ln ${position?.lineNumber ?? 1}, Col ${position?.column ?? 1}`;
             }
         }
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        this.#presentationInterface = new StandalonePresentationInterface(language);
-        this.#presentationInterface.activate(editor.backend!);
+        this.presentationInterface = new StandalonePresentationInterface(language);
+        this.presentationInterface.activate(editor.backend!);
 
-        return this.#presentationInterface;
+        return this.presentationInterface;
     };
 
     private handlePaneResized = (info: ISplitterPaneSizeInfo[]): void => {
         info.forEach((value) => {
-            if (value.id === "resultPane" && this.#presentationInterface) {
-                this.#presentationInterface.currentHeight = value.currentSize;
+            if (value.id === "resultPane" && this.presentationInterface) {
+                this.presentationInterface.currentHeight = value.currentSize;
             }
         });
 
     };
 
     private toggleMaximizeResultPane = (): void => {
-        this.#presentationInterface?.toggleResultPane();
+        this.presentationInterface?.toggleResultPane();
     };
 
     private closeEditor = (): void => {
@@ -482,9 +480,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
             },
         );
 
-        if (!activeEditor) {
-            activeEditor = savedState.documentStates[0];
-        }
+        activeEditor ??= savedState.documentStates[0];
 
         return activeEditor;
     }
@@ -528,8 +524,8 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         if (contexts && contexts.count > 0) {
             // In the script editor there's always a single context.
             const context = contexts.contextAt(0);
-            this.#presentationInterface = context!.presentation as StandalonePresentationInterface;
-            this.#presentationInterface.onMount(this.resultRef, this);
+            this.presentationInterface = context!.presentation as StandalonePresentationInterface;
+            this.presentationInterface.onMount(this.resultRef, this);
         }
     }
 }

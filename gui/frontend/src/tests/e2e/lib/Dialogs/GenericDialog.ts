@@ -40,6 +40,7 @@ export class GenericDialog {
 
     /**
      * Verifies if confirm dialog exists
+     * 
      * @returns A promise resolving to true if the dialog is displayed, false otherwise
      */
     public exists = async (): Promise<boolean> => {
@@ -48,6 +49,7 @@ export class GenericDialog {
 
     /**
      * Verifies if confirm dialog exists
+     * 
      * @param timeout The timeout
      * @returns A promise resolving with the dialog if the dialog exists, false otherwise
      */
@@ -67,6 +69,7 @@ export class GenericDialog {
 
     /**
      * Selects an item from the select list
+     * 
      * @param value The value to select
      */
     public selectFromList = async (value: string): Promise<void> => {

@@ -32,6 +32,7 @@ export class E2EDebugger {
 
     /**
      * Verifies if the debugger page is opened
+     * 
      * @returns A condition resolving to true if the page is opened, false otherwise
      */
     public static untilIsOpened = (): Condition<boolean> => {
@@ -42,6 +43,7 @@ export class E2EDebugger {
 
     /**
      * Gets an item from the scripts tree
+     * 
      * @param name The item name
      * @returns A promise resolving with the item
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Opens the Notification Center
+     * 
      * @returns A promise resolving with the notifications center
      */
     public open = async (): Promise<E2ENotificationsCenter | undefined> => {
@@ -48,6 +49,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Gets the Notification center title
+     * 
      * @returns A promise resolving with the Notification center title
      */
     public getTitle = async (): Promise<string> => {
@@ -58,6 +60,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Gets the Notifications center notifications
+     * 
      * @returns A promise resolving with the notifications center's notifications
      */
     public getNotifications = async (): Promise<interfaces.INotification[]> => {
@@ -92,6 +95,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Closes a notification by clicking on the "X" button of a notification
+     * 
      * @param itemNumber The number of the notification
      * @returns A promise resolving when the "Close" button is clicked
      */
@@ -103,6 +107,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Clears the Notifications center notifications
+     * 
      * @returns A promise resolving when the "Clear All Notifications" button is clicked
      */
     public clearNotifications = async (): Promise<void> => {
@@ -111,6 +116,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Clicks on the "Switch to Do Not Disturb Mode" button
+     * 
      * @returns A promise resolving when the "Clear All Notifications" button is clicked
      */
     public toggleSilentMode = async (): Promise<void> => {
@@ -119,6 +125,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Clicks on the "Hide Notifications" button
+     * 
      * @returns A promise resolving when the "ide Notifications" button is clicked
      */
     public hide = async (): Promise<void> => {
@@ -127,6 +134,7 @@ export class E2ENotificationsCenter {
 
     /**
      * Verifies if there are any notifications in the Notifications Center
+     * 
      * @returns A condition resolving to true if there is at least one notification
      */
     public untilNotificationsExists = (): Condition<boolean> => {

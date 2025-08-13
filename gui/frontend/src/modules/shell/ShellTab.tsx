@@ -61,7 +61,7 @@ import type { IToolbarItems } from "../db-editor/index.js";
 import { ShellConsole } from "./ShellConsole.js";
 import { ShellPrompt } from "./ShellPrompt.js";
 
-interface IResultTimer {
+export interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
     results: IExecutionResult[];
 }
@@ -198,7 +198,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     savedState.promptDescriptor = result.promptDescriptor;
                     void requisitions.execute("updateShellPrompt", result);
                 }
-            }).catch((reason) => {
+            }).catch((reason: unknown) => {
                 const message = convertErrorToString(reason);
                 void ui.showErrorMessage(`Shell Language Switch Error: ${message}`, {});
             });
@@ -245,7 +245,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 case "\\about": {
                     const isMac = navigator.userAgent.includes("Macintosh");
                     const content = ShellTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
-                    await context?.addResultData({
+                    await context.addResultData({
                         type: "text",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
                     }, { resultId: "" });
@@ -281,7 +281,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     void this.processCommand(command, context, options.params).then(() => {
                                         resolve(true);
                                     });
-                                }).catch((reason) => {
+                                }).catch((reason: unknown) => {
                                     const message = convertErrorToString(reason);
                                     void ui.showErrorMessage(`Shell Language Switch Error: ${message}`, {});
 
@@ -383,7 +383,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         if (result.warningsCount > 0) {
                             status.type = MessageType.Warning;
                             status.text += `, ${result.warningsCount} ` +
-                                `${result.warningsCount === 1 ? "warning" : "warnings"}`;
+                                (result.warningsCount === 1 ? "warning" : "warnings");
                         }
 
                         const text: ITextResultEntry[] = [{
@@ -471,7 +471,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         if (result.warningsCount > 0) {
                             status.type = MessageType.Warning;
                             status.text += `, ${result.warningsCount} ` +
-                                `${result.warningsCount === 1 ? "warning" : "warnings"}`;
+                                (result.warningsCount === 1 ? "warning" : "warnings");
                         }
 
                         // Flatten nested objects + arrays.
@@ -620,10 +620,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         } else {
                             // If no specialized result then print as is.
                             const executionInfo: IStatusInfo = {
-                                text: result ? "" : JSON.stringify(result, undefined, "\t"),
+                                text: JSON.stringify(result, undefined, "\t"),
                             };
 
-                            const text = !result ? [] : [{
+                            const text = [{
                                 type: MessageType.Info,
                                 index,
                                 content: JSON.stringify(result, undefined, "\t"),
@@ -687,9 +687,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     // A new session will be created, however if password is not available, it attempts to
                     // get it from the last executed command (common case when password is given in the
                     // connection string)
-                    if (savedState.lastPassword === undefined) {
-                        savedState.lastPassword = this.getPasswordFromLastCommand();
-                    }
+                    savedState.lastPassword ??= this.getPasswordFromLastCommand();
 
                     // Only trigger the creation of the Session if the password was defined (even if empty)
                     // otherwise the start session will be requiring shell prompt handling
@@ -790,7 +788,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 savedState.lastHost = url.hostname;
                 savedState.lastPassword = (url.password === "") ? undefined : url.password;
                 savedState.lastPort = (url.port === "") ? undefined : parseInt(url.port, 10);
-            } catch (e) {
+            } catch {
                 // Ignore invalid connection strings.
             }
         }
@@ -835,7 +833,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             const matches = [...savedState.lastCommand.matchAll(uriPattern)];
 
             // Tests for the mandatory fields in case password is present in the URI
-            if (matches[0] && matches[0][4] && matches[0][6] && matches[0][8]) {
+            if (matches[0]?.[4] && matches[0][6] && matches[0][8]) {
                 // At this point, we know the connection string has a valid URI inside
                 // However, the password might be percent encoded
                 return decodeURIComponent(matches[0][6]);
@@ -875,11 +873,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     private isShellObjectResult(response: IShellResultType): response is IShellObjectResult {
-        return (response as IShellObjectResult).class !== undefined;
+        return "class" in response;
     }
 
     private isShellValueResult(response: IShellResultType): response is IShellValueResult {
-        return (response as IShellValueResult).value !== undefined;
+        return "value" in response;
     }
 
     private isShellSimpleResult(response: IShellResultType): response is IShellSimpleResult {
@@ -891,7 +889,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     private isShellShellDocumentData(response: IShellResultType): response is IShellDocumentData {
-        return (response as IShellDocumentData).documents !== undefined;
+        return "documents" in response;
     }
 
     private isShellShellColumnsMetaData(response: IShellResultType): response is IShellColumnsMetaData {
@@ -899,15 +897,15 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     private isShellShellRowData(response: IShellResultType): response is IShellRowData {
-        return (response as IShellRowData).rows !== undefined;
+        return "rows" in response;
     }
 
     private isShellShellData(response: IShellResultType): response is IShellDocumentData {
-        return (response as IShellDocumentData).hasData !== undefined;
+        return "hasData" in response;
     }
 
     private hasPromptDescriptor(response: IShellResultType): response is IShellPromptValues {
-        return (response as IShellPromptValues).promptDescriptor !== undefined;
+        return "promptDescriptor" in response;
     }
 
 }

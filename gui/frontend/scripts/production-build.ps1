@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,9 +24,13 @@
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
 
-antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
-antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
+(Get-Content node_modules/pixi-viewport/dist/index.d.ts) |
+  ForEach-Object { $_ -replace "^export \* from './Viewport';", "export * from './Viewport.js';" } |
+  Set-Content node_modules/pixi-viewport/dist/index.d.ts
+
+antlr-ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
+antlr-ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
+antlr-ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
 
 # Include required MRS plugin resources as part of the frontend build
 $generate_sdk_resource_links_script = "$PSScriptRoot\generate-mrs-sdk-resource-links.ps1"

@@ -85,7 +85,7 @@ export class SQLExecutionContext extends ExecutionContext {
     private runtimeErrorData: IRuntimeErrorData | undefined;
 
     // A signal that is set when the splitter is currently running. Can be awaited to wait for the splitter to finish.
-    #splitterSignal?: Semaphore<void>;
+    #splitterSignal?: Semaphore;
 
     #validationTimer?: ReturnType<typeof setTimeout> | null;
 
@@ -336,7 +336,7 @@ export class SQLExecutionContext extends ExecutionContext {
         const result: IStatement[] = [];
 
         // This selection is from the entire editor. Have to convert the start and end position to the local model.
-        const selection = this.presentation.backend?.getSelection?.();
+        const selection = this.presentation.backend?.getSelection();
         const startOffset = selection ?
             (model.getOffsetAt(selection.getStartPosition()) - this.presentation.codeOffset) : 0;
         const endOffset = selection ?
@@ -543,7 +543,7 @@ export class SQLExecutionContext extends ExecutionContext {
             // Notify already waiting consumers that the current splitter run is done.
             this.splittingFinished();
 
-            this.#splitterSignal = new Semaphore<void>();
+            this.#splitterSignal = new Semaphore();
             this.splitNextStatement();
         }
     }
@@ -570,7 +570,6 @@ export class SQLExecutionContext extends ExecutionContext {
         const editorModel = this.presentation.backend?.getModel?.();
 
         const details = this.statementDetails[data.errorStatementIndex];
-
         const decoration = [{
             range: data.stacktraceInfo.range,
             options: {
@@ -586,7 +585,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }];
         // Only add runtime error decoration if there is no existing syntax error decorations
         if (details.diagnosticDecorationIDs.length === 0) {
-            this.runtimeErrorDecorations = editorModel?.deltaDecorations?.(details.diagnosticDecorationIDs, decoration);
+            this.runtimeErrorDecorations = editorModel?.deltaDecorations(details.diagnosticDecorationIDs, decoration);
         }
         this.runtimeErrorData = {
             stacktraceInfo: data.stacktraceInfo,
@@ -597,9 +596,9 @@ export class SQLExecutionContext extends ExecutionContext {
     }
 
     public clearRuntimeErrorData(): void {
-        const editorModel = this.presentation.backend?.getModel?.();
+        const editorModel = this.presentation.backend?.getModel();
         if (this.runtimeErrorDecorations) {
-            editorModel?.deltaDecorations?.(this.runtimeErrorDecorations, []);
+            editorModel?.deltaDecorations(this.runtimeErrorDecorations, []);
         }
     }
 
@@ -618,11 +617,11 @@ export class SQLExecutionContext extends ExecutionContext {
             endIndex = this.statementDetails.length - 1;
         }
 
-        const editorModel = this.presentation.backend?.getModel?.();
+        const editorModel = this.presentation.backend?.getModel();
         if (editorModel) {
             while (startIndex <= endIndex) {
                 const details = this.statementDetails[startIndex++];
-                editorModel.deltaDecorations?.(details.diagnosticDecorationIDs, []);
+                editorModel.deltaDecorations(details.diagnosticDecorationIDs, []);
             }
         }
     }
@@ -641,7 +640,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        const model = editor?.getModel?.();
+        const model = editor?.getModel();
 
         if (model && this.pendingSplitActions.size > 0) {
             const [next] = this.pendingSplitActions;
@@ -677,7 +676,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 // This is (now) an internal command. Remove any decoration for it and stop splitting.
                 this.splittingFinished();
 
-                model.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, []);
+                model.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
                 this.updateLineStartMarkers();
 
                 return;
@@ -742,7 +741,7 @@ export class SQLExecutionContext extends ExecutionContext {
                                 this.pendingSplitActions.add(next);
 
                                 setTimeout(() => {
-                                    return this.splitNextStatement();
+                                    this.splitNextStatement();
                                 }, 0);
                             } else {
                                 // This is a DELIMITER statement with no following code.
@@ -763,7 +762,7 @@ export class SQLExecutionContext extends ExecutionContext {
                                 this.pendingSplitActions.add(next);
 
                                 setTimeout(() => {
-                                    return this.splitNextStatement();
+                                    this.splitNextStatement();
                                 }, 0);
                             } else {
                                 storeValuesAndValidate();
@@ -838,7 +837,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        const editorModel = editor?.getModel?.();
+        const editorModel = editor?.getModel();
 
         // Either run validation for the given statement index or pick the next one in our wait list.
         if (editorModel && (this.pendingValidations.size > 0 || preferred !== undefined)) {
@@ -853,98 +852,95 @@ export class SQLExecutionContext extends ExecutionContext {
             const services = ScriptingLanguageServices.instance;
 
             const nextDetails = this.statementDetails[next];
-            if (nextDetails) {
-                if (nextDetails.state === StatementFinishState.DelimiterChange) {
-                    // The DELIMITER command is not valid SQL.
-                    editorModel.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, []);
-                    this.updateLineStartMarkers();
+            if (nextDetails.state === StatementFinishState.DelimiterChange) {
+                // The DELIMITER command is not valid SQL.
+                editorModel.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
+                this.updateLineStartMarkers();
 
-                    // Trigger validation for the next statement.
-                    setTimeout(() => {
-                        return this.validateNextStatement();
-                    }, 0);
-
-                    return;
-                }
-
-                const start = nextDetails.span.start + this.presentation.codeOffset;
-
-                const rangeStart = editorModel.getPositionAt(start);
-                let end = start + nextDetails.span.length;
-                if (nextDetails.state === StatementFinishState.Complete) {
-                    end -= nextDetails.delimiter!.length;
-                }
-                const rangeEnd = editorModel.getPositionAt(end);
-
-                // Check if meanwhile the dimensions of the context have changed and no longer include the
-                // statement we want to validate.
-                if (rangeStart.lineNumber < this.startLine || rangeEnd.lineNumber > this.endLine) {
-                    // Trigger validation for the next statement.
-                    setTimeout(() => {
-                        return this.validateNextStatement();
-                    }, 0);
-
-                    return;
-                }
-
-                const sql = editorModel.getValueInRange({
-                    startLineNumber: rangeStart.lineNumber,
-                    startColumn: rangeStart.column,
-                    endLineNumber: rangeEnd.lineNumber,
-                    endColumn: rangeEnd.column,
-                }, Monaco.EndOfLinePreference.LF);
-
-                const timestamp = new Date().getTime();
-                this.validationsRunning.set(next, timestamp);
-                void services.validate(this, sql, (result): void => {
-                    // Check if meanwhile another split action has started for the same statement index or the
-                    // request has been cancelled.
-                    const actionTimestamp = this.validationsRunning.get(next);
-                    if (actionTimestamp === timestamp) {
-                        this.validationsRunning.delete(next);
-
-                        const newDecorations = result.map((entry: IDiagnosticEntry) => {
-                            const startPosition = editorModel.getPositionAt(entry.span.start + start);
-                            const endPosition = editorModel.getPositionAt(entry.span.start + start + entry.span.length);
-
-                            return {
-                                range: {
-                                    startLineNumber: startPosition.lineNumber,
-                                    startColumn: startPosition.column,
-                                    endLineNumber: endPosition.lineNumber,
-                                    endColumn: endPosition.column,
-                                },
-                                options: {
-                                    stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-                                    isWholeLine: false,
-                                    inlineClassName: PresentationInterface.validationClass.get(entry.severity),
-                                    minimap: {
-                                        position: Monaco.MinimapPosition.Inline,
-                                        color: "red",
-                                    },
-                                    hoverMessage: { value: entry.message || "" },
-                                },
-                            };
-                        });
-
-                        // Update the decorations in the editor.
-                        // Take care for the case where the statement details have been modified while
-                        // the validation ran.
-                        if (next < this.statementDetails.length) {
-                            nextDetails.diagnosticDecorationIDs =
-                                editorModel.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, newDecorations)
-                                ?? [];
-                        }
-                    }
-
-                    // Trigger validation for the next statement.
-                    setTimeout(() => {
-                        return this.validateNextStatement();
-                    }, 0);
-                });
+                // Trigger validation for the next statement.
+                setTimeout(() => {
+                    this.validateNextStatement();
+                }, 0);
 
                 return;
             }
+
+            const start = nextDetails.span.start + this.presentation.codeOffset;
+
+            const rangeStart = editorModel.getPositionAt(start);
+            let end = start + nextDetails.span.length;
+            if (nextDetails.state === StatementFinishState.Complete) {
+                end -= nextDetails.delimiter!.length;
+            }
+            const rangeEnd = editorModel.getPositionAt(end);
+
+            // Check if meanwhile the dimensions of the context have changed and no longer include the
+            // statement we want to validate.
+            if (rangeStart.lineNumber < this.startLine || rangeEnd.lineNumber > this.endLine) {
+                // Trigger validation for the next statement.
+                setTimeout(() => {
+                    this.validateNextStatement();
+                }, 0);
+
+                return;
+            }
+
+            const sql = editorModel.getValueInRange({
+                startLineNumber: rangeStart.lineNumber,
+                startColumn: rangeStart.column,
+                endLineNumber: rangeEnd.lineNumber,
+                endColumn: rangeEnd.column,
+            }, Monaco.EndOfLinePreference.LF);
+
+            const timestamp = new Date().getTime();
+            this.validationsRunning.set(next, timestamp);
+            void services.validate(this, sql, (result): void => {
+                // Check if meanwhile another split action has started for the same statement index or the
+                // request has been cancelled.
+                const actionTimestamp = this.validationsRunning.get(next);
+                if (actionTimestamp === timestamp) {
+                    this.validationsRunning.delete(next);
+
+                    const newDecorations = result.map((entry: IDiagnosticEntry) => {
+                        const startPosition = editorModel.getPositionAt(entry.span.start + start);
+                        const endPosition = editorModel.getPositionAt(entry.span.start + start + entry.span.length);
+
+                        return {
+                            range: {
+                                startLineNumber: startPosition.lineNumber,
+                                startColumn: startPosition.column,
+                                endLineNumber: endPosition.lineNumber,
+                                endColumn: endPosition.column,
+                            },
+                            options: {
+                                stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                                isWholeLine: false,
+                                inlineClassName: PresentationInterface.validationClass.get(entry.severity),
+                                minimap: {
+                                    position: Monaco.MinimapPosition.Inline,
+                                    color: "red",
+                                },
+                                hoverMessage: { value: entry.message ?? "" },
+                            },
+                        };
+                    });
+
+                    // Update the decorations in the editor.
+                    // Take care for the case where the statement details have been modified while
+                    // the validation ran.
+                    if (next < this.statementDetails.length) {
+                        nextDetails.diagnosticDecorationIDs = editorModel.deltaDecorations(
+                            nextDetails.diagnosticDecorationIDs, newDecorations);
+                    }
+                }
+
+                // Trigger validation for the next statement.
+                setTimeout(() => {
+                    this.validateNextStatement();
+                }, 0);
+            });
+
+            return;
         }
 
         this.updateLineStartMarkers();
@@ -994,7 +990,7 @@ export class SQLExecutionContext extends ExecutionContext {
             if (oldSize === 0) {
                 // Starting a new splitter run.
                 if (!this.#splitterSignal) {
-                    this.#splitterSignal = new Semaphore<void>();
+                    this.#splitterSignal = new Semaphore();
                 }
                 this.splitNextStatement();
             }

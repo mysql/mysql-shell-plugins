@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -63,9 +63,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
         newValue = clampValue(newValue, 0, 1);
         this.setState({ currentValue: newValue });
 
-        if (this.sliderRef?.current) {
-            this.sliderRef.current.style.setProperty("--current-value", `${100 * newValue}%`);
-        }
+        this.sliderRef.current?.style.setProperty("--current-value", `${100 * newValue}%`);
 
         onChange?.(newValue);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -70,7 +70,6 @@ export class QueryBuilder {
                 return formatBase64ToHex(value as string);
             }
 
-
             case DBDataType.DateTime:
             case DBDataType.Timestamp: {
                 const date = value instanceof Date ? value : new Date(value as string);
@@ -116,13 +115,15 @@ export class QueryBuilder {
                     return `'${String(value)}'`;
                 }
 
-                return `${String(value)}`;
+                return String(value);
             }
         }
     }
 
     public get columnNames(): string[] {
-        return this.#columns.map((column) => { return column.title; });
+        return this.#columns.map((column) => {
+            return column.title; 
+        });
     }
 
     public generateInsertStatement(newValues: unknown[]): string {
@@ -142,7 +143,9 @@ export class QueryBuilder {
                 insertValues.push(value);
             }
         });
-        const columnNames = insertColumns.map((column) => { return column.title; }).join(", ");
+        const columnNames = insertColumns.map((column) => {
+            return column.title; 
+        }).join(", ");
         const mappedValues = this.mapValues(insertColumns, insertValues).join(", ");
 
         const insertKeyword = this.#upperCase ? "INSERT INTO" : "insert into";
@@ -162,7 +165,9 @@ export class QueryBuilder {
         const changes: string[] = [];
 
         const columns = changedColumns.map((column) => {
-            return this.#columns.find((c) => { return c.title === column; })!;
+            return this.#columns.find((c) => {
+                return c.title === column; 
+            })!;
         });
         const mappedValues = this.mapValues(columns, newValues);
 

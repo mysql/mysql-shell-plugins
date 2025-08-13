@@ -33,6 +33,7 @@ describe("ConnectionTile component tests", (): void => {
 
     const details: IConnectionDetails = {
         id: 1,
+        index: -1,
         dbType: DBType.MySQL,
         caption: "Tile 1",
         description: "A description",
@@ -47,7 +48,7 @@ describe("ConnectionTile component tests", (): void => {
                 caption={details.caption}
                 description={details.description}
                 type={ConnectionTileType.Open}
-                icon={Assets.file.mysqlIcon}
+                icon={Assets.file.mysqlIcon as string}
 
             />,
         );

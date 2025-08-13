@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,19 +24,22 @@
  */
 
 import { mount, shallow } from "enzyme";
-import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
+
+import {
+    CodeEditor, ICodeEditorModel, IEditorPersistentState
+} from "../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor/index.js";
 import { ShellConsole } from "../../../../modules/shell/ShellConsole.js";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
 
 class TestShellConsole extends ShellConsole {
     public testHandleOptionsChanged = (): void => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, This is necessary to access a private method for testing purposes
         this.handleOptionsChanged();
     };
 
     public testContextRelativeLineNumbers = (originalLineNumber: number): string => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, This is necessary to access a private method for testing purposes
         return this.contextRelativeLineNumbers(originalLineNumber);
     };
 }
@@ -80,15 +83,15 @@ describe("ShellConsole tests", (): void => {
             options: {},
         };
 
-        const component = mount(
+        const component = mount<ShellConsole>(
             <ShellConsole
                 editorState={editorState}
             />,
         );
 
-        const editor = component.find("CodeEditor");
+        const editor = component.find(CodeEditor);
         expect(editor.length).toBe(1);
-        expect(editor.props().font.fontFamily).toBe("var(--msg-monospace-font-family)");
+        expect(editor.props().font?.fontFamily).toBe("var(--msg-monospace-font-family)");
         expect(editor.props().language).toBe("msg");
 
         component.unmount();

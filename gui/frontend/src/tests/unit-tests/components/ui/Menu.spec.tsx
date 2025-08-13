@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { fireEvent } from "@testing-library/preact";
 import { mount } from "enzyme";
 

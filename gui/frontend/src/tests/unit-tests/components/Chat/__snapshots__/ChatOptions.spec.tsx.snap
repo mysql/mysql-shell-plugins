@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
-<ChatOptions
+<ChatOptionsMock
   onAction={[MockFunction]}
   onChatOptionsStateChange={[MockFunction]}
   savedState={
@@ -198,7 +198,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       }
                     }
                     caption={
-                      <g>
+                      <k>
                         <Icon
                           disabled={false}
                           src={123}
@@ -206,7 +206,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                         <Label>
                           Edit chat history
                         </Label>
-                      </g>
+                      </k>
                     }
                     className="historyEditDialog"
                     container={
@@ -794,7 +794,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             }
                           }
                           caption={
-                            <g>
+                            <k>
                               <Icon
                                 disabled={false}
                                 src={123}
@@ -802,7 +802,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                               <Label>
                                 Edit chat history
                               </Label>
-                            </g>
+                            </k>
                           }
                           className="historyEditDialog"
                           container={
@@ -1959,7 +1959,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                         }
                                       }
                                       caption={
-                                        <g>
+                                        <k>
                                           <Icon
                                             disabled={false}
                                             src={123}
@@ -1967,7 +1967,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                           <Label>
                                             Edit chat history
                                           </Label>
-                                        </g>
+                                        </k>
                                       }
                                       className="historyEditDialog"
                                       container={
@@ -2257,7 +2257,6 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                       />
                                       <label
                                         className="msg toggle round"
-                                        disabled={false}
                                         htmlFor="lockTableListToggle"
                                         onClick={[Function]}
                                         onKeyPress={[Function]}
@@ -3024,7 +3023,6 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                         id="stopSequences"
                                         rows="2"
                                         spellcheck="true"
-                                        type="text"
                                       />
                                     </div>
                                   </div>
@@ -3181,6 +3179,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                             onfocusout={[Function]}
                                             oninput={[Function]}
                                             spellCheck={true}
+                                            spellcheck={true}
                                             style={
                                               {
                                                 "textAlign": undefined,
@@ -3244,6 +3243,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                             onfocusout={[Function]}
                                             oninput={[Function]}
                                             spellCheck={true}
+                                            spellcheck={true}
                                             style={
                                               {
                                                 "textAlign": undefined,
@@ -3307,6 +3307,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                             onfocusout={[Function]}
                                             oninput={[Function]}
                                             spellCheck={true}
+                                            spellcheck={true}
                                             style={
                                               {
                                                 "textAlign": undefined,
@@ -3370,6 +3371,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                             onfocusout={[Function]}
                                             oninput={[Function]}
                                             spellCheck={true}
+                                            spellcheck={true}
                                             style={
                                               {
                                                 "textAlign": undefined,
@@ -3433,6 +3435,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                             onfocusout={[Function]}
                                             oninput={[Function]}
                                             spellCheck={true}
+                                            spellcheck={true}
                                             style={
                                               {
                                                 "textAlign": undefined,
@@ -3499,12 +3502,12 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                             oninput={[Function]}
                                             rows={2}
                                             spellCheck={true}
+                                            spellcheck={true}
                                             style={
                                               {
                                                 "textAlign": undefined,
                                               }
                                             }
-                                            type="text"
                                             value=""
                                           />
                                         </Input>
@@ -3588,7 +3591,6 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                     <textarea
                                       class="msg input generatedPrompt"
                                       rows="5"
-                                      type="text"
                                     />
                                     <input
                                       class="msg toggle round"
@@ -3729,12 +3731,12 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                         oninput={[Function]}
                                         rows={5}
                                         spellCheck={false}
+                                        spellcheck={false}
                                         style={
                                           {
                                             "textAlign": undefined,
                                           }
                                         }
-                                        type="text"
                                         value=""
                                       />
                                     </Input>
@@ -3755,7 +3757,6 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                       />
                                       <label
                                         className="msg toggle round"
-                                        disabled={false}
                                         htmlFor="returnPromptToggle"
                                         onClick={[Function]}
                                         onKeyPress={[Function]}
@@ -4272,7 +4273,6 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                                       />
                                       <label
                                         className="msg toggle round"
-                                        disabled={false}
                                         htmlFor="translateUserPromptToggle"
                                         onClick={[Function]}
                                         onKeyPress={[Function]}
@@ -4379,7 +4379,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
       </Container>
     </div>
   </Container>
-</ChatOptions>
+</ChatOptionsMock>
 `;
 
 exports[`ChatOptions historyMessageColumnFormatter should format message without truncation 1`] = `
@@ -4405,7 +4405,9 @@ exports[`ChatOptions historyMessageColumnFormatter should handle empty message 1
   <label
     class="msg label"
     data-tooltip="expand"
-  />
+  >
+    
+  </label>
   <div
     class="msg icon iconOnMouseOver codicon codicon-close"
   />

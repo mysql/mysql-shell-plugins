@@ -83,8 +83,8 @@ export class Icon extends ComponentBase<IIconProperties> {
 
             overlays.forEach((overlay) => {
                 maskImage += `, url("${overlay.mask}")`;
-                maskSize += `, auto auto`;
-                maskComposite += `, add`;
+                maskSize! += `, auto auto`;
+                maskComposite! += `, add`;
                 olLayers.push(
                     <div
                         class="overlay"
@@ -97,13 +97,11 @@ export class Icon extends ComponentBase<IIconProperties> {
             maskComposite = undefined;
         }
 
-
         let newStyle;
         if (typeof src === "string") {
             // A path was given.
             newStyle = {
                 maskImage,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 WebkitMaskImage: maskImage,
                 maskSize,
                 maskComposite,

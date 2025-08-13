@@ -23,11 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConnectionDetails, IFolderPath } from "./index.js";
-import { IDictionary } from "../../app-logic/general-types.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
 import { ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { IConnectionDetails, IFolderPath } from "./index.js";
 
 export type ConnectionsAndFoldersList = Array<IConnectionDetails | IFolderPath>;
 
@@ -53,7 +52,7 @@ export class ShellInterfaceDbConnection {
                         dbType: connection.dbType,
                         caption: connection.caption,
                         description: connection.description,
-                        options: connection.options as IDictionary,
+                        options: connection.options as IShellDictionary,
                         settings: (connection.settings ?? {}) as IShellDictionary,
                     },
                     folderPathId,

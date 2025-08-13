@@ -63,7 +63,7 @@ export interface IHistoryEntry {
 }
 
 export interface IChatOptionsState extends IComponentState {
-    chatOptionsExpanded: boolean,
+    chatOptionsExpanded?: boolean,
     chatOptionsWidth: number,
     options?: IMdsChatData,
     sectionStates?: Map<string, IChatOptionsSectionState>,
@@ -82,8 +82,7 @@ export interface IChatOptionsProperties extends IComponentProperties {
 }
 
 export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOptionsState> {
-
-    #dialogRef = createRef<Dialog>();
+    private dialogRef = createRef<Dialog>();
 
     public constructor(props: IChatOptionsProperties) {
         super(props);
@@ -203,10 +202,10 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                         onSelect={this.handleSchemaChange}>
                                         <DropdownItem id="schemaDropdownAllSchemas" caption="All Database Schemas" />
                                         {options?.schemaName !== undefined &&
-                                            <DropdownItem id={options?.schemaName} caption={options?.schemaName} />}
+                                            <DropdownItem id={options.schemaName} caption={options.schemaName} />}
                                         {currentSchema !== undefined && currentSchema !== ""
                                             && (options?.schemaName === undefined
-                                                || currentSchema !== options?.schemaName) &&
+                                                || currentSchema !== options.schemaName) &&
                                             <DropdownItem id={currentSchema} caption={currentSchema} />}
                                     </Dropdown>
                                 </Container>,
@@ -269,7 +268,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                         tableData={options?.chatHistory ?? []}
                                     />
                                     <Dialog
-                                        ref={this.#dialogRef}
+                                        ref={this.dialogRef}
                                         id="historyEditDialog"
                                         className="historyEditDialog"
                                         onClose={this.closeEditTextDialog}
@@ -280,7 +279,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                             </>
                                         }
                                         content={
-                                            <Input ref={this.#dialogRef}
+                                            <Input ref={this.dialogRef}
                                                 id="historyEdit"
                                                 multiLine={true}
                                                 autoFocus={true}
@@ -476,47 +475,42 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Temperature:" />
                                         <Input id="temperature"
-                                            value={String(modelOptions?.temperature !== undefined
-                                                ? modelOptions.temperature : "")}
+                                            value={String(modelOptions?.temperature ?? "")}
                                             onBlur={this.handleModelOptionChange} />
                                         <Label className="infoLbl" caption="(0.0 - 5.0)" />
                                     </Container>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Max Tokens:" />
                                         <Input id="maxTokens"
-                                            value={String(modelOptions?.maxTokens !== undefined
-                                                ? modelOptions.maxTokens : "")}
+                                            value={String(modelOptions?.maxTokens ?? "")}
                                             onBlur={this.handleModelOptionChange} />
                                         <Label className="infoLbl" caption="(1 - 4096)" />
                                     </Container>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Top k:" />
                                         <Input id="topK"
-                                            value={String(modelOptions?.topK !== undefined
-                                                ? modelOptions?.topK : "")}
+                                            value={String(modelOptions?.topK ?? "")}
                                             onBlur={this.handleModelOptionChange} />
                                         <Label className="infoLbl" caption="(0 - 500)" />
                                     </Container>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Top p:" />
                                         <Input id="topP"
-                                            value={String(modelOptions?.topP !== undefined
-                                                ? modelOptions.topP : "")}
+                                            value={String(modelOptions?.topP ?? "")}
                                             onBlur={this.handleModelOptionChange} />
                                         <Label className="infoLbl" caption="(0.0 - 1.0)" />
                                     </Container>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Repeat Penalty:" />
                                         <Input id="repeatPenalty"
-                                            value={String(modelOptions?.repeatPenalty !== undefined
-                                                ? modelOptions.repeatPenalty : "")}
+                                            value={String(modelOptions?.repeatPenalty ?? "")}
                                             onBlur={this.handleModelOptionChange} />
                                         <Label className="infoLbl" caption="(0.0 - 1.0)" />
                                     </Container>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Stop Sequences:" />
                                         <Input id="stopSequences"
-                                            value={String(modelOptions?.stopSequences || "")}
+                                            value={String(modelOptions?.stopSequences ?? "")}
                                             multiLine={true} multiLineCount={2}
                                             onBlur={this.handleModelOptionChange} />
                                     </Container>
@@ -628,9 +622,9 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
         newMap.set(sectionId, sectionState);
 
-        if (sectionId === "promptSection" && expanded === true && (
-            savedState.options === undefined || savedState.options.returnPrompt === undefined ||
-            savedState.options.returnPrompt === false)) {
+        if (sectionId === "promptSection" && expanded && (
+            savedState.options?.returnPrompt === undefined ||
+            !savedState.options.returnPrompt)) {
             onChatOptionsStateChange({
                 options: {
                     ...savedState.options,
@@ -844,20 +838,16 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
     };
 
     private historyMessageColumnFormatter = (cell: CellComponent): string | HTMLElement => {
-        const value = cell.getValue();
+        const value = cell.getValue() as string;
 
         const host = document.createElement("div");
         host.classList.add("itemField");
 
         const content = (<>
             <Label caption={value} />
-            {/*<Icon className="iconOnMouseOver" src={Codicon.Edit}
-                onClick={(e) => {
-                    void this.handleHistoryTreeEdit(e, cell);
-                }} />*/}
             <Icon className="iconOnMouseOver" src={Codicon.Close}
                 onClick={(e) => {
-                    void this.handleHistoryTreeDelete(e, cell);
+                    this.handleHistoryTreeDelete(e, cell);
                 }} />
 
         </>);
@@ -895,7 +885,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                 },
             });
         }
-        this.#dialogRef.current?.close(props.id !== "ok");
+        this.dialogRef.current?.close(props.id !== "ok");
     };
 
     private closeEditTextDialog = (cancelled: boolean): void => {
@@ -926,7 +916,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
         const row = cell.getRow();
         const fieldId = cell.getField();
-        const chatQueryId = row.getCell("chatQueryId").getValue();
+        const chatQueryId = row.getCell("chatQueryId").getValue() as string;
 
         const chatEntry = savedState.options?.chatHistory?.find((item) => {
             return item.chatQueryId === chatQueryId;
@@ -941,8 +931,8 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
             updatedText: textToEdit,
         };
 
-        if (this.#dialogRef.current) {
-            this.#dialogRef.current.open();
+        if (this.dialogRef.current) {
+            this.dialogRef.current.open();
         }
         onChatOptionsStateChange({
             chatQueryHistory,
@@ -954,7 +944,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
         // Get chatQueryId
         const row = cell.getRow();
-        const chatQueryId = row.getCell("chatQueryId").getValue();
+        const chatQueryId = row.getCell("chatQueryId").getValue() as string;
 
         // Filter it out
         const chatHistory = savedState.options?.chatHistory?.filter((item) => {

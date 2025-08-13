@@ -87,16 +87,17 @@ const defaultWbConnectionsFilePath = new Map<string, string>([
 
 /** A class to handle all DB editor related commands and jobs. */
 export class DocumentCommandHandler {
-    static #dmTypeToMrsType = new Map<CdmEntityType, MrsDbObjectType>([
+    private static dmTypeToMrsType = new Map<CdmEntityType, MrsDbObjectType>([
         [CdmEntityType.Table, MrsDbObjectType.Table],
         [CdmEntityType.View, MrsDbObjectType.View],
         [CdmEntityType.StoredFunction, MrsDbObjectType.Function],
         [CdmEntityType.StoredProcedure, MrsDbObjectType.Procedure],
     ]);
 
-    private latestPagesByConnection: Map<number, string> = new Map();
+    private latestPagesByConnection = new Map<number, string>();
 
     private isConnected = false;
+
     private host: ExtensionHost;
 
     private dialogManager = new DialogWebviewManager();
@@ -107,9 +108,11 @@ export class DocumentCommandHandler {
     private openScripts = new Map<DBConnectionViewProvider, Map<string, Uri>>();
 
     private openEditorsTreeDataProvider: OpenEditorsTreeDataProvider;
+
     private connectionsProvider: ConnectionsTreeDataProvider;
 
     private initialDisplayOfOpenEditorsView = true;
+
     private displayDbConnectionOverviewWhenConnected = false;
 
     private openDocumentsModel = new OpenDocumentDataModel(false);
@@ -216,7 +219,7 @@ export class DocumentCommandHandler {
                 canSelectFolders: false,
                 canSelectMany: false,
                 filters: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+
                     XML: ["xml"],
                 },
             });
@@ -300,7 +303,7 @@ export class DocumentCommandHandler {
                 const provider = this.host.currentProvider;
 
                 const configuration = workspace.getConfiguration(`msg.dbEditor`);
-                const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+                const uppercaseKeywords = configuration.get<boolean>("upperCaseKeywords", true);
                 const select = uppercaseKeywords ? "SELECT" : "select";
                 const from = uppercaseKeywords ? "FROM" : "from";
 
@@ -324,7 +327,7 @@ export class DocumentCommandHandler {
                 const provider = this.host.currentProvider;
 
                 const configuration = workspace.getConfiguration(`msg.dbEditor`);
-                const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+                const uppercaseKeywords = configuration.get<boolean>("upperCaseKeywords", true);
                 const select = uppercaseKeywords ? "SELECT" : "select";
                 const from = uppercaseKeywords ? "FROM" : "from";
 
@@ -406,22 +409,18 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.showSystemSchemasOnConnection",
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
-                    if (entry.type === CdmEntityType.Connection) {
-                        entry.state.payload = { showSystemSchemas: true };
+                    entry.state.payload = { showSystemSchemas: true };
 
-                        void requisitions.execute("refreshConnection", entry);
-                    }
+                    void requisitions.execute("refreshConnection", entry);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.hideSystemSchemasOnConnection",
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
-                    if (entry.type === CdmEntityType.Connection) {
-                        entry.state.payload = { showSystemSchemas: false };
+                    entry.state.payload = { showSystemSchemas: false };
 
-                        void requisitions.execute("refreshConnection", entry);
-                    }
+                    void requisitions.execute("refreshConnection", entry);
                 }
             }));
 
@@ -441,7 +440,7 @@ export class DocumentCommandHandler {
             if (entry) {
                 const provider = this.host.currentProvider;
                 if (provider) {
-                    void provider?.makeCurrentSchema(entry.connection.details, entry.caption).then((success) => {
+                    void provider.makeCurrentSchema(entry.connection.details, entry.caption).then((success) => {
                         if (success) {
                             this.connectionsProvider.makeCurrentSchema(entry);
                         }
@@ -578,8 +577,8 @@ export class DocumentCommandHandler {
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
                     const configuration = workspace.getConfiguration(`msg.editor`);
-                    void configuration.update("defaultDbConnection", entry.details.caption,
-                        ConfigurationTarget.Global).then(() => {
+                    void configuration.update("defaultDbConnection", entry.details.caption, ConfigurationTarget.Global)
+                        .then(() => {
                             void ui.showInformationMessage(`"${entry.caption}" has been set as default DB Connection.`,
                                 {});
                         });
@@ -670,7 +669,7 @@ export class DocumentCommandHandler {
                     canSelectFolders: false,
                     canSelectMany: false,
                     filters: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+
                         SQL: ["sql", "mysql"], TypeScript: ["ts"], JavaScript: ["js"],
                     },
                 }).then(async (value) => {
@@ -689,7 +688,7 @@ export class DocumentCommandHandler {
                                 if (provider) {
                                     let language: EditorLanguage = "mysql";
                                     const name = basename(uri.fsPath);
-                                    const ext = name.substring(name.lastIndexOf(".") ?? 0);
+                                    const ext = name.substring(name.lastIndexOf("."));
                                     switch (ext) {
                                         case ".ts": {
                                             language = "typescript";
@@ -783,15 +782,15 @@ export class DocumentCommandHandler {
             async (entry: ICdmConnectionGroupEntry) => {
                 // Count how many connections and subfolders are in the folder. The group entry is returned
                 // in the list too.
-                await entry?.refresh?.();
+                await entry.refresh?.();
                 const flatList = await this.connectionsProvider.dataModel.flattenGroupList(entry);
 
                 let description: string[] = [];
-                let prompt = `Are you sure you want to remove the folder "${entry?.caption}", including all its ` +
+                let prompt = `Are you sure you want to remove the folder "${entry.caption}", including all its ` +
                     `contents? This operation cannot be reverted!`;
                 if (flatList.connections.length === 0 &&
                     flatList.groups.length === 1) { // Only the group entry is in the list.
-                    prompt = `The folder "${entry?.caption}" is empty. Do you want to remove it?`;
+                    prompt = `The folder "${entry.caption}" is empty. Do you want to remove it?`;
                 } else {
                     let groupString = "";
                     if (flatList.groups.length > 1) {
@@ -828,7 +827,7 @@ export class DocumentCommandHandler {
                     }
 
                     void ui.showInformationMessage(`The connection group ` +
-                        `"${entry?.caption}" has been deleted.`, {});
+                        `"${entry.caption}" has been deleted.`, {});
 
                     await entry.parent?.refresh?.();
                     void requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath);
@@ -871,20 +870,20 @@ export class DocumentCommandHandler {
                             provider = dataModelEntry.provider as DBConnectionViewProvider;
 
                             // Selecting a provider entry means to select the web view tab.
-                            void provider?.reveal();
+                            provider.reveal();
 
                             return;
                         }
 
                         case OdmEntityType.ShellSessionRoot: {
-                            provider = dataModelEntry.parent?.provider as DBConnectionViewProvider;
-                            void provider?.reveal();
+                            provider = dataModelEntry.parent.provider as DBConnectionViewProvider;
+                            provider.reveal();
 
                             return;
                         }
 
                         case OdmEntityType.ShellSession: {
-                            provider = dataModelEntry.parent?.parent?.provider as DBConnectionViewProvider;
+                            provider = dataModelEntry.parent.parent.provider as DBConnectionViewProvider;
 
                             break;
                         }
@@ -980,9 +979,9 @@ export class DocumentCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (
-            entry?: ICdmTableEntry | ICdmViewEntry | ICdmRoutineEntry) => {
+            entry?: ConnectionDataModelNoGroupEntry) => {
             if (entry) {
-                const connection = entry.parent.parent.parent;
+                const connection = entry.connection;
                 if (entry.type === CdmEntityType.Table || entry.type === CdmEntityType.View
                     || entry.type === CdmEntityType.StoredFunction || entry.type === CdmEntityType.StoredProcedure) {
                     // First, create a new temporary dbObject, then call the DbObject dialog
@@ -990,8 +989,8 @@ export class DocumentCommandHandler {
                         const provider = this.host.currentProvider;
                         void provider?.editMrsDbObject(connection.details,
                             { dbObject, createObject: true });
-                    }).catch((reason) => {
-                        void ui.showErrorMessage(`${String(reason)}`, {});
+                    }).catch((reason: unknown) => {
+                        void ui.showErrorMessage(String(reason), {});
                     });
                 } else {
                     void ui.showErrorMessage(`The database object type '${entry.caption}' is not supported at ` +
@@ -1035,7 +1034,7 @@ export class DocumentCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.removeSession", (entry: IOdmShellSessionEntry) => {
-            const provider = entry.parent?.parent?.provider;
+            const provider = entry.parent.parent.provider;
             if (provider instanceof DBConnectionViewProvider) {
                 void provider.removeSession(entry.details);
             }
@@ -1236,10 +1235,9 @@ export class DocumentCommandHandler {
             enabled: 1,
             id: "",
             name: entry.caption,
-            objectType: DocumentCommandHandler.#dmTypeToMrsType.get(entry.type)!,
+            objectType: DocumentCommandHandler.dmTypeToMrsType.get(entry.type)!,
             requestPath: `/${convertSnakeToCamelCase(entry.caption)}`,
             requiresAuth: 1,
-            rowUserOwnershipEnforced: 0,
             serviceId: "",
             autoDetectMediaType: 0,
         };
@@ -1343,7 +1341,7 @@ export class DocumentCommandHandler {
 
     private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
         // The user has to select a target file.
-        const filters: { [key: string]: string[]; } = {};
+        const filters: Record<string, string[]> = {};
 
         switch (details.language) {
             case "mysql": {
@@ -1416,7 +1414,7 @@ export class DocumentCommandHandler {
                 if (uri) {
                     if (uri.scheme === "untitled") {
                         // The user has to select a target file.
-                        const filters: { [key: string]: string[]; } = {};
+                        const filters: Record<string, string[]> = {};
 
                         switch (details.language) {
                             case "mysql": {
@@ -1445,7 +1443,7 @@ export class DocumentCommandHandler {
                         void window.showSaveDialog({
                             title: "Save Script File",
                             filters,
-                        }).then((value: Uri) => {
+                        }).then((value) => {
                             if (value) {
                                 const newName = basename(value.fsPath);
                                 scripts.set(details.id, value);
@@ -1454,12 +1452,10 @@ export class DocumentCommandHandler {
                                     caption: newName,
                                 });
 
-
                                 const buffer = Buffer.from(details.content, "utf-8");
 
                                 void workspace.fs.writeFile(value, buffer);
-                                void requisitions.execute("editorSaved",
-                                    { id: details.id, newName, saved: value !== undefined });
+                                void requisitions.execute("editorSaved", { id: details.id, newName, saved: true });
                             }
                         });
                     } else {

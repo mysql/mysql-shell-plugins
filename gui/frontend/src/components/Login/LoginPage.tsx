@@ -28,12 +28,13 @@ import "./LoginPage.css";
 import { ComponentChild } from "preact";
 
 import { MessageType } from "../../app-logic/general-types.js";
-import { ResponseError } from "../../communication/ResponseError.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { appParameters } from "../../supplement/AppParameters.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { webSession } from "../../supplement/WebSession.js";
 import { helpUrlMap } from "../../supplement/index.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 import { Button } from "../ui/Button/Button.js";
 import { ComponentBase, IComponentState } from "../ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../ui/Container/Container.js";
@@ -44,7 +45,6 @@ import { Icon } from "../ui/Icon/Icon.js";
 import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 import { Message } from "../ui/Message/Message.js";
-import { webSession } from "../../supplement/WebSession.js";
 
 interface ILoginPageState extends IComponentState {
     userName: string;
@@ -147,12 +147,9 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                     void requisitions.execute("userAuthenticated", profile);
                 });
             }
-        }).catch((reason) => {
-            if (reason instanceof ResponseError) {
-                this.setState({ errorMessage: reason.message });
-            } else {
-                this.setState({ errorMessage: reason });
-            }
+        }).catch((reason: unknown) => {
+            const message = convertErrorToString(reason);
+            this.setState({ errorMessage: message });
         });
     };
 

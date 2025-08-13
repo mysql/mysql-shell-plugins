@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,7 +43,6 @@ describe("MdsEndpointDialog show tests", () => {
         );
         expect(component).toMatchSnapshot();
     });
-
 
     it("Test close dialog by clicking Ok button", async () => {
         const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {

@@ -39,7 +39,6 @@ exports[`Toggle testing Render test 1`] = `
   />
   <label
     className="msg toggle round"
-    disabled={false}
     htmlFor=""
     onClick={[Function]}
     onKeyPress={[Function]}

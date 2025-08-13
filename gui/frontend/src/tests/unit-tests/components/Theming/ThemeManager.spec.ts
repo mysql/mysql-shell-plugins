@@ -24,8 +24,7 @@
  */
 
 import { IThemeObject, ThemeManager } from "../../../../components/Theming/ThemeManager.js";
-
-/* eslint-disable @typescript-eslint/naming-convention */
+ 
 jest.mock("../../../../components/Theming/assets/light-modern-color-theme.json", (): unknown => {
     return {
         name: "Light Modern",
@@ -66,7 +65,7 @@ describe("ThemeManager tests", () => {
         expect(result).toEqual(
             `\t--activityBar-background: #FF0000;
 \t--focusBorder: rgba(0, 122, 204, 0.5);
-`       );
+` );
     });
 
     it("Test parseHostTheme", () => {

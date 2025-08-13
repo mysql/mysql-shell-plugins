@@ -28,6 +28,10 @@ cwd=`dirname $0`
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
 
+echo "Fixing node module(s)..."
+sed -i.bak "s|^export \* from './Viewport';|export * from './Viewport.js';|" node_modules/pixi-viewport/dist/index.d.ts && rm node_modules/pixi-viewport/dist/index.d.ts.bak
+printf "\n"
+
 # Generate parsers only if something in the source folder changed.
 source=`ls -t src/parsing/mysql/MySQL* | head -1`
 target=`ls -t src/parsing/mysql/generated/MySQL* 2> /dev/null | head -1`
@@ -36,9 +40,9 @@ if [[ $source -nt $target ]]; then
   printf "\x1b[1m\x1b[34mParser source files changed - regenerating target files..."
   printf "\x1b[0m\n\n"
 
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/MySQLMRS*.g4
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/python/generated src/parsing/python/*.g4
+  antlr-ng -Dlanguage=TypeScript --exact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/MySQLMRS*.g4
+  antlr-ng -Dlanguage=TypeScript --exact-output-dir -o ./src/parsing/SQLite/generated src/parsing/SQLite/*.g4
+  antlr-ng -Dlanguage=TypeScript --exact-output-dir -o ./src/parsing/python/generated src/parsing/python/*.g4
 
   printf "\n"
 fi

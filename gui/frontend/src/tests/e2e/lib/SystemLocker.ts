@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,6 +40,7 @@ export class SystemLocker {
 
     /**
      * Creates the lock / Creates the lock folder
+     * 
      * @param reason The reason to lock the system
      * @param timeout The time to wait for a lock
      * @returns A promise resolving when the system is locked
@@ -61,6 +62,7 @@ export class SystemLocker {
 
     /**
      * Removes the lock / Removes the lock folder
+     * 
      * @param reason The reason to unlock the system
      * @param testDuration The duration of the lock
      */
@@ -81,17 +83,20 @@ export class SystemLocker {
 
     /**
      * Verifies if the system is locked
+     * 
      * @returns True if the system is locked, false otherwise
      */
     public isLocked = (): boolean => {
-        return this.locked === true;
+        return this.locked;
     };
 
     /**
      * Writes to the log file
+     * 
      * @param content The content to write
      */
     private log = (content: string) => {
+        // eslint-disable-next-line no-restricted-syntax
         const logFile = join(process.cwd(), "systemLocks.log");
 
         if (existsSync(logFile)) {

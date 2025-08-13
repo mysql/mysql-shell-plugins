@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -141,11 +141,11 @@ export const getText = (context: ParserRuleContext, convertEscapes: boolean): st
 
         for (let index = 0; index < context.getChildCount(); ++index) {
             const child = context.textStringLiteral(index)!;
-            // eslint-disable-next-line no-underscore-dangle
+
             const token = child._value;
             if (token?.type === MySQLMRSParser.DOUBLE_QUOTED_TEXT
                 || token?.type === MySQLMRSParser.SINGLE_QUOTED_TEXT) {
-                let text = token.text || "''";
+                let text = token.text ?? "''";
                 const quoteChar = text[0];
                 const doubledQuoteChar = quoteChar.repeat(2);
                 text = text.substring(1, text.length - 1); // Remove outer quotes.
@@ -225,7 +225,7 @@ export const getText = (context: ParserRuleContext, convertEscapes: boolean): st
 export const dumpTree = (context: ParserRuleContext, vocabulary: Vocabulary, indentation: string): string => {
     let result = "";
 
-    for (const child of context.children ?? []) {
+    for (const child of context.children) {
         if (child instanceof ParserRuleContext) {
             if (child instanceof TextLiteralContext) {
                 const interval = child.getSourceInterval();
@@ -267,7 +267,7 @@ export const dumpTree = (context: ParserRuleContext, vocabulary: Vocabulary, ind
 export const sourceTextForRange = (start: Token | ParseTree, stop: Token | ParseTree | undefined,
     keepQuotes: boolean): string => {
 
-    const isToken = (start as Token).type !== undefined;
+    const isToken = (start as Token).type;
 
     let startToken = start as Token;
     if (!isToken) {
@@ -503,12 +503,10 @@ export const contextFromPosition = (root: ParserRuleContext, position: number): 
         return null;
     }
 
-    if (root.children) {
-        for (const child of root.children) {
-            const result = contextFromPosition(child as ParserRuleContext, position);
-            if (result) {
-                return result;
-            }
+    for (const child of root.children) {
+        const result = contextFromPosition(child as ParserRuleContext, position);
+        if (result) {
+            return result;
         }
     }
 

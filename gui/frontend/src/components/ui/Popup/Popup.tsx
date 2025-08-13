@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,10 +27,10 @@ import "./Popup.css";
 
 import { ComponentChild, createRef } from "preact";
 
+import { ComponentBase, ComponentPlacement, IComponentState } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
 import { computeContentPosition } from "../html-helpers.js";
-import { ComponentPlacement, IComponentState, ComponentBase } from "../Component/ComponentBase.js";
-import { Orientation, Container } from "../Container/Container.js";
-import { IPortalProperties, Portal, IPortalOptions } from "../Portal/Portal.js";
+import { IPortalOptions, IPortalProperties, Portal } from "../Portal/Portal.js";
 
 export interface IPopupProperties extends IPortalProperties {
     header?: ComponentChild;
@@ -106,7 +106,7 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
     }
 
     public get isOpen(): boolean {
-        return this.portalRef.current?.isOpen || false;
+        return this.portalRef.current?.isOpen ?? false;
     }
 
     public open(currentTarget: DOMRect, options?: IPortalOptions): void {

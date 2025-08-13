@@ -232,7 +232,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     // If there is a bastion in the same compartment
                     (details.options as IMySQLConnectionOptions)["bastion-id"] = bastions[0].id;
                     this.liveUpdateFields.bastionId.value =
-                        (details.options as IMySQLConnectionOptions)["bastion-id"] as string;
+                        (details.options as IMySQLConnectionOptions)["bastion-id"]!;
                     this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, currentPath, details);
                 } else {
                     this.confirmBastionCreation(currentPath, details);
@@ -330,7 +330,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 const fileName = sqliteDetailsSection.dbFilePath.value as string;
                 try {
                     new URL("file:///" + fileName); // Can throw.
-                } catch (e) {
+                } catch {
                     result.messages.dbFilePath = "Invalid file path";
                 }
             }
@@ -382,7 +382,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             const isSqlite = generalSection.databaseType.value === "Sqlite";
             const isMySQL = generalSection.databaseType.value === "MySQL";
 
-            let details: IConnectionDetails | undefined = data?.details as IConnectionDetails;
+            let details: IConnectionDetails | undefined = data?.details as IConnectionDetails | undefined;
             const dbType = generalSection.databaseType.value as DBType; // value must be a string.
 
             if (data?.createNew) {
@@ -442,7 +442,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     }
 
                     const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
-                    let mode;
+                    let mode: MySQLSslMode | undefined;
                     if (useSsl) {
                         ConnectionEditor.#mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
                             if (value === mysqlSslSection.sslMode.value) {
@@ -456,7 +456,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         : undefined;
 
                     details.options = {
-                        /* eslint-disable @typescript-eslint/naming-convention */
                         "scheme": mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
                         "host": mysqlDetailsSection.hostName.value as string,
                         "port": mysqlDetailsSection.port.value as number,
@@ -464,7 +463,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "schema": mysqlDetailsSection.defaultSchema.value as string,
 
                         // "useSSL": useSsl ? undefined : "no",
-                        "ssl-mode": mode ?? undefined,
+                        "ssl-mode": mode,
                         "ssl-ca": mysqlSslSection.sslCaFile.value as string,
                         "ssl-cert": mysqlSslSection.sslCertFile.value as string,
                         "ssl-key": mysqlSslSection.sslKeyFile.value as string,
@@ -645,7 +644,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 folderPath: {
                     type: "choice",
                     caption: "Folder Path:",
-                    value: !details.folderPath ? "/" : details.folderPath,
+                    value: details.folderPath ?? "/",
                     choices: this.knownPaths,
                     description: "Path of the folder holding the connection",
                     horizontalSpan: 3,
@@ -683,7 +682,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     type: "resource",
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+
                     filters: { "SQLite 3": ["sqlite3", "sqlite"] },
                     placeholder: "<Enter the DB file location>",
                     horizontalSpan: 8,
@@ -800,7 +799,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         if (value) {
                             this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
-                            }).catch((reason) => {
+                            }).catch((reason: unknown) => {
                                 const message = convertErrorToString(reason);
                                 void ui.showErrorMessage("Error while loading OCI profiles: " + message, {});
                             });
@@ -830,7 +829,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 sslCipher: {
                     type: "text",
                     caption: "Permitted ciphers (optional, comma separated list)",
-                    value: optionsMySQL["ssl-cipher"] as string,
+                    value: optionsMySQL["ssl-cipher"]!,
                     horizontalSpan: 5,
                 },
                 sslCaFile: {
@@ -969,7 +968,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     caption: "Profile Name",
                     value: this.activeOciProfileName,
                     horizontalSpan: 4,
-                    choices: this.ociProfileNames ? this.ociProfileNames.map((item) => { return item.profile; }) : [],
+                    choices: this.ociProfileNames ? this.ociProfileNames.map((item) => {
+                        return item.profile;
+                    }) : [],
                     onChange: this.handleProfileNameChange,
                 },
                 databaseTypeDescription: {
@@ -1023,7 +1024,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             },
         };
 
-
         return {
             id: String(details.id),
             sections: new Map<string, IDialogSection>([
@@ -1053,7 +1053,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 return undefined;
             }
         } else {
-            const result = filterInt(value?.toString());
+            const result = filterInt(value.toString());
             if (isNaN(result) || result < 0) {
                 return undefined;
             }
@@ -1104,9 +1104,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         "Password Cleared",
                     );
 
-                    // TODO: show message for success, once we have message toasts.
+                    ui.showInformationMessage("Password cleared successfully.", {});
                 }
-            }).catch((reason) => {
+            }).catch((reason: unknown) => {
                 const message = convertErrorToString(reason);
                 void ui.showErrorMessage(`Clear Password Error: ${message}`, {});
             });
@@ -1115,13 +1115,19 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
     private fillProfileDropdown(profiles: IMdsProfileData[] | undefined) {
         this.ociProfileNames = profiles;
-        const items = this.ociProfileNames?.map((item) => { return item.profile; }) ?? [];
-        const found = this.ociProfileNames?.find((item) => { return item.isCurrent === true; });
+        const items = this.ociProfileNames?.map((item) => {
+            return item.profile;
+        }) ?? [];
+        const found = this.ociProfileNames?.find((item) => {
+            return item.isCurrent;
+        });
         if (!this.activeOciProfileName) {
             this.activeOciProfileName = found?.profile;
             this.liveUpdateFields.profileName = this.activeOciProfileName ?? "";
         } else {
-            const profile = items.find((item) => { return item === this.activeOciProfileName; });
+            const profile = items.find((item) => {
+                return item === this.activeOciProfileName;
+            });
             if (!profile) {
                 items.unshift(this.activeOciProfileName);
             }
@@ -1157,18 +1163,14 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         this.shellSession.mhs.getMdsBastion(this.liveUpdateFields.profileName, this.liveUpdateFields.bastionId.value)
             .then((summary) => {
-                if (summary) {
-                    this.updateInputValue(summary.name, "bastionName");
-                }
+                this.updateInputValue(summary.name, "bastionName");
             }).catch(() => {
                 this.updateInputValue("<error loading bastion name data>", "bastionName");
             });
 
         this.shellSession.mhs.getMdsMySQLDbSystem(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId)
             .then((system) => {
-                if (system) {
-                    this.updateInputValue(system.displayName, "mysqlDbSystemName");
-                }
+                this.updateInputValue(system.displayName, "mysqlDbSystemName");
             })
             .catch(() => {
                 this.updateInputValue("<error loading database OCI name data>", "mysqlDbSystemName");
@@ -1181,11 +1183,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.beginValueUpdating("Loading...", "bastionName");
 
             this.shellSession.mhs.getMdsBastion(this.liveUpdateFields.profileName, value).then((summary) => {
-                if (summary) {
-                    this.updateInputValue(summary.name, "bastionName");
-                }
-            }).catch((reason) => {
-                this.updateInputValue(reason as string, "bastionName");
+                this.updateInputValue(summary.name, "bastionName");
+            }).catch((reason: unknown) => {
+                const message = convertErrorToString(reason);
+                this.updateInputValue(message, "bastionName");
             });
         }
     };
@@ -1196,10 +1197,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.beginValueUpdating("Loading...", "mysqlDbSystemName");
 
             this.shellSession.mhs.getMdsMySQLDbSystem(this.liveUpdateFields.profileName, value).then((system) => {
-                if (system) {
-                    this.updateInputValue(system.displayName, "mysqlDbSystemName");
-                }
-            }).catch((reason) => {
+                this.updateInputValue(system.displayName, "mysqlDbSystemName");
+            }).catch((reason: unknown) => {
                 const message = convertErrorToString(reason);
                 void ui.showErrorMessage(`Get MHS Database Error: ${message}`, {});
                 this.updateInputValue("<error loading mds database info>", "mysqlDbSystemName");
@@ -1220,7 +1219,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         if (id === "MDS/Bastion Service") {
             this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
                 this.fillProfileDropdown(profiles);
-            }).catch((reason) => {
+            }).catch((reason: unknown) => {
                 const message = convertErrorToString(reason);
                 void ui.showErrorMessage(`Error when loading OCI profiles: ${message}`, {});
             });
@@ -1320,7 +1319,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private handleCreateNewBastion = ((closure: DialogResponseClosure, values?: IDictionary): void => {
         if (closure === DialogResponseClosure.Accept && values) {
             const details = values.connection as IConnectionDetails;
-            const currentPath = values.currentPath as string ?? "/";
+            const currentPath = values.currentPath as string | undefined ?? "/";
             const contexts: string[] = [DBType.MySQL];
             if (details.useSSH) {
                 contexts.push("useSSH");
@@ -1370,9 +1369,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.shellSession.mhs.getMdsMySQLDbSystem(this.liveUpdateFields.profileName,
                 this.liveUpdateFields.dbSystemId)
                 .then((system) => {
-                    if (system) {
-                        this.updateInputValue(system.displayName, "mysqlDbSystemName");
-                    }
+                    this.updateInputValue(system.displayName, "mysqlDbSystemName");
                 })
                 .catch(() => {
                     this.editorRef.current?.updateInputValue("<error loading database OCI name data>",

@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /*
  * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
@@ -63,10 +64,10 @@ const globalConn: interfaces.IDBConnection = {
     description: "Local connection",
     basic: {
         hostname: "localhost",
-        username: String(process.env.DBUSERNAME1),
-        port: parseInt(process.env.MYSQL_PORT!, 10),
+        username: String(globalThis.testConfig!.DBUSERNAME1),
+        port: parseInt(String(globalThis.testConfig!.MYSQL_PORT), 10),
         schema: "sakila",
-        password: String(process.env.DBUSERNAME1PWD),
+        password: String(globalThis.testConfig!.DBUSERNAME1PWD),
     },
 };
 
@@ -97,7 +98,7 @@ describe("CLIPBOARD", () => {
         beforeAll(async () => {
             const configs = await Misc.mapOciConfig();
             ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
-                return item.name = "E2ETESTS";
+                return item.name === "E2ETESTS";
             })!;
 
             e2eProfile = `${ociConfig.name} (${ociConfig.region})`;
@@ -117,7 +118,6 @@ describe("CLIPBOARD", () => {
             await TestQueue.push(expect.getState().currentTestName!);
             await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
         });
-
 
         afterAll(async () => {
             await Misc.dismissNotifications(true);
@@ -151,7 +151,6 @@ describe("CLIPBOARD", () => {
                 await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-                process.env.COMPARTMENT_ID = JSON.parse(String(await textEditor.getText())).id;
                 await tabContainer.closeAllTabs();
             } catch (e) {
                 await Misc.storeScreenShot();
@@ -302,7 +301,7 @@ describe("CLIPBOARD", () => {
 
                 expect(await hostNameInput.getAttribute("value")).toBe(valueToCopy);
                 const descriptionInput = await conDialog.findElement(locator.dbConnectionDialog.description);
-                await DialogHelper.clearInputField(descriptionInput);
+                await DialogHelper.clearInputField(conDialog, locator.dbConnectionDialog.description);
                 await descriptionInput.sendKeys("testing");
                 const valueToCut = await descriptionInput.getAttribute("value");
                 await Os.keyboardSelectAll(descriptionInput);
@@ -323,7 +322,6 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL).schema!,
                     [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
 
-
                 await driver.wait(Misc.untilNotificationExists(/The name was copied to the system clipboard/),
                     constants.wait3seconds);
                 expect(await Os.readClipboard()).toBe((globalConn.basic as interfaces.IConnBasicMySQL).schema);
@@ -333,9 +331,9 @@ describe("CLIPBOARD", () => {
                     .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL).schema!,
                         [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
-                await driver.wait(Misc
-                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
-                    constants.wait3seconds);
+                const regex = /The CREATE statement was copied to the system clipboard/;
+                await driver.wait(Misc.untilNotificationExists(regex), constants.wait3seconds);
+
                 expect(await Os.readClipboard()).toContain("CREATE DATABASE");
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -346,19 +344,21 @@ describe("CLIPBOARD", () => {
 
         it("Table - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.openContextMenuAndSelect("actor", [constants.copyToClipboard.exists,
-                constants.copyToClipboard.name]);
+                await dbTreeSection.openContextMenuAndSelect("actor",
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+
                 await driver.wait(Misc.untilNotificationExists(/The name was copied to the system clipboard/),
                     constants.wait3seconds);
                 expect(await Os.readClipboard()).toBe("actor");
                 await Misc.dismissNotifications();
 
-                await dbTreeSection.openContextMenuAndSelect("actor", [constants.copyToClipboard.exists,
-                constants.copyToClipboard.createStatement]);
+                await dbTreeSection.openContextMenuAndSelect("actor",
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
+                const regex = /The CREATE statement was copied to the system clipboard/;
                 await driver.wait(Misc
-                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
-                    constants.wait3seconds);
+                    .untilNotificationExists(regex), constants.wait3seconds);
+
                 expect(await Os.readClipboard()).toContain("CREATE TABLE");
                 await Misc.dismissNotifications();
                 await dbTreeSection.collapseTreeItem("Tables");
@@ -370,12 +370,13 @@ describe("CLIPBOARD", () => {
 
         it("View - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.openContextMenuAndSelect(testView, [constants.copyToClipboard.exists,
-                constants.copyToClipboard.createStatement]);
+                await dbTreeSection.openContextMenuAndSelect(testView,
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
+                const regex = /The CREATE statement was copied to the system clipboard/;
                 await driver.wait(Misc
-                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
-                    constants.wait3seconds);
+                    .untilNotificationExists(regex), constants.wait3seconds);
+
                 expect(await Os.readClipboard()).toContain("AS select");
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -387,12 +388,13 @@ describe("CLIPBOARD", () => {
         it("Functions - Copy to Clipboard", async () => {
             try {
                 await dbTreeSection.expandTreeItem("Functions");
-                await dbTreeSection.openContextMenuAndSelect(testFunction, [constants.copyToClipboard.exists,
-                constants.copyToClipboard.createStatement]);
+                await dbTreeSection.openContextMenuAndSelect(testFunction,
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
+                const regex = /The CREATE statement was copied to the system clipboard/;
                 await driver.wait(Misc
-                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
-                    constants.wait3seconds);
+                    .untilNotificationExists(regex), constants.wait3seconds);
+
                 expect(await Os.readClipboard()).toMatch(/CREATE.*FUNCTION/);
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -404,21 +406,23 @@ describe("CLIPBOARD", () => {
         it("Events - Copy to Clipboard", async () => {
             try {
                 await dbTreeSection.expandTreeItem("Events");
-                await dbTreeSection.openContextMenuAndSelect(testEvent, [constants.copyToClipboard.exists,
-                constants.copyToClipboard.name]);
+                await dbTreeSection.openContextMenuAndSelect(testEvent,
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
 
+                let regex = /The name was copied to the system clipboard/;
                 await driver.wait(Misc
-                    .untilNotificationExists(/The name was copied to the system clipboard/),
-                    constants.wait3seconds);
+                    .untilNotificationExists(regex), constants.wait3seconds);
+
                 await Misc.dismissNotifications();
 
                 expect(await Os.readClipboard()).toBe(testEvent);
-                await dbTreeSection.openContextMenuAndSelect(testEvent, [constants.copyToClipboard.exists,
-                constants.copyToClipboard.createStatement]);
+                await dbTreeSection.openContextMenuAndSelect(testEvent,
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
+                regex = /The CREATE statement was copied to the system clipboard/;
                 await driver.wait(Misc
-                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
-                    constants.wait3seconds);
+                    .untilNotificationExists(regex), constants.wait3seconds);
+
                 expect(await Os.readClipboard()).toMatch(/CREATE.*EVENT/);
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -430,12 +434,13 @@ describe("CLIPBOARD", () => {
         it("Procedures - Copy to Clipboard", async () => {
             try {
                 await dbTreeSection.expandTreeItem("Procedures");
-                await dbTreeSection.openContextMenuAndSelect(testProcedure, [constants.copyToClipboard.exists,
-                constants.copyToClipboard.createStatement]);
+                await dbTreeSection.openContextMenuAndSelect(testProcedure,
+                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
+                const regex = /The CREATE statement was copied to the system clipboard/;
                 await driver.wait(Misc
-                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
-                    constants.wait3seconds);
+                    .untilNotificationExists(regex), constants.wait3seconds);
+
                 expect(await Os.readClipboard()).toMatch(/CREATE.*PROCEDURE/);
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -447,7 +452,6 @@ describe("CLIPBOARD", () => {
     });
 
     describe("RESULT GRIDS", () => {
-
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         let notebook: E2ENotebook;
@@ -769,6 +773,7 @@ describe("CLIPBOARD", () => {
             try {
                 await notebook.codeEditor.clean();
                 const filename = "1_users.sql";
+
                 const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", filename);
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.loadSQLScriptFromDisk);
                 await Misc.uploadFile(destFile);

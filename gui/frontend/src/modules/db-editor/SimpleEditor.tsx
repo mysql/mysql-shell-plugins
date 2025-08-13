@@ -178,9 +178,7 @@ export class SimpleEditor extends ComponentBase<ISimpleEditorProperties> {
     }
 
     private handleCaretMove = (position: IPosition): Promise<boolean> => {
-        if (this.#editorPositionSbEntry) {
-            this.#editorPositionSbEntry.text = `Ln ${position.lineNumber || 1}, Col ${position.column || 1}`;
-        }
+        this.#editorPositionSbEntry.text = `Ln ${position.lineNumber || 1}, Col ${position.column || 1}`;
 
         return Promise.resolve(true);
     };
@@ -211,7 +209,7 @@ export class SimpleEditor extends ComponentBase<ISimpleEditorProperties> {
             const language = savedState.model.getLanguageId() as EditorLanguage;
 
             this.#editorLanguageSbEntry.text = language;
-            this.#editorEolSbEntry.text = savedState.options.defaultEOL || "LF";
+            this.#editorEolSbEntry.text = savedState.options.defaultEOL ?? "LF";
 
             if (savedState.options.insertSpaces) {
                 this.#editorIndentSbEntry.text = `Spaces: ${savedState.options.indentSize ?? 4}`;

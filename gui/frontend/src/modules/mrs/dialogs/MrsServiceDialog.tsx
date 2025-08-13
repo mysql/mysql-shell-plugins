@@ -56,7 +56,9 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const dialogValues = this.dialogValues(request);
-        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Service" });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, { title: "MySQL REST Service" });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);
@@ -94,14 +96,14 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 if (optionsSection.values.options.value) {
                     try {
                         JSON.parse(optionsSection.values.options.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.options = "Please provide a valid JSON object.";
                     }
                 }
                 if (optionsSection.values.metadata.value) {
                     try {
                         JSON.parse(optionsSection.values.metadata.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.metadata = "Please provide a valid JSON object.";
                     }
                 }
@@ -176,8 +178,8 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         };
 
         request.parameters ??= {};
-        const authApps = request.parameters.authApps as IMrsAuthAppData[] ?? [];
-        const linkedAuthApps = request.parameters.linkedAuthApps as IMrsAuthAppData[] ?? [];
+        const authApps = request.parameters.authApps as IMrsAuthAppData[] | undefined ?? [];
+        const linkedAuthApps = request.parameters.linkedAuthApps as IMrsAuthAppData[] | undefined ?? [];
 
         settingsSection.values.linkedAuthApps = {
             type: "checkList",
@@ -282,7 +284,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
 
         let protocol = "HTTPS";
         if (request.values?.protocols !== undefined) {
-            const protocols = request.values?.protocols as string[];
+            const protocols = request.values.protocols as string[];
             if (protocols.length >= 1) {
                 protocol = protocols[protocols.length - 1];
             }
@@ -326,7 +328,9 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         const authAppList = checkList as Array<{ data: ICheckboxProperties; }>;
         const linkedAuthAppIds = authAppList.filter((app) => {
             return app.data.checkState === CheckState.Checked;
-        }).map((app) => { return app.data.id!; });
+        }).map((app) => {
+            return app.data.id!;
+        });
 
         if (mainSection && settingsSection && optionsSection && authSection && advancedSection) {
             const values: IMrsServiceDialogData = {

@@ -46,7 +46,7 @@ const dataModelChanged = jest.fn();
 
 jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () => {
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         ShellInterfaceSqlEditor: jest.fn().mockImplementation(() => {
             return {
                 startSession: jest.fn(),
@@ -142,7 +142,7 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
 
 jest.mock("../../../supplement/ShellInterface/ShellInterfaceDbConnection.js", () => {
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         ShellInterfaceDbConnection: jest.fn().mockImplementation(() => {
             return {
                 listDbConnections: jest.fn().mockImplementation(() => {
@@ -187,7 +187,7 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceDbConnection.js", ()
 
 jest.mock("../../../supplement/ShellInterface/ShellInterfaceCore.js", () => {
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         ShellInterfaceCore: jest.fn().mockImplementation(() => {
             return {
                 createDatabaseFile: jest.fn(),
@@ -255,7 +255,7 @@ describe("ConnectionDataModel", () => {
         expect(firstConnection.isOpen).toBe(false); // No data was provided yet.
 
         // Close the connection to reset its initialized state.
-        await firstConnection.close?.();
+        await firstConnection.close();
 
         // Try again, this time with data.
         cdmMockState.haveMockConnectionResponse = true;
@@ -384,7 +384,6 @@ describe("ConnectionDataModel", () => {
         await dataModel.reloadConnections();
         const roots = dataModel.roots;
         await roots[0].refresh?.();
-
 
         checkNoUiWarningsOrErrors();
     });

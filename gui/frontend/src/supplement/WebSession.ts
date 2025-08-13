@@ -48,7 +48,7 @@ interface IWebSessionData {
     userId: number;
     userName: string;
     profileId: number;
-    moduleSessionId: { [key: string]: string; };
+    moduleSessionId: Record<string, string>;
 }
 
 export interface ILoginCredentials {
@@ -208,10 +208,10 @@ class WebSession {
     public saveProfile(): void {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
-            if (!appParameters.inExtension) {
+            if (!appParameters.embedded) {
                 void ui.showInformationMessage("Profile updated successfully.", {});
             }
-        }).catch((reason) => {
+        }).catch((reason: unknown) => {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Profile Update Error: ${message}`, {});
         });
@@ -265,7 +265,7 @@ class WebSession {
                 key, new Uint8Array(data));
 
             return JSON.parse(new TextDecoder().decode(decrypted)) as ILoginCredentials;
-        } catch (e) {
+        } catch {
             return undefined;
         }
     }

@@ -27,7 +27,7 @@ import { ComponentChild, createRef, VNode } from "preact";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import {
-    DialogResponseClosure, DialogType, IColumnInfo, IStatusInfo, MessageType, defaultValues, type ISqlUpdateResult,
+    defaultValues, DialogResponseClosure, DialogType, IColumnInfo, IStatusInfo, MessageType, type ISqlUpdateResult,
 } from "../../app-logic/general-types.js";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
 import { Assets } from "../../supplement/Assets.js";
@@ -117,6 +117,7 @@ interface IResultTabViewProperties extends IComponentProperties {
 
     /**
      * Called when changed result set data must be written to the application store and sent to the server.
+     *
      * @returns An error message or the number of affected rows if the update was successful.
      */
     onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
@@ -159,10 +160,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     }
 
     /** The number of updated rows during the last commit action. */
-    #affectedRows: Map<string, number> = new Map();
+    private affectedRows = new Map<string, number>();
 
     /** All value changes per result set. */
-    #editingInfo: Map<string, IEditingInfo> = new Map();
+    private editingInfo = new Map<string, IEditingInfo>();
 
     public constructor(props: IResultTabViewProperties) {
         super(props);
@@ -174,7 +175,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         this.addHandledProperties("resultSets", "contextId", "currentSet",
             "upperCaseKeywords", "toggleOptions", "layoutOptions", "connectionToggle",
-            "hideTabs","onResultPageChange", "onSelectTab");
+            "hideTabs", "onResultPageChange", "onSelectTab");
     }
 
     public static override getDerivedStateFromProps(newProps: IResultTabViewProperties,
@@ -216,7 +217,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         const pages: ITabviewPage[] = [];
 
-        if (resultSets?.output && resultSets.output.length > 0) {
+        if (resultSets.output && resultSets.output.length > 0) {
             pages.push({
                 id: "output",
                 caption: `Output`,
@@ -242,13 +243,13 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             />
         </Button>;
 
-        const currentEditingInfo = this.#editingInfo.get(currentResultSet?.resultId ?? "");
+        const currentEditingInfo = this.editingInfo.get(currentResultSet?.resultId ?? "");
         const editModeActive = currentEditingInfo !== undefined;
 
         const updatable = currentResultSet?.updatable ?? false;
 
         resultSets.sets.forEach((resultSet: IResultSet, index) => {
-            const editingInfo = this.#editingInfo.get(resultSet?.resultId ?? "");
+            const editingInfo = this.editingInfo.get(resultSet.resultId);
             const editModeActive = editingInfo !== undefined;
 
             const ref = createRef<ResultView>();
@@ -301,7 +302,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     );
                 }
 
-
                 pages.push({
                     id: resultSet.resultId,
                     caption,
@@ -315,14 +315,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         // Show editing information if we have it, otherwise use the execution info.
         let statusInfo = currentEditingInfo?.statusInfo;
         if (!statusInfo) {
-            if (currentResultSet && this.#affectedRows.has(currentResultSet.resultId)) {
-                const affectedRows = this.#affectedRows.get(currentResultSet.resultId)!;
+            if (currentResultSet && this.affectedRows.has(currentResultSet.resultId)) {
+                const affectedRows = this.affectedRows.get(currentResultSet.resultId)!;
                 const rowText = formatWithNumber("row", affectedRows);
                 statusInfo = {
                     text: `${rowText} updated`,
                 };
             } else if (currentResultSet?.data.executionInfo) {
-                statusInfo = currentResultSet?.data.executionInfo;
+                statusInfo = currentResultSet.data.executionInfo;
             }
         }
 
@@ -338,7 +338,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             <ResultStatus statusInfo={statusInfo} statusTextPosition={statusTextPosition}>
                 {
                     !gotError && !gotResponse && <Toolbar dropShadow={false} >
-                        {connectionToggle !== undefined ? connectionToggle : null}
+                        {connectionToggle ?? null}
                         <Label className="autoHide">View:</Label>
                         <Dropdown
                             id="viewStyleDropDown"
@@ -404,7 +404,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                             imageOnly={true}
                             disabled={!currentEditingInfo}
                             data-tooltip="Apply Changes"
-                            onClick={() => { return this.commitChanges(); }}
+                            onClick={() => {
+                                this.commitChanges();
+                            }}
                         >
                             <Icon src={Assets.toolbar.commitIcon} data-tooltip="inherit" />
                         </Button>
@@ -461,34 +463,34 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     closeTabs={this.closeTabs}
                     canCloseTab={this.canClose}
                 />
-                    {toolbarLocation === "bottom" && resultStatus}
+                {toolbarLocation === "bottom" && resultStatus}
 
-                    <Menu
-                        id="actionMenu"
-                        ref={this.actionMenuRef}
-                        placement={ComponentPlacement.BottomLeft}
-                        onItemClick={this.handleActionMenuItemClick}
-                    >
-                        <MenuItem
-                            id="closeMenuItem"
-                            command={{ title: "Close Result Set", command: "closeMenuItem" }}
-                        />
-                        <MenuItem
-                            id="separator1"
-                            command={{ title: "-", command: "" }}
-                            disabled
-                        />
-                        <MenuItem
-                            id="exportMenuItem"
-                            command={{ title: "Export Result Set", command: "exportMenuItem" }}
-                            disabled
-                        />
-                        <MenuItem
-                            id="importMenuItem"
-                            command={{ title: "Import Result Set", command: "importMenuItem" }}
-                            disabled
-                        />
-                    </Menu>
+                <Menu
+                    id="actionMenu"
+                    ref={this.actionMenuRef}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleActionMenuItemClick}
+                >
+                    <MenuItem
+                        id="closeMenuItem"
+                        command={{ title: "Close Result Set", command: "closeMenuItem" }}
+                    />
+                    <MenuItem
+                        id="separator1"
+                        command={{ title: "-", command: "" }}
+                        disabled
+                    />
+                    <MenuItem
+                        id="exportMenuItem"
+                        command={{ title: "Export Result Set", command: "exportMenuItem" }}
+                        disabled
+                    />
+                    <MenuItem
+                        id="importMenuItem"
+                        command={{ title: "Import Result Set", command: "importMenuItem" }}
+                        disabled
+                    />
+                </Menu>
 
             </Container >
         );
@@ -503,7 +505,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     public canClose = async (id?: string): Promise<boolean> => {
         // Store values in a separate array before iterating over them -
         // they may be removed from #editingInfo map by the time the user confirms the operation.
-        const infoValues = [...this.#editingInfo.values()].filter((info) => {
+        const infoValues = [...this.editingInfo.values()].filter((info) => {
             return !id || id === info.resultSet.resultId;
         });
         for (const info of infoValues) {
@@ -525,7 +527,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const viewRef = this.viewRefs.get(resultId);
 
         /* istanbul ignore next */
-        if (viewRef && viewRef.current) {
+        if (viewRef?.current) {
             await viewRef.current.updateColumns(columns);
         }
     }
@@ -544,7 +546,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const viewRef = this.viewRefs.get(resultId);
 
         /* istanbul ignore next */
-        if (viewRef && viewRef.current) {
+        if (viewRef?.current) {
             await viewRef.current.addData(newData, replace);
         }
 
@@ -601,7 +603,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 const { onRemoveResult } = this.props;
                 const { currentResultSet } = this.state;
 
-                const info = this.#editingInfo.get(currentResultSet?.resultId ?? "");
+                const info = this.editingInfo.get(currentResultSet?.resultId ?? "");
                 if (info) {
                     void this.confirmCommitOrRollback(info).then((canClose) => {
                         if (canClose) {
@@ -644,7 +646,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         // istanbul ignore else
         if (currentResultSet) {
-            const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
+            const info = this.editingInfo.get(currentResultSet.resultId);
             if (info) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
                 void this.confirmCommitOrRollback(info, true).then((result) => {
@@ -673,7 +675,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         // istanbul ignore else
         if (currentResultSet) {
-            const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
+            const info = this.editingInfo.get(currentResultSet.resultId);
             if (info) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
                 void this.confirmCommitOrRollback(info, true).then((result) => {
@@ -726,10 +728,8 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             case DialogResponseClosure.Decline: {
                 const { onRollbackChanges } = this.props;
                 const { resultSet } = info;
-                if (resultSet) {
-                    this.#editingInfo.delete(resultSet.resultId);
-                    onRollbackChanges?.(resultSet);
-                }
+                this.editingInfo.delete(resultSet.resultId);
+                onRollbackChanges?.(resultSet);
 
                 return true;
             }
@@ -749,7 +749,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const { currentResultSet } = this.state;
 
         if (currentResultSet) {
-            const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
+            const info = this.editingInfo.get(currentResultSet.resultId);
             if (info && info.rowChanges.length > 0) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
                 const response = await DialogHost.showDialog({
@@ -789,7 +789,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             return;
         }
 
-        const info = this.#editingInfo.get(currentResultSet.resultId);
+        const info = this.editingInfo.get(currentResultSet.resultId);
         if (!info) {
             this.startEditing();
         }
@@ -815,17 +815,18 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 return;
             }
 
-            let info = this.#editingInfo.get(currentResultSet.resultId);
+            let info = this.editingInfo.get(currentResultSet.resultId);
             if (!info) {
                 // Not yet editing, initialize the editing info.
                 info = this.prepareEditingInfo(currentResultSet);
 
-                this.#editingInfo.set(currentResultSet.resultId, info);
+                this.editingInfo.set(currentResultSet.resultId, info);
             }
 
             // Update the editing info.
             let rowChanges = info.rowChanges[row];
-            if (!rowChanges) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!rowChanges) { // rowChanges is a sparse array.
                 // If this is the first change for a row collect the original PK values, which are needed for the
                 // update statement.
                 const pkColumns = currentResultSet.columns.filter((column) => {
@@ -851,7 +852,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             this.updateEditingStatus(info);
             info.selectedRowIndex = undefined;
-            this.forceUpdate(() => { resolve(); });
+            this.forceUpdate(() => {
+                resolve();
+            });
         });
     };
 
@@ -866,14 +869,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             return;
         }
 
-        const info = this.#editingInfo.get(currentResultSet.resultId);
+        const info = this.editingInfo.get(currentResultSet.resultId);
         if (!info) {
             return;
         }
 
         const { rowChanges } = info;
         if (rowChanges.length === 0) {
-            this.#editingInfo.delete(currentResultSet.resultId);
+            this.editingInfo.delete(currentResultSet.resultId);
         }
 
     };
@@ -889,9 +892,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         if (currentResultSet) {
             let info: IEditingInfo;
 
-            if (this.#editingInfo.has(currentResultSet.resultId)) {
+            if (this.editingInfo.has(currentResultSet.resultId)) {
                 // Already editing, just get the editing info.
-                info = this.#editingInfo.get(currentResultSet.resultId)!;
+                info = this.editingInfo.get(currentResultSet.resultId)!;
             } else {
                 // Not yet editing, initialize the editing info.
                 info = {
@@ -904,13 +907,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     previewActive: false,
                 } as IEditingInfo;
 
-                this.#editingInfo.set(currentResultSet.resultId, info);
+                this.editingInfo.set(currentResultSet.resultId, info);
             }
 
             // Update the editing info.
             rows.forEach((row) => {
                 const rowChanges = info.rowChanges[row];
-                if (rowChanges) {
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                if (rowChanges) { // rowChanges is a sparse array.
                     // There's a row change, toggle the deleted state.
                     // Note: this could be a new row, in which case this row is ignored, unless the deleted state
                     // is set to false again.
@@ -918,7 +922,8 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
                     if (!rowChanges.deleted && rowChanges.changes.length === 0) {
                         // No changes left, remove the row.
-                        delete info.rowChanges[row];
+                        // eslint-disable-next-line @typescript-eslint/no-array-delete
+                        delete info.rowChanges[row]; // Need to maintain the sparse array, so `splice` is not an option.
                     }
                 } else {
                     // No row change yet, create one and set the deletion mark.
@@ -1041,7 +1046,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
                         this.updateEditingStatus(info);
                         info.selectedRowIndex = undefined;
-                        this.forceUpdate(() => { resolve(); });
+                        this.forceUpdate(() => {
+                            resolve();
+                        });
                     }
 
                     break;
@@ -1067,7 +1074,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     private previewChanges = (): void => {
         const { currentResultSet } = this.state;
 
-        const info = this.#editingInfo.get(currentResultSet?.resultId ?? "");
+        const info = this.editingInfo.get(currentResultSet?.resultId ?? "");
         if (info) {
             info.previewActive = !info.previewActive;
             this.forceUpdate();
@@ -1078,17 +1085,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const { onCommitChanges, onResultPageChange } = this.props;
         const { currentResultSet } = this.state;
 
-        if (!info) {
-            info = this.#editingInfo.get(currentResultSet?.resultId ?? "");
-        }
-
+        info ??= this.editingInfo.get(currentResultSet?.resultId ?? "");
         if (info) {
             const statements = this.generateStatements(info).map((pair) => {
                 return pair[1];
             });
 
             void onCommitChanges?.(info.resultSet, statements).then((result) => {
-                this.#affectedRows.set(info.resultSet.resultId, result.affectedRows);
+                this.affectedRows.set(info.resultSet.resultId, result.affectedRows);
 
                 if (result.errors.length > 0) {
                     // We got an error (can only be one as execution is stopped on the first error).
@@ -1096,7 +1100,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     info.errors = result.errors;
                     info.previewActive = true;
                 } else {
-                    this.#editingInfo.delete(info.resultSet.resultId);
+                    this.editingInfo.delete(info.resultSet.resultId);
 
                     if (refreshResults) {
                         // Use the page switch callback to refresh the result set.
@@ -1119,7 +1123,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         });
     };
 
-
     private cancelEditingAndRollbackChanges = (): void => {
         const { onRollbackChanges } = this.props;
         const { currentResultSet } = this.state;
@@ -1129,7 +1132,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 if (result) {
                     onRollbackChanges?.(currentResultSet);
 
-                    this.#editingInfo.delete(currentResultSet.resultId);
+                    this.editingInfo.delete(currentResultSet.resultId);
                 }
             });
         }
@@ -1222,7 +1225,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             return;
         }
 
-        const info = this.#editingInfo.get(currentResultSet.resultId);
+        const info = this.editingInfo.get(currentResultSet.resultId);
         if (!info) {
             return;
         }
@@ -1232,9 +1235,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     };
 
     private prepareEditingInfo = (resultSet: IResultSet): IEditingInfo => {
-        let info = this.#editingInfo.get(resultSet.resultId);
+        let info = this.editingInfo.get(resultSet.resultId);
         if (!info) {
-            this.#affectedRows.delete(resultSet.resultId);
+            this.affectedRows.delete(resultSet.resultId);
             info = {
                 description: `table ${resultSet.fullTableName}`,
                 statusInfo: {
@@ -1245,7 +1248,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 previewActive: false,
             };
 
-            this.#editingInfo.set(resultSet.resultId, info);
+            this.editingInfo.set(resultSet.resultId, info);
         }
 
         this.updateEditingStatus(info);
@@ -1263,7 +1266,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const { currentResultSet } = this.state;
 
         if (currentResultSet) {
-            const info = this.#editingInfo.get(currentResultSet.resultId);
+            const info = this.editingInfo.get(currentResultSet.resultId);
             if (info) {
                 info.previewActive = false;
                 info.selectedRowIndex = index;

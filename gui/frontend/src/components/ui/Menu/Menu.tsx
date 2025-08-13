@@ -151,11 +151,14 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     private static handleDocumentClick = (e: MouseEvent): void => {
         if (Menu.menuStack.length > 0) {
             const preventClose = e.composedPath().some((target: EventTarget): boolean => {
-                const element = target as HTMLElement;
-                const isMenu = element.classList?.contains("menu");
-                const isMenuItem = element.classList?.contains("menuItem");
-                const isSubmenu = element.classList?.contains("submenu");
-                const isStatusbarItem = element.classList?.contains("statusbarItem");
+                if (!(target instanceof Element)) {
+                    return false;
+                }
+
+                const isMenu = target.classList.contains("menu");
+                const isMenuItem = target.classList.contains("menuItem");
+                const isSubmenu = target.classList.contains("submenu");
+                const isStatusbarItem = target.classList.contains("statusbarItem");
 
                 return isMenu || isMenuItem || isSubmenu || isStatusbarItem;
             });
@@ -171,10 +174,13 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     private static handleMouseDown = (e: MouseEvent): void => {
         if (Menu.menuStack.length > 0) {
             const preventClose = e.composedPath().some((target: EventTarget): boolean => {
-                const element = target as HTMLElement;
-                const isMenu = element.classList?.contains("menu");
-                const isMenuItem = element.classList?.contains("menuItem");
-                const isSubmenu = element.classList?.contains("submenu");
+                if (!(target instanceof Element)) {
+                    return false;
+                }
+
+                const isMenu = target.classList.contains("menu");
+                const isMenuItem = target.classList.contains("menuItem");
+                const isSubmenu = target.classList.contains("submenu");
 
                 return isMenu || isMenuItem || isSubmenu;
             });
@@ -253,12 +259,12 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
 
         const activeItemIndex = activateFirstEntry && this.itemRefs.length > 0 ? 0 : -1;
         this.setState({ activeItemIndex, payload, open: true }, () => {
-            this.popupRef?.current?.open(currentTarget, options);
+            this.popupRef.current?.open(currentTarget, options);
         });
     }
 
     public close(): void {
-        this.popupRef?.current?.close(false);
+        this.popupRef.current?.close(false);
         this.setState({ activeItemIndex: -1, open: false });
     }
 
@@ -359,11 +365,15 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         if (result instanceof Promise) {
             void result.then((close): void => {
                 if (close) {
-                    setTimeout(() => { this.close(); }, 0);
+                    setTimeout(() => {
+                        this.close();
+                    }, 0);
                 }
             });
         } else {
-            setTimeout(() => { this.close(); }, 0);
+            setTimeout(() => {
+                this.close();
+            }, 0);
         }
     };
 

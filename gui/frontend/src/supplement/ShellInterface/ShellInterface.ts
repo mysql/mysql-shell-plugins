@@ -43,33 +43,25 @@ export class ShellInterface {
     } = {};
 
     public static get core(): ShellInterfaceCore {
-        if (!ShellInterface.interfaces.core) {
-            ShellInterface.interfaces.core = new ShellInterfaceCore();
-        }
+        ShellInterface.interfaces.core ??= new ShellInterfaceCore();
 
         return ShellInterface.interfaces.core;
     }
 
     public static get users(): ShellInterfaceUser {
-        if (!ShellInterface.interfaces.users) {
-            ShellInterface.interfaces.users = new ShellInterfaceUser();
-        }
+        ShellInterface.interfaces.users ??= new ShellInterfaceUser();
 
         return ShellInterface.interfaces.users;
     }
 
     public static get modules(): ShellInterfaceModule {
-        if (!ShellInterface.interfaces.modules) {
-            ShellInterface.interfaces.modules = new ShellInterfaceModule();
-        }
+        ShellInterface.interfaces.modules ??= new ShellInterfaceModule();
 
         return ShellInterface.interfaces.modules;
     }
 
     public static get dbConnections(): ShellInterfaceDbConnection {
-        if (!ShellInterface.interfaces.dbConnections) {
-            ShellInterface.interfaces.dbConnections = new ShellInterfaceDbConnection();
-        }
+        ShellInterface.interfaces.dbConnections ??= new ShellInterfaceDbConnection();
 
         return ShellInterface.interfaces.dbConnections;
     }

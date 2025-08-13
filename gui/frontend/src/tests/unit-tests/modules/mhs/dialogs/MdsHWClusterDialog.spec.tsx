@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,15 +22,16 @@
  */
 
 import { ReactWrapper, mount } from "enzyme";
-import { MdsHWClusterDialog } from "../../../../../modules/mds/dialogs/MdsHWClusterDialog.js";
-import { DialogResponseClosure, IDialogRequest, MdsDialogType } from "../../../../../app-logic/general-types.js";
-import { DialogHelper, nextProcessTick } from "../../../test-helpers.js";
-import { sleep } from "../../../../../utilities/helpers.js";
-import { IDialogSection, IDialogValues } from "../../../../../components/Dialogs/ValueEditDialog.js";
 
+import { DialogResponseClosure, IDialogRequest, MdsDialogType } from "../../../../../app-logic/general-types.js";
+import type { IValueDialogBaseProperties } from "../../../../../components/Dialogs/ValueDialogBase.js";
+import { IDialogSection, IDialogValues } from "../../../../../components/Dialogs/ValueEditDialog.js";
+import { MdsHWClusterDialog } from "../../../../../modules/mds/dialogs/MdsHWClusterDialog.js";
+import { sleep } from "../../../../../utilities/helpers.js";
+import { DialogHelper, nextProcessTick } from "../../../test-helpers.js";
 
 describe("MdsHWClusterDialog tests", () => {
-    let component: unknown;
+    let component: ReactWrapper<IValueDialogBaseProperties, {}, MdsHWClusterDialog>;
     let dialogHelper: DialogHelper;
 
     beforeAll(() => {
@@ -46,17 +47,10 @@ describe("MdsHWClusterDialog tests", () => {
     });
 
     afterEach(() => {
-        if (component instanceof ReactWrapper) {
-            component.unmount();
-        }
+        component.unmount();
     });
 
     it("Test render MdsHWClusterDialog", () => {
-        const component = mount<MdsHWClusterDialog>(
-            <MdsHWClusterDialog
-                onClose={jest.fn()}
-            />,
-        );
         expect(component).toMatchSnapshot();
     });
 
@@ -79,9 +73,7 @@ describe("MdsHWClusterDialog tests", () => {
         };
         const title = "Test Title";
 
-        if (component instanceof ReactWrapper) {
-            (component.instance() as MdsHWClusterDialog).show(request, title);
-        }
+        (component.instance()).show(request, title);
     });
 
     it("Test call onClose with DialogResponseClosure.Accept", async () => {
@@ -89,9 +81,7 @@ describe("MdsHWClusterDialog tests", () => {
         expect(portals.length).toBe(0);
 
         const onCloseMock = jest.fn();
-        if (component instanceof ReactWrapper) {
-            component.setProps({ onClose: onCloseMock });
-        }
+        component.setProps({ onClose: onCloseMock });
 
         const request: IDialogRequest = {
             type: MdsDialogType.MdsHeatWaveCluster,
@@ -109,9 +99,7 @@ describe("MdsHWClusterDialog tests", () => {
         };
         const title = "Test Title";
 
-        if (component instanceof ReactWrapper) {
-            (component.instance() as MdsHWClusterDialog).show(request, title);
-        }
+        (component.instance()).show(request, title);
 
         await nextProcessTick();
         await sleep(500);
@@ -149,9 +137,7 @@ describe("MdsHWClusterDialog tests", () => {
         };
         const title = "Test Title";
 
-        if (component instanceof ReactWrapper) {
-            (component.instance() as MdsHWClusterDialog).show(request, title);
-        }
+        (component.instance()).show(request, title);
 
         await nextProcessTick();
         await sleep(500);
@@ -165,56 +151,50 @@ describe("MdsHWClusterDialog tests", () => {
         expect(portals.length).toBe(1);
     });
 
-    it("Test call onClose with DialogResponseClosure.Decline", () => {
+    it("Test call onClose with DialogResponseClosure.Decline", async () => {
         const onCloseMock = jest.fn();
 
-        if (component instanceof ReactWrapper) {
-            component.setProps({ onClose: onCloseMock });
-        }
+        component.setProps({ onClose: onCloseMock });
 
-        if (component instanceof ReactWrapper) {
-            const values: IDialogValues = {
-                sections: new Map<string, IDialogSection>([
-                    [
-                        "mainSection",
-                        {
-                            values: {
-                                clusterSize: { value: 4, type: "number" },
-                                shapeName: { value: "shape1", type: "text" },
-                            },
+        const values: IDialogValues = {
+            sections: new Map<string, IDialogSection>([
+                [
+                    "mainSection",
+                    {
+                        values: {
+                            clusterSize: { value: 4, type: "number" },
+                            shapeName: { value: "shape1", type: "text" },
                         },
-                    ],
-                ]),
-            };
-            (component.instance() as MdsHWClusterDialog).handleCloseDialog(DialogResponseClosure.Decline, values);
-        }
+                    },
+                ],
+            ]),
+        };
+
+        await (component.instance()).handleCloseDialog(DialogResponseClosure.Decline, values);
 
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Decline);
     });
 
-    it("Test call onClose with DialogResponseClosure.Cancel", () => {
+    it("Test call onClose with DialogResponseClosure.Cancel", async () => {
         const onCloseMock = jest.fn();
 
-        if (component instanceof ReactWrapper) {
-            component.setProps({ onClose: onCloseMock });
-        }
+        component.setProps({ onClose: onCloseMock });
 
-        if (component instanceof ReactWrapper) {
-            const values: IDialogValues = {
-                sections: new Map<string, IDialogSection>([
-                    [
-                        "mainSection",
-                        {
-                            values: {
-                                clusterSize: { value: 4, type: "number" },
-                                shapeName: { value: "shape1", type: "text" },
-                            },
+        const values: IDialogValues = {
+            sections: new Map<string, IDialogSection>([
+                [
+                    "mainSection",
+                    {
+                        values: {
+                            clusterSize: { value: 4, type: "number" },
+                            shapeName: { value: "shape1", type: "text" },
                         },
-                    ],
-                ]),
-            };
-            (component.instance() as MdsHWClusterDialog).handleCloseDialog(DialogResponseClosure.Cancel, values);
-        }
+                    },
+                ],
+            ]),
+        };
+
+        await (component.instance()).handleCloseDialog(DialogResponseClosure.Cancel, values);
 
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Cancel);
     });
@@ -233,12 +213,10 @@ describe("MdsHWClusterDialog tests", () => {
             ]),
         };
 
-        if (component instanceof ReactWrapper) {
-            const result = (component.instance() as MdsHWClusterDialog).validateInput(true, values);
+        const result = (component.instance()).validateInput(true, values);
 
-            expect(result.messages).toEqual({ name: "The cluster size must be specified." });
-            expect(result.requiredContexts).toEqual([]);
-        }
+        expect(result.messages).toEqual({ name: "The cluster size must be specified." });
+        expect(result.requiredContexts).toEqual([]);
     });
 
     it("Test return empty validation messages", () => {
@@ -255,11 +233,9 @@ describe("MdsHWClusterDialog tests", () => {
             ]),
         };
 
-        if (component instanceof ReactWrapper) {
-            const result = (component.instance() as MdsHWClusterDialog).validateInput(true, values);
+        const result = (component.instance()).validateInput(true, values);
 
-            expect(result.messages).toEqual({});
-            expect(result.requiredContexts).toEqual([]);
-        }
+        expect(result.messages).toEqual({});
+        expect(result.requiredContexts).toEqual([]);
     });
 });

@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
 import { screen, waitFor } from "@testing-library/preact";
+import { mount } from "enzyme";
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
@@ -51,7 +51,7 @@ class TestConnectionEditor extends ConnectionEditor {
     };
 
     public testGenerateEditorConfig = (currentPath: string, details?: IConnectionDetails): IDialogValues => {
-        // @ts-ignore
+        // @ts-expect-error, because we are accessing a private method.
         return this.generateEditorConfig(currentPath, details);
     };
 }
@@ -111,7 +111,7 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor match snapshot", () => {
         const component = mount<ConnectionEditor>(
-            <ConnectionEditor onAddConnection={() => { }} onUpdateConnection={() => { }} />,
+            <ConnectionEditor onAddConnection={() => { /**/ }} onUpdateConnection={() => { /**/ }} />,
         );
 
         expect(component).toMatchSnapshot();
@@ -126,8 +126,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <ConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -172,8 +172,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -234,8 +234,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -280,8 +280,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -332,8 +332,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -380,8 +380,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -432,8 +432,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -484,8 +484,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 
@@ -536,8 +536,8 @@ describe("ConnectionEditor tests", (): void => {
                 } as DocumentContextType}>
 
                 <TestConnectionEditor
-                    onAddConnection={() => { }}
-                    onUpdateConnection={() => { }} />,
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={() => { /**/ }} />,
             </DocumentContext.Provider>,
         );
 

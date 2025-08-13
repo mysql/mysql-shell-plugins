@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/// <reference types="../typings/debugger-runtime.d.ts" />
+
 import type { EditorLanguage, IExecutionContext, INewEditorRequest, IScriptRequest, ISqlPageRequest } from "./index.js";
 
 import type {
@@ -101,9 +103,7 @@ export interface IUpdateStatusBarItem {
     timeout?: number;
 }
 
-export interface IOpenDialogFilters {
-    [key: string]: string[];
-}
+export type IOpenDialogFilters = Record<string, string[]>;
 
 /** This is essentially a copy of the VS Code OpenDialogOptions interface. */
 export interface IOpenDialogOptions {
@@ -164,7 +164,7 @@ export interface ISaveDialogOptions {
      * }
      * ```
      */
-    filters?: { [name: string]: string[]; };
+    filters?: Record<string, string[]>;
 
     /**
      * Dialog title.
@@ -178,7 +178,7 @@ export interface ISaveDialogOptions {
 /** The structure describing the files the user selected when running the open dialog in the application host. */
 export interface IOpenFileDialogResult {
     resourceId: string;
-    file: Array<{ path: string; content: ArrayBuffer }>;
+    file: Array<{ path: string; content: ArrayBuffer; }>;
 }
 
 /**
@@ -552,7 +552,7 @@ export interface IRequestTypeMap {
 
     /** Triggers adding a new connection. */
     "addNewConnection":
-        (details: { mdsData?: IMySQLDbSystem; profileName?: string; user?: string; }) => Promise<boolean>;
+    (details: { mdsData?: IMySQLDbSystem; profileName?: string; user?: string; }) => Promise<boolean>;
 
     /** Triggers removing a connection */
     "removeConnection": (connectionInfo: IConnectionInfo) => Promise<boolean>;

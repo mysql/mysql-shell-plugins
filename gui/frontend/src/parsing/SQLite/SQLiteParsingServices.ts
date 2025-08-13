@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-underscore-dangle, @typescript-eslint/naming-convention */
-
 import {
     BailErrorStrategy, CharStream, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException, ParseTree,
-    PredictionMode, TokenStreamRewriter, XPath, Token,
+    PredictionMode, Token, TokenStreamRewriter, XPath,
 } from "antlr4ng";
 
 import {
@@ -33,10 +31,12 @@ import {
     QueryType, StatementFinishState, tokenFromPosition,
 } from "../parser-common.js";
 
-import { SQLiteErrorListener } from "./SQLiteErrorListener.js";
 import { SQLiteLexer } from "./generated/SQLiteLexer.js";
-import { ParseContext, SQLiteParser, Select_stmtContext, Sql_stmt_listContext } from "./generated/SQLiteParser.js";
+import {
+    ParseContext, SQLiteParser, Select_stmtContext, Sql_stmt_listContext, type Select_coreContext
+} from "./generated/SQLiteParser.js";
 import { getCodeCompletionItems } from "./SqliteCodeCompletion.js";
+import { SQLiteErrorListener } from "./SQLiteErrorListener.js";
 
 import { unquote } from "../../utilities/string-helpers.js";
 import { DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable.js";
@@ -80,7 +80,7 @@ export class SQLiteParsingServices {
 
         this.globalSymbols = new DBSymbolTable("globals", {});
         void import("./data/builtin-functions.json").then((systemFunctions) => {
-            const functions = systemFunctions.default as { [key: string]: string[]; };
+            const functions = systemFunctions.default as Record<string, string[]>;
             for (const [key, value] of Object.entries(functions)) {
                 this.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key, value);
             }
@@ -93,9 +93,7 @@ export class SQLiteParsingServices {
      * @returns The singleton instance of the parsing services.
      */
     public static get instance(): SQLiteParsingServices {
-        if (!SQLiteParsingServices.services) {
-            SQLiteParsingServices.services = new SQLiteParsingServices();
-        }
+        SQLiteParsingServices.services ??= new SQLiteParsingServices();
 
         return SQLiteParsingServices.services;
     }
@@ -147,7 +145,7 @@ export class SQLiteParsingServices {
         const token = tokenFromPosition(this.tokenStream, offset);
         if (token) {
             this.tokenStream.seek(token.tokenIndex);
-            const tokenText = token.text || "";
+            const tokenText = token.text ?? "";
             switch (token.type) {
                 case SQLiteLexer.IDENTIFIER: {
                     // Possible built-in functions.
@@ -380,7 +378,7 @@ export class SQLiteParsingServices {
                         result.push({
                             delimiter,
                             span: { start, length: tail - start },
-                            contentStart: haveContent ? head : start - 1,
+                            contentStart: head,
                             state: StatementFinishState.OpenString,
                         });
                         start = tail;
@@ -427,7 +425,7 @@ export class SQLiteParsingServices {
                         result.push({
                             delimiter,
                             span: { start, length: run - start },
-                            contentStart: haveContent ? head : start - 1,
+                            contentStart: head,
                             state: StatementFinishState.DelimiterChange,
                         });
 
@@ -509,7 +507,6 @@ export class SQLiteParsingServices {
         return result;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public determineQueryType(sql: string, serverVersion: number): QueryType {
         this.errors = [];
         this.lexer.inputStream = CharStream.fromString(sql);
@@ -538,9 +535,8 @@ export class SQLiteParsingServices {
      *          was actually changed or not.
      */
     public preprocessStatement(query: string, serverVersion: number, sqlMode: string, offset: number,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         count: number, forceSecondaryEngine?: boolean): IPreprocessResult {
-        const tree = this.startParsing(query, false) as ParseContext;
+        const tree = this.startParsing(query, false) as ParseContext | undefined;
         if (!tree || this.errors.length > 0) {
             return { query, changed: false, updatable: false };
         }
@@ -577,7 +573,7 @@ export class SQLiteParsingServices {
      * @returns The rewritten query if the original query is error free and contained no semicolon.
      *          Otherwise the original query is returned.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     public checkAndAddSemicolon(query: string, serverVersion: number, sqlMode: string): [string, boolean] {
         const tree = this.startParsing(query, false);
         if (!tree || this.errors.length > 0) {
@@ -589,7 +585,7 @@ export class SQLiteParsingServices {
         let changed = false;
         if (expressions.size > 0) {
             // There can only be one top-level query.
-            const candidate: ParseTree = expressions.values().next().value;
+            const candidate: ParseTree = expressions.values().next().value!;
 
             // Top level query expression here. Check if there's already a LIMIT clause before adding one.
             const context = candidate as Sql_stmt_listContext;
@@ -615,7 +611,7 @@ export class SQLiteParsingServices {
      * @returns The list of found parameters. The first entry in each pair represents the parameter name and can be
      *          empty if not given, while the second entry represents the set value.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     public extractQueryParameters(sql: string, serverVersion: number, sqlMode: string): Array<[string, string]> {
         const result: Array<[string, string]> = [];
 
@@ -751,13 +747,13 @@ export class SQLiteParsingServices {
                     updatable = false;
                 } else {
                     // There must be a single select core.
-                    const core = select.select_core()[0];
-                    if (!core || core.SELECT_() === null || core.GROUP_() !== null
+                    const core = select.select_core()[0] as Select_coreContext | undefined;
+                    if (core?.SELECT_() === null || core?.GROUP_() !== null
                         || core.HAVING_() !== null || core.WINDOW_() !== null) {
                         updatable = false;
                     } else {
                         const from = core.from_clause();
-                        if (from?.join_clause() !== null || from?.table_or_subquery().length !== 1) {
+                        if (from?.join_clause() != null || from?.table_or_subquery().length !== 1) {
                             updatable = false;
                         } else {
                             if (from.table_or_subquery()[0].table_name() === null) {

@@ -28,6 +28,7 @@ import { ValueType } from "../index.js";
 import { requisitions } from "../Requisitions.js";
 import { categoryFromPath, registerSettings } from "./SettingsRegistry.js";
 import { IDictionary } from "../../app-logic/general-types.js";
+import type { IShellDictionary } from "../../communication/Protocol.js";
 
 interface IUserSettings extends IDictionary {
     theming: {
@@ -68,7 +69,7 @@ export class Settings {
         this.dirty = false;
 
         const profile = webSession.profile;
-        profile.options = this.values;
+        profile.options = this.values as IShellDictionary;
 
         webSession.saveProfile();
         this.restartAutoSaveTimeout();
@@ -196,7 +197,7 @@ export class Settings {
         }
 
         this.saveTimer = setTimeout(() => {
-            return this.saveSettings();
+            this.saveSettings();
         }, 3000);
     }
 

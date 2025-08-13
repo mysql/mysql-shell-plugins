@@ -188,7 +188,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                 filters,
                 openLabel,
             };
-            if(doRead === true){
+            if (doRead === true){
                 requisitions.executeRemote("showOpenDialogWithRead", options);
             } else {
                 requisitions.executeRemote("showOpenDialog", options);
@@ -198,7 +198,9 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
             const contentType: string[] = [];
             if (filters) {
                 Object.values(filters).forEach((extensions: string[]) => {
-                    contentType.push(...extensions.map((value) => { return `.${value}`; }));
+                    contentType.push(...extensions.map((value) => {
+                        return `.${value}`; 
+                    }));
                 });
             }
 

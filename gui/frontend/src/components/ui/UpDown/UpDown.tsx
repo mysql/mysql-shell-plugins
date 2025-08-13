@@ -52,7 +52,7 @@ export interface IUpDownProperties<ValueType extends string | null | number | bi
 
     value?: ValueType;
     textAlignment?: TextAlignment;
-    placeholder?: ValueType
+    placeholder?: ValueType;
 
     nullable?: boolean;
 
@@ -126,7 +126,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
             return { currentValue: null, missingInitialValue: true };
         }
 
-        const nullable = props.nullable || state.missingInitialValue === true;
+        const nullable = props.nullable ?? state.missingInitialValue === true;
         const currentValue = isNumberOrBigInt(value) ? value : parseNumber(value, nullable);
         if (currentValue === state.currentValue) {
             // No updates to the state are required.
@@ -212,7 +212,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
         let initialStepValue = currentValue;
 
         if (initialStepValue === null && placeholder !== undefined) {
-            const nullable = this.props.nullable || missingInitialValue === true;
+            const nullable = this.props.nullable ?? missingInitialValue === true;
             initialStepValue = isNumberOrBigInt(placeholder) ? placeholder : parseNumber(placeholder, nullable);
         }
 
@@ -223,14 +223,14 @@ export class UpDown<ValueType extends string | null | number | bigint>
             newValue = (initialStepValue ?? 0) + amount;
         }
 
-        onChange?.(newValue as ValueType, this.props);
+        onChange(newValue as ValueType, this.props);
     };
 
     private handleInputChange = (e: InputEvent): void => {
         const { onChange } = this.props;
-        const currentValue = (e.target as HTMLInputElement)?.value;
+        const currentValue = (e.target as HTMLInputElement).value;
 
-        onChange?.(currentValue as ValueType, this.props);
+        onChange(currentValue as ValueType, this.props);
     };
 
     private handleInputConfirm = (): void => {

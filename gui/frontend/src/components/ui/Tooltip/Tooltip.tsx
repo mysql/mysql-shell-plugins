@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,9 +35,7 @@ import {
 } from "../Component/ComponentBase.js";
 import { Container } from "../Container/Container.js";
 import { Label } from "../Label/Label.js";
-import {
-    clampToDocument, computeContentPosition, isElementClipped, computeBounds,
-} from "../html-helpers.js";
+import { clampToDocument, computeBounds, computeContentPosition, isElementClipped, } from "../html-helpers.js";
 
 interface ITooltipProviderProperties extends IComponentProperties {
     /** Time to wait until the tooltip is shown, in milliseconds. Default is 300ms. */
@@ -210,7 +208,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
         }
 
         let target = e.target as HTMLElement;
-        if (target.classList && target.classList.contains("tooltip")) {
+        if (target.classList.contains("tooltip")) {
             return;
         }
 
@@ -234,16 +232,14 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
             if (tooltip === "expand") { // Expand means: use the text of the target element.
                 expand = true;
                 const language = target.getAttribute("data-tooltip-lang");
-                const innerText = target.innerText !== undefined
-                    ? target.innerText
-                    : (target.textContent ?? "");
+                const innerText = target.innerText;
                 switch (language) {
                     case "json": {
                         // For JSON content, parse it and format it nicely.
                         try {
                             const json = JsonParser.parseJson(target.innerText.replaceAll("\n", ""));
                             tooltip = JSON.stringify(json, null, 4).substring(0, maxLength);
-                        } catch (e) {
+                        } catch {
                             tooltip = innerText.substring(0, maxLength);
                         }
 

@@ -37,6 +37,7 @@ export class AuthenticationAppDialog {
 
     /**
      * Gets a tab
+     * 
      * @param tabName The tab name
      * @returns A promise resolving with the tab
      */
@@ -57,11 +58,12 @@ export class AuthenticationAppDialog {
 
     /**
      * Sets a Rest Authentication App using the web view dialog
+     * 
      * @param authApp The authentication app
      * @returns A promise resolving when the authentication app is set and the dialog is closed
      */
-    public static set = async (authApp: interfaces.IRestAuthenticationApp):
-        Promise<interfaces.IRestAuthenticationApp> => {
+    public static set = async (
+        authApp: interfaces.IRestAuthenticationApp): Promise<interfaces.IRestAuthenticationApp> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
             constants.wait20seconds, "Authentication app dialog was not displayed");
@@ -88,8 +90,8 @@ export class AuthenticationAppDialog {
             if (authApp.settings.defaultRole) {
                 await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
                 const popup = await driver.wait(until
-                    .elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList),
-                    constants.wait5seconds, "Auth vendor drop down list was not displayed");
+                    .elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList
+                    ), constants.wait5seconds, "Auth vendor drop down list was not displayed");
 
                 await popup.findElement(By.id(authApp.settings.defaultRole)).click();
             }
@@ -139,7 +141,7 @@ export class AuthenticationAppDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
         return authApp;
@@ -148,6 +150,7 @@ export class AuthenticationAppDialog {
 
     /**
      * Gets a Rest Authentication App using the web view dialog
+     * 
      * @returns A promise resolving with the authentication app
      */
     public static get = async (): Promise<interfaces.IRestAuthenticationApp> => {
@@ -189,11 +192,10 @@ export class AuthenticationAppDialog {
             .findElement(locator.mrsAuthenticationAppDialog.options)
             .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim();
 
-
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
         return authenticationApp;

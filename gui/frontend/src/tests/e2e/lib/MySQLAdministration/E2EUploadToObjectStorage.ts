@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ export class E2EUploadToObjectStorage {
 
     /**
      * Verifies if the Upload To Object Storage tab is selected
+     * 
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -46,6 +47,7 @@ export class E2EUploadToObjectStorage {
 
     /**
      * Add files
+     * 
      * @param path The file location
      */
     public addFiles = async (path: string): Promise<void> => {
@@ -81,6 +83,7 @@ export class E2EUploadToObjectStorage {
 
     /**
      * Verifies if a file exists on the Files for Upload section
+     * 
      * @param filename The file name
      * @returns A promise resolving wth true if the file exists, false otherwise
      */
@@ -100,6 +103,7 @@ export class E2EUploadToObjectStorage {
 
     /**
      * Gets a button from the Files for Upload section
+     * 
      * @param buttonName The button name
      * @returns A promise resolving with the button
      */

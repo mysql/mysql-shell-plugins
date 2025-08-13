@@ -35,9 +35,7 @@ export const minimumShellVersion = [8, 1];
 
 // Types used in different places in the application (modules, parser, scripting etc.).
 
-export interface IDictionary {
-    [key: string]: unknown;
-}
+export type IDictionary = Record<string, unknown>;
 
 export type Resolver<T> = (value: T | undefined) => void;
 
@@ -145,7 +143,7 @@ export const isGeometryType = (type: DBDataType): boolean => {
 };
 
 /** Mappings from a DB type to its default value. */
-export const defaultValues: { [key in DBDataType]?: number | string | boolean | Date; } = {
+export const defaultValues: Partial<Record<DBDataType, number | string | boolean | Date>> = {
     [DBDataType.TinyInt]: 0,
     [DBDataType.SmallInt]: 0,
     [DBDataType.MediumInt]: 0,
@@ -439,6 +437,7 @@ export type Mutable<T> = {
 };
 
 /** Make all entries and their children (recursively) in type T mutable (except functions). */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type DeepMutable<T> = T extends Function
     ? T
     : T extends object ? {
@@ -459,15 +458,29 @@ export type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: Js
  * A JSON array is just a list of valid JSON values.
  * Since ReadonlyArray is a first-class type in TypeScript, it needs to be accounted for.
  */
-type JsonArray = JsonValue[] | readonly JsonValue[];
+export type JsonArray = JsonValue[] | readonly JsonValue[];
 
 /**
  * JSON supports a set of primitives that includes strings, numbers, booleans and null.
  */
-type JsonPrimitive = string | number | boolean | null;
+export type JsonPrimitive = string | number | boolean | null;
 
 /**
  * JSON supports a set of values that includes specific primitive types, other JSON object definitions
  * and arrays of these.
  */
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+
+declare global {
+    /** Declares the (private) test configuration for the app (if set). */
+    var testConfig: Record<string, string> | undefined; // Need var here, to make this work.
+
+    /** The version number of the app, injected by Vite. */
+    var MSG_VERSION_NUMBER: string | undefined;
+
+    /** The build number of the app, injected by Vite. */
+    var MSG_BUILD_NUMBER: string | undefined;
+
+    /** Holds the current vite run mode. */
+    var VITE_MODE: "development" | "production";
+}

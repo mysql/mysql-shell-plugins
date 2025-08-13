@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { TestEnvironment } from "jest-environment-jsdom";
 import { JestEnvironmentConfig, EnvironmentContext } from "@jest/environment";
 
@@ -38,7 +36,6 @@ export default class ExtendedTestEnvironment extends TestEnvironment {
         this.global.structuredClone = (value: unknown) => {
             return JSON.parse(JSON.stringify(value)) as unknown;
         };
-
 
         // https://github.com/jsdom/jsdom/issues/2524
         // @ts-expect-error, because the two decoders are not fully compatible (though good enough for tests).

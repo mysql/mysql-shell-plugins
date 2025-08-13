@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,11 +27,11 @@ import "./Calendar.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { CalendarView } from "./CalendarView.js";
 import {
-    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+    ComponentBase, ComponentPlacement, IComponentProperties, IComponentState,
 } from "../Component/ComponentBase.js";
 import { Popup } from "../Popup/Popup.js";
+import { CalendarView } from "./CalendarView.js";
 
 interface ICalendarProperties extends IComponentProperties {
     initialDate?: Date;
@@ -82,11 +82,11 @@ export class Calendar extends ComponentBase<ICalendarProperties, ICalendarState>
     }
 
     public open(currentTarget: HTMLElement): void {
-        this.popupRef?.current?.open(currentTarget.getBoundingClientRect());
+        this.popupRef.current?.open(currentTarget.getBoundingClientRect());
     }
 
     public close(): void {
-        this.popupRef?.current?.close(false);
+        this.popupRef.current?.close(false);
     }
 
     private handleMonthChange = (inc: boolean): void => {

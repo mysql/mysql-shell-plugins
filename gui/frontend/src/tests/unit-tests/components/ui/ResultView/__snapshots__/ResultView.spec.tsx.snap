@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Result View Tests Render with Columns 1`] = `
 <ResultView
@@ -563,13 +563,13 @@ exports[`Result View Tests Render with Columns 1`] = `
               }
             }
             caption={
-              <g>
+              <k>
                 <Icon
                   disabled={false}
                   src={391}
                 />
                 <Label />
-              </g>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -782,13 +782,13 @@ exports[`Result View Tests Standard Rendering 1`] = `
               }
             }
             caption={
-              <g>
+              <k>
                 <Icon
                   disabled={false}
                   src={391}
                 />
                 <Label />
-              </g>
+              </k>
             }
             className="msg valueEditDialog"
             container={

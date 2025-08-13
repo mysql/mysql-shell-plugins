@@ -42,7 +42,7 @@ import {
 } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 
 import { registerUiLayer, ui, type IUILayer } from "../../frontend/src/app-logic/UILayer.js";
-import type { IServicePasswordRequest } from "../../frontend/src/app-logic/general-types.js";
+import type { IDictionary, IServicePasswordRequest } from "../../frontend/src/app-logic/general-types.js";
 import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler.js";
 import type { IStatusBarItem } from "../../frontend/src/components/ui/Statusbar/StatusBarItem.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
@@ -263,8 +263,8 @@ export const activate = (context: ExtensionContext): void => {
                 logLevel,
                 onStdOutData: (output: string) => {
                     if (output.includes("true")) {
-                        void ui.showWarningMessage(resetShellUserDirDataMessage, {},
-                            "Reset All User Data", "Cancel").then((choice) => {
+                        void ui.showWarningMessage(resetShellUserDirDataMessage, {}, "Reset All User Data", "Cancel")
+                            .then((choice) => {
                                 if (choice === "Reset All User Data") {
                                     // Delete the shell user settings folder, only if it is the dedicated one for the
                                     // extension.
@@ -295,8 +295,8 @@ export const activate = (context: ExtensionContext): void => {
     }));
 
     context.subscriptions.push(commands.registerCommand("msg.fileBugReport", () => {
-        const currentVersion: string = extensions.getExtension(
-            "Oracle.mysql-shell-for-vs-code")!.packageJSON.version || "1.0.0";
+        const packageJSON = extensions.getExtension("Oracle.mysql-shell-for-vs-code")!.packageJSON as IDictionary;
+        const currentVersion = packageJSON.version ?? "1.0.0";
         let platformId;
         let cpuArch;
 
@@ -322,7 +322,7 @@ export const activate = (context: ExtensionContext): void => {
                 cpuArch = "3";
                 break;
             }
-            case "x86": {
+            case "x64": {
                 cpuArch = "2";
                 break;
             }
@@ -336,7 +336,7 @@ export const activate = (context: ExtensionContext): void => {
             `&version=${currentVersion}&os=${platformId}&cpu_arch=${cpuArch}`));
     }));
 
-    context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", async (): Promise<Boolean> => {
+    context.subscriptions.push(commands.registerCommand("msg.hasLaunchedSuccessfully", async (): Promise<boolean> => {
         await waitFor(3000, () => {
             return startupCompleted;
         });
@@ -344,10 +344,9 @@ export const activate = (context: ExtensionContext): void => {
         return startupCompleted;
     }));
 
-    const msgExtension = extensions.getExtension("Oracle.mysql-shell-for-vs-code");
-
     // Handle version specific topics
-    const currentVersion = msgExtension!.packageJSON.version || "1.0.0";
+    const msgExtension = extensions.getExtension("Oracle.mysql-shell-for-vs-code")?.packageJSON as IDictionary;
+    const currentVersion = msgExtension.version ?? "1.0.0";
 
     // Check if this is the initial run of the MySQL Shell extension after an update
     const lastRunVersion = context.globalState.get("MySQLShellLastRunVersion");
@@ -370,23 +369,22 @@ export const activate = (context: ExtensionContext): void => {
                 void childProcess.execSync(`xattr -rc ${extensionRouterDir}`);
             }
         } else if (osName === "win32") {
+            const message = "The Microsoft Visual C++ Redistributable needs to be updated and VS " +
+                "Code needs to be restarted. Do you want to open the Microsoft download page?";
             const promptForVcUpdate = () => {
-                // cSpell:ignore redist msvc
-                void ui.showErrorMessage("The Microsoft Visual C++ Redistributable needs to be updated and VS " +
-                    "Code needs to be restarted. Do you want to open the Microsoft download page?", {},
-                    "Open Download Page", "Cancel").then((answer) => {
-                        if (answer !== "Cancel") {
-                            void env.openExternal(Uri.parse("https://learn.microsoft.com/en-us/cpp/windows/" +
-                                "latest-supported-vc-redist?view=msvc-170"));
-                        }
-                    });
+                void ui.showErrorMessage(message, {}, "Open Download Page", "Cancel").then((answer) => {
+                    if (answer !== "Cancel") {
+                        void env.openExternal(Uri.parse("https://learn.microsoft.com/en-us/cpp/windows/" +
+                            "latest-supported-vc-redist?view=msvc-170"));
+                    }
+                });
             };
 
             checkVcRuntime().then((result: boolean) => {
                 if (!result) {
                     promptForVcUpdate();
                 }
-            }).catch((reason) => {
+            }).catch((reason: unknown) => {
                 printChannelOutput(String(reason), true);
                 promptForVcUpdate();
             });
@@ -467,7 +465,7 @@ export const activate = (context: ExtensionContext): void => {
         }
 
         // Check if the extension is running locally or remotely via ssh-remote
-        const sshRemote = (msgExtension!.extensionKind === ExtensionKind.Workspace && env.remoteName === "ssh-remote");
+        const sshRemote = (msgExtension.extensionKind === ExtensionKind.Workspace && env.remoteName === "ssh-remote");
         outputChannel.appendLine(`Running on a ${sshRemote ? "ssh-remote" : "local"} VS Code session.`);
 
         const level = workspace.getConfiguration(`msg.debugLog`).get<LogLevel>("level", "INFO");

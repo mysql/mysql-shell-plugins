@@ -31,6 +31,18 @@ import type {
     IRemoteTarget, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider,
 } from "./RequisitionTypes.js";
 
+interface IBrowserMessageHandlers {
+    webkit?: {
+        messageHandlers: {
+            hostChannel: IRemoteTarget;
+        };
+    };
+    chrome?: {
+        webview?: IRemoteTarget;
+    };
+    onNativeMessage?: (message: IEmbeddedMessage) => void;
+}
+
 /**
  * Management class for requests and messages sent between various parts of the application. It allows to schedule
  * tasks and trigger notifications to multiple subscribed receivers.
@@ -73,17 +85,16 @@ export class RequisitionHub {
         if (target) {
             this.remoteTarget = target;
         } else if (typeof window !== "undefined") {
-            /* eslint-disable @typescript-eslint/no-explicit-any */
+            const messageHandlers = window as IBrowserMessageHandlers;
 
             // If no explicit target is given determine one from special values.
-            if ((window as any).webkit) {
-                this.remoteTarget = (window as any).webkit.messageHandlers.hostChannel;
+            if (messageHandlers.webkit) {
+                this.remoteTarget = messageHandlers.webkit.messageHandlers.hostChannel;
             } else {
-                const chrome = (window as any).chrome;
-                if (chrome && chrome.webview) {
+                if (messageHandlers.chrome?.webview) {
                     this.remoteTarget = {
-                        postMessage : function(data: IEmbeddedMessage, origin:string) {
-                            chrome.webview.postMessage(data);
+                        postMessage: (data: IEmbeddedMessage, origin: string) => {
+                            messageHandlers.chrome!.webview!.postMessage?.(data, "*");
                         }
                     };
                 }
@@ -93,18 +104,15 @@ export class RequisitionHub {
                 // If a remote target is set it means we are embedded in a native application using
                 // an embedded browser client. Define an own function in this scenario, which the hosts can
                 // call via JavaScript.
-                (window as any).onNativeMessage = (message: IEmbeddedMessage): void => {
+                messageHandlers.onNativeMessage = (message: IEmbeddedMessage): void => {
                     this.handleRemoteMessage(message);
                 };
-
-                /* eslint-enable @typescript-eslint/no-explicit-any */
-
             } else {
                 // Here we know the app is running in a browser. This can be a standalone browser or a web view
                 // in Visual Studio Code. In all these cases we can just send messages to the parent window.
                 this.remoteTarget = window.parent;
 
-                window.addEventListener("message", (message: MessageEvent) => {
+                window.addEventListener("message", (message: MessageEvent<{ source: string; }>) => {
                     // Handle only our own messages and ignore others here.
                     if (message.data.source !== "app") {
                         this.handleRemoteMessage(message.data as IEmbeddedMessage);
@@ -318,7 +326,6 @@ export class RequisitionHub {
             result ||= this.executeRemote(requestType, parameter);
         }
 
-
         return result;
     };
 
@@ -330,7 +337,7 @@ export class RequisitionHub {
     public handleRemoteMessage(message: IEmbeddedMessage): void {
         switch (message.command) {
             case "paste": {
-                const text = message.data?.["text/plain"] as string ?? "";
+                const text = message.data?.["text/plain"] as string | undefined ?? "";
                 const element = document.activeElement;
                 if (element) {
                     if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
@@ -392,10 +399,10 @@ export class RequisitionHub {
             };
 
             this.remoteTarget?.postMessage?.(message, "*");
-        } else if (navigator.clipboard && window.isSecureContext) {
+        } else if (window.isSecureContext) {
             // Some browser limit access to the clipboard in unsecure contexts.
             void navigator.clipboard.writeText(text);
-        } else if (document.execCommand) {
+        } else if ("execCommand" in document) {
             // The follow code is a workaround for browsers that do not support the clipboard API or do not allow
             // clipboard access in unsecure contexts. It uses a deprecated API, which might be removed in the future.
             const element = document.createElement("textarea");
@@ -424,7 +431,7 @@ export class RequisitionHub {
                     const oldValue = element.value;
                     const caret = Math.min(element.selectionStart, element.selectionEnd ?? 1000);
                     element.value = oldValue.substring(0, element.selectionStart) + oldValue
-                        .substring(element.selectionEnd as number ?? element.selectionStart);
+                        .substring(element.selectionEnd ?? element.selectionStart);
 
                     element.selectionStart = caret;
                     element.selectionEnd = caret;

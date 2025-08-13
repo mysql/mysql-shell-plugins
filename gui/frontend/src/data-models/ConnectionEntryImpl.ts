@@ -61,13 +61,13 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     public mrsEntry?: ICdmRestRootEntry;
     public adminEntry?: ICdmAdminEntry;
 
-    private open: boolean = false;
+    private open = false;
     private accessManager: ICdmAccessManager;
 
-    private ignoreMrsUpgrade: boolean = false;
+    private ignoreMrsUpgrade = false;
 
     #parent?: ICdmConnectionGroupEntry;
-    #currentSchema: string = "";
+    #currentSchema = "";
 
     public constructor(name: string, details: IConnectionDetails, updater: ICdmAccessManager,
         private showLakehouseNavigator: boolean) {
@@ -115,7 +115,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         const pathParts: string[] = [];
         while (parent) {
             pathParts.unshift(parent.caption);
-            parent = parent.parent as ICdmConnectionGroupEntry;
+            parent = parent.parent;
         }
 
         const newPath = pathParts.join("/");
@@ -254,7 +254,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             const minor = parseInt(versionParts[1], 10);
             const patch = parseInt(versionParts[2], 10);
 
-            this.details.version = major * 10000 + minor * 100 + patch;
+            this.details.version = (major * 10000) + (minor * 100) + patch;
         }
 
         this.details.sqlMode = connectionData.info.sqlMode;
@@ -303,12 +303,12 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 caption: "MySQL Administration",
                 connection: this,
                 pages: [],
-                getChildren: () => { return this.adminEntry?.pages ?? []; },
+                getChildren: () => {
+                    return this.adminEntry?.pages ?? [];
+                },
             };
 
-            if (this.adminEntry) {
-                this.addAdminSections(this.adminEntry);
-            }
+            this.addAdminSections(this.adminEntry);
         }
 
         callback?.("Determining MRS support...");
@@ -397,7 +397,9 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                 state: createDataModelEntryState(false, false),
                                 connection: this,
                                 routers: [],
-                                getChildren: () => { return routerGroup.routers; },
+                                getChildren: () => {
+                                    return routerGroup.routers;
+                                },
                             };
                             mrsEntry.routerGroup = routerGroup;
 
@@ -409,7 +411,9 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                 state: createDataModelEntryState(false, false),
                                 connection: this,
                                 authApps: [],
-                                getChildren: () => { return authAppGroup.authApps; },
+                                getChildren: () => {
+                                    return authAppGroup.authApps;
+                                },
                             };
                             authAppGroup.refresh = (callback?: ProgressCallback) => {
                                 return this.accessManager.updateEntry(authAppGroup, callback);
@@ -545,7 +549,9 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 pageType: "lakehouseNavigator",
                 command: lakehouseNavigatorCommand,
                 connection: parent.parent,
-                getChildren: () => { return []; },
+                getChildren: () => {
+                    return [];
+                },
             };
             lakehouseNavigatorCommand.arguments.push(lakehouseNavigatorPage);
 

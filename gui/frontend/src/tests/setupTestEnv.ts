@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,13 +24,14 @@
  */
 
 import Enzyme from "enzyme";
-import Adapter from "enzyme-adapter-preact-pure";
+import { Adapter } from "enzyme-adapter-preact-pure";
 
 import "fake-indexeddb/auto";
 import "jest-canvas-mock";
 
+import "./loadTestConfiguration.js";
+
 Enzyme.configure({
-    // @ts-ignore, because TS does not infer the correct use of the `Adapter` type.
     adapter: new Adapter({ simulateEventsOnComponents: true }),
 });
 
@@ -50,6 +51,7 @@ Object.defineProperty(window, "matchMedia", {
     }),
 });
 
+/*
 Object.defineProperty(window, "location", {
     get: () => {
         return {
@@ -59,7 +61,7 @@ Object.defineProperty(window, "location", {
         };
     },
 });
-
+*/
 Object.defineProperty(window.webkitURL, "createObjectURL", {
     writable: true,
     value: jest.fn().mockImplementation((query: unknown) => {
@@ -122,4 +124,14 @@ Object.defineProperty(global.self, "DOMRect", {
             left: x ?? 0,
         };
     }),
+});
+
+Object.defineProperty(HTMLElement.prototype, "innerText", {
+    get() {
+        return (this as HTMLElement).textContent ?? "";
+    },
+
+    set(value: string) {
+        (this as HTMLElement).textContent = value;
+    },
 });

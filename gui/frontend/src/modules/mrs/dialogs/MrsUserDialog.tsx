@@ -57,7 +57,9 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
         const userRoles = request.parameters?.userRoles as IMrsUserRoleData[];
 
         const dialogValues = this.dialogValues(request, availableRoles, userRoles);
-        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST User" });
+        const result = await this.doShow(() => {
+            return dialogValues; 
+        }, { title: "MySQL REST User" });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);

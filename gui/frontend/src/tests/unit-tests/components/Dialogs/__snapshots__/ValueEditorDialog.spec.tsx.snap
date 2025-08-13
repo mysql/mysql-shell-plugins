@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = `
 <div
@@ -631,7 +631,9 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
           <label
             class="msg label description"
             data-tooltip="expand"
-          />
+          >
+            
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -725,13 +727,13 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
       }
     }
     caption={
-      <g>
+      <k>
         <Icon
           disabled={false}
           src={391}
         />
         <Label />
-      </g>
+      </k>
     }
     className="msg valueEditDialog"
     container={

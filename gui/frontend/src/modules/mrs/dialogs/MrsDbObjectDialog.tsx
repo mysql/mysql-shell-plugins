@@ -25,8 +25,8 @@
 
 import "./MrsDialogs.css";
 
-
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/general-types.js";
+import type { IShellDictionary } from "../../../communication/Protocol.js";
 import { IMrsDbObjectData, IMrsSchemaData, IMrsServiceData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
@@ -34,9 +34,9 @@ import {
 } from "../../../components/Dialogs/ValueEditDialog.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertToPascalCase } from "../../../utilities/string-helpers.js";
-import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFieldEditor.js";
-import { MrsDbObjectType } from "../types.js";
 import { EnabledState, getEnabledState } from "../mrs-helpers.js";
+import { MrsDbObjectType } from "../types.js";
+import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFieldEditor.js";
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private requestValue!: IMrsDbObjectData;
@@ -60,8 +60,9 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         this.createDbObject = payload.createObject as boolean;
 
         this.dialogValues = this.createDialogValues(request, services, schemas, rowOwnershipFields, title);
-        const result = await this.doShow(() => { return this.dialogValues; },
-            { title: "MySQL REST Object", autoResize: true });
+        const result = await this.doShow(() => {
+            return this.dialogValues;
+        }, { title: "MySQL REST Object", autoResize: true });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(schemas, result.values);
@@ -125,14 +126,14 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 if (optionsSection.values.options.value) {
                     try {
                         JSON.parse(optionsSection.values.options.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.options = "The options must contain a valid JSON string.";
                     }
                 }
                 if (optionsSection.values.metadata.value) {
                     try {
                         JSON.parse(optionsSection.values.metadata.value as string);
-                    } catch (e) {
+                    } catch {
                         result.messages.metadata = "The metadata field must contain a valid JSON string.";
                     }
                 }
@@ -150,11 +151,9 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             return service.id === request.values?.serviceId;
         });
 
-        if (selectedService === undefined) {
-            selectedService = services.find((service) => {
-                return service.isCurrent === 1;
-            });
-        }
+        selectedService ??= services.find((service) => {
+            return service.isCurrent === 1;
+        });
 
         if (services.length > 0 && !selectedService) {
             selectedService = services[0];
@@ -432,8 +431,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             this.requestValue.requiresAuth = + (mainSection.values.requiresAuth.value as boolean);
         }
         if (optionsSection) {
-            this.requestValue.metadata = optionsSection.values.metadata.value as string === ""
-                ? undefined : JSON.parse(optionsSection.values.metadata.value as string);
+            const value = optionsSection.values.metadata.value as string;
+            this.requestValue.metadata = value === "" ? undefined : JSON.parse(value) as IShellDictionary;
         }
 
         return this.requestValue;

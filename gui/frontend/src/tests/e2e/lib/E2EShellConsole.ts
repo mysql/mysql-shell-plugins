@@ -48,6 +48,7 @@ export class E2EShellConsole {
 
     /**
      * Clicks on the button "Open New Shell Console"
+     * 
      * @returns A promise resolving when the shell session is opened
      */
     public openNewShellConsole = (): Promise<void> => {
@@ -56,6 +57,7 @@ export class E2EShellConsole {
 
     /**
      * Waits until the shell session is opened
+     * 
      * @param connection The database connection
      * @param timeout The timeout
      * @returns A promise resolving when the shell session is opened
@@ -139,6 +141,7 @@ export class E2EShellConsole {
 
     /**
      * Deletes all stored credentials on the key chain, using shell
+     * 
      * @returns A promise resolving when the command is executed
      */
     public deleteCredentials = async (): Promise<void> => {

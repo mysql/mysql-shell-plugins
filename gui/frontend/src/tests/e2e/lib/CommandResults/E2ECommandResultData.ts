@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -60,6 +60,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Gets the text
+     * 
      * @returns The text
      */
     public get text(): string | undefined {
@@ -68,6 +69,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Gets the status
+     * 
      * @returns The status
      */
     public get status(): string | undefined {
@@ -76,6 +78,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Gets the json
+     * 
      * @returns The json
      */
     public get json(): string | undefined {
@@ -84,6 +87,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Gets the graph
+     * 
      * @returns The graph
      */
     public get graph(): WebElement | undefined {
@@ -92,6 +96,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Gets the preview
+     * 
      * @returns The preview
      */
     public get preview(): interfaces.ICommandResultPreview | undefined {
@@ -100,6 +105,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Gets the isHWAboutInfo
+     * 
      * @returns The isHWAboutInfo
      */
     public get isHWAboutInfo(): boolean | undefined {
@@ -107,7 +113,15 @@ export class E2ECommandResultData extends E2ECommandResult {
     }
 
     /**
+     * Sets the isHWAboutInfo
+     */
+    public set isHWAboutInfo(value: boolean | undefined) {
+        this.#isHWAboutInfo = value;
+    }
+
+    /**
      * Gets the chat
+     * 
      * @returns The chat
      */
     public get chat(): string | undefined {
@@ -115,14 +129,8 @@ export class E2ECommandResultData extends E2ECommandResult {
     }
 
     /**
-     * Sets the isHWAboutInfo
-     */
-    public set isHWAboutInfo(value: boolean) {
-        this.#isHWAboutInfo = value;
-    }
-
-    /**
      * Sets the result text
+     * 
      * @returns A promise resolving with the result text
      */
     public setText = async (): Promise<void> => {
@@ -163,6 +171,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Sets the toolbar status message
+     * 
      * @returns A promise resolving when the toolbar status message is set
      */
     public setStatus = async (): Promise<void> => {
@@ -180,6 +189,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Sets the result text
+     * 
      * @returns A promise resolving with the result json
      */
     public setJson = async (): Promise<void> => {
@@ -198,6 +208,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Sets the result graph
+     * 
      * @returns A promise resolving with the graph
      */
     public setGraph = async (): Promise<void> => {
@@ -208,6 +219,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Sets the result sql preview
+     * 
      * @returns A promise resolving when the sql preview is set
      */
     public setPreview = async (): Promise<void> => {
@@ -228,6 +240,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Sets the result chat text
+     * 
      * @returns A promise resolving with the result text
      */
     public setChat = async (): Promise<void> => {
@@ -238,6 +251,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Clicks the Copy result to clipboard button, on text result sets
+     * 
      * @returns A promise resolving when the button is clicked
      */
     public copyToClipboard = async (): Promise<void> => {
@@ -249,6 +263,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Returns the result block from a script execution
+     * 
      * @returns A promise resolving with the result block
      */
     public getResultScript = async (): Promise<WebElement> => {
@@ -257,6 +272,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Waits until the HeatWave heading is displayed on the notebook
+     * 
      * @returns A promise resolving when the HeatWave heading is displayed
      */
     public heatWaveChatIsDisplayed = (): Condition<boolean> => {
@@ -267,6 +283,7 @@ export class E2ECommandResultData extends E2ECommandResult {
 
     /**
      * Clicks on the SQL preview content
+     * 
      * @returns A promise resolving when the sql preview is clicked
      */
     public clickSqlPreviewContent = async (): Promise<void> => {

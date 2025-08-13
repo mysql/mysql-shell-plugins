@@ -145,7 +145,6 @@ export class ShellInterfaceDb {
         return result;
     }
 
-
     public async getRoutinesMetadata(schema: string): Promise<IDBSchemaObjectEntry[]> {
         if (!this.moduleSessionId) {
             return [];

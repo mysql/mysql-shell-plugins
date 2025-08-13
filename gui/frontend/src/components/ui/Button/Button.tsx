@@ -27,8 +27,10 @@ import "./Button.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, DragEventType, IComponentProperties, MouseEventCallback,
-    MouseEventType } from "../Component/ComponentBase.js";
+import {
+    ComponentBase, DragEventType, IComponentProperties, MouseEventCallback,
+    MouseEventType
+} from "../Component/ComponentBase.js";
 import { Orientation } from "../Container/Container.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import type { IRequestTypeMap } from "../../../supplement/RequisitionTypes.js";
@@ -115,7 +117,7 @@ export class Button extends ComponentBase<IButtonProperties> {
             case MouseEventType.Down: {
                 const { focusOnClick } = this.props;
                 if (focusOnClick) {
-                    this.buttonRef?.current?.focus();
+                    this.buttonRef.current?.focus();
                 } else {
                     e.preventDefault();
                 }

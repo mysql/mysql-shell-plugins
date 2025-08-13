@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Grid component test Standard Rendering 1`] = `
 <Grid
@@ -51,6 +51,7 @@ exports[`Grid component test Standard Rendering 1`] = `
               oninput={[Function]}
               placeholder="Username"
               spellCheck={true}
+              spellcheck={true}
               style={
                 {
                   "textAlign": undefined,
@@ -121,6 +122,7 @@ exports[`Grid component test Standard Rendering 1`] = `
               oninput={[Function]}
               placeholder="Password"
               spellCheck={true}
+              spellcheck={true}
               style={
                 {
                   "textAlign": undefined,

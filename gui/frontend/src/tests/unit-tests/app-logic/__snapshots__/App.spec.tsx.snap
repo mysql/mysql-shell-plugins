@@ -192,6 +192,7 @@ exports[`Application tests Application readiness 1`] = `
                         oninput={[Function]}
                         placeholder="Username"
                         spellCheck={false}
+                        spellcheck={false}
                         style={
                           {
                             "textAlign": undefined,
@@ -258,6 +259,7 @@ exports[`Application tests Application readiness 1`] = `
                         oninput={[Function]}
                         placeholder="Password"
                         spellCheck={true}
+                        spellcheck={true}
                         style={
                           {
                             "textAlign": undefined,
@@ -415,13 +417,13 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <g>
+            <k>
               <Icon
                 disabled={false}
                 src={391}
               />
               <Label />
-            </g>
+            </k>
           }
           className="msg valueEditDialog"
           container={
@@ -468,7 +470,7 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <g>
+            <k>
               <Icon
                 disabled={false}
                 src={278}
@@ -476,7 +478,7 @@ exports[`Application tests Application readiness 1`] = `
               <Label>
                 Confirm
               </Label>
-            </g>
+            </k>
           }
           className="msg confirmDialog"
           container={
@@ -536,13 +538,13 @@ exports[`Application tests Application readiness 1`] = `
               }
             }
             caption={
-              <g>
+              <k>
                 <Icon
                   disabled={false}
                   src={391}
                 />
                 <Label />
-              </g>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -607,13 +609,13 @@ exports[`Application tests Application readiness 1`] = `
               }
             }
             caption={
-              <g>
+              <k>
                 <Icon
                   disabled={false}
                   src={391}
                 />
                 <Label />
-              </g>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -678,13 +680,13 @@ exports[`Application tests Application readiness 1`] = `
               }
             }
             caption={
-              <g>
+              <k>
                 <Icon
                   disabled={false}
                   src={391}
                 />
                 <Label />
-              </g>
+              </k>
             }
             className="msg valueEditDialog"
             container={

@@ -36,7 +36,7 @@
             "react-dom": [
                 "./node_modules/preact/compat/"
             ]
-        }
+        },
     },
     "include": [
         "scripts/**/*.ts",
@@ -45,7 +45,8 @@
         "src/oci-typings/**/*.ts",
         "postcss.config.cjs",
         // Needed here during build setup in vite.config.js.
-        "package.json"
+        "package.json",
+        "vite-env.d.ts"
     ],
     "exclude": [
         "build",

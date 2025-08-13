@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,11 +25,11 @@
 
 import "./Radiobutton.css";
 
-import { createRef, ComponentChild } from "preact";
+import { ComponentChild, createRef } from "preact";
 
-import { CheckState } from "../Checkbox/Checkbox.js";
-import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
+import { CheckState } from "../Checkbox/Checkbox.js";
+import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase.js";
 
 export interface IRadiobuttonProperties extends IComponentProperties {
     checkState?: CheckState;
@@ -43,7 +43,7 @@ export interface IRadiobuttonProperties extends IComponentProperties {
 export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
 
     public static override defaultProps = {
-        checkState: CheckState?.Unchecked,
+        checkState: CheckState.Unchecked,
         disabled: false,
         caption: "Radiobutton",
     };

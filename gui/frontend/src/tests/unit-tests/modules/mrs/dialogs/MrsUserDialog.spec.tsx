@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable dot-notation */
-
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
@@ -40,7 +38,6 @@ import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
     DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
-
 
 describe("MRS User dialog tests", () => {
     let host: JestReactWrapper;
@@ -74,7 +71,6 @@ describe("MRS User dialog tests", () => {
     beforeEach(async () => {
         backend = await createBackend();
     });
-
 
     it("Show MRS User Dialog (snapshot) and escape", async () => {
         let portals = document.getElementsByClassName("portal");

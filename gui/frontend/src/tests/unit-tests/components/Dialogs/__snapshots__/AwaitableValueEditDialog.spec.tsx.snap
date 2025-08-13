@@ -27,13 +27,13 @@ exports[`Awaitable Value Edit Dialog Tests Render Test 1`] = `
         }
       }
       caption={
-        <g>
+        <k>
           <Icon
             disabled={false}
             src={391}
           />
           <Label />
-        </g>
+        </k>
       }
       className="msg valueEditDialog"
       container={

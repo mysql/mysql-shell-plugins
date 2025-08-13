@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,7 @@ import { IMdsProfileData } from "../../../../frontend/src/communication/Protocol
 import {
     ShellInterfaceShellSession,
 } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { convertErrorToString } from "../../../../frontend/src/utilities/helpers.js";
 import {
     OciBastionTreeItem, OciCompartmentTreeItem, OciComputeInstanceTreeItem, OciConfigProfileTreeItem,
     OciDbSystemTreeItem, OciLoadBalancerTreeItem,
@@ -46,9 +47,7 @@ import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem.j
 import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem.js";
 
 // An interface for the compartment cache
-interface IConfigProfileCompartments {
-    [key: string]: ICompartment[];
-}
+type IConfigProfileCompartments = Record<string, ICompartment[] | undefined>;
 
 // A class to provide the entire tree structure for Oracle Cloud Infrastructure connections.
 export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
@@ -107,8 +106,8 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                             ...compartmentItems, ...databaseItems, ...computeInstanceItems,
                             ...bastionHostItems, ...loadBalancerItems,
                         ]);
-                    }).catch((reason) => {
-                        reject(reason);
+                    }).catch((reason: unknown) => {
+                        reject(reason as Error);
                     });
                 });
             }
@@ -149,7 +148,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         // If the compartments for the given profile are already cached, use the cache.
         if (this.compartmentCache[profile.profile]) {
-            this.compartmentCache[profile.profile].forEach((subCompartment) => {
+            this.compartmentCache[profile.profile]!.forEach((subCompartment) => {
                 this.addOciCompartmentTreeItem(
                     items, profile, subCompartment, startWithCurrent, compartmentId);
             });
@@ -161,12 +160,12 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         try {
             const compartments = await this.shellSession.mhs.getMdsCompartments(profile.profile);
             this.compartmentCache[profile.profile] = compartments;
-            this.compartmentCache[profile.profile].forEach((subCompartment) => {
+            this.compartmentCache[profile.profile]!.forEach((subCompartment) => {
                 this.addOciCompartmentTreeItem(items, profile, subCompartment, startWithCurrent, compartmentId);
             });
         } catch (reason) {
-            const msg: string = reason?.data?.requestState?.msg;
-            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+            const message = convertErrorToString(reason);
+            if (message.includes("NotAuthorizedOrNotFound")) {
                 window.setStatusBarMessage("Not authorized to list the sub-compartment of this compartment.", 5000);
             }
         }
@@ -187,8 +186,8 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                 }
             });
         } catch (reason) {
-            const msg: string = reason?.data?.requestState?.msg;
-            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+            const message = convertErrorToString(reason);
+            if (message.includes("NotAuthorizedOrNotFound")) {
                 window.setStatusBarMessage("Not authorized to list the MySQL DB Systems in this compartment.", 5000);
             }
         }
@@ -205,8 +204,8 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                 items.push(new OciComputeInstanceTreeItem(profile, compartment, compute, this.shellSession));
             });
         } catch (reason) {
-            const msg: string = reason?.data?.requestState?.msg;
-            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+            const message = convertErrorToString(reason);
+            if (message.includes("NotAuthorizedOrNotFound")) {
                 window.setStatusBarMessage("Not authorized to list the compute instances in this compartment.", 5000);
             }
         }
@@ -223,8 +222,8 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
                 items.push(new OciBastionTreeItem(profile, compartment, bastion));
             });
         } catch (reason) {
-            const msg: string = reason?.data?.requestState?.msg;
-            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+            const message = convertErrorToString(reason);
+            if (message.includes("NotAuthorizedOrNotFound")) {
                 window.setStatusBarMessage("Not authorized to list the bastions in this compartment.", 5000);
             }
         }
@@ -240,9 +239,9 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
             loadBalancers.forEach((loadBalancer) => {
                 items.push(new OciLoadBalancerTreeItem(profile, compartment, loadBalancer));
             });
-        } catch (reason) {
-            const msg: string = reason?.data?.requestState?.msg;
-            if (msg && msg.includes("NotAuthorizedOrNotFound")) {
+        } catch (reason: unknown) {
+            const message = convertErrorToString(reason);
+            if (message.includes("NotAuthorizedOrNotFound")) {
                 window.setStatusBarMessage("Not authorized to list the load balancers in this compartment.", 5000);
             }
         }

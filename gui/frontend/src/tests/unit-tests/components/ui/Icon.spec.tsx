@@ -43,7 +43,7 @@ describe("Icon component tests", (): void => {
 
     it("Standard Rendering", () => {
         const component = mount<Icon>(
-            <Icon src={Assets.misc.closeIcon} />,
+            <Icon src={Assets.misc.closeIcon as string} />,
         );
         expect(component).toMatchSnapshot();
 

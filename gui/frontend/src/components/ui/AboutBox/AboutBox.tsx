@@ -56,7 +56,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
 
         ShellInterface.core.backendInformation.then((data) => {
             this.setState({ data });
-        }).catch((reason) => {
+        }).catch((reason: unknown) => {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage("Backend Error: " + message, {});
         });
@@ -68,7 +68,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
         const className = this.getEffectiveClassNames(["aboutBox"]);
 
         // The version is injected by the vite config.
-        const versionParts: string[] = process.env.versionNumber?.split(".") ?? [];
+        const versionParts: string[] = globalThis.MSG_VERSION_NUMBER?.split(".") ?? [];
         if (versionParts.length === 0) {
             versionParts.push("1", "0", "0");
         }
@@ -121,7 +121,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
                 </GridCell>,
                 <GridCell key="cell3" className="left">Version:</GridCell>,
                 <GridCell key="cell4" className="right">
-                    {`${versionParts.join(".")} (${process.env.buildNumber!})`}
+                    {`${versionParts.join(".")} (${globalThis.MSG_BUILD_NUMBER ?? "unknown"})`}
                 </GridCell>,
             );
         }

@@ -39,7 +39,9 @@ import { convertHexToBase64 } from "./string-helpers.js";
 export const versionMatchesExpected = (version: string | number[], expected: number[]): boolean => {
     if (typeof version === "string") {
         const parts = version.split(".");
-        version = parts.map((v) => { return parseInt(v, 10); });
+        version = parts.map((v) => {
+            return parseInt(v, 10);
+        });
     }
 
     if (version.length < expected.length) {
@@ -99,28 +101,19 @@ export const selectFileInBrowser = (acceptedExtensions: string[], multiple: bool
 export const saveBlobAsFile = (blob: Blob, fileName: string): void => {
     const downloadLink = document.createElement("a");
     downloadLink.download = fileName;
-    downloadLink.innerHTML = "Download File";
-    if (window.webkitURL) {
-        // No need to add the download element to the DOM in Webkit.
-        downloadLink.href = window.webkitURL.createObjectURL(blob);
-    } else {
-        downloadLink.href = window.URL.createObjectURL(blob);
-        downloadLink.onclick = (event: MouseEvent): void => {
-            if (event.target) {
-                document.body.removeChild(event.target as Node);
-            }
-        };
-        downloadLink.style.display = "none";
-        document.body.appendChild(downloadLink);
-    }
+
+    const url = window.URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
 
     downloadLink.click();
 
-    if (window.webkitURL) {
-        window.webkitURL.revokeObjectURL(downloadLink.href);
-    } else {
-        window.URL.revokeObjectURL(downloadLink.href);
-    }
+    // Clean up: remove the link and revoke the object URL.
+    setTimeout(() => {
+        document.body.removeChild(downloadLink);
+        window.URL.revokeObjectURL(url);
+    }, 100);
 };
 
 /**
@@ -201,6 +194,7 @@ export const clampValue = <T extends number | bigint>(value: T, min?: T, max?: T
 
 /**
  * Same as Math.min, but supports bigint too.
+ *
  * @param a The first value.
  * @param b The second value.
  *
@@ -212,6 +206,7 @@ export const minValue = <T extends number | bigint>(a: T, b: T): T => {
 
 /**
  * Same as Math.max, but supports bigint too.
+ *
  * @param a The first value.
  * @param b The second value.
  *
@@ -229,7 +224,7 @@ export const maxValue = <T extends number | bigint>(a: T, b: T): T => {
  */
 export const uuid = (): string => {
     let d = new Date().getTime();
-    let d2 = (performance && performance.now && (performance.now() * 1000)) || 0;
+    let d2 = performance.now() * 1000;
 
     // cspell: ignore yxxx
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -332,7 +327,9 @@ export const waitFor = async (timeout: number, condition: () => boolean): Promis
 export const promiseWithTimeout = <T>(promise: Promise<T>, ms: number,
     timeoutError = new Error("Promised timed out")): Promise<T> => {
     const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => { return reject(timeoutError); }, ms);
+        setTimeout(() => {
+            reject(timeoutError);
+        }, ms);
     });
 
     return Promise.race([promise, timeout]);
@@ -348,13 +345,13 @@ export const promiseWithTimeout = <T>(promise: Promise<T>, ms: number,
  *          the second one containing all elements for which the predicate returned false.
  */
 export const partition = <T>(list: T[], predicate: (item: T) => boolean): [T[], T[]] => {
-    return list.reduce(
+    return list.reduce<[T[], T[]]>(
         (accumulator, item) => {
             accumulator[predicate(item) ? 0 : 1].push(item);
 
             return accumulator;
         },
-        [[], []] as [T[], T[]],
+        [[], []],
     );
 };
 
@@ -388,7 +385,7 @@ export const flattenObject = (o: IDictionary): object => {
  *
  * @returns The cloned object.
  */
-export const deepClone = <T extends Object>(o: T): T => {
+export const deepClone = <T extends object>(o: T): T => {
     if (typeof o !== "object") {
         return o;
     }
@@ -537,8 +534,8 @@ export const deepEqual = (a: unknown, b: unknown): boolean => {
     }
 
     if ((typeOfA === "object") && (typeOfB === "object")) {
-        const objA = a as { [key: string]: unknown; };
-        const objB = b as { [key: string]: unknown; };
+        const objA = a as Record<string, unknown>;
+        const objB = b as Record<string, unknown>;
         if (Object.keys(objA).length !== Object.keys(objB).length) {
             return false;
         }
@@ -567,8 +564,8 @@ export const deepEqual = (a: unknown, b: unknown): boolean => {
  * @returns The value returned by the function tail-call.
  */
 export const strictEval = (code: string): unknown => {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func, @typescript-eslint/no-unsafe-return
-    return Function("'use strict';return (" + code + ")")();
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    return (Function("'use strict';return (" + code + ")") as () => unknown)();
 };
 
 /**
@@ -587,10 +584,10 @@ export const deepMapKeys = (o: object, ignoreList: string[], fn: (value: unknown
     const result: IDictionary = {};
 
     for (const [k, v] of Object.entries(o)) {
-        let actualValue = v;
+        let actualValue = v as unknown;
         if (!ignoreList.includes(k)) {
             if (Array.isArray(v)) {
-                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+
                 actualValue = deepMapArray(v, ignoreList, fn);
             } else if (v !== null && typeof v === "object") {
                 actualValue = deepMapKeys(v as object, ignoreList, fn);

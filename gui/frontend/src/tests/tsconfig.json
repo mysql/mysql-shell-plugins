@@ -42,6 +42,8 @@
     "include": [
         "./e2e/**/*",
         "./unit-tests/**/*",
+        "./loadTestConfiguration.ts",
+        "./setupTestEnv.ts",
     ],
     "exclude": [],
     "ts-node": {

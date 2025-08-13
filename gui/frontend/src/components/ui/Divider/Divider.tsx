@@ -63,10 +63,8 @@ export class Divider extends ComponentBase<IDividerProperties> {
         ]);
 
         const newStyle = {
-            ...style, ...{
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "--thickness": `${(thickness ?? 4)}px`,
-            },
+            ...style,
+            "--thickness": `${(thickness ?? 4)}px`,
         };
 
         return (
@@ -76,7 +74,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
                 style={newStyle}
                 {...this.unhandledProperties}
             >
-            </div>
+            </div >
         );
     }
 

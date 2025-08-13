@@ -40,7 +40,7 @@ export class MrsDbObjectTreeItem extends MrsTreeBaseItem<ICdmRestDbObjectEntry> 
         let iconName = "mrsDbObject" + convertToPascalCase(value.objectType.toLowerCase());
         if (value.enabled === 0) {
             iconName += "Disabled";
-        } else if (value.enabled === EnabledState.PrivateOnly) {
+        } else if ((value.enabled as EnabledState) === EnabledState.PrivateOnly) {
             iconName += "Private";
         } else if (value.requiresAuth === 1) {
             iconName += "Locked";

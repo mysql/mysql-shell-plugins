@@ -31,8 +31,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import {
-    IConnectionInfo,
-    IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
+    IConnectionInfo, IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
     IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData,
 } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -80,15 +79,14 @@ import {
 } from "../../app-logic/general-types.js";
 import { Container, Orientation } from "../../components/ui/Container/Container.js";
 import { SplitContainer, type ISplitterPane } from "../../components/ui/SplitContainer/SplitContainer.js";
-import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
+import scriptingRuntime from "../../typings/scripting-runtime.d.ts?raw";
 import {
     DocumentSideBar, documentTypeToFileIcon, pageTypeToDocumentIcon, type IDocumentSideBarSectionState,
 } from "./DocumentSideBar/DocumentSideBar.js";
 
 import { ui } from "../../app-logic/UILayer.js";
 import {
-    CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry,
-    type ICdmConnectionEntry,
+    CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type { Command } from "../../data-models/data-model-types.js";
 import {
@@ -211,13 +209,13 @@ export interface IDocumentModuleState {
 
 export class DocumentModule extends Component<{}, IDocumentModuleState> {
     // The current UI presentation state of the connection.
-    private connectionPresentation: Map<IOdmConnectionPageEntry, IConnectionPresentationState> = new Map();
+    private connectionPresentation = new Map<IOdmConnectionPageEntry, IConnectionPresentationState>();
 
     private workerPool: ExecutionWorkerPool;
     private connectionsDataModel: ConnectionDataModel;
 
-    private latestPagesByConnection: Map<number, string> = new Map();
-    private maxConnectionDocumentSuffix: Map<number, number> = new Map();
+    private latestPagesByConnection = new Map<number, string>();
+    private maxConnectionDocumentSuffix = new Map<number, number>();
 
     // For unique naming of editors.
     private documentCounter = 0;
@@ -344,9 +342,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         // A user is logged in when this component gets mounted, so we can start the auto logout timer.
         if (webSession.runMode === RunMode.SingleServer) {
-            this.restartAutologoutTimer();
+            this.restartAutoLogoutTimer();
             ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
-                window.addEventListener(evt, this.restartAutologoutTimer, true);
+                window.addEventListener(evt, this.restartAutoLogoutTimer, true);
             });
         }
     }
@@ -357,7 +355,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         if (webSession.runMode === RunMode.SingleServer) {
             ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
-                window.removeEventListener(evt, this.restartAutologoutTimer, true);
+                window.removeEventListener(evt, this.restartAutoLogoutTimer, true);
             });
         }
 
@@ -446,8 +444,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     const iconName = documentTypeToFileIcon.get(language);
                     if (language === "msg") {
                         picture = <Icon src={iconName ?? Assets.file.defaultIcon} />;
-                    } else {
-                        picture = <Image src={iconName as string ?? Assets.file.defaultIcon} />;
+                    } else if (typeof iconName === "string" || iconName === undefined) {
+                        picture = <Image src={iconName ?? Assets.file.defaultIcon} />;
                     }
                 } else if (entry.document.type === OdmEntityType.AdminPage) {
                     const name = pageTypeToDocumentIcon.get((entry.document).pageType) ?? Assets.file.defaultIcon;
@@ -723,7 +721,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 id={document.id}
                 savedState={info.savedState}
                 toolbarItemsTemplate={toolbarItems}
-                onQuit={(id) => { void this.removeShellTab(id); }}
+                onQuit={(id) => {
+                    void this.removeShellTab(id);
+                }}
             />);
 
             if (document.id === selectedPage) {
@@ -796,7 +796,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             <CreateLibraryDialog ref={this.createLibraryDialogRef} />
         </>;
 
-        const selectedTab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+        const selectedTab = connectionTabs.find((entry) => {
+            return entry.dataModelEntry.id === selectedPage;
+        });
 
         const splitterPanes: ISplitterPane[] = [];
         if (!appParameters.embedded) {
@@ -878,7 +880,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     requisitions.executeRemote("refreshConnectionGroup", group.parent?.folderPath);
                 }
                 requisitions.executeRemote("connectionUpdated", entry.details);
-            }).catch((reason) => {
+            }).catch((reason: unknown) => {
                 const message = convertErrorToString(reason);
                 void requisitions.execute("showError", "Cannot update DB connection: " + message);
             });
@@ -892,8 +894,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             void this.connectionsDataModel.dropItem(entry);
 
             requisitions.executeRemote("connectionRemoved", entry.details);
-        }).catch((reason) => {
-            const message = reason instanceof Error ? reason.message : String(reason);
+        }).catch((reason: unknown) => {
+            const message = convertErrorToString(reason);
             void requisitions.execute("showError", "Cannot remove DB connection: " + message);
         });
     };
@@ -907,7 +909,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         let connection: ICdmConnectionEntry | undefined;
 
         if (data.pageId) {
-            const entry = connectionTabs.find((t) => { return t.dataModelEntry.id === data.pageId; });
+            const entry = connectionTabs.find((t) => {
+                return t.dataModelEntry.id === data.pageId;
+            });
             if (entry) {
                 if (selectedPage !== data.pageId) {
                     this.setState({ selectedPage: data.pageId });
@@ -987,19 +991,17 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 }
             }
 
-            if (!document) {
-                document = this.documentDataModel.openDocument(undefined, {
-                    type: data.documentDetails.type,
-                    parameters: {
-                        pageId: tab.dataModelEntry.id,
-                        id: data.documentDetails.id,
-                        caption: data.documentDetails.caption,
-                        connection: connection.details,
-                        language: data.documentDetails.language,
-                        pageType: data.documentDetails.pageType,
-                    },
-                });
-            }
+            document ??= this.documentDataModel.openDocument(undefined, {
+                type: data.documentDetails.type,
+                parameters: {
+                    pageId: tab.dataModelEntry.id,
+                    id: data.documentDetails.id,
+                    caption: data.documentDetails.caption,
+                    connection: connection.details,
+                    language: data.documentDetails.language,
+                    pageType: data.documentDetails.pageType,
+                },
+            });
 
             if (document) {
                 this.handleSelectItem({
@@ -1018,8 +1020,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return this.activateConnectionTab(data.connection, data.force, false, data.initialEditor);
     };
 
-    private setCurrentSchema = (data: { id: string; connectionInfo: IConnectionInfo; schema: string; })
-        : Promise<boolean> => {
+    private setCurrentSchema = (
+        data: { id: string; connectionInfo: IConnectionInfo; schema: string; }
+    ): Promise<boolean> => {
         return new Promise((resolve) => {
             const { connectionTabs } = this.state;
 
@@ -1029,7 +1032,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 // id (if no tab id is given).
                 if (tab.connection.details.id === data.connectionInfo.connectionId
                     || data.id === tab.dataModelEntry.id) {
-                    const connectionState = this.connectionPresentation.get(tab.dataModelEntry)!;
+                    const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
                     if (connectionState) {
                         // Change for chat options
                         this.onChatOptionsChange(data.id.length > 0 ? data.id : tab.dataModelEntry.id, {
@@ -1055,7 +1058,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 }
             });
 
-            this.setState({ connectionTabs }, () => { resolve(true); });
+            this.setState({ connectionTabs }, () => {
+                resolve(true);
+            });
         });
     };
 
@@ -1128,7 +1133,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsDbObjectDialog = async (request: IMrsDbObjectEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 return this.mrsHubRef.current.showMrsDbObjectDialog(tab.connection.backend, request);
             }
@@ -1140,7 +1147,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsConfigurationDialog = async (): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 const result = await this.mrsHubRef.current.showMrsConfigurationDialog(
                     tab.connection);
@@ -1165,7 +1174,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsServiceDialog = async (data?: IMrsServiceData): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 const result = await this.mrsHubRef.current.showMrsServiceDialog(tab.connection.backend, data);
                 if (result) {
@@ -1189,7 +1200,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsSchemaDialog = async (request: IMrsSchemaEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 await this.mrsHubRef.current.showMrsSchemaDialog(tab.connection.backend, request.schemaName,
                     request.schema);
@@ -1204,7 +1217,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsContentSetDialog = async (request: IMrsContentSetEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 return this.mrsHubRef.current.showMrsContentSetDialog(tab.connection.backend, request.directory,
                     request.contentSet, request.requestPath);
@@ -1217,7 +1232,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsAuthAppDialog = async (request: IMrsAuthAppEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 return this.mrsHubRef.current.showMrsAuthAppDialog(tab.connection.backend, request.authApp,
                     request.service);
@@ -1230,7 +1247,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsUserDialog = async (request: IMrsUserEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 return this.mrsHubRef.current.showMrsUserDialog(tab.connection.backend, request.authApp,
                     request.user);
@@ -1243,7 +1262,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showMrsSdkExportDialog = async (request: IMrsSdkExportRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
             const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
             if (tab) {
                 return this.mrsHubRef.current.showMrsSdkExportDialog(tab.connection.backend, request.serviceId,
                     request.connectionId, request.connectionDetails, request.directory);
@@ -1257,7 +1278,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (this.createLibraryDialogRef.current) {
             try {
                 const { selectedPage, connectionTabs } = this.state;
-                const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+                const tab = connectionTabs.find((entry) => {
+                    return entry.dataModelEntry.id === selectedPage;
+                });
                 if (!tab) {
                     void ui.showErrorMessage(`Library cannot be created: no tab`, {});
 
@@ -1278,6 +1301,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 if (response === DialogResponseClosure.Cancel) {
                     return true;
                 }
+
                 const data = response as IDictionary;
                 const schemaName = data.schemaName as string;
                 const libraryName = data.libraryName as string;
@@ -1286,8 +1310,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 const body = data.body as string;
                 const statusBarItem = ui.createStatusBarItem();
                 statusBarItem.text = `$(loading~spin) Creating Library ${libraryName} in the DB...`;
-                const created = await this.createLibraryInDb(
-                    tab?.connection.backend, schemaName, libraryName, language, comment, body);
+
+                const created = await this.createLibraryInDb(tab.connection.backend, schemaName, libraryName,
+                    language, comment, body);
                 if (!created) {
                     statusBarItem.dispose();
 
@@ -1296,7 +1321,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 statusBarItem.dispose();
                 await ui.showInformationMessage(
                     `${language} library ${schemaName}.${libraryName} succesfully created!`, {});
-                await tab?.connection.refresh?.();
+                await tab.connection.refresh?.();
 
                 return true;
             } catch (error) {
@@ -1312,30 +1337,38 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private async createLibraryInDb(backend: ShellInterfaceSqlEditor | undefined, schemaName: string,
         libraryName: string, language: string, comment: string, body: string): Promise<boolean> {
-        if (!backend) { return false; }
+        if (!backend) {
+            return false;
+        }
+
         let commentPart = "";
         if (comment.length > 0) {
             commentPart = `COMMENT "${comment}"\n`;
         }
+
         let mleCounter = 1;
         let currentQuote;
         while (true) {
             currentQuote = `$${"mle".repeat(mleCounter)}$`;
-            if (!body.includes(currentQuote)) { break; }
+            if (!body.includes(currentQuote)) {
+                break;
+            }
             mleCounter++;
         }
+
         if (language.toUpperCase() === "WEBASSEMBLY") {
             language = "WASM";
         }
+
         let completeBody = `CREATE LIBRARY \`${schemaName}\`.\`${libraryName}\`\n`;
         completeBody += `${commentPart}LANGUAGE ${language} AS ${currentQuote}\n${body}\n${currentQuote};`;
-        if (!backend?.hasSession) {
+        if (!backend.hasSession) {
             void ui.showErrorMessage(`Library cannot be created on the server because NO open session`, {});
 
             return false;
         }
         try {
-            await backend?.execute(completeBody);
+            await backend.execute(completeBody);
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Error while creating library: ${message}`, {});
@@ -1516,7 +1549,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             const entryId = uuid();
             let useNotebook;
-            if (connection.details.settings && connection.details.settings.defaultEditor) {
+            if (connection.details.settings?.defaultEditor) {
                 useNotebook = connection.details.settings.defaultEditor === ConnectionEditorType.DbNotebook;
             } else {
                 useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
@@ -1527,7 +1560,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             const executionHistory = await connection.backend.getExecutionHistoryEntries(connection.details.id, 30);
 
             let type: LeafDocumentType;
-            if (initialEditor === undefined || initialEditor === "default") {
+            if (initialEditor === "default") {
                 type = useNotebook ? OdmEntityType.Notebook : OdmEntityType.Script;
             } else {
                 type = initialEditor === "notebook" ? OdmEntityType.Notebook : OdmEntityType.Script;
@@ -1701,7 +1734,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return;
         }
 
-        const activeConnectionIds: Set<number> = new Set();
+        const activeConnectionIds = new Set<number>();
         state.connectionTabs.forEach((connectionTab) => {
             activeConnectionIds.add(connectionTab.dataModelEntry.details.id);
         });
@@ -1846,7 +1879,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param tabId The id of the tab to remove.
      * @param documentId The id of the document to remove, optional.
      * @param details The connection details.
-     *
      */
     private removeDocument = (tabId: string, documentId?: string, details?: IConnectionDetails): void => {
         this.documentDataModel.closeDocument(undefined, {
@@ -2071,8 +2103,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 if (connectionState.documentStates.length === 0) {
                     // No editor left over -> close the connection. This will also send a remote notification.
                     this.maxConnectionDocumentSuffix = new Map();
-                    if (this.latestPagesByConnection.get(tab?.connection.details.id) === tab.dataModelEntry.id) {
-                        this.latestPagesByConnection.delete(tab?.connection.details.id);
+                    if (this.latestPagesByConnection.get(tab.connection.details.id) === tab.dataModelEntry.id) {
+                        this.latestPagesByConnection.delete(tab.connection.details.id);
                     }
 
                     return this.removeTabs([tab.dataModelEntry.id]);
@@ -2268,7 +2300,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     return candidate.document.id === editorId;
                 });
 
-                editor?.state?.model?.setValue(content);
+                editor?.state?.model.setValue(content);
             }
         }
     };
@@ -2302,7 +2334,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 return candidate.document.id === details.document.id;
             });
 
-            let documentId: string = "";
+            let documentId = "";
             if (newEditor) {
                 documentId = newEditor.document.id;
             } else {
@@ -2528,33 +2560,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
         } else {
             const connection = entry.connection;
-            const connectionId = connection?.details.id;
-            let pageId: string | undefined;
-            if (connection) {
-                pageId = this.resolveLatestPageId(connection);
-            }
+            const connectionId = connection.details.id;
+            const pageId = this.resolveLatestPageId(connection);;
 
             switch (command.command) {
                 case "msg.openConnection": {
-                    if (connection) {
-                        const initialEditor = (command.arguments && command.arguments.length > 0)
-                            ? command.arguments[0]
-                            : undefined;
-                        await this.showPage({
-                            connectionId,
-                            pageId,
-                            force: true,
-                            editor: initialEditor as InitialEditor,
-                        });
-                    }
+                    const initialEditor = (command.arguments && command.arguments.length > 0)
+                        ? command.arguments[0]
+                        : undefined;
+                    await this.showPage({
+                        connectionId,
+                        pageId,
+                        force: true,
+                        editor: initialEditor as InitialEditor,
+                    });
 
                     break;
                 }
 
                 case "msg.loadScriptFromDisk": {
-                    if (connection) {
-                        await this.loadScriptFromDisk(connection.details, pageId);
-                    }
+                    await this.loadScriptFromDisk(connection.details, pageId);
 
                     break;
                 }
@@ -2575,7 +2600,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 }
 
                 case "msg.newSessionUsingConnection": {
-                    await this.activateShellTab(uuid(), connection?.details.id, connection?.details.caption);
+                    await this.activateShellTab(uuid(), connection.details.id, connection.details.caption);
 
                     break;
                 }
@@ -2941,7 +2966,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             session,
         });
 
-
         if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
             model.setEOL(Monaco.EndOfLineSequence.LF);
         } else {
@@ -3006,7 +3030,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 break;
             }
 
-
             case OdmEntityType.ShellSession: {
                 void this.activateShellTab(entry.id);
 
@@ -3052,7 +3075,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      */
     private handleConnectionEntrySelection = async (entry: ConnectionDataModelEntry): Promise<void> => {
         const { connectionTabs } = this.state;
-
 
         switch (entry.type) {
             case CdmEntityType.AdminPage: {
@@ -3179,6 +3201,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      */
     private setStatePromise<K extends keyof IDocumentModuleState>(
         state: ((prevState: Readonly<IDocumentModuleState>, props: Readonly<{}>)
+            // eslint-disable-next-line @stylistic/indent
             => (Pick<IDocumentModuleState, K> | IDocumentModuleState | null))
             | (Pick<IDocumentModuleState, K> | IDocumentModuleState | null),
     ): Promise<void> {
@@ -3238,7 +3261,9 @@ EXAMPLES
 
     private getNumberOfOpenedConnectionPages(entry: ICdmConnectionEntry): number {
         return this.state.connectionTabs.filter(
-            (info) => { return info.connection.details.id === entry.details.id; }).length + 1;
+            (info) => {
+                return info.connection.details.id === entry.details.id;
+            }).length + 1;
     }
 
     private resolveLatestPageId(entry: ICdmConnectionEntry): string | undefined {
@@ -3272,7 +3297,7 @@ EXAMPLES
         }).length;
 
         let caption = connection.caption;
-        let maxSuffix = this.maxConnectionDocumentSuffix.get(connectionId) || 1;
+        let maxSuffix = this.maxConnectionDocumentSuffix.get(connectionId) ?? 1;
         if (numberOfConnections > 0 || maxSuffix > 1) {
             maxSuffix++;
             caption = `${caption} (${maxSuffix})`;
@@ -3282,31 +3307,30 @@ EXAMPLES
         return caption;
     }
 
-    private restartAutologoutTimer = () => {
+    private restartAutoLogoutTimer = () => {
         clearTimeout(this.autoLogoutTimer);
         this.autoLogoutTimer = undefined;
 
-        let logoutTimout: number | undefined;
-        const testTimeout = process.env.TEST_AUTO_LOGOUT_TIMEOUT;
-        if (testTimeout !== undefined) {
-            logoutTimout = parseInt(testTimeout, 10); // Must be in milliseconds.
+        let logoutTimeout: number | undefined;
 
-            if (logoutTimout === undefined || isNaN(logoutTimout)) {
-                logoutTimout = undefined;
+        const testTimeout = globalThis.testConfig?.TEST_AUTO_LOGOUT_TIMEOUT;
+
+        if (testTimeout !== undefined) {
+            logoutTimeout = parseInt(testTimeout, 10); // Must be in milliseconds.
+            if (isNaN(logoutTimeout)) {
+                logoutTimeout = undefined;
             }
         }
 
-        if (logoutTimout === undefined) {
-            // Use the configured auto logout timeout. Convert hours to milliseconds.
-            logoutTimout = Settings.get("general.autoLogoutTimeout", 12) * 3600 * 1000;
-        }
-        console.log(`logoutTimout is: ${logoutTimout}`);
-        if (logoutTimout > 0) {
+        // Use the configured auto logout timeout. Convert hours to milliseconds.
+        logoutTimeout ??= Settings.get("general.autoLogoutTimeout", 12) * 3600 * 1000;
+
+        if (logoutTimeout > 0) {
             this.autoLogoutTimer = setTimeout(() => {
                 void ui.showInformationMessage("You have been logged out due to inactivity. Please log in again.",
                     { modal: true }, "OK");
                 void this.doLogout();
-            }, logoutTimout);
+            }, logoutTimeout);
         }
     };
 

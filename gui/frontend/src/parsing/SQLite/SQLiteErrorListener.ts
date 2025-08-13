@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,16 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable no-underscore-dangle */
-
 import {
     ATNSimulator, BaseErrorListener, FailedPredicateException, InputMismatchException, LexerNoViableAltException,
     NoViableAltException, RecognitionException, Recognizer, Token,
 } from "antlr4ng";
 
 import { ErrorReportCallback } from "../parser-common.js";
-import { SQLiteParser } from "./generated/SQLiteParser.js";
 import { SQLiteLexer } from "./generated/SQLiteLexer.js";
+import { SQLiteParser } from "./generated/SQLiteParser.js";
 
 export class SQLiteErrorListener extends BaseErrorListener {
 
@@ -55,7 +53,7 @@ export class SQLiteErrorListener extends BaseErrorListener {
             }
 
             const errorLength = token.stop - token.start + 1;
-            let wrongText = token.text || "";
+            let wrongText = token.text ?? "";
 
             // getExpectedTokens() ignores predicates, so it might include the token for which we got this syntax error,
             // if that was excluded by a predicate (which in our case is always a version check).
@@ -83,7 +81,9 @@ export class SQLiteErrorListener extends BaseErrorListener {
                     } else {
                         message = wrongText + " is not valid at this position";
 
-                        if (expectedText.length > 0) { message += ", expecting " + expectedText; }
+                        if (expectedText.length > 0) {
+                            message += ", expecting " + expectedText;
+                        }
                     }
                 } else if (e instanceof FailedPredicateException) {
                     // For cases like "... | a ({condition}? b)", but not "... | a ({condition}? b)?".

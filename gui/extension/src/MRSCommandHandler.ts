@@ -33,6 +33,7 @@ import {
 
 import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
 
+import type { IDictionary } from "../../frontend/src/app-logic/general-types.js";
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import {
     IMySQLConnectionOptions, MySQLConnectionScheme,
@@ -57,19 +58,19 @@ import { switchVsCodeContext } from "./utilities.js";
 import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui.js";
 
 export class MRSCommandHandler {
-    #docsWebviewPanel?: WebviewPanel;
-    #docsCurrentFile?: string;
-    #host: ExtensionHost;
-    #mrsScriptBlocks = new MrsScriptBlocks();
-    #mrsScriptDecorationEnabled = false;
+    private docsWebviewPanel?: WebviewPanel;
+    private docsCurrentFile?: string;
+    private host: ExtensionHost;
+    private mrsScriptBlocks = new MrsScriptBlocks();
+    private mrsScriptDecorationEnabled = false;
 
     public constructor(private connectionsProvider: ConnectionsTreeDataProvider) { }
 
     public setup = (host: ExtensionHost): void => {
-        this.#host = host;
+        this.host = host;
         const context = host.context;
 
-        this.#mrsScriptBlocks.setup(context);
+        this.mrsScriptBlocks.setup(context);
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestServiceSupport",
             async (entry?: ICdmConnectionEntry) => {
@@ -119,29 +120,26 @@ export class MRSCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters",
             (entry?: ICdmRestRootEntry) => {
-                let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
-                if (term === undefined) {
-                    term = window.createTerminal("MySQL Router MRS");
+                let term = window.terminals.find((t) => {
+                    return t.name === "MySQL Router MRS";
+                });
+
+                term ??= window.createTerminal("MySQL Router MRS");
+
+                term.show();
+                if (os.platform() === "win32") {
+                    term.sendText("taskkill /IM mysqlrouter.exe /F", true);
+                } else {
+                    term.sendText("killall -9 mysqlrouter", true);
                 }
 
-                if (term) {
-                    term.show();
-                    if (os.platform() === "win32") {
-                        term.sendText("taskkill /IM mysqlrouter.exe /F", true);
-                    } else {
-                        term.sendText("killall -9 mysqlrouter", true);
-                    }
-
-                    // Make sure to remove the .pid file
-                    try {
-                        fs.unlinkSync(path.join(this.getRouterConfigDir(context, entry), "mysqlrouter.pid"));
-                    } catch (reason) {
-                        //
-                    }
+                // Make sure to remove the .pid file
+                try {
+                    fs.unlinkSync(path.join(this.getRouterConfigDir(context, entry), "mysqlrouter.pid"));
+                } catch {
+                    //
                 }
-
             }));
-
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.stopLocalRouter",
             async (item?: ICdmRestRootEntry) => {
@@ -164,7 +162,7 @@ export class MRSCommandHandler {
 
                     if (answer === "Yes") {
                         try {
-                            await entry.connection.backend?.mrs.deleteRouter(entry.connection.details.id);
+                            await entry.connection.backend.mrs.deleteRouter(entry.connection.details.id);
                             await commands.executeCommand("msg.refreshConnections");
                             void ui.showInformationMessage("The MRS Router has been deleted successfully.", {});
                         } catch (reason) {
@@ -175,12 +173,11 @@ export class MRSCommandHandler {
                 }
             }));
 
-
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (entry?: ICdmRestRootEntry) => {
             if (entry) {
                 const connectionId = entry.connection.details.id;
                 const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 if (provider) {
                     void provider.runCommand("job", [
                         { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -195,7 +192,7 @@ export class MRSCommandHandler {
                 if (entry) {
                     const connectionId = entry.connection.details.id;
                     const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
                             { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -214,7 +211,7 @@ export class MRSCommandHandler {
                     if (answer === "Yes") {
                         try {
                             const connection = entry.connection;
-                            await connection.backend?.mrs.deleteService(entry.details.id);
+                            await connection.backend.mrs.deleteService(entry.details.id);
                             await commands.executeCommand("msg.refreshConnections");
                             void ui.showInformationMessage("The MRS service has been deleted successfully.", {});
                         } catch (reason) {
@@ -230,12 +227,12 @@ export class MRSCommandHandler {
                 if (entry) {
                     try {
                         const connection = entry.connection;
-                        await connection.backend?.mrs.setCurrentService(entry.details.id);
+                        await connection.backend.mrs.setCurrentService(entry.details.id);
                         await commands.executeCommand("msg.refreshConnections");
 
                         const connectionId = entry.connection.details.id;
                         const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                        const provider = this.#host.currentProvider;
+                        const provider = this.host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
                                 { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -320,7 +317,7 @@ export class MRSCommandHandler {
 
         const createStatementAuthenticationAppSql = async (entry?: ICdmRestServiceAuthAppEntry,
             includeAllObjects?: boolean, toFile?: boolean) => {
-            if (!entry || entry.details.id === undefined) {
+            if (entry?.details.id === undefined) {
                 void ui.showErrorMessage(`Error creating the SQL for this REST Authentication App`, {});
 
                 return;
@@ -328,11 +325,12 @@ export class MRSCommandHandler {
 
             try {
                 if (toFile) {
-                    if (entry.details.name === undefined || entry.parent.details.hostCtx === undefined) {
+                    if (entry.details.name === undefined) {
                         void ui.showErrorMessage(`Error creating the SQL for this REST Auth App`, {});
 
                         return;
                     }
+
                     const convertedUrl = convertPathToCamelCase(entry.details.name) + "."
                         + convertPathToCamelCase(entry.parent.details.hostCtx);
                     const overwrite = true;
@@ -372,7 +370,7 @@ export class MRSCommandHandler {
 
         const createStatementUserSql = async (entry?: ICdmRestUserEntry,
             includeAllObjects?: boolean, toFile?: boolean) => {
-            if (!entry || entry.details.id === undefined) {
+            if (entry?.details.id === undefined) {
                 void ui.showErrorMessage(`Error creating the SQL for this REST User`, {});
 
                 return;
@@ -721,7 +719,6 @@ export class MRSCommandHandler {
                 await createStatementUserSql(entry, true, false);
             }));
 
-
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateDbObjectSql",
             async (entry?: ICdmRestDbObjectEntry) => {
                 await createStatementDbObjectSql(entry, false);
@@ -736,7 +733,6 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestContentFileEntry) => {
                 await createStatementContentFileSql(entry, false);
             }));
-
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.openContentSetRequestPath",
             async (entry?: ICdmRestDbObjectEntry) => {
@@ -761,13 +757,13 @@ export class MRSCommandHandler {
                 } catch (reason) {
                     const message = convertErrorToString(reason);
                     void ui.showErrorMessage(`An error occurred while opening the REST Content Set request path. ` +
-                        `${message}`, {});
+                        message, {});
                 }
             }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.exportServiceSdk",
             async (entry?: ICdmRestServiceEntry) => {
-                if (entry && entry.details && this.#host.currentProvider) {
+                if (entry?.details && this.host.currentProvider) {
                     try {
                         const convertedUrl = convertPathToCamelCase(entry.details.urlContextRoot);
                         const value = await window.showSaveDialog({
@@ -780,7 +776,7 @@ export class MRSCommandHandler {
                             const connectionId = entry.connection.details.id;
                             const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
 
-                            void this.#host.currentProvider.runCommand("job", [
+                            void this.host.currentProvider.runCommand("job", [
                                 { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 {
                                     requestType: "showMrsSdkExportDialog", parameter: {
@@ -793,7 +789,7 @@ export class MRSCommandHandler {
                                 },
                             ], "newConnection");
                         }
-                    } catch (e) {
+                    } catch {
                         // do nothing
                     }
                 }
@@ -857,7 +853,7 @@ export class MRSCommandHandler {
                 if (entry) {
                     const connectionId = entry.connection.details.id;
                     const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
                             { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -876,7 +872,7 @@ export class MRSCommandHandler {
                     const connection = entry.parent;
                     const connectionId = connection.details.id;
                     const connectionInfo = getConnectionInfoFromDetails(connection.details);
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     if (provider) {
                         // Check if there is at least one MRS Service
                         const services = await connection.backend.mrs.listServices();
@@ -917,20 +913,18 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.openContentFileRequestPath",
             async (entry?: ICdmRestContentFileEntry) => {
                 if (entry) {
-                    if (entry.details) {
-                        const connection = entry.connection;
-                        const o = entry.details;
-                        const port = getRouterPortForConnection(connection.details.id);
-                        let url = (o.hostCtx ?? "") + (o.contentSetRequestPath ?? "") + o.requestPath;
+                    const connection = entry.connection;
+                    const o = entry.details;
+                    const port = getRouterPortForConnection(connection.details.id);
+                    let url = o.hostCtx + o.contentSetRequestPath + o.requestPath;
 
-                        if (url.startsWith("/")) {
-                            url = `https://localhost:${port}${url}`;
-                        } else {
-                            url = `https://${url}`;
-                        }
-
-                        await env.openExternal(Uri.parse(url));
+                    if (url.startsWith("/")) {
+                        url = `https://localhost:${port}${url}`;
+                    } else {
+                        url = `https://${url}`;
                     }
+
+                    await env.openExternal(Uri.parse(url));
                 }
             }));
 
@@ -938,24 +932,23 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestDbObjectEntry) => {
                 if (entry) {
                     const connection = entry.connection;
-                    if (entry.details) {
-                        const answer = await ui.showInformationMessage(`Are you sure you want to delete the REST ` +
-                            `DB Object ${entry.details.name}?`,
-                            { modal: true, detail: "This operation cannot be reverted!" }, "Delete DB Object",
-                            "Cancel");
+                    const message = `Are you sure you want to delete the REST ` +
+                        `DB Object ${entry.details.name}?`;
+                    const answer = await ui.showInformationMessage(message,
+                        { modal: true, detail: "This operation cannot be reverted!" }, "Delete DB Object",
+                        "Cancel");
 
-                        if (answer === "Delete DB Object") {
-                            try {
-                                await connection.backend.mrs.deleteDbObject(entry.details.id);
+                    if (answer === "Delete DB Object") {
+                        try {
+                            await connection.backend.mrs.deleteDbObject(entry.details.id);
 
-                                // TODO: refresh only the affected connection.
-                                void commands.executeCommand("msg.refreshConnections");
-                                void ui.showInformationMessage(`The REST DB Object ${entry.details.name} has ` +
-                                    `been deleted.`, {});
-                            } catch (reason) {
-                                const message = convertErrorToString(reason);
-                                void ui.showErrorMessage(`Error deleting the REST DB Object: ${message}`, {});
-                            }
+                            // TODO: refresh only the affected connection.
+                            void commands.executeCommand("msg.refreshConnections");
+                            void ui.showInformationMessage(`The REST DB Object ${entry.details.name} has ` +
+                                `been deleted.`, {});
+                        } catch (reason) {
+                            const message = convertErrorToString(reason);
+                            void ui.showErrorMessage(`Error deleting the REST DB Object: ${message}`, {});
                         }
                     }
                 }
@@ -967,7 +960,7 @@ export class MRSCommandHandler {
                     const connection = entry.connection;
                     const connectionId = connection.details.id;
                     const connectionInfo = getConnectionInfoFromDetails(connection.details);
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
                             { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -982,16 +975,14 @@ export class MRSCommandHandler {
                 try {
                     if (entry) {
                         const connection = entry.connection;
-                        if (entry.details) {
-                            const connectionId = connection.details.id;
-                            const connectionInfo = getConnectionInfoFromDetails(connection.details);
-                            const provider = this.#host.currentProvider;
-                            if (provider) {
-                                void provider.runCommand("job", [
-                                    { requestType: "showPage", parameter: { connectionId, connectionInfo } },
-                                    { requestType: "showMrsAuthAppDialog", parameter: { service: entry.details } },
-                                ], "newConnection");
-                            }
+                        const connectionId = connection.details.id;
+                        const connectionInfo = getConnectionInfoFromDetails(connection.details);
+                        const provider = this.host.currentProvider;
+                        if (provider) {
+                            void provider.runCommand("job", [
+                                { requestType: "showPage", parameter: { connectionId, connectionInfo } },
+                                { requestType: "showMrsAuthAppDialog", parameter: { service: entry.details } },
+                            ], "newConnection");
                         }
                     }
                 } catch (reason) {
@@ -1007,7 +998,7 @@ export class MRSCommandHandler {
                         const connection = entry.connection;
                         const connectionId = connection.details.id;
                         const connectionInfo = getConnectionInfoFromDetails(connection.details);
-                        const provider = this.#host.currentProvider;
+                        const provider = this.host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
                                 { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -1051,7 +1042,7 @@ export class MRSCommandHandler {
                             } catch (reason) {
                                 const message = convertErrorToString(reason);
                                 void ui.showErrorMessage("Error linking an MRS Authentication App: " +
-                                    `${message}`, {});
+                                    message, {});
                             }
                         }
                     }
@@ -1085,7 +1076,7 @@ export class MRSCommandHandler {
                     if (entry) {
                         const connectionId = entry.connection.details.id;
                         const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                        const provider = this.#host.currentProvider;
+                        const provider = this.host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
                                 { requestType: "showPage", parameter: { connectionId, connectionInfo } },
@@ -1105,13 +1096,13 @@ export class MRSCommandHandler {
                     if (entry) {
                         const connectionId = entry.connection.details.id;
                         const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                        const provider = this.#host.currentProvider;
+                        const provider = this.host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
                                 { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                                 {
                                     requestType: "showMrsContentSetDialog", parameter: {
-                                        // eslint-disable-next-line no-template-curly-in-string
+
                                         directory: "${openApiUi}",
                                         requestPath: "/openApiUi",
                                     },
@@ -1125,13 +1116,12 @@ export class MRSCommandHandler {
                 }
             }));
 
-
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteAuthApp",
             async (entry?: ICdmRestAuthAppEntry) => {
                 try {
                     if (entry) {
                         const connection = entry.connection;
-                        if (entry.details?.name) {
+                        if (entry.details.name) {
                             const answer = await ui.showInformationMessage(`Are you sure the MRS authentication app ` +
                                 `${entry.details.name} should be deleted?`, {}, "Yes", "No");
 
@@ -1153,7 +1143,6 @@ export class MRSCommandHandler {
                 }
 
             }));
-
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteUser",
             async (entry?: ICdmRestUserEntry) => {
@@ -1181,20 +1170,17 @@ export class MRSCommandHandler {
 
             }));
 
-
         context.subscriptions.push(commands.registerCommand("msg.mrs.addUser", (entry?: ICdmRestAuthAppEntry) => {
             if (entry) {
                 const connection = entry.connection;
-                if (entry.details) {
-                    const connectionId = connection.details.id;
-                    const connectionInfo = getConnectionInfoFromDetails(connection.details);
-                    const provider = this.#host.currentProvider;
-                    if (provider) {
-                        void provider.runCommand("job", [
-                            { requestType: "showPage", parameter: { connectionId, connectionInfo } },
-                            { requestType: "showMrsUserDialog", parameter: { authApp: entry.details } },
-                        ], "newConnection");
-                    }
+                const connectionId = connection.details.id;
+                const connectionInfo = getConnectionInfoFromDetails(connection.details);
+                const provider = this.host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showPage", parameter: { connectionId, connectionInfo } },
+                        { requestType: "showMrsUserDialog", parameter: { authApp: entry.details } },
+                    ], "newConnection");
                 }
             }
         }));
@@ -1203,26 +1189,22 @@ export class MRSCommandHandler {
             if (entry) {
                 const connection = entry.connection;
                 try {
-                    if (entry.details && entry.details.authAppId) {
+                    if (entry.details.authAppId) {
                         connection.backend.mrs.getAuthApp(entry.details.authAppId).then((authApp) => {
-                            if (authApp) {
-                                const connectionId = connection.details.id;
-                                const connectionInfo = getConnectionInfoFromDetails(connection.details);
-                                const provider = this.#host.currentProvider;
-                                if (provider) {
-                                    void provider.runCommand("job", [
-                                        { requestType: "showPage", parameter: { connectionId, connectionInfo } },
-                                        {
-                                            requestType: "showMrsUserDialog", parameter: {
-                                                authApp, user: entry.details,
-                                            },
+                            const connectionId = connection.details.id;
+                            const connectionInfo = getConnectionInfoFromDetails(connection.details);
+                            const provider = this.host.currentProvider;
+                            if (provider) {
+                                void provider.runCommand("job", [
+                                    { requestType: "showPage", parameter: { connectionId, connectionInfo } },
+                                    {
+                                        requestType: "showMrsUserDialog", parameter: {
+                                            authApp, user: entry.details,
                                         },
-                                    ], "newConnection");
-                                }
-                            } else {
-                                throw new Error("Unable to find authApp");
+                                    },
+                                ], "newConnection");
                             }
-                        }).catch((reason) => {
+                        }).catch((reason: unknown) => {
                             const message = convertErrorToString(reason);
                             void ui.showErrorMessage(`Error adding a new User: ${message}`, {});
                         });
@@ -1239,7 +1221,7 @@ export class MRSCommandHandler {
                 if (directory) {
                     const connection = await host.determineConnection(DBType.MySQL, false, false);
                     if (connection) {
-                        const provider = this.#host.currentProvider;
+                        const provider = this.host.currentProvider;
                         if (provider) {
                             const connectionId = connection.details.id;
                             const connectionInfo = getConnectionInfoFromDetails(connection.details);
@@ -1263,23 +1245,22 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestContentSetEntry) => {
                 if (entry) {
                     const connection = entry.connection;
-                    if (entry.details) {
-                        const answer = await ui.showInformationMessage(`Are you sure you want to drop the static ` +
-                            `content set ${entry.details.requestPath}?`,
-                            { modal: true, detail: "This operation cannot be reverted!" }, "Delete Static Content Set",
-                            "Cancel");
+                    const message = `Are you sure you want to drop the static ` +
+                        `content set ${entry.details.requestPath}?`;
+                    const answer = await ui.showInformationMessage(message,
+                        { modal: true, detail: "This operation cannot be reverted!" }, "Delete Static Content Set",
+                        "Cancel");
 
-                        if (answer === "Delete Static Content Set") {
-                            try {
-                                await connection.backend.mrs.deleteContentSet(entry.details.id);
+                    if (answer === "Delete Static Content Set") {
+                        try {
+                            await connection.backend.mrs.deleteContentSet(entry.details.id);
 
-                                void commands.executeCommand("msg.refreshConnections");
-                                void ui.showInformationMessage(
-                                    "The MRS static content set has been deleted successfully.", {});
-                            } catch (reason) {
-                                const message = convertErrorToString(reason);
-                                void ui.showErrorMessage(`Error deleting the Static Content Set: ${message}`, {});
-                            }
+                            void commands.executeCommand("msg.refreshConnections");
+                            void ui.showInformationMessage(
+                                "The MRS static content set has been deleted successfully.", {});
+                        } catch (reason) {
+                            const message = convertErrorToString(reason);
+                            void ui.showErrorMessage(`Error deleting the Static Content Set: ${message}`, {});
                         }
                     }
                 }
@@ -1289,62 +1270,58 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
                     const connection = entry.connection;
-                    if (entry.details) {
-                        const convertedPath = convertPathToCamelCase(entry.details.requestPath);
-                        await window.showSaveDialog({
-                            title: "REST Schema Dump...",
-                            saveLabel: "Select the target file",
-                            defaultUri: Uri.file(`${os.homedir()}/${convertedPath}.mrs.json`),
-                            filters: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                JSON: ["mrs.json"],
-                            },
-                        }).then(async (value) => {
-                            if (value !== undefined) {
-                                try {
-                                    const path = value.fsPath;
-                                    await connection.backend.mrs.dumpSchema(path, entry.details.serviceId, undefined,
-                                        entry.details.id);
-                                    void ui.showInformationMessage("The REST Schema has been dumped " +
-                                        "successfully.", {});
-                                } catch (reason) {
-                                    const message = convertErrorToString(reason);
-                                    void ui.showErrorMessage(`Error dumping the REST Schema: ${message}`, {});
-                                }
+                    const convertedPath = convertPathToCamelCase(entry.details.requestPath);
+                    await window.showSaveDialog({
+                        title: "REST Schema Dump...",
+                        saveLabel: "Select the target file",
+                        defaultUri: Uri.file(`${os.homedir()}/${convertedPath}.mrs.json`),
+                        filters: {
+
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value.fsPath;
+                                await connection.backend.mrs.dumpSchema(path, entry.details.serviceId, undefined,
+                                    entry.details.id);
+                                void ui.showInformationMessage("The REST Schema has been dumped " +
+                                    "successfully.", {});
+                            } catch (reason) {
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorMessage(`Error dumping the REST Schema: ${message}`, {});
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.dumpObjectToJSONFile",
             async (entry?: ICdmRestDbObjectEntry) => {
                 if (entry) {
-                    if (entry.details) {
-                        await window.showSaveDialog({
-                            title: "REST Database Object Dump...",
-                            saveLabel: "Select the target file",
-                            defaultUri: Uri.file(`${os.homedir()}/${entry.details.name}.mrs.json`),
-                            filters: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                JSON: ["mrs.json"],
-                            },
-                        }).then(async (value) => {
-                            if (value !== undefined) {
-                                try {
-                                    const path = value.fsPath;
-                                    const connection = entry.connection;
-                                    await connection.backend.mrs.dumpObject(path, entry.details.serviceId, undefined,
-                                        entry.details.dbSchemaId, undefined, entry.details.id);
-                                    void ui.showInformationMessage("The REST Database Object has been dumped " +
-                                        "successfully.", {});
-                                } catch (reason) {
-                                    const message = convertErrorToString(reason);
-                                    void ui.showErrorMessage(`Error dumping the REST Database Object: ${message}`, {});
-                                }
+                    await window.showSaveDialog({
+                        title: "REST Database Object Dump...",
+                        saveLabel: "Select the target file",
+                        defaultUri: Uri.file(`${os.homedir()}/${entry.details.name}.mrs.json`),
+                        filters: {
+
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value.fsPath;
+                                const connection = entry.connection;
+                                await connection.backend.mrs.dumpObject(path, entry.details.serviceId, undefined,
+                                    entry.details.dbSchemaId, undefined, entry.details.id);
+                                void ui.showInformationMessage("The REST Database Object has been dumped " +
+                                    "successfully.", {});
+                            } catch (reason) {
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorMessage(`Error dumping the REST Database Object: ${message}`, {});
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }));
 
@@ -1355,10 +1332,6 @@ export class MRSCommandHandler {
                 }
 
                 if (!(entry instanceof Uri)) {
-                    if (!entry.details) {
-                        return;
-                    }
-
                     const backend = entry.connection.backend;
 
                     await window.showOpenDialog({
@@ -1368,7 +1341,7 @@ export class MRSCommandHandler {
                         canSelectFolders: false,
                         canSelectMany: false,
                         filters: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+
                             JSON: ["mrs.json"],
                         },
                     }).then(async (value) => {
@@ -1454,38 +1427,35 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.loadObjectFromJSONFile",
             async (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
-                    if (entry.details) {
-                        const backend = entry.connection.backend;
+                    const backend = entry.connection.backend;
 
-                        await window.showOpenDialog({
-                            title: "REST Database Object Load...",
-                            openLabel: "Select the source file",
-                            canSelectFiles: true,
-                            canSelectFolders: false,
-                            canSelectMany: false,
-                            filters: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                JSON: ["mrs.json"],
-                            },
-                        }).then(async (value) => {
-                            if (value !== undefined) {
-                                try {
-                                    const path = value[0].fsPath;
-                                    await backend.mrs.loadObject(path, entry.details.serviceId, undefined,
-                                        entry.details.id);
-                                    void commands.executeCommand("msg.refreshConnections");
-                                    void ui.showInformationMessage("The REST Database Object has been loaded " +
-                                        "successfully.", {});
-                                } catch (reason) {
-                                    const message = convertErrorToString(reason);
-                                    void ui.showErrorMessage(`Error loading REST Database Object: ${message}`, {});
-                                }
+                    await window.showOpenDialog({
+                        title: "REST Database Object Load...",
+                        openLabel: "Select the source file",
+                        canSelectFiles: true,
+                        canSelectFolders: false,
+                        canSelectMany: false,
+                        filters: {
+
+                            JSON: ["mrs.json"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value[0].fsPath;
+                                await backend.mrs.loadObject(path, entry.details.serviceId, undefined,
+                                    entry.details.id);
+                                void commands.executeCommand("msg.refreshConnections");
+                                void ui.showInformationMessage("The REST Database Object has been loaded " +
+                                    "successfully.", {});
+                            } catch (reason) {
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorMessage(`Error loading REST Database Object: ${message}`, {});
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }));
-
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.saveExampleProject",
             async (exampleCodePath: Uri) => {
@@ -1516,7 +1486,9 @@ export class MRSCommandHandler {
                         try {
                             const targetPath = Uri.joinPath(value[0], dirName);
                             // Add filter to ignore node_modules folder
-                            const filter = (src: string) => { return src.indexOf("node_modules") === -1; };
+                            const filter = (src: string) => {
+                                return !src.includes("node_modules");
+                            };
                             fs.cpSync(path, targetPath.fsPath, { filter, recursive: true });
 
                             void ui.showInformationMessage(`The MRS Project ${dirName} has been stored "+
@@ -1538,12 +1510,12 @@ export class MRSCommandHandler {
             }));
 
         const enableAutomaticDecoration = async (status: boolean) => {
-            this.#mrsScriptDecorationEnabled = status;
+            this.mrsScriptDecorationEnabled = status;
 
             await switchVsCodeContext("Oracle.mysql-shell-for-vs-code.mrsScriptDecorationEnabled",
-                this.#mrsScriptDecorationEnabled);
+                this.mrsScriptDecorationEnabled);
 
-            void this.#mrsScriptBlocks.enableAutomaticDecoration(this.#mrsScriptDecorationEnabled);
+            void this.mrsScriptBlocks.enableAutomaticDecoration(this.mrsScriptDecorationEnabled);
         };
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.enableScriptHelpers",
@@ -1562,10 +1534,10 @@ export class MRSCommandHandler {
             if (enableMrs === undefined) {
                 const connectionId = entry.connection.details.id;
                 const connectionInfo = getConnectionInfoFromDetails(entry.connection.details);
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 if (provider) {
                     void provider.runCommand("job", [
-                        { requestType: "showPage", parameter: { connectionId, connectionInfo} },
+                        { requestType: "showPage", parameter: { connectionId, connectionInfo } },
                         { requestType: "showMrsConfigurationDialog", parameter: undefined },
                     ], "newConnection");
                 }
@@ -1604,9 +1576,8 @@ export class MRSCommandHandler {
             context.extensionMode === ExtensionMode.Development);
         const routerConfigBaseDir = path.join(shellConfDir, "plugin_data", "mrs_plugin", "router_configs");
 
-        return (process.env.MYSQL_ROUTER_CUSTOM_DIR !== undefined)
-            ? process.env.MYSQL_ROUTER_CUSTOM_DIR
-            : path.join(routerConfigBaseDir, entry?.connection.details.id.toString() ?? "default", "mysqlrouter");
+        return process.env.MYSQL_ROUTER_CUSTOM_DIR ??
+            path.join(routerConfigBaseDir, entry?.connection.details.id.toString() ?? "default", "mysqlrouter");
     };
 
     private getEmbeddedRouterBinPath = (context: ExtensionContext): string | undefined => {
@@ -1647,21 +1618,21 @@ export class MRSCommandHandler {
                 const connString = `${mysqlConnOptions.user ?? ""}@${mysqlConnOptions.host}` +
                     ((mysqlConnOptions.port !== undefined) ? `:${mysqlConnOptions.port}` : "");
 
-                let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
-                if (term === undefined) {
-                    term = window.createTerminal("MySQL Router MRS");
-                }
+                let term = window.terminals.find((t) => {
+                    return t.name === "MySQL Router MRS";
+                });
 
+                term ??= window.createTerminal("MySQL Router MRS");
                 const routerConfigDir = this.getRouterConfigDir(context, entry);
 
                 if (fs.existsSync(routerConfigDir)) {
-                    const answer = await ui.showInformationMessage(`The MySQL Router config directory ` +
-                        `${routerConfigDir} already exists. Do you want to rename the existing directory and proceed?`
-                        , {}, "Yes", "No");
+                    const message = `The MySQL Router config directory ` +
+                        `${routerConfigDir} already exists. Do you want to rename the existing directory and proceed?`;
+                    const answer = await ui.showInformationMessage(message, {}, "Yes", "No");
                     if (answer === "Yes") {
                         try {
                             fs.renameSync(routerConfigDir, routerConfigDir + "_old");
-                        } catch (e) {
+                        } catch {
                             fs.rmSync(routerConfigDir + "_old", { recursive: true, force: true });
                             fs.renameSync(routerConfigDir, routerConfigDir + "_old");
                         }
@@ -1673,46 +1644,43 @@ export class MRSCommandHandler {
                 }
 
                 // cSpell:ignore consolelog
-                if (term !== undefined) {
-                    term.show();
-                    const routerBootstrapPath = routerBinDir !== undefined
-                        ? join(routerBinDir, "mysqlrouter_bootstrap") : "mysqlrouter_bootstrap";
-                    const basePort = 6446 + (entry?.connection.details.id ?? 0) * 4;
-                    const httpPort = getRouterPortForConnection(entry?.connection.details.id);
-                    let bootstrapCommand =
-                        `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
-                        `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
-                        `"--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")}" ` +
-                        `--conf-set-option=logger.level=INFO --conf-set-option=logger.sinks=consolelog ` +
-                        `--conf-base-port=${basePort.toString()} ` +
-                        `--conf-set-option=http_server.port=${httpPort.toString()}`;
+                term.show();
+                const routerBootstrapPath = routerBinDir !== undefined
+                    ? join(routerBinDir, "mysqlrouter_bootstrap") : "mysqlrouter_bootstrap";
+                const basePort = 6446 + (entry.connection.details.id * 4);
+                const httpPort = getRouterPortForConnection(entry.connection.details.id);
+                let bootstrapCommand =
+                    `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
+                    `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
+                    `"--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")}" ` +
+                    `--conf-set-option=logger.level=INFO --conf-set-option=logger.sinks=consolelog ` +
+                    `--conf-base-port=${basePort.toString()} ` +
+                    `--conf-set-option=http_server.port=${httpPort.toString()}`;
 
-                    // Add --mrs-developer option to set the development user for this router instance
-                    if (mysqlConnOptions.user) {
-                        bootstrapCommand += ` --mrs-developer "${mysqlConnOptions.user}" `;
-                        bootstrapCommand += ` --mrs-developer-debug-port "${(httpPort + 1).toString()}" `;
-                    }
-                    term.sendText(bootstrapCommand, !waitAndClosedWhenFinished);
+                // Add --mrs-developer option to set the development user for this router instance
+                if (mysqlConnOptions.user) {
+                    bootstrapCommand += ` --mrs-developer "${mysqlConnOptions.user}" `;
+                    bootstrapCommand += ` --mrs-developer-debug-port "${(httpPort + 1).toString()}" `;
+                }
+                term.sendText(bootstrapCommand, !waitAndClosedWhenFinished);
 
-                    if (waitAndClosedWhenFinished) {
-                        term.sendText("; exit");
+                if (waitAndClosedWhenFinished) {
+                    term.sendText("; exit");
 
-                        return new Promise((resolve, reject) => {
-                            const disposeToken = window.onDidCloseTerminal(
-                                (closedTerminal) => {
-                                    if (closedTerminal === term) {
-                                        disposeToken.dispose();
-                                        if (term.exitStatus !== undefined) {
-                                            resolve(term.exitStatus);
-                                        } else {
-                                            reject("Terminal exited with undefined status");
-                                        }
+                    return new Promise((resolve, reject) => {
+                        const disposeToken = window.onDidCloseTerminal(
+                            (closedTerminal) => {
+                                if (closedTerminal === term) {
+                                    disposeToken.dispose();
+                                    if (term.exitStatus !== undefined) {
+                                        resolve(term.exitStatus);
+                                    } else {
+                                        reject(new Error("Terminal exited with undefined status"));
                                     }
-                                },
-                            );
-                        });
-                    }
-
+                                }
+                            },
+                        );
+                    });
                 }
             } else {
                 const answer = await ui.showInformationMessage(
@@ -1748,7 +1716,9 @@ export class MRSCommandHandler {
                 const routerConfigDir = this.getRouterConfigDir(context, entry);
 
                 if (fs.existsSync(routerConfigDir)) {
-                    let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
+                    let term = window.terminals.find((t) => {
+                        return t.name === "MySQL Router MRS";
+                    });
                     if (term === undefined) {
                         term = window.createTerminal("MySQL Router MRS");
                     } else {
@@ -1760,8 +1730,9 @@ export class MRSCommandHandler {
                         const pidFilePath = path.join(this.getRouterConfigDir(context, entry), "mysqlrouter.pid");
                         try {
                             await fs.promises.access(pidFilePath);
-                            const answer = await ui.showInformationMessage("A MySQL Router instance might already " +
-                                "to be running. Do you want to force a start/restart of the MySQL Router?", {}, "Yes",
+                            const message = "A MySQL Router instance might already " +
+                                "to be running. Do you want to force a start/restart of the MySQL Router?";
+                            const answer = await ui.showInformationMessage(message, {}, "Yes",
                                 "No");
                             if (answer === "Yes") {
                                 if (os.platform() === "win32") {
@@ -1775,7 +1746,7 @@ export class MRSCommandHandler {
                             } else {
                                 return;
                             }
-                        } catch (reason) {
+                        } catch {
                             // do nothing
                         }
                     }
@@ -1806,13 +1777,13 @@ export class MRSCommandHandler {
                             `${routerConfigDir} was not found. Do you want to bootstrap a local MySQL Router ` +
                             `instance for development now?`, {}, "Yes", "No");
                         if (answer === "Yes") {
-                            await this.bootstrapLocalRouter(this.#host.context, entry, true);
-                            void this.startStopLocalRouter(this.#host.context, entry);
+                            await this.bootstrapLocalRouter(this.host.context, entry, true);
+                            void this.startStopLocalRouter(this.host.context, entry);
                         }
                     } else {
-                        await ui.showInformationMessage(`The MySQL Router config directory ${routerConfigDir} was ` +
-                            `not found. Please bootstrap a local MySQL Router instance for development first.`, {},
-                            "OK");
+                        const message = `The MySQL Router config directory ${routerConfigDir} was ` +
+                            `not found. Please bootstrap a local MySQL Router instance for development first.`;
+                        await ui.showInformationMessage(message, {}, "OK");
                     }
                 }
             } else {
@@ -1826,13 +1797,13 @@ export class MRSCommandHandler {
     };
 
     private browseDocs = (id?: string, file = "index.html") => {
-        const fileChange = this.#docsCurrentFile !== file;
+        const fileChange = this.docsCurrentFile !== file;
 
-        if (!this.#docsWebviewPanel || fileChange) {
-            this.#docsCurrentFile = file;
+        if (!this.docsWebviewPanel || fileChange) {
+            this.docsCurrentFile = file;
             try {
                 let data;
-                let mrsPluginDir = path.join(this.#host.context.extensionPath, "shell", "lib",
+                let mrsPluginDir = path.join(this.host.context.extensionPath, "shell", "lib",
                     "mysqlsh", "plugins", "mrs_plugin");
                 let indexPath = path.join(mrsPluginDir, "docs", file);
                 if (fs.existsSync(indexPath)) {
@@ -1853,8 +1824,8 @@ export class MRSCommandHandler {
                     }
                 }
 
-                if (!this.#docsWebviewPanel) {
-                    this.#docsWebviewPanel = window.createWebviewPanel(
+                if (!this.docsWebviewPanel) {
+                    this.docsWebviewPanel = window.createWebviewPanel(
                         "mrsDocs",
                         "MRS Docs",
                         ViewColumn.One,
@@ -1867,66 +1838,68 @@ export class MRSCommandHandler {
                                 Uri.file(path.join(mrsPluginDir, "docs", "images")),
                             ],
                         });
-                    this.#docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
+                    this.docsWebviewPanel.onDidDispose(() => {
+                        this.handleDocsWebviewPanelDispose();
+                    });
 
                     // Handle messages from the webview
-                    this.#docsWebviewPanel.webview.onDidReceiveMessage(
-                        (message) => {
-                            if (message.path && typeof message.path === "string" && os.platform() === "win32") {
-                                message.path = String(message.path).replaceAll("/", "\\");
+                    this.docsWebviewPanel.webview.onDidReceiveMessage((message: IDictionary) => {
+                        if (message.path && typeof message.path === "string" && os.platform() === "win32") {
+                            message.path = String(message.path).replaceAll("/", "\\");
+                        }
+
+                        switch (message.command) {
+                            case "openSqlFile": {
+                                if (message.path && typeof message.path === "string") {
+                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
+
+                                    void commands.executeCommand("msg.editInScriptEditor", fullPath);
+                                }
+
+                                break;
                             }
-                            switch (message.command) {
-                                case "openSqlFile": {
-                                    if (message.path && typeof message.path === "string") {
-                                        const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
-                                        void commands.executeCommand("msg.editInScriptEditor", fullPath);
-                                    }
+                            case "loadMrsDump": {
+                                if (message.path && typeof message.path === "string") {
+                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
-                                    break;
+                                    void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
                                 }
 
-                                case "loadMrsDump": {
-                                    if (message.path && typeof message.path === "string") {
-                                        const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
-
-                                        void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
-                                    }
-
-                                    break;
-                                }
-
-                                case "saveProject": {
-                                    if (message.path && typeof message.path === "string") {
-                                        const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
-
-                                        void commands.executeCommand("msg.mrs.saveExampleProject", fullPath);
-                                    }
-
-                                    break;
-                                }
-
-                                case "goto": {
-                                    let file: string | undefined;
-                                    let id: string | undefined;
-
-                                    if (message.path && typeof message.path === "string") {
-                                        file = message.path;
-                                    }
-                                    if (message.id && typeof message.id === "string") {
-                                        id = message.id;
-                                    }
-                                    this.browseDocs(id, file);
-
-                                    break;
-                                }
-
-                                default:
+                                break;
                             }
-                        });
+
+                            case "saveProject": {
+                                if (message.path && typeof message.path === "string") {
+                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
+
+                                    void commands.executeCommand("msg.mrs.saveExampleProject", fullPath);
+                                }
+
+                                break;
+                            }
+
+                            case "goto": {
+                                let file: string | undefined;
+                                let id: string | undefined;
+
+                                if (message.path && typeof message.path === "string") {
+                                    file = message.path;
+                                }
+                                if (message.id && typeof message.id === "string") {
+                                    id = message.id;
+                                }
+                                this.browseDocs(id, file);
+
+                                break;
+                            }
+
+                            default:
+                        }
+                    });
                 }
 
-                const docUrl = this.#docsWebviewPanel.webview.asWebviewUri(
+                const docUrl = this.docsWebviewPanel.webview.asWebviewUri(
                     Uri.file(path.join(mrsPluginDir, "docs/")));
 
                 data = data.replace("\"style/", `"${docUrl.toString()}style/`);
@@ -1934,17 +1907,17 @@ export class MRSCommandHandler {
                 data = data.replace(/(href=")((?!http).*?\.html)(#.*?)?(")/gm, `$1$2$3$4 onclick="` +
                     `document.vscode.postMessage({ command: 'goto', path: '$2', id: '$3' });" `);
 
-                this.#docsWebviewPanel.webview.html = data;
+                this.docsWebviewPanel.webview.html = data;
             } catch (reason) {
-                this.#docsWebviewPanel = undefined;
+                this.docsWebviewPanel = undefined;
                 const message = convertErrorToString(reason);
                 void ui.showErrorMessage(message, {});
             }
         } else {
-            this.#docsWebviewPanel.reveal();
+            this.docsWebviewPanel.reveal();
         }
 
-        if (id && this.#docsWebviewPanel) {
+        if (id && this.docsWebviewPanel) {
             // Remove leading # if there
             if (id.startsWith("#")) {
                 id = id.slice(1);
@@ -1953,16 +1926,16 @@ export class MRSCommandHandler {
             if (fileChange) {
                 // If there was a file change, wait till the page is loaded
                 setTimeout(() => {
-                    void this.#docsWebviewPanel?.webview.postMessage({ command: "goToId", id });
+                    void this.docsWebviewPanel?.webview.postMessage({ command: "goToId", id });
                 }, 200);
             } else {
-                void this.#docsWebviewPanel.webview.postMessage({ command: "goToId", id });
+                void this.docsWebviewPanel.webview.postMessage({ command: "goToId", id });
             }
         }
     };
 
     private handleDocsWebviewPanelDispose = () => {
-        this.#docsWebviewPanel = undefined;
+        this.docsWebviewPanel = undefined;
     };
 
     private buildDbObjectRequestPath = (entry: ICdmRestDbObjectEntry): Uri | undefined => {

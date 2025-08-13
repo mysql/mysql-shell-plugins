@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,7 +36,7 @@ import { versionMatchesExpected } from "../../../../utilities/helpers.js";
 import { preferredShellVersion } from "../../../../app-logic/general-types.js";
 
 describe("ShellInterfaceCore Tests", () => {
-    let launcher: MySQLShellLauncher;
+    let launcher: MySQLShellLauncher | undefined;
     let core: ShellInterfaceCore;
 
     beforeAll(async () => {
@@ -88,7 +88,7 @@ describe("ShellInterfaceCore Tests", () => {
                     break;
                 }
 
-                case "x32": {
+                case "ia32": {
                     expect(info.architecture).toBe("x86");
                     break;
                 }
@@ -140,8 +140,8 @@ describe("ShellInterfaceCore Tests", () => {
     it("Create DB file", async () => {
         // Relative paths use the user's home dir as basis.
         await expect(core.createDatabaseFile("non-existing/test.sqlite3")).rejects
-            .toBeInstanceOf(ResponseError).catch((reason) => {
-                expect(reason.message).toBe("No permissions to access the directory.");
+            .toBeInstanceOf(ResponseError).catch((reason: unknown) => {
+                expect((reason as IDictionary).message).toBe("No permissions to access the directory.");
             });
         expect(fs.existsSync("non-existing/test.sqlite3")).toBeFalsy();
 

@@ -99,12 +99,12 @@ type LastInputType = "mousedown" | "shiftTab" | "tab" | "other";
  * @returns A Set containing the titles of columns that satisfy the "wide" criteria.
  */
 export const getWideColumns = (resultSet: IResultSet, minLength = 300): Set<string> => {
-    const fieldTitles: Map<string, string> = new Map();
+    const fieldTitles = new Map<string, string>();
     resultSet.columns.forEach((info) => {
         fieldTitles.set(info.field, info.title);
     });
 
-    const wideColumns: Set<string> = new Set();
+    const wideColumns = new Set<string>();
 
     resultSet.data.rows.forEach((columnValues) => {
         for (const indexString in columnValues) {
@@ -203,12 +203,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private selectedCell?: CellComponent;
     private editingCell?: CellComponent;
 
-    #columnDefinitions: ColumnDefinition[] = [];
+    private columnDefinitions: ColumnDefinition[] = [];
+    private lastInputType: LastInputType = "other";
 
-    #navigating = false;
-    #lastInputType: LastInputType = "other";
-
-    #wideColumnsWidth = Settings.get("editor.wideColumnsWidth", 800);
+    private wideColumnsWidth = Settings.get("editor.wideColumnsWidth", 800);
 
     public constructor(props: IResultViewProperties) {
         super(props);
@@ -226,10 +224,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         if (this.gridRef.current) {
             const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
 
-            updateWideColumnsCache(this.columnWidthCache, resultSet, this.#wideColumnsWidth);
-            this.#columnDefinitions = this.generateColumnDefinitions(resultSet.columns, editable && canEdit);
+            updateWideColumnsCache(this.columnWidthCache, resultSet, this.wideColumnsWidth);
+            this.columnDefinitions = this.generateColumnDefinitions(resultSet.columns, editable && canEdit);
 
-            void this.gridRef.current.setColumns(this.#columnDefinitions).then(() => {
+            void this.gridRef.current.setColumns(this.columnDefinitions).then(() => {
                 void this.addData(resultSet.data as IResultSetRows, true).then(() => {
                     if (this.gridRef.current) {
                         if (selectRow !== undefined) {
@@ -374,10 +372,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
 
-            updateWideColumnsCache(this.columnWidthCache, resultSet, this.#wideColumnsWidth);
-            this.#columnDefinitions = this.generateColumnDefinitions(columns, editable && canEdit);
+            updateWideColumnsCache(this.columnWidthCache, resultSet, this.wideColumnsWidth);
+            this.columnDefinitions = this.generateColumnDefinitions(columns, editable && canEdit);
 
-            return this.gridRef.current.setColumns(this.#columnDefinitions);
+            return this.gridRef.current.setColumns(this.columnDefinitions);
         }
 
         return Promise.resolve();
@@ -446,8 +444,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         // Map column info from the backend to column definitions for
         return columns.map((info): ColumnDefinition => {
             let formatter;
-            const formatterParams: FormatterParams = (): IFormatterParams => { return { info }; };
-            const editorParams: EditorParams = () => { return { info }; };
+            const formatterParams: FormatterParams = (): IFormatterParams => {
+                return { info };
+            };
+            const editorParams: EditorParams = () => {
+                return { info };
+            };
 
             let minWidth = 50;
             let editor: Editor | undefined;
@@ -581,7 +583,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 resizable: true,
                 editable: () => {
                     if (!this.editingCell) {
-                        if (editable && editor != null) {
+                        if (editable) {
                             return true;
                         }
                     }
@@ -603,7 +605,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private cellEditing = (cell: CellComponent): void => {
         const { onFieldEditStart } = this.props;
 
-        if (this.selectedCell && this.selectedCell.getElement()) {
+        if (this.selectedCell?.getElement()) {
             this.selectedCell.getElement().classList.remove("manualFocus");
             this.selectedCell = undefined;
         }
@@ -655,7 +657,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
 
         // istanbul ignore next
-        const selectCount = this.gridRef.current.getSelectedRows().length ?? 0;
+        const selectCount = this.gridRef.current.getSelectedRows().length;
 
         //let needsValueEditor = false;
         let canLoadSave = false;
@@ -809,7 +811,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     // We cannot test this method as it depends on Tabulator content (which is not rendered in tests).
     // istanbul ignore next
     private handleCellContext = (e: Event, cell: CellComponent): void => {
-        if (this.selectedCell && this.selectedCell.getElement()) {
+        if (this.selectedCell?.getElement()) {
             this.selectedCell.getElement().classList.remove("manualFocus");
         }
 
@@ -843,7 +845,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             const rowIndex = row.getPosition() as number - 1;
 
             const changes = rowChanges[rowIndex];
-            if (changes) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (changes) { // rowChanges is a sparse array, so we need to check if the row has changes.
                 if (changes.added) {
                     // An added row can never be marked deleted, because when deleting a new row, it is simply
                     // removed from the changes list.
@@ -860,8 +863,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 // Add and delete actions are removed from the row changes, if no other changes happened for a row.
                 // That's why we need to remove the classes here.
                 const element = row.getElement();
-                element?.classList.remove("added");
-                element?.classList.remove("deleted");
+                element.classList.remove("added");
+                element.classList.remove("deleted");
             }
         }
     };
@@ -902,7 +905,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     case DBDataType.Varbinary: {
                         return formatBase64ToHex(String(cell.getValue()));
                     }
-
 
                     // Integer variants and Boolean, never get quoted
                     case DBDataType.TinyInt:
@@ -1093,12 +1095,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 case "copyFieldMenuItem": {
-                    void requisitions.writeToClipboard(this.formatCell(this.selectedCell));
+                    requisitions.writeToClipboard(this.formatCell(this.selectedCell));
                     break;
                 }
 
                 case "copyFieldUnquotedMenuItem": {
-                    void requisitions.writeToClipboard(this.formatCell(this.selectedCell, true));
+                    requisitions.writeToClipboard(this.formatCell(this.selectedCell, true));
 
                     break;
                 }
@@ -1136,10 +1138,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 default:
             }
 
-            if (this.selectedCell) {
-                this.selectedCell.getElement()?.classList.remove("manualFocus");
-                this.selectedCell = undefined;
-            }
+            this.selectedCell.getElement().classList.remove("manualFocus");
+            this.selectedCell = undefined;
         }
 
         return true;
@@ -1149,7 +1149,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * Takes the content from the current cell and saves it to a file.
      */
     private saveCurrentCellToFile(): void {
-        const value = this.selectedCell?.getValue();
+        const value = this.selectedCell?.getValue() as unknown;
         if (value === null || value === undefined) {
             return;
         }
@@ -1293,7 +1293,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private renderCustomEditor(cell: CellComponent, host: HTMLDivElement, value: unknown,
         success: ValueBooleanCallback, cancel: ValueVoidCallback, editorParams: unknown): void {
 
-        const params = (typeof editorParams === "function" ? editorParams(cell) : editorParams) as IDictionary;
+        const params = (typeof editorParams === "function"
+            ? (editorParams as (cell: CellComponent) => IDictionary)(cell)
+            : editorParams) as IDictionary;
         const info: IColumnInfo = params.info as IColumnInfo;
 
         let element;
@@ -1361,7 +1363,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     }
                 }
                 element = <Input
-                    value={value as string ?? ""}
+                    value={value as string | undefined ?? ""}
                     multiLine={this.useMultiLineEditor(info.dataType.type)}
                     multiLineSwitchEnterKeyBehavior={true}
                     onChange={(e: InputEvent, props: IInputChangeProperties): void => {
@@ -1403,7 +1405,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.Date: {
                 element = <DateTime
                     type={IDateTimeValueType.Date}
-                    value={value as string ?? ""}
+                    value={value as string | undefined ?? ""}
                     onConfirm={(e: KeyboardEvent): void => {
                         success(value);
                         e.preventDefault();
@@ -1421,7 +1423,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.DateTime: {
                 element = <DateTime
                     type={IDateTimeValueType.DateTime}
-                    value={value as string ?? ""}
+                    value={value as string | undefined ?? ""}
                     onConfirm={(e: KeyboardEvent, props: IDateTimeChangeProperties): void => {
                         success(props.value);
                         this.handleConfirm(cell);
@@ -1438,7 +1440,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.Time: {
                 element = <DateTime
                     type={IDateTimeValueType.Time}
-                    value={value as string ?? ""}
+                    value={value as string | undefined ?? ""}
                     onConfirm={(): void => {
                         success(value);
                         this.handleConfirm(cell);
@@ -1492,7 +1494,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         onRendered: EmptyCallback): string | HTMLElement => {
         this.markIfChanged(cell);
 
-        const value = cell.getValue();
+        const value = cell.getValue() as unknown;
 
         if (value == null) {
             const host = document.createElement("div");
@@ -1507,7 +1509,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 const info = formatterParams.info;
                 const element = cell.getElement();
                 element.setAttribute("data-tooltip", "expand");
-                if (info?.dataType.type === DBDataType.Json) {
+                if (info.dataType.type === DBDataType.Json) {
                     element.setAttribute("data-tooltip-lang", "json");
                 }
             });
@@ -1520,7 +1522,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private jsonFormatter = (cell: CellComponent): string | HTMLElement => {
         this.markIfChanged(cell);
 
-        const value = cell.getValue();
+        const value = cell.getValue() as unknown;
 
         const host = document.createElement("div");
         host.className = iconHostClassName;
@@ -1537,11 +1539,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.markIfChanged(cell);
 
         const info = formatterParams.info;
-        if (this.isNewRow(cell) && info?.autoIncrement) {
+        if (this.isNewRow(cell) && info.autoIncrement) {
             return "AI";
         }
 
-        const value = cell.getValue();
+        const value = cell.getValue() as unknown;
         if (value === null) {
             const host = document.createElement("div");
             host.className = iconHostClassName;
@@ -1566,7 +1568,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.markIfChanged(cell);
 
         let element;
-        const value = cell.getValue();
+        const value = cell.getValue() as unknown;
         if (value === null) {
             const host = document.createElement("div");
             host.className = iconHostClassName;
@@ -1640,7 +1642,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         onRendered: EmptyCallback): string | HTMLElement => {
         this.markIfChanged(cell);
 
-        const value = cell.getValue();
+        const value = cell.getValue() as unknown;
         if (value === null) {
             const host = document.createElement("div");
             host.className = iconHostClassName;
@@ -1659,46 +1661,43 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const locale = Intl.DateTimeFormat().resolvedOptions().locale;
         const stringValue = String(value);
         const info = formatterParams.info;
-        if (info) {
-            let date: Date;
-            const options: Intl.DateTimeFormatOptions = {};
 
-            switch (info.dataType.type) {
-                case DBDataType.Date:
-                case DBDataType.DateTime: {
-                    date = new Date(stringValue);
-                    options.year = "numeric";
-                    options.month = "2-digit";
-                    options.day = "2-digit";
+        let date: Date;
+        const options: Intl.DateTimeFormatOptions = {};
 
-                    break;
-                }
+        switch (info.dataType.type) {
+            case DBDataType.Date:
+            case DBDataType.DateTime: {
+                date = new Date(stringValue);
+                options.year = "numeric";
+                options.month = "2-digit";
+                options.day = "2-digit";
 
-                case DBDataType.Time: {
-                    date = new Date(`1970-01-01T${stringValue}`);
-                    const formattedTime = date.toLocaleTimeString(locale);
-
-                    return formattedTime;
-                }
-
-                case DBDataType.Year: {
-                    date = new Date(stringValue);
-                    options.year = "numeric";
-
-                    break;
-                }
-
-                default: {
-                    date = new Date(stringValue);
-
-                    break;
-                }
+                break;
             }
 
-            return date.toLocaleDateString(locale, options);
+            case DBDataType.Time: {
+                date = new Date(`1970-01-01T${stringValue}`);
+                const formattedTime = date.toLocaleTimeString(locale);
+
+                return formattedTime;
+            }
+
+            case DBDataType.Year: {
+                date = new Date(stringValue);
+                options.year = "numeric";
+
+                break;
+            }
+
+            default: {
+                date = new Date(stringValue);
+
+                break;
+            }
         }
 
-        return stringValue;
+        return date.toLocaleDateString(locale, options);
     };
 
     private booleanFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
@@ -1735,9 +1734,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         if (rowChanges) {
             const rowIndex = cell.getRow().getPosition() as number - 1;
             const rowChange = rowChanges[rowIndex];
-            if (rowChange && !rowChange.added) {
-                const changes = rowChanges[rowIndex]?.changes;
-                if (changes) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (rowChange) { // rowChanges is a sparse array.
+                if (!rowChange.added) {
+                    const changes = rowChange.changes;
                     const field = cell.getColumn().getField();
                     const change = changes.find((change) => {
                         return change.field === field;
@@ -1748,9 +1748,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         element.classList.add("changed");
                     }
                 }
-            }
 
-            return rowChange?.added ?? false;
+                return rowChange.added;
+            }
         }
 
         return false;
@@ -1767,6 +1767,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             const rowIndex = cell.getRow().getPosition() as number - 1;
             const rowChange = rowChanges[rowIndex];
 
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             return rowChange?.added ?? false;
         }
 
@@ -1827,7 +1828,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         e: FocusEvent): void => {
         const element = e.target as HTMLElement & { value: string | number; };
 
-        const value = cell.getValue();
+        const value = cell.getValue() as unknown;
         if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
             if (String(element.value) !== String(value)) {
                 // If this was using this.binaryFormatter then we have to convert back from HEX to Base64
@@ -1863,32 +1864,27 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         const rows = this.gridRef.current?.getRows();
                         if (rows && rows.length >= rowPos) {
                             // Get the correct cell and focus it
-                            rows[rowPos - 1].getCell(col).getElement()?.focus();
+                            rows[rowPos - 1].getCell(col).getElement().focus();
                         }
                     }, 100);
                 }
             }
         }
 
-        if (this.#lastInputType === "tab" || this.#lastInputType === "shiftTab") {
-            const target = (e.relatedTarget || document.activeElement) as HTMLElement;
+        if (this.lastInputType === "tab" || this.lastInputType === "shiftTab") {
+            const target = (e.relatedTarget ?? document.activeElement) as HTMLElement;
             if (target.closest(".tabulator")) {
-                this.#navigating = true;
-                try {
-                    if (this.#lastInputType === "tab") {
-                        if (!cell.navigateRight()) {
-                            cell.navigateNext();
-                        }
-                    } else {
-                        if (!cell.navigateLeft()) {
-                            cell.navigatePrev();
-                        }
+                if (this.lastInputType === "tab") {
+                    if (!cell.navigateRight()) {
+                        cell.navigateNext();
                     }
-                } finally {
-                    this.#navigating = false;
+                } else {
+                    if (!cell.navigateLeft()) {
+                        cell.navigatePrev();
+                    }
                 }
             }
-        }
+        };
     };
 
     private handleConfirm(cell: CellComponent): void {
@@ -1912,11 +1908,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * A handler for global mouse up. Used to track mouse clicks for focus-out handling.
      */
     private handleMouseUp = (): void => {
-        this.#lastInputType = "other";
+        this.lastInputType = "other";
     };
 
     /**
      * A handler for global key down. Used to track tab presses for focus-out handling.
+     *
      * @param e The keyboard event.
      */
     private handleKeyDown = (e: KeyboardEvent): void => {
@@ -1948,7 +1945,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     }
                 }
 
-                this.#lastInputType = "other";
+                this.lastInputType = "other";
                 break;
             }
 
@@ -1960,21 +1957,21 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     void onAction("rollback");
                 }
 
-                this.#lastInputType = "other";
+                this.lastInputType = "other";
                 break;
             }
 
             case (KeyboardKeys.Tab): {
                 if (e.shiftKey) {
-                    this.#lastInputType = "shiftTab";
+                    this.lastInputType = "shiftTab";
                 } else {
-                    this.#lastInputType = "tab";
+                    this.lastInputType = "tab";
                 }
                 break;
             }
 
             default:
-                this.#lastInputType = "other";
+                this.lastInputType = "other";
                 break;
         }
     };

@@ -350,7 +350,7 @@ export class CodeBlocks {
         const match = text.match(/^(u|br?|r(f|b)?|fr?)?(["']{1,3})/i);
         if (match) {
             const prefixLength = match[0].length;
-            const postfixLength = prefixLength - (match[1] ?? "").length;
+            const postfixLength = prefixLength - (match[1]).length;
 
             return [prefixLength, postfixLength];
         }
@@ -469,20 +469,21 @@ export class CodeBlocks {
             const currentText = editor.document.getText(range);
 
             if (currentText !== block.originalCode) {
-                void ui.showWarningMessage("The original code was changed meanwhile. Do you still want to update " +
-                    "it with your application code?", {}, "Update", "Cancel").then((input) => {
-                        if (input === "Update") {
-                            void editor.edit((builder) => {
-                                builder.replace(range, newCode);
-                            }).then((success) => {
-                                if (!success) {
-                                    void ui.showErrorMessage("The changes could not be applied.", {});
-                                } else {
-                                    block.originalCode = newCode;
-                                }
-                            });
-                        }
-                    });
+                const message = "The original code was changed meanwhile. Do you still want to update " +
+                    "it with your application code?";
+                void ui.showWarningMessage(message, {}, "Update", "Cancel").then((input) => {
+                    if (input === "Update") {
+                        void editor.edit((builder) => {
+                            builder.replace(range, newCode);
+                        }).then((success) => {
+                            if (!success) {
+                                void ui.showErrorMessage("The changes could not be applied.", {});
+                            } else {
+                                block.originalCode = newCode;
+                            }
+                        });
+                    }
+                });
             } else {
                 void editor.edit((builder) => {
                     builder.replace(range, newCode);

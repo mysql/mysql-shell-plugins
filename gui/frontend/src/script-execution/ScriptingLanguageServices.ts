@@ -29,37 +29,36 @@ import ts, {
     SignatureHelpItems, TextChange,
 } from "typescript";
 
-import {
-    CompletionItem, CompletionList, Definition, DocumentHighlight, FormattingOptions, Hover, IRange,
-    languages, Location, Monaco, ParameterInformation, Range, SignatureHelp, SignatureHelpResult, SignatureInformation,
-    TextEdit, TypeScriptWorker, Uri, WorkspaceEdit, IWorkspaceTextEdit, CodeEditorMode,
-} from "../components/ui/CodeEditor/index.js";
 import { ICodeEditorModel } from "../components/ui/CodeEditor/CodeEditor.js";
+import {
+    CodeEditorMode, CompletionItem, CompletionList, Definition, DocumentHighlight, FormattingOptions, Hover, IRange,
+    IWorkspaceTextEdit, languages, Location, Monaco, ParameterInformation, Range, SignatureHelp,
+    SignatureHelpResult, SignatureInformation, TextEdit, TypeScriptWorker, Uri, WorkspaceEdit,
+} from "../components/ui/CodeEditor/index.js";
+import {
+    DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerApplySemicolonData, ILanguageWorkerInfoData,
+    ILanguageWorkerParameterData, ILanguageWorkerQueryPreprocessData, ILanguageWorkerQueryTypeData,
+    ILanguageWorkerResultData, ILanguageWorkerSplitData, ILanguageWorkerTokenizeData, ILanguageWorkerValidateData,
+    IParserErrorInfo, IPreprocessResult, IStatementSpan, QueryType, ServiceLanguage, StatementFinishState,
+} from "../parsing/parser-common.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
-import {
-    DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerQueryPreprocessData, ILanguageWorkerApplySemicolonData,
-    ILanguageWorkerInfoData, ILanguageWorkerParameterData, ILanguageWorkerQueryTypeData, ILanguageWorkerResultData,
-    ILanguageWorkerSplitData, ILanguageWorkerValidateData, IParserErrorInfo, IStatementSpan, QueryType,
-    ServiceLanguage, StatementFinishState, ILanguageWorkerTokenizeData, IPreprocessResult,
-} from "../parsing/parser-common.js";
 
 import { MySQLLanguageService } from "../parsing/mysql/MySQLLanguageService.js";
-import { SQLiteLanguageService } from "../parsing/SQLite/SQLiteLanguageService.js";
 import { PythonLanguageService } from "../parsing/python/PythonLanguageServices.js";
+import { SQLiteLanguageService } from "../parsing/SQLite/SQLiteLanguageService.js";
 
 import { isWhitespaceOnly } from "../utilities/string-helpers.js";
 
-import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool.js";
-import { IShellEditorModel } from "../modules/shell/index.js";
 import { IDictionary } from "../app-logic/general-types.js";
+import { IShellEditorModel } from "../modules/shell/index.js";
+import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool.js";
 import { IExecutionContext } from "../supplement/index.js";
 import { ITextToken } from "./index.js";
 
 /** Provides language services like code completion, by reaching out to built-in or other sources. */
 export class ScriptingLanguageServices {
-
-    private static services: ScriptingLanguageServices;
+    private static services?: ScriptingLanguageServices;
 
     private readonly workerPool: LanguageWorkerPool;
 
@@ -82,9 +81,7 @@ export class ScriptingLanguageServices {
     }
 
     public static get instance(): ScriptingLanguageServices {
-        if (!ScriptingLanguageServices.services) {
-            ScriptingLanguageServices.services = new ScriptingLanguageServices();
-        }
+        ScriptingLanguageServices.services ??= new ScriptingLanguageServices();
 
         return ScriptingLanguageServices.services;
     }
@@ -112,8 +109,8 @@ export class ScriptingLanguageServices {
                 const service = await worker(model.uri);
                 const offset = model.getOffsetAt(localPosition);
 
-                const completions: CompletionInfo =
-                    await service.getCompletionsAtPosition(model.uri.toString(), offset);
+                const completions = (await service.getCompletionsAtPosition(model.uri.toString(),
+                    offset)) as CompletionInfo | undefined;
                 const suggestions: CompletionItem[] = [];
                 const info = model.getWordUntilPosition(localPosition);
                 const replaceRange: IRange = {
@@ -123,16 +120,14 @@ export class ScriptingLanguageServices {
                     endColumn: info.endColumn,
                 };
 
-                if (completions) {
-                    completions.entries.forEach((entry) => {
-                        suggestions.push({
-                            label: entry.name,
-                            kind: this.convertKind(entry.kind),
-                            range: replaceRange,
-                            insertText: entry.insertText || entry.name,
-                        });
+                completions?.entries.forEach((entry) => {
+                    suggestions.push({
+                        label: entry.name,
+                        kind: this.convertKind(entry.kind),
+                        range: replaceRange,
+                        insertText: entry.insertText ?? entry.name,
                     });
-                }
+                });
 
                 // See if we also need additional items from the shell backend.
                 if (model.editorMode === CodeEditorMode.Terminal) {
@@ -143,32 +138,30 @@ export class ScriptingLanguageServices {
                         return { incomplete: false, suggestions };
                     } else {
                         const session = (model as IShellEditorModel).session;
-                        if (session) {
-                            const content = model.getValue();
+                        const content = model.getValue();
 
-                            const shellSuggestions: CompletionItem[] = [];
-                            const items = await session.getCompletionItems(content, offset);
-                            items.forEach((entry) => {
-                                entry.options?.forEach((option) => {
-                                    let kind = languages.CompletionItemKind.Field;
-                                    if (option.endsWith("()")) {
-                                        kind = languages.CompletionItemKind.Function;
-                                    }
+                        const shellSuggestions: CompletionItem[] = [];
+                        const items = await session.getCompletionItems(content, offset);
+                        items.forEach((entry) => {
+                            entry.options?.forEach((option) => {
+                                let kind = languages.CompletionItemKind.Field;
+                                if (option.endsWith("()")) {
+                                    kind = languages.CompletionItemKind.Function;
+                                }
 
-                                    shellSuggestions.push({
-                                        label: option,
-                                        kind,
-                                        range: replaceRange,
-                                        insertText: option,
-                                    });
+                                shellSuggestions.push({
+                                    label: option,
+                                    kind,
+                                    range: replaceRange,
+                                    insertText: option,
                                 });
                             });
+                        });
 
-                            this.lastShellCompletions = shellSuggestions;
-                            suggestions.push(...shellSuggestions);
+                        this.lastShellCompletions = shellSuggestions;
+                        suggestions.push(...shellSuggestions);
 
-                            return { incomplete: false, suggestions };
-                        }
+                        return { incomplete: false, suggestions };
                     }
                 } else {
                     return { incomplete: false, suggestions };
@@ -214,8 +207,8 @@ export class ScriptingLanguageServices {
                 const offset = model.getOffsetAt({ lineNumber: range.endLineNumber, column: range.endColumn });
                 const label = typeof item.label === "string" ? item.label : item.label.label;
 
-                const details: CompletionEntryDetails =
-                    await service.getCompletionEntryDetails(model.uri.toString(), offset, label);
+                const details = (await service.getCompletionEntryDetails(model.uri.toString(),
+                    offset, label)) as CompletionEntryDetails | undefined;
                 if (details) {
                     // For some unknown reason is the detail part not allowed to be a Markdown,
                     // string, but we need syntax highlighting for the code part (in displayParts).
@@ -258,7 +251,8 @@ export class ScriptingLanguageServices {
                 const worker = await this.workerForLanguage(context.language);
                 const service = await worker(model.uri);
                 const offset = model.getOffsetAt(position);
-                const info: QuickInfo = await service.getQuickInfoAtPosition(model.uri.toString(), offset);
+                const info = (await service.getQuickInfoAtPosition(model.uri.toString(),
+                    offset)) as QuickInfo | undefined;
                 if (info) {
                     return {
                         range: context.fromLocal(info.textSpan) as Range,
@@ -294,7 +288,7 @@ export class ScriptingLanguageServices {
                         void this.workerPool.runTask(infoData)
                             .then((taskId: number, result: ILanguageWorkerResultData): void => {
                                 const info = result.info;
-                                if (info?.description && info?.definition) {
+                                if (info?.description && info.definition) {
                                     resolve({
                                         contents: info.description.map((value: string) => {
                                             return {
@@ -345,8 +339,8 @@ export class ScriptingLanguageServices {
                         syntaxDiagnostics.forEach((value) => {
                             result.push({
                                 span: {
-                                    start: value.start || 0,
-                                    length: value.length || 0,
+                                    start: value.start ?? 0,
+                                    length: value.length ?? 0,
                                 },
                                 severity: value.category,
                                 source: "Shell GUI",
@@ -362,8 +356,8 @@ export class ScriptingLanguageServices {
                         filteredDiagnostics.forEach((value) => {
                             result.push({
                                 span: {
-                                    start: value.start || 0,
-                                    length: value.length || 0,
+                                    start: value.start ?? 0,
+                                    length: value.length ?? 0,
                                 },
                                 severity: value.category,
                                 source: "Shell GUI",
@@ -445,7 +439,7 @@ export class ScriptingLanguageServices {
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                if (model && !model.isDisposed()) {
+                if (!model.isDisposed()) {
                     const monacoTokens = Monaco.tokenize(model.getValue(), context.language);
                     const tokens: ITextToken[][] = [];
 
@@ -600,8 +594,8 @@ export class ScriptingLanguageServices {
                 const worker = await this.workerForLanguage(context.language);
                 const service = await worker(model.uri);
                 const offset = model.getOffsetAt(position);
-                const signHelp: SignatureHelpItems =
-                    await service.getSignatureHelpItems(model.uri.toString(), offset, {});
+                const signHelp = (await service.getSignatureHelpItems(model.uri.toString(), offset,
+                    {})) as SignatureHelpItems | undefined;
                 if (signHelp) {
                     const helpEntries: SignatureHelp = {
                         activeSignature: signHelp.selectedItemIndex,
@@ -675,7 +669,7 @@ export class ScriptingLanguageServices {
                     await service.getDocumentHighlights(model.uri.toString(), offset, [model.uri.toString()]);
 
                 const result: DocumentHighlight[] = [];
-                for (const entry of occurrences || []) {
+                for (const entry of occurrences ?? []) {
                     for (const span of entry.highlightSpans) {
                         let kind: languages.DocumentHighlightKind;
                         switch (span.kind) {
@@ -733,7 +727,7 @@ export class ScriptingLanguageServices {
                     await service.findRenameLocations(model.uri.toString(), offset, false, true, false);
 
                 const edits: IWorkspaceTextEdit[] = [];
-                for (const entry of locations || []) {
+                for (const entry of locations ?? []) {
                     edits.push({
                         resource: model.uri,
                         versionId: model.getVersionId(),
@@ -868,31 +862,27 @@ export class ScriptingLanguageServices {
             case "typescript": {
                 const worker = await this.workerForLanguage(context.language);
                 const service = await worker(model.uri);
-                const edits: TextChange[] | undefined =
-                    await service.getFormattingEditsForRange(model.uri.toString(), start, end, formatSettings);
+                const edits = (await service.getFormattingEditsForRange(model.uri.toString(), start, end,
+                    formatSettings)) as TextChange[];
 
-                if (edits) {
-                    const result = [];
-                    for (const edit of edits) {
-                        if (edit.span.start >= start && edit.span.start + edit.span.length <= end) {
-                            result.push({
-                                range: context.fromLocal(edit.span) as Range,
-                                text: edit.newText,
-                            });
-                        }
-                    }
-
-                    if (lastLineRange) {
+                const result = [];
+                for (const edit of edits) {
+                    if (edit.span.start >= start && edit.span.start + edit.span.length <= end) {
                         result.push({
-                            range: lastLineRange,
-                            text: this.generateIndent(initialIndentLevel, formatParams),
+                            range: context.fromLocal(edit.span) as Range,
+                            text: edit.newText,
                         });
                     }
-
-                    return result;
                 }
 
-                break;
+                if (lastLineRange) {
+                    result.push({
+                        range: lastLineRange,
+                        text: this.generateIndent(initialIndentLevel, formatParams),
+                    });
+                }
+
+                return result;
             }
 
             default:
@@ -969,7 +959,7 @@ export class ScriptingLanguageServices {
 
             this.workerPool.runTask(queryTypeData)
                 .then((taskId: number, result: ILanguageWorkerResultData): void => {
-                    resolve(result.queryType || QueryType.Unknown);
+                    resolve(result.queryType ?? QueryType.Unknown);
                 });
         });
     };
@@ -1010,8 +1000,8 @@ export class ScriptingLanguageServices {
                     updatable: result.updatable ?? false,
                     fullTableName: result.fullTableName,
                 });
-            }).catch((taskId, reason) => {
-                reject(reason);
+            }).catch((_taskId: unknown, reason) => {
+                reject(reason as Error);
             });
         });
     };
@@ -1039,8 +1029,8 @@ export class ScriptingLanguageServices {
             this.workerPool.runTask(applySemicolonData)
                 .then((taskId: number, result: ILanguageWorkerResultData): void => {
                     resolve([result.query ?? sql, result.changed ?? false]);
-                }).catch((taskId, reason) => {
-                    reject(reason);
+                }).catch((_taskId: unknown, reason: unknown) => {
+                    reject(reason as Error);
                 });
         });
     };
@@ -1068,7 +1058,7 @@ export class ScriptingLanguageServices {
 
             this.workerPool.runTask(queryData)
                 .then((taskId: number, result: ILanguageWorkerResultData): void => {
-                    resolve(result.parameters || []);
+                    resolve(result.parameters ?? []);
                 });
         });
     };
@@ -1136,7 +1126,6 @@ export class ScriptingLanguageServices {
     private convertOptions(options: FormattingOptions, formatSettings: IDictionary,
         initialIndentLevel: number): ts.FormatCodeOptions {
         return {
-            /* eslint-disable @typescript-eslint/naming-convention */
 
             ConvertTabsToSpaces: options.insertSpaces,
             TabSize: options.tabSize,
@@ -1144,29 +1133,28 @@ export class ScriptingLanguageServices {
             IndentStyle: ts.IndentStyle.Smart,
             NewLineCharacter: "\n",
             BaseIndentSize: options.tabSize * initialIndentLevel,
-            InsertSpaceAfterCommaDelimiter: Boolean(!formatSettings || formatSettings.insertSpaceAfterCommaDelimiter),
+            InsertSpaceAfterCommaDelimiter: Boolean(formatSettings.insertSpaceAfterCommaDelimiter),
             InsertSpaceAfterSemicolonInForStatements:
-                Boolean(!formatSettings || formatSettings.insertSpaceAfterSemicolonInForStatements),
+                Boolean(formatSettings.insertSpaceAfterSemicolonInForStatements),
             InsertSpaceBeforeAndAfterBinaryOperators:
-                Boolean(!formatSettings || formatSettings.insertSpaceBeforeAndAfterBinaryOperators),
+                Boolean(formatSettings.insertSpaceBeforeAndAfterBinaryOperators),
             InsertSpaceAfterKeywordsInControlFlowStatements:
-                Boolean(!formatSettings || formatSettings.insertSpaceAfterKeywordsInControlFlowStatements),
+                Boolean(formatSettings.insertSpaceAfterKeywordsInControlFlowStatements),
             InsertSpaceAfterFunctionKeywordForAnonymousFunctions:
-                Boolean(!formatSettings || formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions),
+                Boolean(formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions),
             InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis:
-                Boolean(formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis),
+                Boolean(formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis),
             InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets:
-                Boolean(formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets),
+                Boolean(formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets),
             InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces:
-                Boolean(formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces),
+                Boolean(formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces),
             InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces:
-                Boolean(formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces),
+                Boolean(formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces),
             PlaceOpenBraceOnNewLineForControlBlocks:
-                Boolean(formatSettings && formatSettings.placeOpenBraceOnNewLineForFunctions),
+                Boolean(formatSettings.placeOpenBraceOnNewLineForFunctions),
             PlaceOpenBraceOnNewLineForFunctions:
-                Boolean(formatSettings && formatSettings.placeOpenBraceOnNewLineForControlBlocks),
+                Boolean(formatSettings.placeOpenBraceOnNewLineForControlBlocks),
 
-            /* eslint-enable @typescript-eslint/naming-convention */
         };
     }
 

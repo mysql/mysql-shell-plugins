@@ -49,7 +49,9 @@ export const connectionPageMock: IOdmConnectionPageEntry = {
     details: connectionDetailsMock,
 
     documents: [],
-    getChildren: () => { return connectionPageMock.documents; },
+    getChildren: () => {
+        return connectionPageMock.documents; 
+    },
 };
 
 export const notebookDocumentMock: IOdmNotebookEntry = {

@@ -32,6 +32,7 @@ exports[`Search component tests Test Search output (snapshot) 1`] = `
           onKeyDown={[Function]}
           placeholder="Search"
           spellCheck={true}
+          spellcheck={true}
           style={
             {
               "textAlign": undefined,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,13 +27,9 @@ import "./JsonView.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import type { JsonObject, JsonValue, JsonArray } from "../../../app-logic/general-types.js";
 import { ThemeManager } from "../../Theming/ThemeManager.js";
-
-export type JsonValue = string | number | boolean | null | JsonArray | JsonObject;
-export type JsonArray = JsonValue[];
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type JsonObject = { [key: string]: JsonValue; };
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 
 export interface IJsonViewProps extends IComponentProperties {
     /** The data to show, either as object or stringified. */
@@ -118,17 +114,14 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
         const keywordColor = themeManager.getTokenForegroundColor("keyword.json");
 
         const newStyle = {
-            ...style, ...{
-                /* eslint-disable @typescript-eslint/naming-convention */
-                "--arrayDelimiterColor": `${(arrayDelimiterColor ?? "#FF0000")}`,
-                "--objectDelimiterColor": `${(objectDelimiterColor ?? "#FF0000")}`,
-                "--colonDelimiterColor": `${(colonDelimiterColor ?? "#FF0000")}`,
-                "--commaDelimiterColor": `${(commaDelimiterColor ?? "#FF0000")}`,
-                "--keyColor": `${(keyColor ?? "#FF0000")}`,
-                "--valueColor": `${(valueColor ?? "#FF0000")}`,
-                "--keywordColor": `${(keywordColor ?? "#FF0000")}`,
-                /* eslint-enable @typescript-eslint/naming-convention */
-            },
+            ...style,
+            "--arrayDelimiterColor": arrayDelimiterColor ?? "#FF0000",
+            "--objectDelimiterColor": objectDelimiterColor ?? "#FF0000",
+            "--colonDelimiterColor": colonDelimiterColor ?? "#FF0000",
+            "--commaDelimiterColor": commaDelimiterColor ?? "#FF0000",
+            "--keyColor": keyColor ?? "#FF0000",
+            "--valueColor": valueColor ?? "#FF0000",
+            "--keywordColor": keywordColor ?? "#FF0000",
         };
 
         return (
@@ -153,11 +146,10 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
 
         // Check if the collection is empty.
         let nonZeroSize = false;
-        if (type === "object" || type === "array") {
-            const objectValue = value as JsonObject | JsonArray;
+        if (type === "object") {
+            const objectValue = value as JsonObject;
             for (const objKey in objectValue) {
-                // eslint-disable-next-line no-prototype-builtins
-                if (objectValue.hasOwnProperty(objKey)) {
+                if (Object.hasOwn(objectValue, objKey)) {
                     nonZeroSize = true;
                     break; // no need to keep counting; only need one
                 }
@@ -166,6 +158,8 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
             if (nonZeroSize) {
                 entry.appendChild(JsonView.#expSpan.cloneNode(false));
             }
+        } else if (type === "array") {
+            nonZeroSize = (value as JsonArray).length > 0;
         }
 
         // If there's a key, add that before the value.
@@ -197,7 +191,8 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
                 let escapedString = JSON.stringify(stringValue);
                 escapedString = escapedString.substring(1, escapedString.length - 1); // remove outer quotes
 
-                if (stringValue.startsWith("https://") || stringValue.startsWith("http://") || stringValue[0] === "/") {
+                if (stringValue.startsWith("https://") || stringValue.startsWith("http://")
+                    || stringValue.startsWith("/")) {
                     const innerStringA = document.createElement("a");
                     innerStringA.href = stringValue;
                     innerStringA.innerText = escapedString;
@@ -340,7 +335,7 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
 
         let target = event.target as HTMLElement;
         if (!target.classList.contains("entry")) {
-            target = target.parentElement as HTMLElement;
+            target = target.parentElement!;
         }
 
         if (target.classList.contains("entry")) {

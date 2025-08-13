@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 import { ExtensionContext, Uri, commands, window, ViewColumn, workspace, ExtensionMode } from "vscode";
 
 import { join } from "path";
@@ -35,6 +34,7 @@ import {
 } from "../../../frontend/src/utilities/MySQLShellLauncher.js";
 
 import * as regedit from "regedit";
+import { convertErrorToString } from "../../../frontend/src/utilities/helpers.js";
 
 /**
  * Build CSS content for the webview
@@ -485,8 +485,9 @@ export const checkVcRuntime = (): Promise<boolean> => {
                 }
 
                 resolve(cRuntimeInstalled);
-            }).catch((reason) => {
-                reject(`C++ Runtime availability could not be checked: ${String(reason)}`);
+            }).catch((reason: unknown) => {
+                const message = convertErrorToString(reason);
+                reject(new Error(`C++ Runtime availability could not be checked: ${message}`));
             });
         } else {
             resolve(false);
@@ -523,8 +524,9 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
             if (osName === "win32") {
                 checkVcRuntime().then((result: boolean) => {
                     panel.webview.html = getWelcomeWebviewContent(extensionPath, !result);
-                }).catch((reason) => {
-                    printChannelOutput(String(reason), true);
+                }).catch((reason: unknown) => {
+                    const message = convertErrorToString(reason);
+                    printChannelOutput(message, true);
                     panel.webview.html = getWelcomeWebviewContent(extensionPath, true);
                 });
             } else {
@@ -534,7 +536,7 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
 
         // Handle messages from the webview
         panel.webview.onDidReceiveMessage(
-            (message) => {
+            (message: { command: string; }) => {
                 switch (message.command) {
                     case "installCert": {
                         const configuration = workspace.getConfiguration(`msg.debugLog`);
@@ -576,8 +578,9 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                     case "recheckRuntime": {
                         checkVcRuntime().then((result: boolean) => {
                             void panel.webview.postMessage({ command: "reCheckVcRuntime", output: result.toString() });
-                        }).catch((reason) => {
-                            printChannelOutput(String(reason));
+                        }).catch((reason: unknown) => {
+                            const message = convertErrorToString(reason);
+                            printChannelOutput(message);
                         });
 
                         return;

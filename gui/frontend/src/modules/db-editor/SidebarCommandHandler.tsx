@@ -27,8 +27,10 @@ import type { RefObject } from "preact";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
-import { DialogResponseClosure, DialogType, LibraryDialogType,
-    type IDialogRequest } from "../../app-logic/general-types.js";
+import {
+    DialogResponseClosure, DialogType, LibraryDialogType,
+    type IDialogRequest
+} from "../../app-logic/general-types.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import {
     CdmEntityType, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry,
@@ -56,7 +58,6 @@ import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../mrs/types.js";
 import type { ISideBarCommandResult, QualifiedName } from "./index.js";
 import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
-
 
 /** Centralized handling of commands send from the DB editor sidebar to the DB editor module. */
 export class SidebarCommandHandler {
@@ -132,7 +133,7 @@ export class SidebarCommandHandler {
 
                         case "msg.newSessionUsingConnection": {
                             let caption: string;
-                            if (entry?.type === CdmEntityType.Connection) {
+                            if (entry.type === CdmEntityType.Connection) {
                                 caption = entry.details.caption;
                                 const dbConnectionId = entry.details.id;
 
@@ -196,7 +197,7 @@ export class SidebarCommandHandler {
                                     try {
                                         statusBarItem.text = "$(loading~spin) Opening Database Connection ...";
                                         await treeItem.refresh?.();
-                                    } catch (error) {
+                                    } catch {
                                         break;
                                     } finally {
                                         statusBarItem.dispose();
@@ -238,7 +239,7 @@ export class SidebarCommandHandler {
 
                         case "msg.mrs.setCurrentService": {
                             const service = entry as ICdmRestServiceEntry;
-                            await connection.backend?.mrs.setCurrentService(service.details.id);
+                            await connection.backend.mrs.setCurrentService(service.details.id);
                             void ui.showInformationMessage("The MRS service has been set as the new " +
                                 "default service.", {});
                             success = true;
@@ -280,7 +281,6 @@ export class SidebarCommandHandler {
                                     }
                                 }
                             }
-
 
                             break;
                         }
@@ -324,7 +324,7 @@ export class SidebarCommandHandler {
                                 });
 
                                 if (response.closure === DialogResponseClosure.Accept) {
-                                    await connection.backend?.mrs.deleteAuthApp(app.details.id);
+                                    await connection.backend.mrs.deleteAuthApp(app.details.id);
 
                                     success = true;
                                     void ui.showInformationMessage(`The MRS Authentication App ` +
@@ -391,7 +391,7 @@ export class SidebarCommandHandler {
                                 });
 
                                 if (response.closure === DialogResponseClosure.Accept) {
-                                    await connection.backend?.mrs.unlinkAuthAppFromService(app.details.id,
+                                    await connection.backend.mrs.unlinkAuthAppFromService(app.details.id,
                                         app.parent.details.id);
 
                                     success = true;
@@ -419,7 +419,7 @@ export class SidebarCommandHandler {
                             });
 
                             if (response.closure === DialogResponseClosure.Accept) {
-                                await connection.backend?.mrs.deleteService(service.details.id);
+                                await connection.backend.mrs.deleteService(service.details.id);
                                 success = true;
                                 void ui.showInformationMessage("The MRS service has been deleted successfully.", {});
                             }
@@ -444,7 +444,7 @@ export class SidebarCommandHandler {
                                 type: DialogType.Confirm,
                                 parameters: {
                                     title: "Confirmation",
-                                    prompt: `Are you sure the MRS schema ${entry?.caption} should be deleted?`,
+                                    prompt: `Are you sure the MRS schema ${entry.caption} should be deleted?`,
                                     accept: "Delete",
                                     refuse: "Cancel",
                                     default: "Cancel",
@@ -463,7 +463,7 @@ export class SidebarCommandHandler {
                         }
 
                         case "msg.mrs.addDbObject": {
-                            switch (entry?.type) {
+                            switch (entry.type) {
                                 case CdmEntityType.Table:
                                 case CdmEntityType.View:
                                 case CdmEntityType.StoredFunction:
@@ -556,7 +556,7 @@ export class SidebarCommandHandler {
                                 type: DialogType.Confirm,
                                 parameters: {
                                     title: "Confirmation",
-                                    prompt: `Are you sure you want to delete the REST DB Object ${entry?.caption}?`,
+                                    prompt: `Are you sure you want to delete the REST DB Object ${entry.caption}?`,
                                     accept: "Delete",
                                     refuse: "Cancel",
                                     default: "Cancel",
@@ -600,7 +600,7 @@ export class SidebarCommandHandler {
                                 type: DialogType.Confirm,
                                 parameters: {
                                     title: "Confirmation",
-                                    prompt: `Are you sure you want to delete the MRS user "${entry?.caption}"?`,
+                                    prompt: `Are you sure you want to delete the MRS user "${entry.caption}"?`,
                                     accept: "Delete",
                                     refuse: "Cancel",
                                     default: "Cancel",
@@ -631,14 +631,14 @@ export class SidebarCommandHandler {
                                 const select = uppercaseKeywords ? "SELECT" : "select";
                                 const from = uppercaseKeywords ? "FROM" : "from";
 
-                                if (entry?.type === CdmEntityType.Column) {
+                                if (entry.type === CdmEntityType.Column) {
                                     const qualifiedTableName = `${quote(qualifiedName.schema)}.` +
-                                        `${quote(qualifiedName.table!)}`;
+                                        quote(qualifiedName.table!);
                                     query = `${select} ${qualifiedTableName}.${quote(qualifiedName.name)} ${from} ` +
-                                        `${qualifiedTableName}`;
+                                        qualifiedTableName;
                                 } else {
                                     const qualifiedTableName = `${quote(qualifiedName.schema)}.` +
-                                        `${quote(qualifiedName.name)}`;
+                                        quote(qualifiedName.name);
                                     query = `${select} * ${from} ${qualifiedTableName}`;
                                 }
 
@@ -670,7 +670,7 @@ export class SidebarCommandHandler {
 
                         case "msg.copyNameToEditor":
                         case "msg.copyNameToClipboard": {
-                            if (command.command === "msg.copyNameToClipboard" && entry) {
+                            if (command.command === "msg.copyNameToClipboard") {
                                 requisitions.writeToClipboard(entry.caption);
 
                                 void ui.showInformationMessage("The name was copied to the system clipboard", {});
@@ -682,7 +682,7 @@ export class SidebarCommandHandler {
                                         requestType: "showPage",
                                         parameter: { connectionId, connectionInfo },
                                     },
-                                    { requestType: "editorInsertText", parameter: entry?.caption },
+                                    { requestType: "editorInsertText", parameter: entry.caption },
                                 ]);
                             }
 
@@ -694,7 +694,7 @@ export class SidebarCommandHandler {
                             let type;
                             let qualifier = qualifiedName ? `\`${qualifiedName.schema}\`.` : "";
                             let index = 1; // The column index in the result row.
-                            switch (entry?.type) {
+                            switch (entry.type) {
                                 case CdmEntityType.Schema: {
                                     type = "schema";
                                     qualifier = "";
@@ -744,8 +744,8 @@ export class SidebarCommandHandler {
                             }
 
                             if (type) {
-                                const data = await connection?.backend.execute(
-                                    `show create ${type} ${qualifier}\`${entry?.caption}\``);
+                                const data = await connection.backend.execute(
+                                    `show create ${type} ${qualifier}\`${entry.caption}\``);
                                 const rows = data?.rows;
                                 if (rows && rows.length > 0) {
                                     // Returns one row with 2 columns.
@@ -790,7 +790,7 @@ export class SidebarCommandHandler {
                                 }
 
                                 const serviceId = await this.mrsHubRef.current.showMrsSchemaDialog(connection.backend,
-                                    entry?.caption);
+                                    entry.caption);
 
                                 return {
                                     success: true,
@@ -801,7 +801,7 @@ export class SidebarCommandHandler {
                             break;
                         }
 
-                         case "msg.createLibraryFrom": {
+                        case "msg.createLibraryFrom": {
                             if (this.createLibraryDialogRef.current) {
                                 const statusBarItem = ui.createStatusBarItem();
                                 try {
@@ -826,7 +826,7 @@ export class SidebarCommandHandler {
                                         return { success: false };
                                     }
 
-                                    if (response === DialogResponseClosure.Cancel){
+                                    if (response === DialogResponseClosure.Cancel) {
                                         statusBarItem.dispose();
 
                                         return { success: true };
@@ -858,6 +858,8 @@ export class SidebarCommandHandler {
                                     return { success: false };
                                 }
                             }
+
+                            break;
                         }
 
                         case "refreshMenuItem": {
@@ -903,7 +905,7 @@ export class SidebarCommandHandler {
 
                 case "msg.fileBugReport": {
                     // The version is injected by the vite config.
-                    const currentVersion = process.env.versionNumber ?? "1.0.0";
+                    const currentVersion = globalThis.MSG_VERSION_NUMBER ?? "1.0.0";
 
                     void window.open("https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension" +
                         `&version=${currentVersion}`);
@@ -1363,6 +1365,7 @@ export class SidebarCommandHandler {
 
         return false;
     }
+
     /**
      * Creates a new LIBRARY object in the databse
      *
@@ -1384,7 +1387,9 @@ export class SidebarCommandHandler {
         let currentQuote;
         while (true) {
             currentQuote = `$${"mle".repeat(mleCounter)}$`;
-            if (!body.includes(currentQuote)) {break;}
+            if (!body.includes(currentQuote)) {
+                break;
+            }
             mleCounter++;
         }
         if (language.toUpperCase() === "WEBASSEMBLY") {

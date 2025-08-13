@@ -260,10 +260,14 @@ export class OciDataModel {
                 makeDefault: async () => {
                     await this.setDefaultProfile(profileData);
                 },
-                getChildren: () => { return profile.compartments; },
+                getChildren: () => {
+                    return profile.compartments;
+                },
             };
 
-            profile.refresh = () => { return this.updateProfile(profile); };
+            profile.refresh = () => {
+                return this.updateProfile(profile);
+            };
 
             return profile as IOciDmProfile;
         });
@@ -278,7 +282,9 @@ export class OciDataModel {
             // First update the profile entry itself.
             // TODO: Implement a backend AP that allows to get the data of a single profile.
             const profiles = await this.#shellSession.mhs.getMdsConfigProfiles();
-            const profileData = profiles.find((p) => { return p.profile === profile.profileData.profile; });
+            const profileData = profiles.find((p) => {
+                return p.profile === profile.profileData.profile;
+            });
             if (profileData) {
                 profile.profileData = profileData;
                 profile.caption = `${profileData.profile} (${profileData.region})`;
@@ -325,7 +331,9 @@ export class OciDataModel {
                         },
                     };
 
-                    compartment.refresh = () => { return this.updateCompartment(compartment); };
+                    compartment.refresh = () => {
+                        return this.updateCompartment(compartment);
+                    };
 
                     profile.compartments.push(compartment as IOciDmCompartment);
                     actions.push({ action: "add", entry: compartment });
@@ -334,11 +342,7 @@ export class OciDataModel {
 
             this.notifySubscribers(actions);
         } catch (reason) {
-            let message = this.handleServiceError(reason);
-            if (message === undefined) {
-                message = convertErrorToString(reason);
-            }
-
+            const message = this.handleServiceError(reason) ?? convertErrorToString(reason);
             void ui.showErrorMessage(`Failed to list the compartments of this profile:\n${message}`, {});
         }
 
@@ -443,7 +447,9 @@ export class OciDataModel {
             this.updateLoadBalancers(profileData.profile, compartment),
         ]);
 
-        return result.every((r) => { return r; }); // Return true if all results are true.
+        return result.every((r) => {
+            return r;
+        }); // Return true if all results are true.
     }
 
     private async updateDbSystems(profileId: string, compartment: IOciDmCompartment): Promise<boolean> {
@@ -520,7 +526,9 @@ export class OciDataModel {
                     caption: instance.displayName ?? instance.id,
                     parent: compartment,
                 };
-                computeInstance.refresh = () => { return this.updateComputeInstance(computeInstance); };
+                computeInstance.refresh = () => {
+                    return this.updateComputeInstance(computeInstance);
+                };
 
                 compartment.computeInstances.push(computeInstance as IOciDmComputeInstance);
                 actions.push({ action: "add", entry: computeInstance });
@@ -567,7 +575,9 @@ export class OciDataModel {
                         await this.setDefaultBastion(compartment.profileData, bastion);
                     },
                 };
-                bastionEntry.refresh = () => { return this.updateBastion(bastionEntry); };
+                bastionEntry.refresh = () => {
+                    return this.updateBastion(bastionEntry);
+                };
 
                 compartment.bastions.push(bastionEntry as IOciDmBastion);
                 actions.push({ action: "add", entry: bastionEntry });
@@ -659,7 +669,9 @@ export class OciDataModel {
             if (msg.includes("oci.exceptions.ServiceError")) {
                 // Extract the error message from the exception.
                 const lines = msg.split("\n");
-                const errorLine = lines.find((line) => { return line.startsWith("oci.exceptions.ServiceError"); })!;
+                const errorLine = lines.find((line) => {
+                    return line.startsWith("oci.exceptions.ServiceError");
+                })!;
                 const error = errorLine.substring(errorLine.indexOf("{"));
 
                 // OCI errors are just serialized python dictionaries, so they use single quotes.

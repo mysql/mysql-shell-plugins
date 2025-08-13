@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,10 +27,10 @@ import "./SplitContainer.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
-import { Divider } from "../Divider/Divider.js";
-import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { Divider } from "../Divider/Divider.js";
 
 /** A record for each pane with dynamic size and behavior information. */
 interface IPanePositionData {
@@ -459,10 +459,9 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
                         // No initial size was set so far.
                         // Use the given size (if there's one) or determine a default one.
                         if (entry.initialSize != null) {
-                            actualSize = Math.max(Math.min(entry.initialSize, entry.maxSize ?? 1e100),
-                                entry.minSize ?? 0);
+                            actualSize = Math.max(Math.min(entry.initialSize, entry.maxSize), entry.minSize);
                         } else {
-                            actualSize = Math.max(Math.min(200, entry.maxSize ?? 1e100), entry.minSize ?? 0);
+                            actualSize = Math.max(Math.min(200, entry.maxSize), entry.minSize);
                         }
                     } else {
                         if (entry.initialSize != null) {
@@ -545,7 +544,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
                     if (entry.startSize === -1) {
                         let size = 0;
                         if (entry.initialSize) {
-                            size = Math.max(Math.min(entry.initialSize, entry.maxSize ?? 1e100), entry.minSize ?? 0);
+                            size = Math.max(Math.min(entry.initialSize, entry.maxSize), entry.minSize);
                             entry.startSize = size;
                             entry.currentSize = size;
 

@@ -30,6 +30,8 @@ import { Container, Orientation } from "../../../../components/ui/Container/Cont
 import { Icon } from "../../../../components/ui/Icon/Icon.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
+const icon = Assets.documents.overviewPageIcon as string;
+
 describe("Container component tests", (): void => {
 
     it("Test Container output (snapshot)", () => {
@@ -39,12 +41,12 @@ describe("Container component tests", (): void => {
                     orientation={Orientation.TopDown}
                     style={{ margin: "20px" }}
                 >
-                    <Icon src={Assets.documents.overviewPageIcon} />
-                    <Icon src={Assets.documents.overviewPageIcon} />
-                    <Icon src={Assets.documents.overviewPageIcon} />
-                    <Icon src={Assets.documents.overviewPageIcon} />
-                    <Icon src={Assets.documents.overviewPageIcon} />
-                    <Icon src={Assets.documents.overviewPageIcon} />
+                    <Icon src={icon} />
+                    <Icon src={icon} />
+                    <Icon src={icon} />
+                    <Icon src={icon} />
+                    <Icon src={icon} />
+                    <Icon src={icon} />
                 </Container>
                 <Container
                     orientation={Orientation.BottomUp}

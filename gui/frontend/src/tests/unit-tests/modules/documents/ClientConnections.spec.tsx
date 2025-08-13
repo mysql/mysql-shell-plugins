@@ -36,42 +36,42 @@ import { nextRunLoop } from "../../test-helpers.js";
 
 class TestClientConnections extends ClientConnections {
     public testGetClientConnectionDetails = (): ComponentChild => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         return this.getClientConnectionDetails();
     };
 
     public testHandleClientConnectionTreeRowSelected = (row: RowComponent): void => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         this.handleClientConnectionTreeRowSelected(row);
     };
 
     public testGetClientConnectionLocks = (): ComponentChild => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         return this.getClientConnectionLocks();
     };
 
     public testGetClientConnectionAttributes = (): ComponentChild => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         return this.getClientConnectionAttributes();
     };
 
     public testGenerateColumnDefinitions = (columns: IColumnInfo[]): ColumnDefinition[] => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         return this.generateColumnDefinitions(columns);
     };
 
     public testStringFormatter = (cell: CellComponent): string | HTMLElement => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         return this.stringFormatter(cell);
     };
 
     public testShowDialog = (id: string, title: string, message: string): void => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         this.showDialog(id, title, message);
     };
 
     public testEscapeSqlString = (value: string): string => {
-        // @ts-ignore, This is necessary to access a private method for testing purposes
+        // @ts-expect-error, because we are accessing a protected method.
         return this.escapeSqlString(value);
     };
 }
@@ -216,7 +216,7 @@ describe("Client connections module tests", (): void => {
             {
                 title: "Name",
                 field: "name",
-                // @ts-ignore, This is necessary to access a private method for testing purposes
+                // @ts-expect-error, because we are accessing a protected method.
                 formatter: instance.stringFormatter,
                 formatterParams: {},
                 minWidth: 150,

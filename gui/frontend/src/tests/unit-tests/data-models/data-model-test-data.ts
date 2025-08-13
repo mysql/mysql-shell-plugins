@@ -250,7 +250,7 @@ export const mrsContentFileData: IMrsContentFileData[] = [{
     changedAt: "2021-01-01 00:00:00",
 }];
 
-export type OpenConnectionResponse = { result?: IOpenConnectionData | IStatusData; };
+export interface OpenConnectionResponse { result?: IOpenConnectionData | IStatusData; }
 
 export const webviewProviderMock1: IWebviewProvider = {
     caption: "Webview Provider 1",

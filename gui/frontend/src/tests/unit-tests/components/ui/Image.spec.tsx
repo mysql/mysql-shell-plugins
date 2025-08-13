@@ -32,7 +32,12 @@ describe("Image component tests", (): void => {
 
     it("Test Image elements", () => {
         const component = mount<Image>(
-            <Image id="image1" src={Assets.misc.closeIcon} alt="image alt description" style={{ height: "64px" }} />,
+            <Image
+                id="image1"
+                src={Assets.misc.closeIcon as string}
+                alt="image alt description"
+                style={{ height: "64px" }}
+            />,
         );
         expect(component).toBeTruthy();
         const props = component.props();
@@ -41,10 +46,9 @@ describe("Image component tests", (): void => {
         expect(props.src).toEqual("close.svg");
     });
 
-
     it("Standard Rendering", () => {
         const component = mount<Image>(
-            <Image src={Assets.misc.closeIcon} style={{ height: "64px" }} />,
+            <Image src={Assets.misc.closeIcon as string} style={{ height: "64px" }} />,
         );
         expect(component).toMatchSnapshot();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,6 +33,7 @@ export class E2ETextEditor {
 
     /**
      * Gets the text inside the active text editor
+     * 
      * @returns A promise resolving with the text
      */
     public getText = async (): Promise<string | undefined> => {
@@ -45,6 +46,7 @@ export class E2ETextEditor {
 
     /**
      * Verifies if the text editor is a json file
+     * 
      * @returns A promise resolving with the text
      */
     public untilIsJson = (): Condition<boolean> => {

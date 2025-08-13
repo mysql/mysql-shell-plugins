@@ -32,7 +32,7 @@ import { Button } from "../../../../../components/ui/Button/Button.js";
 import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
 import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 
-const handleResultToggle = (_?: IResultSet) => {};
+const handleResultToggle = (_?: IResultSet) => { /**/ };
 const toggleOptions: IResultTabViewToggleOptions = {
     showMaximizeButton: "never",
     handleResultToggle,
@@ -358,7 +358,7 @@ describe("Result Tabview Tests", (): void => {
                 tab.getDOMNode<HTMLButtonElement>().click();
             }
         });
-        component.setProps({currentSet: 2});
+        component.setProps({ currentSet: 2 });
         expect(found).toBe(true);
         expect(component.state().currentResultSet).toBeDefined();
         await nextRunLoop();
@@ -503,7 +503,7 @@ describe("Result Tabview Tests", (): void => {
                     sets: [nextResultSet],
                 },
                 currentSet: 1,
-            }, {currentResultSet: undefined});
+            }, { currentResultSet: undefined });
 
             expect(newState.currentResultSet).toEqual(nextResultSet);
         });
@@ -520,7 +520,7 @@ describe("Result Tabview Tests", (): void => {
                     sets: [resultSet, createResultSet("234")],
                 },
                 currentSet: 1,
-            }, {currentResultSet: resultSet});
+            }, { currentResultSet: resultSet });
 
             expect(newState).toEqual({});
         });
@@ -538,7 +538,7 @@ describe("Result Tabview Tests", (): void => {
                     sets: [currentResultSet, nextResultSet],
                 },
                 currentSet: 2,
-            }, {currentResultSet});
+            }, { currentResultSet });
 
             expect(newState.currentResultSet).toEqual(nextResultSet);
         });
@@ -556,7 +556,7 @@ describe("Result Tabview Tests", (): void => {
                     sets: [currentResultSet, lastResultSet],
                 },
                 currentSet: 99,
-            }, {currentResultSet});
+            }, { currentResultSet });
 
             expect(newState.currentResultSet).toEqual(lastResultSet);
         });

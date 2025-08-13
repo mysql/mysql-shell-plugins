@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -85,7 +85,7 @@ export class LineGraphRenderer {
 
         // Compute which data points are considered defined.
         const isDefined = (_datum: IXYDatum, index: number) => {
-            return this.xValues[index] !== undefined && this.yValues[index] !== undefined;
+            return this.yValues[index] !== undefined;
         };
 
         const definedValues = d3.map(config.data, isDefined);
@@ -94,7 +94,7 @@ export class LineGraphRenderer {
         let xDomain = config.xDomain;
         if (!xDomain) {
             const temp = d3.extent(this.xValues);
-            if (temp[0] !== undefined && temp[1] !== undefined) {
+            if (temp[0] !== undefined) {
                 if (temp[0] instanceof Date) {
                     xDomain = temp as [Date, Date];
                 } else {
@@ -160,9 +160,9 @@ export class LineGraphRenderer {
                 }
 
                 if (typeof xValue === "number") {
-                    return `${formatValue(xValue)}\n${formatValue(this.yValues[i]!)}`;
+                    return `${formatValue(xValue)}\n${formatValue(this.yValues[i])}`;
                 } else {
-                    return `${formatDate(xValue)}\n${formatValue(this.yValues[i]!)}`;
+                    return `${formatDate(xValue)}\n${formatValue(this.yValues[i])}`;
                 }
             };
         }
@@ -171,7 +171,7 @@ export class LineGraphRenderer {
         let root;
         try {
             root = hostSvg.select<SVGSVGElement>(`#${config.id}`);
-        } catch (reason) {
+        } catch {
             root = hostSvg.select<SVGSVGElement>("__invalid__");
         }
 
@@ -183,9 +183,8 @@ export class LineGraphRenderer {
             .on("pointermove", this.pointerMoved)
             .on("pointerleave", this.pointerLeft)
             .on("touchstart", (event: MouseEvent) => {
-                return event.preventDefault();
+                event.preventDefault();
             });
-
 
         root.attr("x", `${x}`)
             .attr("y", `${y}`)
@@ -289,13 +288,13 @@ export class LineGraphRenderer {
             return;
         }
 
-        const x = this.tooltip && this.tooltip.position ? this.tooltip.position.left : this.xScale(this.xValues[i]);
-        const y = this.tooltip && this.tooltip.position ? this.tooltip.position.top : this.yScale(this.yValues[i] ?? 0);
+        const x = this.tooltip?.position ? this.tooltip.position.left : this.xScale(this.xValues[i]);
+        const y = this.tooltip?.position ? this.tooltip.position.top : this.yScale(this.yValues[i] ?? 0);
         this.tooltipElement
             .attr("transform", `translate(${x}, ${y})`)
             .style("display", null);
 
-        const content = `${text}`.split(/\n/);
+        const content = text.split(/\n/);
         const tooltipTextHost = this.tooltipElement.selectAll<SVGTextElement, never>("text")
             .data([0])
             .join("text")
@@ -309,7 +308,9 @@ export class LineGraphRenderer {
                     .attr("y", (_, i) => {
                         return i === 0 ? `0` : `${i + 1.01}em`;
                     })
-                    .attr("font-weight", (_, i) => { return i ? null : "bold"; })
+                    .attr("font-weight", (_, i) => {
+                        return i ? null : "bold";
+                    })
                     .text((d) => {
                         return d;
                     });
@@ -323,15 +324,15 @@ export class LineGraphRenderer {
             r.width += 20;
             r.x -= 10;
 
-            tooltipTextHost.attr("transform", `translate(${-r.width / 2},${25})`);
+            tooltipTextHost.attr("transform", `translate(${-r.width / 2},25)`);
 
             const path = this.tooltipElement.selectAll("path");
             if (this.tooltip?.position) {
                 // Draw a simple rectangle for absolute coordinates.
-                path.attr("d", `M${-r.width / 2 - 10},5H${r.width / 2 + 10}v` +
+                path.attr("d", `M${(-r.width / 2) - 10},5H${(r.width / 2) + 10}v` +
                     `${r.height + 30}h-${r.width + 20}z`);
             } else {
-                path.attr("d", `M${-r.width / 2 - 10},5H-5l5,-5l5,5H${r.width / 2 + 10}` +
+                path.attr("d", `M${(-r.width / 2) - 10},5H-5l5,-5l5,5H${(r.width / 2) + 10}` +
                     `v${r.height + 30}h-${r.width + 20}z`);
             }
         }

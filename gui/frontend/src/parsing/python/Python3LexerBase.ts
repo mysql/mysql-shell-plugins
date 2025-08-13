@@ -145,7 +145,7 @@ export abstract class Python3LexerBase extends Lexer {
         let count = 0;
         for (const char of whitespace) {
             if (char === "\t") {
-                count += 8 - count % 8;
+                count += 8 - (count % 8);
             } else {
                 count++;
             }
