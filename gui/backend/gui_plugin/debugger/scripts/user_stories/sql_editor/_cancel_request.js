@@ -80,6 +80,7 @@ await ws.send({
     "request_id": ws.tokens["task5_req_id"],
 })
 
+ws.tokens["wait-timeout"] = 20
 await ws.sendAndValidate({
     "request": "cancel",
     "request_id": ws.tokens["task6_req_id"],
@@ -89,69 +90,77 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": "Request cancelled."
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task2_req_id"],
     },
     {
         "request_state": {
             "type": "OK",
             "msg": "Request cancelled."
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task3_req_id"],
     },
     {
         "request_state": {
             "type": "OK",
             "msg": "Request cancelled."
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task4_req_id"],
     },
     {
         "request_state": {
             "type": "OK",
             "msg": "Request cancelled."
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task5_req_id"],
     },
     {
         "request_state": {
             "type": "OK",
             "msg": "Request cancelled."
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task6_req_id"],
     },
     {
         "request_state": {
             "type": "CANCELLED",
             "msg": ""
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task2_req_id"],
     }, {
         "request_state": {
             "type": "CANCELLED",
             "msg": ""
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task3_req_id"],
     },
     {
         "request_state": {
             "type": "CANCELLED",
             "msg": ""
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task4_req_id"],
     },
     {
         "request_state": {
             "type": "CANCELLED",
             "msg": ""
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task5_req_id"],
     },
     {
         "request_state": {
             "type": "CANCELLED",
             "msg": ""
         },
-        "request_id": ws.matchRegexp(".+"),
+        "request_id": ws.tokens["task6_req_id"],
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.tokens["task1_req_id"],
+        "done": true
     }
 ], 0)
 )

@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -357,3 +357,18 @@ def backend_callback_with_pending(expected_response_count=1, options=None):
             join_and_validate, wrapper)
         return wrapper
     return decorator
+
+
+class ScopedCallback:
+    def __init__(self, callback, *args, **kwargs):
+        self.callback = callback
+        self.args = args
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        # Nothing to do on enter
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Call the callback when the context is exited
+        self.callback(*self.args, **self.kwargs)

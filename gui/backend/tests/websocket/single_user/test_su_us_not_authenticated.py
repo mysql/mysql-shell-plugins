@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,7 @@ import pytest
 from tests.websocket import TestWebSocket, utils
 from tests import get_logger
 from tests.websocket.utils import print_user_story_stack_trace
+from tests.lib.utils import ScopedCallback
 
 script_list = utils.get_user_stories(True, False)
 
@@ -43,25 +44,25 @@ def ws(shell_start_local_user_mode_server, create_users):
 
 @pytest.mark.parametrize("story", script_list)
 def test_user_stories_for_single_user_mode(story, ws):
-    try:
-        print("===== STARTING EXECUTION =====")
-        ws.execute(story)
-        print(ws.lastResponse)
-        print("====== ENDING EXECUTION =====")
+    with ScopedCallback(lambda: print("====== ENDING EXECUTION =====")):
+        try:
+            print("===== STARTING EXECUTION =====")
+            ws.execute(story)
+            print(ws.lastResponse)
 
-        # Attempt to logout, does not validate the successful logout as it may
-        # succeed or fail depending if the test case successfully authenticated or not
-        if ws.lastResponse['request_state']['type'] == "OK" and ws.lastResponse['request_state']['msg'] != "User successfully logged out.":
-            ws.sendAndValidate({
-                "request": "logout",
-                "request_id": ws.generateRequestId()
-            }, [{
-                "request_state": {
-                    "type": "OK",
-                    "msg": "User successfully logged out."
-                },
-                "request_id": ws.lastGeneratedRequestId}])
+            # Attempt to logout, does not validate the successful logout as it may
+            # succeed or fail depending if the test case successfully authenticated or not
+            if ws.lastResponse['request_state']['type'] == "OK" and ws.lastResponse['request_state']['msg'] != "User successfully logged out.":
+                ws.sendAndValidate({
+                    "request": "logout",
+                    "request_id": ws.generateRequestId()
+                }, [{
+                    "request_state": {
+                        "type": "OK",
+                        "msg": "User successfully logged out."
+                    },
+                    "request_id": ws.lastGeneratedRequestId}])
 
-    except Exception as e:
-        print_user_story_stack_trace(ws, e)
-        raise
+        except Exception as e:
+            print_user_story_stack_trace(ws, e)
+            raise

@@ -63,6 +63,8 @@ await ws.sendAndValidate({
     }
 ])
 
+ws.tokens["wait-timeout"] = 20
+
 await ws.sendAndValidate({
     "request": "cancel",
     "request_id": ws.tokens["task2_req_id"]

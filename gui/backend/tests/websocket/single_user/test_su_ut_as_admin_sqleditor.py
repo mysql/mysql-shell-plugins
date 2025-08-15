@@ -27,6 +27,7 @@ import pytest
 from tests import get_logger
 from tests.websocket import TestWebSocket, utils
 from tests.websocket.utils import print_user_story_stack_trace
+from tests.lib.utils import ScopedCallback
 
 unit_tests = utils.get_unit_tests(True, True, True)
 
@@ -221,11 +222,11 @@ def sqlide_session(ws, add_connection):
 @pytest.mark.usefixtures("sqlide_session")
 @pytest.mark.parametrize("test", unit_tests)
 def test_over_websocket(test, ws, sqlide_session):
-    try:
-        ws.tokens['module_session_id'] = sqlide_session
-        print("===== STARTING EXECUTION =====")
-        ws.execute(test)
-        print("====== ENDING EXECUTION =====")
-    except Exception as e:
-        print_user_story_stack_trace(ws, e)
-        raise
+    with ScopedCallback(lambda: print("====== ENDING EXECUTION =====")):
+        try:
+            ws.tokens['module_session_id'] = sqlide_session
+            print("===== STARTING EXECUTION =====")
+            ws.execute(test)
+        except Exception as e:
+            print_user_story_stack_trace(ws, e)
+            raise

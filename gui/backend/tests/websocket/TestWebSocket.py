@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -492,20 +492,22 @@ class TWebSocket:
     def disconnect(self):
         self.ws.close()
 
-    def response_generator(self):
+    def response_generator(self, timeout=None):
         while True:
-            response = self._wait_response()
+            response = self._wait_response(timeout)
             if response is None:
                 break
             yield response
 
     def sendAndValidate(self, message, expectedResponses):
+        wait_timeout = self.tokens.get('wait-timeout', None)
         self.doSend(message)
         if isinstance(expectedResponses, tuple) and expectedResponses[0] == DEBUGGER_LIST_SUBSET:
-            self.validateResponse(self.response_generator(), expectedResponses)
+            self.validateResponse(self.response_generator(
+                wait_timeout), expectedResponses)
         else:
             for expected in expectedResponses:
-                actual = self._wait_response()
+                actual = self._wait_response(wait_timeout)
                 assert actual is not None, f"Not all expected responses were retrieved, missing {expected}"
 
                 if not expected == self.ignore:

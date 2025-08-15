@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,7 @@ import pytest
 from tests import get_logger
 from tests.websocket import TestWebSocket, utils
 from tests.websocket.utils import print_user_story_stack_trace
+from tests.lib.utils import ScopedCallback
 
 unit_tests = utils.get_unit_tests(True, True, False)
 
@@ -67,10 +68,10 @@ def ws(shell_start_local_user_mode_server, create_users):
 
 @pytest.mark.parametrize("test", unit_tests)
 def test_over_websocket(test, ws):
-    try:
-        print("===== STARTING EXECUTION =====")
-        ws.execute(test)
-        print("====== ENDING EXECUTION =====")
-    except Exception as e:
-        print_user_story_stack_trace(ws, e)
-        raise
+    with ScopedCallback(lambda: print("====== ENDING EXECUTION =====")):
+        try:
+            print("===== STARTING EXECUTION =====")
+            ws.execute(test)
+        except Exception as e:
+            print_user_story_stack_trace(ws, e)
+            raise
