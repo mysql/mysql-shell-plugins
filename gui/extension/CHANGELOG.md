@@ -4,7 +4,7 @@
 
 ### Additions
 
--
+- AI Assisted Explanation for runtime issues in stored JavaScript scripts
 
 ### Fixes
 
@@ -21,6 +21,7 @@
 - BUG#38257852 MySQL REST Service generates error code with a function without parameters
 - BUG#38251258 Impossible to generate the SDK using the mrs object in MySQL Shell
 - BUG#38296701 Connection editor ignores additional options in the Advanced Tab
+- BUG#38219799 Javascript code splitting is not correct when there is a $ in the body
 
 ## Changes in 1.19.15+9.4.0
 
