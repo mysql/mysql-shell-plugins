@@ -96,12 +96,73 @@
                 "type": "debugpy",
                 "request": "attach",
                 "processId": "${command:pickProcess}"
-            }
+            },
+            {
+                "name": "Debug Shell Plugins",
+                "type": "debugpy",
+                "request": "attach",
+                "connect": {
+                    "host": "localhost",
+                    "port": 5678,
+                    "timeout": 2000
+                },
+                "preLaunchTask": "Execute Shell in Python Mode",
+                "postDebugTask": "Disable python debugging",
+            },
         ]
     },
     "tasks": {
         "version": "2.0.0",
-        "tasks": []
+        "tasks": [
+            {
+                "label": "Enable python debugging",
+                "type": "shell",
+                "command": "ln",
+                "args": [
+                    "-s",
+                    "${workspaceFolder}/../tools/enable_python_debugger",
+                    "~/.mysqlsh/init.d",
+                ],
+            },
+            {
+                "label": "Execute Shell in Python Mode",
+                "type": "shell",
+                "command": "mysqlsh",
+                "args": [
+                    "--log-file",
+                    "${workspaceFolder}/mysqlsh.log",
+                    "--py",
+                ],
+                "isBackground": true,
+                "dependsOn": "Enable python debugging",
+                "problemMatcher": {
+                    "owner": "shell",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": [
+                        {
+                            "regexp": "^.*\\[.*\\]:\\s(Error|Warning|Info):\\s(.*)",
+                            "location": 0,
+                            "file": 0,
+                            "severity": 1,
+                            "message": 2,
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Started Debug Server",
+                        "endsPattern": ".*"
+                    }
+                }
+            },
+            {
+                "label": "Disable python debugging",
+                "type": "shell",
+                "command": "rm",
+                "args": [
+                    "~/.mysqlsh/init.d",
+                ],
+            }
+        ]
     },
     "extensions": {
         "recommendations": [
