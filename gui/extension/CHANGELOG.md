@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#38336041 Unexpected compiler errors in the TypeScript SDK
+-
 
 ## Changes in 1.19.16+9.4.0
 

@@ -37,7 +37,7 @@ export default tslint.config(
     ...tslint.configs.stylisticTypeChecked,
     jsdoc.configs["flat/recommended"],
     {
-        ignores: ["**/generated/*", "src/oci-typings", "**/.antlr"],
+        ignores: ["**/generated/*", "src/oci-typings", "**/.antlr", "src/modules/mrs/sdk"],
     },
     {
         plugins: {
