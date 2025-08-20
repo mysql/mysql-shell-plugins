@@ -490,7 +490,7 @@ describe("MRS SDK base types", () => {
             lineString = "LineString(0 0, 10 10, 20 25, 50 60)";
             expectTypeOf(lineString).toBeString();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             lineString = "linestring(0 0, 10 10, 20 25, 50 60)";
         });
 
@@ -518,7 +518,7 @@ describe("MRS SDK base types", () => {
             lineString = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
             expectTypeOf(lineString).toBeString();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             lineString = "multilinestring((10 10, 20 20), (15 15, 30 15))";
         });
 
@@ -553,7 +553,7 @@ describe("MRS SDK base types", () => {
             polygon = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
             expectTypeOf(polygon).toBeString();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             polygon = "polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
         });
 
@@ -589,9 +589,9 @@ describe("MRS SDK base types", () => {
             multiPolygon = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
             expectTypeOf(multiPolygon).toBeString();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             multiPolygon = "multipolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             multiPolygon = "Multipolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
         });
 
@@ -599,7 +599,7 @@ describe("MRS SDK base types", () => {
             const multiPolygon: MultiPolygon = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-                [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
 
             expectTypeOf(multiPolygon).toBeObject();
@@ -633,11 +633,11 @@ describe("MRS SDK base types", () => {
             geometry = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
             expectTypeOf(geometry).toMatchTypeOf<Polygon>();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometry = "MultiPoint(0 0, 20 20, 60 60)";
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometry = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometry = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
         });
 
@@ -654,17 +654,17 @@ describe("MRS SDK base types", () => {
             };
             expectTypeOf(geometry).toMatchTypeOf<Polygon>();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometry = { type: "MultiPoint", coordinates: [[0, 0], [20, 20], [60, 60]] };
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometry = { type: "MultiLineString", coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]] };
             geometry = {
-                // @ts-expect-error
+                // @ts-expect-error fails if the WKT is invalid
                 type: "MultiPolygon",
-                // @ts-expect-error
+                // @ts-expect-error fails if the WKT is invalid
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-                // @ts-expect-error
-                [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                // @ts-expect-error fails if the WKT is invalid
+                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
         });
     });
@@ -680,11 +680,11 @@ describe("MRS SDK base types", () => {
             geometryCollection = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
             expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometryCollection = "Point(15 20)";
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometryCollection = "LineString(0 0, 10 10, 20 25, 50 60)";
-            // @ts-expect-error
+            // @ts-expect-error fails if the WKT is invalid
             geometryCollection = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
         });
 
@@ -701,18 +701,17 @@ describe("MRS SDK base types", () => {
             geometryCollection = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-                [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
             expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
 
-            // @ts-expect-error
+            // @ts-expect-error fails if the GeoJSON structure is invalid
             geometryCollection = { type: "Point", coordinates: [15, 20] };
-            // @ts-expect-error
+            // @ts-expect-error fails if the GeoJSON structure is invalid
             geometryCollection = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
             geometryCollection = {
-                // @ts-expect-error
+                // @ts-expect-error fails if the GeoJSON structure is invalid
                 type: "Polygon",
-                // @ts-ignore
                 coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
             };
         });
@@ -869,12 +868,12 @@ describe("MRS SDK base types", () => {
     describe("IMrsTaskStartOptions", () => {
         it("allows to optionally set a numeric refresh rate", () => {
             expectTypeOf<IMrsTaskRunOptions<unknown, unknown>>().toHaveProperty("refreshRate")
-                    .toEqualTypeOf<number | undefined>();
+                .toEqualTypeOf<number | undefined>();
         });
 
         it("allows to optionally set a numeric timeout", () => {
             expectTypeOf<IMrsTaskRunOptions<unknown, unknown>>().toHaveProperty("timeout")
-                    .toEqualTypeOf<number | undefined>();
+                .toEqualTypeOf<number | undefined>();
         });
 
         it("can be empty", () => {

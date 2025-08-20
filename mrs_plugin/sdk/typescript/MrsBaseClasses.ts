@@ -23,7 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
+/**
+ * Plain JSON error responses sent by the MySQL Router.
+ * Always include the status code, can include a message and additional information about the root cause.
+ */
+interface IMrsErrorResponse {
+    status: number;
+    message?: string;
+    what?: string;
+}
 
 export class NotFoundError extends Error {
     public constructor(public msg: string) {
@@ -49,10 +57,20 @@ export interface IMrsAuthStatus {
     user?: IMrsAuthUser;
 }
 
+/**
+ * If the authentication is successful, the MySQL Router sends back an HTTP response with an empty JSON object in the
+ * body and the "Set-Cookie" header if the session type is "cookie".
+ * If the session type is "bearer" the "Set-Cookie" header is not set and the JSON object contains an "accessToken"
+ * field with the corresponding bearer token.
+ */
+interface IMrsAuthSuccessResponse {
+    accessToken?: string;
+}
+
 interface IAuthChallenge {
     nonce: string;
     iterations: number;
-    salt: Uint8Array;
+    salt: Uint8Array<ArrayBuffer>;
     session?: string;
 }
 
@@ -101,7 +119,7 @@ export class MrsBaseSession {
             // Try to get global mrsLoginResult values when already authenticated in the DB NoteBook
             this.accessToken = mrsLoginResult?.jwt;
             this.authApp = mrsLoginResult?.authApp;
-        } catch (_e) {
+        } catch {
             // Ignore
         }
         // --- MySQL Shell for VS Code Extension Only --- End
@@ -124,24 +142,23 @@ export class MrsBaseSession {
         method?: string, body?: T, autoResponseCheck = true,
         timeout?: number): Promise<Response> => {
         // Check if parameters are passed as named parameters and if so, assign them
-        if (typeof input === "object" && input !== null) {
-            errorMsg = input?.errorMsg ?? "Failed to fetch data.";
-            method = input?.method ?? "GET";
-            body = input?.body;
-            timeout = input?.timeout;
-            input = input?.input;
-        } else {
+        if (typeof input === "string") {
             errorMsg = errorMsg ?? "Failed to fetch data.";
             method = method ?? "GET";
+        } else {
+            errorMsg = input.errorMsg ?? "Failed to fetch data.";
+            method = input.method ?? "GET";
+            body = input.body;
+            timeout = input.timeout;
+            input = input.input;
         }
 
         let response;
         const signal = AbortSignal.timeout(timeout ?? this.defaultTimeout);
 
         try {
-            response = await fetch(`${this.serviceUrl ?? ""}${input}`, {
+            response = await fetch(`${this.serviceUrl}${input}`, {
                 method,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: (this.accessToken !== undefined) ? { Authorization: "Bearer " + this.accessToken } : undefined,
                 body: (body !== undefined) ? JSON.stringify(body) : undefined,
                 signal,
@@ -150,16 +167,16 @@ export class MrsBaseSession {
             if (e instanceof Error) {
                 if (e.name === "TimeoutError" && signal.aborted) {
                     throw new Error(`${errorMsg}\n\nRequest to endpoint ` +
-                        `${this.serviceUrl ?? ""}${input} timed out.`);
+                        `${this.serviceUrl}${input} timed out.`);
                 }
                 if (e.name === "TypeError" && e.message.includes("Failed to fetch")) {
                     throw new Error(`${errorMsg}\n\nNetwork error during request to endpoint ` +
-                        `${this.serviceUrl ?? ""}${input}.\nPlease check if MySQL Router is running and its SSL ` +
+                        `${this.serviceUrl}${input}.\nPlease check if MySQL Router is running and its SSL ` +
                         `certificates are valid.\n\n${e.message}`);
                 }
             }
             throw new Error(`${errorMsg}\n\nError during request to endpoint ` +
-                `${this.serviceUrl ?? ""}${input}.\n\n${(e instanceof Error) ? e.message : String(e)}`);
+                `${this.serviceUrl}${input}.\n\n${(e instanceof Error) ? e.message : String(e)}`);
         }
 
         if (!response.ok && autoResponseCheck) {
@@ -168,13 +185,13 @@ export class MrsBaseSession {
             // Check if the current session has expired
             if (response.status === 401 && !requestPath.endsWith(this.authPath)) {
                 throw new Error(`Not authenticated. Please authenticate first before accessing the ` +
-                    `path ${this.serviceUrl ?? ""}${input}.`);
+                    `path ${this.serviceUrl}${input}.`);
             }
 
             let errorInfo;
             try {
-                errorInfo = await response.json();
-            } catch (e) {
+                errorInfo = await response.json() as IMrsErrorResponse;
+            } catch {
                 throw new Error(`${response.status}. ${errorMsg} (${response.statusText})`);
             }
             // If there is a message, throw with that message
@@ -182,7 +199,7 @@ export class MrsBaseSession {
                 throw new Error(String(errorInfo.message));
             } else {
                 throw new Error(`${response.status}. ${errorMsg} (${response.statusText})` +
-                    `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
+                    "\n\n" + JSON.stringify(errorInfo, null, 4) + "\n");
             }
         }
 
@@ -198,67 +215,59 @@ export class MrsBaseSession {
         try {
             return (await (await this.doFetch(
                 { input: `/authentication/status`, errorMsg: "Failed to authenticate." })).json()) as IMrsAuthStatus;
-        } catch (e) {
+        } catch {
             return { status: "unauthorized" };
         }
     };
 
     public readonly verifyCredentials = async ({ username, password = "", authApp }: {
         username: string, password: string, authApp: string }): Promise<IMrsLoginResult> => {
-        if (authApp !== undefined) {
-            try {
-                const response = await this.doFetch({
-                    input: this.authPath,
-                    method: "POST",
-                    body: {
-                        username,
-                        password,
-                        authApp,
-                        sessionType: "bearer",
-                    },
-                }, undefined, undefined, undefined, false);
+        try {
+            const response = await this.doFetch({
+                input: this.authPath,
+                method: "POST",
+                body: {
+                    username,
+                    password,
+                    authApp,
+                    sessionType: "bearer",
+                },
+            }, undefined, undefined, undefined, false);
 
-                if (!response.ok) {
-                    this.accessToken = undefined;
+            if (!response.ok) {
+                this.accessToken = undefined;
 
-                    return {
-                        authApp,
-                        errorCode: response.status,
-                        errorMessage: (response.status === 401)
-                            ? "The sign in failed. Please check your username and password."
-                            : `The sign in failed. Error code: ${String(response.status)}`,
-                    };
-                } else {
-                    const result = await response.json();
-
-                    if (result.accessToken === undefined) {
-                        return {
-                            authApp,
-                            errorCode: 401,
-                            errorMessage:
-                                "Authentication failed. The authentication app is of a different vendor.",
-                        };
-                    }
-
-                    this.accessToken = result.accessToken;
-
-                    return {
-                        authApp,
-                        jwt: this.accessToken,
-                    };
-                }
-            } catch (e) {
                 return {
                     authApp,
-                    errorCode: 2,
-                    errorMessage: `The sign in failed. Server Error: ${String(e)}`,
+                    errorCode: response.status,
+                    errorMessage: (response.status === 401)
+                        ? "The sign in failed. Please check your username and password."
+                        : `The sign in failed. Error code: ${String(response.status)}`,
+                };
+            } else {
+                const result = await response.json() as IMrsAuthSuccessResponse;
+
+                if (result.accessToken === undefined) {
+                    return {
+                        authApp,
+                        errorCode: 401,
+                        errorMessage:
+                            "Authentication failed. The authentication app is of a different vendor.",
+                    };
+                }
+
+                this.accessToken = result.accessToken;
+
+                return {
+                    authApp,
+                    jwt: this.accessToken,
                 };
             }
-        } else {
+        } catch (e) {
             return {
                 authApp,
-                errorCode: 1,
-                errorMessage: `No authentication app selected.`,
+                errorCode: 2,
+                errorMessage: `The sign in failed. Server Error: ${String(e)}`,
             };
         }
     };
@@ -267,8 +276,7 @@ export class MrsBaseSession {
         this.authApp = authApp;
 
         const nonce = this.hex(crypto.getRandomValues(new Uint8Array(10)));
-
-        const challenge: IAuthChallenge = await (await this.doFetch({
+        const response = await this.doFetch({
             input: this.authPath,
             method: "POST",
             body: {
@@ -277,7 +285,8 @@ export class MrsBaseSession {
                 nonce,
                 sessionType: "bearer",
             },
-        })).json();
+        });
+        const challenge = await response.json() as IAuthChallenge;
 
         // Convert the salt to and Uint8Array
         challenge.salt = new Uint8Array(challenge.salt);
@@ -291,7 +300,7 @@ export class MrsBaseSession {
         };
     };
 
-    public readonly sendClientFinal = async (password: string): Promise<IMrsLoginResult> => {
+    public readonly sendClientFinal = async (password?: string): Promise<IMrsLoginResult> => {
         const { challenge, clientFirst, serverFirst, clientFinal } = this.loginState;
 
         if (password !== undefined && password !== "" && this.authApp !== undefined &&
@@ -324,7 +333,7 @@ export class MrsBaseSession {
                             : `The sign in failed. Error code: ${String(response.status)}`,
                     };
                 } else {
-                    const result = await response.json();
+                    const result = await response.json() as IMrsAuthSuccessResponse;
 
                     this.accessToken = String(result.accessToken);
 
@@ -364,7 +373,9 @@ export class MrsBaseSession {
 
     private readonly hex = (arrayBuffer: Uint8Array): string => {
         return Array.from(new Uint8Array(arrayBuffer))
-            .map((n) => { return n.toString(16).padStart(2, "0"); })
+            .map((n) => {
+                return n.toString(16).padStart(2, "0");
+            })
             .join("");
     };
 
@@ -374,8 +385,8 @@ export class MrsBaseSession {
         return `r=${challenge.nonce},s=${b64Salt},i=${String(challenge.iterations)}`;
     };
 
-    private readonly calculatePbkdf2 = async (password: BufferSource, salt: Uint8Array,
-        iterations: number): Promise<Uint8Array> => {
+    private readonly calculatePbkdf2 = async (password: BufferSource, salt: Uint8Array<ArrayBuffer>,
+        iterations: number): Promise<Uint8Array<ArrayBuffer>> => {
         const ck1 = await crypto.subtle.importKey(
             "raw", password, { name: "PBKDF2" }, false, ["deriveKey", "deriveBits"]);
         const result = new Uint8Array(await crypto.subtle.deriveBits(
@@ -384,11 +395,12 @@ export class MrsBaseSession {
         return result;
     };
 
-    private readonly calculateSha256 = async (data: BufferSource): Promise<Uint8Array> => {
+    private readonly calculateSha256 = async (data: BufferSource): Promise<Uint8Array<ArrayBuffer>> => {
         return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
     };
 
-    private readonly calculateHmac = async (secret: BufferSource, data: BufferSource): Promise<Uint8Array> => {
+    private readonly calculateHmac = async (secret: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>):
+    Promise<Uint8Array<ArrayBuffer>> => {
         const key = await globalThis.crypto.subtle.importKey(
             "raw", secret, { name: "HMAC", hash: { name: "SHA-256" } }, true, ["sign", "verify"]);
         const signature = await globalThis.crypto.subtle.sign("HMAC", key, data);
@@ -396,7 +408,7 @@ export class MrsBaseSession {
         return new Uint8Array(signature);
     };
 
-    private readonly calculateXor = (a1: Uint8Array, a2: Uint8Array): Uint8Array => {
+    private readonly calculateXor = (a1: Uint8Array, a2: Uint8Array): Uint8Array<ArrayBuffer> => {
         const l1 = a1.length;
         const l2 = a2.length;
         // cSpell:ignore amax
@@ -421,8 +433,8 @@ export class MrsBaseSession {
         return amax;
     };
 
-    private readonly calculateClientProof = async (password: string, salt: Uint8Array, iterations: number,
-        authMessage: Uint8Array): Promise<Uint8Array> => {
+    private readonly calculateClientProof = async (password: string, salt: Uint8Array<ArrayBuffer>, iterations: number,
+        authMessage: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> => {
         const te = new TextEncoder();
         const saltedPassword = await this.calculatePbkdf2(te.encode(password), salt, iterations);
         const clientKey = await this.calculateHmac(saltedPassword, te.encode("Client Key"));
@@ -440,17 +452,11 @@ export interface IMrsAuthApp {
 }
 
 export interface IMrsOperator {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     "=": "$eq",
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     "!=": "$ne",
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     "<": "$lt",
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     "<=": "$lte",
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     ">": "$gt",
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     ">=": "$gte",
     "like": "$like",
     "null": "$null",
@@ -462,6 +468,7 @@ export interface IMrsOperator {
  * A collection of MRS resources is represented by a JSON object returned by the MySQL Router, which includes the list
  * of underlying resource objects and additional hypermedia-related properties with pagination state and the
  * relationships with additional resources.
+ *
  * @see MrsDownstreamDocumentData
  * @see IMrsLink
  * @see JsonObject
@@ -478,6 +485,7 @@ export type MrsDownstreamDocumentListData<C> = {
 /**
  * A single MRS resource object is represented by JSON object returned by the MySQL Router, which includes the
  * corresponding fields and values alongside additional hypermedia-related properties.
+ *
  * @see IMrsResourceDetails
  */
 export type MrsDownstreamDocumentData<T> = T & IMrsResourceDetails & IPojo;
@@ -490,6 +498,7 @@ export type MrsUpstreamResourceData<T> = T & Omit<IMrsResourceDetails, "links">;
 /**
  * A resource object is always represented as JSON and can include specific hypermedia properties such as a potential
  * list of links it has with other resources and metadata associated to the resource (e.g. its ETag).
+ *
  * @see IMrsLink
  * @see IMrsResourceMetadata
  * @see JsonObject
@@ -561,6 +570,7 @@ export type DelegationFilter<Type> = {
 
 /**
  * An object containing checks that should apply for the value of one or more fields.
+ *
  * @example
  * { name: "foo", age: 42 }
  * { name: { $eq: "foo" }, age: 42 }
@@ -574,6 +584,7 @@ export type PureFilter<Type> = {
 /**
  * An object that specifies multiple filters which must all be verified (AND) or alternatively, or in which only some
  * of them are verified (OR).
+ *
  * @example
  * { $and: [{ name: "foo" }, { age: 42 }] }
  * { $or: [{ name: { $eq: "foo" } }, { age: { $gte: 42 }}] }
@@ -586,6 +597,7 @@ export type HighOrderFilter<Type> = {
 
 /**
  * An object that specifies an explicit operation to check against a given value.
+ *
  * @example
  * { $eq: "foo" }
  * { $gte: 42 }
@@ -595,9 +607,7 @@ export type HighOrderFilter<Type> = {
  */
 export type ComparisonOpExpr<Type> = {
     [Operator in keyof ISimpleOperatorProperty]?: Type & ISimpleOperatorProperty[Operator]
-} & {
-    [Operator in "$notnull" | "$null"]?: boolean | null
-} & {
+} & Partial<Record<"$notnull" | "$null", boolean | null>> & {
     not?: null;
 } & {
     $between?: NullStartingRange<Type & BetweenRegular> | NullEndingRange<Type & BetweenRegular>;
@@ -630,9 +640,7 @@ export type BinaryOperatorParam<ParentType, Type> = ComparisonOpExpr<Type> | Del
 
 export type BinaryOperator = "$and" | "$or";
 
-export type ColumnOrder<Field extends string[]> = {
-    [Key in Field[number]]?: "ASC" | "DESC" | 1 | -1
-};
+export type ColumnOrder<Field extends string[]> = Partial<Record<Field[number], "ASC" | "DESC" | 1 | -1>>;
 
 // Prisma-like API type definitions.
 
@@ -670,9 +678,7 @@ type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 
 /** Type representing a plain old JavaScript object. */
-export interface IPojo {
-    [key: symbol | string]: JsonValue | undefined
-}
+export type IPojo = Record<symbol | string, JsonValue | undefined>;
 
 /**
  * Columns can be assigned "NOT NULL" constraints, which can be enforced by the client type.
@@ -860,6 +866,7 @@ export type IFindOptions<Item, Filterable, Sortable extends string[], Iterable> 
 
 /**
  * Object with boolean fields that determine if the field should be included (or not) in the result set.
+ *
  * @example
  * { select: { foo: { bar: true, baz: true } }
  * { select: { foo: { qux: false } } }
@@ -875,6 +882,7 @@ export type BooleanFieldMapSelect<TableMetadata> = {
 
 /**
  * Non-empty list of fields identified by their full path using dot "." notation.
+ *
  * @example
  * { foo: { bar: { baz: string } } } => ['foo.bar.baz']
  */
@@ -937,14 +945,14 @@ export type IUpdateOptions<Type> = ICreateOptions<Type>;
  * Top-level operators available for a query filter in MRS.
  */
 type MrsQueryFilter<Sortable extends string[]> = {
-    $orderby?: ColumnOrder<Sortable>, $asof?: string } & { [key: string]: unknown };
+    $orderby?: ColumnOrder<Sortable>, $asof?: string } & Record<string, unknown>;
 
 /**
  * JSON utilities with MRS-specific glue code.
  */
 class MrsJSON {
     public static stringify = <T>(obj: T): string => {
-        return JSON.stringify(obj, (key: string, value: { not?: null; } & T) => {
+        return JSON.stringify(obj, (key: string, value: MaybeNull<{ not?: null; } & T>) => {
             // expand $notnull operator (lookup at the child level)
             // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
             // left to do
@@ -984,7 +992,6 @@ class MrsRequestBody<Doc> {
     }
 
     private serialize() {
-        // eslint-disable-next-line no-underscore-dangle
         return { ...this.json, _metadata: this.json._metadata };
     }
 }
@@ -1006,6 +1013,7 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
     /**
      * Create an application-level MRS Document object that hides hypermedia-related properties and prevents the
      * application from changing or deleting them.
+     *
      * @see {MrsDownstreamDocumentData}
      * @returns An MRS Document without hypermedia-related properties.
      */
@@ -1013,9 +1021,9 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         return new Proxy(this.json, {
             deleteProperty: (target, p) => {
                 const property = String(p); // convert symbols to strings
-                const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
+                const isPrimaryKey = this.primaryKeys?.includes(property);
 
-                if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
+                if (this.#hypermediaProperties.includes(property) || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be deleted.`);
                 }
 
@@ -1033,12 +1041,12 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
 
                 // primaryKeys only contains items if the "UPDATE" CRUD operation is enabled
                 // and there are, in fact, primary keys
-                if (property === "update" && this.primaryKeys !== undefined && this.primaryKeys.length) {
+                if (property === "update" && this.primaryKeys?.length) {
                     return this.update.bind(this);
                 }
 
                 // same as above
-                if (property === "delete" && this.primaryKeys !== undefined && this.primaryKeys.length) {
+                if (property === "delete" && this.primaryKeys?.length) {
                     return this.delete.bind(this);
                 }
 
@@ -1048,7 +1056,7 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
             has: (target, p) => {
                 const property = String(p); // convert symbols to strings
 
-                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                if (this.#hypermediaProperties.includes(property)) {
                     return false;
                 }
 
@@ -1057,20 +1065,20 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
 
             ownKeys: (target) => {
                 return Object.keys(target).filter((key) => {
-                    return this.#hypermediaProperties.indexOf(key) === -1;
+                    return !this.#hypermediaProperties.includes(key);
                 });
             },
 
             set: (target, p, newValue) => {
                 const property = String(p); // convert symbols to strings
-                const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
+                const isPrimaryKey = this.primaryKeys?.includes(property);
 
-                if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
+                if (this.#hypermediaProperties.includes(property) || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be changed.`);
                 }
 
                 // Ultimately, json is always a JSON object and any other field can be re-assigned to a different value.
-                (target as JsonObject)[property] = newValue;
+                (target as JsonObject)[property] = newValue as JsonValue;
 
                 return true;
             },
@@ -1081,11 +1089,10 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         const queryFilter: Record<string, unknown> = {};
 
         // the proxy already guarantees that the primaryKeys property is always defined
-        for (const key of this.primaryKeys as KeyFieldNames) {
+        for (const key of this.primaryKeys!) {
             queryFilter[key] = this.json[key];
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const request = new MrsBaseObjectDelete(
             this.schema, this.requestPath, { where: queryFilter });
         const res = await request.fetch();
@@ -1097,17 +1104,15 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         // We want to change a copy of the underlying json object, not the reference to the original one.
         const partial = { ...this.json as Omit<MrsDownstreamDocumentData<Doc>, "links" | "_metadata"> };
         delete partial.links;
-        // eslint-disable-next-line no-underscore-dangle
         delete partial._metadata;
 
         return partial;
     }
 
     private async update(): Promise<MrsDownstreamDocumentData<Doc>> {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const request = new MrsBaseObjectUpdate<Doc, KeyFieldNames, Doc>(
             // the proxy already guarantees that the primaryKeys property is always defined
-            this.schema, this.requestPath, { data: this.json }, this.primaryKeys as KeyFieldNames);
+            this.schema, this.requestPath, { data: this.json }, this.primaryKeys!);
         const response = await request.fetch();
 
         return response;
@@ -1129,6 +1134,7 @@ class MrsDocumentList<Doc, KeyFieldNames extends string[]> {
     /**
      * Create an application-level MRS Document object that hides hypermedia-related properties and prevents the
      * application from changing or deleting them.
+     *
      * @see {MrsDownstreamDocumentListData}
      * @returns A list of MRS Documents without hypermedia-related properties.
      */
@@ -1193,7 +1199,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
     private include: string[] = [];
     private offset?: number;
     private limit?: number;
-    private hasCursor: boolean = false;
+    private hasCursor = false;
 
     public constructor(
         private readonly schema: MrsBaseSchema,
@@ -1212,7 +1218,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
         }
 
         if (orderBy !== undefined) {
-            this.where = this.where || {};
+            this.where = this.where ?? {};
             this.where.$orderby = orderBy;
         }
 
@@ -1220,7 +1226,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
             const gtid = this.schema.service.session.gtid;
 
             if (gtid !== undefined) {
-                this.where = this.where || {};
+                this.where = this.where ?? {};
                 this.where.$asof = gtid;
             }
         }
@@ -1239,10 +1245,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
 
         if (cursor !== undefined) {
             this.hasCursor = true;
-
-            if (this.where === undefined) {
-                this.where = {};
-            }
+            this.where ??= {};
 
             for (const [key, value] of Object.entries(cursor)) {
                 this.where[key] = { $gt: value };
@@ -1279,7 +1282,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody: MrsDownstreamDocumentListData<Doc> = await response.json();
+        const responseBody = await response.json() as MrsDownstreamDocumentListData<Doc>;
         const collection = new MrsDocumentList(
             responseBody, this.schema, this.requestPath, this.primaryKeys);
 
@@ -1305,7 +1308,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
     };
 
     private fieldsToConsider = (fields: BooleanFieldMapSelect<Doc>, equalTo: boolean,
-        prefix: string = ""): string[] => {
+        prefix = ""): string[] => {
         const consider: string[] = [];
 
         for (const key in fields) {
@@ -1316,7 +1319,7 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
                 consider.push(fullyQualifiedKeyName);
             }
 
-            if (typeof value === "object" && value !== null) {
+            if (typeof value === "object") {
                 consider.push(...this.fieldsToConsider(value, equalTo, `${fullyQualifiedKeyName}.`));
             }
         }
@@ -1341,8 +1344,7 @@ export class MrsBaseObjectCreate<Input, Output, KeyFieldNames extends string[] =
             errorMsg: "Failed to create item.",
         });
 
-        const responseBody: MrsDownstreamDocumentData<Output> = await response.json();
-        // eslint-disable-next-line no-underscore-dangle
+        const responseBody = await response.json() as MrsDownstreamDocumentData<Output>;
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
         const resource = new MrsDocument(
@@ -1378,15 +1380,13 @@ export class MrsBaseObjectDelete<Filterable> {
             errorMsg: "Failed to delete items.",
         });
 
-        const responseBody: IMrsDeleteResult = await response.json();
+        const responseBody = await response.json() as IMrsDeleteResult;
         // _metadata is only available if a GTID is being tracked in the server
-        // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata?.gtid;
 
         return responseBody;
     };
 }
-
 
 /**
  * @template InputType A type that enforces only mandatory fields.
@@ -1404,7 +1404,7 @@ export class MrsBaseObjectUpdate<InputType, KeyFieldNames extends string[], Outp
         const resourceIdComponents: Array<InputType[Extract<keyof InputType, string>]> = [];
 
         for (const x in this.options.data) {
-            if (this.primaryKeys.indexOf(x) > -1) {
+            if (this.primaryKeys.includes(x)) {
                 resourceIdComponents.push(this.options.data[x]);
             }
         }
@@ -1422,7 +1422,6 @@ export class MrsBaseObjectUpdate<InputType, KeyFieldNames extends string[], Outp
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
         const responseBody = await response.json() as MrsDownstreamDocumentData<OutputType>;
-        // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
         const resource = new MrsDocument(
@@ -1445,13 +1444,11 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
         const response = await this.schema.service.session.doFetch({
             input,
             method: "POST",
-            body: this.params !== undefined ? this.params : {},
+            body: this.params ?? {},
             errorMsg: "Failed to call item.",
         });
 
         const responseBody = await response.json() as Output;
-
-        // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata?.gtid;
 
         const resource = new MrsDocument(
@@ -1496,20 +1493,18 @@ export class MrsBaseObjectFunctionCall<Input, Output>
 }
 
 export class MrsAuthenticate {
-    private static mrsVendorId: string = "0x30000000000000000000000000000000";
+    private static mrsVendorId = "0x30000000000000000000000000000000";
 
     public constructor(
         private readonly service: MrsBaseService,
         private readonly authApp: string,
         private readonly username: string,
-        private readonly password: string = "",
+        private readonly password = "",
         private vendorId?: string) {
     }
 
     public submit = async (): Promise<IMrsLoginResult> => {
-        if (this.vendorId === undefined) {
-            this.vendorId = await this.lookupVendorId();
-        }
+        this.vendorId ??= await this.lookupVendorId();
 
         if (this.vendorId === MrsAuthenticate.mrsVendorId) {
             return this.authenticateUsingMrsNative();
@@ -1519,7 +1514,7 @@ export class MrsAuthenticate {
     };
 
     private lookupVendorId = async (): Promise<string> => {
-        const authApps = await this.service.getAuthApps() ?? [];
+        const authApps = await this.service.getAuthApps();
         const authApp = authApps.find((app) => {
             return app.name === this.authApp;
         });
@@ -1576,14 +1571,14 @@ export class MrsBaseService {
         });
 
         if (response.ok) {
-            const result = await response.json();
+            const result = await response.json() as IMrsAuthApp[];
 
-            return result as IMrsAuthApp[];
+            return result;
         } else {
             let errorInfo = null;
             try {
-                errorInfo = await response.json();
-            } catch (e) {
+                errorInfo = await response.json() as IMrsErrorResponse;
+            } catch {
                 // Ignore the exception
             }
             const errorDesc = "Failed to fetch Authentication Apps.\n\n" +
@@ -1591,7 +1586,7 @@ export class MrsBaseService {
                 `${String(this.serviceUrl)}${this.authPath}/authApps is accessible. `;
 
             throw new Error(errorDesc + `(${response.status}:${response.statusText})` +
-                `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
+                ((errorInfo !== null) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""));
         }
     }
 
@@ -1730,7 +1725,7 @@ export class MrsBaseTaskStart<MrsTaskInputParameters, MrsTaskStatusUpdate, MrsTa
         const response = await this.schema.service.session.doFetch({
             input,
             method: "POST",
-            body: this.params !== undefined ? this.params : {},
+            body: this.params ?? {},
             errorMsg: "Failed to start task.",
         });
 
@@ -1761,7 +1756,7 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
         return responseBody;
     }
 
-    public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>> {
+    public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, void> {
         const startedAt = Date.now();
         const { refreshRate = 2000, progress, timeout } = this.options;
         // the timeout event should be produced only once
@@ -1815,7 +1810,6 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     }
 }
 
-
 export class MrsBaseTaskRun<MrsTaskStatusUpdate, MrsTaskResult>
     extends MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     // @ts-expect-error undefined is never returned because all non-exception cases are handled in the loop
@@ -1858,7 +1852,7 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
     }
 
     public async* watch(): AsyncGenerator<
-    IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, unknown> {
+        IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, unknown> {
         const request = new MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult>(
             this.schema, this.requestPath, this, this.options);
         for await (const response of request.submit()) {

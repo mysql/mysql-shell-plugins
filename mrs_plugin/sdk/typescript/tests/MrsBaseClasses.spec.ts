@@ -64,11 +64,11 @@ interface IFetchMockCall {
 }
 
 class FetchMock {
-    private static singleton: FetchMock;
+    private static singleton?: FetchMock;
     #calls: IFetchMockCall[] = [];
 
     private constructor() {
-
+        // class is used as a singleton
     }
 
     public static push({
@@ -95,7 +95,7 @@ class FetchMock {
         FetchMock.singleton.#calls.push({ matchBody, matchUrl, response, statusCode });
 
         vi.stubGlobal("fetch", vi.fn((url: string, { body }: { body: string }) => {
-            const call = FetchMock.singleton.#calls.pop() ?? { response: "{}", statusCode: 200 };
+            const call = FetchMock.singleton!.#calls.pop() ?? { response: "{}", statusCode: 200 };
             const { matchBody, matchUrl } = call;
             if ((matchUrl !== undefined && matchUrl !== url) || (matchBody !== undefined && matchBody !== body)) {
                 // in the end, this just means it is a Bad Request
@@ -162,7 +162,9 @@ describe("MRS SDK API", () => {
             it("command throws an authentication error", async () => {
                 const query = new MrsAuthenticate(service, "<nonexisting>", username, password);
 
-                await expect(async () => { await query.submit(); }).rejects
+                await expect(async () => {
+                    await query.submit();
+                }).rejects
                     .toThrowError("Authentication failed. The authentication app does not exist.");
             });
         });
@@ -176,7 +178,9 @@ describe("MRS SDK API", () => {
         });
 
         it("fails if there is no user that is currently authenticated", async () => {
-            await expect(async () => { await service.deauthenticate(); }).rejects
+            await expect(async () => {
+                await service.deauthenticate();
+            }).rejects
                 .toThrowError("No user is currently authenticated.");
         });
 
@@ -189,7 +193,6 @@ describe("MRS SDK API", () => {
             expect(fetch).toHaveBeenCalledWith("/foo/authentication/logout", expect.objectContaining({
                 method: "POST",
                 headers: {
-                    // eslint-disable-next-line
                     "Authorization": `Bearer ${accessToken}`
                 },
             }));
@@ -262,26 +265,26 @@ describe("MRS SDK API", () => {
         });
 
         it("sets the order of the records in the result set based on a given field using a literal order keyword",
-                async () => {
-            const options: IFindFirstOptions<ITableMetadata1, unknown, ["num"]> = { orderBy: { num: "DESC" } };
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
-            await query.fetch();
+            async () => {
+                const options: IFindFirstOptions<ITableMetadata1, unknown, ["num"]> = { orderBy: { num: "DESC" } };
+                const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
+                await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"$orderby":{"num":"DESC"}}' });
-            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
-                expect.anything());
-        });
+                const searchParams = new URLSearchParams({ q: '{"$orderby":{"num":"DESC"}}' });
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
+            });
 
         it("sets the order of the records in the result set based on a given field using a numeric order identifier",
-                async () => {
-            const options: IFindFirstOptions<ITableMetadata1, unknown, ["num"]> = { orderBy: { num: -1 } };
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
-            await query.fetch();
+            async () => {
+                const options: IFindFirstOptions<ITableMetadata1, unknown, ["num"]> = { orderBy: { num: -1 } };
+                const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
+                await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"$orderby":{"num":-1}}' });
-            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
-                expect.anything());
-        });
+                const searchParams = new URLSearchParams({ q: '{"$orderby":{"num":-1}}' });
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
+            });
 
         it("filters items where a field is implicitly equal to a given value", async () => {
             const options: IFindUniqueOptions<unknown, ITableMetadata1> = { where: { id: 1 } };
@@ -458,16 +461,16 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not part of the JSON representation of an application resource instance",
-                async () => {
-            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
-            const collection = await query.fetch();
+            async () => {
+                const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
+                const collection = await query.fetch();
 
-            expect(JSON.stringify(collection)).toEqual('[{"id":1,"str":"qux"},{"id":2,"str":"quux"}]');
+                expect(JSON.stringify(collection)).toEqual('[{"id":1,"str":"qux"},{"id":2,"str":"quux"}]');
 
-            const resource = await query.fetchOne();
+                const resource = await query.fetchOne();
 
-            expect(JSON.stringify(resource)).toEqual('{"id":1,"str":"qux"}');
-        });
+                expect(JSON.stringify(resource)).toEqual('{"id":1,"str":"qux"}');
+            });
 
         it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
@@ -475,7 +478,7 @@ describe("MRS SDK API", () => {
 
             expect(Object.keys(collection)).toEqual([]);
 
-            const resource = await query.fetchOne() || {};
+            const resource = await query.fetchOne() ?? {};
 
             expect(Object.keys(resource)).toEqual(["id", "str"]);
         });
@@ -501,17 +504,31 @@ describe("MRS SDK API", () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
-            expect(() => { collection.count = 0; }).toThrowError('The "count" property cannot be changed.');
-            expect(() => { collection.hasMore = true; }).toThrowError('The "hasMore" property cannot be changed.');
-            expect(() => { collection.limit = 0; }).toThrowError('The "limit" property cannot be changed.');
-            expect(() => { collection.offset = 1; }).toThrowError('The "offset" property cannot be changed.');
-            expect(() => { collection.links = []; }).toThrowError('The "links" property cannot be changed.');
+            expect(() => {
+                collection.count = 0;
+            }).toThrowError('The "count" property cannot be changed.');
+            expect(() => {
+                collection.hasMore = true;
+            }).toThrowError('The "hasMore" property cannot be changed.');
+            expect(() => {
+                collection.limit = 0;
+            }).toThrowError('The "limit" property cannot be changed.');
+            expect(() => {
+                collection.offset = 1;
+            }).toThrowError('The "offset" property cannot be changed.');
+            expect(() => {
+                collection.links = [];
+            }).toThrowError('The "links" property cannot be changed.');
 
             const resource = await query.fetchOne() as MrsDownstreamDocumentData<ITableMetadata1>;
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { resource._metadata = { etag: "AAA" }; })
+
+            expect(() => {
+                resource._metadata = { etag: "AAA" };
+            })
                 .toThrowError('The "_metadata" property cannot be changed');
-            expect(() => { resource.links = []; }).toThrowError('The "links" property cannot be changed');
+            expect(() => {
+                resource.links = [];
+            }).toThrowError('The "links" property cannot be changed');
         });
 
         it("metadata are not removable from an application resource instance", async () => {
@@ -519,48 +536,61 @@ describe("MRS SDK API", () => {
             const collection = await query.fetch() as Omit<MrsDownstreamDocumentListData<ITableMetadata1>,
                 "count" | "hasMore" | "limit" | "offset" | "links">;
 
-            expect(() => { delete collection.count; }).toThrowError('The "count" property cannot be deleted.');
-            expect(() => { delete collection.hasMore; }).toThrowError('The "hasMore" property cannot be deleted.');
-            expect(() => { delete collection.limit; }).toThrowError('The "limit" property cannot be deleted.');
-            expect(() => { delete collection.offset; }).toThrowError('The "offset" property cannot be deleted.');
-            expect(() => { delete collection.links; }).toThrowError('The "links" property cannot be deleted.');
+            expect(() => {
+                delete collection.count;
+            }).toThrowError('The "count" property cannot be deleted.');
+            expect(() => {
+                delete collection.hasMore;
+            }).toThrowError('The "hasMore" property cannot be deleted.');
+            expect(() => {
+                delete collection.limit;
+            }).toThrowError('The "limit" property cannot be deleted.');
+            expect(() => {
+                delete collection.offset;
+            }).toThrowError('The "offset" property cannot be deleted.');
+            expect(() => {
+                delete collection.links;
+            }).toThrowError('The "links" property cannot be deleted.');
 
             const resource = await query.fetchOne() as Omit<MrsDownstreamDocumentData<ITableMetadata1>,
                 "_metadata" | "links">;
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { delete resource._metadata; }).toThrowError('The "_metadata" property cannot be deleted');
-            expect(() => { delete resource.links; }).toThrowError('The "links" property cannot be deleted');
+
+            expect(() => {
+                delete resource._metadata;
+            }).toThrowError('The "_metadata" property cannot be deleted');
+            expect(() => {
+                delete resource.links;
+            }).toThrowError('The "links" property cannot be deleted');
         });
 
         it("metadata and database object fields are directly accessible in an application resource instance",
-                async () => {
-            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
-            const collection = await query.fetch();
+            async () => {
+                const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
+                const collection = await query.fetch();
 
-            expect(collection.items).toHaveLength(2);
-            expect(collection.items[0].id).toEqual(1);
-            expect(collection.items[0].str).toEqual("qux");
-            expect(collection.items[1].id).toEqual(2);
-            expect(collection.items[1].str).toEqual("quux");
-            expect(collection.count).toBeDefined();
-            expect(collection.hasMore).toBeDefined();
-            expect(collection.limit).toBeDefined();
-            expect(collection.links).toBeDefined();
+                expect(collection.items).toHaveLength(2);
+                expect(collection.items[0].id).toEqual(1);
+                expect(collection.items[0].str).toEqual("qux");
+                expect(collection.items[1].id).toEqual(2);
+                expect(collection.items[1].str).toEqual("quux");
+                expect(collection.count).toBeDefined();
+                expect(collection.hasMore).toBeDefined();
+                expect(collection.limit).toBeDefined();
+                expect(collection.links).toBeDefined();
 
-            const resource = await query.fetchOne() as MrsDownstreamDocumentData<ITableMetadata1>;
+                const resource = await query.fetchOne() as MrsDownstreamDocumentData<ITableMetadata1>;
 
-            expect(resource.id).toEqual(1);
-            expect(resource.str).toEqual("qux");
-            // eslint-disable-next-line no-underscore-dangle
-            expect(resource._metadata).toBeDefined();
-            expect(resource.links).toBeDefined();
-        });
+                expect(resource.id).toEqual(1);
+                expect(resource.str).toEqual("qux");
+                expect(resource._metadata).toBeDefined();
+                expect(resource.links).toBeDefined();
+            });
 
         it("creates a query filter that includes the cursor in the absence of one", async () => {
             type Filterable = Pick<ITableMetadata1, "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
-                    schema, "/baz", { cursor: { id: 10 } });
+                schema, "/baz", { cursor: { id: 10 } });
 
             await query.fetch();
 
@@ -572,7 +602,7 @@ describe("MRS SDK API", () => {
             type Filterable = Pick<ITableMetadata1, "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
-                    schema, "/baz", { where: { str: "foo" }, cursor: { id: 10 } });
+                schema, "/baz", { where: { str: "foo" }, cursor: { id: 10 } });
 
             await query.fetch();
 
@@ -586,7 +616,7 @@ describe("MRS SDK API", () => {
 
             // implicit query filter
             let query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
-                    schema, "/baz", { where: { id: 5 }, cursor: { id: 10 } });
+                schema, "/baz", { where: { id: 5 }, cursor: { id: 10 } });
 
             await query.fetch();
 
@@ -666,7 +696,6 @@ describe("MRS SDK API", () => {
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
                         headers: {
-                            // eslint-disable-next-line
                             "Authorization": "Bearer ABC"
                         },
                     }));
@@ -704,13 +733,13 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not part of the JSON representation of an application resource instance",
-                async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
-                str: "qux" } });
-            const res = await query.fetch();
+            async () => {
+                const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
+                    str: "qux" } });
+                const res = await query.fetch();
 
-            expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
-        });
+                expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
+            });
 
         it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
@@ -734,10 +763,13 @@ describe("MRS SDK API", () => {
                 str: "qux" } });
             const res = await query.fetch();
 
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { res._metadata = { etag: "ZYX" }; })
+            expect(() => {
+                res._metadata = { etag: "ZYX" };
+            })
                 .toThrowError('The "_metadata" property cannot be changed.');
-            expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
+            expect(() => {
+                res.links = [];
+            }).toThrowError('The "links" property cannot be changed.');
         });
 
         it("metadata are not removable from an application resource instance", async () => {
@@ -745,23 +777,25 @@ describe("MRS SDK API", () => {
                 str: "qux" } });
             const res = await query.fetch() as Omit<MrsDownstreamDocumentData<ITableMetadata1>, "_metadata" | "links">;
 
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
-            expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
+            expect(() => {
+                delete res._metadata;
+            }).toThrowError('The "_metadata" property cannot be deleted.');
+            expect(() => {
+                delete res.links;
+            }).toThrowError('The "links" property cannot be deleted.');
         });
 
         it("metadata and database object fields are directly accessible in an application resource instance",
-                async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
-                str: "qux" } });
-            const res = await query.fetch();
+            async () => {
+                const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
+                    str: "qux" } });
+                const res = await query.fetch();
 
-            expect(res.id).toEqual(1);
-            expect(res.str).toEqual("qux");
-            // eslint-disable-next-line no-underscore-dangle
-            expect(res._metadata).toBeDefined();
-            expect(res.links).toBeDefined();
-        });
+                expect(res.id).toEqual(1);
+                expect(res.str).toEqual("qux");
+                expect(res._metadata).toBeDefined();
+                expect(res.links).toBeDefined();
+            });
 
         describe("when the server does not send back a GTID", () => {
             beforeEach(async () => {
@@ -771,25 +805,27 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("when the server sends back a GTID", () => {
@@ -824,20 +860,22 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
@@ -849,19 +887,21 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("in a REST object that requires authentication", () => {
@@ -892,7 +932,6 @@ describe("MRS SDK API", () => {
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
                         headers: {
-                            // eslint-disable-next-line
                             "Authorization": "Bearer ABC"
                         },
                     }));
@@ -919,13 +958,13 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not part of the JSON representation of an application document instance",
-                async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                { data: { id: 1, str: "qux" } }, ["id"]);
-            const res = await query.fetch();
+            async () => {
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                    { data: { id: 1, str: "qux" } }, ["id"]);
+                const res = await query.fetch();
 
-            expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
-        });
+                expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
+            });
 
         it("metadata are not enumerable in an application document instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
@@ -949,10 +988,13 @@ describe("MRS SDK API", () => {
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
 
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { res._metadata = { etag: "ZYX" }; })
+            expect(() => {
+                res._metadata = { etag: "ZYX" };
+            })
                 .toThrowError('The "_metadata" property cannot be changed.');
-            expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
+            expect(() => {
+                res.links = [];
+            }).toThrowError('The "links" property cannot be changed.');
         });
 
         it("metadata are not removable from an application document instance", async () => {
@@ -960,23 +1002,25 @@ describe("MRS SDK API", () => {
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch() as Omit<MrsDownstreamDocumentData<ITableMetadata1>, "_metadata" | "links">;
 
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
-            expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
+            expect(() => {
+                delete res._metadata;
+            }).toThrowError('The "_metadata" property cannot be deleted.');
+            expect(() => {
+                delete res.links;
+            }).toThrowError('The "links" property cannot be deleted.');
         });
 
         it("metadata and database object fields are directly accessible in an application document instance",
-                async () => {
-                    const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                        { data: { id: 1, str: "qux" } }, ["id"]);
-            const res = await query.fetch();
+            async () => {
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                    { data: { id: 1, str: "qux" } }, ["id"]);
+                const res = await query.fetch();
 
-            expect(res.id).toEqual(1);
-            expect(res.str).toEqual("qux");
-            // eslint-disable-next-line no-underscore-dangle
-            expect(res._metadata).toBeDefined();
-            expect(res.links).toBeDefined();
-        });
+                expect(res.id).toEqual(1);
+                expect(res.str).toEqual("qux");
+                expect(res._metadata).toBeDefined();
+                expect(res.links).toBeDefined();
+            });
 
         describe("and the document contains an etag", () => {
             beforeEach(() => {
@@ -1010,7 +1054,7 @@ describe("MRS SDK API", () => {
 
                 expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz/${doc?.id}`, expect.objectContaining({
                     method: "PUT",
-                    // eslint-disable-next-line no-underscore-dangle
+
                     body: JSON.stringify({ id: doc?.id, str: doc?.str, _metadata: doc?._metadata }),
                 }));
             });
@@ -1024,25 +1068,27 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("when the server sends back a GTID", () => {
@@ -1077,20 +1123,22 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
@@ -1102,19 +1150,21 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("of a REST object that requires authentication", () => {
@@ -1147,7 +1197,6 @@ describe("MRS SDK API", () => {
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz/${data.id}`, expect.objectContaining({
                         body: JSON.stringify(data),
                         headers: {
-                            // eslint-disable-next-line
                             "Authorization": "Bearer ABC",
                         },
                     }));
@@ -1189,25 +1238,27 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("when the server sends back a GTID", () => {
@@ -1235,20 +1286,22 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
@@ -1260,19 +1313,21 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
-
-                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: false });
+                async () => {
+                    let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
                     await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: false });
+                    await query.fetch();
+
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("of a REST object that requires authentication", () => {
@@ -1286,7 +1341,7 @@ describe("MRS SDK API", () => {
                 beforeEach(async () => {
                     FetchMock
                         .push()
-                            .push({
+                        .push({
                             matchUrl: "/foo/authentication/login",
                             matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
                             response: JSON.stringify({ accessToken: "ABC" }),
@@ -1304,7 +1359,6 @@ describe("MRS SDK API", () => {
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
                         expect.objectContaining({
                             headers: {
-                                // eslint-disable-next-line
                                 "Authorization": "Bearer ABC",
                             },
                         }));
@@ -1336,9 +1390,8 @@ describe("MRS SDK API", () => {
                 FetchMock.push({ response: JSON.stringify(response) });
             });
 
-            it("are not part of the JSON representation of the function result",
-                async () => {
-                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+            it("are not part of the JSON representation of the function result", async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo", });
                 const result = await query.fetch();
 
                 expect(JSON.stringify(result)).toEqual('{"result":"foo"}');
@@ -1361,23 +1414,26 @@ describe("MRS SDK API", () => {
             it("are not writable in the function result", async () => {
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 const result = await query.fetch();
-                // eslint-disable-next-line no-underscore-dangle
-                expect(() => { result._metadata = { gtid: "qux" }; })
+
+                expect(() => {
+                    result._metadata = { gtid: "qux" };
+                })
                     .toThrowError('The "_metadata" property cannot be changed.');
             });
 
             it("are not removable from the function result", async () => {
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 const result = await query.fetch();
-                // eslint-disable-next-line no-underscore-dangle
-                expect(() => { delete result._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
+
+                expect(() => {
+                    delete result._metadata;
+                }).toThrowError('The "_metadata" property cannot be deleted.');
             });
 
-            it("are directly accessible in the function result",
-                    async () => {
+            it("are directly accessible in the function result", async () => {
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 const result = await query.fetch();
-                // eslint-disable-next-line no-underscore-dangle
+
                 expect(result._metadata?.gtid).toEqual("bar");
             });
         });
@@ -1392,25 +1448,27 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("if the server sends back a GTID", () => {
@@ -1438,20 +1496,22 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
@@ -1463,19 +1523,21 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
-
-                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: false });
+                async () => {
+                    let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
                     await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: false });
+                    await query.fetch();
+
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("that requires authentication", () => {
@@ -1506,7 +1568,6 @@ describe("MRS SDK API", () => {
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
                         headers: {
-                            // eslint-disable-next-line
                             "Authorization": "Bearer ABC",
                         },
                     }));
@@ -1561,8 +1622,7 @@ describe("MRS SDK API", () => {
                 FetchMock.push({ response: JSON.stringify(response) });
             });
 
-            it("are not part of the JSON representation of the function result",
-                async () => {
+            it("are not part of the JSON representation of the function result", async () => {
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 const result = await query.fetch();
@@ -1593,11 +1653,15 @@ describe("MRS SDK API", () => {
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 const result = await query.fetch();
-                // eslint-disable-next-line no-underscore-dangle
-                expect(() => { result._metadata = { gtid: "qux" }; })
+
+                expect(() => {
+                    result._metadata = { gtid: "qux" };
+                })
                     .toThrowError('The "_metadata" property cannot be changed.');
-                // eslint-disable-next-line no-underscore-dangle
-                expect(() => { result.resultSets[0]._metadata = { gtid: "qux" }; })
+
+                expect(() => {
+                    result.resultSets[0]._metadata = { gtid: "qux" };
+                })
                     .toThrowError('The "_metadata" property cannot be changed.');
             });
 
@@ -1605,24 +1669,27 @@ describe("MRS SDK API", () => {
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 const result = await query.fetch();
-                // eslint-disable-next-line no-underscore-dangle
-                expect(() => { delete result._metadata; })
+
+                expect(() => {
+                    delete result._metadata;
+                })
                     .toThrowError('The "_metadata" property cannot be deleted.');
-                // eslint-disable-next-line no-underscore-dangle
-                expect(() => { delete result.resultSets[0]._metadata; })
+
+                expect(() => {
+                    delete result.resultSets[0]._metadata;
+                })
                     .toThrowError('The "_metadata" property cannot be deleted.');
             });
 
-            it("are directly accessible in the function result",
-                    async () => {
+            it("are directly accessible in the function result", async () => {
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 const result = await query.fetch();
-                // eslint-disable-next-line no-underscore-dangle
+
                 expect(result._metadata?.gtid).toEqual("baz");
-                // eslint-disable-next-line no-underscore-dangle
+
                 expect(result.resultSets[0]._metadata).toBeTypeOf("object");
-                // eslint-disable-next-line no-underscore-dangle
+
                 expect(result.resultSets[0]._metadata).toHaveProperty("columns", [{name: "qux", type: "VARCHAR(3)"}]);
             });
         });
@@ -1635,25 +1702,27 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency",
-                    async () => {
-                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: true });
-                await query.fetch();
+                async () => {
+                    const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: true });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("if the server sends back a GTID", () => {
@@ -1682,20 +1751,22 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
+                async () => {
+                    let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
 
-                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
-                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
-                await query.fetch();
+                    query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                        schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                    await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
 
             it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
@@ -1707,19 +1778,21 @@ describe("MRS SDK API", () => {
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
-                    async () => {
-                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
-                await query.fetch();
-
-                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
-                    readOwnWrites: false });
+                async () => {
+                    let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
                     await query.fetch();
 
-                const searchParams = new URLSearchParams({ q: '{"id":1}' });
-                // first call is on beforeEach
-                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
-            });
+                    query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                        readOwnWrites: false });
+                    await query.fetch();
+
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    // first call is on beforeEach
+                    expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                    expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`,
+                        expect.anything());
+                });
         });
 
         describe("that requires authentication", () => {
@@ -1750,7 +1823,6 @@ describe("MRS SDK API", () => {
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
                         headers: {
-                            // eslint-disable-next-line
                             "Authorization": "Bearer ABC",
                         },
                     }));
@@ -1797,7 +1869,6 @@ describe("MRS SDK API", () => {
 
                         expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/_metadata`, expect.objectContaining({
                             headers: {
-                                // eslint-disable-next-line
                                 "Authorization": "Bearer ABC",
                             },
                         }));
@@ -1814,7 +1885,9 @@ describe("MRS SDK API", () => {
                     });
 
                     it("yields an authentication error", async () => {
-                        await expect(async () => { await schema.getMetadata(); }).rejects.toThrowError(
+                        await expect(async () => {
+                            await schema.getMetadata();
+                        }).rejects.toThrowError(
                             "Not authenticated. Please authenticate first before accessing the path " +
                             "/foo/bar/_metadata.");
                     });
@@ -1856,7 +1929,6 @@ describe("MRS SDK API", () => {
 
                         expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz/_metadata`, expect.objectContaining({
                             headers: {
-                                // eslint-disable-next-line
                                 "Authorization": "Bearer ABC",
                             },
                         }));
@@ -1873,7 +1945,9 @@ describe("MRS SDK API", () => {
                     });
 
                     it("yields an authentication error", async () => {
-                        await expect(async () => { await restObject.getMetadata(); }).rejects.toThrowError(
+                        await expect(async () => {
+                            await restObject.getMetadata();
+                        }).rejects.toThrowError(
                             "Not authenticated. Please authenticate first before accessing the path " +
                             "/foo/bar/baz/_metadata.");
                     });
@@ -2195,7 +2269,9 @@ describe("MRS SDK API", () => {
 
                 void vi.advanceTimersByTimeAsync(2000);
 
-                await expect(async () => { await pollTaskRequest.execute(); }).rejects
+                await expect(async () => {
+                    await pollTaskRequest.execute();
+                }).rejects
                     .toThrowError(message);
             });
         });
@@ -2266,7 +2342,9 @@ describe("MRS SDK API", () => {
 
                 void vi.advanceTimersByTimeAsync(4000);
 
-                await expect(async () => { await pollTaskRequest.execute(); }).rejects
+                await expect(async () => {
+                    await pollTaskRequest.execute();
+                }).rejects
                     .toThrowError(message);
             });
 
