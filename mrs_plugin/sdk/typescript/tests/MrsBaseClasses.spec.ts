@@ -27,8 +27,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
     MrsDownstreamDocumentData, MrsBaseObjectCreate, IFindFirstOptions, MrsDownstreamDocumentListData,
-    MrsBaseObjectDelete, MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
-    IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
+    MrsBaseObjectDelete, MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionResponse, MrsBaseObjectFunctionCall,
+    IMrsProcedureResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
     MrsBaseTaskStart, MrsBaseTaskWatch, MrsTask, MrsBaseTaskRun,
 } from "../MrsBaseClasses";
 
@@ -1386,7 +1386,7 @@ describe("MRS SDK API", () => {
 
         describe("transactional metadata", () => {
             beforeEach(() => {
-                const response: IMrsFunctionJsonResponse<string> = { result: "foo", _metadata: { gtid: "bar" } };
+                const response: IMrsFunctionResponse<string> = { result: "foo", _metadata: { gtid: "bar" } };
                 FetchMock.push({ response: JSON.stringify(response) });
             });
 
@@ -1440,7 +1440,7 @@ describe("MRS SDK API", () => {
 
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsFunctionJsonResponse<string> = { result: "foo" };
+                const response: IMrsFunctionResponse<string> = { result: "foo" };
                 FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
@@ -1473,7 +1473,7 @@ describe("MRS SDK API", () => {
 
         describe("if the server sends back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsFunctionJsonResponse<string> = {
+                const response: IMrsFunctionResponse<string> = {
                     result: "foo",
                     _metadata: {
                         gtid: "ABC",
@@ -1577,7 +1577,7 @@ describe("MRS SDK API", () => {
     });
 
     describe("when calling a REST procedure", () => {
-        const response: IMrsProcedureJsonResponse<unknown, unknown> = {
+        const response: IMrsProcedureResponse<unknown, unknown> = {
             resultSets: [],
         };
 
@@ -1601,7 +1601,7 @@ describe("MRS SDK API", () => {
 
         describe("transactional and column metadata", () => {
             beforeEach(() => {
-                const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
+                const response: IMrsProcedureResponse<{ name: string }, {}> = {
                     resultSets: [{
                         type: "IMrsProcedureResultSet1",
                         items: [{
@@ -1727,7 +1727,7 @@ describe("MRS SDK API", () => {
 
         describe("if the server sends back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
+                const response: IMrsProcedureResponse<{ name: string }, {}> = {
                     resultSets: [],
                     _metadata: {
                         gtid: "ABC",
@@ -1967,8 +1967,8 @@ describe("MRS SDK API", () => {
     });
 
     describe("when calling a long-running REST routine", () => {
-        interface IAsyncProcResultData {
-            salute: string
+        interface IAsyncRoutineResultData {
+            prop: string
         }
 
         const taskId = "ABC";
@@ -1994,8 +1994,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
@@ -2030,15 +2030,8 @@ describe("MRS SDK API", () => {
         });
 
         describe("while it is running", () => {
-            // Async Procedures only produce out parameters in the task result data (WL#16788).
-            const result: IAsyncProcResultData = { salute: `hello, ${input.name}` };
-
             beforeEach(() => {
                 FetchMock
-                    .push({
-                        matchUrl: `/foo/bar/baz/${taskId}`,
-                        response: JSON.stringify({ status: "COMPLETED", data: result }),
-                    })
                     .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
                     .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
                     .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
@@ -2049,8 +2042,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
@@ -2065,8 +2058,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { progress });
 
                 const iterator = watchTaskRequest.submit();
@@ -2084,8 +2077,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { refreshRate });
 
                 const iterator = watchTaskRequest.submit();
@@ -2101,8 +2094,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { progress, refreshRate });
 
                 const iterator = watchTaskRequest.submit();
@@ -2113,14 +2106,30 @@ describe("MRS SDK API", () => {
                 expect(progress).toHaveBeenNthCalledWith(1, value1);
                 expect(progress).toHaveBeenLastCalledWith(value2);
             });
+        });
 
-            it("stops retrieving updates when it finishes", async () => {
+        describe("when it finishes", () => {
+            // Async Procedures only produce out parameters in the task result data (WL#16788).
+            const routineResult: IAsyncRoutineResultData = { prop: `hello, ${input.name}` };
+
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: JSON.stringify({ status: "COMPLETED", data: routineResult }),
+                    })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("yields a consistent result for procedures", async () => {
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }, unknown, unknown>(
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, "PROCEDURE");
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
@@ -2131,20 +2140,58 @@ describe("MRS SDK API", () => {
 
                 const { value } = await iterator.next();
                 expect(value).toHaveProperty("status", "COMPLETED");
-                expect(value).toHaveProperty("data", result);
+                // Procedures with an associated async task currently do not support result sets (see BUG#38039060).
+                expect(value).toHaveProperty("data", { resultSets: [], outParameters: routineResult });
+            });
+
+            it("yields a consistent result for functions", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }, unknown, unknown>(
+                    schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, "FUNCTION");
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+
+                const { value } = await iterator.next();
+                expect(value).toHaveProperty("status", "COMPLETED");
+                expect(value).toHaveProperty("data", routineResult);
+            });
+
+            it("stops retrieving updates", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }, unknown, unknown>(
+                    schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                await iterator.next();
 
                 const { done } = await iterator.next();
                 expect(done).toBeTruthy();
             });
 
-            it("does not execute a given progress callback when it finishes", async () => {
+            it("does not execute a given progress callback", async () => {
                 const progress = vi.fn();
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }, unknown, unknown>(
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { progress });
 
                 for await (const _ of watchTaskRequest.submit()) {
@@ -2161,7 +2208,7 @@ describe("MRS SDK API", () => {
             });
 
             it("kills the underlying task", async () => {
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", taskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", taskId);
                 await task.kill();
 
                 expect(fetch).toHaveBeenCalledOnce();
@@ -2189,8 +2236,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
@@ -2211,8 +2258,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { progress });
 
                 const iterator = watchTaskRequest.submit();
@@ -2242,8 +2289,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
@@ -2263,8 +2310,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
                 void vi.advanceTimersByTimeAsync(2000);
@@ -2291,8 +2338,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { timeout: 3000 });
 
                 const iterator = watchTaskRequest.submit();
@@ -2318,8 +2365,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { timeout: 3000 });
 
                 const iterator = watchTaskRequest.submit();
@@ -2336,8 +2383,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { timeout: 3000 });
 
                 void vi.advanceTimersByTimeAsync(4000);
@@ -2353,8 +2400,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncProcResultData>(schema, "/baz", startedTaskId);
-                const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncProcResultData>(
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncRoutineResultData>(
                     schema, "/baz", task, { timeout: 3000 });
 
                 void vi.advanceTimersByTimeAsync(4000);

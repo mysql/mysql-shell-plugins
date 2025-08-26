@@ -30,7 +30,7 @@ import {
     type MrsDownstreamDocumentListData, type MaybeNull, type Point, type MultiPoint, type LineString,
     type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection,
     type HighOrderFilter, type ComparisonOpExpr, type MrsDownstreamDocumentData, type Cursor, type IDeleteOptions,
-    IMrsProcedureJsonResponse, IMrsProcedureResult, IMrsFunctionJsonResponse, IMrsTaskReport, IMrsRunningTaskReport,
+    IMrsProcedureResponse, IMrsProcedureResult, IMrsFunctionResponse, IMrsTaskReport, IMrsRunningTaskReport,
     IMrsTaskRunOptions, IMrsTaskStartOptions,
 } from "../MrsBaseClasses";
 
@@ -763,65 +763,65 @@ describe("MRS SDK base types", () => {
         });
     });
 
-    describe("IMrsFunctionJsonResponse", () => {
+    describe("IMrsFunctionResponse", () => {
         it("allows a result of a given type", () => {
             expectTypeOf({ result: "foo" })
-                .toMatchTypeOf<IMrsFunctionJsonResponse<string>>();
+                .toMatchTypeOf<IMrsFunctionResponse<string>>();
 
             expectTypeOf({ result: "foo" })
-                .not.toMatchTypeOf<IMrsFunctionJsonResponse<number>>();
+                .not.toMatchTypeOf<IMrsFunctionResponse<number>>();
         });
 
         it("allows transactional metadata", () => {
             expectTypeOf({ result: "foo", _metadata: { gtid: "bar" } })
-                .toMatchTypeOf<IMrsFunctionJsonResponse<unknown>>();
+                .toMatchTypeOf<IMrsFunctionResponse<unknown>>();
 
             expectTypeOf({ result: "foo", _metadata: { unknown: "bar" } })
-                .not.toMatchTypeOf<IMrsFunctionJsonResponse<unknown>>();
+                .not.toMatchTypeOf<IMrsFunctionResponse<unknown>>();
         });
     });
 
-    describe("IMrsProcedureJsonResponse", () => {
+    describe("IMrsProcedureResponse", () => {
         it("allows a set of typed output parameters", () => {
             expectTypeOf({ outParameters: { name: "foo" }, resultSets: [{ name: "foo" }] })
-                .toMatchTypeOf<IMrsProcedureJsonResponse<{ name: string }, unknown>>();
+                .toMatchTypeOf<IMrsProcedureResponse<{ name: string }, unknown>>();
 
             expectTypeOf({ outParameters: { age: 42 }, resultSets: [{ name: "foo" }] })
-                .not.toMatchTypeOf<IMrsProcedureJsonResponse<{ name: string }, unknown>>();
+                .not.toMatchTypeOf<IMrsProcedureResponse<{ name: string }, unknown>>();
         });
 
         it("allows a list of typed result sets", () => {
             expectTypeOf({ outParameters: { name: "foo" }, resultSets: [{ name: "foo" }] })
-                .toMatchTypeOf<IMrsProcedureJsonResponse<unknown, { name: string }>>();
+                .toMatchTypeOf<IMrsProcedureResponse<unknown, { name: string }>>();
 
             expectTypeOf({ resultSets: [{ age: 42 }] })
-                .not.toMatchTypeOf<IMrsProcedureJsonResponse<unknown, { name: string }>>();
+                .not.toMatchTypeOf<IMrsProcedureResponse<unknown, { name: string }>>();
         });
 
         it("allows transactional metadata", () => {
             expectTypeOf({ resultSets: [], _metadata: { gtid: "foo" } })
-                .toMatchTypeOf<IMrsProcedureJsonResponse<unknown, unknown>>();
+                .toMatchTypeOf<IMrsProcedureResponse<unknown, unknown>>();
 
             expectTypeOf({ resultSets: [], _metadata: { unknown: "foo" } })
-                .not.toMatchTypeOf<IMrsProcedureJsonResponse<unknown, unknown>>();
+                .not.toMatchTypeOf<IMrsProcedureResponse<unknown, unknown>>();
         });
 
         it("allows absent output parameters", () => {
             expectTypeOf({ resultSets: [{ name: "foo" }] })
-                .toMatchTypeOf<IMrsProcedureJsonResponse<{ name: string }, { name: string }>>();
+                .toMatchTypeOf<IMrsProcedureResponse<{ name: string }, { name: string }>>();
         });
 
         it("allows an empty result set list", () => {
             expectTypeOf({ resultSets: [] })
-                .toMatchTypeOf<IMrsProcedureJsonResponse<{ name: string }, { name: string }>>();
+                .toMatchTypeOf<IMrsProcedureResponse<{ name: string }, { name: string }>>();
         });
 
         it("does not allow absent result set list", () => {
             expectTypeOf({})
-                .not.toMatchTypeOf<IMrsProcedureJsonResponse<unknown, unknown>>();
+                .not.toMatchTypeOf<IMrsProcedureResponse<unknown, unknown>>();
 
             expectTypeOf({ outParameters: { name: "foo" }})
-                .not.toMatchTypeOf<IMrsProcedureJsonResponse<{ name: string }, unknown>>();
+                .not.toMatchTypeOf<IMrsProcedureResponse<{ name: string }, unknown>>();
         });
     });
 

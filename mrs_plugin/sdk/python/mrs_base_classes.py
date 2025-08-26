@@ -462,14 +462,12 @@ class IMrsCompletedTaskReport(Generic[IMrsTaskResult]):
                 ),
             )
         else:
-            data = {
-                "result": MrsJSONDataDecoder.convert_field_value(
-                    status_update["data"]["result"],
-                    dst_type=cast(
-                        FunctionResponseTypeHintStruct, result_type_hint_struct
-                    )["result"],
-                )
-            }
+            data = IMrsFunctionResponse[Any](
+                data=cast(IMrsFunctionResponseDetails[Any], status_update["data"]),
+                type_hint_struct=cast(
+                    FunctionResponseTypeHintStruct, result_type_hint_struct
+                ),
+            )
 
         self.data = cast(IMrsTaskResult, data)
         self.message = status_update["message"]
@@ -813,13 +811,6 @@ class IMrsDeleteResponse(TypedDict, total=False):
     _metadata: MrsResourceMetadata
 
 
-class IMrsFunctionResponse(Generic[IMrsFunctionResult], TypedDict):
-    """Response got by invoking/calling a MySQL function."""
-
-    result: IMrsFunctionResult
-    _metadata: NotRequired[MrsTransactionalMetadata]
-
-
 class FunctionResponseTypeHintStruct(TypedDict):
     """Structure storing key information to convert the value of a function response.
 
@@ -843,6 +834,40 @@ class ProcedureResponseTypeHintStruct(TypedDict):
 RoutineResponseTypeHintStruct = (
     FunctionResponseTypeHintStruct | ProcedureResponseTypeHintStruct
 )
+
+
+class IMrsFunctionResponseDetails(Generic[IMrsFunctionResult], TypedDict):
+    """Response got by invoking/calling a MySQL function."""
+
+    result: IMrsFunctionResult
+    _metadata: NotRequired[MrsTransactionalMetadata]
+
+
+@dataclass(init=False, repr=True)
+class IMrsFunctionResponse(Generic[IMrsFunctionResult], MrsDocumentBase):
+
+    result: IMrsFunctionResult
+
+    def __init__(
+        self,
+        data: IMrsFunctionResponseDetails[IMrsFunctionResult],
+        type_hint_struct: FunctionResponseTypeHintStruct,
+    ) -> None:
+        """Procedure response dataclass."""
+        result = data.get("result")
+
+        self.result = (
+            (
+                MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
+                    result, typed_dict=type_hint_struct
+                )
+            )
+            if is_typeddict(result)
+            else cast(IMrsFunctionResult, result)
+        )
+
+        for key in MrsDocumentBase._reserved_keys:
+            self.__dict__.update({key: data.get(key)})
 
 
 class IMrsProcedureResponseDetails(
@@ -876,12 +901,18 @@ class IMrsProcedureResponse(
                     result_set["type"]
                 ),
             )
-            for result_set in data["result_sets"]
+            # Procedures with an associated async task currently do not support result sets, as a consequence, the
+            # "result_set" field is not part of the JSON object in the response body (see BUG#38039060).
+            for result_set in data.get("result_sets", [])
         ]
 
         # If the procedure does not specify any OUT/INOUT parameter, the "out_parameters" property will not exist
-        # in the JSON response.
-        out_parameters = data.get("out_parameters", {})
+        # in the JSON response, additionally, procedures with an associated async task currently do not support result
+        # sets, as a consequence, the OUT parameters are specified at the root level of the JSON object in the
+        # response body (see BUG#38039060).
+        out_parameters = (
+            data if data.get("result_sets") is None else data.get("out_parameters", {})
+        )
 
         self.out_parameters = (
             (
@@ -1757,7 +1788,7 @@ class MrsBaseObjectFunctionCall(
     Generic[IMrsRoutineInParameters, IMrsFunctionResult],
     MrsBaseObjectRoutineCall[
         IMrsRoutineInParameters,
-        IMrsFunctionResponse[IMrsFunctionResult],
+        IMrsFunctionResponseDetails[IMrsFunctionResult],
         FunctionResponseTypeHintStruct,
     ],
 ):
@@ -2108,7 +2139,7 @@ class MrsBaseTaskCallFunction(
 
         async for report in task.watch():
             if report.status == "COMPLETED":
-                return report.data["result"]
+                return report.data.result
 
             if report.status == "CANCELLED":
                 raise MrsTaskExecutionCancelledError(msg=report.message)

@@ -1119,9 +1119,9 @@ if __name__ == "__main__":
 
 | Option Name  | Data Type | Required | Default | Notes |
 |---|---|---|---|---------------------|
-| refresh_rate | `float` | No | `2.0` | Rate at which the underlying implementation checks for status updates of the execution. Value in **seconds**. An exception is raised if `refresh_rate` is lower than 0.5 seconds |
+| refresh_rate | `float` | No | `2.0` | Rate at which the underlying implementation checks for status updates of the execution. Value in **seconds**. An exception is raised if `refresh_rate` is lower than 0.5 seconds. (available only if the routine has an associated Async Task) |
 | progress | `Callable[[IMrsRunningTaskReport], Awaitable[None]]` | No | `None` | Callback function that gets executed (with the details provided by the status update) while the status of the execution remains in `RUNNING` state. By default, no progress is carried on. |
-| timeout | `float` | No | `None` | Maximum time to wait for the execution to complete. If this threshold is reached, the ongoing task execution is killed and `MrsTaskTimeOutError` exception is raised. By default, no timeout is enforced.
+| timeout | `float` | No | `None` | Maximum time to wait for the execution to complete. If this threshold is reached, the ongoing task is killed and `MrsTaskTimeOutError` exception is raised. By default, no timeout is enforced. (available only if the routine has an associated Async Task)
 
 : REST Function/Procedure Options (call)
 

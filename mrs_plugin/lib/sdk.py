@@ -659,7 +659,7 @@ def substitute_objects_in_template(
                         db_object_crud_ops.append("DELETEUNIQUE")
                 # If the database object is a FUNCTION a PROCEDURE or a SCRIPT, CRUD operations should not be enabled
                 elif object_is_routine(db_obj, of_type={"FUNCTION", "SCRIPT"}):
-                    required_datatypes.add("IMrsFunctionJsonResponse") if sdk_language == "typescript" else None
+                    required_datatypes.add("IMrsFunctionResponse")
                     options = db_obj.get("options")
                     if options is not None and options.get("mysqlTask") is not None:
                         db_object_crud_ops = ["FUNCTIONTASKRUN"]

@@ -189,17 +189,17 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudProcedureCallOnlyEnd
     // --- crudProcedureTaskRunOnlyStart
-    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, I${obj_param_interface}Out>> {
-        const request = new MrsBaseTaskStart<I${obj_param_interface}, object, I${obj_param_interface}Out>(
+    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>> {
+        const request = new MrsBaseTaskStart<I${obj_param_interface}, object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
             this.schema, this.requestPath, ${obj_name}Params, options);
         const response = await request.submit();
 
-        return new MrsTask(this.schema, this.requestPath, response.taskId, options);
+        return new MrsTask(this.schema, this.requestPath, response.taskId, "PROCEDURE", options);
     }
 
-    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, I${obj_param_interface}Out>): Promise<I${obj_param_interface}Out> {
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> {
         const task = await this.start(${obj_name}Params, options);
-        const poll = new MrsBaseTaskRun<object, I${obj_param_interface}Out>(
+        const poll = new MrsBaseTaskRun<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
             this.schema, this.requestPath, task, options);
         const response = await poll.execute();
 
@@ -216,17 +216,17 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudFunctionCallOnlyEnd
     // --- crudFunctionTaskRunOnlyStart
-    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsFunctionJsonResponse<${obj_function_result_datatype}>>> {
-        const request = new MrsBaseTaskStart<I${obj_param_interface}, object, IMrsFunctionJsonResponse<${obj_function_result_datatype}>>(
+    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsFunctionResponse<${obj_function_result_datatype}>>> {
+        const request = new MrsBaseTaskStart<I${obj_param_interface}, object, IMrsFunctionResponse<${obj_function_result_datatype}>>(
             this.schema, this.requestPath, ${obj_name}Params, options);
         const response = await request.submit();
 
-        return new MrsTask(this.schema, this.requestPath, response.taskId, options);
+        return new MrsTask(this.schema, this.requestPath, response.taskId, "FUNCTION", options);
     }
 
     async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype}> {
         const task = await this.start(${obj_name}Params, options);
-        const poll = new MrsBaseTaskRun<object, IMrsFunctionJsonResponse<${obj_function_result_datatype}>>(
+        const poll = new MrsBaseTaskRun<object, IMrsFunctionResponse<${obj_function_result_datatype}>>(
             this.schema, this.requestPath, task, options);
         const response = await poll.execute();
 

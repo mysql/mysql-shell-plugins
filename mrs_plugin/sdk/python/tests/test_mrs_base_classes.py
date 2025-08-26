@@ -68,6 +68,7 @@ from ..mrs_base_classes import (
     IMrsDeleteResponse,
     IMrsErrorTaskReport,
     IMrsProcedureResponse,
+    IMrsFunctionResponse,
     IMrsResourceDetails,
     IMrsRunningTaskReport,
     IMrsScheduledTaskReport,
@@ -2204,7 +2205,10 @@ def _get_report_sequence_of_task(
                         progress=87,
                     ),
                     IMrsTaskStatusUpdateResponse(
-                        data=_procedure_sample_result_1,
+                        # procedures with an associated async task currently do not support result sets, as a
+                        # consequence, the OUT parameters are specified at the root level of the JSON object in the
+                        # response body (see BUG#38039060).
+                        data=_procedure_sample_result_1["out_parameters"],
                         status="COMPLETED",
                         message="execution finished",
                         progress=100,
@@ -2316,11 +2320,13 @@ async def test_routine_start_task(
 
         # check the data embedded in the report contains the expected morphology and result value
         if routine_type == "START_TASK_FUNCTION":
-            exp_value = MrsJSONDataDecoder.convert_field_value(
-                urlopen_read["status_update_responses"][-1]["data"]["result"],
-                cast(FunctionResponseTypeHintStruct, result_type_hint_struct)["result"],
+            exp_res_of_func = IMrsFunctionResponse[Any](
+                data=urlopen_read["status_update_responses"][-1]["data"].copy(),
+                type_hint_struct=cast(
+                    FunctionResponseTypeHintStruct, result_type_hint_struct
+                ),
             )
-            assert res_of_routine["result"] == exp_value
+            assert res_of_routine == exp_res_of_func
         elif routine_type == "START_TASK_PROCEDURE":
             exp_res_of_proc = IMrsProcedureResponse[Any, Any](
                 data=urlopen_read["status_update_responses"][-1]["data"].copy(),  # type: ignore[arg-type]
@@ -3549,9 +3555,7 @@ async def test_dataclass_update(
                 }
             ),
             "q=%7B%22actorId%22%3A65%7D",
-            {
-                "items_deleted": 1
-            },
+            {"items_deleted": 1},
         ),
     ],
 )
@@ -3577,7 +3581,7 @@ async def test_dataclass_delete(
         request=document,
         expected_url=f"{schema._request_path}/actor?{expected_q_url}",
         mock_request_class=mock_request_class,
-        fictional_response_from_router=delete_response
+        fictional_response_from_router=delete_response,
     )
 
     # Misc: simply verify the ultimate mixin works

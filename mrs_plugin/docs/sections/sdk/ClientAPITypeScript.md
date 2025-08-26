@@ -693,14 +693,17 @@ if (actor) {
 
 | Name | Type | Required | Description
 |---|---|---|---------------------
-| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report.
+| refreshRate | number (>=500) | No | Time (ms) to wait (default 2000) for retrieving the next progress report. (available only if the routine has an associated Async Task)
 | progress | async function | No | Callback to be executed using the details of each progress report while the routine does not finish.
+| timeout | number | No | Maximum time to wait for the execution to complete. If this threshold is reached, the ongoing task is killed. By default, no timeout is enforced. (available only if the routine has an associated Async Task)
 
 : REST Function/Procedure Options (call)
 
 ### Return Type (call)
 
-A JSON object containing the result produced by the routine (including `OUT`/`INOUT` parameters and result sets).
+In the case of a `FUNCTION`, the value returned by that function. In the case of a `PROCEDURE`, a JSON object containing the result produced by the procedure (including `OUT`/`INOUT` parameters and result sets).
+
+Note: Procedures with an associated Async Task are not capable of not producing result sets, only `OUT`/`INOUT` parameter values.
 
 ### Reference (call)
 
@@ -771,7 +774,7 @@ await myService.mrsNotes.noteUpdate.call({ noteId: note.id, title: "hello world"
 
 | Name | Type | Required | Description
 |---|---|---|---------------------
-| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report (default 2000).
+| refreshRate | number (>=500) | No | Time (ms) to wait (default 2000) for retrieving the next progress report (available only if the routine has an associated Async Task).
 | timeout | number | No | Time (ms) to wait for the routine to produce a result.
 
 ### Return Type (start)

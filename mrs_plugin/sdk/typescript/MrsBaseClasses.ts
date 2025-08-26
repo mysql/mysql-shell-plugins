@@ -532,7 +532,7 @@ type IMrsCommonRoutineResponse = {
     _metadata?: IMrsTransactionalMetadata;
 } & JsonObject;
 
-export type IMrsProcedureJsonResponse<OutParams, ResultSet> = {
+export type IMrsProcedureResponse<OutParams, ResultSet> = {
     outParameters?: OutParams;
     resultSets: ResultSet[]
 } & IMrsCommonRoutineResponse;
@@ -542,7 +542,7 @@ export interface IMrsProcedureResult<OutParams, ResultSet> {
     resultSets: ResultSet[]
 }
 
-export type IMrsFunctionJsonResponse<C> = {
+export type IMrsFunctionResponse<C> = {
     result: C;
 } & IMrsCommonRoutineResponse;
 
@@ -1459,7 +1459,7 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
 }
 
 export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends JsonObject>
-    extends MrsBaseObjectCall<InParams, IMrsProcedureJsonResponse<OutParams, ResultSet>> {
+    extends MrsBaseObjectCall<InParams, IMrsProcedureResponse<OutParams, ResultSet>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
@@ -1467,7 +1467,7 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends J
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<IMrsProcedureJsonResponse<OutParams, ResultSet>> {
+    public override async fetch(): Promise<IMrsProcedureResponse<OutParams, ResultSet>> {
         const response = await super.fetch();
 
         response.resultSets = response.resultSets.map((resultSet) => {
@@ -1479,7 +1479,7 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends J
 }
 
 export class MrsBaseObjectFunctionCall<Input, Output>
-    extends MrsBaseObjectCall<Input, IMrsFunctionJsonResponse<Output>> {
+    extends MrsBaseObjectCall<Input, IMrsFunctionResponse<Output>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
@@ -1487,7 +1487,7 @@ export class MrsBaseObjectFunctionCall<Input, Output>
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<IMrsFunctionJsonResponse<Output>> {
+    public override async fetch(): Promise<IMrsFunctionResponse<Output>> {
         return super.fetch();
     }
 }
@@ -1575,7 +1575,7 @@ export class MrsBaseService {
 
             return result;
         } else {
-            let errorInfo = null;
+            let errorInfo: MaybeNull<IMrsErrorResponse> = null;
             try {
                 errorInfo = await response.json() as IMrsErrorResponse;
             } catch {
@@ -1781,7 +1781,15 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
             if (statusUpdate.status === "COMPLETED") {
                 // also a final status report that should close the producer
                 const { message, status } = statusUpdate;
-                const data = statusUpdate.data as MrsTaskResult;
+
+                let data: MrsTaskResult;
+
+                // Procedures with an associated async task currently do not support result sets (see BUG#38039060).
+                if (this.task.routineType === "FUNCTION") {
+                    data = statusUpdate.data as MrsTaskResult;
+                } else {
+                    data = { resultSets: [], outParameters: statusUpdate.data } as MrsTaskResult;
+                }
 
                 return yield { data, message, status };
             }
@@ -1837,6 +1845,7 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
         public readonly id: string,
+        public readonly routineType: "FUNCTION" | "PROCEDURE" = "FUNCTION",
         private readonly options?: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult>) {
     }
 
