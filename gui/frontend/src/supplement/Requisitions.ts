@@ -93,8 +93,8 @@ export class RequisitionHub {
             } else {
                 if (messageHandlers.chrome?.webview) {
                     this.remoteTarget = {
-                        postMessage: (data: IEmbeddedMessage, origin: string) => {
-                            messageHandlers.chrome!.webview!.postMessage?.(data, "*");
+                        postMessage: (data: IEmbeddedMessage, origin?: string) => {
+                            messageHandlers.chrome!.webview!.postMessage?.(data);
                         }
                     };
                 }
@@ -110,7 +110,7 @@ export class RequisitionHub {
             } else {
                 // Here we know the app is running in a browser. This can be a standalone browser or a web view
                 // in Visual Studio Code. In all these cases we can just send messages to the parent window.
-                this.remoteTarget = window.parent;
+                this.remoteTarget = window.parent as IRemoteTarget;
 
                 window.addEventListener("message", (message: MessageEvent<{ source: string; }>) => {
                     // Handle only our own messages and ignore others here.

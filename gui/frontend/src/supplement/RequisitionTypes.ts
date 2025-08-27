@@ -376,7 +376,7 @@ export interface IColumnDetails {
 /** Defines an interface to use for executing remote requisition requests. */
 export interface IRemoteTarget {
     /** Remote target is a HTML window (usually the host in embedded scenarios). */
-    postMessage?: (data: IEmbeddedMessage, origin: string) => void;
+    postMessage?: (data: IEmbeddedMessage, origin?: string) => void;
 
     /** Remote target is code that does different handling of a request, like sending it out to yet another target. */
     broadcastRequest?: <K extends keyof IRequestTypeMap>(sender: IWebviewProvider | undefined,

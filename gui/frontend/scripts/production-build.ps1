@@ -28,9 +28,14 @@ node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
   ForEach-Object { $_ -replace "^export \* from './Viewport';", "export * from './Viewport.js';" } |
   Set-Content node_modules/pixi-viewport/dist/index.d.ts
 
-antlr-ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
-antlr-ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-antlr-ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLLexer.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLParser.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLMRSLexer.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLMRSParser.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/SQLiteLexer.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/SQLiteParser.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/python/generated src/parsing/python/Python3Lexer.g4
+antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/python/generated src/parsing/python/Python3Parser.g4
 
 # Include required MRS plugin resources as part of the frontend build
 $generate_sdk_resource_links_script = "$PSScriptRoot\generate-mrs-sdk-resource-links.ps1"
