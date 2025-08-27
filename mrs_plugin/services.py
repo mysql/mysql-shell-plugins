@@ -1137,7 +1137,7 @@ def get_runtime_management_code(**kwargs):
     """
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        return lib.sdk.get_mrs_runtime_management_code(session=session)
+        return lib.sdk.get_mrs_runtime_management_code(session)
 
 
 @plugin_function('mrs.get.serviceCreateStatement', shell=True, cli=True, web=True)

@@ -142,7 +142,7 @@ def generate_service_sdk(service, session, sdk_language: ProgrammingLanguage = "
     # that allows the user to manage specific MRS runtime settings
     if service is None:
         if prepare_for_runtime is True and sdk_language == "typescript":
-            return remove_js_whitespace_and_comments(get_mrs_runtime_management_code(session=session))
+            return remove_js_whitespace_and_comments(get_mrs_runtime_management_code(session))
         return ""
 
     if sdk_language == "typescript":
@@ -208,8 +208,7 @@ def generate_service_sdk(service, session, sdk_language: ProgrammingLanguage = "
                           f"^\\s*?{delimiter} --- MySQL Shell for VS Code Extension Remove --- End\n",
                           "", template, flags=re.DOTALL | re.MULTILINE)
         # Add MRS management code
-        template += get_mrs_runtime_management_code(session=session,
-                                            service_url=service_url)
+        template += get_mrs_runtime_management_code(session)
 
         template = remove_js_whitespace_and_comments(template)
     else:
@@ -2016,7 +2015,7 @@ def generate_nested_interfaces(
         nested_fields.update([f"{fully_qualified_parent_name}.{field}" for field in interface_fields])
 
 
-def get_mrs_runtime_management_code(session, service_url=None):
+def get_mrs_runtime_management_code(session):
     """Returns TypeScript code that allows the user to manage specific MRS runtime settings.
 
     This includes the configuration status of MRS with an info string giving context sensitive
@@ -2025,7 +2024,6 @@ def get_mrs_runtime_management_code(session, service_url=None):
 
     Args:
         session (object): The database session to use.
-        service_url (str): The URL of the current REST service
 
     Returns:
         The TypeScript code that defines and sets the mrs object
@@ -2065,15 +2063,13 @@ class Mrs {
         service_name = lib.core.convert_path_to_camel_case(
             service.get("url_context_root"))
         service_id = lib.core.convert_id_to_string(service.get("id"))
-        # If no explicit service_url is given, use the service's host_ctx and url_context_root
-        if not service_url or service.get("is_current") == 0:
-            host_ctx = service.get("host_ctx")
-            url_context_root = service.get("url_context_root")
-            # If no host_ctx starting with http is given, default to https://localhost:8443
-            if not host_ctx.lower().startswith("http"):
-                service_url = "https://localhost:8443" + url_context_root
-            else:
-                service_url = url_context_root + url_context_root
+        host_ctx = service.get("host_ctx")
+        url_context_root = service.get("url_context_root")
+        # If no host_ctx starting with http is given, default to https://localhost:8443
+        if not host_ctx.lower().startswith("http"):
+            service_url = "https://localhost:8443" + url_context_root
+        else:
+            service_url = url_context_root + url_context_root
 
         if service.get("is_current") == 1:
             s += f'    public {service_name} = {service_name};\n'
