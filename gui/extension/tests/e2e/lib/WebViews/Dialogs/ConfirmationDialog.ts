@@ -40,6 +40,7 @@ export class ConfirmDialog {
 
     /**
      * Verifies if confirm dialog exists
+     * 
      * @returns A promise resolving to true if the dialog is displayed, false otherwise
      */
     public exists = async (): Promise<boolean> => {
@@ -48,16 +49,18 @@ export class ConfirmDialog {
 
     /**
      * Gets the dialog text
+     * 
      * @returns A promise resolving with the dialog text
      */
     public getText = async (): Promise<string> => {
-        const text = await this.dialog.findElement(locator.confirmDialog.msg);
+        const text = await this.dialog!.findElement(locator.confirmDialog.msg);
 
         return text.getText();
     };
 
     /**
      * Verifies if confirm dialog exists
+     * 
      * @param timeout The timeout
      * @returns A promise resolving with the dialog if the dialog exists, false otherwise
      */

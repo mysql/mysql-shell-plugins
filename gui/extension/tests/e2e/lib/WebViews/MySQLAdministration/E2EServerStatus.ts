@@ -148,6 +148,7 @@ export class E2EServerStatus {
 
     /**
      * Loads the Server Status page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public create = async (): Promise<void> => {

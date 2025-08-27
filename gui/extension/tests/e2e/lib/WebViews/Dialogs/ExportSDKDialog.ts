@@ -37,10 +37,11 @@ export class ExportSDKDialog {
 
     /**
      * Sets a MRS SDK using the web view dialog
+     * 
      * @param data The MRS data
      * @returns A promise resolving when the MRS data is set and the dialog is closed
      */
-    public static set = async (data: interfaces.IExportMrsSdk): Promise<void> => {
+    public static set = async (data?: interfaces.IExportMrsSdk): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -79,6 +80,7 @@ export class ExportSDKDialog {
 
     /**
      * Gets a MRS SDK using the web view dialog
+     * 
      * @returns A promise resolving with the MRS data
      */
     public static get = async (): Promise<interfaces.IExportMrsSdk> => {

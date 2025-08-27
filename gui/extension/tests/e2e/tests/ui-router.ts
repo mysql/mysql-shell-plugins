@@ -78,18 +78,18 @@ describe("Router", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `conn-port:${parseInt(process.env.MYSQL_1109, 10)}`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1109!, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1109, 10),
+            port: parseInt(process.env.MYSQL_1109!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
     };
 
-    let routerPort: string;
+    let routerPort: string | undefined;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
     before(async function () {
@@ -102,13 +102,13 @@ describe("Router", () => {
 
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
-            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
+            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption!)).click();
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 10);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
             await Os.deleteCredentials();
             await dbTreeSection.focus();
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
             await Workbench.dismissNotifications();
 
         } catch (e) {
@@ -118,11 +118,11 @@ describe("Router", () => {
     });
 
     beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
     });
 
     afterEach(async function () {
-        if (this.currentTest.state === "failed") {
+        if (this.currentTest!.state === "failed") {
             await Misc.processFailure(this);
         }
     });
@@ -145,14 +145,14 @@ describe("Router", () => {
         await treeMySQLRestService.expand();
         await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.bootstrapRouter);
         await Workbench.waitForTerminalText("Please enter MySQL password for root:", constants.wait1second * 10);
-        await Workbench.execOnTerminal((globalConn.basic as interfaces.IConnBasicMySQL).password,
+        await Workbench.execOnTerminal((globalConn.basic as interfaces.IConnBasicMySQL).password!,
             constants.wait1second * 10);
         await Workbench.waitForTerminalText("JWT secret:", constants.wait1second * 10);
         await Workbench.execOnTerminal("1234", constants.wait1second * 10);
         await Workbench.waitForTerminalText("Once the MySQL Router is started", constants.wait1second * 10);
         expect(await Workbench.terminalHasErrors(), "Terminal has errors").to.be.false;
         await dbTreeSection.expandTreeItem(constants.mysqlRouters);
-        await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+        await dbTreeSection.clickTreeItemActionButton(globalConn.caption!, constants.reloadDataBaseInformation);
         await driver.wait(dbTreeSection.untilTreeItemExists(new RegExp(hostname())), constants.waitForTreeItem);
         await Os.setRouterConfigFile({
             sinks: "filelog",
@@ -181,7 +181,7 @@ describe("Router", () => {
             .untilNotificationExists("The MRS service has been set as the new default service."),
             constants.wait1second * 10);
 
-        await dbTreeSection.openContextMenuAndSelect(crudSchema.settings.schemaName, constants.addSchemaToREST);
+        await dbTreeSection.openContextMenuAndSelect(crudSchema.settings!.schemaName!, constants.addSchemaToREST);
         await RestSchemaDialog.set(crudSchema);
         await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
             constants.wait1second * 10);
@@ -189,13 +189,13 @@ describe("Router", () => {
         await dbTreeSection.clickToolbarButton(constants.reloadConnections);
         await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
         await dbTreeSection.expandTreeItem(new RegExp(crudService.servicePath));
-        await dbTreeSection.expandTreeItem(new RegExp(crudSchema.restSchemaPath));
+        await dbTreeSection.expandTreeItem(new RegExp(crudSchema.restSchemaPath!));
 
         await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
-        await dbTreeSection.expandTreeItem(crudSchema.settings.schemaName);
+        await dbTreeSection.expandTreeItem(crudSchema.settings!.schemaName!);
         await dbTreeSection.expandTreeItem("Tables");
 
-        await dbTreeSection.openContextMenuAndSelect(crudObject.dataMapping.dbObject,
+        await dbTreeSection.openContextMenuAndSelect(crudObject.dataMapping!.dbObject!,
             constants.addDBObjToREST);
         await RestObjectDialog.set(crudObject);
         await Workbench.dismissNotifications();

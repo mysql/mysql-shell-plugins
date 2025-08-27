@@ -35,6 +35,7 @@ export class DialogHelper {
 
     /**
      * Sets a checkbox value
+     * 
      * @param el The web element id or the web element
      * @param checked True to check, false otherwise
      * @returns A promise resolving with the text
@@ -72,6 +73,7 @@ export class DialogHelper {
 
     /**
      * Gets a checkbox value
+     * 
      * @param el The web element id or the web element
      * @returns A promise resolving with the checkbox value (true if checked, false otherwise)
      */
@@ -80,7 +82,7 @@ export class DialogHelper {
             await Misc.switchToFrame();
         }
 
-        let classes = [];
+        let classes: string[] = [];
         if (el instanceof WebElement) {
             classes = (await el.getAttribute("class")).split(" ");
         } else {
@@ -92,6 +94,7 @@ export class DialogHelper {
 
     /**
      * Sets a text on an input field, by clearing it first
+     * 
      * @param dialog The dialog where the input belongs to
      * @param fieldLocator The field locator
      * @param text The text
@@ -117,6 +120,7 @@ export class DialogHelper {
 
     /**
      * Gets the value from an input field
+     * 
      * @param dialog The dialog where the input belongs to
      * @param fieldLocator The field locator
      * @returns A promise resolving when the field text is returned
@@ -132,6 +136,7 @@ export class DialogHelper {
 
     /**
      * Clears an input field
+     * 
      * @param el The element
      * @returns A promise resolving when the field is cleared
      */
@@ -156,6 +161,7 @@ export class DialogHelper {
 
     /**
      * Verifies if a dialog exists inside the web view
+     * 
      * @param wait wait 5 seconds for the dialog to be displayed
      * @returns A promise resolving with true if the dialog exists, false otherwise
      */
@@ -163,7 +169,7 @@ export class DialogHelper {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-        if (wait === false) {
+        if (!wait) {
             return (await driver.findElements(locator.genericDialog.exists)).length > 0;
         } else {
             return driver.wait(async () => {
@@ -179,6 +185,7 @@ export class DialogHelper {
 
     /**
      * Selects a Database connection tab
+     * 
      * @param name The tab name
      * @returns A promise resolving when the tab is selected
      */
@@ -201,6 +208,7 @@ export class DialogHelper {
 
     /**
      * Verifies if a Database connection tab exists
+     * 
      * @param name The tab name
      * @returns A promise resolving with true if the tab exists, false otherwise
      */
@@ -217,6 +225,8 @@ export class DialogHelper {
                 return true;
             }
         }
+
+        return false;
     };
 
 }

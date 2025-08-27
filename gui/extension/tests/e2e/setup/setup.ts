@@ -23,13 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 import { E2ELogger } from "../lib/E2ELogger";
 import { E2ETests } from "../lib/E2ETests";
 
 const main = async () => {
     const cliArguments = E2ETests.getCliArguments();
-    cliArguments.testSuite ? E2ETests.setTestSuite(cliArguments.testSuite) : E2ETests.readTestSuites();
+
+    if (cliArguments.testSuite) {
+        E2ETests.setTestSuite(cliArguments.testSuite);
+    } else {
+        E2ETests.readTestSuites();
+    }
 
     E2ETests.killAndDeleteMySQLInstances();
 
@@ -41,6 +45,6 @@ const main = async () => {
     E2ETests.setup();
 };
 
-void main().catch((err) => {
+void main().catch((err: unknown) => {
     throw err;
 });

@@ -42,12 +42,12 @@ describe("OPEN EDITORS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `conn-port:${parseInt(process.env.MYSQL_1107, 10)}`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1107!, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1107, 10),
+            port: parseInt(process.env.MYSQL_1107!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -67,10 +67,10 @@ describe("OPEN EDITORS", () => {
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.focus();
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -78,7 +78,7 @@ describe("OPEN EDITORS", () => {
     });
 
     beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
     });
 
     after(async function () {
@@ -91,7 +91,7 @@ describe("OPEN EDITORS", () => {
     });
 
     afterEach(async function () {
-        if (this.currentTest.state === "failed") {
+        if (this.currentTest!.state === "failed") {
             await Misc.processFailure(this);
         }
     });
@@ -111,10 +111,10 @@ describe("OPEN EDITORS", () => {
     it("Icon - New MySQL Script", async () => {
 
         await dbTreeSection.focus();
-        await dbTreeSection.clickTreeItemActionButton(globalConn.caption,
+        await dbTreeSection.clickTreeItemActionButton(globalConn.caption!,
             constants.openNewConnectionUsingNotebook);
         await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 15);
-        await openEditorsTreeSection.clickTreeItemActionButton(globalConn.caption,
+        await openEditorsTreeSection.clickTreeItemActionButton(globalConn.caption!,
             constants.newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait1second * 5);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
@@ -129,7 +129,7 @@ describe("OPEN EDITORS", () => {
     it("Icon - Load SQL Script from Disk", async () => {
 
         const sqlScript = "setup.sql";
-        await openEditorsTreeSection.clickTreeItemActionButton(globalConn.caption,
+        await openEditorsTreeSection.clickTreeItemActionButton(globalConn.caption!,
             constants.loadScriptFromDisk);
 
         await Workbench.setInputPath(join(process.cwd(), "sql", sqlScript));
@@ -145,7 +145,7 @@ describe("OPEN EDITORS", () => {
     it("Context menu - New MySQL Script", async () => {
 
         await openEditorsTreeSection.focus();
-        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption, constants.newMySQLScript);
+        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait1second * 5);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'Mysql'`)
@@ -157,7 +157,7 @@ describe("OPEN EDITORS", () => {
 
     it("Context menu - New JavaScript Script", async () => {
 
-        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption, constants.newJS);
+        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newJS);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait1second * 5);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'scriptJs'`)
@@ -169,7 +169,7 @@ describe("OPEN EDITORS", () => {
 
     it("Context menu - New TypeScript Script", async () => {
 
-        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption, constants.newTS);
+        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newTS);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait1second * 5);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'scriptTs'`).to.include(constants.tsScriptIcon);
@@ -200,7 +200,7 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Notebook", async () => {
 
-        const item = await openEditorsTreeSection.getTreeItem(globalConn.caption);
+        const item = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
         await item.expand();
         await (await openEditorsTreeSection.getTreeItem(constants.openEditorsDBNotebook)).click();
         await driver.wait(async () => {

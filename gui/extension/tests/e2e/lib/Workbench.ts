@@ -49,6 +49,7 @@ export class Workbench {
 
     /**
      * Expands or collapses the bottom bar
+     * 
      * @param expand True to expand, false to collapse
      * @returns A promise resolving when the bottom bar is expanded/collapsed
      */
@@ -61,11 +62,11 @@ export class Workbench {
         const closeBtn = await bottomBar.findElement(locator.bottomBarPanel.close);
 
         if (isVisible) {
-            if (expand === false) {
+            if (!expand) {
                 await closeBtn.click();
             }
         } else {
-            if (expand === true) {
+            if (expand) {
                 let output: WebElement;
                 await driver.wait(async () => {
                     await driver.actions().sendKeys(Key.chord(Key.CONTROL, "j")).perform();
@@ -73,7 +74,7 @@ export class Workbench {
 
                     return output.isDisplayed();
                 }, constants.wait1second * 5);
-                await output.click();
+                await output!.click();
             }
         }
 
@@ -81,6 +82,7 @@ export class Workbench {
 
     /**
      * Clicks on a dialog button
+     * 
      * @param buttonName The button name
      * @returns A promise resolving when the button is clicked
      */
@@ -101,6 +103,7 @@ export class Workbench {
 
     /**
      * Gets a notification
+     * 
      * @param text The notification text
      * @param dismiss True to dismiss
      * @param expectFailure True to expect a notification with a failure
@@ -117,7 +120,7 @@ export class Workbench {
             try {
                 const ntfs = await new extWorkbench().getNotifications();
                 for (const ntf of ntfs) {
-                    if (expectFailure === false) {
+                    if (!expectFailure) {
                         if (await ntf.getType() === NotificationType.Error) {
                             throw new Error("An error has occurred");
                         }
@@ -143,11 +146,12 @@ export class Workbench {
             }
         }, constants.wait1second * 8, `Could not find '${text}' notification`);
 
-        return notification;
+        return notification!;
     };
 
     /**
      * Clicks on a notification button
+     * 
      * @param notification The notification
      * @param button The button
      * @returns A promise resolving when the notification button is clicked
@@ -155,19 +159,20 @@ export class Workbench {
     public static clickOnNotificationButton = async (notification: Notification, button: string): Promise<void> => {
         await driver.wait(async () => {
             try {
-                await notification.takeAction(button).catch(async (e) => {
-                    if (e instanceof error.NoSuchElementError) {
-                        const buttons = await notification.findElements(locator.notification.button);
-                        for (const btn of buttons) {
-                            if ((await btn.getText()).includes(button)) {
-                                await btn.click();
-                                break;
+                await notification.takeAction(button)
+                    .catch(async (e: unknown) => {
+                        if (e instanceof error.NoSuchElementError) {
+                            const buttons = await notification.findElements(locator.notification.button);
+                            for (const btn of buttons) {
+                                if ((await btn.getText()).includes(button)) {
+                                    await btn.click();
+                                    break;
+                                }
                             }
+                        } else {
+                            throw e;
                         }
-                    } else {
-                        throw e;
-                    }
-                });
+                    });
 
                 return (await new extWorkbench().getNotifications()).length === 0;
             } catch (e) {
@@ -184,6 +189,7 @@ export class Workbench {
 
     /**
      * Closes all existing notifications
+     * 
      * @returns A promise resolving when all notifications are closed
      */
     public static dismissNotifications = async (): Promise<void> => {
@@ -220,12 +226,12 @@ export class Workbench {
 
     /**
      * Executes a command on the workbench terminal
+     * 
      * @param cmd The command
      * @param timeout The timeout
      * @returns A promise resolving when all notifications are closed
      */
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
-        timeout = timeout ?? constants.wait1second * 5;
 
         if (Os.isMacOs() || Os.isLinux()) {
             await keyboard.type(cmd);
@@ -239,6 +245,7 @@ export class Workbench {
 
     /**
      * Waits for a text to be displayed on the workbench terminal
+     * 
      * @param textToSearch The text
      * @param timeout The timeout to wait until the text is displayed
      * @returns A promise resolving when then text is found
@@ -257,6 +264,7 @@ export class Workbench {
 
     /**
      * Verifies if the workbench terminal displayed an error
+     * 
      * @returns A promise resolving with true if an error is found, false otherwise
      */
     public static terminalHasErrors = async (): Promise<boolean> => {
@@ -267,6 +275,7 @@ export class Workbench {
 
     /**
      * Finds a text on the workbench output tab
+     * 
      * @param textToSearch The text
      * @returns A promise resolving when then text is found
      */
@@ -307,6 +316,7 @@ export class Workbench {
 
     /**
      * Waits for a text on the workbench output tab to be displayed
+     * 
      * @param textToSearch The text
      * @param timeout The timeout to wait until the text is displayed
      * @returns A promise resolving when then text is found
@@ -320,6 +330,7 @@ export class Workbench {
     /**
      * Sets the password on the workbench input box. It also sets the "N" on the confirmation input box,
      * to never save the password
+     * 
      * @param password The password
      * @returns A promise resolving when then password is set
      */
@@ -329,18 +340,20 @@ export class Workbench {
         try {
             inputBox = await InputBox.create(constants.wait1second);
         } catch (e) {
-            return;
+            if (e instanceof Error) {
+                return;
+            }
         }
 
-        if (await inputBox.isPassword()) {
-            await inputBox.setText(password);
-            await inputBox.confirm();
+        if (await inputBox!.isPassword()) {
+            await inputBox!.setText(password);
+            await inputBox!.confirm();
         }
 
         if (credentialHelperOk) {
             await driver.wait(async () => {
                 inputBox = await InputBox.create();
-                if ((await inputBox.isPassword()) === false) {
+                if (!(await inputBox.isPassword())) {
                     await inputBox.setText("N");
                     await inputBox.confirm();
 
@@ -352,6 +365,7 @@ export class Workbench {
 
     /**
      * Expands all notifications
+     * 
      * @returns A promise resolving when the notifications are expanded
      */
     public static expandNotifications = async (): Promise<void> => {
@@ -365,6 +379,7 @@ export class Workbench {
 
     /**
      * Sets the path on the workbench input box
+     * 
      * @param path The path
      * @returns A promise resolving when then password is set
      */
@@ -385,7 +400,7 @@ export class Workbench {
                 }
             } catch (e) {
                 if (e instanceof error.ElementClickInterceptedError) {
-                    const inputText = await input.findElement(locator.htmlTag.input);
+                    const inputText = await input!.findElement(locator.htmlTag.input);
                     await inputText.sendKeys(Key.ENTER);
 
                     return true;
@@ -398,6 +413,7 @@ export class Workbench {
 
     /**
      * Gets the terminal output text
+     * 
      * @returns A promise resolving with the terminal output
      */
     public static getTerminalOutput = async (): Promise<string> => {
@@ -414,15 +430,18 @@ export class Workbench {
 
                 return true;
             } catch (e) {
-                // continue. Clipboard may be in use by other tests
+                if (e instanceof Error) {
+                    // continue. Clipboard may be in use by other tests
+                }
             }
         }, constants.wait1second * 10, "Clipboard was in use after 10 secs");
 
-        return out;
+        return out!;
     };
 
     /**
      * Reloads the VS Code window
+     * 
      * @returns A promise resolving when the VS Code window is reloaded
      */
     public static reloadVSCode = async (): Promise<void> => {
@@ -434,13 +453,16 @@ export class Workbench {
 
                 return true;
             } catch (e) {
-                return false;
+                if (e instanceof Error) {
+                    return false;
+                }
             }
         }, constants.wait1second * 5 * 3, "Could not reload VSCode");
     };
 
     /**
      * Closes an editor
+     * 
      * @param editorRef The editor
      * @param maybeDirty True is it's expected the editor to have changes (is dirty), false otherwise
      * @returns A promise resolving when the editor is closed
@@ -465,6 +487,7 @@ export class Workbench {
 
     /**
      * Closes all opened editors
+     * 
      * @returns A promise resolving when the editors are closed
      */
     public static closeAllEditors = async (): Promise<void> => {
@@ -491,13 +514,16 @@ export class Workbench {
 
                 return true;
             } catch (e) {
-                await Workbench.pushDialogButton("Don't Save");
+                if (e instanceof Error) {
+                    await Workbench.pushDialogButton("Don't Save");
+                }
             }
         }, constants.wait1second * 5, "Could not close all editors");
     };
 
     /**
      * Gets all the opened editor titles
+     * 
      * @returns A promise resolving with the editors names
      */
     public static getOpenEditorTitles = async (): Promise<string[]> => {
@@ -508,9 +534,10 @@ export class Workbench {
 
     /**
      * Gets the name of the current opened tab
+     * 
      * @returns A promise resolving with the name of the current opened tab
      */
-    public static getActiveTab = async (): Promise<EditorTab> => {
+    public static getActiveTab = async (): Promise<EditorTab | undefined> => {
         await Misc.switchBackToTopFrame();
 
         return new EditorView().getActiveTab();
@@ -518,6 +545,7 @@ export class Workbench {
 
     /**
      * Opens/clicks on an editor
+     * 
      * @param editor The editor
      * @returns A promise resolving when the editor is opened
      */
@@ -533,6 +561,7 @@ export class Workbench {
 
     /**
      * Verifies if notifications exist on the workbench
+     * 
      * @param timeout The timeout to wait for notifications to be displayed
      * @returns A promise resolving with true if notifications exist, false otherwise
      */
@@ -546,10 +575,11 @@ export class Workbench {
 
     /**
      * Verifies if notifications exist on the workbench
+     * 
      * @param notificationToMatch The notification to find
      * @returns A promise resolving with true if notifications exist, false otherwise
      */
-    public static existsNotification = async (notificationToMatch: RegExp): Promise<boolean> => {
+    public static existsNotification = async (notificationToMatch: RegExp): Promise<boolean | undefined> => {
         const notifications = await new extWorkbench().getNotifications();
         for (const notification of notifications) {
             if ((await notification.getMessage()).match(notificationToMatch) !== null) {
@@ -560,6 +590,7 @@ export class Workbench {
 
     /**
      * Opens the MySQL Shell for VSCode Extension
+     * 
      * @returns A promise resolving when the extension view is opened
      */
     public static openMySQLShellForVSCode = async (): Promise<void> => {
@@ -569,6 +600,7 @@ export class Workbench {
 
     /**
      * Waits until the notification exists
+     * 
      * @param notification The notification
      * @param dismiss True to close the notification, false otherwise
      * @param expectFailure True if it expects a notification with failure/error
@@ -579,7 +611,7 @@ export class Workbench {
         return new Condition(`for notification '${notification}' to be displayed`, async () => {
             let exists = false;
 
-            if (Misc.insideIframe) {
+            if (await Misc.insideIframe()) {
                 await Misc.switchBackToTopFrame();
             }
 
@@ -589,7 +621,7 @@ export class Workbench {
 
                 for (const notification of notifications) {
 
-                    if (expectFailure === false) {
+                    if (!expectFailure) {
                         if (await notification.getType() === NotificationType.Error) {
                             throw new Error(`There is a notification with error: ${await notification.getMessage()}`);
                         }
@@ -634,10 +666,11 @@ export class Workbench {
 
     /**
      * Waits until the tab is opened
+     * 
      * @param tabName The tab name
      * @returns A promise resolving when the tab is opened
      */
-    public static untilTabIsOpened = (tabName: string | RegExp): Condition<boolean> => {
+    public static untilTabIsOpened = (tabName: string | RegExp): Condition<boolean | undefined> => {
         return new Condition(`for ${tabName} to be opened`, async () => {
             const editors = await Workbench.getOpenEditorTitles();
 
@@ -656,6 +689,7 @@ export class Workbench {
 
     /**
      * Opens or closes the primary side bar
+     * 
      * @param open True to open, false to close
      * @returns A promise resolving when the side bar is opened or closed
      */
@@ -688,13 +722,15 @@ export class Workbench {
 
         await driver.wait(async () => {
             try {
-                if (open === true) {
+                if (open) {
                     if (!(await isOpened())) {
                         await driver.wait(async () => {
                             await driver.executeScript("arguments[0].click()", primarySidebar);
 
                             return driver.wait(untilIsOpened(), constants.wait1second)
-                                .then(() => { return true; })
+                                .then(() => {
+                                    return true;
+                                })
                                 .catch(() => {
                                     // continue
                                 });
@@ -706,7 +742,9 @@ export class Workbench {
                             await driver.executeScript("arguments[0].click()", primarySidebar);
 
                             return driver.wait(untilIsClosed(), constants.wait1second)
-                                .then(() => { return true; })
+                                .then(() => {
+                                    return true;
+                                })
                                 .catch(() => {
                                     // continue
                                 });
@@ -725,9 +763,10 @@ export class Workbench {
 
     /**
      * Verifies if the Modal dialog is opened
+     * 
      * @returns A condition resolving  to true when the model dialog is opened
      */
-    public static untilModalDialogIsOpened = (): Condition<boolean> => {
+    public static untilModalDialogIsOpened = (): Condition<boolean | undefined> => {
         return new Condition(`for vscode dialog to be opened`, async () => {
             try {
                 const dialog = new ModalDialog();
@@ -746,6 +785,7 @@ export class Workbench {
 
     /**
      * Verifies if the editor selector exists, which means that the front end is loaded
+     * 
      * @returns A condition resolving to true when the front end is loaded
      */
     public static untilFEisLoaded = (): Condition<boolean> => {
@@ -756,6 +796,7 @@ export class Workbench {
 
     /**
      * Verifies if the web view is ready to be used
+     * 
      * @param iframe The iframe
      * @returns A condition resolving to true when the web view is ready
      */
@@ -767,6 +808,7 @@ export class Workbench {
 
     /**
      * Verifies if the current editor is the one expected
+     * 
      * @param editor The editor name
      * @returns A condition resolving to true when the editor is the one expected
      */
@@ -781,6 +823,7 @@ export class Workbench {
 
     /**
      * Verifies if the MySQL Shell for VS Code extension is fully loaded and ready to be tested
+     * 
      * @returns A condition resolving to true when the extension is ready
      */
     public static untilExtensionIsReady = (): Condition<boolean> => {
@@ -801,7 +844,7 @@ export class Workbench {
                     }
 
                     if ((tabs.length > 0 &&
-                        await ((await Workbench.getActiveTab()).getTitle()) === constants.dbDefaultEditor
+                        await ((await Workbench.getActiveTab())!.getTitle()) === constants.dbDefaultEditor
                     )) {
                         return true;
                     }
@@ -858,10 +901,11 @@ export class Workbench {
 
     /**
      * Verifies if the confirmation dialog exists
+     * 
      * @param context The context
      * @returns A condition resolving to true when the confirmation dialog exists
      */
-    public static untilConfirmationDialogExists = (context?: string): Condition<WebElement> => {
+    public static untilConfirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
         let msg = "for confirmation dialog to be displayed";
         if (context) {
             msg += ` ${context}`;
@@ -872,7 +916,7 @@ export class Workbench {
             await Misc.switchToFrame();
 
             const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
-            if (confirmDialog) {
+            if (confirmDialog.length > 0) {
                 return confirmDialog[0];
             }
         });
@@ -880,10 +924,11 @@ export class Workbench {
 
     /**
      * Verifies if a tab with json content to be opened
+     * 
      * @param filename The file name
      * @returns A condition resolving to true when the tab with json content is opened
      */
-    public static untilJsonFileIsOpened = (filename: string): Condition<boolean> => {
+    public static untilJsonFileIsOpened = (filename: string): Condition<boolean | undefined> => {
         return new Condition(`${filename} to be opened`, async () => {
             const textEditor = new TextEditor();
             const json = await textEditor.getText();
@@ -895,6 +940,7 @@ export class Workbench {
 
     /**
      * Sets the workbench color theme
+     * 
      * @param theme The color theme
      */
     public static setColorTheme = async (theme: string): Promise<void> => {
@@ -906,6 +952,7 @@ export class Workbench {
 
     /**
      * Opens and verifies if the explorer folder is opened
+     * 
      * @param folder The folder theme
      * @returns A condition resolving to true if the folder is opened
      */

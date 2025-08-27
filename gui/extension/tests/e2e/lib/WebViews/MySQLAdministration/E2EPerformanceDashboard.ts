@@ -91,6 +91,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Loads the Performance Dashboard/Server Performance page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public loadServerPerformance = async (): Promise<void> => {
@@ -168,7 +169,6 @@ export class E2EPerformanceDashboard {
             await (await driver.findElement(performanceDashboardLocator.innoDBStatus.reading)).getText(),
         ]);
 
-
         this.networkStatus = {
             incomingNetworkTrafficGraph,
             incomingData,
@@ -214,6 +214,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Loads the Performance Dashboard/MLE Performance page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public loadMLEPerformance = async (): Promise<void> => {
@@ -246,11 +247,11 @@ export class E2EPerformanceDashboard {
             }
         }, constants.wait1second * 5, "Could not load the MLE Performance details");
 
-
     };
 
     /**
      * Verifies if the tab exists
+     * 
      * @param tabName The tab name
      * @returns A promise resolving to true if the tab exists, false otherwise
      */
@@ -268,6 +269,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Verifies if the tab is selected
+     * 
      * @param tabName The tab name
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
@@ -288,6 +290,7 @@ export class E2EPerformanceDashboard {
 
     /**
      * Gets the tab
+     * 
      * @param tabName The tab name
      */
     public selectTab = async (tabName: string): Promise<void> => {
@@ -300,8 +303,9 @@ export class E2EPerformanceDashboard {
             try {
                 if (tabName === constants.perfDashServerTab) {
                     refTab = driver.wait(until.elementLocated(locator.mysqlAdministration
-                        .performanceDashboard.serverTab),
-                        constants.wait1second * 5, "Could not find Server Performance tab");
+                        .performanceDashboard
+                        .serverTab), constants.wait1second * 5, "Could not find Server Performance tab");
+
                 } else if (tabName === constants.perfDashMLETab) {
                     refTab = driver.wait(until.elementLocated(locator.mysqlAdministration.performanceDashboard.mleTab),
                         constants.wait1second * 5, "Could not find MLE Performance tab");

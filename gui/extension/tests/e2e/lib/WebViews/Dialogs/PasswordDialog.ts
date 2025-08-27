@@ -36,6 +36,7 @@ export class PasswordDialog {
 
     /**
      * Verifies if the Open MySQL Connection dialog is displayed
+     * 
      * @returns A promise resolving to true if the dialog is displayed, false otherwise
      */
     public static exists = async (): Promise<boolean> => {
@@ -44,6 +45,7 @@ export class PasswordDialog {
 
     /**
      * Sets the database credentials on the password dialog
+     * 
      * @param data The credentials
      * @param timeout The max number of time the function should wait until the connection is successful
      * @returns A promise resolving when the credentials are set
@@ -58,6 +60,7 @@ export class PasswordDialog {
 
     /**
      * Sets the database connection password
+     * 
      * @param dbConfig The database configuration
      * @returns A promise resolving when the password is set
      */
@@ -69,12 +72,13 @@ export class PasswordDialog {
         const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
             constants.wait1second * 5, "No password dialog was found");
         await dialog.findElement(locator.passwordDialog.password)
-            .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password);
+            .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password!);
         await dialog.findElement(locator.passwordDialog.ok).click();
     };
 
     /**
      * Sets the database connection confirm dialog
+     * 
      * @param value The value. (Y, N, A)
      * @param timeoutDialog The time to wait for the confirm dialog
      * @returns A promise resolving when the password is set

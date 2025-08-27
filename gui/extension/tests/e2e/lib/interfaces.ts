@@ -24,6 +24,44 @@
 import { WebElement, Condition } from "selenium-webdriver";
 import { ExTester } from "vscode-extension-tester";
 
+export interface ITestConfig {
+    DBUSERNAME1: string;
+    DBPASSWORD1: string;
+    DBUSERNAME2: string;
+    DBPASSWORD2: string;
+    OCI_QA_COMPARTMENT_PATH: string;
+    TEST_RESOURCES_PATH: string;
+    CODE_VERSION: string;
+    DBROOTPASSWORD: string;
+    OCI_E2E_USER: string;
+    OCI_E2E_FINGERPRINT: string;
+    OCI_E2E_TENANCY: string;
+    OCI_E2E_REGION: string;
+    OCI_HW_USER: string;
+    OCI_HW_FINGERPRINT: string;
+    OCI_HW_TENANCY: string;
+    OCI_HW_REGION: string;
+    DISABLE_TESTS: string;
+    OCI_E2E_KEY_FILE_PATH: string;
+    OCI_HW_KEY_FILE_PATH: string;
+    HWHOSTNAME: string;
+    HWUSERNAME: string;
+    HWPASSWORD: string;
+    HWPORT: string;
+    OCI_BASTION_HOSTNAME: string;
+    OCI_BASTION_USERNAME: string;
+    OCI_BASTION_PASSWORD: string;
+    EXTENSIONS_DIR: string | undefined;
+    UNINSTALL_EXTENSION: string | undefined;
+    MYSQLSH_OCI_CONFIG_FILE: string | undefined
+    TEST_SUITE: string;
+    SSL_CERTIFICATES_PATH: string | undefined;
+    MYSQL_PORT_1107: string;
+    MYSQL_PORT_1108: string;
+    MYSQL_PORT_1109: string;
+    MYSQL_PORT_1110: string;
+}
+
 export interface IE2ECli {
     testSuite?: string;
     extensionPath?: string;
@@ -192,9 +230,9 @@ export interface IDataMapping {
 }
 
 export interface IRestObjectCrud {
-    insert: boolean;
-    update: boolean;
-    delete: boolean;
+    insert: boolean | undefined;
+    update: boolean | undefined;
+    delete: boolean | undefined;
 }
 
 export interface IRestObjectColumn {

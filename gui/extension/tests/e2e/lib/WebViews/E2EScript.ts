@@ -45,6 +45,7 @@ export class E2EScript {
 
     /**
      * Waits until the shell session is opened
+     * 
      * @param connection The database connection
      * @returns A promise resolving when the shell session is opened
      */
@@ -70,7 +71,7 @@ export class E2EScript {
 
             const activeTab = await Workbench.getActiveTab();
 
-            return (await activeTab.getTitle()).includes(connection.caption);
+            return (await activeTab!.getTitle()).includes(connection.caption!);
         });
 
     };
@@ -82,8 +83,8 @@ export class E2EScript {
      * @param button The button to click, to trigger the execution
      * @returns A promise resolving when the command is executed
      */
-    public executeWithButton = async (cmd: string, button: string):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public executeWithButton = async (
+        cmd: string, button: string): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
@@ -94,7 +95,7 @@ export class E2EScript {
         }
 
         await this.codeEditor.write(cmd);
-        await (await this.toolbar.getButton(button)).click();
+        await (await this.toolbar.getButton(button))!.click();
 
         return this.codeEditor.buildResult(cmd, undefined);
     };

@@ -51,6 +51,7 @@ export class E2EMySQLAdministration {
 
     /**
      * Verifies if the page is opened and fully loaded
+     * 
      * @param connection The DB connection
      * @param page The page (Server Status, Client Connections, Performance Dashboard, Lakehouse Navigator))
      * @returns A condition resolving to true if the page is fully loaded, false otherwise

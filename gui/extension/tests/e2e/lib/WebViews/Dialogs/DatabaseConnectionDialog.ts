@@ -37,6 +37,7 @@ export class DatabaseConnectionDialog {
 
     /**
      * Sets a Database connection data
+     * 
      * @param dbConfig The database config object
      * @returns A promise resolving when the connection dialog is set
      */
@@ -57,7 +58,7 @@ export class DatabaseConnectionDialog {
                 try {
                     const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
                         constants.wait1second * 2, "Database type popup was not found");
-                    await popup.findElement(By.id(dbConfig.dbType)).click();
+                    await popup.findElement(By.id(dbConfig.dbType!)).click();
 
                     return true;
                 } catch (e) {
@@ -74,17 +75,16 @@ export class DatabaseConnectionDialog {
         if (dbConfig.folderPath) {
             await dialog.findElement(locator.dbConnectionDialog.folderPath.exists).click();
             const selectList = await driver.wait(until
-                .elementLocated(locator.dbConnectionDialog.folderPath.selectList.exists),
-
-                constants.wait1second * 3, "Could not find the Folder Path select list");
+                .elementLocated(locator.dbConnectionDialog.folderPath
+                    .selectList.exists), constants.wait1second * 3, "Could not find the Folder Path select list");
 
             if (dbConfig.folderPath.new === true) {
                 await selectList.findElement(locator.dbConnectionDialog.folderPath.selectList.addNewFolder).click();
-                await FolderDialog.setFolderValue(dbConfig.folderPath.value);
+                await FolderDialog.setFolderValue(dbConfig.folderPath.value!);
                 await FolderDialog.ok();
             } else {
                 await selectList.findElement(locator.dbConnectionDialog.folderPath.selectList
-                    .item(dbConfig.folderPath.value)).click();
+                    .item(dbConfig.folderPath.value!)).click();
             }
         }
         if (dbConfig.dbType) {
@@ -149,8 +149,8 @@ export class DatabaseConnectionDialog {
                         await DialogHelper.selectTab(constants.advancedTab);
                         if (interfaces.isAdvancedMySQL(dbConfig.advanced)) {
                             if (dbConfig.advanced.mode) {
-                                const getModeItem = async (item: keyof typeof dbConfig.advanced.mode):
-                                    Promise<WebElement> => {
+                                const getModeItem = async (
+                                    item: keyof typeof dbConfig.advanced.mode): Promise<WebElement> => {
 
                                     return driver.wait(until.elementLocated(locator.dbConnectionDialog.mysql
                                         .advanced.sqlModeItem[item] as Locator), constants.wait1second * 3);
@@ -186,8 +186,8 @@ export class DatabaseConnectionDialog {
                                 await dialog.findElement(locator.dbConnectionDialog.mysql.advanced.compression).click();
                                 const list = await driver
                                     .wait(until.elementLocated(locator.dbConnectionDialog.mysql.advanced
-                                        .compressionPopup), constants.wait1second * 5,
-                                        "Compression list was not displayed");
+                                        .compressionPopup), constants.wait1second * 5, "Compression was not displayed");
+
                                 await list.findElement(By.id(dbConfig.advanced.compression)).click();
                             }
                             if (dbConfig.advanced.compressionLevel) {
@@ -225,8 +225,9 @@ export class DatabaseConnectionDialog {
                                 .mds.profileName);
                             await inProfile.click();
                             await driver.wait(until
-                                .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList),
-                                constants.wait1second * 5);
+                                .elementLocated(locator.dbConnectionDialog
+                                    .mysql.mds.profileNameList), constants.wait1second * 5);
+
                             await driver.wait(until.elementLocated(By.id(dbConfig.mds.profile)),
                                 constants.wait1second * 5).click();
                         }
@@ -276,11 +277,10 @@ export class DatabaseConnectionDialog {
                 if (dbConfig.advanced) {
                     await DialogHelper.selectTab(constants.advancedTab);
                     if (interfaces.isAdvancedSqlite(dbConfig.advanced)) {
-                        if ((dbConfig.advanced)) {
-                            await DialogHelper.setFieldText(dialog,
-                                locator.dbConnectionDialog.sqlite.advanced.otherParams,
-                                dbConfig.advanced.params);
-                        }
+                        await DialogHelper.setFieldText(dialog,
+                            locator.dbConnectionDialog.sqlite.advanced.otherParams,
+                            dbConfig.advanced.params!);
+
                     } else {
                         throw new Error("Please define the params object field");
                     }
@@ -295,6 +295,7 @@ export class DatabaseConnectionDialog {
 
     /**
      * Gets the database connection details from the connection dialog
+     * 
      * @returns A promise resolving with the connection details
      */
     public static getConnectionDetails = async (): Promise<interfaces.IDBConnection> => {
@@ -341,7 +342,7 @@ export class DatabaseConnectionDialog {
             await DialogHelper.selectTab(constants.advancedTab);
 
             const mode = locator.dbConnectionDialog.mysql.advanced.sqlModeItem;
-            let advanced: interfaces.IConnAdvancedMySQL;
+            let advanced: interfaces.IConnAdvancedMySQL | undefined;
             await driver.wait(async () => {
                 try {
                     advanced = {
@@ -460,6 +461,7 @@ export class DatabaseConnectionDialog {
 
     /**
      * Sets the database schema data to Heat Wave
+     * 
      * @param schemas The schemas
      * @param opMode The operational mode
      * @param output The output

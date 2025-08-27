@@ -36,6 +36,7 @@ export class LoadIntoLakehouse {
 
     /**
      * Verifies if the Overview tab is selected
+     * 
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -49,6 +50,7 @@ export class LoadIntoLakehouse {
 
     /**
      * Waits until a loading task exists
+     * 
      * @param caption The task caption
      * @returns A promise resolving when the task exists
      */
@@ -66,11 +68,14 @@ export class LoadIntoLakehouse {
                     return true;
                 }
             }
+
+            return false;
         });
     };
 
     /**
      * Sets the values for a new loading task
+     * 
      * @param task The task
      * @returns A promise resolving when the task is submitted to be loaded
      */
@@ -124,6 +129,7 @@ export class LoadIntoLakehouse {
 
     /**
      * Clicks on the Start Loading Task button
+     * 
      * @returns A promise resolving when the button is clicked
      */
     public startLoadingTask = async (): Promise<void> => {

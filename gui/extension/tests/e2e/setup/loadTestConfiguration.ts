@@ -27,18 +27,18 @@
 
 import { readFileSync } from "fs";
 import { join } from "path";
-import { TestConfig } from "../lib/interfaces";
+import { ITestConfig } from "../lib/interfaces";
 
 declare global {
-    var testConfig: TestConfig;
+    var testConfig: ITestConfig;
     var testSuite: string;
 }
 
 const testConfigFile = join(__dirname, "./.env.test.json");
-let testConfig: TestConfig;
+let testConfig: ITestConfig;
 
 try {
-    testConfig = JSON.parse(readFileSync(testConfigFile, "utf-8")) as TestConfig;
+    testConfig = JSON.parse(readFileSync(testConfigFile, "utf-8")) as ITestConfig;
 } catch (e: unknown) {
     if (e instanceof Error) {
         console.error(`Failed to read or parse the test configuration file: ${testConfigFile}`);

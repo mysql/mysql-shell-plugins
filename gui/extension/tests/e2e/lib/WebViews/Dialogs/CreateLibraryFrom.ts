@@ -68,7 +68,7 @@ export class CreateLibraryDialog {
      * @returns A promise resolving when the schema name is set
      */
     public setSchemaName = async (name: string): Promise<void> => {
-        const input = await this.dialog.findElement(locator.createLibraryDialog.schemaName);
+        const input = await this.dialog!.findElement(locator.createLibraryDialog.schemaName);
         await input.clear();
         await input.sendKeys(name);
     };
@@ -80,7 +80,7 @@ export class CreateLibraryDialog {
      * @returns A promise resolving when the library name is set
      */
     public setLibraryName = async (name: string): Promise<void> => {
-        const input = await this.dialog.findElement(locator.createLibraryDialog.libraryName);
+        const input = await this.dialog!.findElement(locator.createLibraryDialog.libraryName);
         await input.clear();
         await input.sendKeys(name);
     };
@@ -92,7 +92,7 @@ export class CreateLibraryDialog {
      * @returns A promise resolving when the library name is set
      */
     public setLanguage = async (name: string): Promise<void> => {
-        await this.dialog.findElement(locator.createLibraryDialog.language.exists).click();
+        await this.dialog!.findElement(locator.createLibraryDialog.language.exists).click();
         await driver.wait(until.elementLocated(locator.createLibraryDialog.language.selectList.exists),
             constants.wait1second * 3);
         await driver.findElement(locator.createLibraryDialog.language.selectList.item(name)).click();
@@ -100,12 +100,14 @@ export class CreateLibraryDialog {
 
     /**
      * Selects the load from
+     * 
      * @param name The load from
      * @returns A promise resolving when the load from is set
      */
     public setLoadFrom = async (name: string): Promise<void> => {
-        await this.dialog.findElement(locator.createLibraryDialog.loadFrom.exists).click();
-        await driver.wait(until.elementLocated(locator.createLibraryDialog.loadFrom.selectList.exists), constants.wait1second * 3);
+        await this.dialog!.findElement(locator.createLibraryDialog.loadFrom.exists).click();
+        await driver.wait(until.elementLocated(locator.createLibraryDialog.loadFrom.selectList.exists),
+            constants.wait1second * 3);
         await driver.findElement(locator.createLibraryDialog.loadFrom.selectList.item(name)).click();
     };
 
@@ -116,7 +118,7 @@ export class CreateLibraryDialog {
      * @returns A promise resolving when the library name is set
      */
     public setComment = async (comment: string): Promise<void> => {
-        const input = await this.dialog.findElement(locator.createLibraryDialog.comment);
+        const input = await this.dialog!.findElement(locator.createLibraryDialog.comment);
         await input.clear();
         await input.sendKeys(comment);
     };
@@ -128,7 +130,7 @@ export class CreateLibraryDialog {
      * @returns A promise resolving when the library url is set
      */
     public setURL = async (url: string): Promise<void> => {
-        const input = await this.dialog.findElement(locator.createLibraryDialog.url);
+        const input = await this.dialog!.findElement(locator.createLibraryDialog.url);
         await input.clear();
         await input.sendKeys(url);
     };
@@ -140,7 +142,7 @@ export class CreateLibraryDialog {
      * @returns A promise resolving when the path is set
      */
     public setPath = async (path: string): Promise<void> => {
-        await (await this.dialog.findElement(locator.createLibraryDialog.path)).click();
+        await (await this.dialog!.findElement(locator.createLibraryDialog.path)).click();
         await Workbench.setInputPath(path);
         await Misc.switchToFrame();
     };

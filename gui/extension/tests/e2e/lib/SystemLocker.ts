@@ -39,6 +39,7 @@ export class SystemLocker {
 
     /**
      * Creates the lock / Creates the lock folder
+     * 
      * @param reason The reason to lock the system
      * @param timeout The time to wait for a lock
      * @returns A promise resolving when the system is locked
@@ -53,13 +54,16 @@ export class SystemLocker {
 
                 return true;
             } catch (e) {
-                // continue
+                if (e instanceof Error) {
+                    // continue
+                }
             }
         }, timeout, "Could not lock the system");
     };
 
     /**
      * Removes the lock / Removes the lock folder
+     * 
      * @param reason The reason to unlock the system
      * @param testDuration The duration of the lock
      */
@@ -80,14 +84,16 @@ export class SystemLocker {
 
     /**
      * Verifies if the system is locked
+     * 
      * @returns True if the system is locked, false otherwise
      */
     public isLocked = (): boolean => {
-        return this.locked === true;
+        return this.locked;
     };
 
     /**
      * Writes to the log file
+     * 
      * @param content The content to write
      */
     private log = (content: string) => {

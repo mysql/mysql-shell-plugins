@@ -37,6 +37,7 @@ export class RestObjectDialog {
 
     /**
      * Sets a Rest Object using the web view dialog
+     * 
      * @param restObject The object
      * @returns A promise resolving when the object is set and the dialog is closed
      */
@@ -50,19 +51,19 @@ export class RestObjectDialog {
 
         const processColumnActivation = async (colOption: interfaces.IRestObjectColumn): Promise<void> => {
             const inColumns = await driver.wait(until
-                .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-                constants.wait1second * 5);
+                .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField), constants.wait1second * 5);
+
             for (const col of inColumns) {
                 if ((await col.findElement(locator.htmlTag.labelClass).getText()) === colOption.name) {
                     const isNotSelected = (await col.findElements(locator.checkBox.unchecked)).length > 0;
                     if (colOption.isSelected === true) {
-                        if (isNotSelected === true) {
+                        if (isNotSelected) {
                             await col.findElement(locator.checkBox.checkMark).click();
 
                             return;
                         }
                     } else {
-                        if (isNotSelected === false) {
+                        if (!isNotSelected) {
                             await col.findElement(locator.checkBox.checkMark).click();
 
                             return;
@@ -74,8 +75,7 @@ export class RestObjectDialog {
 
         const processColumnOption = async (colName: string, colOption: string, wantedValue: boolean): Promise<void> => {
             const inColumns = await driver.wait(until
-                .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-                constants.wait1second * 5);
+                .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField), constants.wait1second * 5);
 
             for (const col of inColumns) {
 
@@ -88,15 +88,15 @@ export class RestObjectDialog {
                         if (inOptionName === constants.rowOwnership && colOption === constants.rowOwnership) {
                             const inOptionIsNotSelected = (await option.getAttribute("class"))
                                 .split(" ").includes("notSelected");
-                            if (wantedValue === true) {
-                                if (inOptionIsNotSelected === true) {
+                            if (wantedValue) {
+                                if (inOptionIsNotSelected) {
                                     await driver.actions().move({ origin: col }).perform();
                                     await option.click();
 
                                     return;
                                 }
                             } else {
-                                if (inOptionIsNotSelected === false) {
+                                if (!inOptionIsNotSelected) {
                                     await driver.actions().move({ origin: col }).perform();
                                     await option.click();
 
@@ -109,14 +109,14 @@ export class RestObjectDialog {
                             const inOptionIsNotSelected = (await option.getAttribute("class"))
                                 .split(" ").includes("notSelected");
 
-                            if (wantedValue === true) {
-                                if (inOptionIsNotSelected === true) {
+                            if (wantedValue) {
+                                if (inOptionIsNotSelected) {
                                     await driver.actions().move({ origin: col }).perform();
                                     await option.click();
 
                                     return;
                                 }
-                            } else if (inOptionIsNotSelected === false) {
+                            } else if (!inOptionIsNotSelected) {
                                 await driver.actions().move({ origin: col }).perform();
                                 await option.click();
 
@@ -128,14 +128,14 @@ export class RestObjectDialog {
                             const inOptionIsNotSelected = (await option.getAttribute("class"))
                                 .split(" ").includes("notSelected");
 
-                            if (wantedValue === true) {
-                                if (inOptionIsNotSelected === true) {
+                            if (wantedValue) {
+                                if (inOptionIsNotSelected) {
                                     await driver.actions().move({ origin: col }).perform();
                                     await option.click();
 
                                     return;
                                 }
-                            } else if (inOptionIsNotSelected === false) {
+                            } else if (!inOptionIsNotSelected) {
                                 await driver.actions().move({ origin: col }).perform();
                                 await option.click();
 
@@ -147,14 +147,14 @@ export class RestObjectDialog {
                             const inOptionIsNotSelected = (await option.getAttribute("class"))
                                 .split(" ").includes("notSelected");
 
-                            if (wantedValue === true) {
-                                if (inOptionIsNotSelected === true) {
+                            if (wantedValue) {
+                                if (inOptionIsNotSelected) {
                                     await driver.actions().move({ origin: col }).perform();
                                     await option.click();
 
                                     return;
                                 }
-                            } else if (inOptionIsNotSelected === false) {
+                            } else if (!inOptionIsNotSelected) {
                                 await driver.actions().move({ origin: col }).perform();
                                 await option.click();
 
@@ -166,14 +166,14 @@ export class RestObjectDialog {
                             const inOptionIsNotSelected = (await option.getAttribute("class"))
                                 .split(" ").includes("notSelected");
 
-                            if (wantedValue === true) {
-                                if (inOptionIsNotSelected === true) {
+                            if (wantedValue) {
+                                if (inOptionIsNotSelected) {
                                     await driver.actions().move({ origin: col }).perform();
                                     await option.click();
 
                                     return;
                                 }
-                            } else if (inOptionIsNotSelected === false) {
+                            } else if (!inOptionIsNotSelected) {
                                 await driver.actions().move({ origin: col }).perform();
                                 await option.click();
 
@@ -190,7 +190,11 @@ export class RestObjectDialog {
             if (restObject.restServicePath) {
                 const inService = await dialog.findElement(locator.mrsDbObjectDialog.service);
                 const isDisabled = await inService.getAttribute("disabled")
-                    .then(() => { return true; }).catch(() => { return false; });
+                    .then(() => {
+                        return true;
+                    }).catch(() => {
+                        return false;
+                    });
                 if (!isDisabled) {
                     await inService.click();
                     const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
@@ -202,7 +206,11 @@ export class RestObjectDialog {
             if (restObject.restSchemaPath) {
                 const inSchema = await dialog.findElement(locator.mrsDbObjectDialog.schema);
                 const isDisabled = await inSchema.getAttribute("disabled")
-                    .then(() => { return true; }).catch(() => { return false; });
+                    .then(() => {
+                        return true;
+                    }).catch(() => {
+                        return false;
+                    });
                 if (!isDisabled) {
                     await inSchema.click();
                     const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
@@ -220,8 +228,9 @@ export class RestObjectDialog {
                 const inAccessControl = await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists);
                 await inAccessControl.click();
                 const popup = await driver.wait(until
-                    .elementLocated(locator.mrsDbObjectDialog.accessControl.selectList.exists),
-                    constants.wait1second * 5, "Access control drop down list was not found");
+                    .elementLocated(locator.mrsDbObjectDialog.accessControl
+                        .selectList.exists), constants.wait1second * 5, "Access control drop down list was not found");
+
                 if (restObject.accessControl === constants.accessControlEnabled) {
                     await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.enabled).click();
                 } else if (restObject.accessControl === constants.accessControlDisabled) {
@@ -246,8 +255,8 @@ export class RestObjectDialog {
                     if (restObject.dataMapping.sdkLanguage !== "SDK Language") {
                         const inSdk = await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguage);
                         await inSdk.click();
-                        const popup = await driver.wait(until
-                            .elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
+                        const popup = await driver.wait(
+                            until.elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
                             constants.wait1second * 5, "SDK Language drop down list was not found");
                         await popup.findElement(By.id(restObject.dataMapping.sdkLanguage)).click();
                     }
@@ -259,7 +268,7 @@ export class RestObjectDialog {
                         const colKeys = Object.keys(column).splice(0);
                         for (let i = 0; i <= colKeys.length - 1; i++) {
                             if (i >= 2) {
-                                await processColumnOption(column.name,
+                                await processColumnOption(column.name!,
                                     constants[colKeys[i]] as string, (column[colKeys[i]] as boolean));
                             }
                         }
@@ -273,7 +282,7 @@ export class RestObjectDialog {
                             const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
                             const tooltip = await crudDiv.getAttribute("data-tooltip");
                             if (tooltip.toLowerCase().includes(item.name)) {
-                                if (item.value === true) {
+                                if (item.value) {
                                     if (isInactive) {
                                         await crudDiv.click();
                                         break;
@@ -290,11 +299,13 @@ export class RestObjectDialog {
 
                     for (const key of Object.keys(restObject.dataMapping.crud)) {
                         try {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                             await processCrudItem({ name: key, value: restObject.dataMapping.crud[key] });
                         } catch (e) {
                             if (!(errors.isStaleError(e as Error))) {
                                 throw e;
                             } else {
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                 await processCrudItem({ name: key, value: restObject.dataMapping.crud[key] });
                             }
                         }
@@ -315,8 +326,9 @@ export class RestObjectDialog {
                         .findElement(locator.mrsDbObjectDialog.settings.resultFormat);
                     await inResultFormat.click();
                     const popup = await driver.wait(until
-                        .elementLocated(locator.mrsDbObjectDialog.settings.resultFormatList),
-                        constants.wait1second * 5, "#crudOperationFormatPopup not found");
+                        .elementLocated(locator.mrsDbObjectDialog.settings
+                            .resultFormatList), constants.wait1second * 5, "#crudOperationFormatPopup not found");
+
                     await popup.findElement(By.id(restObject.settings.resultFormat)).click();
                 }
 
@@ -375,7 +387,7 @@ export class RestObjectDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait1second * 10, "The MRS Object dialog was not closed");
 
         return restObject;
@@ -383,6 +395,7 @@ export class RestObjectDialog {
 
     /**
      * Gets a Rest Object using the web view dialog
+     * 
      * @param closeDialog True to close the dialog, false otherwise
      * @returns A promise resolving with the object
      */
@@ -451,7 +464,7 @@ export class RestObjectDialog {
             }
             restColumns.push(restObjectColumn);
         }
-        restObject.dataMapping.columns = restColumns;
+        restObject.dataMapping!.columns = restColumns;
 
         const restObjectCrud: interfaces.IRestObjectCrud = {
             insert: undefined,
@@ -470,7 +483,7 @@ export class RestObjectDialog {
                 }
             }
         }
-        restObject.dataMapping.crud = restObjectCrud;
+        restObject.dataMapping!.crud = restObjectCrud;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.settingsTab).click();
@@ -513,7 +526,7 @@ export class RestObjectDialog {
             await driver.wait(async () => {
                 await dialog.findElement(locator.mrsDbObjectDialog.cancel).click();
 
-                return (await DialogHelper.existsDialog()) === false;
+                return !(await DialogHelper.existsDialog());
             }, constants.wait1second * 10, "The MRS Object dialog was not closed");
         }
 

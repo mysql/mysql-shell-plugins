@@ -66,6 +66,7 @@ export class E2EClientConnections {
 
     /**
      * Loads the Server Status page objects and attributes
+     * 
      * @returns A promise resolving when the page is loaded
      */
     public create = async (): Promise<void> => {
@@ -86,8 +87,9 @@ export class E2EClientConnections {
             connectionsList,
         ] = await Promise.all([
             await (await driver.wait(until.elementTextMatches(await driver
-                .findElement(clientConnectionsLocator.threadsConnected), /(\d+)/),
-                constants.wait1second * 5)).getText(),
+                .findElement(clientConnectionsLocator
+                    .threadsConnected), /(\d+)/), constants.wait1second * 5)).getText(),
+
             await (await driver.findElement(clientConnectionsLocator.threadsRunning)).getText(),
             await (await driver.findElement(clientConnectionsLocator.threadsCreated)).getText(),
             await (await driver.findElement(clientConnectionsLocator.threadsCached)).getText(),
@@ -99,7 +101,6 @@ export class E2EClientConnections {
             await (await driver.findElement(clientConnectionsLocator.errors)).getText(),
             await driver.findElement(clientConnectionsLocator.connectionsList),
         ]);
-
 
         this.threadsConnected = threadsConnected;
         this.threadsRunning = threadsRunning;

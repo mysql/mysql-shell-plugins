@@ -36,6 +36,7 @@ export class AuthenticationAppDialog {
 
     /**
      * Gets a tab
+     * 
      * @param tabName The tab name
      * @returns A promise resolving with the tab
      */
@@ -56,11 +57,13 @@ export class AuthenticationAppDialog {
 
     /**
      * Sets a Rest Authentication App using the web view dialog
+     * 
      * @param authApp The authentication app
      * @returns A promise resolving when the authentication app is set and the dialog is closed
      */
-    public static set = async (authApp: interfaces.IRestAuthenticationApp):
-        Promise<interfaces.IRestAuthenticationApp> => {
+    public static set = async (
+        authApp: interfaces.IRestAuthenticationApp): Promise<interfaces.IRestAuthenticationApp> => {
+
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -90,21 +93,19 @@ export class AuthenticationAppDialog {
             await dialog.click();
         }
 
-        if (authApp.settings) {
-            await (await this.getTab("Settings")).click();
-            if (authApp.settings.description) {
-                await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.description,
-                    authApp.settings.description);
-            }
+        await (await this.getTab("Settings")).click();
+        if (authApp.settings.description) {
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.description,
+                authApp.settings.description);
+        }
 
-            if (authApp.settings.defaultRole) {
-                await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
-                const popup = await driver.wait(until
-                    .elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList),
-                    constants.wait1second * 5, "Auth vendor drop down list was not displayed");
+        if (authApp.settings.defaultRole) {
+            await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
+            const popup = await driver.wait(until
+                .elementLocated(locator.mrsAuthenticationAppDialog
+                    .defaultRoleList), constants.wait1second * 5, "Auth vendor drop down list was not displayed");
 
-                await popup.findElement(By.id(authApp.settings.defaultRole)).click();
-            }
+            await popup.findElement(By.id(authApp.settings.defaultRole)).click();
         }
 
         if (authApp.oauth2settings) {
@@ -141,7 +142,7 @@ export class AuthenticationAppDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait1second * 10, "The Authentication App Dialog was not closed");
 
         return authApp;
@@ -150,6 +151,7 @@ export class AuthenticationAppDialog {
 
     /**
      * Gets a Rest Authentication App using the web view dialog
+     * 
      * @returns A promise resolving with the authentication app
      */
     public static get = async (): Promise<interfaces.IRestAuthenticationApp> => {
@@ -197,7 +199,7 @@ export class AuthenticationAppDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait1second * 10, "The Authentication App Dialog was not closed");
 
         return authenticationApp;

@@ -39,12 +39,12 @@ describe("MySQL REST Service Configuration", () => {
     let existsInQueue = false;
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `conn-port:${parseInt(process.env.MYSQL_1110, 10)}`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1110!, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1110, 10),
+            port: parseInt(process.env.MYSQL_1110!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -61,13 +61,13 @@ describe("MySQL REST Service Configuration", () => {
             Misc.removeDatabaseConnections();
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
-            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
+            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption!)).click();
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 10);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
             await Os.deleteCredentials();
             await dbTreeSection.focus();
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -75,7 +75,7 @@ describe("MySQL REST Service Configuration", () => {
     });
 
     beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         try {
             await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                 `${constants.dbTreeSection} is still loading`);
@@ -87,11 +87,11 @@ describe("MySQL REST Service Configuration", () => {
     });
 
     afterEach(async function () {
-        if (this.currentTest.state === "failed") {
+        if (this.currentTest!.state === "failed") {
             await Misc.processFailure(this);
         }
         if (existsInQueue) {
-            await TestQueue.pop(this.currentTest.title);
+            await TestQueue.pop(this.currentTest!.title);
             existsInQueue = false;
         }
         await Workbench.dismissNotifications();
@@ -119,7 +119,7 @@ describe("MySQL REST Service Configuration", () => {
                 password: "Guidev!1",
             },
         };
-        await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
+        await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.configureInstanceForRestService);
         await ConfigRestServiceDialog.set(mrsConfig);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
             constants.wait1second * 120);
@@ -137,7 +137,7 @@ describe("MySQL REST Service Configuration", () => {
                 createDefaultApp: false,
             },
         };
-        await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
+        await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.configureInstanceForRestService);
         await ConfigRestServiceDialog.set(mrsConfig);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
             constants.wait1second * 120);
@@ -155,7 +155,7 @@ describe("MySQL REST Service Configuration", () => {
                 createDefaultApp: false,
             },
         };
-        await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
+        await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.configureInstanceForRestService);
         await ConfigRestServiceDialog.set(config);
         await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully."),
             constants.wait1second * 120);
@@ -208,24 +208,24 @@ describe("MySQL REST Service Configuration", () => {
         await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.configureRestService);
         const newConfig = await ConfigRestServiceDialog.get();
         expect(mrsConfig.status).to.equals(newConfig.status);
-        expect(mrsConfig.authenticationThrottling.preAccountThrottling)
-            .to.deep.equals(newConfig.authenticationThrottling.preAccountThrottling);
-        expect(mrsConfig.authenticationThrottling.perHostThrottling)
-            .to.deep.equals(newConfig.authenticationThrottling.perHostThrottling);
-        expect(mrsConfig.authenticationThrottling.throttlingGeneral)
-            .to.deep.equals(newConfig.authenticationThrottling.throttlingGeneral);
+        expect(mrsConfig.authenticationThrottling!.preAccountThrottling)
+            .to.deep.equals(newConfig.authenticationThrottling!.preAccountThrottling);
+        expect(mrsConfig.authenticationThrottling!.perHostThrottling)
+            .to.deep.equals(newConfig.authenticationThrottling!.perHostThrottling);
+        expect(mrsConfig.authenticationThrottling!.throttlingGeneral)
+            .to.deep.equals(newConfig.authenticationThrottling!.throttlingGeneral);
         expect(mrsConfig.caches).to.deep.equals(newConfig.caches);
-        for (const option of mrsConfig.redirectsStaticContent.endPointResponseCacheOptions) {
-            expect(newConfig.redirectsStaticContent.endPointResponseCacheOptions).to.deep.include(option);
+        for (const option of mrsConfig.redirectsStaticContent!.endPointResponseCacheOptions!) {
+            expect(newConfig.redirectsStaticContent!.endPointResponseCacheOptions).to.deep.include(option);
         }
-        for (const option of mrsConfig.redirectsStaticContent.defaultRedirects) {
-            expect(newConfig.redirectsStaticContent.defaultRedirects).to.deep.include(option);
+        for (const option of mrsConfig.redirectsStaticContent!.defaultRedirects!) {
+            expect(newConfig.redirectsStaticContent!.defaultRedirects).to.deep.include(option);
         }
         expect(mrsConfig.options).to.equals(newConfig.options);
     });
 
     it("Upgrade MRS version", async () => {
-        await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.configureInstanceForRestService);
+        await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.configureInstanceForRestService);
         const msrVersions = (await ConfigRestServiceDialog.getMRSVersions()).reverse();
         let mrsConfig: interfaces.IRestServiceConfig = {
             currentVersion: msrVersions[0],

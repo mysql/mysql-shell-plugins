@@ -53,12 +53,12 @@ describe("DB Connection Overview", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `conn-port:${parseInt(process.env.MYSQL_1107, 10)}`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1107!, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1107, 10),
+            port: parseInt(process.env.MYSQL_1107!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -70,7 +70,7 @@ describe("DB Connection Overview", () => {
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1107, 10),
+            port: parseInt(process.env.MYSQL_1107!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -93,7 +93,7 @@ describe("DB Connection Overview", () => {
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
             await new BottomBarPanel().toggle(false);
 
             const closeHeaderButton = await driver.findElements(locator.dbConnectionOverview.closeHeader);
@@ -111,7 +111,7 @@ describe("DB Connection Overview", () => {
     });
 
     beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         try {
             await dbConnectionOverview.toolbar.editorSelector
                 .selectEditor(new RegExp(constants.dbConnectionsLabel));
@@ -124,12 +124,12 @@ describe("DB Connection Overview", () => {
 
     afterEach(async function () {
 
-        if (this.currentTest.state === "failed") {
+        if (this.currentTest!.state === "failed") {
             await Misc.processFailure(this);
         }
 
         if (existsInQueue) {
-            await TestQueue.pop(this.currentTest.title);
+            await TestQueue.pop(this.currentTest!.title);
             existsInQueue = false;
         }
 
@@ -240,7 +240,7 @@ describe("DB Connection Overview", () => {
         await dbTreeSection.focus();
         await dbTreeSection.clickToolbarButton(constants.reloadConnections);
         await driver.wait(new Condition("", async () => {
-            const item = await dbTreeSection.getTreeItem(sqliteConn.caption);
+            const item = await dbTreeSection.getTreeItem(sqliteConn.caption!);
             await item.expand();
 
             return item.isExpanded();
@@ -272,9 +272,9 @@ describe("DB Connection Overview", () => {
 
         sslConn.ssl = {
             mode: "Require and Verify CA",
-            caPath: join(process.env.SSL_CERTIFICATES_PATH, "ca.pem"),
-            clientCertPath: join(process.env.SSL_CERTIFICATES_PATH, "client-cert.pem"),
-            clientKeyPath: join(process.env.SSL_CERTIFICATES_PATH, "client-key.pem"),
+            caPath: join(process.env.SSL_CERTIFICATES_PATH!, "ca.pem"),
+            clientCertPath: join(process.env.SSL_CERTIFICATES_PATH!, "client-cert.pem"),
+            clientKeyPath: join(process.env.SSL_CERTIFICATES_PATH!, "client-key.pem"),
         };
 
         await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
@@ -294,9 +294,9 @@ describe("DB Connection Overview", () => {
 
     it("Copy paste and cut paste into the DB Connection dialog", async function () {
 
-        await TestQueue.push(this.test.title);
+        await TestQueue.push(this.test!.title);
         existsInQueue = true;
-        await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+        await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
         await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
         const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
@@ -349,7 +349,7 @@ describe("DB Connection Overview", () => {
 
         await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
         await DatabaseConnectionDialog.setConnection(editConn);
-        await dbConnectionOverview.moreActions(editConn.caption, constants.editConnection);
+        await dbConnectionOverview.moreActions(editConn.caption!, constants.editConnection);
         editConn.caption = "e2eEditedCaption";
         editConn.description = "edited description";
 
@@ -439,7 +439,7 @@ describe("DB Connection Overview", () => {
             caption: `e2eSqliteConnectionToEdit`,
             description: "Local connection",
             basic: {
-                dbPath: join(process.env.TEST_RESOURCES_PATH,
+                dbPath: join(process.env.TEST_RESOURCES_PATH!,
                     `mysqlsh-${String(process.env.TEST_SUITE)}`,
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
                 dbName: "SQLite",
@@ -455,7 +455,7 @@ describe("DB Connection Overview", () => {
         const dbConnectionDialog = DatabaseConnectionDialog;
         await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
         await dbConnectionDialog.setConnection(editSqliteConn);
-        await dbConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
+        await dbConnectionOverview.moreActions(editSqliteConn.caption!, constants.editConnection);
         editSqliteConn.caption = "e2eEditedSqliteCaption";
         editSqliteConn.description = "edited sqlite description";
 
@@ -480,9 +480,9 @@ describe("DB Connection Overview", () => {
 
     it("Duplicate a MySQL Connection", async () => {
 
-        await dbConnectionOverview.moreActions(globalConn.caption, constants.dupConnection);
+        await dbConnectionOverview.moreActions(globalConn.caption!, constants.dupConnection);
         await DatabaseConnectionDialog.setConnection(duplicateConnection);
-        await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateConnection.caption),
+        await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateConnection.caption!),
             constants.wait1second * 5);
 
     });
@@ -494,7 +494,7 @@ describe("DB Connection Overview", () => {
             caption: `e2eSqliteConnectionToDuplicate`,
             description: "Local connection",
             basic: {
-                dbPath: join(process.env.TEST_RESOURCES_PATH,
+                dbPath: join(process.env.TEST_RESOURCES_PATH!,
                     `mysqlsh-${String(process.env.TEST_SUITE)}`,
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
                 dbName: "SQLite",
@@ -507,13 +507,13 @@ describe("DB Connection Overview", () => {
         const dbConnectionDialog = DatabaseConnectionDialog;
         await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
         await dbConnectionDialog.setConnection(sqliteConn);
-        await dbConnectionOverview.moreActions(sqliteConn.caption, constants.dupConnection);
+        await dbConnectionOverview.moreActions(sqliteConn.caption!, constants.dupConnection);
         const duplicateSqlite: interfaces.IDBConnection = {
             dbType: "Sqlite",
             caption: "e2eDuplicateSqliteFromGlobal",
         };
         await dbConnectionDialog.setConnection(duplicateSqlite);
-        await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateSqlite.caption),
+        await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateSqlite.caption!),
             constants.wait1second * 5);
 
     });
@@ -532,12 +532,12 @@ describe("DB Connection Overview", () => {
 
         await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
         await DatabaseConnectionDialog.setConnection(connectionToRemove);
-        await dbConnectionOverview.moreActions(connectionToRemove.caption, constants.removeConnection);
+        await dbConnectionOverview.moreActions(connectionToRemove.caption!, constants.removeConnection);
         const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
             constants.wait1second * 5, "confirm dialog was not found");
 
         await dialog.findElement(locator.confirmDialog.accept).click();
-        await driver.wait(dbConnectionOverview.untilConnectionDoesNotExist(connectionToRemove.caption),
+        await driver.wait(dbConnectionOverview.untilConnectionDoesNotExist(connectionToRemove.caption!),
             constants.wait1second * 5);
 
     });
@@ -557,7 +557,7 @@ describe("DB Connection Overview", () => {
 
     it("Create new notebook", async () => {
 
-        const connection = await dbConnectionOverview.getConnection(globalConn.caption);
+        const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
         const newNotebook = await connection.findElement(locator.dbConnectionOverview.dbConnection.newNotebook);
         await driver.actions().move({ origin: newNotebook }).perform();
         await driver.wait(until.elementIsVisible(newNotebook), constants.wait1second * 5,
@@ -597,11 +597,11 @@ describe("DB Connection Overview", () => {
 
     it("Open 3 notebooks for the same database connection", async () => {
         const dbConnectionOverview = new DatabaseConnectionOverview();
-        const connection = await dbConnectionOverview.getConnection(globalConn.caption);
+        const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
         await connection.click();
         const notebook = new E2ENotebook();
         await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
-        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption);
+        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
 
         await driver.wait(async () => {
             if (await PasswordDialog.exists()) {
@@ -613,7 +613,7 @@ describe("DB Connection Overview", () => {
 
 
         await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
-        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption);
+        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
         await driver.wait(async () => {
             if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(globalConn);
@@ -623,7 +623,7 @@ describe("DB Connection Overview", () => {
         }, constants.wait1second * 5, "Could not find the Password Dialog for third connection");
 
         await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
-        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption);
+        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
         await driver.wait(async () => {
             if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(globalConn);
@@ -635,14 +635,14 @@ describe("DB Connection Overview", () => {
         const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
         await openEditorsSection.focus();
 
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption}`)).to.equals(true);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (2)`)).to.equals(true);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (3)`)).to.equals(true);
+        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!}`)).to.equals(true);
+        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (2)`)).to.equals(true);
+        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (3)`)).to.equals(true);
 
         await Workbench.closeAllEditors();
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption}`)).to.equals(false);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (2)`)).to.equals(false);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (3)`)).to.equals(false);
+        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!}`)).to.equals(false);
+        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (2)`)).to.equals(false);
+        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (3)`)).to.equals(false);
     });
 
     describe("DB Connection Groups", () => {
@@ -679,7 +679,7 @@ describe("DB Connection Overview", () => {
             basic: {
                 hostname: "localhost",
                 username: String(process.env.DBUSERNAME1),
-                port: parseInt(process.env.MYSQL_1107, 10),
+                port: parseInt(process.env.MYSQL_1107!, 10),
                 schema: "sakila",
                 password: String(process.env.DBPASSWORD1),
             },
@@ -688,7 +688,7 @@ describe("DB Connection Overview", () => {
         const connectionOverview = new DatabaseConnectionOverview();
         let testFailed = false;
 
-        before(async () => {
+        before(async function () {
             try {
                 const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
                 await openEditorsSection.expand();
@@ -701,7 +701,7 @@ describe("DB Connection Overview", () => {
             }
         });
 
-        beforeEach(async () => {
+        beforeEach(async function () {
             try {
                 await dbTreeSection.focus();
                 await (await connectionOverview.getBreadCrumbLinks())[0].click();
@@ -711,7 +711,7 @@ describe("DB Connection Overview", () => {
             }
         });
 
-        afterEach(async () => {
+        afterEach(async function () {
             if (testFailed) {
                 testFailed = false;
                 await Misc.processFailure(this);
@@ -722,19 +722,19 @@ describe("DB Connection Overview", () => {
 
             await dbTreeSection.focus();
             await connectionOverview.addNewConnection(dbConnection1);
-            await driver.wait(connectionOverview.untilGroupExists(dbConnection1.folderPath.value),
+            await driver.wait(connectionOverview.untilGroupExists(dbConnection1.folderPath!.value!),
                 constants.wait1second * 5);
-            await connectionOverview.joinGroup(dbConnection1.folderPath.value);
-            await driver.wait(connectionOverview.untilConnectionExists(dbConnection1.caption),
+            await connectionOverview.joinGroup(dbConnection1.folderPath!.value!);
+            await driver.wait(connectionOverview.untilConnectionExists(dbConnection1.caption!),
                 constants.wait1second * 3);
 
-            expect(await connectionOverview.getBreadCrumb()).to.equals(`/${dbConnection1.folderPath.value}/`);
-            await driver.wait(dbTreeSection.untilTreeItemExists(dbConnection1.folderPath.value),
+            expect(await connectionOverview.getBreadCrumb()).to.equals(`/${dbConnection1.folderPath!.value!}/`);
+            await driver.wait(dbTreeSection.untilTreeItemExists(dbConnection1.folderPath!.value!),
                 constants.wait1second * 5);
 
-            await driver.wait(dbTreeSection.untilTreeItemHasChildren(dbConnection1.folderPath.value),
+            await driver.wait(dbTreeSection.untilTreeItemHasChildren(dbConnection1.folderPath!.value!),
                 constants.wait1second * 5);
-            const folder = await dbTreeSection.getTreeItem(dbConnection1.folderPath.value);
+            const folder = await dbTreeSection.getTreeItem(dbConnection1.folderPath!.value!);
             expect(await (await folder.getChildren())[0].getLabel()).to.equals(dbConnection1.caption);
 
         });
@@ -743,18 +743,18 @@ describe("DB Connection Overview", () => {
 
             await connectionOverview.addNewConnection(dbConnection2);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await dbTreeSection.expandTree(dbConnection2.folderPath.value.split("/").filter((item) => {
+            await dbTreeSection.expandTree(dbConnection2.folderPath!.value!.split("/").filter((item) => {
                 return item !== "";
             }));
 
-            const group1 = dbConnection2.folderPath.value.split("/")[1];
-            const group2 = dbConnection2.folderPath.value.split("/")[2];
+            const group1 = dbConnection2.folderPath!.value!.split("/")[1];
+            const group2 = dbConnection2.folderPath!.value!.split("/")[2];
 
             await connectionOverview.joinGroup(group1);
             await driver.wait(connectionOverview.untilGroupExists(group2), constants.wait1second * 5);
 
             await connectionOverview.joinGroup(group2);
-            expect(await connectionOverview.existsConnection(dbConnection2.caption)).to.be.true;
+            expect(await connectionOverview.existsConnection(dbConnection2.caption!)).to.be.true;
             await driver.wait(dbTreeSection.untilTreeItemExists(group2),
                 constants.wait1second * 5);
 
@@ -778,20 +778,20 @@ describe("DB Connection Overview", () => {
             };
 
             await connectionOverview.addNewConnection(dbConnection);
-            await driver.wait(connectionOverview.untilGroupExists(dbConnection.folderPath.value),
+            await driver.wait(connectionOverview.untilGroupExists(dbConnection.folderPath!.value!),
                 constants.wait1second * 5);
-            await connectionOverview.joinGroup(dbConnection.folderPath.value);
-            await driver.wait(connectionOverview.untilConnectionExists(dbConnection.caption),
+            await connectionOverview.joinGroup(dbConnection.folderPath!.value!);
+            await driver.wait(connectionOverview.untilConnectionExists(dbConnection.caption!),
                 constants.wait1second * 3);
 
-            expect(await connectionOverview.getBreadCrumb()).to.equals(`/${dbConnection.folderPath.value}/`);
-            await driver.wait(dbTreeSection.untilTreeItemExists(dbConnection.folderPath.value),
+            expect(await connectionOverview.getBreadCrumb()).to.equals(`/${dbConnection.folderPath!.value!}/`);
+            await driver.wait(dbTreeSection.untilTreeItemExists(dbConnection.folderPath!.value!),
                 constants.wait1second * 5);
 
-            await driver.wait(dbTreeSection.untilTreeItemHasChildren(dbConnection.folderPath.value),
+            await driver.wait(dbTreeSection.untilTreeItemHasChildren(dbConnection.folderPath!.value!),
                 constants.wait1second * 5);
 
-            const folder = await dbTreeSection.getTreeItem(dbConnection.folderPath.value);
+            const folder = await dbTreeSection.getTreeItem(dbConnection.folderPath!.value!);
             expect(await (await folder.getChildren())[0].getLabel()).to.equals(dbConnection.caption);
 
         });
@@ -812,18 +812,18 @@ describe("DB Connection Overview", () => {
 
             await connectionOverview.addNewConnection(dbConnection);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await dbTreeSection.expandTree(dbConnection.folderPath.value.split("/").filter((item) => {
+            await dbTreeSection.expandTree(dbConnection.folderPath!.value!.split("/").filter((item) => {
                 return item !== "";
             }));
 
-            const sqliteGroup1 = dbConnection.folderPath.value.split("/")[1];
-            const sqliteGroup2 = dbConnection.folderPath.value.split("/")[2];
+            const sqliteGroup1 = dbConnection.folderPath!.value!.split("/")[1];
+            const sqliteGroup2 = dbConnection.folderPath!.value!.split("/")[2];
 
             await connectionOverview.joinGroup(sqliteGroup1);
             await driver.wait(connectionOverview.untilGroupExists(sqliteGroup2), constants.wait1second * 5);
 
             await connectionOverview.joinGroup(sqliteGroup2);
-            expect(await connectionOverview.existsConnection(dbConnection.caption)).to.be.true;
+            expect(await connectionOverview.existsConnection(dbConnection.caption!)).to.be.true;
             await driver.wait(dbTreeSection.untilTreeItemExists(sqliteGroup2),
                 constants.wait1second * 5);
 
@@ -854,10 +854,10 @@ describe("DB Connection Overview", () => {
 
             await connectionOverview.addNewConnection(dbConnection);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath.value,
+            await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath!.value!,
                 constants.addSubfolder);
             await Workbench.setInputPath(subFolder);
-            await dbTreeSection.expandTreeItem(dbConnection.folderPath.value);
+            await dbTreeSection.expandTreeItem(dbConnection.folderPath!.value!);
             await driver.wait(dbTreeSection.untilTreeItemExists(subFolder), constants.wait1second * 5);
 
         });
@@ -926,7 +926,7 @@ describe("DB Connection Overview", () => {
                 dbType: "MySQL",
                 folderPath: {
                     new: false,
-                    value: `/${dbConnection1.folderPath.value}`,
+                    value: `/${dbConnection1.folderPath!.value!}`,
                 },
                 basic: {
                     hostname: "localhost",
@@ -934,16 +934,16 @@ describe("DB Connection Overview", () => {
                 },
             };
 
-            await dbTreeSection.expandTree(dbConnection2.folderPath.value.split("/").filter((item) => {
+            await dbTreeSection.expandTree(dbConnection2.folderPath!.value!.split("/").filter((item) => {
                 return item !== "";
             }));
 
-            await dbTreeSection.openContextMenuAndSelect(dbConnection2.caption, constants.editDBConnection);
+            await dbTreeSection.openContextMenuAndSelect(dbConnection2.caption!, constants.editDBConnection);
             await DatabaseConnectionDialog.setConnection(dbConnection);
 
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.focus();
-            const treeFolder = await dbTreeSection.getTreeItem(dbConnection1.folderPath.value);
+            const treeFolder = await dbTreeSection.getTreeItem(dbConnection1.folderPath!.value!);
 
             const children = await treeFolder.getChildren();
             const childrenNames: string[] = [];
@@ -953,8 +953,8 @@ describe("DB Connection Overview", () => {
             }
 
             expect(childrenNames).to.include(dbConnection2.caption);
-            await (await connectionOverview.getGroup(dbConnection.folderPath.value.slice(1))).click();
-            expect(await connectionOverview.existsConnection(dbConnection1.caption)).to.be.true;
+            await (await connectionOverview.getGroup(dbConnection.folderPath!.value!.slice(1))).click();
+            expect(await connectionOverview.existsConnection(dbConnection1.caption!)).to.be.true;
 
         });
 
@@ -976,7 +976,7 @@ describe("DB Connection Overview", () => {
 
             const editedGroup = "Edited group";
             await connectionOverview.addNewConnection(dbConnection);
-            await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath.value, constants.editFolder);
+            await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath!.value!, constants.editFolder);
             await Workbench.setInputPath("Edited group");
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await driver.wait(dbTreeSection.untilTreeItemExists(editedGroup), constants.waitForTreeItem);
@@ -987,12 +987,12 @@ describe("DB Connection Overview", () => {
         it("Edit subfolder", async () => {
 
             const editedFolderName = "Edited subfolder";
-            await dbTreeSection.openContextMenuAndSelect(dbConnection2.folderPath.value.split("/")[2],
+            await dbTreeSection.openContextMenuAndSelect(dbConnection2.folderPath!.value!.split("/")[2],
                 constants.editFolder);
             await Workbench.setInputPath(editedFolderName);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await driver.wait(dbTreeSection.untilTreeItemExists(editedFolderName), constants.waitForTreeItem);
-            await connectionOverview.joinGroup(dbConnection1.folderPath.value);
+            await connectionOverview.joinGroup(dbConnection1.folderPath!.value!);
             await driver.wait(connectionOverview.untilGroupExists(editedFolderName), constants.wait1second * 5);
 
         });
@@ -1014,16 +1014,16 @@ describe("DB Connection Overview", () => {
 
         it("Remove folder with connections", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(dbConnection1.folderPath.value,
+            await dbTreeSection.openContextMenuAndSelect(dbConnection1.folderPath!.value!,
                 constants.removeFolder);
             await Workbench.pushDialogButton("Delete Folder");
             await driver.wait(Workbench
                 // eslint-disable-next-line max-len
-                .untilNotificationExists(`The connection group "${dbConnection1.folderPath.value}" has been deleted.`,
+                .untilNotificationExists(`The connection group "${dbConnection1.folderPath!.value!}" has been deleted.`,
                     true, true), constants.wait1second * 5);
             await driver.wait(async () => {
-                return !(await dbTreeSection.treeItemExists(dbConnection1.folderPath.value));
-            }, constants.wait1second * 5, `${dbConnection1.folderPath.value} should not exist on the tree`);
+                return !(await dbTreeSection.treeItemExists(dbConnection1.folderPath!.value!));
+            }, constants.wait1second * 5, `${dbConnection1.folderPath!.value!} should not exist on the tree`);
 
         });
 
@@ -1035,11 +1035,11 @@ describe("DB Connection Overview", () => {
                 const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
 
                 const xml = constants.validXMLConnection
-                    .replace(/<HOSTNAME>/g, hostname)
+                    .replace(/<HOSTNAME>/g, hostname!)
                     .replace(/<PORT>/g, String(port))
-                    .replace(/<USERNAME>/g, username)
-                    .replace(/<SCHEMA>/g, schema)
-                    .replace(/<CAPTION>/g, importedDBConnection.caption);
+                    .replace(/<USERNAME>/g, username!)
+                    .replace(/<SCHEMA>/g, schema!)
+                    .replace(/<CAPTION>/g, importedDBConnection.caption!);
 
                 const xmlFile = join(process.cwd(), "connections.xml");
                 await fs.writeFile(xmlFile, xml);
@@ -1052,7 +1052,7 @@ describe("DB Connection Overview", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(constants.importedConnections),
                     constants.wait1second * 5);
                 await dbTreeSection.expandTreeItem(constants.importedConnections);
-                await dbTreeSection.expandTreeItem(importedDBConnection.caption, importedDBConnection);
+                await dbTreeSection.expandTreeItem(importedDBConnection.caption!, importedDBConnection);
 
                 await dbTreeSection.openContextMenuAndSelect(constants.importedConnections,
                     constants.removeFolder);
@@ -1074,9 +1074,9 @@ describe("DB Connection Overview", () => {
                 const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
 
                 const xml = constants.invalidXMLConnection
-                    .replace(/<HOSTNAME>/g, hostname)
+                    .replace(/<HOSTNAME>/g, hostname!)
                     .replace(/<PORT>/g, String(port))
-                    .replace(/<SCHEMA>/g, schema);
+                    .replace(/<SCHEMA>/g, schema!);
 
                 const xmlFile = join(process.cwd(), "invalid_connections.xml");
                 await fs.writeFile(xmlFile, xml);

@@ -33,6 +33,7 @@ export class HeatWaveProfileEditor {
 
     /**
      * Verifies if the HeatWave Profile Editor is opened
+     * 
      * @returns A promise resolving to true if the HeatWave Profile Editor is opened, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -44,6 +45,7 @@ export class HeatWaveProfileEditor {
 
     /**
      * Verifies if the HeatWave Profile Editor is opened
+     * 
      * @returns A condition resolving to true if the tab is selected, false otherwise
      */
     public untilIsOpened = (): Condition<boolean> => {
@@ -54,6 +56,7 @@ export class HeatWaveProfileEditor {
 
     /**
      * Gets the history rows
+     * 
      * @returns A promise resolving with the history rows
      */
     public getHistory = async (): Promise<interfaces.IHeatWaveProfileHistory[]> => {
@@ -71,6 +74,7 @@ export class HeatWaveProfileEditor {
 
     /**
      * Gets the database tables
+     * 
      * @returns A promise resolving with the database tables
      */
     public getDatabaseTables = async (): Promise<string[]> => {
@@ -84,6 +88,7 @@ export class HeatWaveProfileEditor {
 
     /**
      * Gets the matched documents
+     * 
      * @returns A promise resolving with the database tables
      */
     public getMatchedDocuments = async (): Promise<interfaces.IHeatWaveProfileMatchedDocument[]> => {
@@ -101,6 +106,7 @@ export class HeatWaveProfileEditor {
 
     /**
      * Selects a model
+     * 
      * @param model The model
      * @returns A promise resolving when the model is selected
      */

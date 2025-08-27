@@ -34,6 +34,7 @@ export class LakehouseTables {
 
     /**
      * Verifies if the Upload To Object Storage tab is selected
+     * 
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -47,6 +48,7 @@ export class LakehouseTables {
 
     /**
      * Verifies if the Lakehouse Tables tab is selected
+     * 
      * @returns A condition resolving to true if the tab is selected, false otherwise
      */
     public untilIsOpened = (): Condition<boolean> => {
@@ -57,12 +59,13 @@ export class LakehouseTables {
 
     /**
      * Gets the database schemas
+     * 
      * @returns A promise resolving with the database schemas
      */
     public getDatabaseSchemas = async (): Promise<string[]> => {
         const schemas = await driver.wait(until
-            .elementsLocated(locator.lakeHouseNavigator.lakeHouseTables.databaseSchemas.item),
-            constants.wait1second * 5, "Could not find any database schemas");
+            .elementsLocated(locator.lakeHouseNavigator.lakeHouseTables
+                .databaseSchemas.item), constants.wait1second * 5, "Could not find any database schemas");
 
         return Promise.all(
             schemas.map(async (item: WebElement) => {
@@ -72,6 +75,7 @@ export class LakehouseTables {
 
     /**
      * Verifies if there are lakehouse tables
+     * 
      * @param name The lake house table name
      * @returns A condition resolving to true if exists lakehouse tables, false otherwise
      */
@@ -83,6 +87,7 @@ export class LakehouseTables {
 
     /**
      * Gets the lakehouse tables
+     * 
      * @returns A promise resolving with the database schemas
      */
     public getLakehouseTables = async (): Promise<interfaces.ILakeHouseTable[]> => {
@@ -117,11 +122,12 @@ export class LakehouseTables {
             }
         }, constants.wait1second * 5, "Could not get the Lakehouse tables");
 
-        return toReturn;
+        return toReturn!;
     };
 
     /**
      * Clicks on the refresh button of the Lakehouse tables
+     * 
      * @returns A promise resolving when the button is clicked
      */
     public refreshLakehouseTables = async (): Promise<void> => {
@@ -130,6 +136,7 @@ export class LakehouseTables {
 
     /**
      * Gets a lakehouse table row
+     * 
      * @param tableLabel The table label
      * @returns A promise resolving with the table row
      */
@@ -139,26 +146,26 @@ export class LakehouseTables {
         await driver.wait(async () => {
             await this.refreshLakehouseTables();
             const tableRows = await driver.findElements(lakeHouseTablesLocator.row);
-            const found = tableRows.find(async (row: WebElement) => {
-                return (await row.findElement(lakeHouseTablesLocator.cell.tableName.label).getText()) === tableLabel;
-            });
 
-            if (found) {
-                table = found;
+            for (const row of tableRows) {
+                if ((await row.findElement(lakeHouseTablesLocator.cell.tableName.label).getText()) === tableLabel) {
+                    table = row;
 
-                return true;
+                    return true;
+                }
             }
         }, constants.wait1second * 10, `Could not find '${tableLabel}' on Lakehouse tables`);
 
-        return table;
+        return table!;
     };
 
     /**
      * Gets a lakehouse table
+     * 
      * @param tableLabel The table label
      * @returns A promise resolving with the table
      */
-    public getLakehouseTable = async (tableLabel: string): Promise<interfaces.ILakeHouseTable> => {
+    public getLakehouseTable = async (tableLabel: string): Promise<interfaces.ILakeHouseTable | undefined> => {
         const tables = await this.getLakehouseTables();
 
         return tables.find((item: interfaces.ILakeHouseTable) => {
@@ -168,6 +175,7 @@ export class LakehouseTables {
 
     /**
      * Gets the current tasks
+     * 
      * @returns A promise resolving with the task
      */
     public getLakeHouseTasks = async (): Promise<interfaces.ICurrentTask[]> => {
@@ -200,26 +208,28 @@ export class LakehouseTables {
             }
         }, constants.wait1second * 5, "Could not get the Lakehouse tasks");
 
-        return toReturn;
+        return toReturn!;
     };
 
     /**
      * Verifies if the lakehouse table exists
+     * 
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loading, false otherwise
      */
     public untilExistsLakeHouseTable = (tableLabel: string): Condition<boolean> => {
-        return new Condition(` for lakehouse table '${tableLabel}' to be loading`, () => {
-            return this.getLakehouseTable(tableLabel) !== undefined;
+        return new Condition(` for lakehouse table '${tableLabel}' to be loading`, async () => {
+            return (await this.getLakehouseTable(tableLabel)) !== undefined;
         });
     };
 
     /**
      * Verifies if the lakehouse row is loading
+     * 
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loading, false otherwise
      */
-    public untilLakeHouseTableIsLoading = (tableLabel: string): Condition<boolean> => {
+    public untilLakeHouseTableIsLoading = (tableLabel: string): Condition<boolean | undefined> => {
         return new Condition(` for lakehouse table '${tableLabel}' to be loading`, async () => {
             const tableRows = await driver.wait(async () => {
                 const rows = await this.getLakehouseTables();
@@ -228,14 +238,17 @@ export class LakehouseTables {
                 }
             }, constants.wait1second * 5, "Could not find any lake house table");
 
-            const wantedTable = tableRows.find((item) => { return item.tableName === tableLabel; });
+            const wantedTable = tableRows!.find((item) => {
+                return item.tableName === tableLabel;
+            });
 
-            return wantedTable.hasProgressBar && wantedTable.hasLoadingSpinner;
+            return wantedTable!.hasProgressBar && wantedTable!.hasLoadingSpinner;
         });
     };
 
     /**
      * Verifies if the lakehouse row is loaded
+     * 
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loaded, false otherwise
      */
@@ -248,14 +261,17 @@ export class LakehouseTables {
                 }
             }, constants.wait1second * 5, "Could not find any lake house table");
 
-            const wantedTable = tableRows.find((item) => { return item.tableName === tableLabel; });
+            const wantedTable = tableRows!.find((item) => {
+                return item.tableName === tableLabel;
+            });
 
-            return wantedTable.loaded === "Yes";
+            return wantedTable!.loaded === "Yes";
         });
     };
 
     /**
      * Verifies if all the lakehouse tasks are completed
+     * 
      * @returns A promise resolving with true, if all the tasks are completed, false otherwise
      */
     public untilLakeHouseTasksAreCompleted = (): Condition<boolean> => {
@@ -267,7 +283,7 @@ export class LakehouseTables {
                 }
             }, constants.wait1second * 5, "Could not find any lakehouse task");
 
-            for (const task of taskRows) {
+            for (const task of taskRows!) {
                 if (task.status !== "COMPLETED") {
                     return false;
                 }
@@ -279,6 +295,7 @@ export class LakehouseTables {
 
     /**
      * Deletes a lakehouse table and verifies its deletion
+     * 
      * @param tableLabel The table name
      * @returns A promise resolving with true, if the task is completed, false otherwise
      */

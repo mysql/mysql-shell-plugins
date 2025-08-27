@@ -48,12 +48,12 @@ describe("NOTEBOOKS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `conn-port:${parseInt(process.env.MYSQL_1107, 10)}`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1107!, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1107, 10),
+            port: parseInt(process.env.MYSQL_1107!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -66,7 +66,7 @@ describe("NOTEBOOKS", () => {
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1107, 10),
+            port: parseInt(process.env.MYSQL_1107!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -84,11 +84,11 @@ describe("NOTEBOOKS", () => {
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.createDatabaseConnection(anotherConn);
             await dbTreeSection.focus();
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
-            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption), constants.waitForTreeItem);
-            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption!), constants.waitForTreeItem);
+            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption!)).click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -119,16 +119,16 @@ describe("NOTEBOOKS", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
-            if (this.currentTest.state === "failed") {
+            if (this.currentTest!.state === "failed") {
                 await Misc.processFailure(this);
             }
 
             if (existsInQueue) {
-                await TestQueue.pop(this.currentTest.title);
+                await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
@@ -194,9 +194,9 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor
@@ -204,7 +204,7 @@ describe("NOTEBOOKS", () => {
             expect(result.status).to.match(/OK/);
 
             const row = 0;
-            const allColumns = Array.from(result.columnsMap.keys());
+            const allColumns = Array.from(result.columnsMap!.keys());
 
             for (let i = 1; i <= allColumns.length - 1; i++) {
 
@@ -297,9 +297,9 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid context menu - Copy single row", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             const result = await notebook.codeEditor
                 .execute("select * from sakila.actor limit 1;", true) as E2ECommandResultGrid;
@@ -384,9 +384,9 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid context menu - Copy multiple rows", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             const maxRows = 2;
             const result = await notebook.codeEditor
@@ -471,9 +471,9 @@ describe("NOTEBOOKS", () => {
             const result = await notebook.executeWithButton(query, constants.execFullBlockSql,
                 true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
-            expect(result.tabs.length).to.equals(2);
-            expect(result.tabs[0].name).to.match(/Result/);
-            expect(result.tabs[1].name).to.match(/Result/);
+            expect(result.tabs!.length).to.equals(2);
+            expect(result.tabs![0].name).to.match(/Result/);
+            expect(result.tabs![1].name).to.match(/Result/);
         });
 
         it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
@@ -486,7 +486,7 @@ describe("NOTEBOOKS", () => {
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
             const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
                 constants.execFullBlockSql, true);
-            expect(result.status).to.match(/(\d+) record/);
+            expect(result!.status).to.match(/(\d+) record/);
             await driver.wait(notebook.codeEditor.untilNewPromptExists(), constants.wait1second * 5);
         });
 
@@ -505,11 +505,11 @@ describe("NOTEBOOKS", () => {
                 expect(result2.status).to.match(/OK/);
 
                 let careResult = await notebook.findAndExecute(query1, result1.id) as E2ECommandResultGrid;
-                expect(Array.from(careResult.columnsMap.keys()))
+                expect(Array.from(careResult.columnsMap!.keys()))
                     .to.deep.equals(["actor_id", "first_name", "last_name", "last_update"]);
 
                 careResult = await notebook.findAndExecute(query2, result2.id) as E2ECommandResultGrid;
-                expect(Array.from(careResult.columnsMap.keys()))
+                expect(Array.from(careResult.columnsMap!.keys()))
                     .to.deep.equals(["address_id", "address", "address2", "district", "city_id", "postal_code",
                         "phone", "last_update"]);
             } finally {
@@ -521,13 +521,13 @@ describe("NOTEBOOKS", () => {
             const query = "select * from sakila.actor limit 1; select * from sakila.address limit 1;";
             const result = await notebook.codeEditor.execute(query, true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
-            expect(result.tabs.length).to.equals(2);
-            expect(result.tabs[0].name).to.equals("Result #1");
-            expect(result.tabs[1].name).to.equals("Result #2");
-            expect(Array.from(result.columnsMap.keys()))
+            expect(result.tabs!.length).to.equals(2);
+            expect(result.tabs![0].name).to.equals("Result #1");
+            expect(result.tabs![1].name).to.equals("Result #2");
+            expect(Array.from(result.columnsMap!.keys()))
                 .to.deep.equals(["actor_id", "first_name", "last_name", "last_update"]);
-            await result.selectTab(result.tabs[1].name);
-            expect(Array.from(result.columnsMap.keys()))
+            await result.selectTab(result.tabs![1].name);
+            expect(Array.from(result.columnsMap!.keys()))
                 .to.deep.equals(["address_id", "address", "address2", "district", "city_id", "postal_code",
                     "phone", "last_update"]);
         });
@@ -535,26 +535,26 @@ describe("NOTEBOOKS", () => {
         it("Connect to database and verify default schema", async () => {
 
             const result = await notebook.codeEditor.execute("SELECT SCHEMA();", true);
-            expect(result.status).to.match(/1 record retrieved/);
-            expect(await result.resultContext.getAttribute("innerHTML"))
-                .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
+            expect(result!.status).to.match(/1 record retrieved/);
+            expect(await result!.resultContext!.getAttribute("innerHTML"))
+                .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema!));
         });
 
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
             const autoCommitBtn = await notebook.toolbar.getButton(constants.autoCommit);
-            const style = await autoCommitBtn.findElement(locator.notebook.toolbar.button.icon)
+            const style = await autoCommitBtn!.findElement(locator.notebook.toolbar.button.icon)
                 .getAttribute("style");
             if (style.includes("toolbar-auto_commit-active")) {
-                await autoCommitBtn.click();
+                await autoCommitBtn!.click();
             }
             const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
             const commitBtn = await notebook.toolbar.getButton(constants.commit);
             const rollBackBtn = await notebook.toolbar.getButton(constants.rollback);
 
-            await driver.wait(until.elementIsEnabled(commitBtn),
+            await driver.wait(until.elementIsEnabled(commitBtn!),
                 constants.wait1second * 3, "Commit button should be enabled");
 
-            await driver.wait(until.elementIsEnabled(rollBackBtn),
+            await driver.wait(until.elementIsEnabled(rollBackBtn!),
                 constants.wait1second * 3, "Commit button should be enabled");
 
             let resultData = await notebook.codeEditor
@@ -562,7 +562,7 @@ describe("NOTEBOOKS", () => {
                 .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`) as E2ECommandResultData;
             expect(resultData.text).to.match(/OK/);
 
-            await rollBackBtn.click();
+            await rollBackBtn!.click();
 
             // eslint-disable-next-line max-len
             let resultGrid = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name='${random}';`) as E2ECommandResultGrid;
@@ -573,13 +573,13 @@ describe("NOTEBOOKS", () => {
                 .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`) as E2ECommandResultData;
             expect(resultData.text).to.match(/OK/);
 
-            await commitBtn.click();
+            await commitBtn!.click();
 
             // eslint-disable-next-line max-len
             resultGrid = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`) as E2ECommandResultGrid;
             expect(resultGrid.status).to.match(/OK/);
 
-            await autoCommitBtn.click();
+            await autoCommitBtn!.click();
 
             await driver.wait(
                 async () => {
@@ -660,7 +660,7 @@ describe("NOTEBOOKS", () => {
 
             await driver.wait(async () => {
                 try {
-                    cell = result1.resultContext
+                    cell = result1.resultContext!
                         .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
                     cellText = await cell.getText();
 
@@ -672,7 +672,7 @@ describe("NOTEBOOKS", () => {
                 }
             }, constants.wait1second * 3, "Could not get the cell text");
 
-            const server = cellText.match(/(\d+).(\d+).(\d+)/g)[0];
+            const server = cellText!.match(/(\d+).(\d+).(\d+)/g)![0];
             const digits = server.split(".");
             let serverVer = digits[0];
             digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
@@ -703,7 +703,7 @@ describe("NOTEBOOKS", () => {
                         .toolbar.maximize), constants.wait1second * 3);
             } finally {
                 await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
-                    globalConn.caption);
+                    globalConn.caption!);
                 await notebook.codeEditor.build();
             }
         });
@@ -718,7 +718,7 @@ describe("NOTEBOOKS", () => {
                 Graph.render(options);`, true) as E2ECommandResultData;
 
             expect(result.graph).to.exist;
-            const chartColumns = await result.graph
+            const chartColumns = await result.graph!
                 .findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
             for (const col of chartColumns) {
                 expect(parseInt(await col.getAttribute("width"), 10)).to.be.greaterThan(0);
@@ -750,9 +750,9 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Copy paste into notebook", async function () {
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
             await notebook.codeEditor.clean();
             await Misc.switchBackToTopFrame();
             const filename = "1_users.sql";
@@ -762,7 +762,7 @@ describe("NOTEBOOKS", () => {
             let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCopy(textArea);
-            await Workbench.openEditor(globalConn.caption);
+            await Workbench.openEditor(globalConn.caption!);
             await Misc.switchToFrame();
             textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await driver.executeScript("arguments[0].click()", textArea);
@@ -791,9 +791,9 @@ describe("NOTEBOOKS", () => {
 
         it("Cut paste into notebook", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             const sentence1 = "select * from sakila.actor";
             const sentence2 = "select * from sakila.address";
@@ -816,9 +816,9 @@ describe("NOTEBOOKS", () => {
 
         it("Copy to clipboard button", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("\\about ", true) as E2ECommandResultData;
@@ -999,7 +999,7 @@ describe("NOTEBOOKS", () => {
             const result1 = await notebook.codeEditor
                 .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview!.text).to.match(expectedSqlPreview[i]);
             }
 
             await result1.clickSqlPreviewContent();
@@ -1079,7 +1079,7 @@ describe("NOTEBOOKS", () => {
             const result1 = await notebook.codeEditor
                 .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview!.text).to.match(expectedSqlPreview[i]);
             }
 
             await result1.clickSqlPreviewContent();
@@ -1162,7 +1162,7 @@ describe("NOTEBOOKS", () => {
             const result1 = await notebook.codeEditor
                 .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview!.text).to.match(expectedSqlPreview[i]);
             }
 
             await result1.clickSqlPreviewContent();
@@ -1248,7 +1248,7 @@ describe("NOTEBOOKS", () => {
             const result1 = await notebook.codeEditor
                 .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview!.text).to.match(expectedSqlPreview[i]);
             }
 
             await result1.clickSqlPreviewContent();
@@ -1350,7 +1350,7 @@ describe("NOTEBOOKS", () => {
 
             const confirmDialog = await driver.wait(Workbench.untilConfirmationDialogExists("for rollback"),
                 constants.wait1second * 2);
-            await confirmDialog.findElement(locator.confirmDialog.accept).click();
+            await confirmDialog!.findElement(locator.confirmDialog.accept).click();
 
         });
 
@@ -1397,7 +1397,7 @@ describe("NOTEBOOKS", () => {
                 .execute("SELECT * from sakila.all_data_types_ints limit 1;", true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
 
-            for (const key of result.columnsMap.keys()) {
+            for (const key of result.columnsMap!.keys()) {
                 tableColumns.push(key);
             }
 
@@ -1430,7 +1430,7 @@ describe("NOTEBOOKS", () => {
             expect(result.status).to.match(/OK/);
 
             const tableColumns: string[] = [];
-            for (const key of result.columnsMap.keys()) {
+            for (const key of result.columnsMap!.keys()) {
                 tableColumns.push(key);
             }
 
@@ -1464,7 +1464,7 @@ describe("NOTEBOOKS", () => {
             expect(result.status).to.match(/OK/);
 
             const tableColumns: string[] = [];
-            for (const key of result.columnsMap.keys()) {
+            for (const key of result.columnsMap!.keys()) {
                 tableColumns.push(key);
             }
 
@@ -1494,7 +1494,7 @@ describe("NOTEBOOKS", () => {
             expect(result.status).to.match(/OK/);
 
             const tableColumns: string[] = [];
-            for (const key of result.columnsMap.keys()) {
+            for (const key of result.columnsMap!.keys()) {
                 tableColumns.push(key);
             }
 
@@ -1549,7 +1549,7 @@ describe("NOTEBOOKS", () => {
                 }], constants.doubleClick);
 
             await result.rollbackChanges();
-            expect((await result.resultContext.getAttribute("innerHTML")).match(/rollbackTest/) === null,
+            expect((await result.resultContext!.getAttribute("innerHTML")).match(/rollbackTest/) === null,
                 `${modifiedText} should not exist on the cell`).to.be.true;
 
         });
@@ -1572,7 +1572,7 @@ describe("NOTEBOOKS", () => {
                 const result = await notebook.codeEditor.execute(query, true) as E2ECommandResultGrid;
                 expect(result.status).to.match(/OK/);
                 const editBtn = await result.getEditButton();
-                expect(await editBtn.getAttribute("data-tooltip"),
+                expect(await editBtn!.getAttribute("data-tooltip"),
                     `'${query}' should not be editable`).to.equal("Data not editable");
             }
 
@@ -1872,7 +1872,7 @@ describe("NOTEBOOKS", () => {
             const prevRows = await result1.getRows();
             const result3 = await notebook.codeEditor.execute(deleteQuery, true) as E2ECommandResultData;
             expect(result3.text).to.match(/OK/);
-            await (await notebook.toolbar.getButton(constants.commit)).click();
+            await (await notebook.toolbar.getButton(constants.commit))!.click();
 
             await result1.refresh();
             await driver.wait(async () => {
@@ -1887,17 +1887,17 @@ describe("NOTEBOOKS", () => {
             await openEditorsSection.expand();
             await Workbench.dismissNotifications();
 
-            await openEditorsSection.clickTreeItemActionButton(globalConn.caption,
+            await openEditorsSection.clickTreeItemActionButton(globalConn.caption!,
                 constants.newMySQLScript);
 
-            await dbTreeSection.openContextMenuAndSelect(anotherConn.caption, constants.openNewConnection);
+            await dbTreeSection.openContextMenuAndSelect(anotherConn.caption!, constants.openNewConnection);
             const anotherConnNotebook = new E2ENotebook();
             await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait1second * 5);
 
-            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
             await dbTreeSection.expandTreeItem(new RegExp(constants.mysqlAdmin));
             await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
-                globalConn.caption);
+                globalConn.caption!);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_ints where id = 1;", true) as E2ECommandResultGrid;
@@ -1915,22 +1915,22 @@ describe("NOTEBOOKS", () => {
             let dialog = await driver
                 .wait(Workbench.untilConfirmationDialogExists(" after switching to Server Status page")
                     , constants.wait1second * 5);
-            expect(await (await dialog.findElement(locator.confirmDialog.msg))
+            expect(await (await dialog!.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
-            await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
+            await dialog!.findElement(locator.confirmDialog.cancel).click();
+            await driver.wait(until.stalenessOf(dialog!), constants.wait1second * 3, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait1second * 5);
             await (await dbTreeSection.getTreeItem(constants.clientConns)).click();
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to Client Connections page"),
                 constants.wait1second * 5);
-            expect(await (await dialog.findElement(locator.confirmDialog.msg))
+            expect(await (await dialog!.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
-            await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
+            await dialog!.findElement(locator.confirmDialog.cancel).click();
+            await driver.wait(until.stalenessOf(dialog!), constants.wait1second * 3, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait1second * 5);
 
@@ -1938,11 +1938,11 @@ describe("NOTEBOOKS", () => {
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to Performance Dashboard page"),
                 constants.wait1second * 5);
-            expect(await (await dialog.findElement(locator.confirmDialog.msg))
+            expect(await (await dialog!.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
-            await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
+            await dialog!.findElement(locator.confirmDialog.cancel).click();
+            await driver.wait(until.stalenessOf(dialog!), constants.wait1second * 3, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait1second * 5);
 
@@ -1950,20 +1950,20 @@ describe("NOTEBOOKS", () => {
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to DB Connections Overview page"),
                 constants.wait1second * 5);
-            expect(await (await dialog.findElement(locator.confirmDialog.msg))
+            expect(await (await dialog!.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
-            await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
+            await dialog!.findElement(locator.confirmDialog.cancel).click();
+            await driver.wait(until.stalenessOf(dialog!), constants.wait1second * 3, "The dialog was not closed");
 
-            await notebook.toolbar.editorSelector.selectEditor(/Untitled-(\d+)/, globalConn.caption);
+            await notebook.toolbar.editorSelector.selectEditor(/Untitled-(\d+)/, globalConn.caption!);
             dialog = await driver.wait(Workbench.untilConfirmationDialogExists(" after switching to a script page"),
                 constants.wait1second * 5);
-            expect(await (await dialog.findElement(locator.confirmDialog.msg))
+            expect(await (await dialog!.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
-            await dialog.findElement(locator.confirmDialog.refuse).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
+            await dialog!.findElement(locator.confirmDialog.refuse).click();
+            await driver.wait(until.stalenessOf(dialog!), constants.wait1second * 3, "The dialog was not closed");
 
         });
 
@@ -1993,11 +1993,11 @@ describe("NOTEBOOKS", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
-            if (this.currentTest.state === "failed") {
+            if (this.currentTest!.state === "failed") {
                 await Misc.processFailure(this);
             }
 
@@ -2019,7 +2019,7 @@ describe("NOTEBOOKS", () => {
 
             const result = await notebook.codeEditor.execute("SELECT VERSION();", true) as E2ECommandResultGrid;
             expect(result.status).to.match(/1 record retrieved/);
-            await (await notebook.toolbar.getButton(constants.saveNotebook)).click();
+            await (await notebook.toolbar.getButton(constants.saveNotebook))!.click();
             await Workbench.setInputPath(destFile);
 
             await driver.wait(new Condition(`for ${destFile}.mysql-notebook to exist`, async () => {
@@ -2067,7 +2067,7 @@ describe("NOTEBOOKS", () => {
             const input = await InputBox.create(constants.wait1second * 5);
             await driver.wait(async () => {
                 try {
-                    await input.selectQuickPick(globalConn.caption);
+                    await input.selectQuickPick(globalConn.caption!);
 
                 } catch (e) {
                     if (!(e instanceof error.ElementNotInteractableError)) {
@@ -2085,7 +2085,7 @@ describe("NOTEBOOKS", () => {
                 await Misc.switchBackToTopFrame();
                 await Misc.switchToFrame();
                 const connOverview = new DatabaseConnectionOverview();
-                const conn = await connOverview.getConnection(globalConn.caption);
+                const conn = await connOverview.getConnection(globalConn.caption!);
                 await conn.click();
             }
 
@@ -2100,7 +2100,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
             const file = await (await new SideBarView().getContent().getSection("e2e"))
                 .findItem("a_test.mysql-notebook", 3);
-            await file.click();
+            await file!.click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
             await Workbench.openEditor("a_test.mysql-notebook");
             await notebook.exists("SELECT VERSION");
@@ -2116,7 +2116,7 @@ describe("NOTEBOOKS", () => {
             await Workbench.openEditor("a_test.mysql-notebook");
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl(constants.extensionName))?.openView();
-            await dbTreeSection.deleteDatabaseConnection(globalConn.caption);
+            await dbTreeSection.deleteDatabaseConnection(globalConn.caption!);
             const tabs = await Workbench.getOpenEditorTitles();
             expect(tabs, errors.tabIsNotOpened("a_test.mysql-notebook")).to.not.include("a_test.mysql-notebook");
 
@@ -2175,7 +2175,7 @@ describe("NOTEBOOKS", () => {
 
             try {
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
-                await (await new DatabaseConnectionOverview().getConnection(heatWaveConn.caption)).click();
+                await (await new DatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
                 await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.waitConnectionOpen);
                 let result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait1second * 5);
@@ -2187,11 +2187,11 @@ describe("NOTEBOOKS", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
-            if (this.currentTest.state === "failed") {
+            if (this.currentTest!.state === "failed") {
                 await Misc.processFailure(this);
             }
         });
@@ -2200,26 +2200,26 @@ describe("NOTEBOOKS", () => {
 
             const query = "How do I cook fish?";
             await Workbench.toggleSideBar(false);
-            await (await notebook.toolbar.getButton(constants.showChatOptions)).click();
+            await (await notebook.toolbar.getButton(constants.showChatOptions))!.click();
             const hwProfileEditor = new HeatWaveProfileEditor();
             await driver.wait(hwProfileEditor.untilIsOpened(), constants.wait1second * 5);
             await hwProfileEditor.selectModel(constants.modelMistral);
             await notebook.codeEditor.languageSwitch("\\chat");
             await notebook.codeEditor.build();
             const result = await notebook.codeEditor.execute(query, true) as E2ECommandResultData;
-            expect(result.chat.length).to.be.greaterThan(0);
+            expect(result.chat!.length).to.be.greaterThan(0);
 
             const history = await hwProfileEditor.getHistory();
             expect(history[0].userMessage).to.equals(query);
-            expect(history[0].chatBotOptions.length).to.be.greaterThan(0);
+            expect(history[0].chatBotOptions!.length).to.be.greaterThan(0);
             const dbTables = await hwProfileEditor.getDatabaseTables();
             expect(dbTables).to.include(`\`${newTask.targetDatabaseSchema}\`.\`${newTask.name}\``);
             const matchedDocuments = await hwProfileEditor.getMatchedDocuments();
             expect(matchedDocuments.length).to.be.greaterThan(0);
 
-            const documentTitles = [];
+            const documentTitles: string[] = [];
             for (const doc of matchedDocuments) {
-                documentTitles.push(doc.title);
+                documentTitles.push(doc.title!);
             }
 
             expect(documentTitles.join(" ")).to.include("cookbook");

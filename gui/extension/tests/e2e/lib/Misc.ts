@@ -41,6 +41,7 @@ export class Misc {
 
     /**
      * Verifies if the current window handler is inside an iframe
+     * 
      * @returns A promise resolving with true if the current window is inside an iframe, false otherwise
      */
     public static insideIframe = async (): Promise<boolean> => {
@@ -50,6 +51,7 @@ export class Misc {
     /**
      * Process a test failure, by expanding existing notifications, taking a screenshot and prepare the
      * screenshots folder
+     * 
      * @param testContext The context
      * @returns A promise resolving when the failures is processed
      */
@@ -69,6 +71,7 @@ export class Misc {
 
     /**
      * Switches the window handler to the current visible iframe
+     * 
      * @returns A promise resolving when the window handler is switched to the iframe
      */
     public static switchToFrame = async (): Promise<void> => {
@@ -86,7 +89,7 @@ export class Misc {
                         }
                     }
                 }, constants.wait1second * 5, "Could not find a visible iframe div");
-                const parentIframe = await visibleDiv.findElement(locator.iframe.exists);
+                const parentIframe = await visibleDiv!.findElement(locator.iframe.exists);
                 await driver.wait(Workbench.untilWebViewIsReady(parentIframe), constants.wait1second * 10);
                 await driver.wait(until.ableToSwitchToFrame(parentIframe),
                     constants.wait1second * 5, "Could not enter the first iframe");
@@ -111,6 +114,7 @@ export class Misc {
 
     /**
      * Switches back to the top window frame (gets out of the iframe)
+     * 
      * @returns A promise resolving when the window handler is switched to the top frame
      */
     public static switchBackToTopFrame = async (): Promise<void> => {
@@ -129,6 +133,7 @@ export class Misc {
 
     /**
      * Verifies if the text is a json by parsing it
+     * 
      * @param text The text
      * @returns A promise resolving with true if the text is json, false otherwise
      */
@@ -146,6 +151,7 @@ export class Misc {
 
     /**
      * Loads the webdriver by creating the corresponding object
+     * 
      * @returns A promise resolving when the webdriver object is loaded
      */
     public static loadDriver = async (): Promise<void> => {
@@ -173,11 +179,12 @@ export class Misc {
 
     /**
      * Gets a value from a map
+     * 
      * @param item The item
      * @param map The map
      *  @returns A promise resolving when the webdriver object is loaded
      */
-    public static getValueFromMap = (item: string, map?: Map<string, number>): number => {
+    public static getValueFromMap = (item: string, map?: Map<string, number>): number | undefined => {
         if (map) {
             return map.get(item);
         } else {
@@ -198,10 +205,11 @@ export class Misc {
     /**
      * Reads the oci configuration file from process.env.MYSQLSH_OCI_CONFIG_FILE and maps it
      * into a key=value pair object
+     * 
      *  @returns A promise resolving with the configuration object
      */
     public static mapOciConfig = async (): Promise<interfaces.IOciProfileConfig[]> => {
-        const config = await fs.readFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "utf-8");
+        const config = await fs.readFile(process.env.MYSQLSH_OCI_CONFIG_FILE!, "utf-8");
         const configLines = config.split("\n");
         const ociConfig: interfaces.IOciProfileConfig[] = [];
         for (let line of configLines) {
@@ -209,7 +217,7 @@ export class Misc {
             if (line.length > 0) {
                 if (line.match(/\[.*\]/) !== null) {
                     ociConfig.push({
-                        name: line.match(/\[(.*)\]/)[1],
+                        name: line.match(/\[(.*)\]/)![1],
                     });
                 } else {
                     let [key, val] = line.split("=");
@@ -228,6 +236,7 @@ export class Misc {
 
     /**
      * Transforms a given string into a string with escaped characters to be used as regex
+     * 
      * @param value The word
      *  @returns A regex with escaped characters
      */
@@ -247,6 +256,7 @@ export class Misc {
 
     /**
      * Converts a time to a 12h time string (AM/PM)
+     * 
      * @param time The time
      * @returns The converted time
      */
@@ -261,6 +271,7 @@ export class Misc {
 
     /**
      * Converts a date to ISO format
+     * 
      * @param date The date
      * @returns The converted date
      */
@@ -275,7 +286,7 @@ export class Misc {
      * Removes all database connections on the tree using sqlite3 directly
      */
     public static removeDatabaseConnections = (): void => {
-        const sqliteFile = join(process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR, "plugin_data", "gui_plugin",
+        const sqliteFile = join(process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR!, "plugin_data", "gui_plugin",
             "mysqlsh_gui_backend.sqlite3");
 
         const queries = [

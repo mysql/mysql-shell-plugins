@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,16 +31,24 @@ const results: number[] = [];
 const main = async () => {
 
     const cliArguments = E2ETests.getCliArguments();
-    cliArguments.testSuite ? E2ETests.setTestSuite(cliArguments.testSuite) : E2ETests.readTestSuites();
+
+    if (cliArguments.testSuite) {
+        E2ETests.setTestSuite(cliArguments.testSuite);
+    } else {
+        E2ETests.readTestSuites();
+    }
+
     for (const testSuite of E2ETests.testSuites) {
         results.push(await E2ETests.run(testSuite, cliArguments.log));
     }
 
-    if (results.map((item) => { return item !== 0; }).length > 0) {
+    if (results.map((item) => {
+        return item !== 0;
+    }).length > 0) {
         throw new Error("Tests failed");
     }
 };
 
-void main().catch((err) => {
+void main().catch((err: unknown) => {
     throw err;
 });

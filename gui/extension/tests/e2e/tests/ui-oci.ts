@@ -41,7 +41,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 
-let ociConfig: interfaces.IOciProfileConfig;
+let ociConfig: interfaces.IOciProfileConfig | undefined;
 let ociTree: RegExp[];
 
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
@@ -57,7 +57,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             return item.name = "E2ETESTS";
         });
 
-        ociTree = [new RegExp(`E2ETESTS \\(${ociConfig.region}\\)`),
+        ociTree = [new RegExp(`E2ETESTS \\(${ociConfig!.region}\\)`),
         new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
         await Misc.loadDriver();
 
@@ -90,7 +90,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         let existsInQueue = false;
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -99,7 +99,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             if (existsInQueue) {
-                await TestQueue.pop(this.currentTest.title);
+                await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
@@ -109,22 +109,22 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Config Profile Information", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
-            await ociTreeSection.openContextMenuAndSelect(`${ociConfig.name} (${ociConfig.region})`,
+            await ociTreeSection.openContextMenuAndSelect(`${ociConfig!.name} (${ociConfig!.region})`,
                 constants.viewConfigProfileInfo);
-            await driver.wait(Workbench.untilTabIsOpened(`${ociConfig.name} Info.json`), constants.wait1second * 10);
+            await driver.wait(Workbench.untilTabIsOpened(`${ociConfig!.name} Info.json`), constants.wait1second * 10);
             expect(Misc.isJson(await new TextEditor().getText())).to.be.true;
 
         });
 
         it("Set as New Default Config Profile", async () => {
 
-            await ociTreeSection.openContextMenuAndSelect(`${ociConfig.name} (${ociConfig.region})`,
+            await ociTreeSection.openContextMenuAndSelect(`${ociConfig!.name} (${ociConfig!.region})`,
                 constants.setDefaultConfigProfile);
-            await driver.wait(ociTreeSection.untilTreeItemIsDefault(`${ociConfig.name} (${ociConfig.region})`),
+            await driver.wait(ociTreeSection.untilTreeItemIsDefault(`${ociConfig!.name} (${ociConfig!.region})`),
                 constants.wait1second * 5, "E2e tests is not the default item");
 
         });
@@ -145,7 +145,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -154,7 +154,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             if (existsInQueue) {
-                await TestQueue.pop(this.currentTest.title);
+                await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
@@ -174,9 +174,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Compartment Information", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.viewCompartmentInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait1second * 10);
@@ -224,7 +224,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -233,7 +233,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             if (existsInQueue) {
-                await TestQueue.pop(this.currentTest.title);
+                await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
@@ -242,9 +242,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View DB System Information", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             const treeDbSystem = await ociTreeSection.getTreeItem(undefined, constants.dbSystemType);
             await ociTreeSection.openContextMenuAndSelect(await treeDbSystem.getLabel(),
@@ -345,7 +345,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -354,7 +354,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             if (existsInQueue) {
-                await TestQueue.pop(this.currentTest.title);
+                await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
@@ -363,9 +363,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Get Bastion Information", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             const treeBastion = await ociTreeSection.getTreeItem(undefined, constants.bastionType);
             const bastionName = await treeBastion.getLabel();
@@ -450,7 +450,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -459,7 +459,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             if (existsInQueue) {
-                await TestQueue.pop(this.currentTest.title);
+                await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
@@ -468,9 +468,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Compute Instance Information", async function () {
 
-            await TestQueue.push(this.test.title);
+            await TestQueue.push(this.test!.title);
             existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
             const treeComputeInstance = await ociTreeSection.getTreeItem(undefined, constants.ociComputeType);
             const computeName = await treeComputeInstance.getLabel();

@@ -35,6 +35,7 @@ export class FolderDialog {
 
     /**
      * Sets the folder dialog value
+     * 
      * @param value The value to set
      */
     public static setFolderValue = async (value: string): Promise<void> => {

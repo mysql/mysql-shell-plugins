@@ -36,6 +36,7 @@ export class RestServiceDialog {
 
     /**
      * Sets a Rest service using the web view dialog
+     * 
      * @param restService The service
      * @returns A promise resolving when the service is set and the dialog is closed
      */
@@ -49,8 +50,8 @@ export class RestServiceDialog {
 
         // Main settings
         await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
-        await DialogHelper.setCheckboxValue("makeDefault", restService.default);
-        await DialogHelper.setCheckboxValue("enabled", restService.enabled);
+        await DialogHelper.setCheckboxValue("makeDefault", restService.default!);
+        await DialogHelper.setCheckboxValue("enabled", restService.enabled!);
         await DialogHelper.setCheckboxValue("published", restService.published ?? true);
 
         // Settings
@@ -94,7 +95,7 @@ export class RestServiceDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait1second * 10, "The MRS Service dialog was not closed");
 
         return restService;
@@ -102,6 +103,7 @@ export class RestServiceDialog {
 
     /**
      * Gets a Rest service using  the web view dialog
+     * 
      * @returns A promise resolving the rest service
      */
     public static get = async (): Promise<interfaces.IRestService> => {
@@ -147,7 +149,7 @@ export class RestServiceDialog {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
+            return !(await DialogHelper.existsDialog());
         }, constants.wait1second * 10, "The MRS Service dialog was not closed");
 
         return restService;

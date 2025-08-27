@@ -47,12 +47,13 @@ export class E2EShellConsole {
 
     /**
      * Waits until the shell session is opened
+     * 
      * @param connection The database connection
      * @param timeout The timeout
      * @returns A promise resolving when the shell session is opened
      */
     public untilIsOpened = async (
-        connection?: interfaces.IDBConnection | undefined,
+        connection?: interfaces.IDBConnection,
         timeout = constants.wait1second * 10): Promise<E2EShellConsole> => {
 
         await Misc.switchBackToTopFrame();
@@ -133,6 +134,7 @@ export class E2EShellConsole {
 
     /**
      * Deletes all stored credentials on the key chain, using shell
+     * 
      * @returns A promise resolving when the command is executed
      */
     public deleteCredentials = async (): Promise<void> => {
@@ -142,8 +144,8 @@ export class E2EShellConsole {
 
         if (!credentialHelperOk) {
             // we expect an error on the console
-            await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
-            this.codeEditor.lastResultId++;
+            await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
+            this.codeEditor.lastResultId!++;
         }
     };
 
@@ -162,8 +164,8 @@ export class E2EShellConsole {
         await this.codeEditor.write(cmd);
         await this.codeEditor.exec();
 
-        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
-        this.codeEditor.lastResultId++;
+        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
+        this.codeEditor.lastResultId!++;
 
         return commandResult as E2ECommandResultData;
 
@@ -187,8 +189,8 @@ export class E2EShellConsole {
         await this.codeEditor.exec();
         await PasswordDialog.setCredentials(dbConnection);
 
-        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
-        this.codeEditor.lastResultId++;
+        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
+        this.codeEditor.lastResultId!++;
 
         return commandResult;
     };

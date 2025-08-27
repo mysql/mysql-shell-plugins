@@ -52,6 +52,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets the columnsMap
+     * 
      * @returns The columnsMap
      */
     public get columnsMap(): Map<string, string> | undefined {
@@ -60,6 +61,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets the status
+     * 
      * @returns The status
      */
     public get status(): string | undefined {
@@ -68,12 +70,13 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Maps the result grid columns to the corresponding tabulator field number
+     * 
      * @returns A promise resolving when the map is finished
      */
     public setColumnsMap = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
-                const columns = await this.resultContext
+                const columns = await this.resultContext!
                     .findElements(locator.notebook.codeEditor.editor.result.grid.column);
 
                 if (columns.length > 0) {
@@ -98,59 +101,65 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Sets the toolbar status message
+     * 
      * @returns A promise resolving when the toolbar status message is set
      */
     public setStatus = async (): Promise<void> => {
         let status: WebElement | undefined;
 
         await driver.wait(async () => {
-            status = await this.resultContext.findElement(toolbarLocator.status.text);
+            status = await this.resultContext!.findElement(toolbarLocator.status.text);
 
             return (await status.getAttribute("innerHTML")) !== "";
         }, constants.wait1second * 5, `The status is empty for cmd ${this.command}`);
 
-        this.#status = await status.getAttribute("innerHTML");
+        this.#status = await status!.getAttribute("innerHTML");
     };
 
     /**
      * Verifies if the grid is editable
+     * 
      * @returns A condition resolving to true if the grid is editable
      */
     public untilIsEditable = (): Condition<boolean> => {
         return new Condition(`for result grid to be editable`, async () => {
-            const editButton = await this.resultContext
+            const editButton = await this.resultContext!
                 .findElement(locator.notebook.codeEditor.editor.result.toolbar.editButton);
 
-            return (await editButton.getAttribute("class")).includes("disabled") === false;
+            return !(await editButton.getAttribute("class")).includes("disabled");
         });
     };
 
     /**
      * Gets the edit button
+     * 
      * @returns A promise resolving with the edit button
      */
     public getEditButton = (): Promise<WebElement | undefined> => {
-        return this.resultContext.findElement(toolbarLocator.editButton);
+        return this.resultContext!.findElement(toolbarLocator.editButton);
     };
 
     /**
      * Starts the editing of a grid
+     * 
      * @returns A promise resolving when the edit button is clicked
      */
     public edit = async (): Promise<void> => {
-        await (await this.getEditButton()).click();
+        await (await this.getEditButton())!.click();
     };
 
     /**
      * Refreshes a result grid
+     * 
      * @returns A promise resolving when the refresh button is clicked
      */
     public refresh = async (): Promise<void> => {
-        await this.resultContext.findElement(toolbarLocator.refreshButton).click();
+        await this.resultContext!.findElement(toolbarLocator.refreshButton).click();
     };
 
     /**
      * Edits a cell from a result grid
+     * 
      * @param cells The result grid cells
      * @param method The method to edit the cells (double-click, keyboard, button)
      * @returns A promise resolving when the new value is set
@@ -161,7 +170,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
         const updateValue = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
 
-            const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName); // avoid stale
+            const cell = await this.getCell(cellRef.rowNumber!, cellRef.columnName); // avoid stale
             const expectInput = typeof cellRef.value === "string";
 
             if (expectInput) {
@@ -192,7 +201,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                 }
             } else {
-                await this.setCellBooleanValue(cellRef.rowNumber, cellRef.columnName,
+                await this.setCellBooleanValue(cellRef.rowNumber!, cellRef.columnName,
                     cellRef.value as boolean);
             }
         };
@@ -201,7 +210,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             , method?: string): Promise<void> => {
             let isDate = false;
 
-            const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName); // avoid stale
+            const cell = await this.getCell(cellRef.rowNumber!, cellRef.columnName); // avoid stale
             const isDateTime = (await cell
                 .findElements(gridLocator.row.cell.dateTimeInput)).length > 0;
 
@@ -209,7 +218,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 if (method === constants.editButton) {
                     await keyboard.type(nutKey.Tab);
                 } else {
-                    await this.resultContext
+                    await this.resultContext!
                         .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
                 }
 
@@ -218,36 +227,36 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 if (method === constants.editButton) {
                     await keyboard.type(nutKey.Tab);
                 } else {
-                    await this.resultContext
+                    await this.resultContext!
                         .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
                 }
             }
 
             if (isDate) {
                 await driver.wait(async () => {
-                    return (await this.getCellValue(cellRef.rowNumber,
+                    return (await this.getCellValue(cellRef.rowNumber!,
                         cellRef.columnName)) !== "Invalid Date";
                 }, constants.wait1second * 2, `Invalid Date was found after inserting value '${cellRef.value}'`);
             }
 
             await driver.wait(async () => {
-                const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName);
+                const cell = await this.getCell(cellRef.rowNumber!, cellRef.columnName);
 
                 return (await cell.getAttribute("class")).includes("changed");
-            }, constants.wait1second * 2,
-                `Yellow background does not exist on cell after inserting value '${cellRef.value}'`);
+            }, constants.wait1second * 2, `Yellow background does not exist after inserting value '${cellRef.value}'`);
+
         };
 
         if (method === constants.editButton) {
             const tableColumns: string[] = [];
-            for (const key of this.columnsMap.keys()) {
+            for (const key of this.columnsMap!.keys()) {
                 tableColumns.push(key);
             }
 
             await driver.wait(async () => {
                 try {
                     await this.edit();
-                    await driver.wait(this.untilIsEditing(cells[0].rowNumber, tableColumns[0]),
+                    await driver.wait(this.untilIsEditing(cells[0].rowNumber!, tableColumns[0]),
                         constants.wait1second * 3);
 
                     return true;
@@ -261,7 +270,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             for (let i = 0; i <= cells.length - 1; i++) {
                 await driver.wait(async () => {
                     try {
-                        if (await this.isEditing(cells[i].rowNumber, cells[i].columnName)) {
+                        if (await this.isEditing(cells[i].rowNumber!, cells[i].columnName)) {
                             await updateValue(cells[i]);
 
                             if (i === cells.length - 1) {
@@ -290,7 +299,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             for (let i = 0; i <= cells.length - 1; i++) {
                 await driver.wait(async () => {
                     try {
-                        await this.startEditCell(cells[i].rowNumber, cells[i].columnName, method);
+                        await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, method);
                         await updateValue(cells[i]);
 
                         if (i === cells.length - 1 && method === constants.editButton) {
@@ -317,6 +326,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets the value of a cell from a result grid
+     * 
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridRowColumn The column
      * @returns A promise resolving with the cell value.
@@ -339,7 +349,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     toReturn = await (await selectList.findElement(locator.htmlTag.label)).getText();
                 } else if (isIcon) {
                     const img = await cell.findElements(gridLocator.row.cell.icon);
-                    const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+                    const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)![1];
                     toReturn = icon;
                 } else {
                     toReturn = await cell.getText();
@@ -358,6 +368,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Verifies if the cell value equals to @value
+     * 
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridRowColumn The column
      * @param value The expected value
@@ -371,6 +382,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Adds a row into a result grid
+     * 
      * @param cells The cells
      * @returns A promise resolving when the new value is set
      */
@@ -411,7 +423,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
                 }
 
-                await this.resultContext
+                await this.resultContext!
                     .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
             } else {
                 await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
@@ -443,6 +455,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets the cell icon type
+     * 
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridRowColumn The column
      * @returns A promise resolving with the cell icon type
@@ -453,7 +466,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             try {
                 const cell = await this.getCell(gridRow, gridRowColumn);
                 const img = await cell.findElements(gridLocator.row.cell.icon);
-                icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+                icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)![1];
 
                 return true;
             } catch (e) {
@@ -468,6 +481,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Sets a result grid cell with
+     * 
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridRowColumn The column
      * @param reduce The method to reduce (selenium/js). Js will reduce the cell using js, otherwise selenium
@@ -532,6 +546,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets a cell tooltip
+     * 
      * @param gridRow The row number
      * @param columnName The column name
      * @returns A promise resolving with the cell tooltip
@@ -553,8 +568,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     if (tooltip.length > 0) {
                         return tooltip[0].getText();
                     }
-                }, constants.wait1second * 5,
-                    `Could not find tooltip for cell on row '${gridRow}' and column '${columnName}'`);
+                }, constants.wait1second * 5, `Could not find tooltip for cell on column '${columnName}'`);
 
                 return true;
             } catch (e) {
@@ -562,14 +576,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait1second * 10,
-            `Could not get the tooltip for cell on row '${gridRow}' and column '${columnName}'`);
+        }, constants.wait1second * 10, `Could not get the tooltip on column '${columnName}'`);
 
         return tooltipText;
     };
 
     /**
      * Opens the context menu for a result grid cell and selects a value from the menu
+     * 
      * @param gridRow The row number
      * @param columnName The column name
      * @param contextMenuItem The menu item to select
@@ -603,20 +617,19 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     .executeScript("arguments[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, button: 2 }));"
                         , cell);
                 const contextMenu = await driver.wait(until
-                    .elementLocated(cellContextMenu.exists),
-                    constants.wait1second * 5, "Cell context menu was not displayed");
+                    .elementLocated(cellContextMenu
+                        .exists), constants.wait1second * 5, "Cell context menu was not displayed");
+
                 const cellMenuItem = await getCellMenuItem(contextMenu, contextMenuItem);
                 await driver.actions().move({ origin: cellMenuItem }).perform();
 
                 if (subContextMenuItem) {
                     let subMenu: WebElement | undefined;
                     if (contextMenuItem === constants.resultGridContextMenu.copySingleRow) {
-                        subMenu = await driver.wait(until
-                            .elementLocated(cellContextMenu.copySingleRowSubMenu),
-                            constants.wait1second * 5, "Copy Row sub menu was not displayed");
+                        subMenu = await driver.wait(until.elementLocated(cellContextMenu
+                            .copySingleRowSubMenu), constants.wait1second * 5, "Copy Row sub menu was not displayed");
                     } else {
-                        subMenu = await driver.wait(until
-                            .elementLocated(cellContextMenu.copyAllRowsSubMenu),
+                        subMenu = await driver.wait(until.elementLocated(cellContextMenu.copyAllRowsSubMenu),
                             constants.wait1second * 5, "Copy All Rows sub menu was not displayed");
                     }
                     await (await getCellMenuItem(subMenu, subContextMenuItem)).click();
@@ -624,9 +637,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     await cellMenuItem.click();
                 }
 
-                return driver.wait(until.stalenessOf(contextMenu), constants.wait150MilliSeconds,
+                return await driver.wait(until.stalenessOf(contextMenu), constants.wait150MilliSeconds,
                     `The context menu should have been closed, after clicking ${contextMenuItem}, 
-                    ${subContextMenuItem}`).then(() => {
+                    ${subContextMenuItem}`)
+                    .then(() => {
                         return true;
                     }).catch(() => {
                         return false;
@@ -636,20 +650,21 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait1second * 5,
-            // eslint-disable-next-line max-len
-            `Clicking on Item ${contextMenuItem}/${subContextMenuItem ? subContextMenuItem : ""} did not generate any outcome`);
+        }, constants.wait1second * 5, `Clicking on Item ${contextMenuItem}/${subContextMenuItem ?? subContextMenuItem} 
+        did not generate any outcome`);
+
     };
 
     /**
      * Right-clicks on a cell and selects the Copy Row item, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyRow = async (row: number, column: string): Promise<string> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -676,13 +691,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Row with Names item, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyRowWithNames = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -697,8 +713,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             }
 
             return columns[0].split(",").length === allColumns.length;
-        }, constants.wait1second * 5,
-            `Copy row with names - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy row with names - Copied field values don't match`);
 
         return [
             `# ${allColumns.join(", ")}`,
@@ -715,13 +730,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Row Unquoted item, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyRowUnquoted = async (row: number, column: string): Promise<string> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -748,13 +764,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Row With Names, Unquoted item, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyRowWithNamesUnquoted = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -767,8 +784,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy row with names unquoted - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy row with names unquoted - Copied field values don't match`);
 
         return [
             `# ${allColumns.join(", ")}`,
@@ -785,13 +801,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Row With Names, tab separated item, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyRowWithNamesTabSeparated = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -804,8 +821,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy row with names, tab separated - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy row with names, tab separated - Copied field values don't match`);
 
         return [
             `# ${allColumns.join("\t")}`,
@@ -822,13 +838,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Row, tab separated item, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyRowTabSeparated = async (row: number, column: string): Promise<string> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -841,8 +858,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy row, tab separated - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy row, tab separated - Copied field values don't match`);
 
         return ((await this.getCellValues(row)).map((item, index) => {
             if (item.match(/(.*)\/(.*)\/(.*)/)) {
@@ -856,13 +872,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy All Rows, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyAllRows = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -874,11 +891,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy all rows - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy all rows - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -895,13 +911,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy All Rows with Names, until the items are copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyAllRowsWithNames = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -913,11 +930,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy all rows with names - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy all rows with names - Copied field values don't match`);
 
         const toReturn: string[] = [`# ${allColumns.join(",")}`];
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -934,13 +950,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy All Rows Unquoted, until the items are copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyAllRowsUnquoted = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -952,11 +969,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy all rows unquoted - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy all rows unquoted - Copied field values don't match`);
 
         const toReturn: string[] = [];
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item) => {
@@ -973,13 +989,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy All Rows With Names Unquoted, until the items are copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyAllRowsWithNamesUnquoted = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -991,11 +1008,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy all rows with names unquoted - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy all rows with names unquoted - Copied field values don't match`);
 
         const toReturn: string[] = [`# ${allColumns.join(",")}`];
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item) => {
@@ -1012,13 +1028,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy All Rows With Names Tab Separated, until the items are copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyAllRowsWithNamesTabSeparated = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -1030,11 +1047,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy all rows with names tab separated - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy all rows with names tab separated - Copied field values don't match`);
 
         const toReturn: string[] = [`# ${allColumns.join("\t")}`];
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -1051,13 +1067,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy All Rows Tab Separated, until the items are copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
      */
     public copyAllRowsTabSeparated = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = Array.from(this.columnsMap.keys());
+        const allColumns = Array.from(this.columnsMap!.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -1069,11 +1086,10 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait1second * 5,
-            `Copy all rows tab separated - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy all rows tab separated - Copied field values don't match`);
 
         const toReturn: string[] = [];
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -1090,6 +1106,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Field from the context menu, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
@@ -1119,6 +1136,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Right-clicks on a cell and selects the Copy Field Unquoted from the context menu, until the item is copied
+     * 
      * @param row The row number
      * @param column The column name
      * @returns A promise resolving when menu item is copied
@@ -1129,8 +1147,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyFieldUnquoted);
 
             return clipboard.readSync().match(/.*/) !== null;
-        }, constants.wait1second * 5,
-            `The Copy Field Unquoted did not copied anything to the clipboard for column '${column}'`);
+        }, constants.wait1second * 5, `The Copy Field Unquoted did not copied to the clipboard for column '${column}'`);
 
         const cellValue = await this.getCellValue(row, column);
 
@@ -1149,6 +1166,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Verifies the row is marked for deletion (red background)
+     * 
      * @param gridRow The row number
      * @returns A condition resolving to true if the row is marked for deletion, false otherwise
      */
@@ -1162,6 +1180,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Verifies if the tooltip is equal to the expected value
+     * 
      * @param rowNumber The row number
      * @param rowColumn The column name
      * @param expectedTooltip The expected tooltip
@@ -1174,32 +1193,35 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         return new Condition(` tooltip to be '${expectedTooltip}'`, async () => {
             const tooltip = await this.getCellTooltip(rowNumber, rowColumn);
 
-            return tooltip.replace(/\s/g, "") === expectedTooltip.replace(/\s/g, "");
+            return tooltip!.replace(/\s/g, "") === expectedTooltip.replace(/\s/g, "");
         });
     };
 
     /**
      *Verifies if the result grid cells were changed
+     *
      * @param changed The expected number of changed cells
      * @returns A condition resolving to true if the cells were changed, false otherwise
      */
     public untilCellsWereChanged = (changed: number): Condition<boolean> => {
         return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
-            return (await this.resultContext
+            return (await this.resultContext!
                 .findElements(locator.notebook.codeEditor.editor.result.changedTableCell)).length === changed;
         });
     };
 
     /**
      * Gets the rows of a result grid
+     * 
      * @returns A promise resolving with the rows
      */
     public getRows = async (): Promise<WebElement[]> => {
-        return this.resultContext.findElements(gridLocator.row.exists);
+        return this.resultContext!.findElements(gridLocator.row.exists);
     };
 
     /**
      * Gets a row of a result grid
+     * 
      * @param gridRow The row number or the row as WebElement
      * @returns A promise resolving with the row
      */
@@ -1211,6 +1233,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets the row cell values of a result grid
+     * 
      * @param rowNumber The row number
      * @returns A promise resolving with the row values as an array of strings
      */
@@ -1219,7 +1242,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
         await driver.wait(async () => {
             try {
-                const rows = await this.resultContext.findElements(gridLocator.row.exists);
+                const rows = await this.resultContext!.findElements(gridLocator.row.exists);
                 const cells = await rows[rowNumber].findElements(gridLocator.row.cell.exists);
 
                 for (const cell of cells) {
@@ -1235,7 +1258,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                         values.push(await (await selectList.findElement(locator.htmlTag.label)).getText());
                     } else if (isIcon) {
                         const img = await cell.findElements(gridLocator.row.cell.icon);
-                        const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+                        const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)![1];
                         values.push(icon);
                     } else {
                         values.push(await cell.getText());
@@ -1257,6 +1280,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Verifies if the status matches a regex
+     * 
      * @param regex The regex
      * @returns A condition resolving to true if status matches the regex
      */
@@ -1267,18 +1291,19 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             this.resultContext = result;
             await this.setStatus();
 
-            return this.status.match(regex) !== null;
+            return this.status!.match(regex) !== null;
         });
     };
 
     /**
      * Verifies if a row is highlighted
+     * 
      * @param gridRow The row
      * @returns A condition resolving to true if the row is highlighted, false otherwise
      */
     public untilRowIsHighlighted = (gridRow: number): Condition<boolean> => {
         return new Condition(`for row ${gridRow} to be highlighted`, async () => {
-            const rows = await this.resultContext.findElements(gridLocator.row.exists);
+            const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
             if (rows.length > 0) {
                 return (await rows[gridRow].getAttribute("class")).includes("tabulator-selected");
@@ -1290,6 +1315,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Starts the focus on the result grid by pressing keys (CMD/META + ALT + ENTER)
+     * 
      * @returns A promise resolving when the first result grid cell is focused
      */
     public startFocus = async (): Promise<void> => {
@@ -1307,20 +1333,22 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Maximizes the result grid
+     * 
      * @returns A promise resolving when the result is maximized
      */
     public maximize = async (): Promise<void> => {
-        await this.resultContext.findElement(toolbarLocator.maximize).click();
+        await this.resultContext!.findElement(toolbarLocator.maximize).click();
         await driver.wait(this.untilIsMaximized(), constants.wait1second * 5);
     };
 
     /**
      * Selects a view
+     * 
      * @param name The view name
      * @returns A promise resolving when the view is selected
      */
     public selectView = async (name: string): Promise<void> => {
-        const view = await this.resultContext.findElement(toolbarLocator.view.exists);
+        const view = await this.resultContext!.findElement(toolbarLocator.view.exists);
         await view.click();
         await driver.wait(until.elementLocated(toolbarLocator.view.isVisible), constants.wait1second * 5,
             "Could not find the result grid view drop down list");
@@ -1336,44 +1364,48 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets the SQL Preview generated for a string
+     * 
      * @returns A promise resolving with the sql preview
      */
     public selectSqlPreview = async (): Promise<void> => {
-        await this.resultContext.findElement(toolbarLocator.previewButton).click();
+        await this.resultContext!.findElement(toolbarLocator.previewButton).click();
     };
 
     /**
      * Clicks on the Apply Changes button of a result grid
+     * 
      * @returns A promise resolving when the button is clicked
      */
     public applyChanges = async (): Promise<void> => {
         await driver.executeScript("arguments[0].click()",
-            await this.resultContext.findElement(toolbarLocator.applyButton));
+            await this.resultContext!.findElement(toolbarLocator.applyButton));
     };
 
     /**
      * Clicks on the Rollback Changes button of a result grid
+     * 
      * @returns A promise resolving when the button is clicked
      */
     public rollbackChanges = async (): Promise<void> => {
-        await this.resultContext.findElement(toolbarLocator.rollbackButton).click();
+        await this.resultContext!.findElement(toolbarLocator.rollbackButton).click();
         const dialog = await new ConfirmDialog().untilExists();
         await dialog.accept();
     };
 
     /**
      * Closes the current result set
+     * 
      * @returns A promise resolving when the result set is closed
      */
     public closeResultSet = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
                 await driver.wait(async () => {
-                    return (await this.resultContext
+                    return (await this.resultContext!
                         .findElements(toolbarLocator.showActionMenu.open)).length > 0;
                 }, constants.wait1second * 5, "Could not find Show Actions button");
 
-                const showActions = await this.resultContext
+                const showActions = await this.resultContext!
                     .findElement(toolbarLocator.showActionMenu.open);
                 await driver.executeScript("arguments[0].click()", showActions);
 
@@ -1398,13 +1430,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Selects a result grid tab
+     * 
      * @param tabName The tab name to select
      */
     public selectTab = async (tabName: string): Promise<void> => {
-        if (this.tabs.length > 0) {
-            await this.tabs.find((item: interfaces.ICommandResultTab) => {
+        if (this.tabs!.length > 0) {
+            await this.tabs!.find((item: interfaces.ICommandResultTab) => {
                 return item.name === tabName;
-            }).element.click();
+            })!.element.click();
         } else {
             throw new Error(`The result grid does not have tabs to select`);
         }
@@ -1416,6 +1449,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Gets a cell of a result grid
+     * 
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridColumn The column
      * @returns A promise resolving with the cell
@@ -1427,12 +1461,12 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         await driver.wait(async () => {
             try {
                 if (gridRow === -1) {
-                    const addedTableRows = await this.resultContext
+                    const addedTableRows = await this.resultContext!
                         .findElements(gridLocator.newAddedRow);
                     cells = await addedTableRows[addedTableRows.length - 1]
                         .findElements(gridLocator.row.cell.exists);
                 } else {
-                    const rows = await this.resultContext.findElements(gridLocator.row.exists);
+                    const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
                     if (rows.length > 0) {
 
@@ -1442,7 +1476,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     }
                 }
 
-                cellToReturn = cells[parseInt(this.columnsMap.get(gridColumn), 10)];
+                cellToReturn = cells[parseInt(this.columnsMap!.get(gridColumn)!, 10)];
 
                 return true;
             } catch (e) {
@@ -1452,40 +1486,43 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             }
         }, constants.wait1second * 10, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
 
-        return cellToReturn;
+        return cellToReturn!;
     };
 
     /**
      * Verifies if a new row exists
+     * 
      * @returns A condition resolving to true if a row was added, false otherwise
      */
     private untilNewRowExists = (): Condition<boolean> => {
         return new Condition(`for added table row`, async () => {
-            return (await this.resultContext.findElements(gridLocator.newAddedRow)).length > 0;
+            return (await this.resultContext!.findElements(gridLocator.newAddedRow)).length > 0;
         });
     };
 
     /**
      * Clicks the add new row button in a result grid, by moving the mouse to the table headers to display the button
+     * 
      * @returns A promise resolving when the button is clicked
      */
     private clickAddNewRowButton = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
         await driver.wait(async () => {
-            const tableHeader = await this.resultContext.findElement(gridLocator.headers);
+            const tableHeader = await this.resultContext!.findElement(gridLocator.headers);
             await driver.actions().move({ origin: tableHeader }).perform();
 
-            return (await this.resultContext
+            return (await this.resultContext!
                 .findElements(resultLocator.toolbar.addNewRowButton))
                 .length > 0;
         }, constants.wait1second * 5, "Add new button was not displayed");
 
         await driver.executeScript("arguments[0].click()",
-            await (this.resultContext).findElement(resultLocator.toolbar.addNewRowButton));
+            await (this.resultContext!).findElement(resultLocator.toolbar.addNewRowButton));
     };
 
     /**
      * Sets a boolean value on a cell
+     * 
      * @param rowNumber The row number
      * @param columnName The column name
      * @param value The value
@@ -1512,10 +1549,12 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             }
         }));
 
-        item = item.filter((el) => { return el !== undefined; });
+        item = item.filter((el) => {
+            return el !== undefined;
+        });
 
         if (item.length > 0) {
-            await item[0].click();
+            await item[0]!.click();
         } else {
             throw new Error(`Could not find '${value}' on the select list`);
         }
@@ -1523,6 +1562,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Clears an input field
+     * 
      * @param el The element
      * @returns A promise resolving when the field is cleared
      */
@@ -1538,13 +1578,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Focus a cell, by pressing the keyboard TAB key
+     * 
      * @param rowNumber The row number
      * @param columnName The column name
      * @returns A promise resolving when the field is cleared
      */
     private focusCell = async (rowNumber: number, columnName: string): Promise<void> => {
 
-        const isCellFocused = async (row: number, column: string): Promise<boolean> => {
+        const isCellFocused = async (row: number, column: string): Promise<boolean | undefined> => {
             const refCell = await this.getCell(row, column);
             const focusedCell = await driver.switchTo().activeElement();
 
@@ -1578,6 +1619,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Checks if a cell is being edited
+     * 
      * @param rowNumber The row number
      * @param columnName The column name
      * @returns A promise revolving to true if the cell is being edited, false otherwise
@@ -1590,6 +1632,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Checks if a cell is being edited
+     * 
      * @param rowNumber The row number
      * @param columnName The column name
      * @returns A condition revolving to true if the cell is being edited, false otherwise
@@ -1601,7 +1644,8 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     };
 
     /**
-     * Starts to edit a cell.
+     * Starts to edit a cell
+     * 
      * @param rowNumber The row number
      * @param columnName The column name
      * @param method The method to edit the cells (double-click, keyboard, button)
@@ -1651,6 +1695,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Formats a date from a cell
+     * 
      * @param value The date
      * @param quoted True to return the date quoted, false otherwise
      * @returns The formatted date

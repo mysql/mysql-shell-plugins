@@ -35,6 +35,7 @@ export class E2EEditorSelector {
 
     /**
      * Gets the current editor
+     * 
      * @returns A promise resolving with the editor
      */
     public getCurrentEditor = async (): Promise<interfaces.ICurrentEditor> => {
@@ -58,7 +59,7 @@ export class E2EEditorSelector {
 
                 editor = {
                     label: await label.getText(),
-                    icon: content.match(/assets\/(.*)-/)[1],
+                    icon: content!.match(/assets\/(.*)-/)![1],
                 };
 
                 return true;
@@ -69,11 +70,12 @@ export class E2EEditorSelector {
             }
         }, constants.wait1second * 5, "Could not get the current editor values");
 
-        return editor;
+        return editor!;
     };
 
     /**
      * Selects the current editor
+     * 
      * @param editorName The editor name
      * @param parentConnection The name of the parent connection
      * @returns A promise resolving when the editor is selected
@@ -89,8 +91,8 @@ export class E2EEditorSelector {
                 await driver.executeScript("arguments[0].click()", selector);
 
                 const list = await driver.wait(until
-                    .elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
-                    constants.wait1second * 2, "The editor list was not displayed");
+                    .elementLocated(locator.notebook.toolbar
+                        .editorSelector.list.exists), constants.wait1second * 2, "The editor list was not displayed");
 
                 await driver.wait(async () => {
                     return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;

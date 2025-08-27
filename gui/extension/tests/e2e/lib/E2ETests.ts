@@ -61,6 +61,7 @@ export class E2ETests {
 
     /**
      * Gets the cli arguments (--extension-path, --mysql-port and --test-suite)
+     * 
      * @returns The object @IE2ECli with the cli values
      */
     public static getCliArguments = (): IE2ECli => {
@@ -112,7 +113,7 @@ export class E2ETests {
 
         for (const testFile of testFiles) {
             const file = testFile.toString();
-            const testSuiteName = file.match(/ui-(.*).ts/)[1].toUpperCase();
+            const testSuiteName = file.match(/ui-(.*).ts/)![1].toUpperCase();
             this.setTestSuite(testSuiteName);
         }
 
@@ -127,10 +128,17 @@ export class E2ETests {
     public static setShellBinary = (): void => {
         const mysqlsh = platform() !== "win32" ? "mysqlsh" : "mysqlsh.exe";
 
-        this.shellBinary = join(this.testSuites[0].extensionDir, readdirSync(this.testSuites[0].extensionDir)
-            .filter((item) => {
-                return item.includes("oracle");
-            })[0], "shell", "bin", mysqlsh);
+        let folderName: string | undefined;
+        const files = readdirSync(this.testSuites[0].extensionDir!);
+
+        for (const file of files) {
+            if (file.includes("oracle")) {
+                folderName = file;
+                break;
+            }
+        }
+
+        this.shellBinary = join(this.testSuites[0].extensionDir!, folderName!, "shell", "bin", mysqlsh);
 
         if (!existsSync(this.shellBinary)) {
             throw new Error(`[ERR] Could not find the shell binary. Please install the extension`);
@@ -139,11 +147,12 @@ export class E2ETests {
 
     /**
      * Sets the testSuites attribute
+     * 
      * @param testSuiteName The test suite name
      */
     public static setTestSuite = (testSuiteName: string): void => {
 
-        if (!process.env.TEST_RESOURCES_PATH) {
+        if (!process.env.TEST_RESOURCES_PATH!) {
             // eslint-disable-next-line max-len
             throw new Error("[ERR] No value found for env:TEST_RESOURCES_PATH (Path for VSCode instances and Chromedriver)");
         }
@@ -162,18 +171,20 @@ export class E2ETests {
 
     /**
      * Runs a shell command
+     * 
      * @param params The parameters to use on the command
      */
     public static runShellCommand = (params: string[]): void => {
         const response = spawnSync(this.shellBinary, params);
 
         if (response.status !== 0) {
-            throw response.stderr.toString();
+            throw new Error(response.stderr.toString());
         }
     };
 
     /**
      * Runs a generic command
+     * 
      * @param cmd The command name
      * @param params The parameters to use on the command
      * @returns The output of the command
@@ -184,9 +195,9 @@ export class E2ETests {
         if (response.status !== 0) {
 
             if (response.stderr.toString().trim() === "") {
-                throw response.stdout.toString();
+                throw new Error(response.stdout.toString());
             } else {
-                throw response.stderr.toString();
+                throw new Error(response.stderr.toString());
             }
 
         } else {
@@ -196,11 +207,12 @@ export class E2ETests {
 
     /**
      * Installs VSCode and Chromedriver for a test suite
+     * 
      * @param testSuite The test suite
      */
     public static installTestResources = async (testSuite: IE2ETestSuite): Promise<void> => {
 
-        if (!process.env.TEST_RESOURCES_PATH) {
+        if (!process.env.TEST_RESOURCES_PATH!) {
             throw new Error(`[ERR] No value found for env:TEST_RESOURCES_PATH`);
         }
 
@@ -214,7 +226,7 @@ export class E2ETests {
                 const cpuArch = this.runCommand("uname", ["-p"]);
 
                 if (cpuArch === "arm") {
-                    const destination = join(testSuite.testResources, `stable_${process.env.CODE_VERSION}.zip`);
+                    const destination = join(testSuite.testResources!, `stable_${process.env.CODE_VERSION}.zip`);
                     const file = createWriteStream(destination);
                     get(`https://update.code.visualstudio.com/${process.env.CODE_VERSION}/darwin-arm64/stable`,
                         (response) => {
@@ -227,11 +239,11 @@ export class E2ETests {
 
                     E2ELogger.success(`Downloaded VSCode (ARM64) for ${testSuite.name} test suite`);
                 } else {
-                    await testSuite.exTester.downloadCode(process.env.CODE_VERSION);
+                    await testSuite.exTester!.downloadCode(process.env.CODE_VERSION);
                     E2ELogger.success(`Downloaded VSCode for ${testSuite.name} test suite`);
                 }
             } else {
-                await testSuite.exTester.downloadCode(process.env.CODE_VERSION);
+                await testSuite.exTester!.downloadCode(process.env.CODE_VERSION);
                 E2ELogger.success(`Downloaded VSCode for ${testSuite.name} test suite`);
             }
 
@@ -240,7 +252,7 @@ export class E2ETests {
         }
 
         if (!this.existsChromedriver(testSuite)) {
-            await testSuite.exTester.downloadChromeDriver(process.env.CODE_VERSION);
+            await testSuite.exTester!.downloadChromeDriver(process.env.CODE_VERSION);
             E2ELogger.success(`Downloaded Chromedriver for ${testSuite.name} test suite`);
         } else {
             E2ELogger.success(`Found Chromedriver for ${testSuite.name} test suite`);
@@ -250,10 +262,11 @@ export class E2ETests {
 
     /**
      * Removes the logs folder for a test suite
+     * 
      * @param testSuite The test suite
      */
     public static removeLogs = async (testSuite: IE2ETestSuite): Promise<void> => {
-        const logsFolderPath = join(testSuite.testResources, "settings", "logs");
+        const logsFolderPath = join(testSuite.testResources!, "settings", "logs");
 
         if (existsSync(logsFolderPath)) {
             const folderItems = await fs.readdir(logsFolderPath);
@@ -360,8 +373,7 @@ export class E2ETests {
             installSqlData(this.mysqlPorts[0]);
             writeFileSync(join(process.cwd(), "config"), ociConfigFile);
             E2ELogger.success("OCI Configuration file created successfully");
-        }
-        else if (this.testSuites[0].name === "REST-CONFIG") {
+        } else if (this.testSuites[0].name === "REST-CONFIG") {
             installSqlData(this.mysqlPorts[3]);
         } else if (this.testSuites[0].name === "REST") {
             installSqlData(this.mysqlPorts[1]);
@@ -381,6 +393,7 @@ export class E2ETests {
 
     /**
      * Runs some setup configurations and the e2e tests
+     * 
      * @param testSuite The test suite name. If omitted, it will run all tests
      * @param log True to send the test results to a log file
      * @returns A promise resolving with the result code of the tests execution (0 = success)
@@ -393,7 +406,7 @@ export class E2ETests {
         process.env.MOCHAWESOME_REPORTDIR = process.cwd();
         process.env.MOCHAWESOME_REPORTFILENAME = `test-report-${testSuite.name}.json`;
         process.env.TEST_SUITE = testSuite.name;
-        process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`);
+        process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`);
         process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPorts[0], "sandboxdata");
         process.env.MYSQL_1107 = this.mysqlPorts[0];
         process.env.MYSQL_1108 = this.mysqlPorts[1]; // HAS MRS
@@ -410,11 +423,11 @@ export class E2ETests {
         const minPort = 4000;
         const maxPort = 6000;
 
-        process.env.MYSQLSH_GUI_CUSTOM_PORT = `${Math.floor(Math.random() * (maxPort - minPort + 1) + minPort)}`;
+        process.env.MYSQLSH_GUI_CUSTOM_PORT = `${Math.floor(Math.random() * (maxPort - minPort + 1)) + minPort}`;
         E2ELogger.success(`MYSQLSH_GUI_CUSTOM_PORT is ${process.env.MYSQLSH_GUI_CUSTOM_PORT}`);
 
         // TRUNCATE THE MYSQL SHELL LOG FILE
-        const mysqlshLog = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "mysqlsh.log");
+        const mysqlshLog = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`, "mysqlsh.log");
 
         if (existsSync(mysqlshLog)) {
             truncateSync(mysqlshLog);
@@ -423,12 +436,12 @@ export class E2ETests {
         }
 
         // REMOVE SHELL INSTANCE HOME (for safety)
-        const shellInstanceHome = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "plugin_data",
+        const shellInstanceHome = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`, "plugin_data",
             "gui_plugin", "shell_instance_home");
         rmSync(shellInstanceHome, { force: true, recursive: true });
 
         // REMOVE ROUTER CONFIGURATIONS
-        const routerConfigsFolder = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "plugin_data",
+        const routerConfigsFolder = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`, "plugin_data",
             "mrs_plugin", "router_configs");
         rmSync(routerConfigsFolder, { force: true, recursive: true });
 
@@ -460,6 +473,7 @@ export class E2ETests {
 
     /**
      * Copies the Web Certificates from the shell config folder to the custom config folder of the test suite
+     * 
      * @param testSuite The test suite
      */
     public static setWebCertificate = (testSuite: IE2ETestSuite): void => {
@@ -510,7 +524,7 @@ export class E2ETests {
             }
         }
 
-        const configFolder = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`);
+        const configFolder = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`);
 
         if (!existsSync(configFolder)) {
             mkdirSync(configFolder);
@@ -528,11 +542,11 @@ export class E2ETests {
                 }
             }
 
-            symlinkSync(webCertificatesPath, webCerts);
+            symlinkSync(webCertificatesPath!, webCerts);
             E2ELogger.success(`Web Certificates symlink created for ${testSuite.name} test suite`);
         } else {
             if (!existsSync(webCerts)) {
-                cpSync(webCertificatesPath, webCerts, { recursive: true });
+                cpSync(webCertificatesPath!, webCerts, { recursive: true });
                 E2ELogger.success(`[OK] Copied web_certs folder for ${testSuite.name} test suite`);
             } else {
                 E2ELogger.success(`Found web_certs folder for ${testSuite.name} test suite`);
@@ -542,6 +556,7 @@ export class E2ETests {
 
     /**
      * Verifies if the extension was not loaded
+     * 
      * @param testSuite The test suite name
      * @returns A promise resolving with true if the extension was not loaded, false otherwise
      */
@@ -574,7 +589,7 @@ export class E2ETests {
 
         const currentDir = readdirSync(process.cwd());
 
-        const reportFiles = [];
+        const reportFiles: string[] = [];
         for (const file of currentDir) {
             if (file.includes("test-report")) {
                 reportFiles.push(file);
@@ -605,16 +620,17 @@ export class E2ETests {
 
     /**
      * Copies the extension for a test suite
+     * 
      * @param testSuiteSource The test suite source that already has the extension installed
      * @param testSuite The test suite to copy the extension for
      */
     public static copyExtension = (testSuiteSource: IE2ETestSuite, testSuite: IE2ETestSuite): void => {
-        if (!existsSync(testSuite.testResources)) {
+        if (!existsSync(testSuite.testResources!)) {
             throw new Error(`${testSuite.testResources} does not exist`);
         }
 
-        if (existsSync(testSuiteSource.extensionDir)) {
-            cpSync(testSuiteSource.extensionDir, testSuite.extensionDir, { recursive: true });
+        if (existsSync(testSuiteSource.extensionDir!)) {
+            cpSync(testSuiteSource.extensionDir!, testSuite.extensionDir!, { recursive: true });
             E2ELogger.success(`Copied the extension from ${testSuiteSource.name} suite to ${testSuite.name} suite`);
         } else {
             throw new Error(`Please install the extension for ${testSuite.name} test suite`);
@@ -623,16 +639,17 @@ export class E2ETests {
 
     /**
      * Installs the extension on a test suite
+     * 
      * @param testSuite The test suite
      */
     public static installExtension = async (testSuite: IE2ETestSuite): Promise<void> => {
-        if (!existsSync(testSuite.testResources)) {
+        if (!existsSync(testSuite.testResources!)) {
             throw new Error(`${testSuite.testResources} does not exist`);
         }
         const cliArguments = this.getCliArguments();
 
         if (cliArguments.extensionPath) {
-            await testSuite.exTester.installVsix({ vsixFile: cliArguments.extensionPath });
+            await testSuite.exTester!.installVsix({ vsixFile: cliArguments.extensionPath });
         } else {
             E2ELogger.info(`Skipping extension installation for ${testSuite.name} test suite`);
         }
@@ -647,12 +664,12 @@ export class E2ETests {
 
         let testsToDisable: string[];
 
-        if (process.env.DISABLE_TESTS.includes(",")) {
-            testsToDisable = process.env.DISABLE_TESTS.split(",").map((item) => {
+        if (process.env.DISABLE_TESTS!.includes(",")) {
+            testsToDisable = process.env.DISABLE_TESTS!.split(",").map((item) => {
                 return item.trim();
             });
         } else {
-            testsToDisable = [process.env.DISABLE_TESTS];
+            testsToDisable = [process.env.DISABLE_TESTS!];
         }
 
         const files = await fs.readdir(testsDir);
@@ -723,8 +740,7 @@ export class E2ETests {
                     `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
                 ]);
                 E2ELogger.success(`Deleted MySQL instance successfully for port ${mysqlPort}`);
-            }
-            catch (e) {
+            } catch (e) {
                 if (!String(e).includes("does not exist")) {
                     throw e;
                 }
@@ -735,6 +751,7 @@ export class E2ETests {
 
     /**
      * Executes the tests
+     * 
      * @param testSuite The test suite name
      * @param log True to log the test results to a file, false otherwise
      * @returns A promise resolving with the result code of the tests execution (0 = success)
@@ -743,6 +760,7 @@ export class E2ETests {
 
         E2ELogger.info(`Running tests for ${testSuite.name.toUpperCase()} suite...`);
         process.env.NODE_ENV = "test";
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const defaultStdoutWrite = process.stdout.write.bind(process.stdout);
         const filename = `test_results_${testSuite.name}.log`;
 
@@ -753,11 +771,12 @@ export class E2ETests {
 
             const logStream = createWriteStream(filename, { flags: "a" });
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             process.stdout.write = process.stderr.write = logStream.write.bind(logStream);
         }
 
         let extensionFileName: string;
-        const extensionDir = await fs.readdir(testSuite.extensionDir);
+        const extensionDir = await fs.readdir(testSuite.extensionDir!);
         for (const file of extensionDir) {
             if (file.includes("oracle")) {
                 extensionFileName = file;
@@ -765,14 +784,14 @@ export class E2ETests {
             }
         }
 
-        if (!extensionFileName) {
+        if (!extensionFileName!) {
             throw new Error(`Could not find the extension file name at ${testSuite.extensionDir}`);
         }
 
-        process.env.VSCODE_ARGS = `--disable-extensions --extensionDevelopmentPath=${join(testSuite.extensionDir,
+        process.env.VSCODE_ARGS = `--disable-extensions --extensionDevelopmentPath=${join(testSuite.extensionDir!,
             extensionFileName)} --user-data-dir=./vscode-test-user-data --disable-gpu`;
 
-        const result = await testSuite.exTester.runTests(`./tests/ui-${testSuite.name.toLowerCase()}.ts`, {
+        const result = await testSuite.exTester!.runTests(`./tests/ui-${testSuite.name.toLowerCase()}.ts`, {
             settings: join(process.cwd(), "setup", "settings.json"),
             offline: true,
             config: join(process.cwd(), "setup", ".mocharc.json"),
@@ -781,11 +800,15 @@ export class E2ETests {
         });
 
         if (log) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             process.stdout.write = defaultStdoutWrite;
         }
 
-        result === 0 ? E2ELogger.info(`Tests PASSED for ${testSuite.name.toUpperCase()} suite.`) :
+        if (result === 0) {
+            E2ELogger.info(`Tests PASSED for ${testSuite.name.toUpperCase()} suite.`);
+        } else {
             E2ELogger.error(`Tests FAILED for ${testSuite.name.toUpperCase()} suite`);
+        }
 
         return result;
     };
@@ -843,7 +866,7 @@ export class E2ETests {
         ];
 
         for (const envVar of requiredEnvVars) {
-            if (!envVar) {
+            if (!envVar.value) {
                 throw new Error(`Please define env:${envVar.value} (${envVar.description})`);
             }
         }
@@ -856,7 +879,7 @@ export class E2ETests {
 
         const requiredEnvVars = [
             {
-                value: process.env.TEST_RESOURCES_PATH,
+                value: process.env.TEST_RESOURCES_PATH!,
                 description: "Path for VSCode instances and Chromedriver)",
             },
             {
@@ -882,7 +905,7 @@ export class E2ETests {
         ];
 
         for (const envVar of requiredEnvVars) {
-            if (!envVar) {
+            if (!envVar.value) {
                 throw new Error(`Please define env:${envVar.value} (${envVar.description})`);
             }
         }
@@ -898,25 +921,30 @@ export class E2ETests {
             output = this.runCommand("mysql", ["--version"]);
             E2ELogger.success(`Found MySQL Server - ${output}`);
         } catch (e) {
-            throw new Error(`[ERR] MySQL Server was not found.`);
+            if (e instanceof Error) {
+                throw new Error(`[ERR] MySQL Server was not found.`);
+            }
         }
 
     };
 
     /**
      * Verifies if VSCode exists for a test suite. It searches under the test-resources-<test_suite> folder
+     * 
      * @param testSuite The Test suite
      * @returns True if VSCode exists for the test suite, false otherwise
      */
     private static existsVSCode = (testSuite: IE2ETestSuite): boolean => {
-        if (existsSync(testSuite.testResources)) {
-            const files = readdirSync(testSuite.testResources);
+        if (existsSync(testSuite.testResources!)) {
+            const files = readdirSync(testSuite.testResources!);
 
             for (const file of files) {
                 if (file.toLowerCase().includes("code")) {
                     return true;
                 }
             }
+
+            return false;
         } else {
             return false;
         }
@@ -924,18 +952,21 @@ export class E2ETests {
 
     /**
      * Verifies if Chromedriver exists for a test suite. It searches under the test-resources-<test_suite> folder
+     * 
      * @param testSuite The Test suite
      * @returns True if Chromedriver exists for the test suite, false otherwise
      */
     private static existsChromedriver = (testSuite: IE2ETestSuite): boolean => {
-        if (existsSync(testSuite.testResources)) {
-            const files = readdirSync(testSuite.testResources);
+        if (existsSync(testSuite.testResources!)) {
+            const files = readdirSync(testSuite.testResources!);
 
             for (const file of files) {
                 if (file.toLowerCase().includes("chromedriver")) {
                     return true;
                 }
             }
+
+            return false;
         } else {
             return false;
         }
@@ -943,6 +974,7 @@ export class E2ETests {
 
     /**
      * Prepares the extension logs to be exported on jenkins, by renaming the log files according with the test suite
+     * 
      * @param testSuite The test suite
      * @returns A promise resolving when the logs are prepared
      */

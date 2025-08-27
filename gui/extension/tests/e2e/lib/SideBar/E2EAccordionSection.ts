@@ -32,9 +32,9 @@ import {
     EditorView,
     Key,
     Workbench as extWorkbench,
-    ModalDialog,
     EditorTab,
     BottomBarPanel,
+    CustomTreeItem,
 } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "../constants";
@@ -60,16 +60,26 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if a section exists
+     * 
      * @returns A condition resolving to true if exists, false otherwise
      */
     public untilExists = (): Condition<boolean> => {
         return new Condition(`for ${this.name} to exist`, async () => {
-            return (await new SideBarView().getContent().getSection(this.name)) !== undefined;
+            const sections = await new SideBarView().getContent().getSections();
+
+            for (const section of sections) {
+                if ((await section.getTitle()) === this.name) {
+                    return true;
+                }
+            }
+
+            return false;
         });
     };
 
     /**
      * Clicks a section toolbar button
+     * 
      * @param button The button
      * @returns A promise resolving when the button is clicked
      */
@@ -91,7 +101,6 @@ export class E2EAccordionSection {
 
                     return sectionActions.isDisplayed();
                 }, constants.wait1second * 5, `Toolbar buttons for ${this.name} were not displayed`);
-
 
                 const actionItems = await sectionActions.findElements(locator.htmlTag.li);
 
@@ -116,6 +125,7 @@ export class E2EAccordionSection {
 
     /**
      * Selects an item from the "More Actions" context menu
+     * 
      * @param item The item
      * @returns A promise resolving when the button is clicked
      */
@@ -129,25 +139,26 @@ export class E2EAccordionSection {
         await driver.actions().move({ origin: thisSection }).perform();
 
         if (Os.isMacOs()) {
-            await thisSection.moreActions().catch((e) => {
+            await thisSection.moreActions().catch((e: unknown) => {
                 if (!(e instanceof error.NoSuchElementError)) {
                     throw e;
                 }
             });
             const taps = Misc.getValueFromMap(item);
-            for (let i = 0; i <= taps - 1; i++) {
+            for (let i = 0; i <= taps! - 1; i++) {
                 await keyboard.type(nutKey.Down);
             }
             await keyboard.type(nutKey.Enter);
         } else {
             const moreActions = await thisSection.moreActions();
-            const moreActionsItem = await moreActions.getItem(item);
+            const moreActionsItem = await moreActions!.getItem(item);
             await moreActionsItem?.select();
         }
     };
 
     /**
      * Creates a database connection from the DATABASE CONNECTIONS section toolbar
+     * 
      * @param dbConfig The database configuration data
      * @returns A promise resolving when the connection is created
      */
@@ -166,6 +177,7 @@ export class E2EAccordionSection {
 
     /**
      * Focus the section, by expanding the section and collapsing all the other sections
+     * 
      * @returns A promise resolving when the section is focused
      */
     public focus = async (): Promise<void> => {
@@ -200,6 +212,7 @@ export class E2EAccordionSection {
 
     /**
      * Expands the section
+     * 
      * @param sectionName The section name
      * @returns A promise resolving when the section is expanded
      */
@@ -210,7 +223,7 @@ export class E2EAccordionSection {
 
         let section: ViewSection;
 
-        if (section) {
+        if (sectionName) {
             section = await new SideBarView().getContent().getSection(sectionName);
         } else {
             section = await new SideBarView().getContent().getSection(this.name);
@@ -227,6 +240,7 @@ export class E2EAccordionSection {
 
     /**
      * Collapse the section
+     * 
      * @param sectionName The section name
      * @returns A promise resolving when the section is collapsed
      */
@@ -254,6 +268,7 @@ export class E2EAccordionSection {
 
     /**
      * Restarts MySQL Shell from the DATABASE CONNECTIONS section toolbar context menu
+     * 
      * @returns A promise resolving when MySQL Shell is restarted
      */
     public restartShell = async (): Promise<void> => {
@@ -281,7 +296,7 @@ export class E2EAccordionSection {
                         try {
                             await item.click();
 
-                            return (await existsRootHost()) === false;
+                            return !(await existsRootHost());
                         } catch (e) {
                             if (errors.isStaleError(e as Error)) {
                                 return true;
@@ -301,6 +316,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets the tree items that are database connections from the DATABASE CONNECTIONS section
+     * 
      * @returns A promise resolving with the database connections
      */
     public getTreeDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
@@ -335,9 +351,10 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the section is not loading
+     * 
      * @returns A condition resolving to true if the section is not loading, false otherwise
      */
-    public untilIsNotLoading = (): Condition<boolean> => {
+    public untilIsNotLoading = (): Condition<boolean | undefined> => {
         return new Condition(`for ${this.name} to be loaded`, async () => {
             await Misc.switchBackToTopFrame();
 
@@ -346,7 +363,7 @@ export class E2EAccordionSection {
                 const loading = await sec.findElements(locator.section.loadingBar);
                 const activityBar = new ActivityBar();
                 const icon = await activityBar.getViewControl(constants.extensionName);
-                const progressBadge = await icon.findElements(locator.shellForVscode.loadingIcon);
+                const progressBadge = await icon!.findElements(locator.shellForVscode.loadingIcon);
 
                 return (loading.length === 0) && (progressBadge.length === 0);
             };
@@ -361,12 +378,13 @@ export class E2EAccordionSection {
 
     /**
      * Gets an element from the tree
+     * 
      * @param element The element
      * @param type The element type
      * @returns A promise resolving with the element
      */
-    public getTreeItem = async (element: string | RegExp | string[], type?: string): Promise<TreeItem> => {
-        let el: TreeItem;
+    public getTreeItem = async (element: string | RegExp | string[] | undefined, type?: string): Promise<TreeItem> => {
+        let el: CustomTreeItem | TreeItem | undefined;
 
         if (!element && !type) {
             throw new Error(`element or type should be defined`);
@@ -403,17 +421,17 @@ export class E2EAccordionSection {
                             }
                         }
                     } else if (Array.isArray(element)) {
-                        let parent = await section.findItem(element[0]);
+                        let parent: CustomTreeItem | TreeItem | undefined = await section.findItem(element[0]);
 
                         for (let i = 1; i <= element.length - 1; i++) {
-                            parent = await parent.findChildItem(element[i]);
+                            parent = await parent!.findChildItem(element[i]);
 
                             if (i === element.length - 1) {
                                 el = parent;
                             }
                         }
                     } else {
-                        el = await section.findItem(element, 5);
+                        el = await section.findItem(element!, 5);
                     }
                 }
 
@@ -423,14 +441,14 @@ export class E2EAccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait1second * 10,
-            `${element ? element.toString() : type} on section ${this.name} was not found`);
+        }, constants.wait1second * 10, `${element ? element.toString() : type} on section ${this.name} was not found`);
 
-        return el;
+        return el!;
     };
 
     /**
      * Verifies if an element exists on the tree
+     * 
      * @param element The element
      * @returns A promise resolving to true if the element exists, false otherwise
      */
@@ -475,6 +493,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if an element exists on the tree
+     * 
      * @param element The element
      * @returns A condition resolving to true if the element exists, false otherwise
      */
@@ -486,6 +505,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if an element is marked as default of the tree (icon is in bold)
+     * 
      * @param element The element
      * @returns A promise resolving with true if the element is marked as default, false otherwise
      */
@@ -512,6 +532,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if an element is marked as default of the tree (icon is in bold)
+     * 
      * @param element The element
      * @returns A condition resolving with true if the element is marked as default, false otherwise
      */
@@ -524,6 +545,7 @@ export class E2EAccordionSection {
     /**
      * Expands a tree item. If the dbConfig is set, it means the tree item is a db connection,
      * and it will handle the connection credentials
+     * 
      * @param element The element
      * @param dbConfig The db configuration
      */
@@ -535,15 +557,18 @@ export class E2EAccordionSection {
             await driver.wait(async () => {
                 try {
                     const inputWidget = await driver.wait(until.elementLocated(locator.inputBox.exists), 500)
-                        .catch(() => { return undefined; });
+                        .catch(() => {
+                            return undefined;
+                        });
 
-                    if (inputWidget && (await (inputWidget as WebElement).isDisplayed())) {
-                        await Workbench.setInputPassword((dbConfig.basic as interfaces.IConnBasicMySQL).password);
+                    if (inputWidget && (await inputWidget.isDisplayed())) {
+                        await Workbench.setInputPassword((dbConfig.basic as interfaces.IConnBasicMySQL).password!);
 
-                        return driver.wait(async () => {
+                        return await driver.wait(async () => {
                             return treeItem.hasChildren();
-                        }, constants.wait1second * 10,
-                            `${await treeItem.getLabel()} should have children after setting the password`);
+                        }, constants.wait1second * 10, `${await treeItem
+                            .getLabel()} should have children after setting the password`);
+
                     } else if (await treeItem.hasChildren()) {
                         return true;
                     }
@@ -554,13 +579,15 @@ export class E2EAccordionSection {
                         treeItem = await this.getTreeItem(element);
                     }
                 }
-            }, constants.wait1second * 20,
-                `The input password was not displayed nor the ${await treeItem.getLabel()} has children`);
+            }, constants.wait1second * 20, `The input password was not displayed nor the ${await treeItem
+                .getLabel()} has children`);
+
         }
     };
 
     /**
      * Verifies if the tree item has a red mark on it
+     * 
      * @param element The element
      * @returns A promise resolving to true if the tree item has a red mark, false otherwise
      */
@@ -574,6 +601,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the tree item has a red mark on it
+     * 
      * @param element The element
      * @returns A condition resolving to true if the tree item has a red mark, false otherwise
      */
@@ -585,6 +613,7 @@ export class E2EAccordionSection {
 
     /**
      * Verifies if the tree item has children
+     * 
      * @param element The element
      * @returns A condition resolving to true if the tree item has children, false otherwise
      */
@@ -598,6 +627,7 @@ export class E2EAccordionSection {
 
     /**
      * Gets an action button from a tree element
+     * 
      * @param element The tree item name
      * @param actionButton The action button d
      * @returns A promise resolving with the button
@@ -632,6 +662,7 @@ export class E2EAccordionSection {
 
     /**
      * Right-clicks on an element and selects the item on the context menu
+     * 
      * @param element The element name
      * @param ctxMenuItem The context menu item
      * @param itemMap The map of the item. On macOS, the item map is required
@@ -658,7 +689,7 @@ export class E2EAccordionSection {
             const prevOpenedTabs = (await Workbench.getOpenEditorTitles());
             let prevActiveTab: EditorTab | undefined;
 
-            if (prevOpenedTabs) {
+            if (prevOpenedTabs.length > 0) {
                 prevActiveTab = await Workbench.getActiveTab();
             }
 
@@ -707,24 +738,29 @@ export class E2EAccordionSection {
                             const menu = await treeItem.openContextMenu();
                             const menuItem = await menu.getItem(ctxMenuItems[0].trim());
 
-                            const anotherMenu = await menuItem.select();
+                            const anotherMenu = await menuItem!.select();
 
                             if (ctxMenuItems.length > 1) {
-                                await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
+                                await (await anotherMenu!.getItem(ctxMenuItems[1].trim()))!.select();
                             }
 
-                            return driver.wait(until.stalenessOf(menuItem), constants.wait1second * 3)
-                                .then(() => { return true; })
+                            return await driver.wait(until.stalenessOf(menuItem!), constants.wait1second * 3)
+                                .then(() => {
+                                    return true;
+                                })
                                 .catch(async () => {
                                     await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
                                 });
 
-                        } catch (e) {
-                            // try again
+                        } catch (e: unknown) {
+                            if (e instanceof Error) {
+                                return false;
+                            }
                         }
                     }
-                }, constants.wait1second * 5,
-                    `Could not select '${ctxMenuItem.toString()}' for tree item '${await treeItem.getLabel()}'`);
+                }, constants.wait1second * 5, `Could not select '${ctxMenuItem
+                    .toString()}' for tree item '${await treeItem.getLabel()}'`);
+
             } else {
                 throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
             }
@@ -741,8 +777,8 @@ export class E2EAccordionSection {
                         let activeTabChanged: boolean | undefined;
 
                         if (prevActiveTab) {
-                            activeTabChanged = await prevActiveTab.getTitle() !== await (await Workbench.getActiveTab())
-                                .getTitle();
+                            activeTabChanged = await prevActiveTab
+                                .getTitle() !== await (await Workbench.getActiveTab())!.getTitle();
                         }
 
                         // A WEB VIEW DIALOG WAS OPENED
@@ -756,7 +792,10 @@ export class E2EAccordionSection {
                                 await Misc.switchBackToTopFrame();
                             }
                         } catch (e) {
-                            // continue, no dialog exists
+                            if (e instanceof Error) {
+                                // continue, no dialog exists
+                                webViewWasOpened = undefined;
+                            }
                         }
 
                         // A NEW NOTIFICATION WAS GENERATED
@@ -789,16 +828,16 @@ export class E2EAccordionSection {
                         }
 
                         return newTabWasOpened ||
-                            activeTabChanged ||
-                            webViewWasOpened ||
+                            activeTabChanged! ||
+                            webViewWasOpened! ||
                             newNotification ||
                             bottomBarIsOpened ||
                             existsModalDialog ||
                             existsNewInputBox ||
                             newTreeItemExists;
 
-                    }, constants.wait1second * 3,
-                        `Right click on ${element.toString()}/${ctxMenuItem.toString()} did not worked`);
+                    }, constants.wait1second * 3, `Right click on ${element.toString()}/${ctxMenuItem
+                        .toString()} did not worked`);
 
                     ok = true;
                     break;
@@ -821,6 +860,7 @@ export class E2EAccordionSection {
 
     /**
      * Deletes a database connection
+     * 
      * @param name The database name
      * @param isMySQL If the database if mysql
      * @param verifyDelete True is the removal should be verified
@@ -829,7 +869,7 @@ export class E2EAccordionSection {
     public deleteDatabaseConnection = async (name: string, isMySQL = true,
         verifyDelete = true): Promise<void> => {
 
-        if (isMySQL === true) {
+        if (isMySQL) {
             await this.openContextMenuAndSelect(name, constants.deleteDBConnection, constants.dbConnectionCtxMenu);
         } else {
             await this.openContextMenuAndSelect(name, constants.deleteDBConnection,
@@ -850,7 +890,7 @@ export class E2EAccordionSection {
         await dialog.findElement(locator.confirmDialog.accept).click();
         await Misc.switchBackToTopFrame();
 
-        if (verifyDelete === true) {
+        if (verifyDelete) {
             await driver.wait(async () => {
                 return !(await this.treeItemExists(name));
             }, constants.wait1second * 5, `Tree item ${name} still exists in the tree`);
@@ -859,6 +899,7 @@ export class E2EAccordionSection {
 
     /**
      * Expands a tree
+     * 
      * @param tree The elements to expand
      * @param timeout The timeout to wait for each element to have children
      */
@@ -889,13 +930,13 @@ export class E2EAccordionSection {
 
     /**
      * Set the service as current
+     * 
      * @param servicePath The service path (tree item name)
      */
     public setCurrentRestService = async (servicePath: string): Promise<void> => {
         await this.openContextMenuAndSelect(servicePath, constants.setAsCurrentREST);
-        await driver.wait(Workbench
-            .untilNotificationExists("The MRS service has been set as the new default service."),
-            constants.wait1second * 10);
+        const ntf = "The MRS service has been set as the new default service.";
+        await driver.wait(Workbench.untilNotificationExists(ntf), constants.wait1second * 10);
     };
 
 }

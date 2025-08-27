@@ -47,6 +47,7 @@ export class E2ENotebook {
 
     /**
      * Verifies if the Notebook is opened and fully loaded
+     * 
      * @param connection The database connection
      * @returns A condition resolving to true if the page is opened, false otherwise
      */
@@ -88,11 +89,11 @@ export class E2ENotebook {
 
                 const activeTab = await Workbench.getActiveTab();
 
-                if ((await activeTab.getTitle()).includes(connection.caption)) {
+                if ((await activeTab!.getTitle()).includes(connection.caption!)) {
                     this.codeEditor = await this.codeEditor.build();
 
                     return true;
-                } else if ((await activeTab.getTitle()).includes(".mysql-notebook")) {
+                } else if ((await activeTab!.getTitle()).includes(".mysql-notebook")) {
                     await Misc.switchToFrame();
                     const notebookIsOpened = (await driver.findElements(locator.notebook.exists)).length > 0;
 
@@ -112,6 +113,7 @@ export class E2ENotebook {
 
     /**
      * Verifies if a word exists on the notebook
+     * 
      * @param word The word
      * @returns A promise resolving with true if the word is found, false otherwise
      */
@@ -158,8 +160,7 @@ export class E2ENotebook {
     public executeWithButton = async (
         cmd: string,
         button: string,
-        ignoreKeywords = false):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+        ignoreKeywords = false): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
@@ -170,8 +171,8 @@ export class E2ENotebook {
         }
 
         await this.codeEditor.write(cmd, ignoreKeywords);
-        await (await this.toolbar.getButton(button)).click();
-        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
+        await (await this.toolbar.getButton(button))!.click();
+        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
 
         return commandResult;
     };
@@ -179,12 +180,13 @@ export class E2ENotebook {
     /**
      * Searches for a command on the editor, and execute it,
      * using the Exec Caret button Verify the result on this result id
+     * 
      * @param cmd The command
      * @param resultId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public findAndExecute = async (cmd: string, resultId: number):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public findAndExecute = async (
+        cmd: string, resultId: number): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
@@ -210,8 +212,8 @@ export class E2ENotebook {
      * @param item The context menu item to click, to trigger the execution
      * @returns A promise resolving when the command is executed
      */
-    public executeWithContextMenu = async (cmd: string, item: string):
-        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+    public executeWithContextMenu = async (
+        cmd: string, item: string): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
@@ -219,15 +221,16 @@ export class E2ENotebook {
 
         await this.codeEditor.write(cmd);
         await this.clickContextItem(item);
-        const id = this.codeEditor.lastResultId + 1;
+        const id = this.codeEditor.lastResultId! + 1;
         const commandResult = this.codeEditor.buildResult(cmd, id);
-        this.codeEditor.lastResultId++;
+        this.codeEditor.lastResultId!++;
 
         return commandResult;
     };
 
     /**
      * Clicks on a context menu item
+     * 
      * @param item The item
      * @returns A promise resolving when the click is performed
      */

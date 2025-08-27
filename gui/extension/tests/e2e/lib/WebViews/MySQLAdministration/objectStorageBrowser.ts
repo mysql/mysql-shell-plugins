@@ -37,6 +37,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Selects an OCI profile
+     * 
      * @param ociProfileName The profile name
      * @returns A promise resolving when the profile is selected
      */
@@ -48,8 +49,9 @@ export class ObjectStorageBrowser {
         await driver.findElement(objStorageBrowser.ociProfile)
             .click();
         const list = await driver.wait(until
-            .elementLocated(objStorageBrowser.ociProfileList.exists),
-            constants.wait1second * 5, "OCI Profile List was not found");
+            .elementLocated(objStorageBrowser.ociProfileList
+                .exists), constants.wait1second * 5, "OCI Profile List was not found");
+
         await (await list.findElement(objStorageBrowser.ociProfileList.item(ociProfileName))).click();
         await driver.wait(this.untilItemsAreLoaded(), constants.wait1second * 15,
             "Object Storage Browser items are still loading");
@@ -57,6 +59,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Waits until all Object Storage items are loaded
+     * 
      * @returns A promise resolving when the Object Storage items are loaded
      */
     public untilItemsAreLoaded = (): Condition<boolean> => {
@@ -73,6 +76,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Gets an object storage item on a specific level
+     * 
      * @param itemName The item name
      * @param level The item level
      * @returns A promise resolving when the compartments are expanded and loaded
@@ -114,11 +118,12 @@ export class ObjectStorageBrowser {
             }
         }, constants.wait1second * 5, `Could not get item '${itemName}' on the Object Storage Browser`);
 
-        return itemToReturn;
+        return itemToReturn!;
     };
 
     /**
      * Verifies if an object storage item exists
+     * 
      * @param itemName The item name
      * @param level The item level
      * @returns A promise resolving when the compartments are expanded and loaded
@@ -166,6 +171,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Verifies if the tree element has children
+     * 
      * @param caption The item caption
      * @returns A condition resolving to true if the element has children, false otherwise
      */
@@ -173,13 +179,13 @@ export class ObjectStorageBrowser {
         return new Condition(`for ${caption} to have children`, async () => {
             try {
                 const element = await this.getItem(caption);
-                const elementLevel = (await element.getAttribute("class")).match(/tabulator-tree-level-(\d+)/)[1];
+                const elementLevel = (await element.getAttribute("class")).match(/tabulator-tree-level-(\d+)/)![1];
                 const nextSibling: WebElement | undefined = await driver
                     .executeScript("return arguments[0].nextElementSibling;", element);
 
                 if (nextSibling) {
                     const siblingLevel = (await nextSibling.getAttribute("class"))
-                        .match(/tabulator-tree-level-(\d+)/)[1];
+                        .match(/tabulator-tree-level-(\d+)/)![1];
 
                     return parseInt(siblingLevel, 10) > parseInt(elementLevel, 10);
                 } else {
@@ -197,6 +203,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Verifies if the tree element is expanded
+     * 
      * @param caption The item caption
      * @returns A condition resolving to true if the element is expanded, false otherwise
      */
@@ -222,6 +229,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Expands the tree item
+     * 
      * @param caption The item caption
      */
     public expandItem = async (caption: string): Promise<void> => {
@@ -233,7 +241,7 @@ export class ObjectStorageBrowser {
                     const itemToggle = await item.findElement(objStorageItem.treeToggle);
                     await driver.executeScript("arguments[0].click()", itemToggle);
 
-                    return this.itemIsExpanded(caption);
+                    return await this.itemIsExpanded(caption);
                 } else {
                     return true;
                 }
@@ -248,6 +256,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Verifies if the tree element can be expanded
+     * 
      * @param caption The item caption
      * @returns A promise resolving to true if the element can be expanded, false otherwise
      */
@@ -272,6 +281,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Expands object storage compartments
+     * 
      * @param path The compartments as a tree path
      * @returns A promise resolving when the compartments are expanded and loaded
      */
@@ -334,6 +344,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Clicks on the object storage item checkbox
+     * 
      * @param itemName The item name
      * @returns A promise resolving when the checkbox is clicked
      */
@@ -350,7 +361,7 @@ export class ObjectStorageBrowser {
                 const checkbox = await item.findElement(objectStorageItem.item.checkbox);
                 await driver.executeScript("arguments[0].click();", checkbox);
 
-                return driver.wait(async () => {
+                return await driver.wait(async () => {
                     const path = await driver
                         .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.path);
                     if (path.length > 0) {
@@ -380,6 +391,7 @@ export class ObjectStorageBrowser {
 
     /**
      * Clicks on the refresh button of the Object Storage Browser
+     * 
      * @returns A promise resolving when Object Storage Browser is refreshed
      */
     public refreshObjectStorageBrowser = async (): Promise<void> => {

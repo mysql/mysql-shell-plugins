@@ -43,6 +43,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Adds a new connection
+     * 
      * @param connection The DB Connection
      */
     public addNewConnection = async (connection: IDBConnection): Promise<void> => {
@@ -57,6 +58,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Gets a Database connection from the DB Connection Overview
+     * 
      * @param name The database connection caption
      * @returns A promise resolving with the connection
      */
@@ -75,18 +77,21 @@ export class DatabaseConnectionOverview {
                         return host;
                     }
                 } catch (e) {
-                    return undefined;
+                    if (e instanceof Error) {
+                        return undefined;
+                    }
                 }
             }
 
             return undefined;
         }, constants.wait1second * 5, `The connection ${name} was not found on the Connection Browser`);
 
-        return db;
+        return db!;
     };
 
     /**
      * Clicks on a database connection edit button
+     * 
      * @param dbConnection The database connection caption
      * @param option The option to click
      * @returns A promise resolving with the connection details
@@ -118,6 +123,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Verifies if a Database connection exists on the DB Connection Overview
+     * 
      * @param dbConnection The database connection caption
      * @returns A promise resolving with the connection
      */
@@ -154,6 +160,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Verifies if a Database connection exists on the DB Connection Overview
+     * 
      * @param dbConnection The database connection caption
      * @returns A condition resolving to true if the connection exists, false otherwise
      */
@@ -165,6 +172,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Verifies if a Database connection does not exists on the DB Connection Overview
+     * 
      * @param dbConnection The database connection caption
      * @returns A condition resolving to true if the connection does not exists, false otherwise
      */
@@ -176,6 +184,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Opens a new notebook with (CMD|ALT)+click
+     * 
      * @param dbConnectionCaption The DB Connection caption
      */
     public openNotebookUsingKeyboard = async (dbConnectionCaption: string): Promise<void> => {
@@ -203,6 +212,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Gets the breadcrumb item links
+     * 
      * @returns A promise resolving with the breadcrumb items as an array of WebElements
      */
     public getBreadCrumbLinks = async (): Promise<WebElement[]> => {
@@ -217,6 +227,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Gets the breadcrumb items as full path
+     * 
      * @returns A promise resolving with the breadcrumb items as an array of WebElements
      */
     public getBreadCrumb = async (): Promise<string> => {
@@ -243,11 +254,12 @@ export class DatabaseConnectionOverview {
             }
         }, constants.wait1second * 3, "Could not get the breadcrumb items");
 
-        return breadcrumb.join("");
+        return breadcrumb!.join("");
     };
 
     /**
      * Verifies if a group exists on the DB Connection Overview
+     * 
      * @param name The group name
      * @returns A promise resolving to true if the group exists, false otherwise
      */
@@ -284,6 +296,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Clicks on a group and waits until the breadcrumb has the group name, ensuring the user is inside the group
+     * 
      * @param name The group caption
      * @returns A promise resolving with the group
      */
@@ -303,6 +316,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Verifies if a group exists on the DB Connection Overview
+     * 
      * @param name The group name
      * @returns A condition resolving to true if the group exists, false otherwise
      */
@@ -314,6 +328,7 @@ export class DatabaseConnectionOverview {
 
     /**
      * Gets a group from the DB Connection Overview
+     * 
      * @param name The group caption
      * @returns A promise resolving with the group
      */
@@ -333,18 +348,21 @@ export class DatabaseConnectionOverview {
                         return grp;
                     }
                 } catch (e) {
-                    return undefined;
+                    if (e instanceof Error) {
+                        return undefined;
+                    }
                 }
             }
 
             return undefined;
         }, constants.wait1second * 5, `The connection ${name} was not found on the Connection Browser`);
 
-        return group;
+        return group!;
     };
 
     /**
      * Verifies if the breadcrumb is equal to a value
+     * 
      * @param value The breadcrumb value
      * @returns A condition resolving to true when the breadcrumb is equal to the value
      */

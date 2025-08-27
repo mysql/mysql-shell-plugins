@@ -54,6 +54,7 @@ export class LakeHouseNavigator {
 
     /**
      * Selects a tab (Overview/Upload to Object Storage/Load into Lakehouse/Lakehouse Tables)
+     * 
      * @param tabName The tab name
      * @returns A promise resolving when the tab is selected
      */

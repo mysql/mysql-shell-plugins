@@ -35,6 +35,7 @@ export class UploadToObjectStorage {
 
     /**
      * Verifies if the Upload To Object Storage tab is selected
+     * 
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
@@ -48,6 +49,7 @@ export class UploadToObjectStorage {
 
     /**
      * Gets a button from the Files for Upload section
+     * 
      * @param buttonName The button name
      * @returns A promise resolving with the button
      */
@@ -69,6 +71,7 @@ export class UploadToObjectStorage {
 
     /**
      * Sets the file path into the input box
+     * 
      * @param path The path for the file
      * @returns A promise resolving when the path is set
      */
@@ -81,6 +84,7 @@ export class UploadToObjectStorage {
 
     /**
      * Verifies if a file exists on the Files for Upload section
+     * 
      * @param filename The file name
      * @returns A promise resolving wth true if the file exists, false otherwise
      */
@@ -98,6 +102,8 @@ export class UploadToObjectStorage {
                     return true;
                 }
             }
+
+            return false;
         });
     };
 }

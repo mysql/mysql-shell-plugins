@@ -32,7 +32,11 @@ const main = async () => {
     try {
         const cliArguments = E2ETests.getCliArguments();
 
-        cliArguments.testSuite ? E2ETests.setTestSuite(cliArguments.testSuite) : E2ETests.readTestSuites();
+        if (cliArguments.testSuite) {
+            E2ETests.setTestSuite(cliArguments.testSuite);
+        } else {
+            E2ETests.readTestSuites();
+        }
 
         E2ETests.killAndDeleteMySQLInstances();
 
@@ -50,16 +54,17 @@ const main = async () => {
             results.push(await E2ETests.run(testSuite));
         }
 
-        if (results.map((item) => { return item !== 0; }).length > 0) {
+        if (results.map((item) => {
+            return item !== 0;
+        }).length > 0) {
             throw new Error("Tests failed");
         }
-    }
-    finally {
+    } finally {
         E2ETests.killAndDeleteMySQLInstances();
         E2ETests.generateReport();
     }
 };
 
-void main().catch((err) => {
+void main().catch((err: unknown) => {
     throw err;
 });

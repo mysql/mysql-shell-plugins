@@ -31,6 +31,7 @@ export class Overview {
 
     /**
      * Verifies if the Overview tab is selected
+     * 
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
     public untilIsOpened = (): Condition<boolean> => {
@@ -46,6 +47,7 @@ export class Overview {
 
     /**
      * Clicks on the Upload Files button
+     * 
      * @returns A promise resolving when the Upload Files button is clicked
      */
     public clickUploadFiles = async (): Promise<void> => {
@@ -57,6 +59,7 @@ export class Overview {
 
     /**
      * Clicks on the Start Load button
+     * 
      * @returns A promise resolving when the Start Load button is clicked
      */
     public clickStartLoad = async (): Promise<void> => {
@@ -68,6 +71,7 @@ export class Overview {
 
     /**
      * Clicks on the Manage Lakehouse button
+     * 
      * @returns A promise resolving when the Manage Lakehouse button is clicked
      */
     public clickManageLakehouse = async (): Promise<void> => {

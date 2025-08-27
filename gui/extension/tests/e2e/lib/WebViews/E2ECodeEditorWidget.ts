@@ -44,11 +44,12 @@ export class E2ECodeEditorWidget {
 
     /**
      * Creates the widget web element
+     * 
      * @returns A promise resolving when widget is created
      */
     public open = async (): Promise<E2ECodeEditorWidget> => {
         const findBtn = await this.notebook.toolbar.getButton("Find");
-        await findBtn.click();
+        await findBtn!.click();
         this.widget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait1second * 5,
             "Could not find the widget");
         await driver.wait(until.elementIsVisible(this.widget), constants.wait1second * 3, "Widget is not visible");
@@ -58,6 +59,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Sets the text to find
+     * 
      * @param text The text
      * @returns A promise resolving when the text is set
      */
@@ -69,6 +71,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Sets the text to replace
+     * 
      * @param text The text
      * @returns A promise resolving when the text is set
      */
@@ -80,6 +83,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Toggles the find in selection on the find widget
+     * 
      * @param flag True to enable, false otherwise
      * @returns A promise resolving when button is clicked
      */
@@ -109,6 +113,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Verifies if a text matches the matcher
+     * 
      * @param matcher The matcher
      * @returns A condition resolving to true if there is a match, false otherwise
      */
@@ -120,6 +125,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Expands or collapses the find and replace on the find widget
+     * 
      * @param expand True to expand, false to collapse
      * @returns A promise resolving when replacer is expanded or collapsed
      */
@@ -143,6 +149,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Clicks the replace button
+     * 
      * @returns A promise resolving when button is clicked
      */
     public replace = async (): Promise<void> => {
@@ -152,7 +159,7 @@ export class E2ECodeEditorWidget {
 
         const replaceActions = await this.widget.findElements(locator.findWidget.replaceActions);
         for (const action of replaceActions) {
-            if ((await action.getAttribute("aria-label")).indexOf("Replace (Enter)") !== -1) {
+            if ((await action.getAttribute("aria-label")).includes("Replace (Enter)")) {
                 await action.click();
 
                 return;
@@ -162,6 +169,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Clicks the replace all button
+     * 
      * @returns A promise resolving when button is clicked
      */
     public replaceAll = async (): Promise<void> => {
@@ -171,7 +179,7 @@ export class E2ECodeEditorWidget {
 
         const replaceActions = await this.widget.findElements(locator.findWidget.replaceActions);
         for (const action of replaceActions) {
-            if ((await action.getAttribute("aria-label")).indexOf("Replace All") !== -1) {
+            if ((await action.getAttribute("aria-label")).includes("Replace All")) {
                 await action.click();
 
                 return;
@@ -181,6 +189,7 @@ export class E2ECodeEditorWidget {
 
     /**
      * Closes the widget finder
+     * 
      * @returns A promise resolving when finder is closed
      */
     public close = async (): Promise<void> => {

@@ -38,6 +38,7 @@ export class TestQueue {
 
     /**
      * Gets the queue
+     * 
      * @returns The queue as an array of strings
      */
     public static getQueue = (): string[] => {
@@ -54,6 +55,7 @@ export class TestQueue {
 
     /**
      * Pushes a test into the queue
+     * 
      * @param testName The test name
      */
     public static push = async (testName: string): Promise<void> => {
@@ -68,6 +70,7 @@ export class TestQueue {
 
     /**
      * Pops a test from the queue
+     * 
      * @param testName The test name
      */
     public static pop = async (testName: string): Promise<void> => {
@@ -78,7 +81,9 @@ export class TestQueue {
         let newQueue: string[] = [];
 
         if (queue.length > 0) {
-            newQueue = queue.filter((item: string) => { return item !== testName; });
+            newQueue = queue.filter((item: string) => {
+                return item !== testName;
+            });
         }
 
         writeFileSync(queueFile, newQueue.join("\n").trim());
@@ -87,6 +92,7 @@ export class TestQueue {
 
     /**
      * Waits until the next test to execute in the queue is the given test
+     * 
      * @param testName The test name
      * @returns A condition resolving to true when the next test to execute in the queue is the @testName
      */

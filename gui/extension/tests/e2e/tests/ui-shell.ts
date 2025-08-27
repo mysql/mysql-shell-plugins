@@ -42,12 +42,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `conn-port:${parseInt(process.env.MYSQL_1107, 10)}`,
+        caption: `conn-port:${parseInt(process.env.MYSQL_1107!, 10)}`,
         description: "Local connection",
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_1107, 10),
+            port: parseInt(process.env.MYSQL_1107!, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },
@@ -85,7 +85,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -106,7 +106,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 .to.match(/Server version: (\d+).(\d+).(\d+)/);
             expect(result.text,
                 errors.queryResultError(`Default schema set to \`${schema}\``,
-                    result.text)).to.match(new RegExp(`Default schema set to \`${schema}\``));
+                    result.text!)).to.match(new RegExp(`Default schema set to \`${schema}\``));
 
             const server = await driver.wait(until
                 .elementLocated(locator.shellConsole.connectionTab.server), constants.wait1second * 5);
@@ -122,10 +122,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Change schemas using menu", async () => {
             let result = await shellConsole.changeSchema("world_x_cst");
             expect(result.text, errors.queryResultError("Default schema set to`world_x_cst`",
-                result.text)).to.match(/Default schema set to `world_x_cst`/);
+                result.text!)).to.match(/Default schema set to `world_x_cst`/);
             result = await shellConsole.changeSchema("sakila");
             expect(result.text, errors.queryResultError("Default schema set to`sakila`",
-                result.text)).to.match(/Default schema set to `sakila`/);
+                result.text!)).to.match(/Default schema set to `sakila`/);
 
         });
 
@@ -136,11 +136,11 @@ describe("MYSQL SHELL CONSOLES", () => {
             const result = await shellConsole.executeExpectingCredentials(uri, shellConn) as E2ECommandResultData;
             uri = `Creating a session to '${shellUsername}@${hostname}:${port}/${schema}'`;
             expect(result.text, errors.queryResultError(uri,
-                result.text)).to.match(new RegExp(uri));
+                result.text!)).to.match(new RegExp(uri));
             expect(result.text, errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)",
-                result.text)).to.match(/Server version: (\d+).(\d+).(\d+)/);
+                result.text!)).to.match(/Server version: (\d+).(\d+).(\d+)/);
             expect(result.text, errors.queryResultError(`Default schema set to \`${schema}\`.`,
-                result.text)).to.match(new RegExp(`Default schema set to \`${schema}\`.`));
+                result.text!)).to.match(new RegExp(`Default schema set to \`${schema}\`.`));
 
             const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
                 constants.wait1second * 5, "Server tab was not found");
@@ -158,15 +158,15 @@ describe("MYSQL SHELL CONSOLES", () => {
             let result = await shellConsole.codeEditor.execute("shell.status()") as E2ECommandResultData;
             expect(result.text,
                 errors.queryResultError("MySQL Shell version (\\d+).(\\d+).(\\d+)",
-                    result.text)).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
+                    result.text!)).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
             let uri = `shell.connect('${username}:${password}@${hostname}:${port}0/${schema}')`;
             result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
             uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
             expect(result.text, errors.queryResultError(uri,
-                result.text)).to.match(new RegExp(uri));
+                result.text!)).to.match(new RegExp(uri));
             expect(result.text, errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)",
-                result.text)).to.match(/Server version: (\d+).(\d+).(\d+)/);
+                result.text!)).to.match(/Server version: (\d+).(\d+).(\d+)/);
             expect(result.text)
                 .to.match(new RegExp(`Default schema \`${schema}\` accessible through db`));
 
@@ -186,11 +186,11 @@ describe("MYSQL SHELL CONSOLES", () => {
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
             let result = await shellConsole.codeEditor.execute(cmd) as E2ECommandResultData;
             expect(result.text, errors.queryResultError("ClassicSession",
-                result.text)).to.match(/ClassicSession/);
+                result.text!)).to.match(/ClassicSession/);
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${port}0/${schema}')`;
             result = await shellConsole.codeEditor.execute(cmd) as E2ECommandResultData;
             expect(result.text, errors.queryResultError("Session",
-                result.text)).to.match(/Session/);
+                result.text!)).to.match(/Session/);
 
         });
 
@@ -212,7 +212,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
                 uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
                 expect(result.text, errors.queryResultError(uri,
-                    result.text)).to.match(new RegExp(uri));
+                    result.text!)).to.match(new RegExp(uri));
                 uri = `Connection to server ${hostname} at port ${port}0,`;
                 uri += ` using the X protocol`;
                 const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
@@ -231,7 +231,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -273,7 +273,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             for (const reg of regex) {
                 expect(result.text, errors.queryResultError(reg.toString(),
-                    result.text)).to.match(reg);
+                    result.text!)).to.match(reg);
             }
 
         });
@@ -292,7 +292,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Using db global variable", async () => {
 
             const result = await shellConsole.codeEditor.execute("db.actor.select().limit(1)");
-            expect(await result.resultContext.getAttribute("innerHTML"),
+            expect(await result!.resultContext!.getAttribute("innerHTML"),
                 errors.queryDataSetError("PENELOPE"))
                 .to.match(/PENELOPE/);
 
@@ -303,7 +303,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             const result = await shellConsole.codeEditor
                 .execute('util.exportTable("actor", "test.txt")') as E2ECommandResultData;
             expect(result.text, errors.queryResultError("Running data dump using 1 thread",
-                result.text)).to.match(/Running data dump using 1 thread/);
+                result!.text!)).to.match(/Running data dump using 1 thread/);
             const matches = [
                 /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
                 /Data size: (\d+).(\d+)(\d+) KB/,
@@ -313,7 +313,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             ];
             for (const match of matches) {
                 expect(result.text,
-                    errors.queryResultError(match.toString(), result.text)).to.match(match);
+                    errors.queryResultError(match.toString(), result.text!)).to.match(match);
             }
 
         });
@@ -328,8 +328,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await shellConsole.languageSwitch("\\sql");
             let result = await shellConsole.codeEditor.execute("SHOW DATABASES;") as E2ECommandResultGrid;
-            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/sakila/);
-            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/mysql/);
+            expect(await result.resultContext!.getAttribute("innerHTML")).to.match(/sakila/);
+            expect(await result.resultContext!.getAttribute("innerHTML")).to.match(/mysql/);
             await shellConsole.languageSwitch("\\js");
             let result1 = await shellConsole.codeEditor
                 .execute(`shell.options.resultFormat="json/raw" `) as E2ECommandResultData;
@@ -349,7 +349,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 .execute(`shell.options.resultFormat="table" `) as E2ECommandResultData;
             expect(result1.text).to.match(/table/);
             result = await shellConsole.codeEditor.execute("db.category.select().limit(1)") as E2ECommandResultGrid;
-            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/Action/);
+            expect(await result.resultContext!.getAttribute("innerHTML")).to.match(/Action/);
         });
 
     });
