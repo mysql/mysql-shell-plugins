@@ -79,14 +79,17 @@ def resolve_service(session, service_query:str | bytes=None, required:bool=True,
             url_context_root = f"/{url_context_root}"
             service = lib.services.get_service(
                 url_host_name=url_host_name, url_context_root=url_context_root, session=session)
+        if not service and required:
+                raise Exception("Operation cancelled. Unable to identify target service.")
 
     if not service:
         service = lib.services.get_current_service(session)
 
-    services = lib.services.get_services(session)
-    if len(services) == 1 and auto_select_single:
-        # If there only is one service and auto_select_single is True, take the single service
-        service = services[0]
+    if not service:
+        services = lib.services.get_services(session)
+        if len(services) == 1 and auto_select_single:
+            # If there only is one service and auto_select_single is True, take the single service
+            service = services[0]
 
     if not service and lib.core.get_interactive_default():
         print("MRS - Service Listing\n")

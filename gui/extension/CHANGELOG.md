@@ -12,6 +12,7 @@
 - BUG#38089763 Python SDK: Key Error: 'result_sets' when trying async execution of procedure
 - BUG#38043458 Type check error when monitoring async task reports for REST Function in the Python SDK
 - BUG#38252997 mrs.get.current_service_metadata() returns an error
+- BUG#37052409 mrs.dump.sdkServiceFiles() reports success if service does not exist
 -
 
 ## Changes in 1.19.16+9.4.0
