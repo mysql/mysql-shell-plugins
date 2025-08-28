@@ -1910,7 +1910,7 @@ export interface IMrsObjectReferenceSdkOptions {
 
 export interface IMrsObjectReference {
     id: string,
-    reduceToValueOfFieldId?: string,
+    reduceToValueOfFieldId?: string | null,
     rowOwnershipFieldId?: string,
     referenceMapping: IMrsTableReference,
     unnest: boolean,

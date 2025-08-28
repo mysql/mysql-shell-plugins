@@ -48,7 +48,7 @@ AS `sakila`.`actor` {
     firstName: first_name,
     lastName: last_name,
     lastUpdate: last_update,
-    filmActor: sakila.film_actor @REDUCETO(title) {
+    filmActor: sakila.film_actor @UNNEST {
         film: sakila.film @UNNEST {
             title: title
         }

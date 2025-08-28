@@ -200,7 +200,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             currentObject?: IMrsObject | IMrsObjectReference): string => {
             let s = "";
             const reduceToFieldIds = fields.filter((f) => {
-                return f.objectReference?.reduceToValueOfFieldId !== undefined;
+                return f.objectReference?.reduceToValueOfFieldId;
             }).map((f) => {
                 return f.objectReference?.reduceToValueOfFieldId ?? "";
             });
@@ -271,8 +271,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         if (field.objectReference.options?.dataMappingViewNoCheck) {
                             s += ` @NOCHECK`;
                         }
-                        if (field.objectReference.unnest ||
-                            field.objectReference.reduceToValueOfFieldId !== undefined) {
+                        if (field.objectReference.unnest || field.objectReference.reduceToValueOfFieldId) {
                             s += ` @UNNEST`;
                         }
                         s += ` {\n${c}\n${indent}},\n`;
@@ -291,8 +290,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             } else if (!dbObject.enabled) {
                 s += "\n    DISABLED";
             }
-            if (dbObject.requiresAuth) {
-                s += "\n    AUTHENTICATION REQUIRED";
+            if (!dbObject.requiresAuth) {
+                s += "\n    AUTHENTICATION NOT REQUIRED";
             }
             if (dbObject.itemsPerPage && dbObject.itemsPerPage !== 25) {
                 s += `\n    ITEMS PER PAGE ${dbObject.itemsPerPage}`;
@@ -1058,7 +1057,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 {(cellData.field.objectReference && (
                     cellData.field.objectReference.referenceMapping.kind === "1:1" ||
                     cellData.field.objectReference.referenceMapping.kind === "n:1") &&
-                    cellData.field.objectReference.reduceToValueOfFieldId === undefined) &&
+                    cellData.field.objectReference.reduceToValueOfFieldId) &&
                     <Container
                         className={this.getEffectiveClassNames(["unnestDiv",
                             cellData.field.objectReference.unnest ? "unnested" : "notUnnested"])}
@@ -1152,7 +1151,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 return <Container
                     className={this.getEffectiveClassNames([
                         tableCrud.includes(op) ? "activated" : "deactivated",
-                        cellData.field.objectReference?.reduceToValueOfFieldId === undefined ? "enabled" : "disabled",
+                        cellData.field.objectReference?.reduceToValueOfFieldId ? "enabled" : "disabled",
                     ])}
                     orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Center}
@@ -2401,17 +2400,15 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         if (mrsObject) {
             switch (iconGroup) {
                 case ActionIconName.Crud: {
-                    if (icon && treeItem.field.objectReference?.reduceToValueOfFieldId === undefined) {
+                    if (icon && treeItem.field.objectReference?.reduceToValueOfFieldId) {
                         // Get the right options, either from mrsObject or from objectReference and initialize if needed
                         let options;
                         if (treeItem.field.representsReferenceId === undefined) {
                             mrsObject.options ??= {};
                             options = mrsObject.options;
-                        } else if (treeItem.field.objectReference) {
+                        } else {
                             treeItem.field.objectReference.options ??= {};
                             options = treeItem.field.objectReference.options;
-                        } else {
-                            return;
                         }
 
                         // If the individual flag is not set or false, set to true - otherwise false
@@ -2580,7 +2577,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             while (parentRow) {
                 const parentRowData = parentRow.getData() as IMrsObjectFieldTreeItem;
                 const parentTreeItem = this.findTreeItemById(parentRowData.field.id, data.currentTreeItems);
-                if (parentTreeItem?.field.objectReference?.reduceToValueOfFieldId !== undefined) {
+                if (parentTreeItem?.field.objectReference?.reduceToValueOfFieldId) {
                     parentTreeItem.field.objectReference.reduceToValueOfFieldId = undefined;
                 }
 
@@ -2589,8 +2586,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
 
         // Automatically expand fields that represent an objectReference, which will also enabled them
-        if (treeItem?.field.objectReference && treeItem.field.objectReference.reduceToValueOfFieldId === undefined &&
-            !treeItem.expanded) {
+        if (treeItem?.field.objectReference?.reduceToValueOfFieldId && !treeItem.expanded) {
             cell.getRow().treeExpand();
         } else if (treeItem?.field) {
             // Toggle the enabled state

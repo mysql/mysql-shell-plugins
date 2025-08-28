@@ -222,42 +222,11 @@ GET /myService/sakila/city/1
 
 ### Creating a REST Data Mapping View with an Unnested Referenced Table
 
-If the columns of the referenced table should be added to the level above, the `Unnest` option can be enabled.
+If the columns of the referenced table should be added to the level above, the `Unnest...` dropdown can be used to select the column that should be selected for the reduce operation.
 
-![Unnest a Referenced Table](../../images/vsc-mrs-rest-object-editor-3-referenced-table-unnested.png "Unnest a Referenced Table")
+![Unnest a Referenced Table](../../images/vsc-mrs-rest-object-editor-4-referenced-table-unnested.png "Unnest a Referenced Table")
 
 This leads to the following result.
-
-```txt
-GET /myService/sakila/city/1
-```
-
-```json
-{
-    "city": "A Corua (La Corua)",
-    "links": [
-        {
-            "rel": "self",
-            "href": "/myService/sakila/city/1"
-        }
-    ],
-    "cityId": 1,
-    "country": "Spain",
-    "countryId": 87,
-    "lastUpdate": "2006-02-15 04:45:25.000000",
-    "_metadata": {
-        "etag": "48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35"
-    }
-}
-```
-
-### Creating a REST Data Mapping View with a Reduced Referenced Table
-
-Instead of having all columns unnested and disabling all columns that are not wanted, the `Reduce to...` dropdown can be used to select the column that should be selected for the reduce operation.
-
-![A Reduced Referenced Table](../../images/vsc-mrs-rest-object-editor-4-referenced-table-reduced.png "A Reduced Referenced Table")
-
-This leads to the same result as the query above.
 
 ```txt
 GET /myService/sakila/city/1

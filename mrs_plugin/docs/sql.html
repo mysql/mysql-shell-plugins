@@ -651,7 +651,7 @@ Service - SQL Reference
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    firstName: first_name,</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    lastName: last_name,</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    filmActor: sakila.film_actor @REDUCETO(title) {</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    filmActor: sakila.film_actor @UNNEST {</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        film: sakila.film @UNNEST {</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>            title: title</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        }</span>
