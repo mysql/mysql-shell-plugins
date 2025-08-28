@@ -12,6 +12,7 @@ __Chapter Overview__
 - [Get Object Data](#get-object-data)
 - [Insert Table Row](#insert-table-row)
 - [Delete Using Filter](#delete-using-filter)
+- [Authenticate a REST User](#authenticate-a-rest-user)
 - [FilterObject Grammar](#filterobject-grammar)
 - [Examples: FilterObject Specifications](#filterobject-grammar-examples)
 
@@ -33,5 +34,7 @@ Please also see
 !include sections/restApi/FilterGrammar.md
 
 !include sections/restApi/FilterGrammarExamples.md
+
+!include sections/restApi/Authentication.md
 
 Copyright (c) 2022, 2025, Oracle and/or its affiliates.
