@@ -836,7 +836,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "number"
         if db_datatype.startswith("json"):
             return "JsonValue"
-        if db_datatype.startswith("geometrycollection"):
+        if db_datatype.startswith("geomcollection"):
             return "GeometryCollection"
         if db_datatype.startswith("geometry"):
             return "Geometry"

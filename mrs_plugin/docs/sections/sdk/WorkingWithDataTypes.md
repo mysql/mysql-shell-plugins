@@ -29,12 +29,9 @@ MySQL supports and extensive list of data types that cannot be directly mapped d
 
 MySQL supports an extended SQL environment, based on the conventions established by the OpenGIS Geometry Model, that enables a set of spatial column data types to hold geometry values. Some of them hold single values:
 
-- `GEOMETRY`
 - `POINT`
 - `LINESTRING`
 - `POLYGON`
-
-`GEOMETRY` can store geometry values of any type. The other single-value types (`POINT`, `LINESTRING`, and `POLYGON`) restrict their values to a particular geometry type.
 
 On the other hand, there are spatial data types that are meant to hold collections of geometry values:
 
@@ -45,35 +42,19 @@ On the other hand, there are spatial data types that are meant to hold collectio
 
 `GEOMETRYCOLLECTION` can store a collection of objects of any type. The other collection types (`MULTIPOINT`, `MULTILINESTRING`, and `MULTIPOLYGON`) restrict collection members to those having a particular geometry type.
 
+Additionally, there is a `GEOMETRY` data type that is meant to hold any kind of value for the data types described above.
+
 ### TypeScript SDK
 
-MySQL Rest Service (MRS) TypeScript SDK supports two formats for representing, operating on, or manipulating spatial data:
+MySQL Rest Service (MRS) TypeScript SDK expects a GeoJSON-like object for representing, operating on, or manipulating spatial data.
 
-- Well-Known Text (WKT)
-- GeoJSON
-
-Both these formats can be used when inserting or updating a record that contains a field matching a column of a Spatial data type.
-
-For instance, with a setup using the [Sakila Sample Database](https://dev.mysql.com/doc/sakila/en/) where the schema is available under a REST service called `myService`, when inserting records into the `address` table, you can specify the value for the `location` column, which has a generic `GEOMETRY` data type, as described in the following sections.
+For instance, with a setup using the [Sakila Sample Database](https://dev.mysql.com/doc/sakila/en/) where the schema is available under a REST service called `myService`, when inserting records into the `address` table, you can use a GeoJSON-like object to specify the value for the `location` column, which has a generic `GEOMETRY` data type, as described in the following sections.
 
 **_Upstream Commands_**
 
 #### Create
 
 ```TypeScript
-// WKT
-myService.sakila.address.create({ data: { location: "Point(11.11 12.22)" }})
-
-myService.sakila.address.createMany([{
-  data: {
-    location: "Point(0 0)"
-  }
-}, {
-  data: {
-    location: "Point(11.11 12.22)"
-  }
-}])
-
 // GeoJSON
 myService.sakila.address.create({ data: {
   location: {
@@ -88,27 +69,6 @@ myService.sakila.address.create({ data: {
 The same convention should also apply when updating records on the same table.
 
 ```TypeScript
-// WKT
-myService.sakila.address.update({
-  where: {
-    address_id: 1
-  }
-  data: {
-    location: "Point(11.11 12.22)"
-  }
-})
-
-myService.sakila.address.updateMany({
-  where: [{
-    address_id: 1
-  }, {
-    address_id: 2
-  }],
-  data: {
-    location: "Point(11.11 12.22)"
-  }
-})
-
 // GeoJSON
 myService.sakila.address.update({
   where: {

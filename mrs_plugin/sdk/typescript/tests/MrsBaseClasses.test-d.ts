@@ -442,12 +442,7 @@ describe("MRS SDK base types", () => {
     });
 
     describe("Point", () => {
-        it("accepts a Well-Known Text string value", () => {
-            const point: Point = "Point(15 20)";
-            expectTypeOf(point).toBeString();
-        });
-
-        it("accepts a GeoJSON object value", () => {
+        it("accepts a valid GeoJSON object value", () => {
             const point: Point = { type: "Point", coordinates: [15, 20] };
             expectTypeOf(point).toBeObject();
             expectTypeOf(point).toHaveProperty("type");
@@ -461,11 +456,6 @@ describe("MRS SDK base types", () => {
     });
 
     describe("MultiPoint", () => {
-        it("accepts a Well-Known Text string value", () => {
-            const multiPoint: MultiPoint = "MultiPoint(0 0, 20 20, 60 60)";
-            expectTypeOf(multiPoint).toBeString();
-        });
-
         it("accepts a GeoJSON object value", () => {
             const multiPoint: MultiPoint = { type: "MultiPoint", coordinates: [[0, 0], [20, 20], [60, 60]] };
             expectTypeOf(multiPoint).toBeObject();
@@ -483,18 +473,7 @@ describe("MRS SDK base types", () => {
     });
 
     describe("LineString", () => {
-        it("accepts a Well-Known Text string value", () => {
-            let lineString: LineString = "LINESTRING(0 0, 10 10, 20 25, 50 60)";
-            expectTypeOf(lineString).toBeString();
-
-            lineString = "LineString(0 0, 10 10, 20 25, 50 60)";
-            expectTypeOf(lineString).toBeString();
-
-            // @ts-expect-error fails if the WKT is invalid
-            lineString = "linestring(0 0, 10 10, 20 25, 50 60)";
-        });
-
-        it("accepts a GeoJSON object value", () => {
+        it("accepts a valid GeoJSON object value", () => {
             const lineString: LineString = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
             expectTypeOf(lineString).toBeObject();
             expectTypeOf(lineString).toHaveProperty("type");
@@ -511,18 +490,7 @@ describe("MRS SDK base types", () => {
     });
 
     describe("MultiLineString", () => {
-        it("accepts a Well-Known Text string value", () => {
-            let lineString: MultiLineString = "MULTILINESTRING((10 10, 20 20), (15 15, 30 15))";
-            expectTypeOf(lineString).toBeString();
-
-            lineString = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
-            expectTypeOf(lineString).toBeString();
-
-            // @ts-expect-error fails if the WKT is invalid
-            lineString = "multilinestring((10 10, 20 20), (15 15, 30 15))";
-        });
-
-        it("accepts a GeoJSON object value", () => {
+        it("accepts a valid GeoJSON object value", () => {
             const lineString: MultiLineString = {
                 type: "MultiLineString",
                 coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]],
@@ -546,18 +514,7 @@ describe("MRS SDK base types", () => {
     });
 
     describe("Polygon", () => {
-        it("accepts a Well-Known Text string value", () => {
-            let polygon: Polygon = "POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
-            expectTypeOf(polygon).toBeString();
-
-            polygon = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
-            expectTypeOf(polygon).toBeString();
-
-            // @ts-expect-error fails if the WKT is invalid
-            polygon = "polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
-        });
-
-        it("accepts a GeoJSON object value", () => {
+        it("accepts a valid GeoJSON object value", () => {
             const polygon: Polygon = {
                 type: "Polygon",
                 coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
@@ -581,21 +538,7 @@ describe("MRS SDK base types", () => {
     });
 
     describe("MultiPolygon", () => {
-        it("accepts a Well-Known Text string value", () => {
-            let multiPolygon: MultiPolygon =
-                "MULTIPOLYGON(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-            expectTypeOf(multiPolygon).toBeString();
-
-            multiPolygon = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-            expectTypeOf(multiPolygon).toBeString();
-
-            // @ts-expect-error fails if the WKT is invalid
-            multiPolygon = "multipolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-            // @ts-expect-error fails if the WKT is invalid
-            multiPolygon = "Multipolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-        });
-
-        it("accepts a GeoJSON object value", () => {
+        it("accepts a valid GeoJSON object value", () => {
             const multiPolygon: MultiPolygon = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
@@ -622,26 +565,33 @@ describe("MRS SDK base types", () => {
         });
     });
 
-    describe("Geometry", () => {
-        it("accepts a Well-Known Text string representing an object of a single-value spatial datatype", () => {
-            let geometry: Geometry = "Point(15 20)";
-            expectTypeOf(geometry).toMatchTypeOf<Point>();
+    describe("GeometryCollection", () => {
+        it("accepts valid a GeoJSON object representing a collection of objects of spatial data types", () => {
+            const geometryCollection: GeometryCollection = {
+                type: "GeometryCollection",
+                geometries: [{
+                    type: "MultiPoint",
+                    coordinates: [[0, 0], [20, 20], [60, 60]],
+                }, {
+                    type: "MultiLineString",
+                    coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]]
+                }, {
+                    type: "MultiPolygon",
+                    coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+                        [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                }]
+            };
 
-            geometry = "LineString(0 0, 10 10, 20 25, 50 60)";
-            expectTypeOf(geometry).toMatchTypeOf<LineString>();
-
-            geometry = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
-            expectTypeOf(geometry).toMatchTypeOf<Polygon>();
-
-            // @ts-expect-error fails if the WKT is invalid
-            geometry = "MultiPoint(0 0, 20 20, 60 60)";
-            // @ts-expect-error fails if the WKT is invalid
-            geometry = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
-            // @ts-expect-error fails if the WKT is invalid
-            geometry = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+            expectTypeOf(geometryCollection).toBeObject();
+            expectTypeOf(geometryCollection).toHaveProperty("type");
+            expectTypeOf(geometryCollection).toHaveProperty("geometries");
+            expectTypeOf(geometryCollection.type).toBeString();
+            expectTypeOf(geometryCollection.geometries).toEqualTypeOf<Geometry[]>();
         });
+    });
 
-        it("accepts a GeoJSON object representing an object of a single-value spatial datatype", () => {
+    describe("Geometry", () => {
+        it("accepts a valid GeoJSON object representing an object of any spatial datatype", () => {
             let geometry: Geometry = { type: "Point", coordinates: [15, 20] };
             expectTypeOf(geometry).toMatchTypeOf<Point>();
 
@@ -654,66 +604,34 @@ describe("MRS SDK base types", () => {
             };
             expectTypeOf(geometry).toMatchTypeOf<Polygon>();
 
-            // @ts-expect-error fails if the WKT is invalid
             geometry = { type: "MultiPoint", coordinates: [[0, 0], [20, 20], [60, 60]] };
-            // @ts-expect-error fails if the WKT is invalid
+            expectTypeOf(geometry).toMatchTypeOf<MultiPoint>();
+
             geometry = { type: "MultiLineString", coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]] };
+            expectTypeOf(geometry).toMatchTypeOf<MultiLineString>();
+
             geometry = {
-                // @ts-expect-error fails if the WKT is invalid
-                type: "MultiPolygon",
-                // @ts-expect-error fails if the WKT is invalid
-                coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-                // @ts-expect-error fails if the WKT is invalid
-                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
-            };
-        });
-    });
-
-    describe("GeometryCollection", () => {
-        it("accepts a Well-Known Text string representing a collection of objects of a spatial datatype", () => {
-            let geometryCollection: GeometryCollection = "MultiPoint(0 0, 20 20, 60 60)";
-            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPoint>();
-
-            geometryCollection = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
-            expectTypeOf(geometryCollection).toMatchTypeOf<MultiLineString>();
-
-            geometryCollection = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
-
-            // @ts-expect-error fails if the WKT is invalid
-            geometryCollection = "Point(15 20)";
-            // @ts-expect-error fails if the WKT is invalid
-            geometryCollection = "LineString(0 0, 10 10, 20 25, 50 60)";
-            // @ts-expect-error fails if the WKT is invalid
-            geometryCollection = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
-        });
-
-        it("accepts a GeoJSON object representing a collection of objects of a spatial datatype", () => {
-            let geometryCollection: GeometryCollection = {
-                type: "MultiPoint",
-                coordinates: [[0, 0], [20, 20], [60, 60]],
-            };
-            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPoint>();
-
-            geometryCollection = { type: "MultiLineString", coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]] };
-            expectTypeOf(geometryCollection).toMatchTypeOf<MultiLineString>();
-
-            geometryCollection = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
                     [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
-            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
+            expectTypeOf(geometry).toMatchTypeOf<MultiPolygon>();
 
-            // @ts-expect-error fails if the GeoJSON structure is invalid
-            geometryCollection = { type: "Point", coordinates: [15, 20] };
-            // @ts-expect-error fails if the GeoJSON structure is invalid
-            geometryCollection = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
-            geometryCollection = {
-                // @ts-expect-error fails if the GeoJSON structure is invalid
-                type: "Polygon",
-                coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
+            geometry = {
+                type: "GeometryCollection",
+                geometries: [{
+                    type: "MultiPoint",
+                    coordinates: [[0, 0], [20, 20], [60, 60]],
+                }, {
+                    type: "MultiLineString",
+                    coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]]
+                }, {
+                    type: "MultiPolygon",
+                    coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+                        [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                }]
             };
+            expectTypeOf(geometry).toMatchTypeOf<GeometryCollection>();
         });
     });
 

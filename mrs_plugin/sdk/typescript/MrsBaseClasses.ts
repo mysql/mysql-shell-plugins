@@ -687,20 +687,17 @@ export type IPojo = Record<symbol | string, JsonValue | undefined>;
 export type MaybeNull<T> = T | null;
 
 /**
- * A GEOMETRY column can store geometry values of any single-value spatial type.
+ * A GEOMETRY column can store geometry values of any spatial type.
  */
-export type Geometry = Point | LineString | Polygon;
+export type Geometry = Point | LineString | Polygon | MultiPoint | MultiLineString | MultiPolygon | GeometryCollection;
 
 /**
- * A GEOMETRYCOLLECTION column can store a collection of objects of the same spatial type.
+ * A GEOMETRYCOLLECTION column can store a collection of objects of any spatial type.
  */
-export type GeometryCollection = MultiPoint | MultiLineString | MultiPolygon;
-
-/**
- * In Well-Known Text (WKT) format the type name can be UPPERCASE or PascalCase. In this case, the PascalCase version is
- * determined by the non-generic type.
- */
-type WellKnownText<T extends string> = T | Uppercase<T>;
+export interface GeometryCollection {
+    type: "GeometryCollection";
+    geometries: Geometry[];
+}
 
 /**
  * A position represents a coordinate in the grid.
@@ -710,7 +707,7 @@ type Position = [number, number];
 /**
  * A Point consists of a single position in the grid.
  */
-export type Point = WellKnownText<`Point(${number} ${number})`> | {
+export interface Point {
     type: "Point";
     coordinates: Position;
 };
@@ -718,7 +715,7 @@ export type Point = WellKnownText<`Point(${number} ${number})`> | {
 /**
  * A MultiPoint consists of a list of positions in the grid.
  */
-export type MultiPoint = WellKnownText<`MultiPoint(${string})`> | {
+export interface MultiPoint {
     type: "MultiPoint";
     coordinates: Position[];
 };
@@ -726,7 +723,7 @@ export type MultiPoint = WellKnownText<`MultiPoint(${string})`> | {
 /**
  * A LineString consists of two or more positions in the grid.
  */
-export type LineString = WellKnownText<`LineString(${string})`> | {
+export interface LineString {
     type: "LineString";
     coordinates: [Position, Position, ...Position[]];
 };
@@ -734,7 +731,7 @@ export type LineString = WellKnownText<`LineString(${string})`> | {
 /**
  * A MultiLineString consists of a list where each element consists of two or more positions in the grid.
  */
-export type MultiLineString = WellKnownText<`MultiLineString(${string})`> | {
+export interface MultiLineString {
     type: "MultiLineString";
     coordinates: Array<[Position, Position, ...Position[]]>;
 };
@@ -755,7 +752,7 @@ type LinearRing = [Position, Position, Position, Position, ...Position[]];
  * (if present) bound holes within the surface. This constraint is not feasible to enforce via a TypeScript type
  * definition.
  */
-export type Polygon = WellKnownText<`Polygon(${string})`> | {
+export interface Polygon {
     type: "Polygon";
     coordinates: LinearRing[];
 };
@@ -763,7 +760,7 @@ export type Polygon = WellKnownText<`Polygon(${string})`> | {
 /**
  * A MultiPolygon consists of a list where each element is itself a list of linear rings.
  */
-export type MultiPolygon = WellKnownText<`MultiPolygon(${string})`> | {
+export interface MultiPolygon {
     type: "MultiPolygon";
     coordinates: LinearRing[][];
 };

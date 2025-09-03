@@ -88,7 +88,7 @@ def test_get_datatype_mapping():
             ): "number",
             ("json",): "JsonValue",
             ("GEOMETRY",): "Geometry",
-            ("GEOMETRYCOLLECTION",): "GeometryCollection",
+            ("GEOMCOLLECTION",): "GeometryCollection",
             ("POINT",): "Point",
             ("MULTIPOINT",): "MultiPoint",
             ("LINESTRING",): "LineString",

@@ -5638,16 +5638,10 @@ Service - SDK Reference
                 to hold geometry values. Some of them hold single
                 values:</p>
                 <ul>
-                <li><code>GEOMETRY</code></li>
                 <li><code>POINT</code></li>
                 <li><code>LINESTRING</code></li>
                 <li><code>POLYGON</code></li>
                 </ul>
-                <p><code>GEOMETRY</code> can store geometry values of
-                any type. The other single-value types
-                (<code>POINT</code>, <code>LINESTRING</code>, and
-                <code>POLYGON</code>) restrict their values to a
-                particular geometry type.</p>
                 <p>On the other hand, there are spatial data types that
                 are meant to hold collections of geometry values:</p>
                 <ul>
@@ -5662,103 +5656,66 @@ Service - SDK Reference
                 <code>MULTILINESTRING</code>, and
                 <code>MULTIPOLYGON</code>) restrict collection members
                 to those having a particular geometry type.</p>
+                <p>Additionally, there is a <code>GEOMETRY</code> data
+                type that is meant to hold any kind of value for the
+                data types described above.</p>
                 <h3 data-number="8.1.1" id="typescript-sdk"><span
                 class="header-section-number">8.1.1</span> TypeScript
                 SDK</h3>
-                <p>MySQL Rest Service (MRS) TypeScript SDK supports two
-                formats for representing, operating on, or manipulating
-                spatial data:</p>
-                <ul>
-                <li>Well-Known Text (WKT)</li>
-                <li>GeoJSON</li>
-                </ul>
-                <p>Both these formats can be used when inserting or
-                updating a record that contains a field matching a
-                column of a Spatial data type.</p>
+                <p>MySQL Rest Service (MRS) TypeScript SDK expects a
+                GeoJSON-like object for representing, operating on, or
+                manipulating spatial data.</p>
                 <p>For instance, with a setup using the <a
                 href="https://dev.mysql.com/doc/sakila/en/">Sakila
                 Sample Database</a> where the schema is available under
                 a REST service called <code>myService</code>, when
                 inserting records into the <code>address</code> table,
-                you can specify the value for the <code>location</code>
-                column, which has a generic <code>GEOMETRY</code> data
-                type, as described in the following sections.</p>
+                you can use a GeoJSON-like object to specify the value
+                for the <code>location</code> column, which has a
+                generic <code>GEOMETRY</code> data type, as described in
+                the following sections.</p>
                 <p><strong><em>Upstream Commands</em></strong></p>
                 <h4 data-number="8.1.1.1" id="create"><span
                 class="header-section-number">8.1.1.1</span> Create</h4>
                 <div class="sourceCode" id="cb128"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="co">// WKT</span></span>
-<span id="cb128-2"><a href="#cb128-2" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">create</span>({ data<span class="op">:</span> { location<span class="op">:</span> <span class="st">&quot;Point(11.11 12.22)&quot;</span> }})</span>
-<span id="cb128-3"><a href="#cb128-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb128-4"><a href="#cb128-4" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">createMany</span>([{</span>
-<span id="cb128-5"><a href="#cb128-5" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
-<span id="cb128-6"><a href="#cb128-6" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> <span class="st">&quot;Point(0 0)&quot;</span></span>
-<span id="cb128-7"><a href="#cb128-7" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb128-8"><a href="#cb128-8" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> {</span>
-<span id="cb128-9"><a href="#cb128-9" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
-<span id="cb128-10"><a href="#cb128-10" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> <span class="st">&quot;Point(11.11 12.22)&quot;</span></span>
-<span id="cb128-11"><a href="#cb128-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb128-12"><a href="#cb128-12" aria-hidden="true" tabindex="-1"></a>}])</span>
-<span id="cb128-13"><a href="#cb128-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb128-14"><a href="#cb128-14" aria-hidden="true" tabindex="-1"></a><span class="co">// GeoJSON</span></span>
-<span id="cb128-15"><a href="#cb128-15" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">create</span>({ data<span class="op">:</span> {</span>
-<span id="cb128-16"><a href="#cb128-16" aria-hidden="true" tabindex="-1"></a>  location<span class="op">:</span> {</span>
-<span id="cb128-17"><a href="#cb128-17" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&quot;Point&quot;</span><span class="op">,</span></span>
-<span id="cb128-18"><a href="#cb128-18" aria-hidden="true" tabindex="-1"></a>    coordinates<span class="op">:</span> [<span class="fl">11.11</span><span class="op">,</span> <span class="fl">12.22</span>]</span>
-<span id="cb128-19"><a href="#cb128-19" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb128-20"><a href="#cb128-20" aria-hidden="true" tabindex="-1"></a>}})</span></code></pre></div>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="co">// GeoJSON</span></span>
+<span id="cb128-2"><a href="#cb128-2" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">create</span>({ data<span class="op">:</span> {</span>
+<span id="cb128-3"><a href="#cb128-3" aria-hidden="true" tabindex="-1"></a>  location<span class="op">:</span> {</span>
+<span id="cb128-4"><a href="#cb128-4" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&quot;Point&quot;</span><span class="op">,</span></span>
+<span id="cb128-5"><a href="#cb128-5" aria-hidden="true" tabindex="-1"></a>    coordinates<span class="op">:</span> [<span class="fl">11.11</span><span class="op">,</span> <span class="fl">12.22</span>]</span>
+<span id="cb128-6"><a href="#cb128-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb128-7"><a href="#cb128-7" aria-hidden="true" tabindex="-1"></a>}})</span></code></pre></div>
                 <h4 data-number="8.1.1.2" id="update"><span
                 class="header-section-number">8.1.1.2</span> Update</h4>
                 <p>The same convention should also apply when updating
                 records on the same table.</p>
                 <div class="sourceCode" id="cb129"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="co">// WKT</span></span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="co">// GeoJSON</span></span>
 <span id="cb129-2"><a href="#cb129-2" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">update</span>({</span>
 <span id="cb129-3"><a href="#cb129-3" aria-hidden="true" tabindex="-1"></a>  where<span class="op">:</span> {</span>
 <span id="cb129-4"><a href="#cb129-4" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">1</span></span>
 <span id="cb129-5"><a href="#cb129-5" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb129-6"><a href="#cb129-6" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
-<span id="cb129-7"><a href="#cb129-7" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> <span class="st">&quot;Point(11.11 12.22)&quot;</span></span>
-<span id="cb129-8"><a href="#cb129-8" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb129-9"><a href="#cb129-9" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb129-10"><a href="#cb129-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb129-11"><a href="#cb129-11" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">updateMany</span>({</span>
-<span id="cb129-12"><a href="#cb129-12" aria-hidden="true" tabindex="-1"></a>  where<span class="op">:</span> [{</span>
-<span id="cb129-13"><a href="#cb129-13" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">1</span></span>
-<span id="cb129-14"><a href="#cb129-14" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> {</span>
-<span id="cb129-15"><a href="#cb129-15" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">2</span></span>
-<span id="cb129-16"><a href="#cb129-16" aria-hidden="true" tabindex="-1"></a>  }]<span class="op">,</span></span>
-<span id="cb129-17"><a href="#cb129-17" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
-<span id="cb129-18"><a href="#cb129-18" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> <span class="st">&quot;Point(11.11 12.22)&quot;</span></span>
-<span id="cb129-19"><a href="#cb129-19" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb129-20"><a href="#cb129-20" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb129-21"><a href="#cb129-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb129-22"><a href="#cb129-22" aria-hidden="true" tabindex="-1"></a><span class="co">// GeoJSON</span></span>
-<span id="cb129-23"><a href="#cb129-23" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">update</span>({</span>
-<span id="cb129-24"><a href="#cb129-24" aria-hidden="true" tabindex="-1"></a>  where<span class="op">:</span> {</span>
-<span id="cb129-25"><a href="#cb129-25" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">1</span></span>
-<span id="cb129-26"><a href="#cb129-26" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb129-27"><a href="#cb129-27" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
-<span id="cb129-28"><a href="#cb129-28" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> {</span>
-<span id="cb129-29"><a href="#cb129-29" aria-hidden="true" tabindex="-1"></a>      type<span class="op">:</span> <span class="st">&quot;Point&quot;</span><span class="op">,</span></span>
-<span id="cb129-30"><a href="#cb129-30" aria-hidden="true" tabindex="-1"></a>      coordinates<span class="op">:</span> [<span class="fl">11.11</span><span class="op">,</span> <span class="fl">12.22</span>]</span>
-<span id="cb129-31"><a href="#cb129-31" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb129-32"><a href="#cb129-32" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb129-33"><a href="#cb129-33" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb129-34"><a href="#cb129-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb129-35"><a href="#cb129-35" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">updateMany</span>({</span>
-<span id="cb129-36"><a href="#cb129-36" aria-hidden="true" tabindex="-1"></a>  where<span class="op">:</span> [{</span>
-<span id="cb129-37"><a href="#cb129-37" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">1</span></span>
-<span id="cb129-38"><a href="#cb129-38" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> {</span>
-<span id="cb129-39"><a href="#cb129-39" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">2</span></span>
-<span id="cb129-40"><a href="#cb129-40" aria-hidden="true" tabindex="-1"></a>  }]<span class="op">,</span></span>
-<span id="cb129-41"><a href="#cb129-41" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
-<span id="cb129-42"><a href="#cb129-42" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> {</span>
-<span id="cb129-43"><a href="#cb129-43" aria-hidden="true" tabindex="-1"></a>      type<span class="op">:</span> <span class="st">&quot;Point&quot;</span><span class="op">,</span></span>
-<span id="cb129-44"><a href="#cb129-44" aria-hidden="true" tabindex="-1"></a>      coordinates<span class="op">:</span> [<span class="fl">11.11</span><span class="op">,</span> <span class="fl">12.22</span>]</span>
-<span id="cb129-45"><a href="#cb129-45" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb129-46"><a href="#cb129-46" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb129-47"><a href="#cb129-47" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<span id="cb129-7"><a href="#cb129-7" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> {</span>
+<span id="cb129-8"><a href="#cb129-8" aria-hidden="true" tabindex="-1"></a>      type<span class="op">:</span> <span class="st">&quot;Point&quot;</span><span class="op">,</span></span>
+<span id="cb129-9"><a href="#cb129-9" aria-hidden="true" tabindex="-1"></a>      coordinates<span class="op">:</span> [<span class="fl">11.11</span><span class="op">,</span> <span class="fl">12.22</span>]</span>
+<span id="cb129-10"><a href="#cb129-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb129-11"><a href="#cb129-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb129-12"><a href="#cb129-12" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb129-13"><a href="#cb129-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb129-14"><a href="#cb129-14" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">updateMany</span>({</span>
+<span id="cb129-15"><a href="#cb129-15" aria-hidden="true" tabindex="-1"></a>  where<span class="op">:</span> [{</span>
+<span id="cb129-16"><a href="#cb129-16" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">1</span></span>
+<span id="cb129-17"><a href="#cb129-17" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> {</span>
+<span id="cb129-18"><a href="#cb129-18" aria-hidden="true" tabindex="-1"></a>    address_id<span class="op">:</span> <span class="dv">2</span></span>
+<span id="cb129-19"><a href="#cb129-19" aria-hidden="true" tabindex="-1"></a>  }]<span class="op">,</span></span>
+<span id="cb129-20"><a href="#cb129-20" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> {</span>
+<span id="cb129-21"><a href="#cb129-21" aria-hidden="true" tabindex="-1"></a>    location<span class="op">:</span> {</span>
+<span id="cb129-22"><a href="#cb129-22" aria-hidden="true" tabindex="-1"></a>      type<span class="op">:</span> <span class="st">&quot;Point&quot;</span><span class="op">,</span></span>
+<span id="cb129-23"><a href="#cb129-23" aria-hidden="true" tabindex="-1"></a>      coordinates<span class="op">:</span> [<span class="fl">11.11</span><span class="op">,</span> <span class="fl">12.22</span>]</span>
+<span id="cb129-24"><a href="#cb129-24" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb129-25"><a href="#cb129-25" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb129-26"><a href="#cb129-26" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
                 <h4 data-number="8.1.1.3" id="types-mismatch"><span
                 class="header-section-number">8.1.1.3</span> Types
                 Mismatch</h4>
