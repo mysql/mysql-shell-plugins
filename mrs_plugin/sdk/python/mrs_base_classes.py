@@ -62,8 +62,10 @@ from typing import (
     Unpack,
     cast,
     is_typeddict,
+    get_type_hints,
+    get_args,
 )
-import typing
+from types import GenericAlias
 from urllib.parse import urlencode, quote
 from urllib.request import HTTPError, Request, urlopen
 
@@ -1318,7 +1320,7 @@ class MrsDataDownstreamConverter:
             A copy of the original object with fields converted.
         """
         obj_copy = {}
-        for field_name, field_type in typing.get_type_hints(typed_dict).items():
+        for field_name, field_type in get_type_hints(typed_dict).items():
             if isinstance(obj, dict):
                 obj_copy[field_name] = MrsDataDownstreamConverter.convert(
                     value=obj[field_name], dst_type=field_type
@@ -1400,11 +1402,21 @@ class MrsDataDownstreamConverter:
             value otherwise.
         """
         type_alias_type_instance: Optional[TypeAliasType] = None
-        if isinstance(dst_type, typing.TypeAliasType):
+
+        # handle a list of classes (for nested values)
+        if isinstance(dst_type, GenericAlias) and isinstance(value, list):
+            class_name = get_args(dst_type)[0]
+            if class_name.__module__ == "builtins":
+                # the class is a built-in type
+                return [class_name(item) for item in value]
+            # otherwise, the class is a custom dataclass (based on MRSDocument)
+            return [class_name(schema=None, data=item) for item in value]
+
+        if isinstance(dst_type, TypeAliasType):
             type_alias_type_instance = dst_type
         elif hasattr(dst_type, "__name__") and dst_type.__name__.startswith("Optional"):
-            for arg in typing.get_args(dst_type):
-                if isinstance(arg, typing.TypeAliasType):
+            for arg in get_args(dst_type):
+                if isinstance(arg, TypeAliasType):
                     type_alias_type_instance = arg
                     break
 
@@ -1416,6 +1428,7 @@ class MrsDataDownstreamConverter:
                     type_alias_type_instance.__name__,
                 ),
             )
+
         return value
 
 

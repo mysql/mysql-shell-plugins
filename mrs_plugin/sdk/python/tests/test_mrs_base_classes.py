@@ -3567,7 +3567,7 @@ async def test_dataclass_delete(
     expected_q_url: str,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
-    delete_response: IMrsDeleteResponse,
+    delete_response: dict,
 ):
     """Specifying `where`. Checking implicit filter."""
     document = ActorWithDeleteBehavior(
@@ -3930,6 +3930,12 @@ def test_auth_app_not_found_exception():
             Time,
             datetime.timedelta(seconds=69, microseconds=1),
         ),
+        # dataclass
+        (
+            [{"actor_id":1, "first_name":"FOO", "last_name": "BAR"}],
+            list[Actor],
+            [Actor(schema=None,data={"actor_id":1, "first_name":"FOO", "last_name": "BAR"})] # type: ignore
+        )
     ],
 )
 def test_downstream_converter(value: int | str, type_hint: TypeAlias, exp_output: Any):

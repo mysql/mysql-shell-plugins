@@ -16,6 +16,7 @@
 - BUG#37575319 Incorrect output running mrs.getStatus command
 - BUG#38384637 Unexpected type alias types for spatial data types in the Typescript SDK
 - BUG#38384773 Unable to insert collections of geometry values as GEOMETRY field in the TypeScript SDK
+- BUG#37767208 Python SDK: access pattern changes for nested results
 -
 
 

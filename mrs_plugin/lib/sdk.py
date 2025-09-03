@@ -1658,6 +1658,7 @@ def generate_interfaces(
 
     if not object_is_routine(db_obj):
         # The object is a TABLE or a VIEW
+        data_type_alias_name = f"{class_name}Data"
         creatable_type_alias_name = f"New{class_name}"
         updatable_type_alias_name = f"Update{class_name}"
 
@@ -1679,14 +1680,16 @@ def generate_interfaces(
                 )
             )
 
-            obj_interfaces.append(
-                generate_type_declaration(
-                    name=f"{class_name}Data",
-                    fields=interface_fields,
-                    sdk_language=sdk_language,
-                    non_mandatory_fields=set(interface_fields),
+            # Do not generate type aliases that have already been created whilst processing nested fields.
+            if data_type_alias_name not in generated_type_aliases:
+                obj_interfaces.append(
+                    generate_type_declaration(
+                        name=f"{class_name}Data",
+                        fields=interface_fields,
+                        sdk_language=sdk_language,
+                        non_mandatory_fields=set(interface_fields),
+                    )
                 )
-            )
 
         # Do not generate type aliases that have already been created whilst processing nested fields.
         if "CREATE" in db_object_crud_ops and creatable_type_alias_name not in generated_type_aliases:
@@ -1796,7 +1799,7 @@ def generate_interfaces(
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
                 ignore_base_types=True,
-                non_mandatory_fields=[] if sdk_language == "swift" else set(param_interface_fields),
+                non_mandatory_fields=set() if sdk_language == "swift" else set(param_interface_fields),
             )
         )
 
@@ -1805,7 +1808,7 @@ def generate_interfaces(
                 name=f"{class_name}UniqueFilterable",
                 fields=obj_unique_fields,
                 sdk_language=sdk_language,
-                non_mandatory_fields=[] if sdk_language == "swift" else set(obj_unique_fields),
+                non_mandatory_fields=set() if sdk_language == "swift" else set(obj_unique_fields),
             )
         )
 
@@ -1814,7 +1817,7 @@ def generate_interfaces(
                 name=f"{class_name}Cursors",
                 fields=obj_cursor_fields,
                 sdk_language=sdk_language,
-                non_mandatory_fields=[] if sdk_language == "swift" else set(obj_cursor_fields),
+                non_mandatory_fields=set() if sdk_language == "swift" else set(obj_cursor_fields),
                 # To avoid conditional logic in the template, we should generate a void type declaration.
                 requires_placeholder=True,
             )
@@ -1950,8 +1953,19 @@ def generate_nested_interfaces(
                 interface_fields.update({ field.get("name"): datatype })
 
     if not parent_obj_ref.get("unnest"):
+        data_type_alias_name = f"{interface_name}Data"
         creatable_type_alias_name = f"New{interface_name}"
         updatable_type_alias_name = f"Update{interface_name}"
+        # Do not generate type aliases that have already been created whilst processing top-level fields.
+        if data_type_alias_name not in generated_type_aliases:
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=data_type_alias_name,
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=set(interface_fields),
+                )
+            )
         # Do not generate type aliases that have already been created whilst processing top-level fields.
         if "CREATE" in allowed_crud_ops and creatable_type_alias_name not in generated_type_aliases:
             non_mandatory_fields = [
@@ -2003,11 +2017,11 @@ def generate_nested_interfaces(
         if interface_name not in generated_type_aliases:
             readable_type_alias_fields = interface_fields | reduced_to_datatype_fields
             obj_interfaces.append(
-                generate_type_declaration(
+                generate_data_class(
                     name=interface_name,
                     fields=readable_type_alias_fields,
                     sdk_language=sdk_language,
-                    non_mandatory_fields=set(readable_type_alias_fields),
+                    db_object_crud_ops=list(allowed_crud_ops),
                 )
             )
             generated_type_aliases.add(interface_name)
