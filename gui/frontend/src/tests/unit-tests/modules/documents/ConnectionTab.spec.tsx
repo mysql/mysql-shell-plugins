@@ -25,9 +25,9 @@
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { mount, shallow } from "enzyme";
-
-import { type RefObject } from "preact";
+import { render } from "@testing-library/preact";
+import { createRef, type RefObject } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi, type Mock } from "vitest";
 
 import { StoreType } from "../../../../app-logic/ApplicationDB.js";
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
@@ -38,40 +38,43 @@ import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor/ind
 import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 import { OdmEntityType, OpenDocumentDataModel } from "../../../../data-models/OpenDocumentDataModel.js";
 import {
-    ConnectionTab, IOpenDocumentState, type IConnectionPresentationState,
-    type QueryResult,
+    ConnectionTab, IOpenDocumentState, type IConnectionPresentationState, type QueryResult,
 } from "../../../../modules/db-editor/ConnectionTab.js";
 import { LakehouseNavigatorTab } from "../../../../modules/db-editor/LakehouseNavigator.js";
 import type { Notebook } from "../../../../modules/db-editor/Notebook.js";
 import type { ScriptEditor } from "../../../../modules/db-editor/ScriptEditor.js";
 import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool.js";
 import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
+import type { ExecutionContext } from "../../../../script-execution/ExecutionContext.js";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../../script-execution/PresentationInterface.js";
-import { SQLExecutionContext, type IRuntimeErrorResult } from "../../../../script-execution/SQLExecutionContext.js";
+import {
+    SQLExecutionContext, type IRuntimeErrorData, type IStacktraceInfo
+} from "../../../../script-execution/SQLExecutionContext.js";
 import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
 import type { IEditorExtendedExecutionOptions } from "../../../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uuid } from "../../../../utilities/helpers.js";
 import { notebookDocumentMock } from "../../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
-import { nextProcessTick, setupShellForTests } from "../../test-helpers.js";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { mockClassMethods, nextProcessTick, nextRunLoop, setupShellForTests } from "../../test-helpers.js";
 
 // @ts-expect-error, we need access to a private members here.
-class ConnectionTabMock extends ConnectionTab {
+class TestConnectionTab extends ConnectionTab {
     declare public static shiftMLEStacktraceLineNumbers: (
-        stackTrace: QueryResult, jsStartLine: number) => IRuntimeErrorResult | undefined;
+        stackTrace: QueryResult, jsStartLine: number) => IStacktraceInfo | undefined;
 
     public declare notebookRef: RefObject<Notebook>;
     public declare scriptRef: RefObject<ScriptEditor>;
     public declare scriptWaiting: boolean;
 
     public declare findActiveEditor: () => IOpenDocumentState | undefined;
+    public declare explainError: (context: ExecutionContext) => Promise<boolean>;
 }
 
 interface IMLEStacktrace {
@@ -80,12 +83,17 @@ interface IMLEStacktrace {
     shiftedStacktrace: string,
 }
 
-jest.mock("../../../../components/ui/CodeEditor/CodeEditor");
-jest.mock("../../../../script-execution/ScriptingLanguageServices.js", (): unknown => {
+vi.mock("../../../../components/ui/CodeEditor/CodeEditor");
+vi.mock("../../../../script-execution/ScriptingLanguageServices.js", async () => {
+    const actual = await vi.importActual("../../../../script-execution/ScriptingLanguageServices.js");
+
     return {
-        __esModule: true, // this is important
-        ...jest.requireActual("../../../../script-execution/ScriptingLanguageServices.js"),
+        ...actual,
     };
+});
+
+mockClassMethods(ShellInterfaceSqlEditor, {
+    execute: vi.fn(),
 });
 
 describe("DBConnectionTab tests", (): void => {
@@ -229,7 +237,7 @@ describe("DBConnectionTab tests", (): void => {
         },
     ];
 
-    const mleStacktraceShiftingFunc = ConnectionTabMock.shiftMLEStacktraceLineNumbers;
+    const mleStacktraceShiftingFunc = TestConnectionTab.shiftMLEStacktraceLineNumbers;
 
     beforeAll(async () => {
         registerUiLayer(uiLayerMock);
@@ -238,13 +246,12 @@ describe("DBConnectionTab tests", (): void => {
 
     afterAll(async () => {
         await launcher.exitProcess();
+        vi.resetAllMocks();
     });
 
     it.each(mleStacktraces)("Test shifting MLE stacktrace", ({ stacktrace, jsStartline, shiftedStacktrace }) => {
-        const result = mleStacktraceShiftingFunc(
-            { rows: [[stacktrace]] }, jsStartline);
-        expect(result?.message)
-            .toEqual(shiftedStacktrace);
+        const result = mleStacktraceShiftingFunc({ rows: [[stacktrace]] }, jsStartline);
+        expect(result?.message).toEqual(shiftedStacktrace);
     });
 
     it("Test DBConnectionTab snapshot", () => {
@@ -274,7 +281,7 @@ describe("DBConnectionTab tests", (): void => {
             },
         });
 
-        const component = shallow<ConnectionTab>(
+        const { container, unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -284,32 +291,12 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
-        component.unmount();
-    });
-
-    it("Test DBConnectionTab instantiation", () => {
-        const component = mount<ConnectionTab>(
-            <ConnectionTab
-                connection={connection}
-                savedState={savedState}
-                workerPool={wp}
-                showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        const props = component.props();
-        expect(props.connection!.details.id).toEqual(123);
-        expect(props.connection!.details.dbType).toEqual(DBType.MySQL);
-        expect(props.savedState).toEqual(savedState);
-        expect(props.workerPool).toEqual(wp);
-
-        component.unmount();
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
     it("Test editorStopExecution requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -319,21 +306,19 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const promise = connection.backend.execute("SELECT 1", undefined, undefined, (): Promise<void> => {
-            expect(false).toBe(true);
-
-            return Promise.resolve();
-        });
+        const callback = vi.fn();
+        const promise = connection.backend.execute("SELECT 1", undefined, undefined, callback);
         const result = await requisitions.execute("editorStopExecution", undefined);
         await promise;
 
         expect(result).toBe(true);
+        expect(callback).not.toHaveBeenCalled();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorCommit requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -360,11 +345,11 @@ describe("DBConnectionTab tests", (): void => {
 
         requisitions.unregister("sqlTransactionChanged");
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRollback requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -389,23 +374,21 @@ describe("DBConnectionTab tests", (): void => {
 
         requisitions.unregister("sqlTransactionChanged");
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorLoadScript requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const onLoadScriptMock = vi.fn();
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+                onLoadScript={onLoadScriptMock}
             />,
         );
-
-        const onLoadScriptMock = jest.fn();
-
-        component.setProps({ onLoadScript: onLoadScriptMock });
 
         const script: IScriptRequest = {
             id: "id2",
@@ -421,23 +404,22 @@ describe("DBConnectionTab tests", (): void => {
         expect(result).toBe(true);
         expect(onLoadScriptMock).toHaveBeenCalledWith("", script.id, script.content);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRenameScript requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const onEditorRenameMock = vi.fn();
+
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+                onEditorRename={onEditorRenameMock}
             />,
         );
-
-        const onEditorRenameMock = jest.fn();
-
-        component.setProps({ onEditorRename: onEditorRenameMock });
 
         const script: IScriptRequest = {
             id: "id2",
@@ -454,11 +436,11 @@ describe("DBConnectionTab tests", (): void => {
         expect(result).toBe(true);
         expect(onEditorRenameMock).toHaveBeenCalledWith("", script.id, script.caption);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test acceptMrsAuthentication requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -489,11 +471,11 @@ describe("DBConnectionTab tests", (): void => {
 
         expect(result).toBe(true);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test cancelMrsAuthentication requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -523,11 +505,11 @@ describe("DBConnectionTab tests", (): void => {
 
         expect(result).toBe(true);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test refreshMrsServiceSdk requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -541,12 +523,15 @@ describe("DBConnectionTab tests", (): void => {
 
         expect(result).toBe(false);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRunCode function call with active notebook", async () => {
-        const component = mount<ConnectionTabMock>(
-            <ConnectionTabMock
+        const tabRef = createRef<TestConnectionTab>();
+
+        const { unmount } = render(
+            <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -555,9 +540,11 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance = component.instance();
-        const notebookRef = instance.notebookRef.current;
-        const executeQueriesMock = jest.fn();
+        await nextProcessTick();
+        expect(tabRef.current).toBeDefined();
+
+        const notebookRef = tabRef.current!.notebookRef.current;
+        const executeQueriesMock = vi.fn();
         if (notebookRef) {
             notebookRef.executeQueries = executeQueriesMock;
         }
@@ -580,12 +567,15 @@ describe("DBConnectionTab tests", (): void => {
         expect(result).toBe(true);
         expect(executeQueriesMock).toHaveBeenCalledWith({ params: options.params }, options.code, undefined);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRunCode function call without active notebook", async () => {
-        const component = mount<ConnectionTabMock>(
+        const tabRef = createRef<TestConnectionTab>();
+
+        const { unmount } = render(
             <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -594,8 +584,9 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance = component.instance();
-        instance.notebookRef.current = null;
+        await nextProcessTick();
+        expect(tabRef.current).toBeDefined();
+        tabRef.current!.notebookRef.current = null;
 
         const options: IEditorExtendedExecutionOptions = {
             language: "mysql",
@@ -605,12 +596,15 @@ describe("DBConnectionTab tests", (): void => {
 
         expect(result).toBe(false);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRunScript when scriptWaiting is false", async () => {
-        const component = mount<ConnectionTabMock>(
+        const tabRef = createRef<TestConnectionTab>();
+
+        const { unmount } = render(
             <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -619,7 +613,8 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance = component.instance();
+        await nextProcessTick();
+        expect(tabRef.current).toBeDefined();
 
         const script: IScriptRequest = {
             id: "id1",
@@ -636,14 +631,17 @@ describe("DBConnectionTab tests", (): void => {
         const result = await requisitions.execute("editorRunScript", script);
 
         expect(result).toBe(false);
-        expect(instance.scriptWaiting).toBe(true);
+        expect(tabRef.current!.scriptWaiting).toBe(true);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRunScript when scriptWaiting is true and scriptRef is current", async () => {
-        const component = mount<ConnectionTabMock>(
+        const tabRef = createRef<TestConnectionTab>();
+
+        const { unmount } = render(
             <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -652,10 +650,12 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance = component.instance();
-        instance.scriptWaiting = true;
-        instance.scriptRef.current = {
-            executeWithMaximizedResult: jest.fn().mockResolvedValue(true),
+        await nextProcessTick();
+        expect(tabRef.current).toBeDefined();
+
+        tabRef.current!.scriptWaiting = true;
+        tabRef.current!.scriptRef.current = {
+            executeWithMaximizedResult: vi.fn().mockResolvedValue(true),
         } as unknown as ScriptEditor;
 
         const script: IScriptRequest = {
@@ -673,16 +673,19 @@ describe("DBConnectionTab tests", (): void => {
         const result = await requisitions.execute("editorRunScript", script);
 
         expect(result).toBe(true);
-        expect(instance.scriptRef.current.executeWithMaximizedResult)
+        expect(tabRef.current!.scriptRef.current.executeWithMaximizedResult)
             .toHaveBeenCalledWith(script.content, script.forceSecondaryEngine);
-        expect(instance.scriptWaiting).toBe(false);
+        expect(tabRef.current!.scriptWaiting).toBe(false);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test editorRunScript when scriptWaiting is true and scriptRef is not current", async () => {
-        const component = mount<ConnectionTabMock>(
+        const tabRef = createRef<TestConnectionTab>();
+
+        const { unmount } = render(
             <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -691,9 +694,11 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance = component.instance();
-        instance.scriptWaiting = true;
-        instance.scriptRef.current = null;
+        await nextProcessTick();
+        expect(tabRef.current).toBeDefined();
+
+        tabRef.current!.scriptWaiting = true;
+        tabRef.current!.scriptRef.current = null;
 
         const script: IScriptRequest = {
             id: "id1",
@@ -710,13 +715,13 @@ describe("DBConnectionTab tests", (): void => {
         const result = await requisitions.execute("editorRunScript", script);
 
         expect(result).toBe(false);
-        expect(instance.scriptWaiting).toBe(true);
+        expect(tabRef.current!.scriptWaiting).toBe(true);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test sqlShowDataAtPage requisition function call", async () => {
-        const component = mount<ConnectionTabMock>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -741,10 +746,10 @@ describe("DBConnectionTab tests", (): void => {
             oldResultId: "oldResultId",
         };
 
-        const determineQueryTypeSpy = jest.spyOn(
+        const determineQueryTypeSpy = vi.spyOn(
             ScriptingLanguageServices.instance,
             "determineQueryType" as never,
-        ).mockImplementation();
+        );
 
         const result = await requisitions.execute("sqlShowDataAtPage", data);
 
@@ -752,14 +757,18 @@ describe("DBConnectionTab tests", (): void => {
         expect(determineQueryTypeSpy).toHaveBeenCalledTimes(1);
 
         determineQueryTypeSpy.mockRestore();
-        component.unmount();
-    });
+        unmount();
+    }, 10000);
 
     it("Test editorSaveNotebook with openState", async () => {
         const originalEmbedded = appParameters.embedded;
         appParameters.embedded = true;
-        const component = mount<ConnectionTabMock>(
+
+        const tabRef = createRef<TestConnectionTab>();
+
+        const { unmount } = render(
             <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -768,7 +777,9 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance = component.instance();
+        await nextProcessTick();
+        expect(tabRef.current).toBeDefined();
+
         const document = documentDataModel.openDocument(undefined, {
             type: OdmEntityType.Notebook,
             parameters: {
@@ -783,9 +794,9 @@ describe("DBConnectionTab tests", (): void => {
             state: {
                 model: {
                     executionContexts: {
-                        collectRawState: jest.fn().mockResolvedValue([]),
+                        collectRawState: vi.fn().mockResolvedValue([]),
                     } as unknown as ExecutionContexts,
-                    getValue: jest.fn().mockReturnValue("notebook content"),
+                    getValue: vi.fn().mockReturnValue("notebook content"),
                 } as unknown as ICodeEditorModel,
                 viewState: null,
                 options: {},
@@ -793,7 +804,7 @@ describe("DBConnectionTab tests", (): void => {
             document,
             currentVersion: 0,
         };
-        instance.findActiveEditor = jest.fn().mockReturnValue(openState);
+        tabRef.current!.findActiveEditor = vi.fn().mockReturnValue(openState);
 
         const result = await requisitions.execute("editorSaveNotebook", undefined);
         expect(result).toBe(true);
@@ -801,13 +812,13 @@ describe("DBConnectionTab tests", (): void => {
         expect(openState.state?.model.executionContexts?.collectRawState).toHaveBeenCalled();
 
         appParameters.embedded = originalEmbedded;
-        component.unmount();
+        unmount();
     });
 
     it("Test showLakehouseNavigator requisition function call", async () => {
-        const onSelectItemMock = jest.fn();
+        const onSelectItemMock = vi.fn();
 
-        const component = mount<ConnectionTabMock>(
+        const { unmount } = render(
             <DocumentContext.Provider
                 value={{
                     connectionsDataModel,
@@ -838,34 +849,33 @@ describe("DBConnectionTab tests", (): void => {
             }) as Partial<{ type: OdmEntityType; caption: string; pageType: string; }>,
         }));
 
-        component.unmount();
+        unmount();
     });
 
     it("Test showChatOptions requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const onChatOptionsChangeMock = vi.fn();
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+                onChatOptionsChange={onChatOptionsChangeMock}
+                id="1"
             />,
         );
-
-        const onChatOptionsChangeMock = jest.fn();
-
-        component.setProps({ onChatOptionsChange: onChatOptionsChangeMock, id: "1" });
 
         const result = await requisitions.execute("showChatOptions", undefined);
 
         expect(result).toBe(true);
         expect(onChatOptionsChangeMock).toHaveBeenCalledWith("1", { chatOptionsExpanded: true });
 
-        component.unmount();
+        unmount();
     });
 
     it("Test selectFile requisition function call", async () => {
-        const component = mount<ConnectionTab>(
+        const { unmount } = render(
             <ConnectionTab
                 connection={connection}
                 savedState={savedState}
@@ -877,7 +887,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultSaveValid = {
             resourceId: "saveChatOptions",
-            file: [{ path: "/valid/path/to/save", content: new ArrayBuffer() }],
+            file: [{ path: "/valid/path/to/save", content: new ArrayBuffer(16) }],
         };
 
         const fileResultSaveInvalid = {
@@ -887,7 +897,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultLoadValid = {
             resourceId: "loadChatOptions",
-            file: [{ path: "/valid/path/to/load", content: new ArrayBuffer() }],
+            file: [{ path: "/valid/path/to/load", content: new ArrayBuffer(16) }],
         };
 
         const fileResultLoadInvalid = {
@@ -897,20 +907,20 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultUnknown = {
             resourceId: "unknownResourceId",
-            file: [{ path: "some/path", content: new ArrayBuffer() }],
+            file: [{ path: "some/path", content: new ArrayBuffer(16) }],
         };
         const options: IMdsChatData = { schemaName: "testSchema" };
 
-        const saveMdsChatOptionsMock = jest.spyOn(connection.backend.mhs,
+        const saveMdsChatOptionsMock = vi.spyOn(connection.backend.mhs,
             "saveMdsChatOptions").mockResolvedValue(undefined);
-        const loadMdsChatOptionsMock = jest.spyOn(connection.backend.mhs,
+        const loadMdsChatOptionsMock = vi.spyOn(connection.backend.mhs,
             "loadMdsChatOptions").mockResolvedValue(options);
 
         let result = await requisitions.execute("selectFile", fileResultSaveValid);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledWith("/valid/path/to/save", {});
         expect(uiLayerMock.showInformationMessage).toHaveBeenCalled();
-        (uiLayerMock.showInformationMessage as jest.Mock).mockClear();
+        (uiLayerMock.showInformationMessage as Mock).mockClear();
 
         saveMdsChatOptionsMock.mockReset();
 
@@ -937,13 +947,14 @@ describe("DBConnectionTab tests", (): void => {
 
         saveMdsChatOptionsMock.mockRestore();
         loadMdsChatOptionsMock.mockRestore();
-        component.unmount();
+        unmount();
     });
 
-
     it("Test explainError function", async () => {
-        const component = mount<ConnectionTab>(
+        const tabRef = createRef<TestConnectionTab>();
+        const { unmount } = render(
             <ConnectionTab
+                ref={tabRef}
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -952,20 +963,18 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const backend = {
-            execute: jest.fn(),
-        } as unknown as ShellInterfaceSqlEditor;
-        Object.defineProperty(connection, "backend", backend);
+        await nextRunLoop();
+        expect(tabRef.current).toBeDefined();
 
         const lowercaseSpDef = {
-            includes: jest.fn(),
+            includes: vi.fn(),
         } as unknown as string;
 
         const spDef = {
-            toLowerCase: jest.fn().mockReturnValue(lowercaseSpDef),
+            toLowerCase: vi.fn().mockReturnValue(lowercaseSpDef),
         } as unknown as string;
 
-        const getRuntimeErrorDataMock = jest.fn();
+        const getRuntimeErrorDataMock = vi.fn();
         getRuntimeErrorDataMock.mockReturnValue(
             {
                 queryStatement: "a query",
@@ -982,19 +991,18 @@ describe("DBConnectionTab tests", (): void => {
             } as IRuntimeErrorData,
         );
 
-        const instance = component.instance();
         const executionContext = {
             id: "test-context-1",
             code: "",
             language: "sql",
-            clearResult: jest.fn(),
-            addResultData: jest.fn(),
+            clearResult: vi.fn(),
+            addResultData: vi.fn(),
             getRuntimeErrorData: getRuntimeErrorDataMock,
-            executionStarts: jest.fn(),
-            executionEnded: jest.fn(),
+            executionStarts: vi.fn(),
+            executionEnded: vi.fn(),
         } as unknown as SQLExecutionContext;
 
-        const result = await instance["explainError"](executionContext);
+        const result = await tabRef.current!.explainError(executionContext);
 
         expect(result).toBe(true);
         expect(executionContext.addResultData).not.toHaveBeenCalled();
@@ -1004,7 +1012,7 @@ describe("DBConnectionTab tests", (): void => {
         expect(lowercaseSpDef.includes).toHaveBeenCalled();
         expect(executionContext.executionEnded).toHaveBeenCalled();
 
-        component.unmount();
+        unmount();
     });
 
 });

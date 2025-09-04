@@ -1,15 +1,13 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`CodeEditor component tests Standard Rendering 1`] = `
-<CodeEditor
-  allowSoftWrap={false}
-  componentMinWidth={200}
-  detectLinks={false}
-  lineNumbers="on"
-  useTabStops={false}
->
+exports[`CodeEditor component tests > Standard Rendering 1`] = `
+<div>
   <div
-    className="msg editorHost"
-  />
-</CodeEditor>
+    class="msg editorHost"
+    data-keybinding-context="1"
+    data-mode-id="plaintext"
+  >
+    "<filtered>"
+  </div>
+</div>
 `;

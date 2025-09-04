@@ -23,31 +23,70 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
-import { IShellDbConnection } from "../../../../communication/ProtocolGui.js";
+import { IShellDbConnection, ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { ResponseError } from "../../../../communication/ResponseError.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceDb } from "../../../../supplement/ShellInterface/ShellInterfaceDb.js";
-import { webSession } from "../../../../supplement/WebSession.js";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 
-import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
+import { MessageScheduler, type ISendRequestParameters } from "../../../../communication/MessageScheduler.js";
+import type { IShellDictionary } from "../../../../communication/Protocol.js";
+import type { IProtocolResults } from "../../../../communication/ProtocolResultMapper.js";
+import { convertErrorToString } from "../../../../utilities/helpers.js";
+import { getDbCredentials, ITestDbCredentials } from "../../test-helpers.js";
+
+vi.spyOn(MessageScheduler.get, "sendRequest").mockImplementation(
+    <K extends keyof IProtocolResults>(details: ISendRequestParameters<K>) => {
+        switch (details.requestType) {
+            case ShellAPIGui.GuiDbStartSession: {
+                return Promise.resolve({ result: { moduleSessionId: "testSessionId" } });
+            }
+
+            case ShellAPIGui.GuiDbGetCatalogObjectNames: {
+                return Promise.resolve([{ result: ["mysql", "sys"] }]);
+            }
+
+            case ShellAPIGui.GuiDbGetSchemaObjectNames: {
+                const parameters = details.parameters as { args: { schemaName: string; type: string; }; };
+                if (parameters.args.schemaName === "mysql" && parameters.args.type === "Table") {
+                    return Promise.resolve([{ result: ["help_topic"] }]);
+                }
+
+                return Promise.reject(new ResponseError(
+                    { requestState: { msg: `Unsupported None object type (${parameters.args.type})` } }));
+            }
+
+            case ShellAPIGui.GuiDbGetTableObjectNames: {
+                const parameters =
+                    details.parameters as { args: { schemaName: string; tableName: string; type: string; }; };
+                if (parameters.args.schemaName === "mysql" && parameters.args.tableName === "help_topic"
+                    && parameters.args.type === "Column") {
+                    return Promise.resolve([{ result: ["help_topic_id"] }]);
+                }
+
+                return Promise.reject(new ResponseError(
+                    { requestState: { msg: `Unsupported None object type (${parameters.args.type})` } }));
+            }
+            default: {
+                return Promise.resolve();
+            }
+        }
+    }
+);
 
 describe("ShellInterfaceDb Tests", () => {
-    let launcher: MySQLShellLauncher;
     let db: ShellInterfaceDb;
 
     let credentials: ITestDbCredentials;
 
     let testConnection: IConnectionDetails;
 
-    beforeAll(async () => {
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
-
-        launcher = await setupShellForTests(false, true, "DEBUG2");
 
         // Create a connection for our tests.
         credentials = getDbCredentials();
@@ -69,25 +108,23 @@ describe("ShellInterfaceDb Tests", () => {
 
         };
 
-        testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection))[0];
-        expect(testConnection.id).toBeGreaterThan(-1);
-
         db = new ShellInterfaceDb();
     });
 
-    afterAll(async () => {
-        await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id);
-        await launcher.exitProcess();
+    afterAll(() => {
+        vi.resetAllMocks();
     });
 
     it("Close session without opening one", async () => {
-        await db.closeSession(); // Must not throw an error.
+        expect(db.moduleSessionId).toBeUndefined();
+        await db.closeSession();
+        expect(db.moduleSessionId).toBeUndefined();
     });
 
     it("Stored connection, catalog objects", async () => {
         try {
             await db.startSession("test1", testConnection.id);
+            expect(db.moduleSessionId).toBe("testSessionId");
 
             const objects = await db.getCatalogObjects("Schema");
             expect(objects).toContain("mysql");
@@ -104,7 +141,7 @@ describe("ShellInterfaceDb Tests", () => {
             dbType: testConnection.dbType,
             caption: testConnection.caption,
             description: testConnection.description,
-            options: { ...testConnection.options },
+            options: { ...testConnection.options } as IShellDictionary,
             settings: {},
         };
 
@@ -114,17 +151,27 @@ describe("ShellInterfaceDb Tests", () => {
             let objects = await db.getCatalogObjects("Schema");
             expect(objects).toContain("mysql");
 
-            await expect(db.getSchemaObjectNames("mysql", "table")).rejects
-                .toBeInstanceOf(ResponseError).catch((reason: unknown) => {
-                    expect((reason as IDictionary).message).toEqual("Unsupported None object type (table)");
-                });
+            await expect(db.getSchemaObjectNames("mysql", "table")).rejects.toBeInstanceOf(ResponseError);
+            try {
+                await db.getSchemaObjectNames("mysql", "table");
+            } catch (reason) {
+                const message = convertErrorToString(reason);
+                expect(message).toEqual("Unsupported None object type (table)");
+            }
+
             objects = await db.getSchemaObjectNames("mysql", "Table");
             expect(objects).toContain("help_topic");
 
             await expect(db.getTableObjectNames("mysql", "help_topic", "trigger")).rejects
-                .toBeInstanceOf(ResponseError).catch((reason: unknown) => {
-                    expect((reason as IDictionary).message).toEqual("Unsupported None object type (trigger)");
-                });
+                .toBeInstanceOf(ResponseError);
+
+            try {
+                await db.getTableObjectNames("mysql", "help_topic", "trigger");
+            } catch (reason) {
+                const message = convertErrorToString(reason);
+                expect(message).toEqual("Unsupported None object type (trigger)");
+            }
+
             objects = await db.getTableObjectNames("mysql", "help_topic", "Column");
             expect(objects).toContain("help_topic_id");
         } finally {

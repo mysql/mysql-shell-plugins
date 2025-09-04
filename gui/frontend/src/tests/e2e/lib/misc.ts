@@ -20,10 +20,10 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
+import * as allure from "allure-js-commons";
 import * as fs from "fs/promises";
-import { mkdir, writeFile } from "fs/promises";
 import { WebDriver, error, Condition, until } from "selenium-webdriver";
+import { expect } from "vitest";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
@@ -32,6 +32,7 @@ import { IOciProfileConfig } from "./interfaces.js";
 import { E2ENotebook } from "./E2ENotebook.js";
 import { E2EAccordionSection } from "./SideBar/E2EAccordionSection.js";
 import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
+import { TestContext } from "vitest";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -66,11 +67,20 @@ export class Misc {
     /**
      * Waits until the homepage loads
      * 
+     * @param url The page url
      * @returns A promise resolving when the page is loaded
      */
-    public static untilHomePageIsLoaded = (): Condition<boolean> => {
+    public static untilHomePageIsLoaded = (url: string): Condition<boolean> => {
         return new Condition("for home page to be loaded", async () => {
-            const url = await driver.getCurrentUrl();
+            try {
+                await driver.get(url);
+            } catch (e) {
+                if (!(e instanceof error.TimeoutError)) {
+                    throw e;
+                } else {
+                    return false;
+                }
+            }
 
             if (url.includes("token")) {
                 return driver.wait(until.elementLocated(locator.pageIsLoaded), constants.wait3seconds)
@@ -110,32 +120,31 @@ export class Misc {
     };
 
     /**
-     * Retrieves the name of the current test and returns it with some transformations applied.
-     *
-     * @returns The adjusted test name.
-     */
-    public static currentTestName(): string | undefined {
-        return expect.getState().currentTestName?.toLowerCase().replace(/\s/g, "_");
-    }
-
-    /**
      * Takes a screen shot of the current browser window and stores it on disk.
      * 
+     * @param context The test context
      * @param name test name
      * @returns file path
      */
-    public static async storeScreenShot(name?: string): Promise<string> {
+    public static async storeScreenShot(context?: TestContext, name?: string): Promise<string> {
         const img = await driver.takeScreenshot();
-        let testName = "";
+        let testName: string;
 
-        if (!name) {
-            testName = Misc.currentTestName() ?? "<unknown test>";
+        if (context) {
+            if (!name) {
+                testName = context.task.name.replace(/\s/g, "_");
+            } else {
+                testName = name;
+            }
         } else {
-            testName = name;
+            if (!name) {
+                throw new Error("Without a test context, the test name is mandatory");
+            } else {
+                testName = name;
+            }
         }
 
-        await mkdir("src/tests/e2e/screenshots", { recursive: true });
-        await writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+        await allure.attachment(testName, Buffer.from(img, "base64"), allure.ContentType.PNG);
 
         return `screenshots/${testName}_screenshot.png`;
     }

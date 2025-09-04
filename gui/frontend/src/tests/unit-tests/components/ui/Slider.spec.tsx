@@ -23,41 +23,46 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { Slider } from "../../../../components/ui/Slider/Slider.js";
+import { createRef } from "preact";
 
 describe("Slider component tests", (): void => {
 
     it("Standard Rendering", () => {
-        const component = mount<Slider>(
+        const { container, unmount } = render(
             <Slider
                 id="slider1"
                 value={0.3}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Value Change", () => {
-        const component = mount<Slider>(
+        const onChange = vi.fn();
+
+        const sliderRef = createRef<Slider>();
+        const { container, unmount } = render(
             <Slider
+                ref={sliderRef}
                 id="slider1"
                 value={0.3}
-                onChange={jest.fn()}
+                onChange={onChange}
             />,
         );
-        expect(component).toMatchSnapshot();
 
-        const instance = component.instance();
-        const spyOnChange = jest.spyOn(instance.props, "onChange") as jest.SpyInstance<void, [number], unknown>;
-        instance.value = 0.8;
+        expect(container).toMatchSnapshot();
+        expect(sliderRef.current).toBeDefined();
 
-        expect(spyOnChange).toHaveBeenCalledWith(0.8);
+        sliderRef.current!.value = 0.8;
+        expect(onChange).toBeCalledWith(0.8);
 
-        component.unmount();
+        unmount();
     });
 
 });

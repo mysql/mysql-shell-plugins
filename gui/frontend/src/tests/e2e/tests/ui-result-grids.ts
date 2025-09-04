@@ -24,21 +24,23 @@
  */
 
 import { basename } from "path";
-import { Misc } from "../lib/misc.js";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
-import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
 import { Key } from "selenium-webdriver";
-import * as locator from "../lib/locators.js";
-import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
-import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import * as constants from "../lib/constants.js";
+import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
+import { driver, loadDriver } from "../lib/driver.js";
 import { E2ELogger } from "../lib/E2ELogger.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2EToastNotification } from "../lib/E2EToastNotification.js";
+import * as interfaces from "../lib/interfaces.js";
+import * as locator from "../lib/locators.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -78,10 +80,9 @@ describe("RESULT GRIDS", () => {
     beforeAll(async () => {
 
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -98,7 +99,8 @@ describe("RESULT GRIDS", () => {
             await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_RESULT-GRIDS");
+            await Misc.storeScreenShot(undefined, "beforeAll_RESULT-GRIDS");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
 
@@ -112,10 +114,10 @@ describe("RESULT GRIDS", () => {
 
     describe("MySQL", () => {
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await Misc.dismissNotifications();
@@ -1537,4 +1539,3 @@ describe("RESULT GRIDS", () => {
     });
 
 });
-

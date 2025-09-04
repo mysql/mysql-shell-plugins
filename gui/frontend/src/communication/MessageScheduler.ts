@@ -65,7 +65,7 @@ export type DataCallback<K extends keyof IProtocolResults> =
     (data: IProtocolResults[K], requestId: string) => Promise<void>;
 
 /** Parameters for sending requests to the backend. */
-interface ISendRequestParameters<K extends keyof IProtocolParameters> {
+export interface ISendRequestParameters<K extends keyof IProtocolParameters> {
     /**
      * If set, this request ID is used instead of an auto generated one.
      */
@@ -439,8 +439,13 @@ export class MessageScheduler {
      * @param reject The reject function to call to signal that the connection had a failure to open.
      * @param event Event that gives more info about the error.
      */
-    private onError = (options: IConnectionOptions, reject: (reason?: string) => void, event: Event): void => {
-        reject(JSON.stringify(event, undefined, 4));
+    private onError = (options: IConnectionOptions, reject: (reason?: unknown) => void, event: Event): void => {
+        if (appParameters.testsRunning) {
+            // If tests are running, we do not want to reconnect automatically.
+            return;
+        }
+
+        reject(new Error(JSON.stringify(event, undefined, 4)));
 
         this.reconnectTimeout *= 2;
         if (this.reconnectTimer) {

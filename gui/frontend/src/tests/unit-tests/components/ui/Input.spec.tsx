@@ -23,80 +23,49 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
 import { act, render } from "@testing-library/preact";
+import { userEvent } from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
-import { IInputChangeProperties, Input } from "../../../../components/ui/Input/Input.js";
-import { inputEventMock } from "../../__mocks__/EventMocks.js";
-
-let inputText = "initial text";
-const handleInput = (event: InputEvent, props: IInputChangeProperties): void => {
-    if (props.id === "input1") {
-        inputText = props.value;
-    }
-};
+import { Input } from "../../../../components/ui/Input/Input.js";
 
 describe("Input render testing", (): void => {
 
     it("Test input callbacks", async () => {
-        const input = mount(
+        const onChange = vi.fn();
+        const input = render(
             <Input
                 id="input1"
                 disabled={false}
                 password={false}
-                value={inputText}
-                onChange={handleInput}
-                onBlur={jest.fn()}
-                onFocus={jest.fn()}
-                onConfirm={jest.fn()}
-                onCancel={jest.fn()}
+                value="initial text"
+                onChange={onChange}
             >
             </Input>,
         );
-        expect(input).toBeTruthy();
-        expect(inputText).toEqual("initial text");
-        const onChange = (input.props() as IInputChangeProperties).onChange;
-        await act(() => {
-            onChange?.(inputEventMock, { id: "input1", value: "new value" });
+
+        await act(async () => {
+            await userEvent.clear(input.getByRole("textbox"));
+            await userEvent.type(input.getByRole("textbox"), "new value");
         });
-        expect(inputText).toEqual("new value");
-        // const instance = input.instance();
-        // const spyFocus = jest.spyOn(instance.props as IInputProperties, "onFocus");
-        // const onFocus = (input.first().props() as IInputProperties).onFocus;
-        // act(() =>  {
-        //     onFocus?.(eventMock, { id: "1" });
-        // });
-        // expect(spyFocus).toHaveBeenCalled();
-        // const spyOnConfirm = jest.spyOn(instance.props as IInputProperties, "onConfirm");
-        // //input.simulate("keypress", { keyCode: keyboardKey.Enter, target: { value: "" } });
-        // const onKeyPress = (input.first().props() as IInputChangeProperties ).onKeyPress;
-        // act(() =>  {
-        //     onKeyPress?.(eventMock, { keyCode: keyboardKey.Enter, target: { value: "" } });
-        // });
-        // expect(spyOnConfirm).toHaveBeenCalled();
-        // const spyOnCancel = jest.spyOn(instance.props as IInputProperties, "onCancel");
-        // input.simulate("keydown", { keyCode: keyboardKey.Escape, target: { value: "" } });
-        // expect(spyOnCancel).toHaveBeenCalled();
-        // const spyOnBlur = jest.spyOn(instance.props as IInputProperties, "onBlur");
-        // input.simulate("blur", { target: { value: "" } });
-        // expect(spyOnBlur).toHaveBeenCalled();
-    });
 
-    it("Test Input elements", () => {
-        const component = shallow<Input>(
-            <Input id="input1" placeholder="Enter something" />,
+        expect(onChange).toHaveBeenLastCalledWith(
+            expect.any(InputEvent),
+            expect.objectContaining({
+                disabled: false,
+                id: "input1",
+                password: false,
+                spellCheck: true,
+                value: "new value",
+            }),
         );
-
-        const props = component.props();
-        expect(props.id).toEqual("input1");
-        expect(props.placeholder).toEqual("Enter something");
     });
 
     it("Test Input output (Snapshot)", () => {
         const { container } = render(
             <Input id="input2" disabled placeholder="Disabled input" />,
         );
-        expect(container.textContent).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
 });

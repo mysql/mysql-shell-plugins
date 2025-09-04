@@ -23,67 +23,53 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { createRef } from "preact";
+
+import { render } from "@testing-library/preact";
 import { App } from "../../../app-logic/App.js";
 import { MessageScheduler } from "../../../communication/MessageScheduler.js";
 import { appParameters } from "../../../supplement/AppParameters.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
-import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher.js";
 import { waitFor } from "../../../utilities/helpers.js";
 import { mouseEventMock } from "../__mocks__/EventMocks.js";
-import { setupShellForTests } from "../test-helpers.js";
+import { nextRunLoop } from "../test-helpers.js";
 
 describe("Application tests", () => {
-    let app: ReturnType<typeof mount>;
-    let launcher: MySQLShellLauncher;
-
-    const started = (): Promise<void> => {
-        return new Promise((resolve) => {
-            const loaded = (): Promise<boolean> => {
-                requisitions.unregister("applicationDidStart", loaded);
-                resolve();
-
-                return Promise.resolve(true);
-            };
-
-            requisitions.register("applicationDidStart", loaded);
-        });
-    };
+    let unmount: () => boolean;
+    const appRef = createRef<App>();
+    let container: Element;
 
     beforeAll(async () => {
-        // No automatic login takes place here, like in other tests. The app will trigger the login.
-        launcher = await setupShellForTests(false, false);
         expect(MessageScheduler.get.isConnected).toBe(false);
 
         expect(requisitions.registrations("dialogResponse")).toBe(0);
 
-        app = mount(<App />);
-        await started();
+        const result = render(<App ref={appRef} />);
+        unmount = result.unmount;
+        container = result.container;
 
-        expect(requisitions.registrations("dialogResponse")).toBe(2);
+        await nextRunLoop();
+        expect(appRef.current).toBeDefined();
+
+        expect(requisitions.registrations("dialogResponse")).toBe(1); // The app registers this.
     });
 
-    afterAll(async () => {
+    afterAll(() => {
         const event = new Event("beforeunload");
         expect(window.dispatchEvent(event)).toBe(true);
 
         MessageScheduler.get.disconnect();
         expect(MessageScheduler.get.isConnected).toBe(false);
 
-        app.unmount();
-
-        await launcher.exitProcess();
+        unmount();
     });
 
     it("Application readiness", () => {
-        // Note: at this point the app should be fully up and debugging the code seems to show that the
-        //       application host is rendered. Yet the snapshot still shows the login page.
-        //       What's even more confusing is that we come here, because the application host sent a message
-        //       that it was mounted. Need to investigate later.
-        expect(app.state("loginInProgress")).toEqual(false);
+        expect(appRef.current!.state.loginInProgress).toEqual(true);
 
-        expect(app).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it("Handling status bar click events", async () => {

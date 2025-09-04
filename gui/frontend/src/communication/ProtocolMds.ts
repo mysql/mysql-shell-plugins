@@ -31,7 +31,6 @@ import {
 } from "./Oci.js";
 import { IShellDictionary } from "./Protocol.js";
 
-
 export enum ShellAPIMds {
     /** Returns the list of available OCI regions */
     MdsGetRegions = "mds.get.regions",

@@ -23,16 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-import { mount, shallow } from "enzyme";
-import { CellComponent, RowComponent, type EmptyCallback } from "tabulator-tables";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import { act, render } from "@testing-library/preact";
+import { createRef, type ComponentChild } from "preact";
 
-import type { ComponentChild } from "preact";
+import { CellComponent, RowComponent, type EmptyCallback } from "tabulator-tables";
 import { DialogHost } from "../../../../app-logic/DialogHost.js";
-import { DialogResponseClosure, DialogType } from "../../../../app-logic/general-types.js";
+import {
+    DialogResponseClosure, DialogType, type IDialogRequest, type IDialogResponse,
+} from "../../../../app-logic/general-types.js";
+import type { DataCallback } from "../../../../communication/MessageScheduler.js";
+import type { IDbEditorResultSetData, ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
 import type { ISplitterPaneSizeInfo } from "../../../../components/ui/SplitContainer/SplitContainer.js";
 import {
@@ -42,13 +46,16 @@ import {
 } from "../../../../modules/db-editor/LakehouseNavigator.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
-import type { IOpenFileDialogResult } from "../../../../supplement/RequisitionTypes.js";
+import type {
+    IOpenFileDialogResult, IRequestTypeMap, IRequisitionCallbackValues
+} from "../../../../supplement/RequisitionTypes.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { nextProcessTick } from "../../test-helpers.js";
+import { nextProcessTick, nextRunLoop } from "../../test-helpers.js";
 
 // @ts-expect-error, we need access to a private members here.
 class TestLakehouseNavigator extends LakehouseNavigator {
     declare public updateValues: () => Promise<void>;
+
     declare public updateObjStorageTreeGrid: () => void;
     declare public updateLakehouseTablesTreeGrid: () => void;
     declare public updateLakehouseTasksTreeGrid: () => void;
@@ -90,6 +97,10 @@ class TestLakehouseNavigator extends LakehouseNavigator {
     declare public selectFile: (openFileResult: IOpenFileDialogResult) => Promise<boolean>;
     declare public handlePaneResize: (info: ISplitterPaneSizeInfo[]) => void;
     declare public showConfirmDlg: (title: string, prompt: string) => Promise<boolean>;
+
+    declare public getObjectStorageTreeChildren: (
+        parent: IObjectStorageTreeItem) => Promise<IObjectStorageTreeItem[]>;
+    declare public autoRefreshTrees: () => Promise<void>;
 }
 
 describe("LakehouseNavigator tests", () => {
@@ -102,6 +113,7 @@ describe("LakehouseNavigator tests", () => {
         lakehouseTablesHash: "hash1",
         lakehouseTasks: [],
         lakehouseTasksHash: "hash2",
+        heatWaveVersionSupported: true,
     };
 
     const props: ILakehouseNavigatorProperties = {
@@ -113,22 +125,19 @@ describe("LakehouseNavigator tests", () => {
             editor: [],
             auxiliary: [],
         },
-        onLakehouseNavigatorStateChange: jest.fn(),
+        onLakehouseNavigatorStateChange: vi.fn(),
     };
 
     it("Test LakehouseNavigator instantiation", () => {
-        const component = shallow<TestLakehouseNavigator>(
-            <TestLakehouseNavigator
+        const { container, unmount } = render(
+            <LakehouseNavigator
                 {...props}
             />,
         );
 
-        const instance = component.instance();
+        expect(container).toMatchSnapshot();
 
-        expect(instance.state.autoRefreshTablesAndTasks).toBe(true);
-
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        unmount();
     });
 
     it("Test getDerivedStateFromProps function when state is undefined", () => {
@@ -146,6 +155,7 @@ describe("LakehouseNavigator tests", () => {
         const state = {
             activeTabId: LakehouseNavigatorTab.Overview,
             profiles: undefined,
+            heatWaveVersionSupported: true,
         };
 
         const result = LakehouseNavigator.getDerivedStateFromProps(
@@ -177,129 +187,55 @@ describe("LakehouseNavigator tests", () => {
         expect(result).toEqual({});
     });
 
-    it("Test componentDidMount", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
-        );
-
-        const originalUpdateValues = component.instance().updateValues;
-        const originalUpdateObjStorageTreeGrid = component.instance().updateObjStorageTreeGrid;
-        const originalUpdateLakehouseTablesTreeGrid = component.instance().updateLakehouseTablesTreeGrid;
-        const originalUpdateLakehouseTasksTreeGrid = component.instance().updateLakehouseTasksTreeGrid;
-        const instance = component.instance();
-
-        const spyUpdateValues = jest.fn();
-        const spyUpdateObjStorageTreeGrid = jest.fn();
-        const spyUpdateLakehouseTablesTreeGrid = jest.fn();
-        const spyUpdateLakehouseTasksTreeGrid = jest.fn();
-
-        instance.updateValues = spyUpdateValues;
-        instance.updateObjStorageTreeGrid = spyUpdateObjStorageTreeGrid;
-        instance.updateLakehouseTablesTreeGrid = spyUpdateLakehouseTablesTreeGrid;
-        instance.updateLakehouseTasksTreeGrid = spyUpdateLakehouseTasksTreeGrid;
-
-        instance.componentDidMount();
-
-        expect(spyUpdateValues).toHaveBeenCalled();
-        expect(spyUpdateObjStorageTreeGrid).toHaveBeenCalled();
-        expect(spyUpdateLakehouseTablesTreeGrid).toHaveBeenCalled();
-        expect(spyUpdateLakehouseTasksTreeGrid).toHaveBeenCalled();
-
-        instance.updateValues = originalUpdateValues;
-        instance.updateObjStorageTreeGrid = originalUpdateObjStorageTreeGrid;
-        instance.updateLakehouseTablesTreeGrid = originalUpdateLakehouseTablesTreeGrid;
-        instance.updateLakehouseTasksTreeGrid = originalUpdateLakehouseTasksTreeGrid;
-
-        component.unmount();
-    });
-
-    it("Test componentWillUnmount", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
-        );
-
-        const instance = component.instance();
-        const spyOnLakehouseNavigatorStateChange = jest.spyOn(props, "onLakehouseNavigatorStateChange");
-
-        instance.componentWillUnmount();
-
-        expect(spyOnLakehouseNavigatorStateChange).toHaveBeenCalledWith({
-            activeTabId: LakehouseNavigatorTab.Overview,
-            autoRefreshTablesAndTasks: true,
-            lakehouseTables: [],
-            lakehouseTablesHash: "hash1",
-            lakehouseTasks: [],
-            lakehouseTasksHash: "hash2",
-            objTreeItems: [],
-        });
-
-        component.unmount();
-    });
-
-    it("Test componentDidUpdate", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
-        );
-
-        const spyUpdateValues = jest.fn();
-        const spyRefreshObjTreeItems = jest.fn();
-
-        const instance = component.instance();
-        const originalUpdateValues = instance.updateValues;
-        const originalRefreshObjTreeItems = instance.refreshObjTreeItems;
-        instance.updateValues = spyUpdateValues;
-        instance.refreshObjTreeItems = spyRefreshObjTreeItems;
-
-        const prevProps = { ...props, backend: {} };
-        const prevState = { ...instance.state, activeProfile: { profile: "oldProfile" } };
-
-        instance.componentDidUpdate(
-            prevProps as ILakehouseNavigatorProperties,
-            prevState as ILakehouseNavigatorState,
-        );
-
-        expect(spyUpdateValues).toHaveBeenCalled();
-        expect(spyRefreshObjTreeItems).toHaveBeenCalled();
-
-        instance.updateValues = originalUpdateValues;
-        instance.refreshObjTreeItems = originalRefreshObjTreeItems;
-
-        component.unmount();
-    });
-
-    it("Test getUploadTabContent with files for upload", () => {
-        const state = {
+    it("Test getUploadTabContent with files for upload", async () => {
+        const state: ILakehouseNavigatorState = {
+            activeTabId: LakehouseNavigatorTab.Upload,
             filesForUpload: [
                 { filePath: "file1.txt", fileSize: 1000, bytesUploadedTotal: 500, uploadComplete: false },
                 { filePath: "file2.txt", fileSize: 2000, bytesUploadedTotal: 2000, uploadComplete: true },
             ],
-            lastFileUploadError: null,
-            uploadTarget: { data: { type: "Bucket", name: "bucket1" } },
+            uploadTarget: {
+                id: "",
+                data: {
+                    type: ObjectStorageTreeItemType.Bucket,
+                    name: "bucket1",
+                    namespace: "",
+                    compartmentId: "",
+                    createdBy: "",
+                    timeCreated: new Date(),
+                    etag: "",
+
+                },
+            },
             uploadRunning: false,
             uploadComplete: false,
             filesForUploadPanelWidth: 400,
             fileUploadTargetPath: "path/to/upload",
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <TestLakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getUploadTabContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getUploadTabContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".filesForUploadPanel");
+        let cmp = container.querySelector(".filesForUploadPanel");
         expect(cmp).toBeDefined();
 
-        cmp = component.find(".uploadTarget");
+        cmp = container.querySelector(".uploadTarget");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getUploadTabContent with no files for upload", () => {
+    it("Test getUploadTabContent with no files for upload", async () => {
         const state = {
             filesForUpload: [],
             lastFileUploadError: null,
@@ -310,25 +246,29 @@ describe("LakehouseNavigator tests", () => {
             fileUploadTargetPath: "path/to/upload",
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <TestLakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getUploadTabContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getUploadTabContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".filesForUploadPanel");
+        let cmp = container.querySelector(".filesForUploadPanel");
         expect(cmp).not.toBeUndefined();
 
-        cmp = component.find(".uploadTarget");
+        cmp = container.querySelector(".uploadTarget");
         expect(cmp).not.toBeUndefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getUploadTabContent with upload error", () => {
+    it("Test getUploadTabContent with upload error", async () => {
         const state = {
             filesForUpload: [],
             lastFileUploadError: "Upload failed",
@@ -339,91 +279,107 @@ describe("LakehouseNavigator tests", () => {
             fileUploadTargetPath: "path/to/upload",
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getUploadTabContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getUploadTabContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".filesForUploadPanel");
+        let cmp = container.querySelector(".filesForUploadPanel");
         expect(cmp).not.toBeUndefined();
 
-        cmp = component.find(".uploadTarget");
+        cmp = container.querySelector(".uploadTarget");
         expect(cmp).not.toBeUndefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getObjectStoreBrowserContent with active profile and profiles", () => {
+    it("Test getObjectStoreBrowserContent with active profile and profiles", async () => {
         const state = {
             activeProfile: { profile: "testProfile" },
             profiles: [{ profile: "testProfile" }, { profile: "anotherProfile" }],
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getObjectStoreBrowserContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getObjectStoreBrowserContent();
         expect(content).toMatchSnapshot();
 
-        const cmp = component.find(".objectStoreBrowserPanel");
+        const cmp = container.querySelector(".objectStoreBrowserPanel");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getObjectStoreBrowserContent with no active profile", () => {
+    it("Test getObjectStoreBrowserContent with no active profile", async () => {
         const state = {
             activeProfile: undefined,
             profiles: [{ profile: "testProfile" }, { profile: "anotherProfile" }],
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getObjectStoreBrowserContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getObjectStoreBrowserContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".objectStoreBrowserPanel");
+        let cmp = container.querySelector(".objectStoreBrowserPanel");
         expect(cmp).toBeDefined();
 
-        cmp = component.find(".activeProfile");
+        cmp = container.querySelector(".activeProfile");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getObjectStoreBrowserContent with no profiles", () => {
+    it("Test getObjectStoreBrowserContent with no profiles", async () => {
         const state = {
             activeProfile: undefined,
             profiles: [],
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getObjectStoreBrowserContent();
+        navigatorRef.current!.setState(state);
+
+        const content = navigatorRef.current!.getObjectStoreBrowserContent();
         expect(content).toMatchSnapshot();
 
-        const cmp = component.find(".objectStoreBrowserPanel");
+        const cmp = container.querySelector(".objectStoreBrowserPanel");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getLoadTabContent with task items", () => {
+    it("Test getLoadTabContent with task items", async () => {
         const state = {
             activeSchema: "testSchema",
             task: {
@@ -441,25 +397,29 @@ describe("LakehouseNavigator tests", () => {
             newTaskPanelWidth: 400,
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getLoadTabContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getLoadTabContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".newTaskPanel");
+        let cmp = container.querySelector(".newTaskPanel");
         expect(cmp).toBeDefined();
 
-        cmp = component.find(".taskItems");
+        cmp = container.querySelector(".taskItems");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getLoadTabContent with no task items", () => {
+    it("Test getLoadTabContent with no task items", async () => {
         const state = {
             activeSchema: "testSchema",
             task: {
@@ -474,22 +434,26 @@ describe("LakehouseNavigator tests", () => {
             newTaskPanelWidth: 400,
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state as unknown as ILakehouseNavigatorState);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getLoadTabContent();
+        navigatorRef.current!.setState(state as unknown as ILakehouseNavigatorState);
+
+        const content = navigatorRef.current!.getLoadTabContent();
         expect(content).toMatchSnapshot();
 
-        const cmp = component.find(".newTaskPanel");
+        const cmp = container.querySelector(".newTaskPanel");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getLoadTabContent with task schedule error", () => {
+    it("Test getLoadTabContent with task schedule error", async () => {
         const state = {
             activeSchema: "testSchema",
             task: {
@@ -504,22 +468,26 @@ describe("LakehouseNavigator tests", () => {
             newTaskPanelWidth: 400,
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getLoadTabContent();
+        navigatorRef.current!.setState(state);
+
+        const content = navigatorRef.current!.getLoadTabContent();
         expect(content).toMatchSnapshot();
 
-        const cmp = component.find(".newTaskPanel");
+        const cmp = container.querySelector(".newTaskPanel");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getTablesAndTasksTabContent with tables and tasks", () => {
+    it("Test getTablesAndTasksTabContent with tables and tasks", async () => {
         const state = {
             activeSchema: "testSchema",
             availableDatabaseSchemas: ["testSchema", "anotherSchema"],
@@ -531,25 +499,29 @@ describe("LakehouseNavigator tests", () => {
             taskListPanelHeight: 200,
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getTablesAndTasksTabContent();
+        navigatorRef.current!.setState(state);
+
+        const content = navigatorRef.current!.getTablesAndTasksTabContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".tablesAndTasksPanel");
+        let cmp = container.querySelector(".tablesAndTasksPanel");
         expect(cmp).toBeDefined();
 
-        cmp = component.find(".taskList");
+        cmp = container.querySelector(".taskList");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getTablesAndTasksTabContent with no tables and tasks", () => {
+    it("Test getTablesAndTasksTabContent with no tables and tasks", async () => {
         const state = {
             activeTabId: LakehouseNavigatorTab.Overview,
             activeSchema: "testSchema",
@@ -562,24 +534,29 @@ describe("LakehouseNavigator tests", () => {
             taskListPanelHeight: 200,
             lakehouseTables: [],
             lakehouseTasks: [],
+            heatWaveVersionSupported: true,
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getTablesAndTasksTabContent();
+        navigatorRef.current!.setState(state);
+
+        const content = navigatorRef.current!.getTablesAndTasksTabContent();
         expect(content).toMatchSnapshot();
 
-        const cmp = component.find(".tablesAndTasksPanel");
+        const cmp = container.querySelector(".tablesAndTasksPanel");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test getTablesAndTasksTabContent with error", () => {
+    it("Test getTablesAndTasksTabContent with error", async () => {
         const state = {
             activeSchema: "testSchema",
             availableDatabaseSchemas: ["testSchema", "anotherSchema"],
@@ -591,80 +568,92 @@ describe("LakehouseNavigator tests", () => {
             taskListPanelHeight: 200,
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { container, unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.setState(state);
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const content = component.instance().getTablesAndTasksTabContent();
+        navigatorRef.current!.setState(state);
+
+        const content = navigatorRef.current!.getTablesAndTasksTabContent();
         expect(content).toMatchSnapshot();
 
-        let cmp = component.find(".tablesAndTasksPanel");
+        let cmp = container.querySelector(".tablesAndTasksPanel");
         expect(cmp).toBeDefined();
 
-        cmp = component.find(".taskList");
+        cmp = container.querySelector(".taskList");
         expect(cmp).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test refreshAvailableDatabaseSchemas with valid schemas", () => {
-        const mockGetCatalogObjects = jest.spyOn(backend, "getCatalogObjects").mockResolvedValue([
+    it("Test refreshAvailableDatabaseSchemas with valid schemas", async () => {
+        const mockGetCatalogObjects = vi.spyOn(backend, "getCatalogObjects").mockResolvedValue([
             "mysql", "sys", "information_schema", "performance_schema", "testSchema1", "testSchema2",
         ]);
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        instance.refreshAvailableDatabaseSchemas();
+        navigatorRef.current!.refreshAvailableDatabaseSchemas();
 
         expect(mockGetCatalogObjects).toHaveBeenCalledWith("Schema");
         mockGetCatalogObjects.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test refreshAvailableDatabaseSchemas with backend error", () => {
-        const mockGetCatalogObjects = jest.spyOn(backend, "getCatalogObjects")
+    it("Test refreshAvailableDatabaseSchemas with backend error", async () => {
+        const mockGetCatalogObjects = vi.spyOn(backend, "getCatalogObjects")
             .mockRejectedValue(new Error("Backend error"));
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} backend={backend} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        component.instance().refreshAvailableDatabaseSchemas();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        expect(component.state("availableDatabaseSchemas")).toBeUndefined();
+        navigatorRef.current!.refreshAvailableDatabaseSchemas();
+
+        expect(navigatorRef.current!.state.availableDatabaseSchemas).toBeUndefined();
 
         expect(mockGetCatalogObjects).toHaveBeenCalledWith("Schema");
         mockGetCatalogObjects.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleSelectTab with valid tab id", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleSelectTab with valid tab id", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const mockSetState = jest.spyOn(instance, "setState");
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState");
 
-        instance.handleSelectTab(LakehouseNavigatorTab.Upload);
+        navigatorRef.current!.handleSelectTab(LakehouseNavigatorTab.Upload);
 
         expect(mockSetState).toHaveBeenCalledWith({ activeTabId: LakehouseNavigatorTab.Upload });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test updateValues with undefined activeSchema and profiles", async () => {
-        const mockExecute = jest.spyOn(backend, "execute").mockResolvedValue({ rows: [["testSchema"]] });
-        const mockGetMdsConfigProfiles = jest.spyOn(backend.mhs, "getMdsConfigProfiles")
+        const mockExecute = vi.spyOn(backend, "execute").mockResolvedValue({ rows: [["testSchema"]] });
+        const mockGetMdsConfigProfiles = vi.spyOn(backend.mhs, "getMdsConfigProfiles")
             .mockResolvedValue([{
                 profile: "testProfile",
                 isCurrent: true,
@@ -677,18 +666,23 @@ describe("LakehouseNavigator tests", () => {
 
         const newProps: ILakehouseNavigatorProperties = {
             ...props,
-            savedState: { activeTabId: LakehouseNavigatorTab.Overview, activeSchema: undefined },
+            savedState: {
+                activeTabId: LakehouseNavigatorTab.Overview, activeSchema: undefined,
+                heatWaveVersionSupported: true,
+            },
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...newProps} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...newProps} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const mockSetState = jest.spyOn(instance, "setState");
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState");
 
-        await instance.updateValues();
+        await navigatorRef.current!.updateValues();
 
         expect(mockExecute).toHaveBeenNthCalledWith(1, "SELECT DATABASE()");
         expect(mockExecute).toHaveBeenNthCalledWith(2, "SELECT DATABASE()");
@@ -698,12 +692,12 @@ describe("LakehouseNavigator tests", () => {
         mockExecute.mockRestore();
         mockGetMdsConfigProfiles.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test updateValues with defined activeSchema and undefined profiles", async () => {
-        const mockExecute = jest.spyOn(backend, "execute").mockResolvedValue({ rows: [["testSchema"]] });
-        const mockGetMdsConfigProfiles = jest.spyOn(backend.mhs, "getMdsConfigProfiles")
+        const mockExecute = vi.spyOn(backend, "execute").mockResolvedValue({ rows: [["testSchema"]] });
+        const mockGetMdsConfigProfiles = vi.spyOn(backend.mhs, "getMdsConfigProfiles")
             .mockResolvedValue([{
                 profile: "testProfile",
                 isCurrent: true,
@@ -716,18 +710,23 @@ describe("LakehouseNavigator tests", () => {
 
         const newProps: ILakehouseNavigatorProperties = {
             ...props,
-            savedState: { activeTabId: LakehouseNavigatorTab.Overview, activeSchema: "savedSchema" },
+            savedState: {
+                activeTabId: LakehouseNavigatorTab.Overview, activeSchema: "savedSchema",
+                heatWaveVersionSupported: true,
+            },
         };
 
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...newProps} />,
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...newProps} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const mockSetState = jest.spyOn(instance, "setState");
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState");
 
-        await instance.updateValues();
+        await navigatorRef.current!.updateValues();
 
         expect(mockExecute).toHaveBeenCalledTimes(0);
         expect(mockSetState).toHaveBeenCalled();
@@ -736,138 +735,161 @@ describe("LakehouseNavigator tests", () => {
         mockExecute.mockRestore();
         mockGetMdsConfigProfiles.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test onStartUploadClick", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test onStartUploadClick", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
-        instance.onStartUploadClick();
+        navigatorRef.current!.onStartUploadClick();
 
         expect(mockSetState).toHaveBeenCalledWith({ activeTabId: LakehouseNavigatorTab.Upload });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test onStartLoadClick", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test onStartLoadClick", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
-        instance.onStartLoadClick();
+        navigatorRef.current!.onStartLoadClick();
 
         expect(mockSetState).toHaveBeenCalledWith({ activeTabId: LakehouseNavigatorTab.Load });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test onManageClick sets the active tab to Manage", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test onManageClick sets the active tab to Manage", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
 
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
-        instance.onManageClick();
+        navigatorRef.current!.onManageClick();
 
         expect(mockSetState).toHaveBeenCalledWith({ activeTabId: LakehouseNavigatorTab.Manage });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleProfileSelection with empty profile set", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleProfileSelection with empty profile set", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const profiles = [{ profile: "testProfile" }, { profile: "anotherProfile" }];
-        component.setState({ profiles } as ILakehouseNavigatorState);
+        navigatorRef.current!.setState({ profiles } as ILakehouseNavigatorState);
 
-        instance.handleProfileSelection(true, new Set());
+        navigatorRef.current!.handleProfileSelection(true, new Set());
 
-        expect(component.state("activeProfile")).toBeUndefined();
+        expect(navigatorRef.current!.state.activeProfile).toBeUndefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleSchemaSelection with valid schema id", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleSchemaSelection with valid schema id", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const state = {
             task: {
                 schemaName: "oldSchema",
             },
             activeSchema: "oldSchema",
         };
-        component.setState(state);
 
         const schemaId = "newSchema";
-        instance.handleSchemaSelection(true, new Set([schemaId]));
+        await act(() => {
+            navigatorRef.current!.setState(state);
 
-        expect(component.state("task")!.schemaName).toBe(schemaId);
-        expect(component.state("activeSchema")).toBe(schemaId);
+            navigatorRef.current!.handleSchemaSelection(true, new Set([schemaId]));
+        });
 
-        component.unmount();
+        expect(navigatorRef.current!.state.task!.schemaName).toBe(schemaId);
+        expect(navigatorRef.current!.state.activeSchema).toBe(schemaId);
+
+        unmount();
     });
 
-    it("Test handleSchemaSelection with empty schema id", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleSchemaSelection with empty schema id", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const state = {
             task: {
                 schemaName: "oldSchema",
             },
             activeSchema: "oldSchema",
         };
-        component.setState(state);
 
-        instance.handleSchemaSelection(true, new Set());
+        await act(() => {
+            navigatorRef.current!.setState(state);
+            navigatorRef.current!.handleSchemaSelection(true, new Set());
+        });
 
-        expect(component.state("task")!.schemaName).toBe(undefined);
-        expect(component.state("activeSchema")).toBe(undefined);
+        expect(navigatorRef.current!.state.task!.schemaName).toBe(undefined);
+        expect(navigatorRef.current!.state.activeSchema).toBe(undefined);
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleFormatSelection with valid format id", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleFormatSelection with valid format id", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const state = {
             task: {
                 activeFormat: undefined,
             },
         };
-        component.setState(state);
+        navigatorRef.current!.setState(state);
 
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
         const ids = new Set<string>(["pdf"]);
-        instance.handleFormatSelection(true, ids);
+        navigatorRef.current!.handleFormatSelection(true, ids);
 
         expect(mockSetState).toHaveBeenCalledWith({
             task: {
@@ -876,26 +898,29 @@ describe("LakehouseNavigator tests", () => {
         });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleFormatSelection with 'all' format id", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleFormatSelection with 'all' format id", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const state = {
             task: {
                 activeFormat: "pdf",
             },
         };
-        component.setState(state);
+        navigatorRef.current!.setState(state);
 
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
         const ids = new Set<string>(["all"]);
-        instance.handleFormatSelection(true, ids);
+        navigatorRef.current!.handleFormatSelection(true, ids);
 
         expect(mockSetState).toHaveBeenCalledWith({
             task: {
@@ -904,25 +929,28 @@ describe("LakehouseNavigator tests", () => {
         });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleLanguageSelection with valid language ID", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleLanguageSelection with valid language ID", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const state = {
             task: {
                 languageId: undefined,
             },
         };
-        component.setState(state);
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        navigatorRef.current!.setState(state);
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
         const ids = new Set<string>(["fr"]);
-        instance.handleLanguageSelection(true, ids);
+        navigatorRef.current!.handleLanguageSelection(true, ids);
 
         expect(mockSetState).toHaveBeenCalledWith({
             task: {
@@ -931,26 +959,29 @@ describe("LakehouseNavigator tests", () => {
         });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test handleLanguageSelection with default language ID", () => {
-        const component = mount<TestLakehouseNavigator>(
-            <TestLakehouseNavigator {...props} />,
+    it("Test handleLanguageSelection with default language ID", async () => {
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        const { unmount } = render(
+            <LakehouseNavigator ref={navigatorRef} {...props} />,
         );
 
-        const instance = component.instance();
+        await nextRunLoop();
+        expect(navigatorRef.current).toBeDefined();
+
         const state = {
             task: {
                 languageId: "fr",
             },
         };
-        component.setState(state);
+        navigatorRef.current!.setState(state);
 
-        const mockSetState = jest.spyOn(instance, "setState").mockImplementation();
+        const mockSetState = vi.spyOn(navigatorRef.current!, "setState").mockImplementation(() => { /**/ });
 
         const ids = new Set<string>(["en"]);
-        instance.handleLanguageSelection(true, ids);
+        navigatorRef.current!.handleLanguageSelection(true, ids);
 
         expect(mockSetState).toHaveBeenCalledWith({
             task: {
@@ -959,13 +990,14 @@ describe("LakehouseNavigator tests", () => {
         });
         mockSetState.mockRestore();
 
-        component.unmount();
+        unmount();
     });
 
     describe("objectStoreTreeGridCaptionColumnFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const props = {
                 savedState,
                 backend,
@@ -975,113 +1007,125 @@ describe("LakehouseNavigator tests", () => {
                     editor: [],
                     auxiliary: [],
                 },
-                onLakehouseNavigatorStateChange: jest.fn(),
+                onLakehouseNavigatorStateChange: vi.fn(),
             };
 
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
+            unmount = result.unmount;
 
-            instance = component.instance();
+            await nextRunLoop();
+            expect(navigatorRef.current).toBeDefined();
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should format compartment item correctly", () => {
             const cell = {
-                getData: jest.fn().mockReturnValue({
+                getData: vi.fn().mockReturnValue({
                     data: { type: ObjectStorageTreeItemType.Compartment, isCurrent: true, name: "Compartment" },
                 }),
-                getColumn: jest.fn(),
+                getColumn: vi.fn(),
             } as unknown as CellComponent;
 
-            const result = instance.objectStoreTreeGridCaptionColumnFormatter(cell);
+            const result = navigatorRef.current!.objectStoreTreeGridCaptionColumnFormatter(cell);
 
             expect((result as HTMLElement).querySelector(".itemCaption")?.textContent).toBe("Compartment");
         });
 
         it("should format bucket item correctly", () => {
             const cell = {
-                getData: jest.fn().mockReturnValue({
+                getData: vi.fn().mockReturnValue({
                     data: { type: ObjectStorageTreeItemType.Bucket, name: "Bucket" },
                 }),
-                getColumn: jest.fn(),
+                getColumn: vi.fn(),
             } as unknown as CellComponent;
 
-            const result = instance.objectStoreTreeGridCaptionColumnFormatter(cell);
+            const result = navigatorRef.current!.objectStoreTreeGridCaptionColumnFormatter(cell);
 
             expect((result as HTMLElement).querySelector(".itemCaption")?.textContent).toBe("Bucket");
         });
 
         it("should format prefix item correctly", () => {
             const cell = {
-                getData: jest.fn().mockReturnValue({
+                getData: vi.fn().mockReturnValue({
                     data: { type: ObjectStorageTreeItemType.Prefix, name: "prefix/" },
                 }),
-                getColumn: jest.fn(),
+                getColumn: vi.fn(),
             } as unknown as CellComponent;
 
-            const result = instance.objectStoreTreeGridCaptionColumnFormatter(cell);
+            const result = navigatorRef.current!.objectStoreTreeGridCaptionColumnFormatter(cell);
 
             expect((result as HTMLElement).querySelector(".itemCaption")?.textContent).toBe("prefix");
         });
 
         it("should format file item correctly", () => {
             const cell = {
-                getData: jest.fn().mockReturnValue({
+                getData: vi.fn().mockReturnValue({
                     data: { type: ObjectStorageTreeItemType.File, name: "file.txt" },
                 }),
-                getColumn: jest.fn(),
+                getColumn: vi.fn(),
             } as unknown as CellComponent;
 
-            const result = instance.objectStoreTreeGridCaptionColumnFormatter(cell);
+            const result = navigatorRef.current!.objectStoreTreeGridCaptionColumnFormatter(cell);
 
             expect((result as HTMLElement).querySelector(".itemCaption")?.textContent).toBe("file.txt");
         });
 
         it("should format placeholder item correctly", () => {
             const cell = {
-                getData: jest.fn().mockReturnValue({
+                getData: vi.fn().mockReturnValue({
                     data: { type: ObjectStorageTreeItemType.Placeholder },
                 }),
-                getColumn: jest.fn(),
+                getColumn: vi.fn(),
             } as unknown as CellComponent;
 
-            const result = instance.objectStoreTreeGridCaptionColumnFormatter(cell);
+            const result = navigatorRef.current!.objectStoreTreeGridCaptionColumnFormatter(cell);
 
             expect((result as HTMLElement).querySelector(".itemCaption")?.textContent).toBe("Loading ...");
         });
 
         it("should format error item correctly", () => {
             const cell = {
-                getData: jest.fn().mockReturnValue({
+                getData: vi.fn().mockReturnValue({
                     data: { type: ObjectStorageTreeItemType.Error, name: "Error" },
                 }),
-                getColumn: jest.fn(),
+                getColumn: vi.fn(),
             } as unknown as CellComponent;
 
-            const result = instance.objectStoreTreeGridCaptionColumnFormatter(cell);
+            const result = navigatorRef.current!.objectStoreTreeGridCaptionColumnFormatter(cell);
 
             expect((result as HTMLElement).querySelector(".itemCaption")?.textContent).toBe("Error");
         });
     });
 
     describe("objectStoreTreeGridColumnFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+        const onRendered = vi.fn((callback) => {
+            return callback();
+        });
+
         let cell: CellComponent;
-        let onRendered: jest.Mock;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             cell = {
-                getData: jest.fn(),
-                getColumn: jest.fn(),
-                getElement: jest.fn(),
+                getData: vi.fn(),
+                getColumn: vi.fn(),
+                getElement: vi.fn(),
             } as unknown as CellComponent;
-            onRendered = jest.fn((callback) => {
-                return callback();
-            });
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should format file size correctly", () => {
@@ -1092,16 +1136,14 @@ describe("LakehouseNavigator tests", () => {
                 },
             } as unknown as IObjectStorageTreeItem;
 
-            cell.getData = jest.fn().mockReturnValue(fileData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "size";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(fileData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "size";
+            } });
             const element = document.createElement("div");
-            cell.getElement = jest.fn().mockReturnValue(element);
+            cell.getElement = vi.fn().mockReturnValue(element);
 
-            const result = instance.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("1.00 KB");
             expect(element.classList.contains("sizeField")).toBe(true);
@@ -1115,16 +1157,14 @@ describe("LakehouseNavigator tests", () => {
                 },
             } as IObjectStorageTreeItem;
 
-            cell.getData = jest.fn().mockReturnValue(dirData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "size";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(dirData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "size";
+            } });
             const element = document.createElement("div");
-            cell.getElement = jest.fn().mockReturnValue(element);
+            cell.getElement = vi.fn().mockReturnValue(element);
 
-            const result = instance.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("-");
             expect(element.classList.contains("sizeField")).toBe(true);
@@ -1139,16 +1179,14 @@ describe("LakehouseNavigator tests", () => {
                 },
             } as unknown as IObjectStorageTreeItem;
 
-            cell.getData = jest.fn().mockReturnValue(fileData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "modified";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(fileData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "modified";
+            } });
             const element = document.createElement("div");
-            cell.getElement = jest.fn().mockReturnValue(element);
+            cell.getElement = vi.fn().mockReturnValue(element);
 
-            const result = instance.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toMatch(/01\/15\/24.*14:30/);
             expect(element.classList.contains("modifiedField")).toBe(true);
@@ -1161,16 +1199,14 @@ describe("LakehouseNavigator tests", () => {
                 },
             } as IObjectStorageTreeItem;
 
-            cell.getData = jest.fn().mockReturnValue(dirData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "modified";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(dirData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "modified";
+            } });
             const element = document.createElement("div");
-            cell.getElement = jest.fn().mockReturnValue(element);
+            cell.getElement = vi.fn().mockReturnValue(element);
 
-            const result = instance.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("-");
             expect(element.classList.contains("modifiedField")).toBe(true);
@@ -1183,16 +1219,14 @@ describe("LakehouseNavigator tests", () => {
                 },
             } as IObjectStorageTreeItem;
 
-            cell.getData = jest.fn().mockReturnValue(fileData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "unknown";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(fileData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "unknown";
+            } });
             const element = document.createElement("div");
-            cell.getElement = jest.fn().mockReturnValue(element);
+            cell.getElement = vi.fn().mockReturnValue(element);
 
-            const result = instance.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.objectStoreTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("-");
             expect(onRendered).toHaveBeenCalled();
@@ -1200,7 +1234,8 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("schemasTreeGridColumnFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
         beforeEach(() => {
             const props = {
@@ -1212,28 +1247,29 @@ describe("LakehouseNavigator tests", () => {
                     editor: [],
                     auxiliary: [],
                 },
-                onLakehouseNavigatorStateChange: jest.fn(),
+                onLakehouseNavigatorStateChange: vi.fn(),
             };
 
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
+            unmount = result.unmount;
+        });
 
-            instance = component.instance();
+        afterEach(() => {
+            unmount();
         });
 
         it("should format schema name correctly", () => {
             const schemaName = "testSchema";
             const cell = {
-                getData: jest.fn().mockReturnValue({ schemaName }),
-                getColumn: jest.fn().mockReturnValue({
-                    getField: () => {
-                        return "schemaName";
-                    }
-                }),
+                getData: vi.fn().mockReturnValue({ schemaName }),
+                getColumn: vi.fn().mockReturnValue({ getField: () => {
+                    return "schemaName";
+                } }),
             } as unknown as CellComponent;
 
-            const result = instance.schemasTreeGridColumnFormatter(cell, {}, jest.fn());
+            const result = navigatorRef.current!.schemasTreeGridColumnFormatter(cell, {}, vi.fn());
 
             expect(result).toBe(schemaName);
         });
@@ -1241,21 +1277,19 @@ describe("LakehouseNavigator tests", () => {
         it("should add correct class to the cell element", () => {
             const schemaName = "testSchema";
             const cell = {
-                getData: jest.fn().mockReturnValue({ schemaName }),
-                getColumn: jest.fn().mockReturnValue({
-                    getField: () => {
-                        return "schemaName";
-                    }
-                }),
+                getData: vi.fn().mockReturnValue({ schemaName }),
+                getColumn: vi.fn().mockReturnValue({ getField: () => {
+                    return "schemaName";
+                } }),
             } as unknown as CellComponent;
 
-            const onRendered = jest.fn((callback) => {
+            const onRendered = vi.fn((callback) => {
                 return callback();
             });
             const cellElement = document.createElement("div");
-            cell.getElement = jest.fn().mockReturnValue(cellElement);
+            cell.getElement = vi.fn().mockReturnValue(cellElement);
 
-            instance.schemasTreeGridColumnFormatter(cell, {}, onRendered);
+            navigatorRef.current!.schemasTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(cellElement.classList.contains("tableField")).toBe(true);
             expect(cellElement.classList.contains("schemaNameField")).toBe(true);
@@ -1263,20 +1297,27 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("tablesTreeGridRowFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
         let row: RowComponent;
         let element: HTMLElement;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             element = document.createElement("div");
             row = {
-                getData: jest.fn(),
-                getElement: jest.fn().mockReturnValue(element),
+                getData: vi.fn(),
+                getElement: vi.fn().mockReturnValue(element),
             } as unknown as RowComponent;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should add notLoaded class when table is not loaded and progress is 0", () => {
@@ -1285,9 +1326,9 @@ describe("LakehouseNavigator tests", () => {
                 progress: 0,
             } as ILakehouseTable;
 
-            row.getData = jest.fn().mockReturnValue(rowData);
+            row.getData = vi.fn().mockReturnValue(rowData);
 
-            instance.tablesTreeGridRowFormatter(row);
+            navigatorRef.current!.tablesTreeGridRowFormatter(row);
 
             expect(element.classList.contains("notLoaded")).toBe(true);
             expect(element.classList.contains("loading")).toBe(false);
@@ -1300,9 +1341,9 @@ describe("LakehouseNavigator tests", () => {
                 progress: 50,
             } as ILakehouseTable;
 
-            row.getData = jest.fn().mockReturnValue(rowData);
+            row.getData = vi.fn().mockReturnValue(rowData);
 
-            instance.tablesTreeGridRowFormatter(row);
+            navigatorRef.current!.tablesTreeGridRowFormatter(row);
 
             expect(element.classList.contains("notLoaded")).toBe(false);
             expect(element.classList.contains("loading")).toBe(true);
@@ -1315,9 +1356,9 @@ describe("LakehouseNavigator tests", () => {
                 progress: 100,
             } as ILakehouseTable;
 
-            row.getData = jest.fn().mockReturnValue(rowData);
+            row.getData = vi.fn().mockReturnValue(rowData);
 
-            instance.tablesTreeGridRowFormatter(row);
+            navigatorRef.current!.tablesTreeGridRowFormatter(row);
 
             expect(element.classList.contains("notLoaded")).toBe(false);
             expect(element.classList.contains("loading")).toBe(false);
@@ -1326,24 +1367,30 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("tablesTreeGridColumnFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
         let cell: CellComponent;
-        let onRendered: jest.Mock;
+        const onRendered = vi.fn((callback) => {
+            return callback();
+        });
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             const element = document.createElement("div");
             cell = {
-                getData: jest.fn(),
-                getColumn: jest.fn(),
-                getElement: jest.fn().mockReturnValue(element),
+                getData: vi.fn(),
+                getColumn: vi.fn(),
+                getElement: vi.fn().mockReturnValue(element),
             } as unknown as CellComponent;
-            onRendered = jest.fn((callback) => {
-                return callback();
-            });
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should format tableName column for loaded table", () => {
@@ -1353,14 +1400,12 @@ describe("LakehouseNavigator tests", () => {
                 progress: 100,
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "tableName";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "tableName";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered) as HTMLElement;
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered) as HTMLElement;
 
             expect(result.classList.contains("tableField")).toBe(true);
             const statusIcon = result.querySelector(".itemLoaded");
@@ -1375,14 +1420,12 @@ describe("LakehouseNavigator tests", () => {
                 progress: 50,
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "tableName";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "tableName";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered) as HTMLElement;
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered) as HTMLElement;
 
             expect(result.classList.contains("tableField")).toBe(true);
             const statusIcon = result.querySelector(".itemLoading");
@@ -1397,14 +1440,12 @@ describe("LakehouseNavigator tests", () => {
                 rows: 1234567,
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "rows";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "rows";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("1.2m");
             expect(cell.getElement().classList.contains("sizeField")).toBe(true);
@@ -1415,14 +1456,12 @@ describe("LakehouseNavigator tests", () => {
                 dataLength: 1024 * 1024, // 1MB
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "dataLength";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "dataLength";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("1.00 MB");
             expect(cell.getElement().classList.contains("sizeField")).toBe(true);
@@ -1433,14 +1472,12 @@ describe("LakehouseNavigator tests", () => {
                 lastChange: "2024-01-15 14:30:00",
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "lastChange";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "lastChange";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("2024-01-15 14:30:00");
             expect(cell.getElement().classList.contains("dateField")).toBe(true);
@@ -1451,14 +1488,12 @@ describe("LakehouseNavigator tests", () => {
                 comment: "Test comment",
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "comment";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "comment";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("Test comment");
             expect(cell.getElement().classList.contains("commentField")).toBe(true);
@@ -1469,14 +1504,12 @@ describe("LakehouseNavigator tests", () => {
                 rows: 0,
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "rows";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "rows";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("-");
             expect(cell.getElement().classList.contains("sizeField")).toBe(true);
@@ -1487,14 +1520,12 @@ describe("LakehouseNavigator tests", () => {
                 dataLength: 0,
             } as ILakehouseTable;
 
-            cell.getData = jest.fn().mockReturnValue(cellData);
-            cell.getColumn = jest.fn().mockReturnValue({
-                getField: () => {
-                    return "dataLength";
-                }
-            });
+            cell.getData = vi.fn().mockReturnValue(cellData);
+            cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                return "dataLength";
+            } });
 
-            const result = instance.tablesTreeGridColumnFormatter(cell, {}, onRendered);
+            const result = navigatorRef.current!.tablesTreeGridColumnFormatter(cell, {}, onRendered);
 
             expect(result).toBe("-");
             expect(cell.getElement().classList.contains("sizeField")).toBe(true);
@@ -1502,20 +1533,27 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("taskTreeGridRowFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
         let row: RowComponent;
         let element: HTMLElement;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             element = document.createElement("div");
             row = {
-                getData: jest.fn(),
-                getElement: jest.fn().mockReturnValue(element),
+                getData: vi.fn(),
+                getElement: vi.fn().mockReturnValue(element),
             } as unknown as RowComponent;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should not add error class for task with non-ERROR status", () => {
@@ -1524,9 +1562,9 @@ describe("LakehouseNavigator tests", () => {
                 type: "TASK",
             } as ILakehouseTask;
 
-            row.getData = jest.fn().mockReturnValue(rowData);
+            row.getData = vi.fn().mockReturnValue(rowData);
 
-            instance.taskTreeGridRowFormatter(row);
+            navigatorRef.current!.taskTreeGridRowFormatter(row);
 
             expect(element.classList.contains("error")).toBe(false);
         });
@@ -1536,29 +1574,36 @@ describe("LakehouseNavigator tests", () => {
                 type: "TASK_ITEM",
             } as unknown as ILakehouseTaskItem;
 
-            row.getData = jest.fn().mockReturnValue(rowData);
+            row.getData = vi.fn().mockReturnValue(rowData);
 
-            instance.taskTreeGridRowFormatter(row);
+            navigatorRef.current!.taskTreeGridRowFormatter(row);
 
             expect(element.classList.length).toBe(0);
         });
     });
 
     describe("taskTreeGridColumnFormatter tests", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
         let cell: CellComponent;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             cell = {
-                getData: jest.fn(),
-                getColumn: jest.fn(),
-                getElement: jest.fn(),
-                getRow: jest.fn(),
+                getData: vi.fn(),
+                getColumn: vi.fn(),
+                getElement: vi.fn(),
+                getRow: vi.fn(),
             } as unknown as CellComponent;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         describe("Task Item formatting", () => {
@@ -1570,14 +1615,12 @@ describe("LakehouseNavigator tests", () => {
                     description: "Task description",
                 } as ILakehouseTask;
 
-                cell.getData = jest.fn().mockReturnValue(taskData);
-                cell.getColumn = jest.fn().mockReturnValue({
-                    getField: () => {
-                        return "name";
-                    }
-                });
+                cell.getData = vi.fn().mockReturnValue(taskData);
+                cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                    return "name";
+                } });
 
-                const result = instance.taskTreeGridColumnFormatter(cell) as HTMLElement;
+                const result = navigatorRef.current!.taskTreeGridColumnFormatter(cell) as HTMLElement;
 
                 expect(result.classList.contains("itemField")).toBe(true);
                 expect(result.textContent).toContain("Test Task");
@@ -1589,20 +1632,18 @@ describe("LakehouseNavigator tests", () => {
                 const taskItemData = {
                     type: "TASK_ITEM",
                     tableName: "test_table",
-                };
+                } as unknown as ILakehouseTaskItem;
 
                 const parentTask = {
                     type: "TASK",
                     schemaName: "test_schema",
                 } as ILakehouseTask;
 
-                cell.getData = jest.fn().mockReturnValue(taskItemData);
-                cell.getColumn = jest.fn().mockReturnValue({
-                    getField: () => {
-                        return "name";
-                    }
-                });
-                cell.getRow = jest.fn().mockReturnValue({
+                cell.getData = vi.fn().mockReturnValue(taskItemData);
+                cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                    return "name";
+                } });
+                cell.getRow = vi.fn().mockReturnValue({
                     getTreeParent: () => {
                         return {
                             getData: parentTask,
@@ -1610,7 +1651,7 @@ describe("LakehouseNavigator tests", () => {
                     },
                 });
 
-                const result = instance.taskTreeGridColumnFormatter(cell) as HTMLElement;
+                const result = navigatorRef.current!.taskTreeGridColumnFormatter(cell) as HTMLElement;
 
                 expect(result.classList.contains("itemField")).toBe(true);
                 expect(result.textContent).toContain("test_schema.test_table");
@@ -1622,14 +1663,12 @@ describe("LakehouseNavigator tests", () => {
                     progress: 75,
                 } as unknown as ILakehouseTaskItem;
 
-                cell.getData = jest.fn().mockReturnValue(taskItemData);
-                cell.getColumn = jest.fn().mockReturnValue({
-                    getField: () => {
-                        return "status";
-                    }
-                });
+                cell.getData = vi.fn().mockReturnValue(taskItemData);
+                cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                    return "status";
+                } });
 
-                const result = instance.taskTreeGridColumnFormatter(cell) as HTMLElement;
+                const result = navigatorRef.current!.taskTreeGridColumnFormatter(cell) as HTMLElement;
 
                 expect(result.classList.contains("itemField")).toBe(true);
                 expect(result.textContent).toBe("75%");
@@ -1641,14 +1680,12 @@ describe("LakehouseNavigator tests", () => {
                     uri: "s3://bucket/path/to/file",
                 } as unknown as ILakehouseTaskItem;
 
-                cell.getData = jest.fn().mockReturnValue(taskItemData);
-                cell.getColumn = jest.fn().mockReturnValue({
-                    getField: () => {
-                        return "description";
-                    }
-                });
+                cell.getData = vi.fn().mockReturnValue(taskItemData);
+                cell.getColumn = vi.fn().mockReturnValue({ getField: () => {
+                    return "description";
+                } });
 
-                const result = instance.taskTreeGridColumnFormatter(cell) as HTMLElement;
+                const result = navigatorRef.current!.taskTreeGridColumnFormatter(cell) as HTMLElement;
 
                 expect(result.classList.contains("itemField")).toBe(true);
                 expect(result.textContent).toBe("s3://bucket/path/to/file");
@@ -1657,26 +1694,30 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("Object Tree Row Handling", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
         let row: RowComponent;
-        let getObjectStorageTreeChildrenSpy: jest.SpyInstance;
+        let getObjectStorageTreeChildrenSpy: MockInstance<(
+            parent: IObjectStorageTreeItem) => Promise<IObjectStorageTreeItem[]>>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <TestLakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             row = {
-                getData: jest.fn(),
-                update: jest.fn(),
+                getData: vi.fn(),
+                update: vi.fn(),
             } as unknown as RowComponent;
 
-            getObjectStorageTreeChildrenSpy = jest.spyOn(instance as any, "getObjectStorageTreeChildren")
-                .mockResolvedValue([]);
+            getObjectStorageTreeChildrenSpy = vi.spyOn(navigatorRef.current!, "getObjectStorageTreeChildren");
         });
 
         afterEach(() => {
             getObjectStorageTreeChildrenSpy.mockRestore();
+            unmount();
         });
 
         describe("objTreeHandleRowExpanded", () => {
@@ -1690,9 +1731,9 @@ describe("LakehouseNavigator tests", () => {
                     },
                 } as IObjectStorageTreeItem;
 
-                row.getData = jest.fn().mockReturnValue(treeItem);
+                row.getData = vi.fn().mockReturnValue(treeItem);
 
-                instance.objTreeHandleRowExpanded(row);
+                navigatorRef.current!.objTreeHandleRowExpanded(row);
 
                 expect(treeItem.expanded).toBe(true);
                 expect(getObjectStorageTreeChildrenSpy).toHaveBeenCalledWith(treeItem);
@@ -1708,9 +1749,9 @@ describe("LakehouseNavigator tests", () => {
                     },
                 } as IObjectStorageTreeItem;
 
-                row.getData = jest.fn().mockReturnValue(treeItem);
+                row.getData = vi.fn().mockReturnValue(treeItem);
 
-                instance.objTreeHandleRowExpanded(row);
+                navigatorRef.current!.objTreeHandleRowExpanded(row);
 
                 expect(treeItem.expanded).toBe(true);
                 expect(getObjectStorageTreeChildrenSpy).not.toHaveBeenCalled();
@@ -1726,9 +1767,9 @@ describe("LakehouseNavigator tests", () => {
                     },
                 } as IObjectStorageTreeItem;
 
-                row.getData = jest.fn().mockReturnValue(treeItem);
+                row.getData = vi.fn().mockReturnValue(treeItem);
 
-                instance.objTreeHandleRowExpanded(row);
+                navigatorRef.current!.objTreeHandleRowExpanded(row);
 
                 expect(treeItem.expanded).toBe(true);
                 expect(getObjectStorageTreeChildrenSpy).not.toHaveBeenCalled();
@@ -1742,10 +1783,10 @@ describe("LakehouseNavigator tests", () => {
                     expanded: true,
                 } as IObjectStorageTreeItem;
 
-                instance.setState({ expandedObjTreeItems: ["test-id", "other-id"] });
-                row.getData = jest.fn().mockReturnValue(treeItem);
+                navigatorRef.current!.setState({ expandedObjTreeItems: ["test-id", "other-id"] });
+                row.getData = vi.fn().mockReturnValue(treeItem);
 
-                instance.objTreeHandleRowCollapsed(row);
+                navigatorRef.current!.objTreeHandleRowCollapsed(row);
 
                 expect(treeItem.expanded).toBe(false);
             });
@@ -1757,9 +1798,9 @@ describe("LakehouseNavigator tests", () => {
                     expanded: false,
                 } as IObjectStorageTreeItem;
 
-                row.getData = jest.fn().mockReturnValue(treeItem);
+                row.getData = vi.fn().mockReturnValue(treeItem);
 
-                const result = instance.objTreeIsRowExpanded(row);
+                const result = navigatorRef.current!.objTreeIsRowExpanded(row);
 
                 expect(result).toBe(false);
                 expect(getObjectStorageTreeChildrenSpy).not.toHaveBeenCalled();
@@ -1768,22 +1809,29 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("objTreeToggleSelectedState", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
         let cell: CellComponent;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
             cell = {
-                getData: jest.fn(),
+                getData: vi.fn(),
             } as unknown as CellComponent;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         describe("Upload tab", () => {
             beforeEach(() => {
-                instance.setState({ activeTabId: LakehouseNavigatorTab.Upload });
+                navigatorRef.current!.setState({ activeTabId: LakehouseNavigatorTab.Upload });
             });
 
             it("should set upload target when selecting new item", () => {
@@ -1795,11 +1843,11 @@ describe("LakehouseNavigator tests", () => {
                     },
                 } as IObjectStorageTreeItem;
 
-                cell.getData = jest.fn().mockReturnValue(treeItem);
+                cell.getData = vi.fn().mockReturnValue(treeItem);
 
-                instance.objTreeToggleSelectedState(new Event("click"), cell);
+                navigatorRef.current!.objTreeToggleSelectedState(new Event("click"), cell);
 
-                expect(instance.state.fileUploadTargetPath).toBeUndefined();
+                expect(navigatorRef.current!.state.fileUploadTargetPath).toBeUndefined();
             });
 
             it("should clear upload target when selecting same item", () => {
@@ -1811,29 +1859,34 @@ describe("LakehouseNavigator tests", () => {
                     },
                 } as IObjectStorageTreeItem;
 
-                instance.setState({ uploadTarget: treeItem });
-                cell.getData = jest.fn().mockReturnValue(treeItem);
+                navigatorRef.current!.setState({ uploadTarget: treeItem });
+                cell.getData = vi.fn().mockReturnValue(treeItem);
 
-                instance.objTreeToggleSelectedState(new Event("click"), cell);
+                navigatorRef.current!.objTreeToggleSelectedState(new Event("click"), cell);
 
-                expect(instance.state.uploadTarget).toBeUndefined();
-                expect(instance.state.fileUploadTargetPath).toBeUndefined();
+                expect(navigatorRef.current!.state.uploadTarget).toBeUndefined();
+                expect(navigatorRef.current!.state.fileUploadTargetPath).toBeUndefined();
             });
         });
     });
 
     describe("generateVectorTableName", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should return empty string for empty items array", () => {
-            const tableName = instance.generateVectorTableName([]);
+            const tableName = navigatorRef.current!.generateVectorTableName([]);
             expect(tableName).toBe("");
         });
 
@@ -1844,7 +1897,7 @@ describe("LakehouseNavigator tests", () => {
                 caption: "test_data.csv",
             }] as unknown as ILakehouseTaskItem[];
 
-            const tableName = instance.generateVectorTableName(items);
+            const tableName = navigatorRef.current!.generateVectorTableName(items);
             expect(tableName).toBe("test_data");
         });
 
@@ -1855,7 +1908,7 @@ describe("LakehouseNavigator tests", () => {
                 caption: "test_data",
             }] as unknown as ILakehouseTaskItem[];
 
-            const tableName = instance.generateVectorTableName(items);
+            const tableName = navigatorRef.current!.generateVectorTableName(items);
             expect(tableName).toBe("test_data");
         });
 
@@ -1873,7 +1926,7 @@ describe("LakehouseNavigator tests", () => {
                 },
             ] as unknown as ILakehouseTaskItem[];
 
-            const tableName = instance.generateVectorTableName(items);
+            const tableName = navigatorRef.current!.generateVectorTableName(items);
             expect(tableName).toBe("file");
         });
 
@@ -1891,7 +1944,7 @@ describe("LakehouseNavigator tests", () => {
                 },
             ] as unknown as ILakehouseTaskItem[];
 
-            const tableName = instance.generateVectorTableName(items);
+            const tableName = navigatorRef.current!.generateVectorTableName(items);
             expect(tableName).toBe("subfolder");
         });
 
@@ -1909,25 +1962,31 @@ describe("LakehouseNavigator tests", () => {
                 },
             ] as unknown as ILakehouseTaskItem[];
 
-            const tableName = instance.generateVectorTableName(items);
+            const tableName = navigatorRef.current!.generateVectorTableName(items);
             expect(tableName).toBe("bucket");
         });
     });
 
     describe("checkMysqlPrivileges", () => {
-        let instance: TestLakehouseNavigator;
-        let executeSpy: jest.SpyInstance;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
+        let executeSpy: MockInstance<(sql: string, params?: string[], requestId?: string,
+            callback?: DataCallback<ShellAPIGui.GuiSqlEditorExecute>,
+        ) => Promise<IDbEditorResultSetData | undefined>>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
-            executeSpy = jest.spyOn(props.backend, "execute");
+            unmount = result.unmount;
+
+            executeSpy = vi.spyOn(props.backend, "execute");
         });
 
         afterEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
+            unmount();
         });
 
         it("should return true when all required views are accessible", async () => {
@@ -1938,7 +1997,7 @@ describe("LakehouseNavigator tests", () => {
                 ],
             });
 
-            const result = await instance.checkMysqlPrivileges();
+            const result = await navigatorRef.current!.checkMysqlPrivileges();
             expect(result).toBe(true);
 
             expect(executeSpy).toHaveBeenCalledWith(
@@ -1953,7 +2012,7 @@ describe("LakehouseNavigator tests", () => {
                 ],
             });
 
-            const result = await instance.checkMysqlPrivileges();
+            const result = await navigatorRef.current!.checkMysqlPrivileges();
             expect(result).toBe(false);
         });
 
@@ -1962,69 +2021,73 @@ describe("LakehouseNavigator tests", () => {
                 rows: [],
             });
 
-            const result = await instance.checkMysqlPrivileges();
+            const result = await navigatorRef.current!.checkMysqlPrivileges();
             expect(result).toBe(false);
         });
 
         it("should return false when execute returns undefined", async () => {
             executeSpy.mockResolvedValueOnce(undefined);
 
-            const result = await instance.checkMysqlPrivileges();
+            const result = await navigatorRef.current!.checkMysqlPrivileges();
             expect(result).toBe(false);
         });
 
         it("should return false when execute returns null rows", async () => {
             executeSpy.mockResolvedValueOnce({
-                rows: null,
+                rows: undefined,
             });
 
-            const result = await instance.checkMysqlPrivileges();
+            const result = await navigatorRef.current!.checkMysqlPrivileges();
             expect(result).toBe(false);
         });
     });
 
     describe("setActiveDatabaseSchema", () => {
-        let instance: TestLakehouseNavigator;
-        let autoRefreshTreesSpy: jest.SpyInstance;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
+        let autoRefreshTreesSpy: ReturnType<typeof vi.spyOn>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <TestLakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
-            autoRefreshTreesSpy = jest.spyOn(instance as any, "autoRefreshTrees").mockResolvedValue(undefined);
+            unmount = result.unmount;
+
+            autoRefreshTreesSpy = vi.spyOn(navigatorRef.current!, "autoRefreshTrees").mockResolvedValue(undefined);
         });
 
         afterEach(() => {
-            jest.restoreAllMocks();
+            vi.restoreAllMocks();
+            unmount();
         });
 
         it("should update state when schema changes", async () => {
             const newSchema = "newSchema";
             const currentTask = { schemaName: "oldSchema", items: [] };
-            instance.setState({ activeSchema: "oldSchema", task: currentTask });
+            navigatorRef.current!.setState({ activeSchema: "oldSchema", task: currentTask });
 
-            instance.setActiveDatabaseSchema(newSchema);
+            navigatorRef.current!.setActiveDatabaseSchema(newSchema);
 
             await nextProcessTick();
 
-            expect(instance.state.activeSchema).toBe(newSchema);
-            expect(instance.state.task!.schemaName).toBe(newSchema);
+            expect(navigatorRef.current!.state.activeSchema).toBe(newSchema);
+            expect(navigatorRef.current!.state.task!.schemaName).toBe(newSchema);
         });
 
         it("should not update state when schema is the same", () => {
             const schema = "sameSchema";
-            instance.setState({ activeSchema: schema });
+            navigatorRef.current!.setState({ activeSchema: schema });
 
-            instance.setActiveDatabaseSchema(schema);
+            navigatorRef.current!.setActiveDatabaseSchema(schema);
 
             expect(autoRefreshTreesSpy).not.toHaveBeenCalled();
         });
 
         it("should trigger autoRefreshTrees and forceUpdate when schema changes", async () => {
-            const forceUpdateSpy = jest.spyOn(instance, "forceUpdate");
+            const forceUpdateSpy = vi.spyOn(navigatorRef.current!, "forceUpdate");
 
-            instance.setActiveDatabaseSchema("newSchema");
+            navigatorRef.current!.setActiveDatabaseSchema("newSchema");
 
             await nextProcessTick();
 
@@ -2040,25 +2103,25 @@ describe("LakehouseNavigator tests", () => {
                     { id: 2, name: "item2" } as unknown as ILakehouseTaskItem,
                 ],
             };
-            instance.setState({
+            navigatorRef.current!.setState({
                 activeSchema: "oldSchema",
                 task: currentTask,
             });
 
-            instance.setActiveDatabaseSchema("newSchema");
+            navigatorRef.current!.setActiveDatabaseSchema("newSchema");
 
             await nextProcessTick();
 
-            expect(instance.state.task!.schemaName).toBe("newSchema");
+            expect(navigatorRef.current!.state.task!.schemaName).toBe("newSchema");
         });
 
         it("should handle setState callback chain correctly", async () => {
-            const forceUpdateSpy = jest.spyOn(instance, "forceUpdate");
+            const forceUpdateSpy = vi.spyOn(navigatorRef.current!, "forceUpdate");
             autoRefreshTreesSpy.mockImplementation(() => {
                 return Promise.resolve();
             });
 
-            instance.setActiveDatabaseSchema("newSchema");
+            navigatorRef.current!.setActiveDatabaseSchema("newSchema");
 
             await nextProcessTick();
 
@@ -2068,29 +2131,34 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("getDefaultTaskDescription", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should return default description when task is undefined", () => {
-            const result = instance.getDefaultTaskDescription(undefined);
+            const result = navigatorRef.current!.getDefaultTaskDescription(undefined);
             expect(result).toBe("Data from Object Storage");
         });
 
         it("should return default description when task items are undefined", () => {
             const task = { schemaName: "testSchema" };
-            const result = instance.getDefaultTaskDescription(task);
+            const result = navigatorRef.current!.getDefaultTaskDescription(task);
             expect(result).toBe("Data from Object Storage");
         });
 
         it("should return default description when task items are empty", () => {
             const task = { schemaName: "testSchema", items: [] };
-            const result = instance.getDefaultTaskDescription(task);
+            const result = navigatorRef.current!.getDefaultTaskDescription(task);
             expect(result).toBe("Data from Object Storage");
         });
 
@@ -2102,7 +2170,7 @@ describe("LakehouseNavigator tests", () => {
                     uri: "test//my-bucket/path/to/file.csv",
                 }],
             } as unknown as ILakehouseTask;
-            const result = instance.getDefaultTaskDescription(task);
+            const result = navigatorRef.current!.getDefaultTaskDescription(task);
             expect(result).toBe("Data from Bucket my-bucket");
         });
 
@@ -2114,82 +2182,85 @@ describe("LakehouseNavigator tests", () => {
                     { id: "2", uri: "test//bucket2/file2.csv" },
                 ],
             } as unknown as ILakehouseTask;
-            const result = instance.getDefaultTaskDescription(task);
+            const result = navigatorRef.current!.getDefaultTaskDescription(task);
             expect(result).toBe("Data from Bucket bucket1");
         });
     });
 
     describe("toggleAutoRefresh", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
         });
 
         afterEach(() => {
-            jest.restoreAllMocks();
+            vi.restoreAllMocks();
+            unmount();
         });
 
         it("should toggle autoRefreshTablesAndTasks state from false to true", () => {
-            instance.setState({ autoRefreshTablesAndTasks: false });
+            navigatorRef.current!.setState({ autoRefreshTablesAndTasks: false });
 
-            instance.toggleAutoRefresh({} as InputEvent, CheckState.Unchecked);
+            navigatorRef.current!.toggleAutoRefresh({} as InputEvent, CheckState.Unchecked);
 
-            expect(instance.state.autoRefreshTablesAndTasks).toBe(true);
+            expect(navigatorRef.current!.state.autoRefreshTablesAndTasks).toBe(true);
         });
 
         it("should not clear timer if it was already null", () => {
-            instance.setState({ autoRefreshTablesAndTasks: true });
-            const clearTimeoutSpy = jest.spyOn(window, "clearTimeout");
+            navigatorRef.current!.setState({ autoRefreshTablesAndTasks: true });
+            const clearTimeoutSpy = vi.spyOn(window, "clearTimeout");
 
-            instance.toggleAutoRefresh({} as InputEvent, CheckState.Unchecked);
+            navigatorRef.current!.toggleAutoRefresh({} as InputEvent, CheckState.Unchecked);
 
             expect(clearTimeoutSpy).not.toHaveBeenCalled();
         });
     });
 
     describe("updateObjStorageTreeGrid", () => {
-        let instance: TestLakehouseNavigator;
-        let setDataSpy: jest.Mock;
-        let getSelectedRowsSpy: jest.Mock;
-        let deselectRowSpy: jest.Mock;
-        let selectRowSpy: jest.Mock;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
+        let setDataSpy: ReturnType<typeof vi.fn>;
+        let getSelectedRowsSpy: ReturnType<typeof vi.fn>;
+        let deselectRowSpy: ReturnType<typeof vi.fn>;
+        let selectRowSpy: ReturnType<typeof vi.fn>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
 
             // Setup tree grid spies
-            setDataSpy = jest.fn().mockResolvedValue(undefined);
-            getSelectedRowsSpy = jest.fn();
-            deselectRowSpy = jest.fn();
-            selectRowSpy = jest.fn();
+            setDataSpy = vi.fn().mockResolvedValue(undefined);
+            getSelectedRowsSpy = vi.fn();
+            deselectRowSpy = vi.fn();
+            selectRowSpy = vi.fn();
         });
 
         afterEach(() => {
-            jest.restoreAllMocks();
+            vi.restoreAllMocks();
+            unmount();
         });
 
         it("should do nothing when tree items are undefined", () => {
-            instance.updateObjStorageTreeGrid();
+            navigatorRef.current!.updateObjStorageTreeGrid();
 
             expect(setDataSpy).not.toHaveBeenCalled();
         });
 
         it("should handle items without ids in selection", async () => {
             const itemWithoutId = { name: "item1" };
-            getSelectedRowsSpy.mockReturnValue([{
-                getData: () => {
-                    return itemWithoutId;
-                }
-            }]);
+            getSelectedRowsSpy.mockReturnValue([{ getData: () => {
+                return itemWithoutId;
+            } }]);
 
-            instance.updateObjStorageTreeGrid();
+            navigatorRef.current!.updateObjStorageTreeGrid();
             await nextProcessTick();
 
             expect(selectRowSpy).not.toHaveBeenCalled();
@@ -2198,7 +2269,7 @@ describe("LakehouseNavigator tests", () => {
         it("should not restore selection if no rows were selected", async () => {
             getSelectedRowsSpy.mockReturnValue([]);
 
-            instance.updateObjStorageTreeGrid();
+            navigatorRef.current!.updateObjStorageTreeGrid();
             await nextProcessTick();
 
             expect(deselectRowSpy).not.toHaveBeenCalled();
@@ -2207,34 +2278,40 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("refreshObjTreeItem", () => {
-        let instance: TestLakehouseNavigator;
-        let getObjectStorageTreeChildrenSpy: jest.SpyInstance;
-        let updateObjStorageTreeGridSpy: jest.SpyInstance;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
+        let getObjectStorageTreeChildrenSpy: MockInstance<(
+            parent: IObjectStorageTreeItem) => Promise<IObjectStorageTreeItem[]>>;
+
+        let updateObjStorageTreeGridSpy: MockInstance<() => void>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <TestLakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
-            getObjectStorageTreeChildrenSpy = jest.spyOn(instance as any, "getObjectStorageTreeChildren")
+            unmount = result.unmount;
+
+            getObjectStorageTreeChildrenSpy = vi.spyOn(navigatorRef.current!, "getObjectStorageTreeChildren")
                 .mockResolvedValue([]);
-            updateObjStorageTreeGridSpy = jest.spyOn(instance as any, "updateObjStorageTreeGrid")
-                .mockImplementation();
+            updateObjStorageTreeGridSpy = vi.spyOn(navigatorRef.current!, "updateObjStorageTreeGrid")
+                .mockImplementation(() => { /**/ });
         });
 
         afterEach(() => {
-            jest.restoreAllMocks();
+            vi.restoreAllMocks();
+            unmount();
         });
 
         it("should do nothing when tree item is not found", async () => {
-            await instance.refreshObjTreeItem("nonexistent");
+            await navigatorRef.current!.refreshObjTreeItem("nonexistent");
 
             expect(getObjectStorageTreeChildrenSpy).not.toHaveBeenCalled();
             expect(updateObjStorageTreeGridSpy).toHaveBeenCalled();
         });
 
         it("should handle undefined objTreeItems", async () => {
-            await instance.refreshObjTreeItem("any");
+            await navigatorRef.current!.refreshObjTreeItem("any");
 
             expect(getObjectStorageTreeChildrenSpy).not.toHaveBeenCalled();
             expect(updateObjStorageTreeGridSpy).toHaveBeenCalled();
@@ -2242,25 +2319,30 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("handleAddFilesForUpload", () => {
-        let instance: TestLakehouseNavigator;
-        let executeRemoteSpy: jest.SpyInstance;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
+        let executeRemoteSpy: MockInstance<<K extends keyof IRequestTypeMap>(requestType: K,
+            parameter: IRequisitionCallbackValues<K>)=> boolean>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
-            executeRemoteSpy = jest.spyOn(requisitions, "executeRemote").mockImplementation();
+            unmount = result.unmount;
+
+            executeRemoteSpy = vi.spyOn(requisitions, "executeRemote");
             appParameters.embedded = true;
         });
 
         afterEach(() => {
-            jest.restoreAllMocks();
+            vi.restoreAllMocks();
             appParameters.embedded = false;
+            unmount();
         });
 
         it("should show open dialog with correct options", () => {
-            instance.handleAddFilesForUpload({} as MouseEvent);
+            navigatorRef.current!.handleAddFilesForUpload({} as MouseEvent);
 
             expect(executeRemoteSpy).toHaveBeenCalledWith("showOpenDialog", {
                 id: "lakehouseFileUpload",
@@ -2274,17 +2356,23 @@ describe("LakehouseNavigator tests", () => {
     });
 
     describe("selectFile", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should return false for non-matching resourceId", async () => {
-            const result = await instance.selectFile({
+            const result = await navigatorRef.current!.selectFile({
                 resourceId: "wrongId",
                 file: [],
             });
@@ -2293,86 +2381,91 @@ describe("LakehouseNavigator tests", () => {
         });
 
         it("should handle empty filesForUpload state", async () => {
-            instance.setState({ filesForUpload: undefined });
+            navigatorRef.current!.setState({ filesForUpload: undefined });
 
-            const result = await instance.selectFile({
+            const result = await navigatorRef.current!.selectFile({
                 resourceId: "lakehouseFileUpload",
-                file: [{ path: "file://path/to/file.txt", content: new ArrayBuffer() }],
+                file: [{ path: "file://path/to/file.txt", content: new ArrayBuffer(10) }],
             });
 
             expect(result).toBe(true);
-            expect(instance.state.filesForUpload).toEqual([
+            expect(navigatorRef.current!.state.filesForUpload).toEqual([
                 { filePath: "path/to/file.txt", uploadComplete: false },
             ]);
         });
 
         it("should handle multiple file paths", async () => {
-            const result = await instance.selectFile({
+            const result = await navigatorRef.current!.selectFile({
                 resourceId: "lakehouseFileUpload",
                 file: [
-                    { path: "file://path/to/file1.txt", content: new ArrayBuffer() },
-                    { path: "file://path/to/file2.txt", content: new ArrayBuffer() },
+                    { path: "file://path/to/file1.txt", content: new ArrayBuffer(10) },
+                    { path: "file://path/to/file2.txt", content: new ArrayBuffer(10) },
                 ],
             });
 
             expect(result).toBe(true);
-            expect(instance.state.filesForUpload).toEqual([
+            expect(navigatorRef.current!.state.filesForUpload).toEqual([
                 { filePath: "path/to/file1.txt", uploadComplete: false },
                 { filePath: "path/to/file2.txt", uploadComplete: false },
             ]);
         });
 
         it("should handle paths without file:// prefix", async () => {
-            const result = await instance.selectFile({
+            const result = await navigatorRef.current!.selectFile({
                 resourceId: "lakehouseFileUpload",
                 file: [
-                    { path: "path/to/file1.txt", content: new ArrayBuffer() },
-                    { path: "file://path/to/file2.txt", content: new ArrayBuffer() },
+                    { path: "path/to/file1.txt", content: new ArrayBuffer(10) },
+                    { path: "file://path/to/file2.txt", content: new ArrayBuffer(10) },
                 ],
             });
 
             expect(result).toBe(true);
-            expect(instance.state.filesForUpload).toEqual([
+            expect(navigatorRef.current!.state.filesForUpload).toEqual([
                 { filePath: "path/to/file1.txt", uploadComplete: false },
                 { filePath: "path/to/file2.txt", uploadComplete: false },
             ]);
         });
 
         it("should handle URI encoded paths", async () => {
-            const result = await instance.selectFile({
+            const result = await navigatorRef.current!.selectFile({
                 resourceId: "lakehouseFileUpload",
                 file: [
-                    { path: "file://path/to/file%20with%20spaces.txt", content: new ArrayBuffer() },
+                    { path: "file://path/to/file%20with%20spaces.txt", content: new ArrayBuffer(10) },
                 ],
             });
 
             expect(result).toBe(true);
-            expect(instance.state.filesForUpload).toEqual([
+            expect(navigatorRef.current!.state.filesForUpload).toEqual([
                 { filePath: "path/to/file with spaces.txt", uploadComplete: false },
             ]);
         });
 
         it("should not update state if no paths are provided", async () => {
-            instance.setState({ filesForUpload: undefined });
+            navigatorRef.current!.setState({ filesForUpload: undefined });
 
-            const result = await instance.selectFile({
+            const result = await navigatorRef.current!.selectFile({
                 resourceId: "lakehouseFileUpload",
                 file: [],
             });
 
             expect(result).toBe(true);
-            expect(instance.state.filesForUpload).toBeUndefined();
+            expect(navigatorRef.current!.state.filesForUpload).toBeUndefined();
         });
     });
 
     describe("handlePaneResize", () => {
-        let instance: TestLakehouseNavigator;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
+            unmount = result.unmount;
+        });
+
+        afterEach(() => {
+            unmount();
         });
 
         it("should update newTaskPanelWidth state", async () => {
@@ -2381,10 +2474,10 @@ describe("LakehouseNavigator tests", () => {
                 currentSize: 300,
             }];
 
-            instance.handlePaneResize(info);
+            navigatorRef.current!.handlePaneResize(info);
             await nextProcessTick();
 
-            expect(instance.state.newTaskPanelWidth).toBe(300);
+            expect(navigatorRef.current!.state.newTaskPanelWidth).toBe(300);
         });
 
         it("should update filesForUploadPanelWidth state", async () => {
@@ -2393,10 +2486,10 @@ describe("LakehouseNavigator tests", () => {
                 currentSize: 400,
             }];
 
-            instance.handlePaneResize(info);
+            navigatorRef.current!.handlePaneResize(info);
             await nextProcessTick();
 
-            expect(instance.state.filesForUploadPanelWidth).toBe(400);
+            expect(navigatorRef.current!.state.filesForUploadPanelWidth).toBe(400);
         });
 
         it("should update taskListPanelHeight state", async () => {
@@ -2405,10 +2498,10 @@ describe("LakehouseNavigator tests", () => {
                 currentSize: 500,
             }];
 
-            instance.handlePaneResize(info);
+            navigatorRef.current!.handlePaneResize(info);
             await nextProcessTick();
 
-            expect(instance.state.taskListPanelHeight).toBe(500);
+            expect(navigatorRef.current!.state.taskListPanelHeight).toBe(500);
         });
 
         it("should handle multiple pane resizes at once", async () => {
@@ -2427,12 +2520,12 @@ describe("LakehouseNavigator tests", () => {
                 },
             ];
 
-            instance.handlePaneResize(info);
+            navigatorRef.current!.handlePaneResize(info);
             await nextProcessTick();
 
-            expect(instance.state.newTaskPanelWidth).toBe(300);
-            expect(instance.state.filesForUploadPanelWidth).toBe(400);
-            expect(instance.state.taskListPanelHeight).toBe(500);
+            expect(navigatorRef.current!.state.newTaskPanelWidth).toBe(300);
+            expect(navigatorRef.current!.state.filesForUploadPanelWidth).toBe(400);
+            expect(navigatorRef.current!.state.taskListPanelHeight).toBe(500);
         });
 
         it("should ignore unknown pane ids", async () => {
@@ -2443,42 +2536,46 @@ describe("LakehouseNavigator tests", () => {
                 },
             ];
 
-            const initialState = { ...instance.state };
-            instance.handlePaneResize(info);
+            const initialState = { ...navigatorRef.current!.state };
+            navigatorRef.current!.handlePaneResize(info);
             await nextProcessTick();
 
-            expect(instance.state).toEqual(initialState);
+            expect(navigatorRef.current!.state).toEqual(initialState);
         });
 
         it("should handle empty info array", async () => {
-            const initialState = { ...instance.state };
-            instance.handlePaneResize([]);
+            const initialState = { ...navigatorRef.current!.state };
+            navigatorRef.current!.handlePaneResize([]);
             await nextProcessTick();
 
-            expect(instance.state).toEqual(initialState);
+            expect(navigatorRef.current!.state).toEqual(initialState);
         });
     });
 
     describe("showConfirmDlg", () => {
-        let instance: TestLakehouseNavigator;
-        let showDialogSpy: jest.SpyInstance;
+        const navigatorRef = createRef<TestLakehouseNavigator>();
+        let unmount: () => boolean;
+
+        let showDialogSpy: MockInstance<(request: IDialogRequest) => Promise<IDialogResponse>>;
 
         beforeEach(() => {
-            const component = mount<TestLakehouseNavigator>(
-                <TestLakehouseNavigator {...props} />,
+            const result = render(
+                <LakehouseNavigator ref={navigatorRef} {...props} />,
             );
-            instance = component.instance();
-            showDialogSpy = jest.spyOn(DialogHost, "showDialog");
+            unmount = result.unmount;
+            showDialogSpy = vi.spyOn(DialogHost, "showDialog");
         });
 
         afterEach(() => {
-            jest.restoreAllMocks();
+            vi.restoreAllMocks();
+            unmount();
         });
 
         it("should show dialog with correct parameters", async () => {
-            showDialogSpy.mockResolvedValue({ closure: DialogResponseClosure.Accept });
+            showDialogSpy.mockResolvedValue(
+                { closure: DialogResponseClosure.Accept, id: "1", type: DialogType.Confirm });
 
-            await instance.showConfirmDlg("Test Title", "Test Prompt");
+            await navigatorRef.current!.showConfirmDlg("Test Title", "Test Prompt");
 
             expect(showDialogSpy).toHaveBeenCalledWith({
                 id: "commitOrCancelChanges",
@@ -2494,17 +2591,19 @@ describe("LakehouseNavigator tests", () => {
         });
 
         it("should return true when user accepts", async () => {
-            showDialogSpy.mockResolvedValue({ closure: DialogResponseClosure.Accept });
+            showDialogSpy.mockResolvedValue(
+                { closure: DialogResponseClosure.Accept, id: "1", type: DialogType.Confirm });
 
-            const result = await instance.showConfirmDlg("Test Title", "Test Prompt");
+            const result = await navigatorRef.current!.showConfirmDlg("Test Title", "Test Prompt");
 
             expect(result).toBe(true);
         });
 
         it("should return false when dialog is cancelled", async () => {
-            showDialogSpy.mockResolvedValue({ closure: DialogResponseClosure.Cancel });
+            showDialogSpy.mockResolvedValue(
+                { closure: DialogResponseClosure.Decline, id: "1", type: DialogType.Confirm });
 
-            const result = await instance.showConfirmDlg("Test Title", "Test Prompt");
+            const result = await navigatorRef.current!.showConfirmDlg("Test Title", "Test Prompt");
 
             expect(result).toBe(false);
         });
@@ -2512,7 +2611,7 @@ describe("LakehouseNavigator tests", () => {
         it("should handle dialog error", async () => {
             showDialogSpy.mockRejectedValue(new Error("Dialog error"));
 
-            await expect(instance.showConfirmDlg("Test Title", "Test Prompt"))
+            await expect(navigatorRef.current!.showConfirmDlg("Test Title", "Test Prompt"))
                 .rejects.toThrow("Dialog error");
         });
     });

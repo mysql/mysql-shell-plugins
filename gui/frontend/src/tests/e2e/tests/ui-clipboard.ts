@@ -24,26 +24,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { join, basename } from "path";
 import * as fs from "fs/promises";
+import { basename, join } from "path";
 import { until } from "selenium-webdriver";
-import { Misc } from "../lib/misc.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, type TestContext } from "vitest";
+import * as allure from "allure-js-commons";
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { DialogHelper } from "../lib/Dialogs/DialogHelper.js";
+import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
+import { E2ELogger } from "../lib/E2ELogger.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import { E2ETextEditor } from "../lib/E2ETextEditor.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
+import { TestQueue } from "../lib/TestQueue.js";
 import * as constants from "../lib/constants.js";
+import { driver, loadDriver } from "../lib/driver.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as locator from "../lib/locators.js";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
-import { E2ETextEditor } from "../lib/E2ETextEditor.js";
-import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
-import { E2ETabContainer } from "../lib/E2ETabContainer.js";
-import { TestQueue } from "../lib/TestQueue.js";
-import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
-import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
-import { E2ELogger } from "../lib/E2ELogger.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -77,14 +79,20 @@ describe("CLIPBOARD", () => {
 
     beforeAll(async () => {
         await loadDriver(false);
-        await driver.get(url);
-        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
-        const settings = new E2ESettings();
-        await settings.open();
-        await settings.selectCurrentTheme(constants.darkModern);
-        await settings.close();
-        await dbTreeSection.createDatabaseConnection(globalConn);
-        await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
+        try {
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
+            const settings = new E2ESettings();
+            await settings.open();
+            await settings.selectCurrentTheme(constants.darkModern);
+            await settings.close();
+            await dbTreeSection.createDatabaseConnection(globalConn);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
+        } catch (e) {
+            await Misc.storeScreenShot(undefined, "beforeAll_CLIPBOARD");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            throw e;
+        }
+
     });
 
     afterAll(async () => {
@@ -108,27 +116,26 @@ describe("CLIPBOARD", () => {
                 await ociTreeSection.focus();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_OCI_CLIPBOARD");
+                await Misc.storeScreenShot(undefined, "beforeAll_OCI_CLIPBOARD");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        beforeEach(async () => {
-            await TestQueue.push(expect.getState().currentTestName!);
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        beforeEach(async (context: TestContext) => {
+            await TestQueue.push(context.task.name);
+            await driver.wait(TestQueue.poll(context.task.name), constants.queuePollTimeout);
         });
 
         afterAll(async () => {
             await Misc.dismissNotifications(true);
         });
 
-        afterEach(async () => {
-            await TestQueue.pop(expect.getState().currentTestName!);
-
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await tabContainer.closeAllTabs();
@@ -153,7 +160,7 @@ describe("CLIPBOARD", () => {
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
                 await tabContainer.closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot();
+                testFailed = true;
                 throw e;
             }
         });
@@ -167,7 +174,7 @@ describe("CLIPBOARD", () => {
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot();
+                testFailed = true;
                 throw e;
             }
         });
@@ -181,7 +188,7 @@ describe("CLIPBOARD", () => {
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
                 await tabContainer.closeTab(new RegExp(`${bastion} Info.json`));
             } catch (e) {
-                await Misc.storeScreenShot();
+                testFailed = true;
                 throw e;
             }
         });
@@ -196,7 +203,7 @@ describe("CLIPBOARD", () => {
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot();
+                testFailed = true;
                 throw e;
             }
         });
@@ -262,23 +269,24 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.expandTreeItem("Procedures");
                 await dbTreeSection.expandTreeItem("Events");
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_DB_CLIPBOARD");
+                await Misc.storeScreenShot(undefined, "beforeAll_DB_CLIPBOARD");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        beforeEach(async () => {
-            await TestQueue.push(expect.getState().currentTestName!);
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        beforeEach(async (context: TestContext) => {
+            await TestQueue.push(context.task.name);
+            await driver.wait(TestQueue.poll(context.task.name), constants.queuePollTimeout);
         });
 
-        afterEach(async () => {
-            await TestQueue.pop(expect.getState().currentTestName!);
+        afterEach(async (context: TestContext) => {
+            await TestQueue.pop(context.task.name);
 
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -465,23 +473,24 @@ describe("CLIPBOARD", () => {
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_RESULT_GRIDS_CLIPBOARD");
+                await Misc.storeScreenShot(undefined, "beforeAll_RESULT_GRIDS_CLIPBOARD");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        beforeEach(async () => {
-            await TestQueue.push(expect.getState().currentTestName!);
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        beforeEach(async (context: TestContext) => {
+            await TestQueue.push(context.task.name);
+            await driver.wait(TestQueue.poll(context.task.name), constants.queuePollTimeout);
         });
 
-        afterEach(async () => {
-            await TestQueue.pop(expect.getState().currentTestName!);
+        afterEach(async (context: TestContext) => {
+            await TestQueue.pop(context.task.name);
 
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -749,23 +758,24 @@ describe("CLIPBOARD", () => {
                 await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_NOTEBOOKS_clipboard");
+                await Misc.storeScreenShot(undefined, "beforeAll_NOTEBOOKS_clipboard");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        beforeEach(async () => {
-            await TestQueue.push(expect.getState().currentTestName!);
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        beforeEach(async (context: TestContext) => {
+            await TestQueue.push(context.task.name);
+            await driver.wait(TestQueue.poll(context.task.name), constants.queuePollTimeout);
         });
 
-        afterEach(async () => {
-            await TestQueue.pop(expect.getState().currentTestName!);
+        afterEach(async (context: TestContext) => {
+            await TestQueue.pop(context.task.name);
 
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -851,4 +861,3 @@ describe("CLIPBOARD", () => {
     });
 
 });
-

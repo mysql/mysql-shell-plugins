@@ -23,31 +23,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { Icon } from "../../../../components/ui/Icon/Icon.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
 describe("Icon component tests", (): void => {
 
-    it("Test Icon elements", () => {
-        const component = mount<Icon>(
-            <Icon
-                id="icon1"
-            />,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.id).toBe("icon1");
-    });
-
     it("Standard Rendering", () => {
-        const component = mount<Icon>(
-            <Icon src={Assets.misc.closeIcon as string} />,
+        const { container, unmount } = render(
+            <Icon src={Assets.misc.closeIcon} />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

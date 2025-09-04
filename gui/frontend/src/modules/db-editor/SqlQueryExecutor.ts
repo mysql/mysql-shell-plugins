@@ -24,8 +24,10 @@
  */
 
 import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async";
+
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import { DBDataType, IColumnInfo, ISqlUpdateResult, IStatusInfo, MessageType } from "../../app-logic/general-types.js";
+import type { IGetColumnsMetadataItem } from "../../communication/ProtocolGui.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
@@ -34,13 +36,13 @@ import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import {
-    convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet,
-    parseSchemaTable,
+    convertRows, generateColumnInfo, getDataTypeDetails, parseColumnLength, parseDataTypeFromRaw,
 } from "../../supplement/index.js";
 import type { IColumnDetails } from "../../supplement/RequisitionTypes.js";
+import type { DBType } from "../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { uuid } from "../../utilities/helpers.js";
-import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
+import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
 import { IQueryExecutionOptions } from "./ConnectionTab.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
@@ -360,7 +362,7 @@ export class SqlQueryExecutor {
         columnNames: string[]): Promise<void> {
         const connection = this.#connection;
 
-        const { schema, table } = await parseSchemaTable(fullTableName, connection?.backend);
+        const { schema, table } = await this.parseSchemaTable(fullTableName, connection?.backend);
 
         // Get all column names.
         const tableColumns = await connection?.backend.getTableObjectNames(schema, table, "Column");
@@ -712,7 +714,7 @@ export class SqlQueryExecutor {
 
                 if (!data.result.columns && rowCount === 0) {
                     if (options.updatable) {
-                        const columnsMetadata = await getColumnsMetadataForEmptyResultSet(
+                        const columnsMetadata = await this.getColumnsMetadataForEmptyResultSet(
                             options.fullTableName, options.queryType, connection!.details.dbType, connection!.backend,
                         );
                         if (columnsMetadata.length) {
@@ -964,8 +966,73 @@ export class SqlQueryExecutor {
     private async getPrimaryKeyColumns(fullTableName: string): Promise<string[]> {
         const connection = this.#connection;
 
-        const { schema, table } = await parseSchemaTable(fullTableName, connection?.backend);
+        const { schema, table } = await this.parseSchemaTable(fullTableName, connection?.backend);
 
         return connection?.backend.getTableObjectNames(schema, table, "Primary Key") ?? [];
     }
+
+    private async parseSchemaTable(fullTableName: string,
+        backend?: ShellInterfaceSqlEditor): Promise<{ schema: string; table: string; }> {
+
+        const parts = fullTableName.split(".");
+        const table = unquote(parts.pop()!);
+        let schema = "";
+        if (parts.length > 0) {
+            schema = unquote(parts.pop()!);
+        }
+
+        if (schema.length === 0) {
+            schema = await backend?.getCurrentSchema() ?? "";
+        }
+
+        return { schema, table };
+    }
+
+    private async getColumnsMetadataForEmptyResultSet(fullTableName: string | undefined, queryType: QueryType,
+        dbType: DBType,
+        backend?: ShellInterfaceSqlEditor): Promise<Array<IGetColumnsMetadataItem & { length: number; }>> {
+
+        const metadata: Array<IGetColumnsMetadataItem & { length: number; }> = [];
+        if (queryType !== QueryType.Select || !fullTableName || !backend) {
+            return metadata;
+        }
+
+        const { schema, table } = await this.parseSchemaTable(fullTableName, backend);
+        if (!schema || !table) {
+            return metadata;
+        }
+
+        const columnNames = await backend.getTableObjectNames(schema, table, "Column");
+        const request = columnNames.map((column) => {
+            return {
+                schema,
+                table,
+                column,
+            };
+        });
+        const response = await backend.getColumnsMetadata(request);
+
+        // We need to preserve the same columns order as in getTableObjectNames,
+        // therefore cannot iterate through getColumnsMetadata response directly.
+        columnNames.forEach((column) => {
+            const data = response.find((data) => {
+                return data.name === column;
+            });
+            if (!data) {
+                return;
+            }
+
+            const details = getDataTypeDetails(dbType, data.type);
+            const type = parseDataTypeFromRaw(dbType, data.type);
+
+            metadata.push({
+                ...data,
+                type,
+                length: parseColumnLength(data.type, details.characterMaximumLength),
+            });
+        });
+
+        return metadata;
+    }
+
 }

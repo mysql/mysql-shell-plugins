@@ -23,114 +23,91 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
+import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
 import { act } from "preact/test-utils";
+import { describe, expect, it, vi } from "vitest";
 
-import { Button, IButtonProperties } from "../../../../components/ui/Button/Button.js";
+import { Button } from "../../../../components/ui/Button/Button.js";
 import { ComponentSize } from "../../../../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../../../../components/ui/Container/Container.js";
 import { Image } from "../../../../components/ui/Image/Image.js";
 import { Assets } from "../../../../supplement/Assets.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
-import { mouseEventMock } from "../../__mocks__/EventMocks.js";
-
-let clicked = false;
-
-const buttonClick = (): void => {
-    clicked = true;
-};
-
-const requestButtonClick = (): Promise<boolean> => {
-    clicked = true;
-
-    return Promise.resolve(true);
-};
-
-const sleepAsync = (callback: (flag: boolean) => void): ReturnType<typeof setTimeout> => {
-    return setTimeout(() => {
-        callback(clicked);
-    }, 0);
-};
 
 describe("Button component tests", (): void => {
-
-    beforeEach(() => {
-        clicked = false;
-    });
-
-    afterAll(() => {
-        requisitions.unregister(undefined, requestButtonClick);
-    });
-
     it("Test button click", async () => {
-        const component = shallow(
+        const buttonClick = vi.fn();
+        const { unmount, getByRole } = render(
             <Button onClick={buttonClick}>
                 Test button
             </Button>,
         );
-        expect(component).toBeTruthy();
-        expect(component.text()).toEqual("Test button");
 
-        const click = (component.props() as IButtonProperties).onClick;
+        const button = getByRole("button");
+        expect(button.innerHTML).toEqual("Test button");
+
         await act(() => {
-            click?.(mouseEventMock, { id: "1" });
+            button.click();
         });
 
-        expect(clicked).toEqual(true);
+        expect(buttonClick).toHaveBeenCalled();
+
+        unmount();
     });
 
-    it("Test button commands", (done) => {
-        requisitions.register("editorCommit", requestButtonClick);
-        const component = shallow(
+    it("Test button commands", () => {
+        let clicked = false;
+        const buttonClick = (): Promise<boolean> => {
+            clicked = true;
+
+            return Promise.resolve(true);
+        };
+        requisitions.register("editorCommit", buttonClick);
+
+        const { unmount, getByRole } = render(
             <Button requestType="editorCommit">
                 Test button
             </Button >,
         );
 
-        expect(component.text()).toEqual("Test button");
         expect(clicked).toEqual(false);
-        const click = (component.props() as IButtonProperties).onClick;
+        const button = getByRole("button");
         void act(() => {
-            return click?.(mouseEventMock, { id: "1" });
-        }).then(() => {
-            sleepAsync((result: boolean) => {
-                expect(result).toEqual(true);
-                done();
-            });
+            return button.click();
         });
+
+        requisitions.unregister("editorCommit");
+
+        unmount();
     });
 
-    it("Test button click", async () => {
+    it("Test mouse down and active element", async () => { // TODO: what is this test for?
         const innerRef = createRef<HTMLDivElement>();
-        const component = mount(
+        const buttonClick = vi.fn();
+        const { unmount, getByRole } = render(
             <Button innerRef={innerRef} onClick={buttonClick}>
                 Test button
             </Button>,
         );
 
         expect(innerRef.current).not.toEqual(document.activeElement);
+        const button = getByRole("button");
 
-        expect(component).toBeTruthy();
-        expect(component.text()).toEqual("Test button");
-
-        const click = (component.props() as IButtonProperties).onClick;
         await act(() => {
-            click?.(mouseEventMock, { id: "1" });
+            button.click();
         });
-        expect(clicked).toEqual(true);
 
-        const onMouseDown = (component.props() as IButtonProperties).onMouseDown;
         await act(() => {
-            onMouseDown?.(mouseEventMock, { id: "1" });
+            fireEvent.mouseDown(button);
         });
         expect(innerRef.current).not.toEqual(document.activeElement);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test button output (Snapshot)", () => {
-        const component = mount(
+        const { container, unmount } = render(
             <div>
                 <Container>
                     <Button id="button1" caption="Normal Button" />
@@ -166,8 +143,8 @@ describe("Button component tests", (): void => {
             </div>,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

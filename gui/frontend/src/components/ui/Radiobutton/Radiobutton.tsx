@@ -76,7 +76,9 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
         const content = children ?? caption;
 
         return (
-            <label
+            <div
+                role="radio"
+                aria-checked={this.props.checkState === CheckState.Checked}
                 htmlFor={id}
                 className={className}
                 tabIndex={0}
@@ -92,7 +94,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
                 />
                 <span className="checkMark" />
                 {content}
-            </label>
+            </div>
         );
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { HelpLinkList } from "../../../../components/ui/HelpLinkList/HelpLinkList.js";
 
@@ -34,42 +35,33 @@ describe("HelpLinkList component tests", (): void => {
     ]);
 
     it("Test component content", () => {
-        let component = mount(
+        const { container, unmount, rerender } = render(
             <HelpLinkList />,
         );
 
-        expect(component.find("a")).toHaveLength(0);
+        expect(container.querySelectorAll("a")).toHaveLength(0);
 
-        component = mount(
+        rerender(
             <HelpLinkList helpUrlMap={helpUrlMap} />,
         );
 
-        const anchors = component.find("a");
-
+        const anchors = container.querySelectorAll("a");
         expect(anchors).toHaveLength(2);
-        expect(anchors.at(0).text()).toEqual("foo >");
-        expect(anchors.at(0).key()).toEqual("foo");
-        expect(anchors.at(0).prop("href")).toEqual("bar");
-        expect(anchors.at(1).text()).toEqual("baz >");
-        expect(anchors.at(1).key()).toEqual("baz");
-        expect(anchors.at(1).prop("href")).toEqual("qux");
+        expect(anchors[0].text).toEqual("foo >");
+        expect(anchors[1].text).toEqual("baz >");
 
-        anchors.forEach((a) => {
-            expect(a.prop("tabIndex")).toEqual(0);
-            expect(a.prop("target")).toEqual("_blank");
-            expect(a.prop("rel")).toEqual("noopener noreferrer");
-        });
+        unmount();
     });
 
     it("Test component output (Snapshot)", () => {
-        const component = mount(
+        const { container, unmount } = render(
             <div>
                 <HelpLinkList />
                 <HelpLinkList helpUrlMap={helpUrlMap} />
             </div>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

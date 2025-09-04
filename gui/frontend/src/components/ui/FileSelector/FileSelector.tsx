@@ -34,7 +34,7 @@ import { selectFileInBrowser } from "../../../utilities/helpers.js";
 import { Button } from "../Button/Button.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, Orientation } from "../Container/Container.js";
-import { IInputChangeProperties, Input } from "../Input/Input.js";
+import { Input } from "../Input/Input.js";
 
 enum FileSelectorEntryType {
     File,
@@ -188,7 +188,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                 filters,
                 openLabel,
             };
-            if (doRead === true){
+            if (doRead === true) {
                 requisitions.executeRemote("showOpenDialogWithRead", options);
             } else {
                 requisitions.executeRemote("showOpenDialog", options);
@@ -214,7 +214,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
         }
     };
 
-    private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
+    private handleInputChange = (e: InputEvent): void => {
         const { onChange } = this.props;
         const inputElement = e.target as HTMLInputElement;
         const files = inputElement.files;

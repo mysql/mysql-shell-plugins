@@ -1,0 +1,2369 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PerformanceDashboard Tests > Test PerformanceDashboard instantiation 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar performanceDashboard"
+    style="flex-direction: column;"
+  >
+    <div
+      class="msg container fixedScrollbar toolbar verticalCenterContent"
+      id="dashboardToolbar"
+      style="flex-direction: row; align-items: center;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        style="margin-left: 8px;"
+      >
+        Graph Colors:
+      </label>
+      <div
+        class="msg container fixedScrollbar dropdown"
+        data-tooltip="inherit"
+        id="graphColorsDropdown"
+        style="flex-direction: row; align-items: center;"
+        tabindex="0"
+      >
+        <label
+          class="msg label ellipsis"
+          data-tooltip="expand"
+        >
+          Gray Tones
+        </label>
+      </div>
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Time Range:
+      </label>
+      <div
+        class="msg container fixedScrollbar dropdown"
+        data-tooltip="inherit"
+        id="timeRangeDropdown"
+        style="flex-direction: row; align-items: center;"
+        tabindex="0"
+      />
+      <div
+        class="expander"
+      />
+    </div>
+    <div
+      class="msg container fixedScrollbar tabview top"
+      style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+    >
+      <div
+        class="msg container fixedScrollbar tabContent"
+        style="flex-direction: column;"
+      >
+        <div
+          class="msg grid"
+          id="dashboardGrid"
+          style="grid-template-columns: 33% 33% 33%; row-gap: 30px; column-gap: 12px;"
+        >
+          <div
+            class="msg container fixedScrollbar gridCell title"
+            style="flex-direction: column; align-items: center; grid-column: 1; grid-row: 1;"
+          >
+            <div
+              class="msg icon sectionIcon"
+              style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='clientConnections'%20transform='matrix(0.0132735,0,0,0.0124748,2.74273,-0.736333)'%3e%3cg%20transform='matrix(75.2284,0,0,60.3308,-55.8459,58.9287)'%3e%3crect%20x='1'%20y='2'%20width='1'%20height='12'/%3e%3c/g%3e%3cg%20transform='matrix(72.5993,0,0,60.2952,-317.321,58.9999)'%3e%3crect%20x='14'%20y='2'%20width='1'%20height='12'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,786.808)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.759,5.156C46.759,5.156%2047.255,5.552%2047.532,5.739C47.965,6.03%2048.496,6.352%2048.998,6.569C52.75,8.192%2058.814,9.193%2065.647,9.193C72.48,9.193%2078.543,8.192%2082.295,6.569C82.797,6.352%2083.329,6.03%2083.761,5.739L84.538,5.205L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,546.089)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.793,5.149C46.793,5.149%2047.289,5.546%2047.567,5.732C48,6.023%2048.531,6.346%2049.033,6.563C52.785,8.185%2058.849,9.186%2065.681,9.186C72.514,9.186%2078.578,8.185%2082.33,6.563C82.832,6.346%2083.363,6.023%2083.796,5.732L84.573,5.199L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,305.601)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.749,5.172C46.749,5.172%2047.245,5.568%2047.523,5.755C47.956,6.046%2048.487,6.368%2048.989,6.585C52.741,8.208%2058.804,9.208%2065.637,9.208C72.47,9.208%2078.534,8.208%2082.286,6.585C82.788,6.368%2083.319,6.046%2083.752,5.755L84.529,5.221L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.2402,-724.401,61.7199)'%3e%3cpath%20d='M65.594,-0.156C77.761,-0.156%2087.625,2.971%2087.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828C43.562,2.971%2053.426,-0.156%2065.594,-0.156ZM83.31,6.687C82.888,6.919%2082.37,7.176%2081.88,7.349C78.219,8.644%2072.303,9.443%2065.636,9.443C58.968,9.443%2053.052,8.644%2049.391,7.349C48.901,7.176%2048.383,6.919%2047.961,6.687C48.383,6.454%2048.901,6.197%2049.391,6.024C53.052,4.729%2058.968,3.93%2065.636,3.93C72.303,3.93%2078.219,4.729%2081.88,6.024C82.37,6.197%2082.888,6.454%2083.31,6.687Z'/%3e%3c/g%3e%3cg%20transform='matrix(67.3382,0,0,64.5334,-142.212,283.78)'%3e%3crect%20x='0'%20y='14'%20width='16'%20height='1'/%3e%3c/g%3e%3cg%20transform='matrix(75.3379,0,0,69.5062,-206.631,213.16)'%3e%3cpath%20d='M10,13.536C10,13.24%209.792,13%209.535,13L6.465,13C6.208,13%206,13.24%206,13.536L6,15.464C6,15.76%206.208,16%206.465,16L9.535,16C9.792,16%2010,15.76%2010,15.464L10,13.536Z'/%3e%3c/g%3e%3cg%20transform='matrix(75.3379,0,0,95.4505,-170.308,-123.419)'%3e%3crect%20x='7'%20y='12'%20width='1'%20height='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+            />
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              Network Status
+            </label>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              Statistics for network traffic sent and received by the MySQL server over the client connections.
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell separated"
+            style="flex-direction: column; grid-column: 1; grid-row: 2;"
+          >
+            <label
+              class="msg label subTitle"
+              data-tooltip="expand"
+            >
+              Incoming Network Traffic
+            </label>
+            <svg
+              class="msg graphHost"
+              preserveAspectRatio="xMidYMid"
+              viewBox="0 0 400 300"
+            >
+              <svg
+                height="300"
+                id="networkStatus1"
+                overflow="visible"
+                style="pointer-events: bounding-box;"
+                width="400"
+                x="0"
+                y="0"
+              >
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="xAxis"
+                  text-anchor="middle"
+                  transform="<filtered>"
+                >
+                  <path
+                    class="domain"
+                    d="M80.5,0.5H370.5"
+                    stroke="currentColor"
+                  />
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      08:55
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09 AM
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09:05
+                    </text>
+                  </g>
+                </g>
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="yAxis"
+                  text-anchor="end"
+                  transform="<filtered>"
+                >
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      0 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      2 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      4 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      6 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      8 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      10 B/s
+                    </text>
+                  </g>
+                  <text
+                    fill="currentColor"
+                    text-anchor="start"
+                    x="-80"
+                    y="10"
+                  />
+                </g>
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke="#FFFF"
+                  />
+                </g>
+                <g
+                  style="pointer-events: none;"
+                >
+                  <path
+                    color="var(--tooltip-foreground"
+                    fill="var(--tooltip-background)"
+                    stroke="var(--tooltip-border)"
+                  />
+                </g>
+              </svg>
+            </svg>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Number of bytes received by the MySQL server at the network level."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Incoming Data
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 B/s
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell separated"
+            style="flex-direction: column; grid-column: 1; grid-row: 3;"
+          >
+            <label
+              class="msg label subTitle"
+              data-tooltip="expand"
+            >
+              Outgoing Network Traffic
+            </label>
+            <svg
+              class="msg graphHost"
+              preserveAspectRatio="xMidYMid"
+              viewBox="0 0 400 300"
+            >
+              <svg
+                height="300"
+                id="networkStatus2"
+                overflow="visible"
+                style="pointer-events: bounding-box;"
+                width="400"
+                x="0"
+                y="0"
+              >
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="xAxis"
+                  text-anchor="middle"
+                  transform="<filtered>"
+                >
+                  <path
+                    class="domain"
+                    d="M80.5,0.5H370.5"
+                    stroke="currentColor"
+                  />
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      08:55
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09 AM
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09:05
+                    </text>
+                  </g>
+                </g>
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="yAxis"
+                  text-anchor="end"
+                  transform="<filtered>"
+                >
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      0 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      2 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      4 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      6 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      8 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      10 B/s
+                    </text>
+                  </g>
+                  <text
+                    fill="currentColor"
+                    text-anchor="start"
+                    x="-80"
+                    y="10"
+                  />
+                </g>
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke="#E7E7E7"
+                  />
+                </g>
+                <g
+                  style="pointer-events: none;"
+                >
+                  <path
+                    color="var(--tooltip-foreground"
+                    fill="var(--tooltip-background)"
+                    stroke="var(--tooltip-border)"
+                  />
+                </g>
+              </svg>
+            </svg>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Number of bytes sent by the MySQL server at the network level."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Outgoing Data
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 B/s
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell separated"
+            style="flex-direction: column; grid-column: 1; grid-row: 4;"
+          >
+            <label
+              class="msg label subTitle"
+              data-tooltip="expand"
+            >
+              Client Connections
+            </label>
+            <svg
+              class="msg graphHost"
+              preserveAspectRatio="xMidYMid"
+              viewBox="0 0 400 300"
+            >
+              <svg
+                height="300"
+                id="networkStatus3"
+                overflow="visible"
+                style="pointer-events: bounding-box;"
+                width="400"
+                x="0"
+                y="0"
+              >
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="xAxis"
+                  text-anchor="middle"
+                  transform="<filtered>"
+                >
+                  <path
+                    class="domain"
+                    d="M80.5,0.5H370.5"
+                    stroke="currentColor"
+                  />
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      08:55
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09 AM
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09:05
+                    </text>
+                  </g>
+                </g>
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="yAxis"
+                  text-anchor="end"
+                  transform="<filtered>"
+                >
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      0
+                    </text>
+                  </g>
+                  <text
+                    fill="currentColor"
+                    text-anchor="start"
+                    x="-80"
+                    y="10"
+                  />
+                </g>
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke="#D1D1D1"
+                  />
+                </g>
+                <g
+                  style="pointer-events: none;"
+                >
+                  <path
+                    color="var(--tooltip-foreground"
+                    fill="var(--tooltip-background)"
+                    stroke="var(--tooltip-border)"
+                  />
+                </g>
+              </svg>
+            </svg>
+            <div
+              class="placeholder"
+            />
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell title"
+            style="flex-direction: column; align-items: center; grid-column: 2; grid-row: 1;"
+          >
+            <div
+              class="msg icon sectionIcon"
+              style="mask-image: url("/src/assets/images/schemaMySQL.svg");"
+            />
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              MySQL Status
+            </label>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              Primary MySQL server activity and performance statistics.
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell separated"
+            style="flex-direction: column; grid-column: 2; grid-row: 2;"
+          >
+            <div
+              class="msg grid"
+              style="margin-bottom: 8px; grid-template-columns: repeat(2, 1fr); row-gap: 12px;"
+            >
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  Table Cache
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="tableCacheGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="sqlStatus1"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #B6B6B6;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #9B9B9B;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  Threads
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="threadsGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="sqlStatus2"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #FFFF;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #E7E7E7;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #D1D1D1;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #767676;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  Open Objects
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="openFilesGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="sqlStatus3"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #FFFF;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #E7E7E7;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #D1D1D1;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #767676;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #B6B6B6;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #6C6C6C;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  Transactions
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="transactionGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="sqlStatus4"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #FFFF;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #E7E7E7;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #D1D1D1;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #767676;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #B6B6B6;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #6C6C6C;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Cache for minimizing the number of times MySQL opens database tables when accessed."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Cache Efficiency
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0%
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Total number of opened tables."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Total Opened Tables
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Total number of started transactions."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Total Transactions
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell separated"
+            style="flex-direction: column; grid-column: 2; grid-row: 3;"
+          >
+            <label
+              class="msg label subTitle"
+              data-tooltip="expand"
+            >
+              SQL Statements Executed
+            </label>
+            <svg
+              class="msg graphHost"
+              preserveAspectRatio="xMidYMid"
+              viewBox="0 0 400 300"
+            >
+              <svg
+                height="300"
+                id="sqlStatus5"
+                overflow="visible"
+                style="pointer-events: bounding-box;"
+                width="400"
+                x="0"
+                y="0"
+              >
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="xAxis"
+                  text-anchor="middle"
+                  transform="<filtered>"
+                >
+                  <path
+                    class="domain"
+                    d="M80.5,0.5H370.5"
+                    stroke="currentColor"
+                  />
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      08:55
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09 AM
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09:05
+                    </text>
+                  </g>
+                </g>
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="yAxis"
+                  text-anchor="end"
+                  transform="<filtered>"
+                >
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      0
+                    </text>
+                  </g>
+                  <text
+                    fill="currentColor"
+                    text-anchor="start"
+                    x="-80"
+                    y="10"
+                  />
+                </g>
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke="#767676"
+                  />
+                  <path
+                    stroke="#6C6C6C"
+                  />
+                  <path
+                    stroke="#515151"
+                  />
+                </g>
+                <g
+                  style="pointer-events: none;"
+                >
+                  <path
+                    color="var(--tooltip-foreground"
+                    fill="var(--tooltip-background)"
+                    stroke="var(--tooltip-border)"
+                  />
+                </g>
+              </svg>
+            </svg>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Total number of statements executed."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Total Statements
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0/s
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell separated"
+            style="flex-direction: column; grid-column: 2; grid-row: 4;"
+          >
+            <div
+              class="msg grid"
+              id="selectGrid"
+              style="grid-template-columns: repeat(2, 1fr);"
+            >
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="SELECT Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    SELECT
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(118, 118, 118);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              />
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="INSERT Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    INSERT
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(108, 108, 108);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="CREATE Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    CREATE
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(81, 81, 81);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="UPDATE Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    UPDATE
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(108, 108, 108);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="ALTER Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    ALTER
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(81, 81, 81);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="DELETE Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    DELETE
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(108, 108, 108);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar nameValuePair"
+                  data-tooltip="DROP Statements Executed"
+                  style="flex-direction: row;"
+                >
+                  <label
+                    class="msg label nameLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    DROP
+                  </label>
+                  <label
+                    class="msg label valueLabel ellipsis"
+                    data-tooltip="inherit"
+                  >
+                    0/s
+                  </label>
+                  <label
+                    class="msg label marker"
+                    data-tooltip="expand"
+                    style="color: rgb(81, 81, 81);"
+                  >
+                    ▌
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell title"
+            style="flex-direction: column; align-items: center; grid-column: 3; grid-row: 1;"
+          >
+            <div
+              class="msg icon sectionIcon"
+              style="mask-image: url("/src/assets/images/databaseEngine.svg");"
+            />
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              InnoDB Status
+            </label>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              Overview of the InnoDB buffer pool and disk activity generated by the InnoDB storage engine.
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell"
+            style="flex-direction: column; grid-column: 3; grid-row: 2;"
+          >
+            <div
+              class="msg grid equalHeight"
+              style="margin-bottom: 8px; grid-template-columns: repeat(2, 1fr); row-gap: 12px;"
+            >
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column; padding: 0px 25%; grid-column: span 2;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  InnoDB Buffer Pool
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="bufferPoolGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="innoDBStatus1"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #B6B6B6;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #9B9B9B;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  Checkpoint Age
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="threadsGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="innoDBStatus2"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #FFFF;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #E7E7E7;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #B6B6B6;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #767676;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label pieTitle"
+                  data-tooltip="expand"
+                >
+                  Disk Read Ratio
+                </label>
+                <svg
+                  class="msg graphHost"
+                  id="openFilesGraph"
+                  preserveAspectRatio="xMidYMid"
+                  viewBox="0 0 400 300"
+                >
+                  <svg
+                    id="innoDBStatus3"
+                    overflow="visible"
+                    viewBox="0 0 400 300"
+                    x="50%"
+                    y="50%"
+                  >
+                    <g>
+                      <g
+                        class="slices"
+                      >
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #B6B6B6;"
+                        />
+                        <path
+                          class="slice"
+                          d="M0,-130L0,-60Z"
+                          style="fill: #9B9B9B;"
+                        />
+                      </g>
+                      <g
+                        class="labels"
+                      />
+                      <g
+                        class="lines"
+                      />
+                    </g>
+                  </svg>
+                </svg>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="The number of logical read requests InnoDB has done to the buffer pool."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Read Requests
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 pages/s
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="The number of logical write requests InnoDB has done to the buffer pool."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Write Requests
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 pages/s
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="The number of logical reads that InnoDB could not satisfy from the buffer pool, and had to read directly from the disk."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Disk Reads
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 #/s
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell"
+            style="flex-direction: column; grid-column: 3; grid-row: 3;"
+          >
+            <label
+              class="msg label subTitle"
+              data-tooltip="expand"
+            >
+              InnoDB Disk Writes
+            </label>
+            <svg
+              class="msg graphHost"
+              preserveAspectRatio="xMidYMid"
+              viewBox="0 0 400 300"
+            >
+              <svg
+                height="300"
+                id="innoDBStatus4"
+                overflow="visible"
+                style="pointer-events: bounding-box;"
+                width="400"
+                x="0"
+                y="0"
+              >
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="xAxis"
+                  text-anchor="middle"
+                  transform="<filtered>"
+                >
+                  <path
+                    class="domain"
+                    d="M80.5,0.5H370.5"
+                    stroke="currentColor"
+                  />
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      08:55
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09 AM
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09:05
+                    </text>
+                  </g>
+                </g>
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="yAxis"
+                  text-anchor="end"
+                  transform="<filtered>"
+                >
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      0 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      2 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      4 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      6 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      8 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      10 B/s
+                    </text>
+                  </g>
+                  <text
+                    fill="currentColor"
+                    text-anchor="start"
+                    x="-80"
+                    y="10"
+                  />
+                </g>
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke="#E7E7E7"
+                  />
+                </g>
+                <g
+                  style="pointer-events: none;"
+                >
+                  <path
+                    color="var(--tooltip-foreground"
+                    fill="var(--tooltip-background)"
+                    stroke="var(--tooltip-border)"
+                  />
+                </g>
+              </svg>
+            </svg>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="The number of bytes written to the InnoDB redo log files."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Log data written
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 B/s
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="The number of physical writes to the InnoDB redo log file."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Log writes
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 #/s
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Total amount of data in bytes written in file operations by the InnoDB storage engine."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Writing
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 B/s
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell"
+            style="flex-direction: column; grid-column: 3; grid-row: 4;"
+          >
+            <label
+              class="msg label subTitle"
+              data-tooltip="expand"
+            >
+              InnoDB Disk Reads
+            </label>
+            <svg
+              class="msg graphHost"
+              preserveAspectRatio="xMidYMid"
+              viewBox="0 0 400 300"
+            >
+              <svg
+                height="300"
+                id="innoDBStatus5"
+                overflow="visible"
+                style="pointer-events: bounding-box;"
+                width="400"
+                x="0"
+                y="0"
+              >
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="xAxis"
+                  text-anchor="middle"
+                  transform="<filtered>"
+                >
+                  <path
+                    class="domain"
+                    d="M80.5,0.5H370.5"
+                    stroke="currentColor"
+                  />
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      08:55
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09 AM
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      y2="6"
+                    />
+                    <text
+                      dy="0.71em"
+                      fill="currentColor"
+                      y="9"
+                    >
+                      09:05
+                    </text>
+                  </g>
+                </g>
+                <g
+                  fill="none"
+                  font-family="sans-serif"
+                  font-size="10"
+                  id="yAxis"
+                  text-anchor="end"
+                  transform="<filtered>"
+                >
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      0 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      2 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      4 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      6 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      8 B/s
+                    </text>
+                  </g>
+                  <g
+                    class="tick"
+                    opacity="1"
+                    transform="<filtered>"
+                  >
+                    <line
+                      stroke="currentColor"
+                      x2="-6"
+                    />
+                    <line
+                      stroke="currentColor"
+                      stroke-opacity="0.1"
+                      x2="290"
+                    />
+                    <text
+                      dy="0.32em"
+                      fill="currentColor"
+                      x="-9"
+                    >
+                      10 B/s
+                    </text>
+                  </g>
+                  <text
+                    fill="currentColor"
+                    text-anchor="start"
+                    x="-80"
+                    y="10"
+                  />
+                </g>
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke="#FFFF"
+                  />
+                </g>
+                <g
+                  style="pointer-events: none;"
+                >
+                  <path
+                    color="var(--tooltip-foreground"
+                    fill="var(--tooltip-background)"
+                    stroke="var(--tooltip-border)"
+                  />
+                </g>
+              </svg>
+            </svg>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="The number of double-write operations that have been performed."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Buffer Writes
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 B/s
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar nameValuePair"
+              data-tooltip="Total amount of data in bytes read in file operations by the InnoDB storage engine."
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label nameLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                Reading
+              </label>
+              <label
+                class="msg label valueLabel ellipsis"
+                data-tooltip="inherit"
+              >
+                0 B/s
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

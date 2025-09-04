@@ -50,7 +50,9 @@ import {
 } from "../../data-models/OpenDocumentDataModel.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
-import { SQLExecutionContext, type IRuntimeErrorResult, type IStacktraceInfo } from "../../script-execution/SQLExecutionContext.js";
+import {
+    SQLExecutionContext, type IStacktraceInfo
+} from "../../script-execution/SQLExecutionContext.js";
 import {
     IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState,
     currentNotebookVersion,
@@ -1172,15 +1174,15 @@ Execute \\help or \\? for help;`;
                                 markdownValue
                                 : errorMessage,
                         };
-                        void context.addRuntimeErrorData(
-                            {
-                                errorStatementStr,
-                                errorStatementIndex,
-                                jsCreateStatementStr,
-                                stacktraceInfo: { message: updatedStacktrace.message, range: updatedStacktrace.range },
-                                errorMessage,
-                                commandMessage: markdownString,
-                            });
+
+                        context.addRuntimeErrorData({
+                            errorStatementStr,
+                            errorStatementIndex,
+                            jsCreateStatementStr,
+                            stacktraceInfo: { message: updatedStacktrace.message, range: updatedStacktrace.range },
+                            errorMessage,
+                            commandMessage: markdownString,
+                        });
                     }
                 } catch (error) {
                     console.error("Error while getting stack trace:\n" + String(error));
@@ -1918,25 +1920,23 @@ Execute \\help or \\? for help;`;
                     await connection?.backend.execute(sqlQuery,
                         [`${currentSchema}.${currentSp}`, query, error], resultId, async (data) => {
                             const result = data.result;
-                            if (result) {
-                                const rows = result.rows as string[][];
-                                const columnInfos = generateColumnInfo(connection.details.dbType, result.columns);
-                                const dictRows = convertRows(columnInfos, result.rows);
-                                if (rows && rows.length > 0 && rows[0].length > 0) {
-                                    await context.addResultData({
-                                        type: "resultSetRows",
-                                        rows: dictRows,
-                                        columns: columnInfos,
-                                        currentPage: 0,
-                                    }, { resultId },
-                                    );
-                                }
+                            const rows = result.rows as string[][] | undefined;
+                            const columnInfos = generateColumnInfo(connection.details.dbType, result.columns);
+                            const dictRows = convertRows(columnInfos, result.rows);
+                            if (rows && rows.length > 0 && rows[0].length > 0) {
+                                await context.addResultData({
+                                    type: "resultSetRows",
+                                    rows: dictRows,
+                                    columns: columnInfos,
+                                    currentPage: 0,
+                                }, { resultId },
+                                );
                             }
                         });
 
                     const result = await connection?.backend.execute("SELECT @explanation");
                     if (result) {
-                        const rows = result.rows as string[][];
+                        const rows = result.rows as string[][] | undefined;
                         if (rows && rows.length > 0. && rows[0].length > 0) {
                             await context.addResultData({
                                 type: "text",
@@ -1951,9 +1951,9 @@ Execute \\help or \\? for help;`;
                 } catch (reason) {
                     const msg = String(reason).replace(/^(Error: Error: )+/, "");
 
-                    await context?.clearResult();
+                    await context.clearResult();
                     if (msg.includes("PROCEDURE sys.MLE_EXPLAIN_ERROR does not exist")) {
-                        await context?.addResultData({
+                        await context.addResultData({
                             type: "text",
                             text: [{
                                 type: MessageType.Info,

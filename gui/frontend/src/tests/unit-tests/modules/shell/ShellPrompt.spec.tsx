@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,23 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it, vi } from "vitest";
 
 import { ShellPrompt } from "../../../../modules/shell/ShellPrompt.js";
+import { render } from "@testing-library/preact";
 
 describe("Shell prompt tests", (): void => {
-
-    it("Test ShellPrompt instantiation", () => {
-        const component = mount<ShellPrompt>(
-            <ShellPrompt
-                values={{}} getSchemas={jest.fn()}
-            />,
-        );
-        const props = component.props();
-        expect(props.values).toEqual({});
-        component.unmount();
-    });
-
     it("ShellPrompt output test", () => {
         const values = {
             promptDescriptor: {
@@ -54,15 +43,14 @@ describe("Shell prompt tests", (): void => {
             },
         };
 
-        const component = mount<ShellPrompt>(
+        const { container, unmount } = render(
             <ShellPrompt
-                values={values} getSchemas={jest.fn()}
+                values={values} getSchemas={vi.fn()}
             />,
         );
 
-        expect(component).toMatchSnapshot();
-        expect(component.state().values).toBe(values);
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

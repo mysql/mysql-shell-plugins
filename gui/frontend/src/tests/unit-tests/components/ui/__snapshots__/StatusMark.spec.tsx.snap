@@ -1,27 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`StatusMark component tests Test StatusMark render 1`] = `
-<StatusMark
-  id="cb1"
-  statusState={0}
-  text="n/a"
->
-  <Checkbox
-    checkState={0}
-    className="msg statusmark"
-    disabled={true}
+exports[`StatusMark component tests > Test StatusMark render 1`] = `
+<div>
+  <label
+    class="msg checkbox unchecked disabled statusmark"
+    tabindex="0"
   >
-    <label
-      className="msg checkbox unchecked disabled statusmark"
-      onClick={[Function]}
-      onKeyPress={[Function]}
-      tabIndex={0}
-    >
-      <span
-        className="checkMark"
-      />
-      n/a
-    </label>
-  </Checkbox>
-</StatusMark>
+    <span
+      class="checkMark"
+    />
+    n/a
+  </label>
+</div>
 `;

@@ -1,103 +1,19 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Dropdown render testing Standard Rendering 1`] = `
-<Dropdown
-  multiSelect={false}
-  optional={false}
-  selection="tesla"
-  showDescription={false}
-  style={
-    {
-      "maxWidth": "300px",
-    }
-  }
-  withoutArrow={false}
->
-  <Container
-    className="msg dropdown"
-    crossAlignment="center"
+exports[`Dropdown render testing > Standard Rendering 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar dropdown"
     data-tooltip="inherit"
-    innerRef={
-      {
-        "current": <div
-          class="msg container fixedScrollbar dropdown"
-          data-tooltip="inherit"
-          style="flex-direction: row; align-items: center; max-width: 300px;"
-          tabindex="0"
-        >
-          <label
-            class="msg label ellipsis"
-            data-tooltip="expand"
-          >
-            Tesla
-          </label>
-        </div>,
-      }
-    }
-    onBlur={[Function]}
-    onClick={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    orientation="row"
-    style={
-      {
-        "maxWidth": "300px",
-      }
-    }
-    tabIndex={0}
+    style="flex-direction: row; align-items: center; max-width: 300px;"
+    tabindex="0"
   >
-    <div
-      className="msg container fixedScrollbar dropdown"
-      data-tooltip="inherit"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      onfocusin={[Function]}
-      onfocusout={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-          "maxWidth": "300px",
-        }
-      }
-      tabIndex={0}
+    <label
+      class="msg label ellipsis"
+      data-tooltip="expand"
     >
-      <Label
-        className="ellipsis"
-      >
-        <label
-          className="msg label ellipsis"
-          data-tooltip="expand"
-          style={{}}
-        >
-          Tesla
-        </label>
-      </Label>
-    </div>
-  </Container>
-  <Popup
-    className="dropdownList"
-    id="Popup"
-    innerRef={
-      {
-        "current": null,
-      }
-    }
-    onClose={[Function]}
-    onOpen={[Function]}
-    orientation="column"
-    pinned={false}
-    placement="bottom-end"
-    showArrow={false}
-  >
-    <Portal
-      className="popupPortal"
-      id="Popup"
-      onClose={[Function]}
-      onOpen={[Function]}
-    />
-  </Popup>
-</Dropdown>
+      Tesla
+    </label>
+  </div>
+</div>
 `;

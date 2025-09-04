@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShellConsole tests > Matching snapshot 1`] = `
+<div>
+  <div
+    class="msg editorHost"
+    data-keybinding-context="1"
+    data-mode-id="plaintext"
+  >
+    "<filtered>"
+  </div>
+</div>
+`;

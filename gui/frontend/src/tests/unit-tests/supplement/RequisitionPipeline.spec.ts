@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { describe, expect, it } from "vitest";
+
 import { RequisitionPipeline } from "../../../supplement/RequisitionPipeline.js";
 import { RequisitionHub } from "../../../supplement/Requisitions.js";
 import { sleep } from "../../../utilities/helpers.js";
 
 describe("RequisitionPipeline Tests", () => {
-    beforeAll(() => {
-        jest.mock("../../../supplement/Requisitions");
-    });
-
-    afterAll(() => {
-        jest.unmock("../../../supplement/Requisitions");
-    });
-
     it("Add job", async () => {
-        const pipeline = new RequisitionPipeline(new RequisitionHub());
+        let requisitionCallCount = 0;
+        const requisitionHub = new RequisitionHub();
+        requisitionHub.register("connectedToUrl", () => {
+            requisitionCallCount++;
+
+            return Promise.resolve(requisitionCallCount > 1);
+        });
+
+        const pipeline = new RequisitionPipeline(requisitionHub);
         await pipeline.addJob([
             {
                 requestType: "connectedToUrl",
@@ -45,9 +47,7 @@ describe("RequisitionPipeline Tests", () => {
             },
         ]);
 
-        // Give the pipeline time to announce the first task.
-        await sleep(5000);
-
-        // TODO: modify the hub mock to return useful values, to test other paths in the pipeline.
+        await sleep(1000);
+        expect(requisitionCallCount).toBe(2);
     });
 });

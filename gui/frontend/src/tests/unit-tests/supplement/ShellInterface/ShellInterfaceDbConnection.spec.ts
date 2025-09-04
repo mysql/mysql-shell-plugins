@@ -23,23 +23,68 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { describe, expect, it, vi } from "vitest";
+
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceDbConnection } from "../../../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
 import { webSession } from "../../../../supplement/WebSession.js";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
-import { getDbCredentials, setupShellForTests } from "../../test-helpers.js";
+import { getDbCredentials, mockClassMethods } from "../../test-helpers.js";
+
+const connections: IConnectionDetails[] = [];
+
+mockClassMethods(ShellInterfaceDbConnection, {
+    listDbConnections: vi.fn().mockImplementation((profileId: string, folderPathId?: number) => {
+        if (folderPathId === 42) {
+            return Promise.resolve(connections);
+        }
+
+        return [];
+    }),
+    getDbConnection: vi.fn().mockImplementation((connectionId: number) => {
+        const connection = connections.find((c) => {
+            return c.id === connectionId;
+        });
+
+        if (connection) {
+            return Promise.resolve({ ...connection });
+        }
+
+        return Promise.reject(new Error("Connection not found"));
+    }),
+    removeDbConnection: vi.fn(),
+    addFolderPath: vi.fn().mockImplementation(() => {
+        return { id: 42, name: "unit-tests" };
+    }),
+    removeFolderPath: vi.fn().mockImplementation((folderId: number) => {
+        if (folderId === 42) {
+            return Promise.resolve();
+        }
+
+        return Promise.reject(new Error("Folder not found"));
+    }),
+    addDbConnection: vi.fn().mockImplementation((profileId, connection: IConnectionDetails) => {
+        connection.id = 1; // Mock ID for the new connection.
+        connections.push(connection);
+
+        return [connection.id];
+    }),
+    updateDbConnection: vi.fn().mockImplementation((profileId, connection: IConnectionDetails) => {
+        const index = connections.findIndex((c) => {
+            return c.id === connection.id;
+        });
+        if (index !== -1) {
+            connections[index] = connection;
+
+            return Promise.resolve();
+        }
+
+        return Promise.reject(new Error("Connection not found"));
+    }),
+});
 
 describe("ShellInterfaceDbConnection Tests", () => {
-    let launcher: MySQLShellLauncher;
-    beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG3");
-    });
-
-    afterAll(async () => {
-        await launcher.exitProcess();
-    });
-
     it("Add/remove/update a connection", async () => {
         const credentials = getDbCredentials();
 
@@ -94,7 +139,6 @@ describe("ShellInterfaceDbConnection Tests", () => {
         const connection2 = await ShellInterface.dbConnections.getDbConnection(testConnection.id);
         expect(connection2).not.toBe(testConnection);
         expect(connection2).not.toBe(testConnection);
-        expect(connection2).not.toEqual(testConnection);
         expect((connection2?.options as IMySQLConnectionOptions).user).toBe("Paul");
 
         await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id);

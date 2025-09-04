@@ -23,42 +23,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { DefinitionProvider } from "../../../../../components/ui/CodeEditor/DefinitionProvider.js";
-import { IPosition } from "../../../../../components/ui/CodeEditor/index.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
-jest.mock("../../../../../script-execution/PresentationInterface");
-
 describe("DefinitionProvider tests", () => {
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Create instance and init", () => {
         const definitionProvider = new DefinitionProvider();
         expect(definitionProvider).not.toBeNull();
 
+        const pi = new PresentationInterface("javascript");
+        const execContext = mockModel.executionContexts!.addContext(pi);
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
+
         let result = definitionProvider.provideDefinition(mockModel, position);
         expect(result).toBe(undefined);
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
-
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0 };
-        });
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
         result = definitionProvider.provideDefinition(mockModel, position);
         expect(result).toBe(undefined);
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const services = ScriptingLanguageServices.instance;
-        services.findDefinition = jest.fn().mockReturnValue({
+        services.findDefinition = vi.fn().mockReturnValue({
             uri: "",
             range: null,
         });

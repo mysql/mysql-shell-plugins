@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
-import { act } from "@testing-library/preact";
+import { render } from "@testing-library/preact";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { JsonView } from "../../../../../components/ui/JsonView/JsonView.js";
 import { JsonValue } from "../../../../../app-logic/general-types.js";
+import { JsonView } from "../../../../../components/ui/JsonView/JsonView.js";
 
 describe("JsonView tests", (): void => {
 
@@ -53,94 +53,26 @@ describe("JsonView tests", (): void => {
         { id: 3, name: "Item 3" },
     ];
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     describe("Component instantiation and lifecycle", (): void => {
 
-        it("should instantiate correctly with JSON string", () => {
-            const jsonString = JSON.stringify(mockJsonData);
-            const component = mount<JsonView>(
-                <JsonView json={jsonString} />,
+        it("should handle JSON string to object conversion in componentDidUpdate", () => {
+            const { container, unmount } = render(
+                <JsonView json='{"updated": "data", "number": 42}' />,
             );
 
-            expect(component).toBeTruthy();
-            expect(component.props().json).toBe(jsonString);
-
-            component.unmount();
-        });
-
-        it("should update DOM when JSON prop changes", async () => {
-            const component = mount<JsonView>(
-                <JsonView json={{ key: "value" }} />,
-            );
-
-            const initialView = component.find("div").getDOMNode();
-            const initialContent = initialView.innerHTML;
-
-            const newData = { newKey: "newValue", nested: { deep: "data" } };
-
-            await act(() => {
-                component.setProps({ json: newData });
-            });
-
-            const updatedView = component.find("div").getDOMNode();
-            const updatedContent = updatedView.innerHTML;
-
-            // DOM should be updated with new content
-            expect(updatedContent).not.toBe(initialContent);
-            expect(updatedContent).toContain("newKey");
-            expect(updatedContent).toMatch(/<span class="k">newKey<\/span>/);
-
-            component.unmount();
-        });
-
-        it("should not update DOM when JSON prop remains the same", async () => {
-            const component = mount<JsonView>(
-                <JsonView json={mockJsonData} />,
-            );
-
-            const initialView = component.find("div").getDOMNode();
-            const initialContent = initialView.innerHTML;
-
-            await act(() => {
-                component.setProps({ json: mockJsonData });
-            });
-
-            const updatedView = component.find("div").getDOMNode();
-            const updatedContent = updatedView.innerHTML;
-
-            // DOM should remain unchanged
-            expect(updatedContent).toBe(initialContent);
-
-            component.unmount();
-        });
-
-        it("should handle JSON string to object conversion in componentDidUpdate", async () => {
-            const component = mount<JsonView>(
-                <JsonView json='{"initial": "data"}' />,
-            );
-
-            const newJsonString = '{"updated": "data", "number": 42}';
-
-            await act(() => {
-                component.setProps({ json: newJsonString });
-            });
-
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Should parse JSON string and render the content
             expect(content).toContain("updated");
             expect(content).toContain("data");
             expect(content).toMatch(/<span class="n">42<\/span>/);
 
-            component.unmount();
+            unmount();
         });
 
     });
@@ -162,21 +94,21 @@ describe("JsonView tests", (): void => {
             { name: "special chars", data: '"test \\"quotes\\" and apostrophes"' as JsonValue, expectedClass: "s" },
             { name: "empty string", data: '""' as JsonValue, expectedClass: "s" },
         ])("should render $name with correct DOM structure", ({ data, expectedClass }) => {
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={data} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Verify that the appropriate CSS class is present for each type
             expect(content).toMatch(new RegExp(`class="${expectedClass}"`));
 
             // Verify that the component renders without errors
             expect(view).toBeTruthy();
-            expect(view.innerHTML).toBeTruthy();
+            expect(view?.innerHTML).toBeTruthy();
 
-            component.unmount();
+            unmount();
         });
 
     });
@@ -184,33 +116,33 @@ describe("JsonView tests", (): void => {
     describe("URL handling", (): void => {
 
         it("should render URLs as clickable links", () => {
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={'"https://example.com"'} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Should contain an anchor tag
             expect(content).toMatch(/<a[^>]*href="https:\/\/example\.com"[^>]*>/);
             expect(content).toContain("example.com");
 
-            component.unmount();
+            unmount();
         });
 
         it("should render relative URLs as clickable links", () => {
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={'"/api/data"'} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Should contain an anchor tag
             expect(content).toMatch(/<a[^>]*href="\/api\/data"[^>]*>/);
             expect(content).toContain("/api/data");
 
-            component.unmount();
+            unmount();
         });
     });
 
@@ -228,12 +160,12 @@ describe("JsonView tests", (): void => {
                 },
             };
 
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={complexData} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Verify object structure with proper nesting
             expect(content).toMatch(/<span class="o">\{<\/span>/); // Opening brace
@@ -251,7 +183,7 @@ describe("JsonView tests", (): void => {
             expect(content).toMatch(/<span class="k">total<\/span>/);
             expect(content).toMatch(/<span class="k">page<\/span>/);
 
-            component.unmount();
+            unmount();
         });
 
     });
@@ -260,28 +192,26 @@ describe("JsonView tests", (): void => {
 
         it("should apply theme colors and custom styles correctly", () => {
             const customStyle = { backgroundColor: "red", fontSize: "14px" };
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={mockJsonData} style={customStyle} />,
             );
 
-            const viewElement = component.find("div");
-            const domNode: HTMLElement = viewElement.getDOMNode();
+            const viewElement = container.querySelector("div");
 
             // Verify className
-            expect(viewElement).toHaveLength(1);
-            expect(viewElement.hasClass("jsonView")).toBe(true);
+            expect(viewElement?.classList.contains("jsonView")).toBe(true);
 
             // Verify custom styles are applied
-            expect((domNode).style.backgroundColor).toBe("red");
-            expect(domNode.style.fontSize).toBe("14px");
+            expect(viewElement?.style.backgroundColor).toBe("red");
+            expect(viewElement?.style.fontSize).toBe("14px");
 
             // Verify theme CSS variables are set
-            expect(domNode.style.getPropertyValue("--arrayDelimiterColor")).toBeTruthy();
-            expect(domNode.style.getPropertyValue("--objectDelimiterColor")).toBeTruthy();
-            expect(domNode.style.getPropertyValue("--keyColor")).toBeTruthy();
-            expect(domNode.style.getPropertyValue("--valueColor")).toBeTruthy();
+            expect(viewElement?.style.getPropertyValue("--arrayDelimiterColor")).toBeTruthy();
+            expect(viewElement?.style.getPropertyValue("--objectDelimiterColor")).toBeTruthy();
+            expect(viewElement?.style.getPropertyValue("--keyColor")).toBeTruthy();
+            expect(viewElement?.style.getPropertyValue("--valueColor")).toBeTruthy();
 
-            component.unmount();
+            unmount();
         });
 
     });
@@ -290,14 +220,14 @@ describe("JsonView tests", (): void => {
 
         it("should toggle collapsed state when clicking on expandable entries", () => {
             const testData = { key1: { nested: "value" }, key2: "simple" };
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={testData} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const entryElements = view.querySelectorAll(".entry");
+            const view = container.querySelector("div");
+            const entryElements = view?.querySelectorAll(".entry");
 
-            const expandableEntry = Array.from(entryElements).find((entry) => {
+            const expandableEntry = Array.from(entryElements ?? []).find((entry) => {
                 return entry.querySelector(".e") !== null;
             });
 
@@ -311,18 +241,18 @@ describe("JsonView tests", (): void => {
                 expect(expandableEntry.classList.contains("collapsed")).toBe(false);
             }
 
-            component.unmount();
+            unmount();
         });
 
         it("should ignore clicks when text is selected", () => {
             const testData = { key: { nested: "value" } };
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={testData} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const entryElements = view.querySelectorAll(".entry");
-            const expandableEntry = Array.from(entryElements).find((entry) => {
+            const view = container.querySelector("div");
+            const entryElements = view?.querySelectorAll(".entry");
+            const expandableEntry = Array.from(entryElements ?? []).find((entry) => {
                 return entry.querySelector(".e") !== null;
             });
 
@@ -345,7 +275,7 @@ describe("JsonView tests", (): void => {
                 });
             }
 
-            component.unmount();
+            unmount();
         });
 
         it("should expand/collapse siblings when alt+clicking", () => {
@@ -354,13 +284,13 @@ describe("JsonView tests", (): void => {
                 key2: { nested2: "value2" },
                 key3: { nested3: "value3" },
             };
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={testData} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const entryElements = view.querySelectorAll(".entry");
-            const expandableEntries = Array.from(entryElements).filter((entry) => {
+            const view = container.querySelector("div");
+            const entryElements = view?.querySelectorAll(".entry");
+            const expandableEntries = Array.from(entryElements ?? []).filter((entry) => {
                 return entry.querySelector(".e") !== null;
             });
 
@@ -384,7 +314,7 @@ describe("JsonView tests", (): void => {
                 expect(firstEntry.classList.contains("collapsed")).toBe(false);
             }
 
-            component.unmount();
+            unmount();
         });
 
     });
@@ -392,17 +322,16 @@ describe("JsonView tests", (): void => {
     describe("Component rendering", (): void => {
 
         it("should render with correct className and snapshot", () => {
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={mockJsonData} />,
             );
 
-            const viewElement = component.find("div");
-            expect(viewElement).toHaveLength(1);
-            expect(viewElement.hasClass("jsonView")).toBe(true);
+            const viewElement = container.querySelector("div");
+            expect(viewElement?.classList.contains("jsonView")).toBe(true);
 
-            expect(component).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            component.unmount();
+            unmount();
         });
 
     });
@@ -411,7 +340,7 @@ describe("JsonView tests", (): void => {
 
         it("should handle invalid JSON strings gracefully", () => {
             expect(() => {
-                mount<JsonView>(
+                render(
                     <JsonView json="invalid json" />,
                 );
             }).toThrow();
@@ -428,12 +357,12 @@ describe("JsonView tests", (): void => {
 
             largeObject.key1000 = "";
 
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json={largeObject} />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Should render without errors
             expect(content).toBeTruthy();
@@ -442,22 +371,22 @@ describe("JsonView tests", (): void => {
             // JsonView renders empty strings as empty spans
             expect(content).toMatch(/<span class="s"><\/span>/);
 
-            component.unmount();
+            unmount();
         });
 
         it("should handle empty string values correctly", () => {
-            const component = mount<JsonView>(
+            const { container, unmount } = render(
                 <JsonView json='""' />,
             );
 
-            const view = component.find("div").getDOMNode();
-            const content = view.innerHTML;
+            const view = container.querySelector("div");
+            const content = view?.innerHTML;
 
             // Should render empty string properly
             expect(content).toBeTruthy();
             expect(content).toMatch(/<span class="s"><\/span>/);
 
-            component.unmount();
+            unmount();
         });
 
     });

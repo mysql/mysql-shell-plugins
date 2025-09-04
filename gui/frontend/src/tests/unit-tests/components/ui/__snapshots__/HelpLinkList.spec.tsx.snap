@@ -1,34 +1,24 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`HelpLinkList component tests Test component output (Snapshot) 1`] = `
+exports[`HelpLinkList component tests > Test component output (Snapshot) 1`] = `
 <div>
-  <HelpLinkList />
-  <HelpLinkList
-    helpUrlMap={
-      Map {
-        "foo" => "bar",
-        "baz" => "qux",
-      }
-    }
-  >
+  <div>
     <a
       href="bar"
-      key="foo"
       rel="noopener noreferrer"
-      tabIndex={0}
+      tabindex="0"
       target="_blank"
     >
       foo &gt;
     </a>
     <a
       href="qux"
-      key="baz"
       rel="noopener noreferrer"
-      tabIndex={0}
+      tabindex="0"
       target="_blank"
     >
       baz &gt;
     </a>
-  </HelpLinkList>
+  </div>
 </div>
 `;

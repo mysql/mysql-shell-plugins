@@ -1,77 +1,25 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`TagInput testing Render test 1`] = `
-<TagInput
-  orientation="column-reverse"
-  removable={false}
-  tags={
-    [
-      {
-        "caption": "tag 1",
-        "id": "1",
-      },
-      {
-        "caption": "tag 2",
-        "id": "2",
-      },
-    ]
-  }
->
-  <Container
-    className="msg tagInput"
-    onDragEnter={[Function]}
-    onDragLeave={[Function]}
-    onDragOver={[Function]}
-    onDragStart={[Function]}
-    onDrop={[Function]}
-    orientation="column-reverse"
-    wrap="wrap"
+exports[`TagInput testing > Render test 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar tagInput"
+    style="flex-direction: column-reverse; flex-wrap: wrap;"
   >
-    <div
-      className="msg container fixedScrollbar tagInput"
-      onDragEnter={[Function]}
-      onDragLeave={[Function]}
-      onDragOver={[Function]}
-      onDragStart={[Function]}
-      onDrop={[Function]}
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "column-reverse",
-          "flexWrap": "wrap",
-          "justifyContent": undefined,
-        }
-      }
+    <label
+      class="msg label tag"
+      data-tooltip="expand"
+      draggable="true"
     >
-      <Label
-        className="tag"
-        draggable={true}
-        key="1"
-      >
-        <label
-          className="msg label tag"
-          data-tooltip="expand"
-          draggable={true}
-          style={{}}
-        >
-          tag 1
-        </label>
-      </Label>
-      <Label
-        className="tag"
-        draggable={true}
-        key="2"
-      >
-        <label
-          className="msg label tag"
-          data-tooltip="expand"
-          draggable={true}
-          style={{}}
-        >
-          tag 2
-        </label>
-      </Label>
-    </div>
-  </Container>
-</TagInput>
+      tag 1
+    </label>
+    <label
+      class="msg label tag"
+      data-tooltip="expand"
+      draggable="true"
+    >
+      tag 2
+    </label>
+  </div>
+</div>
 `;

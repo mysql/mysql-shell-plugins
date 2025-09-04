@@ -127,6 +127,9 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     // Timers to serialize asynchronously incoming results.
     private resultTimers = new Map<string, IResultTimer>();
 
+    // A flag to tell the result timers to stop processing results.
+    private cancelled = false;
+
     public constructor(props: IShellTabProperties) {
         super(props);
 
@@ -138,6 +141,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     public override componentWillUnmount(): void {
+        this.cancelled = true;
+
         this.closeDbSession("");
     }
 
@@ -720,14 +725,14 @@ Execute \\help or \\? for help; \\quit to close the session.`;
      */
     private addTimedResult(context: ExecutionContext, data: IExecutionResult, resultId: string): void {
         const resultTimer = this.resultTimers.get(resultId);
-        if (!resultTimer) {
+        if (!resultTimer && !this.cancelled) {
             // Create the timer, if it doesn't exist.
             const newTimer: IResultTimer = {
                 timer: setIntervalAsync(async (id: string) => {
                     const resultTimer = this.resultTimers.get(id);
                     if (resultTimer) {
                         const pendingResult = resultTimer.results.shift();
-                        if (pendingResult) {
+                        if (pendingResult && !this.cancelled) {
                             await context.addResultData(pendingResult, { resultId: id });
                         } else {
                             // No results left. Stop the timer.
@@ -743,7 +748,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
             this.resultTimers.set(resultId, newTimer);
         } else {
-            resultTimer.results.push(data);
+            resultTimer?.results.push(data);
         }
     }
 

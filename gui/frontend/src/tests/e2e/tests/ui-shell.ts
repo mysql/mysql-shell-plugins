@@ -24,20 +24,22 @@
  */
 
 import { basename } from "path";
-import { Misc } from "../lib/misc.js";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
-import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
+import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
 import { until } from "selenium-webdriver";
-import * as locator from "./../lib/locators.js";
-import { E2EShellConsole } from "../lib/E2EShellConsole.js";
-import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
-import { E2ETabContainer } from "../lib/E2ETabContainer.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import * as constants from "../lib/constants.js";
+import { driver, loadDriver } from "../lib/driver.js";
+import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2EShellConsole } from "../lib/E2EShellConsole.js";
+import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import * as interfaces from "../lib/interfaces.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
+import * as locator from "./../lib/locators.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -66,11 +68,11 @@ describe("MYSQL SHELL CONSOLES", () => {
     let shellConsole: E2EShellConsole;
 
     beforeAll(async () => {
+
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -80,7 +82,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             await dbConnectionOverview.openNewShellConsole();
             shellConsole = await new E2EShellConsole().untilIsOpened(undefined);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_MYSQL_SHELL_CONSOLES");
+            await Misc.storeScreenShot(undefined, "beforeAll_MYSQL_SHELL_CONSOLES");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
 
@@ -101,10 +104,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
         let testFailed = false;
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -235,15 +238,16 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await driver.wait(until.elementTextContains(schemaEl, schema),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                await Misc.storeScreenShot(undefined, "beforeAll_Sessions");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 

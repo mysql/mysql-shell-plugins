@@ -75,12 +75,14 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
             const builder = new ServiceBuilder(globalThis.testConfig!.CHROMEDRIVER_PATH);
             driver = await new Builder()
                 .forBrowser(Browser.CHROME)
+                .setAlertBehavior("accept")
                 .setChromeOptions(options)
                 .setChromeService(builder)
                 .build();
         } else {
             driver = await new Builder()
                 .forBrowser(Browser.CHROME)
+                .setAlertBehavior("accept")
                 .setChromeOptions(options)
                 .build();
         }
@@ -108,4 +110,5 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
     }
 
     await driver.manage().setTimeouts({ implicit: 0, pageLoad: 15000 });
+    E2ELogger.success("Web driver was created successfully");
 };

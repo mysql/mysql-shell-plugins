@@ -23,8 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { vi } from "vitest";
+
 export class EventTargetMock implements EventTarget {
-    public getBoundingClientRect = jest.fn();
+    public getBoundingClientRect = vi.fn();
     public parentElement = {
         getElementsByTagName: (_name: string): unknown[] => {
             return [];
@@ -34,9 +36,9 @@ export class EventTargetMock implements EventTarget {
         },
     };
 
-    public addEventListener = jest.fn();
-    public dispatchEvent = jest.fn();
-    public removeEventListener = jest.fn();
+    public addEventListener = vi.fn();
+    public dispatchEvent = vi.fn();
+    public removeEventListener = vi.fn();
 }
 
 export class EventMock implements Event {
@@ -72,7 +74,7 @@ export class EventMock implements Event {
     }
 
     public composedPath(): EventTarget[] {
-        return []; 
+        return [];
     }
 
     public initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {
@@ -82,7 +84,7 @@ export class EventMock implements Event {
     }
 
     public preventDefault(): void {
-        this.defaultPrevented = true; 
+        this.defaultPrevented = true;
     }
 
     public stopImmediatePropagation(): void { /**/ }

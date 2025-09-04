@@ -44,7 +44,6 @@ export interface IStacktraceInfo {
     range: IRange;
 }
 
-
 export interface IRuntimeErrorResult {
     errorStatementStr: string;
     errorStatementIndex: number;
@@ -567,7 +566,7 @@ export class SQLExecutionContext extends ExecutionContext {
      * @param data runtime error after executing MLE sp
      */
     public addRuntimeErrorData(data: IRuntimeErrorResult): void {
-        const editorModel = this.presentation.backend?.getModel?.();
+        const editorModel = this.presentation.backend?.getModel();
 
         const details = this.statementDetails[data.errorStatementIndex];
         const decoration = [{

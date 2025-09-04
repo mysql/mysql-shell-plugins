@@ -23,9 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { expect } from "vitest";
+import { render, screen, waitFor } from "@testing-library/preact";
 
-import { screen, waitFor } from "@testing-library/preact";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import {
     IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
@@ -41,12 +41,9 @@ import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterfac
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 import { DialogHelper, getDbCredentials, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 
-export const testReqShowMrsDbObjectDialog = async (
-    dialogHelper: DialogHelper,
-    serviceID: string,
-    connectionId: number,
-): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+export const testReqShowMrsDbObjectDialog = async (dialogHelper: DialogHelper, serviceID: string,
+    connectionId: number): Promise<void> => {
+    const { unmount } = render(<DocumentModule />);
 
     const dbObject: IMrsDbObjectData = {
         comments: "Test db object",
@@ -88,7 +85,7 @@ export const testReqShowMrsDbObjectDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };
 
 export const testReqShowMrsServiceDialog = async (
@@ -96,7 +93,7 @@ export const testReqShowMrsServiceDialog = async (
     serviceID: string,
     connectionId: number,
 ): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+    const { unmount } = render(<DocumentModule />);
 
     const request: IMrsServiceData = {
         enabled: 1,
@@ -137,7 +134,7 @@ export const testReqShowMrsServiceDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };
 
 export const testReqShowMrsSchemaDialog = async (
@@ -145,7 +142,7 @@ export const testReqShowMrsSchemaDialog = async (
     serviceID: string,
     connectionId: number,
 ): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+    const { unmount } = render(<DocumentModule />);
 
     const schemaData: IMrsSchemaData = {
         comments: "This is test schema",
@@ -186,7 +183,7 @@ export const testReqShowMrsSchemaDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };
 
 export const testReqShowMrsContentSetDialog = async (
@@ -194,7 +191,7 @@ export const testReqShowMrsContentSetDialog = async (
     serviceID: string,
     connectionId: number,
 ): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+    const { unmount } = render(<DocumentModule />);
 
     const content: IMrsContentSetData = {
         comments: "This is test content set",
@@ -233,7 +230,7 @@ export const testReqShowMrsContentSetDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };
 
 export const testReqShowMrsAuthAppDialog = async (
@@ -242,7 +239,7 @@ export const testReqShowMrsAuthAppDialog = async (
     serviceID: string,
     connectionId: number,
 ): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+    const { unmount } = render(<DocumentModule />);
 
     const service: IMrsServiceData = {
         enabled: 1,
@@ -288,7 +285,7 @@ export const testReqShowMrsAuthAppDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };
 
 export const testReqShowMrsUserDialog = async (
@@ -296,7 +293,7 @@ export const testReqShowMrsUserDialog = async (
     authApp: IMrsAuthAppData,
     connectionId: number,
 ): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+    const { unmount } = render(<DocumentModule />);
 
     const user: IMrsUserData = {
         authAppId: authApp.appId,
@@ -328,7 +325,7 @@ export const testReqShowMrsUserDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };
 
 export const testReqShowMrsSdkExportDialog = async (
@@ -336,7 +333,7 @@ export const testReqShowMrsSdkExportDialog = async (
     serviceID: string,
     connectionId: number,
 ): Promise<void> => {
-    const component = mount<DocumentModule>(<DocumentModule />);
+    const { unmount } = render(<DocumentModule />);
 
     const credentials = getDbCredentials();
 
@@ -350,6 +347,7 @@ export const testReqShowMrsSdkExportDialog = async (
 
     const testConnection: IConnectionDetails = {
         id: -1,
+        index: -1,
         dbType: DBType.MySQL,
         caption: "ShellInterfaceDb Test Connection 1",
         description: "ShellInterfaceDb Test Connection",
@@ -381,5 +379,5 @@ export const testReqShowMrsSdkExportDialog = async (
     await expect(promise).resolves.toBe(true);
     expect(dialogHelper.getErrors()).toHaveLength(0);
 
-    component.unmount();
+    unmount();
 };

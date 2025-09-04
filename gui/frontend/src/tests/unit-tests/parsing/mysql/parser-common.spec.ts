@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,6 +24,7 @@
  */
 
 import { CharStream, CommonTokenStream, Token } from "antlr4ng";
+import { describe, expect, it } from "vitest";
 
 import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer.js";
 import { Scanner, tokenFromPosition } from "../../../../parsing/parser-common.js";

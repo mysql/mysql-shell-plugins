@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,37 +23,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { CalendarView } from "../../../../components/ui/Calendar/CalendarView.js";
 
 describe("CalendarView testing", () => {
 
-    it("Calendar view test properties", () => {
+    it("Calendar view snapshot", () => {
         const currentDate = new Date("2022-05-02");
-        const component = mount<CalendarView>(
+        const { container, unmount } = render(
             <CalendarView
                 date={currentDate}
-                onChangeMonth={jest.fn}
-                onSelect={jest.fn}
+                onChangeMonth={vi.fn()}
+                onSelect={vi.fn()}
             />,
         );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.date).toEqual(currentDate);
-    });
 
-    it("Render test", () => {
-        const currentDate = new Date("2022-05-02");
-        const component = mount(
-            <CalendarView
-                date={currentDate}
-                onChangeMonth={jest.fn}
-                onSelect={jest.fn}
-            />,
-        );
-        expect(component).toMatchSnapshot();
-        component.unmount();
-    });
+        expect(container).toMatchSnapshot();
 
+        unmount();
+    });
 });

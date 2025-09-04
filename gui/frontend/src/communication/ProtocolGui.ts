@@ -451,7 +451,7 @@ export interface IWebSessionData {
     singleServerMode: boolean;
     activeProfile: IShellProfile;
 }
- 
+
 export interface IAuthenticationData {
     activeProfile: IShellProfile;
 }
@@ -804,7 +804,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiSqlEditorStartSession]: { result: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiSqlEditorCloseSession]: {};
-    [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState};
+    [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState; };
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: {};
@@ -813,8 +813,8 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { result: boolean; };
     [ShellAPIGui.GuiSqlEditorSetAutoCommit]: {};
     [ShellAPIGui.GuiSqlEditorAddExecutionHistoryEntry]: { result: number; };
-    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry]: { result: ISqlEditorHistoryEntry; }
-    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries]: { result: ISqlEditorHistoryEntry[]; }
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry]: { result: ISqlEditorHistoryEntry; };
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries]: { result: ISqlEditorHistoryEntry[]; };
     [ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry]: {};
     [ShellAPIGui.GuiSqlEditorStartTransaction]: {};
     [ShellAPIGui.GuiSqlEditorCommitTransaction]: {};
@@ -887,3 +887,4 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiDbGetCatalogObjectNames,
     ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;
+

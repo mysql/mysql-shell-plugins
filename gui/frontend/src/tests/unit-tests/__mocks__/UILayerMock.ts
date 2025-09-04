@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { vi } from "vitest";
+
 import type { IUILayer } from "../../../app-logic/UILayer.js";
 import type { IStatusBarItem } from "../../../components/ui/Statusbar/StatusBarItem.js";
 
@@ -34,27 +36,27 @@ const statusBarItemMock: IStatusBarItem = {
     color: "mock",
     command: "mock",
     visible: true,
-    show: jest.fn(),
-    hide: jest.fn(),
-    dispose: jest.fn(),
+    show: vi.fn(),
+    hide: vi.fn(),
+    dispose: vi.fn(),
 };
 
 export const uiLayerMock: IUILayer = {
-    showInformationMessage: jest.fn().mockImplementation(() => {
+    showInformationMessage: vi.fn().mockImplementation(() => {
         return Promise.resolve(undefined);
     }),
-    showWarningMessage: jest.fn().mockImplementation(() => {
+    showWarningMessage: vi.fn().mockImplementation(() => {
         return Promise.resolve(undefined);
     }),
-    showErrorMessage: jest.fn().mockImplementation(() => {
+    showErrorMessage: vi.fn().mockImplementation(() => {
         return Promise.resolve(undefined);
     }),
-    createStatusBarItem: jest.fn().mockImplementation(() => {
+    createStatusBarItem: vi.fn().mockImplementation(() => {
         return statusBarItemMock;
     }),
-    setStatusBarMessage: jest.fn().mockImplementation(() => { /**/ }),
-    confirm: jest.fn().mockImplementation(() => { /**/ }),
-    requestPassword: jest.fn().mockImplementation(() => {
+    setStatusBarMessage: vi.fn().mockImplementation(() => { /**/ }),
+    confirm: vi.fn().mockImplementation(() => { /**/ }),
+    requestPassword: vi.fn().mockImplementation(() => {
         return Promise.resolve(undefined);
     }),
 };

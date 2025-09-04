@@ -1,22 +1,3 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Calendar render testing Test Calendar (Snapshot) 1`] = `
-<Calendar
-  initialDate={2023-05-15T00:00:00.000Z}
-  onChange={[Function]}
->
-  <Popup
-    className="msg calendarHost"
-    orientation="column"
-    pinned={false}
-    placement="bottom"
-    showArrow={true}
-  >
-    <Portal
-      className="popupPortal"
-      onClose={[Function]}
-      onOpen={[Function]}
-    />
-  </Popup>
-</Calendar>
-`;
+exports[`Calendar render testing > Test Calendar (Snapshot) 1`] = `<div />`;

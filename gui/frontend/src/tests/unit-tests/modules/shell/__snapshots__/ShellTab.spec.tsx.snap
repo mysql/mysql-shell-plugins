@@ -1,55 +1,84 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Shell tab tests Connection tests Test ShellModule instantiation 1`] = `
-<Container
-  id="shellEditorHost"
-  mainAlignment="stretch"
-  orientation="column"
->
-  <DocumentToolbar
-    documentState={[]}
-    heatWaveEnabled={false}
-    language="msg"
-    toolbarItems={
-      {
-        "auxiliary": [],
-        "editor": [],
-        "execution": [],
-        "navigation": [],
-      }
-    }
-  />
-  <ShellPrompt
-    getSchemas={[Function]}
-    id="shellPrompt"
-    onSelectSchema={[Function]}
-    values={
-      {
-        "backend": {
-          "execute": [Function],
-        },
-        "dataModelEntry": {},
-        "serverEdition": "foo",
-        "serverVersion": 0,
-        "sqlMode": "bar",
-        "state": {
-          "model": {
-            "getVersionId": [Function],
-          },
-        },
-      }
-    }
-  />
-  <ShellConsole
-    editorState={
-      {
-        "model": {
-          "getVersionId": [Function],
-        },
-      }
-    }
-    id="shellEditor"
-    onScriptExecution={[Function]}
-  />
-</Container>
+exports[`Shell tab tests > Connection tests > Test ShellModule instantiation 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar"
+    id="shellEditorHost"
+    style="flex-direction: column; justify-content: stretch;"
+  >
+    <div
+      class="msg container fixedScrollbar toolbar verticalCenterContent"
+      id="documentToolbar"
+      style="flex-direction: row; align-items: center;"
+    >
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Execute everything in the current block and create a new block"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-59)'%3e%3cg%20id='Execute'%20transform='matrix(0.946417,0,0,0.947368,-288.894,-1847.05)'%3e%3cpath%20d='M676,2013L670,2023L675,2023L670,2032L684,2020L678,2019L685,2013L676,2013Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Find"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDI0IDIwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zOnNlcmlmPSJodHRwOi8vd3d3LnNlcmlmLmNvbS8iIHN0eWxlPSJmaWxsLXJ1bGU6ZXZlbm9kZDtjbGlwLXJ1bGU6ZXZlbm9kZDtzdHJva2UtbGluZWpvaW46cm91bmQ7c3Ryb2tlLW1pdGVybGltaXQ6MjsiPgogICAgPGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwtNzUyLC01OSkiPgogICAgICAgIDxnIGlkPSJTZWFyY2giIHRyYW5zZm9ybT0ibWF0cml4KDAuNjA5MDY0LDAsMCwwLjYwOTA2NCwzMTAuMTU5LC05MC40Mjg4KSI+CiAgICAgICAgICAgIDxnPgogICAgICAgICAgICAgICAgPGcgaWQ9IlNlYXJjaC1jb3B5LTQiIHNlcmlmOmlkPSJTZWFyY2ggY29weSA0IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjcwMzc4MSwwLDAsMC43MDM3OCwyMjIuNjEyLDc4Ljc1MjEpIj4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNzQ4LjEzNiwyNjUuNzA0TDc1MS4zNiwyNjIuNDhMNzU0Ljg4OCwyNjYuMDA4TDc1MS42NjQsMjY5LjIzMkw3NDguMTM2LDI2NS43MDRaIiBzdHlsZT0iZmlsbDpyZ2IoMzQsMzQsMzYpOyIvPgogICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgPHBhdGggaWQ9IlNlYXJjaC1jb3B5LTMiIHNlcmlmOmlkPSJTZWFyY2ggY29weSAzIiBkPSJNNzUwLjUyNCwyNjguMTQ5TDc1My43NDcsMjY0LjkyNkw3NjAuOTYyLDI3MS45NTdMNzU3LjczOCwyNzUuMTgxTDc1MC41MjQsMjY4LjE0OVoiIHN0eWxlPSJmaWxsOnJnYigzNCwzNCwzNik7Ii8+CiAgICAgICAgICAgICAgICA8cGF0aCBpZD0iU2VhcmNoLWNvcHkiIHNlcmlmOmlkPSJTZWFyY2ggY29weSIgZD0iTTc0Mi4wNTUsMjQ2LjE0MkM3NDguMzUsMjQ2LjE0MiA3NTMuNDUyLDI1MS4yNDQgNzUzLjQ1MiwyNTcuNTM5Qzc1My40NTIsMjYzLjgzMyA3NDguMzUsMjY4LjkzNiA3NDIuMDU1LDI2OC45MzZDNzM1Ljc2MSwyNjguOTM2IDczMC42NTgsMjYzLjgzMyA3MzAuNjU4LDI1Ny41MzlDNzMwLjY1OCwyNTEuMjQ0IDczNS43NjEsMjQ2LjE0MiA3NDIuMDU1LDI0Ni4xNDJaTTc0Mi4wNTksMjQ4Ljg0MkM3NDYuODY0LDI0OC44NDIgNzUwLjc2LDI1Mi43MzcgNzUwLjc2LDI1Ny41NDNDNzUwLjc2LDI2Mi4zNDggNzQ2Ljg2NCwyNjYuMjQzIDc0Mi4wNTksMjY2LjI0M0M3MzcuMjU0LDI2Ni4yNDMgNzMzLjM1OCwyNjIuMzQ4IDczMy4zNTgsMjU3LjU0M0M3MzMuMzU4LDI1Mi43MzcgNzM3LjI1NCwyNDguODQyIDc0Mi4wNTksMjQ4Ljg0MloiIHN0eWxlPSJmaWxsOnJnYigzNCwzNCwzNik7Ii8+CiAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPGcgaWQ9IkEiIHRyYW5zZm9ybT0ibWF0cml4KDIsMCwwLDIsNzQ3LjM2NiwyNjIuODcyKSI+CiAgICAgICAgICAgICAgICA8dGV4dCB4PSItNS41MnB4IiB5PSIwcHgiIHN0eWxlPSJmb250LWZhbWlseTonTHVjaWRhR3JhbmRlJywgJ0x1Y2lkYSBHcmFuZGUnLCBzYW5zLXNlcmlmO2ZvbnQtd2VpZ2h0OjUwMDtmb250LXNpemU6OHB4O2ZpbGw6cmdiKDM0LDM0LDM2KTsiPkE8L3RleHQ+CiAgICAgICAgICAgIDwvZz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPgo=");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Show hidden characters"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2046%2038'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-1544,-65)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20transform='matrix(0.998995,0,0,1,-664.523,-1682)'%3e%3cg%20id='Expand'%3e%3c/g%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20transform='matrix(1,0,0,1,292.938,-176.103)'%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3cpath%20id='Special-Chars1'%20serif:id='Special%20Chars'%20d='M1273.26,272.936L1273.26,249.061L1276.99,249.061L1276.99,272.936L1279.14,272.936L1279.14,247.095L1271.45,247.095C1268.92,247.095%201267.59,247.534%201266.71,248.411C1265.81,249.299%201264.99,251.333%201264.99,253.013C1264.99,256.48%201267.01,257.917%201271.04,258.826L1271.04,272.936L1273.26,272.936Z'%20style='fill:rgb(34,34,36);fill-rule:nonzero;'/%3e%3c/g%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20transform='matrix(0.804283,0.804282,-0.804283,0.804282,723.382,-1009.13)'%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3cg%20id='Broom'%3e%3cg%20id='Brush'%3e%3c/g%3e%3cg%20id='Handle'%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3cg%20transform='matrix(0.804283,0.804282,-0.804283,0.804282,653.382,-1009.13)'%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3cg%20id='Broom1'%20serif:id='Broom'%3e%3cg%20id='Brush1'%20serif:id='Brush'%3e%3c/g%3e%3cg%20id='Handle1'%20serif:id='Handle'%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%20transform='matrix(1,0,0,1,524,-2050)'%3e%3cg%20id='Auto-Commit1'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%20transform='matrix(1,0,0,1,260,-2050)'%3e%3cg%20id='Stop-on-Error1'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3c/g%3e%3cg%20transform='matrix(1,0,0,1,83,-174)'%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3cg%20id='Search1'%20serif:id='Search'%3e%3c/g%3e%3c/g%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Soft wrap lines"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-818,-59)'%3e%3cg%20transform='matrix(0.5,0,0,0.5,167.649,-61.5833)'%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3cpath%20id='Word-Wrap1'%20serif:id='Word%20Wrap'%20d='M1319.98,265.111L1326.68,261.241L1326.68,268.98L1319.98,265.111ZM1326.7,266.167L1326.7,264.167L1331.7,264.167L1331.7,256.167L1328.7,256.167L1328.7,254.167L1333.7,254.167L1333.7,266.167L1326.7,266.167ZM1314.7,253.157L1326.7,253.157L1326.7,257.176L1314.7,257.176L1314.7,253.157Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="expander"
+      />
+    </div>
+    <div
+      class="msg container fixedScrollbar breadcrumb shellPrompt"
+      style="flex-direction: row;"
+    />
+    <div
+      class="msg editorHost"
+      data-keybinding-context="1"
+      data-mode-id="plaintext"
+    >
+      "<filtered>"
+    </div>
+  </div>
+</div>
 `;

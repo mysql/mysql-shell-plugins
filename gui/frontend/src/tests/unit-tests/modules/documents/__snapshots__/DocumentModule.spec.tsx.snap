@@ -1,122 +1,344 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Document module tests Test DocumentModule instantiation 1`] = `
-<l
-  value={
-    {
-      "connectionsDataModel": ConnectionDataModel {
-        "connectionList": [Function],
-        "groupList": [Function],
-        "notifySubscribers": [Function],
-        "refreshMrsRoutersTimer": undefined,
-        "rootGroup": {
-          "caption": "",
-          "entries": [],
-          "folderPath": {
-            "caption": "/",
-            "id": 1,
-            "index": 0,
-          },
-          "id": "",
-          "refresh": [Function],
-          "state": {
-            "expanded": false,
-            "expandedOnce": false,
-            "initialized": true,
-            "isLeaf": false,
-          },
-          "type": 0,
-        },
-        "routerRefreshTime": 10000,
-        "singleServerMode": false,
-        "subscribers": Set {},
-      },
-      "documentDataModel": OpenDocumentDataModel {
-        "singleServerMode": false,
-        "updateSessions": [Function],
-      },
-      "ociDataModel": OciDataModel {
-        "notifySubscribers": [Function],
-      },
-      "shellTaskDataModel": ShellTaskDataModel {
-        "entries": [],
-      },
-    }
-  }
->
-  <SplitContainer
+exports[`Document module tests > Test DocumentModule instantiation 1`] = `
+<div>
+  <div
+    class="msg splitContainer resizing"
     id="mainSplitHost"
-    innerRef={
-      {
-        "current": null,
-      }
-    }
-    orientation="row"
-    panes={
-      [
-        {
-          "collapsed": false,
-          "content": <DocumentSideBar
-            markedSchema=""
-            onConnectionTreeCommand={[Function]}
-            onDocumentTreeCommand={[Function]}
-            onOciTreeCommand={[Function]}
-            onSaveState={[Function]}
-            onSelectConnectionItem={[Function]}
-            onSelectDocumentItem={[Function]}
-            overviewId=""
-            savedSectionState={Map {}}
-            selectedOpenDocument=""
-          />,
-          "initialSize": 250,
-          "minSize": 0,
-          "resizable": true,
-          "snap": true,
-        },
-        {
-          "content": <k>
-            <Tabview
-              canCloseTab={[Function]}
-              canReorderTabs={true}
-              className="dbModuleTabview"
-              closeTabs={[Function]}
-              hideSingleTab={false}
-              onSelectTab={[Function]}
-              pages={
-                [
-                  {
-                    "caption": "Open Connection",
-                    "content": <k>
-                      <ProgressIndicator
-                        backgroundOpacity={0.95}
-                        id="loadingProgressIndicator"
-                        linear={false}
+  >
+    <div
+      class="sashContainer"
+    >
+      <div
+        class="msg divider vertical sash"
+        id="pane0Sash"
+        style="--thickness: 4px; left: 247px;"
+      />
+    </div>
+    <div
+      class="splitContentContainer"
+    >
+      <div
+        class="msg container fixedScrollbar splitHost"
+        id="pane0Host"
+        style="flex-direction: row; justify-content: stretch; width: 250px; left: 0px;"
+      >
+        <div
+          class="msg container fixedScrollbar accordion"
+          id="documentSideBar"
+          style="flex-direction: column; justify-content: flex-start;"
+        >
+          <div
+            class="msg container fixedScrollbar actions"
+            style="flex-direction: row; justify-content: flex-end; align-items: center;"
+          >
+            <label
+              class="msg label title"
+              data-tooltip="expand"
+            >
+              MYSQL SHELL WORKBENCH
+            </label>
+            <div
+              class="msg container menuItem submenu"
+              style="flex-direction: row;"
+            >
+              <div
+                class="msg icon codicon codicon-kebab-horizontal"
+              />
+              <label
+                class="msg label"
+                data-tooltip="expand"
+              >
+                
+              </label>
+            </div>
+          </div>
+          <div
+            class="msg splitContainer accordionContent resizing"
+          >
+            <div
+              class="sashContainer"
+            >
+              <div
+                class="msg divider horizontal sash"
+                id="documentSectionSash"
+                style="--thickness: 4px; top: 197px;"
+              />
+              <div
+                class="msg divider horizontal sash"
+                id="connectionSectionSash"
+                style="--thickness: 4px; top: 297px;"
+              />
+            </div>
+            <div
+              class="splitContentContainer"
+            >
+              <div
+                class="msg container fixedScrollbar splitHost"
+                id="documentSectionHost"
+                style="flex-direction: column; justify-content: stretch; height: 200px; top: 0px;"
+              >
+                <div
+                  class="msg container fixedScrollbar section expanded"
+                  id="documentSection"
+                  style="flex-direction: column; align-items: stretch;"
+                >
+                  <div
+                    class="msg container fixedScrollbar title"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <div
+                      class="msg icon codicon codicon-chevron-down"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      OPEN EDITORS
+                    </label>
+                    <div
+                      class="msg container fixedScrollbar actions"
+                      style="flex-direction: row; justify-content: flex-end; align-items: center;"
+                    >
+                      <div
+                        class="msg icon accordionAction codicon codicon-new-file"
+                        data-tooltip="Add new console"
+                        id="addConsole"
+                        tabindex="0"
                       />
-                      <Label
-                        caption=""
-                        id="progressMessageId"
+                    </div>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                    tabindex="0"
+                  >
+                    <div
+                      class="msg treeGrid"
+                      selectedrows="<filtered>"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar splitHost stretch"
+                id="connectionSectionHost"
+                style="flex-direction: column; justify-content: stretch; height: 100px; top: 200px;"
+              >
+                <div
+                  class="msg container fixedScrollbar section expanded"
+                  id="connectionSection"
+                  style="flex-direction: column; align-items: stretch;"
+                >
+                  <div
+                    class="msg container fixedScrollbar title"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <div
+                      class="msg icon codicon codicon-chevron-down"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      DATABASE CONNECTIONS
+                    </label>
+                    <div
+                      class="msg container fixedScrollbar actions"
+                      style="flex-direction: row; justify-content: flex-end; align-items: center;"
+                    >
+                      <div
+                        class="msg icon accordionAction codicon codicon-add"
+                        data-tooltip="Create New DB Connection"
+                        id="msg.addConnection"
+                        tabindex="0"
                       />
-                    </k>,
-                    "icon": "overviewPage.svg",
-                    "id": "progress",
-                  },
-                ]
-              }
-              selectedId="progress"
-              showTabs={true}
-              stretchTabs={false}
-              tabPosition="top"
-            />
-            <MrsHub />
-            <CreateLibraryDialog />
-          </k>,
-          "minSize": 500,
-          "resizable": true,
-          "stretch": true,
-        },
-      ]
-    }
-    splitterSize={4}
-  />
-</l>
+                      <div
+                        class="msg icon accordionAction codicon codicon-refresh"
+                        data-tooltip="Refresh the Connection List"
+                        id="msg.refreshConnections"
+                        tabindex="0"
+                      />
+                      <div
+                        class="msg icon accordionAction codicon codicon-collapse-all"
+                        data-tooltip="Collapse All"
+                        id="msg.collapseAll"
+                        tabindex="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                    tabindex="0"
+                  >
+                    <div
+                      class="msg container fixedScrollbar accordionItem"
+                      style="flex-direction: row; align-items: center;"
+                      tabindex="0"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                      >
+                        &lt;no connections&gt;
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar splitHost stretch"
+                id="ociSectionHost"
+                style="flex-direction: column; justify-content: stretch; height: 100px; top: 300px;"
+              >
+                <div
+                  class="msg container fixedScrollbar section expanded"
+                  id="ociSection"
+                  style="flex-direction: column; align-items: stretch;"
+                >
+                  <div
+                    class="msg container fixedScrollbar title"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <div
+                      class="msg icon codicon codicon-chevron-down"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      ORACLE CLOUD INFRASTRUCTURE
+                    </label>
+                    <div
+                      class="msg container fixedScrollbar actions"
+                      style="flex-direction: row; justify-content: flex-end; align-items: center;"
+                    >
+                      <div
+                        class="msg icon accordionAction codicon codicon-gear"
+                        data-tooltip="Configure the OCI Profile list"
+                        id="msg.mds.configureOciProfiles"
+                        tabindex="0"
+                      />
+                      <div
+                        class="msg icon accordionAction codicon codicon-refresh"
+                        data-tooltip="Reload the OCI Profile list"
+                        id="msg.mds.refreshOciProfiles"
+                        tabindex="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                    tabindex="0"
+                  >
+                    <div
+                      class="msg container fixedScrollbar accordionItem"
+                      style="flex-direction: row; align-items: center;"
+                      tabindex="0"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                      >
+                        &lt;no profiles found&gt;
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="msg container fixedScrollbar splitHost stretch"
+        id="pane1Host"
+        style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
+      >
+        <div
+          class="msg container fixedScrollbar tabview top dbModuleTabview"
+          style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+        >
+          <div
+            class="msg container tabAreaContainer"
+            style="flex-direction: row;"
+          >
+            <div
+              class="scrollable"
+            >
+              <div
+                class="msg container tabArea"
+                style="flex-direction: row;"
+              >
+                <div
+                  class="msg button tabItem selected"
+                  draggable="true"
+                  id="progress"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='overviewPage'%20transform='matrix(1,0,0,1,1.46549e-14,1)'%3e%3cg%20transform='matrix(1.14286,0,0,1.14286,-1.14286,-2.28572)'%3e%3cpath%20d='M14.5,2L1.5,2L1,2.5L1,13.762L1.5,14.262L14.5,14.262L15,13.762L15,2.5L14.5,2ZM14.125,13.375L1.875,13.375L1.875,2.875L14.125,2.875L14.125,13.375Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3cg%20id='symbol-structure'%20transform='matrix(1.13557,0,0,1.13557,-1.11994,-3.23989)'%3e%3cg%20transform='matrix(1,0,0,1,0,3.52247)'%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3cg%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,9.31536,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    Open Connection
+                  </label>
+                </div>
+              </div>
+              <div
+                class="scrollbar"
+              >
+                <div
+                  class="slider"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar tabContent"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+            >
+              <svg
+                class="circleBackground animated"
+              >
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
+            </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            >
+              
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 `;

@@ -13,9 +13,6 @@
                 "close": true,
                 "reveal": "never",
             },
-            "runOptions": {
-                "runOn": "folderOpen",
-            }
         },
         {
             "label": "tsc: watch",
@@ -26,9 +23,6 @@
                 "$tsc"
             ],
             "group": "build",
-            "runOptions": {
-                "runOn": "folderOpen",
-            }
         },
         {
             "label": "Setup and run e2e FE tests",

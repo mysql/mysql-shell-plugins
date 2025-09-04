@@ -1,62 +1,31 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`GraphHost Tests Base Rendering 1`] = `
-<GraphHost
-  options={{}}
->
+exports[`GraphHost Tests > Base Rendering 1`] = `
+<div>
   <svg
-    className="msg graphHost"
+    class="msg graphHost"
     preserveAspectRatio="xMidYMid"
     viewBox="0 0 1200 900"
   />
-</GraphHost>
+</div>
 `;
 
-exports[`GraphHost Tests Render Combinations 1`] = `
-<GraphHost
-  options={
-    {
-      "colors": [
-        "red",
-        "green",
-        "blue",
-      ],
-      "series": [
-        {
-          "colors": [
-            "red",
-            "green",
-            "blue",
-          ],
-          "id": "graph1",
-          "type": "bar",
-        },
-        {
-          "colors": [
-            "red",
-            "green",
-            "blue",
-          ],
-          "id": "graph2",
-          "type": "line",
-        },
-        {
-          "colors": [
-            "red",
-            "green",
-            "blue",
-          ],
-          "id": "graph3",
-          "type": "pie",
-        },
-      ],
-    }
-  }
->
+exports[`GraphHost Tests > Render Combinations 1`] = `
+<div>
   <svg
-    className="msg graphHost"
+    class="msg graphHost"
     preserveAspectRatio="xMidYMid"
     viewBox="0 0 1200 900"
   />
-</GraphHost>
+</div>
+`;
+
+exports[`GraphHost Tests > Render Combinations 2`] = `
+<div>
+  <svg
+    class="msg graphHost"
+    preserveAspectRatio="xMidYMid"
+    viewBox="0 0 1200 900"
+  />
+</div>
 `;

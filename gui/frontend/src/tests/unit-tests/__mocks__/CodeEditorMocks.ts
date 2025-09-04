@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,6 +24,7 @@
  */
 
 import { SymbolTable } from "antlr4-c3";
+import { vi } from "vitest";
 
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco, Position, Uri } from "../../../components/ui/CodeEditor/index.js";
@@ -33,50 +34,50 @@ const ec = new ExecutionContexts();
 export const mockModel: ICodeEditorModel = {
     executionContexts: ec,
     symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard,
-    uri: new Uri(), id: "", getOptions: jest.fn(), getVersionId: jest.fn(), getAlternativeVersionId: jest.fn(),
-    setValue: jest.fn(), getValue: jest.fn(), getValueLength: jest.fn(), getValueInRange: jest.fn(),
-    getValueLengthInRange: jest.fn(), getCharacterCountInRange: jest.fn(), getLineCount: jest.fn(),
-    getLineContent: jest.fn(), getLineLength: jest.fn(), getLinesContent: jest.fn(), getEOL: jest.fn(),
-    getEndOfLineSequence: jest.fn(), getLineMinColumn: jest.fn(), getLineMaxColumn: jest.fn(),
-    getLineFirstNonWhitespaceColumn: jest.fn(), getLineLastNonWhitespaceColumn: jest.fn(),
-    validatePosition: jest.fn(), modifyPosition: jest.fn(), validateRange: jest.fn(), getOffsetAt: jest.fn(),
-    getPositionAt: jest.fn(), getFullModelRange: jest.fn(), isDisposed: jest.fn(), findMatches: jest.fn(),
-    findNextMatch: jest.fn(), findPreviousMatch: jest.fn(), getLanguageId: jest.fn(),
-    getWordAtPosition: jest.fn(), getWordUntilPosition: jest.fn(), deltaDecorations: jest.fn(),
-    getDecorationOptions: jest.fn(), getDecorationRange: jest.fn(), getLineDecorations: jest.fn(),
-    getLinesDecorations: jest.fn(), getDecorationsInRange: jest.fn(), getAllDecorations: jest.fn(),
-    getOverviewRulerDecorations: jest.fn(), getInjectedTextDecorations: jest.fn(),
-    normalizeIndentation: jest.fn(), updateOptions: jest.fn(), detectIndentation: jest.fn(),
-    pushStackElement: jest.fn(), popStackElement: jest.fn(), pushEditOperations: jest.fn(),
-    pushEOL: jest.fn(), applyEdits: jest.fn(), setEOL: jest.fn(), onDidChangeContent: jest.fn(),
-    onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(), onDidChangeLanguage: jest.fn(),
-    onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(), onWillDispose: jest.fn(),
-    dispose: jest.fn(), isAttachedToEditor: jest.fn(), getAllMarginDecorations: jest.fn(),
-    createSnapshot: jest.fn(),
+    uri: new Uri(), id: "", getOptions: vi.fn(), getVersionId: vi.fn(), getAlternativeVersionId: vi.fn(),
+    setValue: vi.fn(), getValue: vi.fn(), getValueLength: vi.fn(), getValueInRange: vi.fn(),
+    getValueLengthInRange: vi.fn(), getCharacterCountInRange: vi.fn(), getLineCount: vi.fn(),
+    getLineContent: vi.fn(), getLineLength: vi.fn(), getLinesContent: vi.fn(), getEOL: vi.fn(),
+    getEndOfLineSequence: vi.fn(), getLineMinColumn: vi.fn(), getLineMaxColumn: vi.fn(),
+    getLineFirstNonWhitespaceColumn: vi.fn(), getLineLastNonWhitespaceColumn: vi.fn(),
+    validatePosition: vi.fn(), modifyPosition: vi.fn(), validateRange: vi.fn(), getOffsetAt: vi.fn(),
+    getPositionAt: vi.fn(), getFullModelRange: vi.fn(), isDisposed: vi.fn(), findMatches: vi.fn(),
+    findNextMatch: vi.fn(), findPreviousMatch: vi.fn(), getLanguageId: vi.fn(),
+    getWordAtPosition: vi.fn(), getWordUntilPosition: vi.fn(), deltaDecorations: vi.fn(),
+    getDecorationOptions: vi.fn(), getDecorationRange: vi.fn(), getLineDecorations: vi.fn(),
+    getLinesDecorations: vi.fn(), getDecorationsInRange: vi.fn(), getAllDecorations: vi.fn(),
+    getOverviewRulerDecorations: vi.fn(), getInjectedTextDecorations: vi.fn(),
+    normalizeIndentation: vi.fn(), updateOptions: vi.fn(), detectIndentation: vi.fn(),
+    pushStackElement: vi.fn(), popStackElement: vi.fn(), pushEditOperations: vi.fn(),
+    pushEOL: vi.fn(), applyEdits: vi.fn(), setEOL: vi.fn(), onDidChangeContent: vi.fn(),
+    onDidChangeDecorations: vi.fn(), onDidChangeOptions: vi.fn(), onDidChangeLanguage: vi.fn(),
+    onDidChangeLanguageConfiguration: vi.fn(), onDidChangeAttached: vi.fn(), onWillDispose: vi.fn(),
+    dispose: vi.fn(), isAttachedToEditor: vi.fn(), getAllMarginDecorations: vi.fn(),
+    createSnapshot: vi.fn(),
 };
 export const position: Position = {
-    lineNumber: 0, column: 0, with: jest.fn(), delta: jest.fn(), equals: jest.fn(),
-    isBefore: jest.fn(), isBeforeOrEqual: jest.fn(), clone: jest.fn(), toJSON: jest.fn(),
+    lineNumber: 1, column: 0, with: vi.fn(), delta: vi.fn(), equals: vi.fn(),
+    isBefore: vi.fn(), isBeforeOrEqual: vi.fn(), clone: vi.fn(), toJSON: vi.fn(),
 };
 
 export const mockTextModel: Monaco.ITextModel = {
-    uri: new Uri(), id: "1", getOptions: jest.fn(), getVersionId: jest.fn(), getAlternativeVersionId: jest.fn(),
-    setValue: jest.fn(), getValue: jest.fn(), getValueLength: jest.fn(), getValueInRange: jest.fn(),
-    getValueLengthInRange: jest.fn(), getCharacterCountInRange: jest.fn(), getLineCount: jest.fn(),
-    getLineContent: jest.fn(), getLineLength: jest.fn(), getLinesContent: jest.fn(), getEOL: jest.fn(),
-    getEndOfLineSequence: jest.fn(), getLineMinColumn: jest.fn(), getLineMaxColumn: jest.fn(),
-    getLineFirstNonWhitespaceColumn: jest.fn(), getLineLastNonWhitespaceColumn: jest.fn(),
-    validatePosition: jest.fn(), modifyPosition: jest.fn(), validateRange: jest.fn(), getOffsetAt: jest.fn(),
-    getPositionAt: jest.fn(), getFullModelRange: jest.fn(), isDisposed: jest.fn(), findMatches: jest.fn(),
-    findNextMatch: jest.fn(), findPreviousMatch: jest.fn(), getLanguageId: jest.fn(), getWordAtPosition: jest.fn(),
-    getWordUntilPosition: jest.fn(), deltaDecorations: jest.fn(), getDecorationOptions: jest.fn(),
-    getDecorationRange: jest.fn(), getLineDecorations: jest.fn(), getLinesDecorations: jest.fn(),
-    getDecorationsInRange: jest.fn(), getAllDecorations: jest.fn(), getOverviewRulerDecorations: jest.fn(),
-    getInjectedTextDecorations: jest.fn(), normalizeIndentation: jest.fn(), updateOptions: jest.fn(),
-    detectIndentation: jest.fn(), pushStackElement: jest.fn(), popStackElement: jest.fn(),
-    pushEditOperations: jest.fn(), pushEOL: jest.fn(), applyEdits: jest.fn(), setEOL: jest.fn(),
-    onDidChangeContent: jest.fn(), onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(),
-    onDidChangeLanguage: jest.fn(), onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(),
-    onWillDispose: jest.fn(), dispose: jest.fn(), isAttachedToEditor: jest.fn(), getAllMarginDecorations: jest.fn(),
-    createSnapshot: jest.fn(),
+    uri: new Uri(), id: "1", getOptions: vi.fn(), getVersionId: vi.fn(), getAlternativeVersionId: vi.fn(),
+    setValue: vi.fn(), getValue: vi.fn(), getValueLength: vi.fn(), getValueInRange: vi.fn(),
+    getValueLengthInRange: vi.fn(), getCharacterCountInRange: vi.fn(), getLineCount: vi.fn(),
+    getLineContent: vi.fn(), getLineLength: vi.fn(), getLinesContent: vi.fn(), getEOL: vi.fn(),
+    getEndOfLineSequence: vi.fn(), getLineMinColumn: vi.fn(), getLineMaxColumn: vi.fn(),
+    getLineFirstNonWhitespaceColumn: vi.fn(), getLineLastNonWhitespaceColumn: vi.fn(),
+    validatePosition: vi.fn(), modifyPosition: vi.fn(), validateRange: vi.fn(), getOffsetAt: vi.fn(),
+    getPositionAt: vi.fn(), getFullModelRange: vi.fn(), isDisposed: vi.fn(), findMatches: vi.fn(),
+    findNextMatch: vi.fn(), findPreviousMatch: vi.fn(), getLanguageId: vi.fn(), getWordAtPosition: vi.fn(),
+    getWordUntilPosition: vi.fn(), deltaDecorations: vi.fn(), getDecorationOptions: vi.fn(),
+    getDecorationRange: vi.fn(), getLineDecorations: vi.fn(), getLinesDecorations: vi.fn(),
+    getDecorationsInRange: vi.fn(), getAllDecorations: vi.fn(), getOverviewRulerDecorations: vi.fn(),
+    getInjectedTextDecorations: vi.fn(), normalizeIndentation: vi.fn(), updateOptions: vi.fn(),
+    detectIndentation: vi.fn(), pushStackElement: vi.fn(), popStackElement: vi.fn(),
+    pushEditOperations: vi.fn(), pushEOL: vi.fn(), applyEdits: vi.fn(), setEOL: vi.fn(),
+    onDidChangeContent: vi.fn(), onDidChangeDecorations: vi.fn(), onDidChangeOptions: vi.fn(),
+    onDidChangeLanguage: vi.fn(), onDidChangeLanguageConfiguration: vi.fn(), onDidChangeAttached: vi.fn(),
+    onWillDispose: vi.fn(), dispose: vi.fn(), isAttachedToEditor: vi.fn(), getAllMarginDecorations: vi.fn(),
+    createSnapshot: vi.fn(),
 };

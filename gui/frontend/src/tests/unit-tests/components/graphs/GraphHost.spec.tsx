@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,25 +23,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it } from "vitest";
 
 import { GraphHost } from "../../../../components/graphs/GraphHost.js";
+import { render } from "@testing-library/preact";
 
 describe("GraphHost Tests", () => {
     it("Base Rendering", () => {
-        const component = mount<GraphHost>(
+        const { container, unmount } = render(
             <GraphHost
                 options={{}}
             />,
         );
 
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
     it("Render Combinations", () => {
         // Only a global color palette.
-        const component = mount<GraphHost>(
+        const { container, unmount, rerender } = render(
             <GraphHost
                 options={{
                     colors: ["red", "green", "blue"],
@@ -63,33 +64,38 @@ describe("GraphHost Tests", () => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
         // Update with local color palettes.
-        component.setProps({
-            options: {
-                colors: ["red", "green", "blue"],
-                series: [
-                    {
-                        id: "graph4",
-                        type: "bar",
-                        colors: ["yellow", "pink", "black"],
-                    },
-                    {
-                        id: "graph5",
-                        type: "line",
-                        colors: ["rose", "#123", "rgba(1, 1, 1, 1)"],
-                    },
-                    {
-                        id: "graph6",
-                        type: "pie",
-                        colors: ["#FFFFFF", "#FFFFFF", "#FFFFFF"],
-                    },
-                ],
-            },
-        });
+        rerender(
+            <GraphHost
+                options={{
+                    colors: ["red", "green", "blue"],
+                    series: [
+                        {
+                            id: "graph4",
+                            type: "bar",
+                            colors: ["yellow", "pink", "black"],
+                        },
+                        {
+                            id: "graph5",
+                            type: "line",
+                            colors: ["rose", "#123", "rgba(1, 1, 1, 1)"],
+                        },
+                        {
+                            id: "graph6",
+                            type: "pie",
+                            colors: ["#FFFFFF", "#FFFFFF", "#FFFFFF"],
+                        },
+                    ],
+                }}
+            />,
+        );
 
-        component.unmount();
+        // TODO: the snapshot does not reflect changed properties.
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
 });

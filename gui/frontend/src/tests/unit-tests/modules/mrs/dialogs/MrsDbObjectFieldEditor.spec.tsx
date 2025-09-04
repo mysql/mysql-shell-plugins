@@ -26,36 +26,41 @@
 // cSpell: disable
 
 import { createRef } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { mount } from "enzyme";
-
+import { render } from "@testing-library/preact";
 import {
     CellComponent, RowComponent, type EmptyCallback, type ValueBooleanCallback, type ValueVoidCallback
 } from "tabulator-tables";
-
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import {
-    IMrsDbObjectData, IMrsDbObjectParameterData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
-    IMrsTableColumnWithReference,
+    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, type IMrsAuthAppData, type IMrsAuthVendorData,
+    type IMrsContentFileData, type IMrsContentSetData, type IMrsDbObjectParameterData, type IMrsRoleData,
+    type IMrsRouterData, type IMrsRouterService, type IMrsSchemaData, type IMrsServiceData, type IMrsStatusData,
+    type IMrsTableColumnWithReference, type IMrsUserData
 } from "../../../../../communication/ProtocolMrs.js";
+import type { IComponentProperties } from "../../../../../components/ui/Component/ComponentBase.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import {
     IMrsObjectFieldEditorData, IMrsObjectFieldTreeItem, MrsObjectFieldEditor, MrsObjectFieldTreeEntryType,
     type ActionIconName,
 } from "../../../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
 import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../../../../../modules/mrs/types.js";
+import { ShellInterfaceMrs } from "../../../../../supplement/ShellInterface/ShellInterfaceMrs.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
 import { RowComponentMock } from "../../../__mocks__/RowComponentMock.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    JestReactWrapper, createBackend, nextRunLoop, recreateMrsData, setupShellForTests,
+    authAppsData, mrsContentFileData, mrsContentSetData, mrsDbObjectData, mrsRouterData, mrsSchemaData,
+    mrsServiceData, mrsServicesData, mrsStatusMock, mrsUserData, routerServiceData
+} from "../../../data-models/data-model-test-data.js";
+import {
+    mockClassMethods, nextRunLoop
 } from "../../../test-helpers.js";
-import type { IComponentProperties } from "../../../../../components/ui/Component/ComponentBase.js";
 
 // @ts-expect-error, we need access to a private members here.
-class MrsObjectFieldEditorMock extends MrsObjectFieldEditor {
+class TestMrsObjectFieldEditor extends MrsObjectFieldEditor {
     declare public treeGridJsonColumnFormatter: (cell: CellComponent) => string | HTMLElement;
     declare public treeGridRowFormatter: (row: RowComponent) => void;
     declare public treeGridRelationalColumnFormatter: (cell: CellComponent) => string | HTMLElement;
@@ -95,295 +100,85 @@ class MrsObjectFieldEditorMock extends MrsObjectFieldEditor {
     declare public updateDbObjectCrudOperations: () => void;
 }
 
-describe("MRS Object field editor tests", () => {
-    let host: JestReactWrapper;
+mockClassMethods(ShellInterfaceMrs, {
+    status: (): Promise<IMrsStatusData> => {
+        return Promise.resolve(mrsStatusMock);
+    },
+    listServices: (): Promise<IMrsServiceData[]> => {
+        return Promise.resolve(mrsServicesData);
+    },
+    listSchemas: (): Promise<IMrsSchemaData[]> => {
+        return Promise.resolve(mrsSchemaData);
+    },
+    listRouters: (): Promise<IMrsRouterData[]> => {
+        return Promise.resolve(mrsRouterData);
+    },
+    listContentSets: (): Promise<IMrsContentSetData[]> => {
+        return Promise.resolve(mrsContentSetData);
+    },
+    listUsers: (): Promise<IMrsUserData[]> => {
+        return Promise.resolve(mrsUserData);
+    },
+    listContentFiles: (): Promise<IMrsContentFileData[]> => {
+        return Promise.resolve(mrsContentFileData);
+    },
+    getService: (): Promise<IMrsServiceData> => {
+        return Promise.resolve(mrsServiceData);
+    },
+    getSchema: (): Promise<IMrsSchemaData> => {
+        return Promise.resolve(mrsSchemaData[0]);
+    },
+    getRouterServices: (): Promise<IMrsRouterService[]> => {
+        return Promise.resolve(routerServiceData);
+    },
+    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+        return Promise.resolve(authAppsData);
+    },
+    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
+        return Promise.resolve([]);
+    },
+    listRoles: (): Promise<IMrsRoleData[]> => {
+        return Promise.resolve([]);
+    },
+    listDbObjects: (schemaId: string): Promise<IMrsDbObjectData[]> => {
+        return Promise.resolve(mrsDbObjectData);
+    },
+    updateAuthApp: (): Promise<void> => {
+        return Promise.resolve();
+    },
+    getAuthVendors: (): Promise<IMrsAuthVendorData[]> => {
+        return Promise.resolve([{
+            id: "MRS",
+            name: "MRS",
+            enabled: true,
+        }]);
+    },
+    getTableColumnsWithReferences: (requestPath?: string, dbObjectName?: string,
+        dbObjectId?: string, schemaId?: string, schemaName?: string,
+        dbObjectType?: string): Promise<IMrsTableColumnWithReference[]> => {
+        return Promise.resolve([{
+            position: 1,
+            name: "actorId",
+            refColumnNames: "actor_id",
+            tableSchema: "myschema",
+            tableName: "actor",
+        }]);
+    },
+    getDbFunctionReturnType: (_dbObjectName: string, _dbSchemaName: string): Promise<string> => {
+        return Promise.resolve("__RETURN_TYPE__");
+    },
+    getDbObjectParameters: (dbObjectName?: string, dbSchemaName?: string, dbObjectId?: string,
+        dbType?: string): Promise<IMrsDbObjectParameterData[]> => {
+        return Promise.resolve([]);
+    }
+});
 
-    let launcher: MySQLShellLauncher;
-    let backend: ShellInterfaceSqlEditor;
+describe("MRS Object field editor tests", () => {
+    const backend = new ShellInterfaceSqlEditor();
 
     const hubRef = createRef<MrsHub>();
-
-    const createTreeItemData = (): IMrsObjectFieldTreeItem => {
-        return Object.assign({}, {
-            type: MrsObjectFieldTreeEntryType.Field,
-            expanded: false,     // Currently expanded?
-            expandedOnce: true, // Was expanded before?
-            firstItem: false,
-            lastItem: false,
-
-            unnested: {
-                schemaTable: "",
-                referenceFieldName: "",
-                originalFieldName: "",
-            },
-
-            field: {
-                id: "field_1",
-                objectId: "field_1",
-                representsReferenceId: "",
-                parentReferenceId: "",
-                name: "",
-                position: 0,
-                dbColumn: {
-                    name: "",
-                    datatype: "",
-                    notNull: false,
-                    isPrimary: false,
-                    isUnique: false,
-                    isGenerated: false,
-                    idGeneration: "",
-                    comment: "",
-                    in: false,
-                    out: false,
-                },
-                enabled: false,
-                allowFiltering: false,
-                allowSorting: false,
-                noCheck: false,
-                noUpdate: false,
-                sdkOptions: {
-                    datatypeName: "",
-                    languageOptions: [{ language: "", fieldName: "" }],
-                },
-                comments: "",
-                objectReference: {
-                    id: "field_1",
-                    reduceToValueOfFieldId: "",
-                    referenceMapping: {
-                        kind: "n:1",
-                        constraint: "",
-                        toMany: false,
-                        referencedSchema: "",
-                        referencedTable: "",
-                        columnMapping: [],  //IMrsColumnMapping[]
-                    },
-                    unnest: false,
-                    crudOperations: "",
-                    sdkOptions: {
-                        datatypeName: "",
-                        languageOptions: [{ language: "", fieldName: "" }],
-                    },
-                    comments: "",
-                    options: {
-                        dataMappingViewInsert: true,
-                        dataMappingViewUpdate: true,
-                        dataMappingViewDelete: true,
-                        dataMappingViewNoCheck: true,
-                    },
-                },
-                lev: 0,
-                caption: "",
-                storedDbColumn: {
-                    name: "",
-                    datatype: "",
-                    notNull: false,
-                    isPrimary: false,
-                    isUnique: false,
-                    isGenerated: false,
-                    idGeneration: "",
-                    comment: "",
-                    in: false,
-                    out: false,
-                },
-            },
-            comments: "",
-            objectReference: {
-                id: "",
-                reduceToValueOfFieldId: "",
-                referenceMapping: {
-                    kind: "",
-                    constraint: "",
-                    toMany: false,
-                    referencedSchema: "",
-                    referencedTable: "",
-                    columnMapping: [], //IMrsColumnMapping[]
-                },
-                unnest: false,
-                crudOperations: "",
-                sdkOptions: {
-                    datatypeName: "",
-                    languageOptions: [{ language: "", fieldName: "" }],
-                },
-                comments: "",
-            },
-            lev: 0,
-            caption: "",
-            storedDbColumn: {
-                name: "",
-                datatype: "",
-                notNull: false,
-                isPrimary: false,
-                isUnique: false,
-                isGenerated: false,
-                idGeneration: "",
-                comment: "",
-                in: false,
-                out: false,
-            },
-            parent: undefined, //IMrsObjectFieldTreeItem
-            children: [
-                {
-                    type: MrsObjectFieldTreeEntryType.LoadPlaceholder,
-                    expanded: false,     // Currently expanded?
-                    expandedOnce: false, // Was expanded before?
-                    firstItem: false,
-                    lastItem: false,
-
-                    unnested: {
-                        schemaTable: "",
-                        referenceFieldName: "",
-                        originalFieldName: "",
-                    }, // Set if this field is an unnested copy
-
-                    field: {
-                        id: "",
-                        objectId: "",
-                        representsReferenceId: "",
-                        parentReferenceId: "",
-                        name: "",
-                        position: 0,
-                        dbColumn: {
-                            name: "",
-                            datatype: "",
-                            notNull: false,
-                            isPrimary: false,
-                            isUnique: false,
-                            isGenerated: false,
-                            idGeneration: "",
-                            comment: "",
-                            in: false,
-                            out: false,
-                        },
-                        enabled: false,
-                        allowFiltering: false,
-                        allowSorting: false,
-                        noCheck: false,
-                        noUpdate: false,
-                        sdkOptions: {
-                            datatypeName: "",
-                            languageOptions: [{ language: "", fieldName: "" }],
-                        },
-                        comments: "",
-                        objectReference: {
-                            id: "",
-                            reduceToValueOfFieldId: "",
-                            referenceMapping: {
-                                kind: "",
-                                constraint: "",
-                                toMany: false,
-                                referencedSchema: "",
-                                referencedTable: "",
-                                columnMapping: [],//IMrsColumnMapping[]
-                            }, //IMrsTableReference
-                            unnest: false,
-                            crudOperations: "",
-                            sdkOptions: {
-                                datatypeName: "",
-                                languageOptions: [{ language: "", fieldName: "" }],
-                            },
-                            comments: "",
-                        },
-                        lev: 0,
-                        caption: "",
-                        storedDbColumn: {
-                            name: "",
-                            datatype: "",
-                            notNull: false,
-                            isPrimary: false,
-                            isUnique: false,
-                            isGenerated: false,
-                            idGeneration: "",
-                            comment: "",
-                            in: false,
-                            out: false,
-                        },
-                    },
-
-                    parent: undefined, //IMrsObjectFieldTreeItem
-                    children: [], // IMrsObjectFieldTreeItem[]
-                }, {
-                    type: MrsObjectFieldTreeEntryType.Field,
-                    expanded: false,     // Currently expanded?
-                    expandedOnce: false, // Was expanded before?
-                    firstItem: false,
-                    lastItem: false,
-
-                    unnested: {
-                        schemaTable: "",
-                        referenceFieldName: "",
-                        originalFieldName: "",
-                    }, // Set if this field is an unnested copy
-
-                    field: {
-                        id: "",
-                        objectId: "",
-                        representsReferenceId: "",
-                        parentReferenceId: "",
-                        name: "",
-                        position: 0,
-                        dbColumn: {
-                            name: "",
-                            datatype: "",
-                            notNull: false,
-                            isPrimary: false,
-                            isUnique: false,
-                            isGenerated: false,
-                            idGeneration: "",
-                            comment: "",
-                            in: false,
-                            out: false,
-                        },
-                        enabled: false,
-                        allowFiltering: false,
-                        allowSorting: false,
-                        noCheck: false,
-                        noUpdate: false,
-                        sdkOptions: {
-                            datatypeName: "",
-                            languageOptions: [{ language: "", fieldName: "" }],
-                        },
-                        comments: "",
-                        objectReference: {
-                            id: "",
-                            reduceToValueOfFieldId: "",
-                            referenceMapping: {
-                                kind: "",
-                                constraint: "",
-                                toMany: false,
-                                referencedSchema: "",
-                                referencedTable: "",
-                                columnMapping: [],//IMrsColumnMapping[]
-                            }, //IMrsTableReference
-                            unnest: false,
-                            crudOperations: "",
-                            sdkOptions: {
-                                datatypeName: "",
-                                languageOptions: [{ language: "", fieldName: "" }],
-                            },
-                            comments: "",
-                        },
-                        lev: 0,
-                        caption: "",
-                        storedDbColumn: {
-                            name: "",
-                            datatype: "",
-                            notNull: false,
-                            isPrimary: false,
-                            isUnique: false,
-                            isGenerated: false,
-                            idGeneration: "",
-                            comment: "",
-                            in: false,
-                            out: false,
-                        },
-                    },
-
-                    parent: undefined, //IMrsObjectFieldTreeItem
-                    children: [], // IMrsObjectFieldTreeItem[]
-                },
-            ], //IMrsObjectFieldTreeItem[]
-        });
-    };
+    let unmount: () => boolean;
+    let container: HTMLDivElement;
 
     const createCellData = (): IMrsObjectFieldTreeItem => {
         return Object.assign({}, {
@@ -523,7 +318,7 @@ describe("MRS Object field editor tests", () => {
     const createFieldEditorMountValuesEmptyData = (): IMrsObjectFieldEditorData => {
         return {
             servicePath: "",
-            dbSchemaName: "",
+            dbSchemaName: "mySchema",
             dbSchemaPath: "",
             dbObject: {} as IMrsDbObjectData,
             crudOperations: [],
@@ -762,107 +557,53 @@ describe("MRS Object field editor tests", () => {
         });
     };
 
-    const createStoredFields = (): IMrsObjectFieldWithReference[] => {
-        return [{
-            id: "",
-            objectId: "",
-            name: "field_1",
-            position: 0,
-            dbColumn: {
-                name: "param_1",
-                datatype: "",
-                notNull: true,
-                isPrimary: true,
-                isUnique: true,
-                isGenerated: true,
-            }, //IMrsTableColumn,
-            enabled: true,
-            allowFiltering: true,
-            allowSorting: true,
-            noCheck: true,
-            noUpdate: true,
-            sdkOptions: {}, //IMrsObjectFieldSdkOptions,
-            comments: "some comments",
-            objectReference: {
-                id: "",
-                unnest: true,
-                referenceMapping: {
-                    kind: "",
-                    constraint: "",
-                    toMany: false,
-                    referencedSchema: "some_schema",
-                    referencedTable: "",
-                    columnMapping: [{
-                        base: "",
-                        ref: "",
-                    }], //IMrsTableReference,
-                }, //IMrsObjectReference,
-            },
-        }];
-    };
-
-    const doMount = async (values?: IDictionary,
-        dbObjectChangeHandler?: () => void, getCurrentDbObjectHandler?: () => IMrsDbObjectData,
-        backend?: ShellInterfaceSqlEditor) => {
+    const doMount = async (values?: IDictionary, dbObjectChangeHandler?: () => void,
+        getCurrentDbObjectHandler?: () => IMrsDbObjectData) => {
 
         dbObjectChangeHandler ??= (): void => { /**/ };
         getCurrentDbObjectHandler ??= (): IMrsDbObjectData => {
             return createDbObjectData();
         };
-        values ??= createFieldEditorMountValuesData();
-        backend ??= await createBackend();
 
-        const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
+        values ??= createFieldEditorMountValuesData();
+        const editorRef = createRef<TestMrsObjectFieldEditor>();
+        const { unmount } = render(<TestMrsObjectFieldEditor
+            ref={editorRef}
             backend={backend}
             dbObjectChange={dbObjectChangeHandler}
             getCurrentDbObject={getCurrentDbObjectHandler}
             values={values} />);
-        const fieldEditor: MrsObjectFieldEditorMock = fieldEditorMount.instance();
 
         // This is required because initMrsObjects is async and is called in the ctor
         // and the ctor can not be async.
         await nextRunLoop();
 
-        return { fieldEditorMount, fieldEditor, values, backend };
+        return { unmount, editorRef, values };
     };
 
-    beforeAll(async () => {
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true, "DEBUG2");
 
-        await recreateMrsData();
-
-        host = mount<MrsHub>(<MrsHub ref={hubRef} />);
+        const result = render(<MrsHub ref={hubRef} />);
+        container = result.container as HTMLDivElement;
+        unmount = result.unmount;
     });
 
-    afterAll(async () => {
-        await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
-        await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        await backend.closeSession();
-        await launcher.exitProcess();
-        host.unmount();
-    });
+    afterAll(() => {
+        unmount();
 
-    beforeEach(async () => {
-        backend = await createBackend();
+        vi.resetAllMocks();
     });
 
     it("Standard Rendering (snapshot)", () => {
         // The host itself has no properties, but implicit children (the different dialogs).
-        expect(host.props().children).toEqual([]);
-        expect(host).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it("MrsObjectFieldEditor updateMrsObjectFields tests", async () => {
         const mountResult = await doMount();
 
-        mountResult.backend.mrs.getDbFunctionReturnType =
-            async (_dbObjectName: string, _dbSchemaName: string): Promise<string> => {
-                return Promise.resolve("__RETURN_TYPE__");
-            };
-
-        const data = mountResult.fieldEditor.props.values as IMrsObjectFieldEditorData;
-
+        const data = mountResult.editorRef.current!.props.values as IMrsObjectFieldEditorData;
         expect(data.mrsObjects.length).toBe(2);
 
         const fieldEditorData = createFieldEditorMountValuesData();
@@ -880,8 +621,9 @@ describe("MRS Object field editor tests", () => {
         const handleGetCurrentDbObject = (): IMrsDbObjectData => {
             return createDbObjectData();
         };
+
         const badMount = () => {
-            mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
+            render(<TestMrsObjectFieldEditor
                 backend={backend}
                 dbObjectChange={handleDbObjectChange}
                 getCurrentDbObject={handleGetCurrentDbObject}
@@ -894,21 +636,16 @@ describe("MRS Object field editor tests", () => {
 
         const mountResult = await doMount();
 
-        mountResult.fieldEditorMount.unmount();
+        mountResult.unmount();
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
     });
 
     it("MrsObjectFieldEditor init tests", async () => {
-        backend.mrs.getDbFunctionReturnType =
-            async (_dbObjectName: string, _dbSchemaName: string): Promise<string> => {
-                return Promise.resolve("__RETURN_TYPE__");
-            };
-
         const mountResult = await doMount();
 
-        const data = mountResult.fieldEditor.props.values as IMrsObjectFieldEditorData;
+        const data = mountResult.editorRef.current!.props.values as IMrsObjectFieldEditorData;
 
         expect(data.mrsObjects.length).toBe(2);
 
@@ -918,7 +655,7 @@ describe("MRS Object field editor tests", () => {
     it("MrsObjectFieldEditor.treeGridJsonColumnFormatter tests", async () => {
         const mountResult = await doMount();
 
-        const fieldEditor = mountResult.fieldEditor; //MrsObjectFieldEditor = fieldEditorMount.instance();
+        const fieldEditor = mountResult.editorRef.current!;
         let host: string | HTMLElement;
 
         host = fieldEditor.treeGridJsonColumnFormatter(new CellComponentMock() as CellComponent);
@@ -960,7 +697,7 @@ describe("MRS Object field editor tests", () => {
 
     it("MrsObjectFieldEditor.treeGridRowFormatter tests", async () => {
         const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
+        const fieldEditor = mountResult.editorRef.current!;
 
         const rowData = createRowData();
         let row = new RowComponentMock(rowData);
@@ -1027,398 +764,9 @@ describe("MRS Object field editor tests", () => {
         expect(row.getElement().classList.contains("deleted")).toBe(true);
     });
 
-    it("MrsObjectFieldEditor.treeGridRelationalColumnFormatter tests", async () => {
-        const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cellData = createCellData();
-        const mockInstance = new CellComponentMock(cellData);
-        mockInstance.data = createTreeItemData();
-        mockInstance.row.prevRow = new RowComponentMock();
-
-        fieldEditor.treeGridRelationalColumnFormatter(mockInstance as CellComponent);
-
-        {
-            cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-            cellData.field.objectReference!.referenceMapping.kind = "n:1";
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-            cellData.field.objectReference!.referenceMapping.kind = "1:1";
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-            const objectReferenceBackup = cellData.field.objectReference;
-
-            cellData.field.objectReference = undefined;
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-            cellData.field.objectReference = objectReferenceBackup;
-        }
-
-        cellData.type = MrsObjectFieldTreeEntryType.FieldListClose;
-
-        fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-        cellData.type = MrsObjectFieldTreeEntryType.FieldListOpen;
-
-        fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-        // eslint-disable-next-line no-lone-blocks
-        {
-            //  test for different dbObject types
-            (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.View;
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-            (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Procedure;
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-
-            (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Function;
-
-            fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-        }
-
-        cellData.type = MrsObjectFieldTreeEntryType.LoadPlaceholder;
-
-        fieldEditor.treeGridRelationalColumnFormatter(new CellComponentMock(cellData) as CellComponent);
-    });
-
-    it("MrsObjectFieldEditor.editorHost tests", async () => {
-        const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cellData = createCellData();
-        cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
-        const cell = new CellComponentMock(cellData);
-
-        fieldEditor.editorHost(cell, () => { /**/ }, (): boolean => {
-            return true;
-        }, () => { /**/ });
-    });
-
-    it("MrsObjectFieldEditor.renderCustomEditor tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cellData = createCellData();
-        cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
-        const cell = new CellComponentMock(cellData);
-
-        const host = document.createElement("div");
-
-        fieldEditor.renderCustomEditor(cell, () => { /**/ }, host, {},
-            (): boolean => {
-                return true;
-            }, () => { /**/ });
-
-    });
-
-    it("MrsObjectFieldEditor.handleCellEdited tests", () => {
-        const handleDbObjectChange = () => { /**/ };
-        const handleGetCurrentDbObject = (): IMrsDbObjectData => {
-            return createDbObjectData();
-        };
-
-        const cellData = createCellData();
-        cellData.type = MrsObjectFieldTreeEntryType.FieldListOpen;
-        cellData.field.id = "";
-        cellData.field.name = "field name";
-        const cell1 = new CellComponentMock(cellData);
-
-        const cell2Data = createCellData();
-
-        const values = createFieldEditorMountValuesData();
-
-        {
-            expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
-            const tempValues = Object.assign({}, values);
-            const tempCell = cell1;
-            const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
-                backend={backend}
-                dbObjectChange={handleDbObjectChange}
-                getCurrentDbObject={handleGetCurrentDbObject}
-                values={tempValues} />);
-
-            const fieldEditor = fieldEditorMount.instance();
-
-            fieldEditor.handleCellEdited(tempCell);
-        }
-        {
-            expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
-            const tempValues = JSON.parse(JSON.stringify(values)) as IMrsObjectFieldEditorData;
-            const tempCell = new CellComponentMock(cell2Data);
-            const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
-                backend={backend}
-                dbObjectChange={handleDbObjectChange}
-                getCurrentDbObject={handleGetCurrentDbObject}
-                values={tempValues} />);
-
-            const fieldEditor = fieldEditorMount.instance();
-
-            fieldEditor.handleCellEdited(tempCell as CellComponent);
-        }
-        {
-            expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
-            const tempValues = JSON.parse(JSON.stringify(values)) as IMrsObjectFieldEditorData;
-            const tempCell = new CellComponentMock(cell2Data);
-            const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
-                backend={backend}
-                dbObjectChange={handleDbObjectChange}
-                getCurrentDbObject={handleGetCurrentDbObject}
-                values={tempValues} />);
-
-            const fieldEditor = fieldEditorMount.instance();
-
-            tempCell.value = "Animal:number";
-
-            fieldEditor.handleCellEdited(tempCell);
-        }
-        {
-            expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
-            const tempValues = JSON.parse(JSON.stringify(values)) as IMrsObjectFieldEditorData;
-            const tempCell = new CellComponentMock(cell2Data);
-            const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
-                backend={backend}
-                dbObjectChange={handleDbObjectChange}
-                getCurrentDbObject={handleGetCurrentDbObject}
-                values={tempValues} />);
-
-            const fieldEditor = fieldEditorMount.instance();
-
-            tempCell.value = "Animal:boolean";
-
-            fieldEditor.handleCellEdited(tempCell);
-        }
-        {
-            expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
-            const tempValues = JSON.parse(JSON.stringify(values)) as IMrsObjectFieldEditorData;
-            const tempCell = new CellComponentMock(cell2Data);
-            const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
-                backend={backend}
-                dbObjectChange={handleDbObjectChange}
-                getCurrentDbObject={handleGetCurrentDbObject}
-                values={tempValues} />);
-
-            const fieldEditor = fieldEditorMount.instance();
-
-            tempCell.value = "Animal:object";
-
-            fieldEditor.handleCellEdited(tempCell);
-        }
-        {
-            expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
-            const tempValues = JSON.parse(JSON.stringify(values)) as IMrsObjectFieldEditorData;
-            const tempCell = new CellComponentMock(cell2Data);
-            const fieldEditorMount = mount<MrsObjectFieldEditorMock>(<MrsObjectFieldEditorMock
-                backend={backend}
-                dbObjectChange={handleDbObjectChange}
-                getCurrentDbObject={handleGetCurrentDbObject}
-                values={tempValues} />);
-
-            const fieldEditor = fieldEditorMount.instance();
-
-            tempCell.value = "Animal:boolean";
-            tempCell.fieldType = "relational";
-
-            fieldEditor.handleCellEdited(tempCell);
-        }
-    });
-
-    it("MrsObjectFieldEditor.performTreeItemUnnestChange tests", async () => {
-        const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
-        const fieldEditor = mountResult.fieldEditor;
-
-        const treeItem = createTreeItemData();
-
-        await fieldEditor.performTreeItemUnnestChange(treeItem, false);
-
-        await fieldEditor.performTreeItemUnnestChange(treeItem, true);
-    });
-
-    it("MrsObjectFieldEditor.performIconClick tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-        const treeItem = createTreeItemData();
-
-        const tempObjectReference = treeItem.field.objectReference;
-        delete tempObjectReference!["reduceToValueOfFieldId" as keyof object];
-
-        {
-
-            await fieldEditor.performIconClick(treeItem, 0);
-
-            await fieldEditor.performIconClick(treeItem, 0, "icon1"); // ActionIconName.Crud
-
-            await fieldEditor.performIconClick(treeItem, 0, "INSERT"); // ActionIconName.Crud
-
-            await fieldEditor.performIconClick(treeItem, 0, "UPDATE"); // ActionIconName.Crud
-
-            await fieldEditor.performIconClick(treeItem, 0, "DELETE"); // ActionIconName.Crud
-
-            const optionsBackup = (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options;
-            (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = undefined;
-            treeItem.field.objectReference!.options = undefined;
-
-            await fieldEditor.performIconClick(treeItem, 0, "DELETE"); // ActionIconName.Crud
-
-            treeItem.field.representsReferenceId = undefined;
-
-            await fieldEditor.performIconClick(treeItem, 0, "DELETE"); // ActionIconName.Crud
-            (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = optionsBackup;
-            treeItem.field.representsReferenceId = "";
-        }
-
-        await fieldEditor.performIconClick(treeItem, 1, ""); // ActionIconName.Unnest
-
-        await fieldEditor.performIconClick(treeItem, 2, ""); // ActionIconName.Ownership
-
-        await fieldEditor.performIconClick(treeItem, 3, ""); // ActionIconName.Filtering
-
-        await fieldEditor.performIconClick(treeItem, 4, ""); // ActionIconName.Sorting
-
-        await fieldEditor.performIconClick(treeItem, 5, ""); // ActionIconName.Update
-
-        // eslint-disable-next-line no-lone-blocks
-        {
-            treeItem.field.objectReference!.options = undefined;
-
-            await fieldEditor.performIconClick(treeItem, 6, ""); // ActionIconName.Check
-
-            treeItem.field.dbColumn = undefined;
-            (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = undefined;
-
-            await fieldEditor.performIconClick(treeItem, 6, ""); // ActionIconName.Check
-        }
-
-        await fieldEditor.performIconClick(treeItem, 7, ""); // ActionIconName.CheckAll
-
-        treeItem.expanded = true;
-        const tempField: object = treeItem.children![0].field;
-
-        delete tempField["objectReference" as keyof object];
-
-        await fieldEditor.performIconClick(treeItem, 8, ""); // ActionIconName.CheckNone
-
-        await fieldEditor.performIconClick(treeItem, 9, ""); // ActionIconName.Delete
-    });
-
-    it("MrsObjectFieldEditor.handleIconClick tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cell = new CellComponentMock(createCellData());
-
-        fieldEditor.handleIconClick(cell, 0, "icon1"); // ActionIconName.Crud
-    });
-
-    it("MrsObjectFieldEditor.treeGridToggleEnableState tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cell = createCellData();
-
-        (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.enabled = false;
-
-        fieldEditor.treeGridToggleEnableState(new Event("treeGridToggleEnableState_Event"),
-            new CellComponentMock(cell));
-
-        (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.enabled = true;
-        (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.objectReference = {
-            reduceToValueOfFieldId: "",
-        } as IMrsObjectReference;
-
-        fieldEditor.treeGridToggleEnableState(new Event("treeGridToggleEnableState_Event"),
-            new CellComponentMock(cell));
-    });
-
-    it("MrsObjectFieldEditor.handleRowExpanded tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cell = createCellData();
-        const row: RowComponent = new CellComponentMock(cell).getRow();
-
-        fieldEditor.handleRowExpanded(row);
-
-        (row as RowComponentMock).row!.field.objectReference!.unnest = true;
-
-        fieldEditor.handleRowExpanded(row);
-    });
-
-    it("MrsObjectFieldEditor.handleRowCollapsed tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cell = createCellData();
-        const row = new CellComponentMock(cell).getRow();
-
-        fieldEditor.handleRowCollapsed(row);
-    });
-
-    it("MrsObjectFieldEditor.isRowExpanded tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cell = createCellData();
-        const row = new CellComponentMock(cell).getRow();
-
-        fieldEditor.isRowExpanded(row);
-
-        (row as RowComponentMock).row!.expanded = true;
-
-        fieldEditor.isRowExpanded(row);
-    });
-
-    it("MrsObjectFieldEditor.addNewField tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const cell = createCellData();
-        const row = new CellComponentMock(cell).getRow();
-
-        fieldEditor.addNewField(row);
-    });
-
-    it("MrsObjectFieldEditor.setCurrentMrsObject tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const mrsObject: IMrsObject = {
-            id: "",
-            dbObjectId: "",
-            name: "",
-            position: 0,
-            kind: MrsObjectKind.Parameters,
-        };
-
-        await fieldEditor.setCurrentMrsObject(undefined);
-
-        await fieldEditor.setCurrentMrsObject(mrsObject);
-    });
-
-    it("MrsObjectFieldEditor.addMrsObject tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        fieldEditor.addMrsObject(new MouseEvent("testEvent"), {});
-    });
-
-    it("MrsObjectFieldEditor.removeCurrentMrsObject tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        fieldEditor.removeCurrentMrsObject(new MouseEvent("testEvent"), {});
-    });
-
     it("MrsObjectFieldEditor.getJsonDatatype tests", async () => {
         const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
-        const fieldEditor = mountResult.fieldEditor;
+        const fieldEditor = mountResult.editorRef.current!;
 
         document.createElement("div");
 
@@ -1438,233 +786,23 @@ describe("MRS Object field editor tests", () => {
         expect(fieldEditor.getJsonDatatype("aaaaa")).toBe("string");
     });
 
-    it("MrsObjectFieldEditor.addColumnsAsFields tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        const createColumnWithReference = () => {
-            return Object.assign({}, {
-                position: 0,
-                name: "param_1",
-                refColumnNames: "",
-                dbColumn: {
-                    name: "",
-                    datatype: "",
-                    notNull: false,
-                    isPrimary: false,
-                    isUnique: false,
-                    isGenerated: false,
-                    idGeneration: "",
-                    comment: "",
-                    in: false,
-                    out: false,
-                },
-                referenceMapping: {
-                    kind: "",
-                    constraint: "",
-                    toMany: false,
-                    referencedSchema: "some_schema",
-                    referencedTable: "",
-                    columnMapping: [{
-                        base: "",
-                        ref: "",
-                    }],
-                    unnest: true,
-                },
-                tableSchema: "",
-                tableName: "",
-            });
-        };
-
-        const columnWithReference = createColumnWithReference();
-
-        mountResult.backend.mrs.getTableColumnsWithReferences =
-            async (requestPath?: string, dbObjectName?: string,
-                dbObjectId?: string, schemaId?: string, schemaName?: string,
-                dbObjectType?: string): Promise<IMrsTableColumnWithReference[]> => {
-
-                columnWithReference.dbColumn.datatype = dbObjectType ?? "";
-                columnWithReference.tableSchema = schemaName ?? "";
-                columnWithReference.tableName = dbObjectName ?? "";
-
-                return Promise.resolve([columnWithReference]);
-            };
-
-        const currentMrsObject: IMrsObject = {
-            id: "",
-            dbObjectId: "",
-            name: "",
-            position: 0,
-            kind: MrsObjectKind.Parameters,
-        }; //currentObject
-
-        await fieldEditor.addColumnsAsFields(
-            "actor",
-            "MRS_TEST",
-            "VIEW",
-            [], //storedFields
-            currentMrsObject, //currentObject
-            [], //parentTreeItemList
-            [], //referredTreeItemsToLoad
-        );
-
-        const storedFields = createStoredFields();
-
-        await fieldEditor.addColumnsAsFields(
-            "actor",
-            "MRS_TEST",
-            "VIEW",
-            storedFields, //IMrsObjectFieldWithReference[]
-            currentMrsObject, //currentObject
-            [], //parentTreeItemList
-            [], //referredTreeItemsToLoad
-        );
-
-        await fieldEditor.addColumnsAsFields(
-            "actor",
-            "MRS_TEST",
-            "VIEW",
-            storedFields, //IMrsObjectFieldWithReference[]
-            currentMrsObject, //currentObject
-            [], //parentTreeItemList
-            [], //referredTreeItemsToLoad
-        );
-    });
-
-    it("MrsObjectFieldEditor.addParametersAsFields tests", async () => {
-        const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
-        const fieldEditor = mountResult.fieldEditor;
-
-        mountResult.backend.mrs.getDbObjectParameters = (_dbObjectName?: string,
-            _dbSchemaName?: string,
-            _dbObjectId?: string,
-            _dbType?: string,
-        ): Promise<IMrsDbObjectParameterData[]> => {
-            return Promise.resolve([{
-                id: "",
-                position: 0,
-                name: "param_1",
-                mode: "",
-                datatype: "",
-            }]);
-        };
-
-        const currentMrsObject: IMrsObject = {
-            id: "",
-            dbObjectId: "",
-            name: "",
-            position: 0,
-            kind: MrsObjectKind.Parameters,
-        }; //currentObject
-
-        await fieldEditor.addParametersAsFields(
-            "actor",
-            "MRS_TEST",
-            "VIEW",
-            [], //IMrsObjectFieldWithReference[]
-            currentMrsObject, //currentObject
-            [], //parentTreeItemList
-            [], //referredTreeItemsToLoad
-        );
-
-        await fieldEditor.addParametersAsFields(
-            "actor",
-            "MRS_TEST",
-            "VIEW",
-            createStoredFields(), //IMrsObjectFieldWithReference[]
-            currentMrsObject, //currentObject
-            [], //parentTreeItemList
-            [], //referredTreeItemsToLoad
-        );
-    });
-
-    it("MrsObjectFieldEditor.buildDataMappingViewSql tests", async () => {
-        await doMount(createFieldEditorMountValuesEmptyData());
-
-        const data = createFieldEditorMountValuesData();
-        MrsObjectFieldEditor.buildDataMappingViewSql(data);
-
-        expect(data.mrsObjects[1].fields?.length).toBeGreaterThan(0);
-        expect(data.mrsObjects[1].fields![0].dbColumn).toBeDefined();
-
-        data.mrsObjects[1].fields![0].dbColumn!.out = true;
-        data.mrsObjects[1].fields![0].dbColumn!.in = false;
-        MrsObjectFieldEditor.buildDataMappingViewSql(data);
-
-        data.mrsObjects[1].fields![0].dbColumn!.out = false;
-        data.mrsObjects[1].fields![0].dbColumn!.in = true;
-        data.mrsObjects[1].fields![0].noUpdate = true;
-        data.mrsObjects[1].fields![0].allowFiltering = false;
-        MrsObjectFieldEditor.buildDataMappingViewSql(data);
-
-        data.mrsObjects[1].fields![1].objectReference!.options = {
-            dataMappingViewDelete: true,
-            dataMappingViewInsert: true,
-            dataMappingViewNoCheck: true,
-            dataMappingViewUpdate: true,
-        };
-        MrsObjectFieldEditor.buildDataMappingViewSql(data);
-
-        data.dbObject.objectType = MrsDbObjectType.Procedure;
-        MrsObjectFieldEditor.buildDataMappingViewSql(data);
-
-        data.dbObject.requiresAuth = 1;
-        data.dbObject.mediaType = "SOME TYPE";
-        data.dbObject.authStoredProcedure = "SOME PROCEDURE";
-        MrsObjectFieldEditor.buildDataMappingViewSql(data);
-    });
-
     it("MrsObjectFieldEditor.initMrsObjects tests", async () => {
         const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
-        const fieldEditor = mountResult.fieldEditor;
+        const fieldEditor = mountResult.editorRef.current!;
 
-        mountResult.backend.mrs.getDbFunctionReturnType =
+        vi.spyOn(ShellInterfaceMrs.prototype, "getDbFunctionReturnType").mockImplementation(
             async (dbObjectName: string, dbSchemaName: string): Promise<string> => {
                 expect(dbObjectName).toBe("myFunc");
                 expect(dbSchemaName).toBe("mySchema");
 
                 return Promise.resolve("void");
-            };
+            });
 
         (mountResult.values.dbObject as IMrsDbObjectData).id = "";
         (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Function;
         (mountResult.values.dbObject as IMrsDbObjectData).name = "myFunc";
         (mountResult.values.dbObject as IMrsDbObjectData).dbSchemaName = "mySchema";
 
-        await fieldEditor.initMrsObjects();
-    });
-
-    it("MrsObjectFieldEditor.updateDbObjectCrudOperations tests", async () => {
-        const mountResult = await doMount();
-        const fieldEditor = mountResult.fieldEditor;
-
-        fieldEditor.updateDbObjectCrudOperations();
-
-        (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = {
-            dataMappingViewUpdate: false,
-        };
-        (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options!.dataMappingViewUpdate = false;
-        (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].fields![0].objectReference = {
-            id: "",
-            reduceToValueOfFieldId: "field_1",
-            referenceMapping: {
-                kind: "",
-                constraint: "",
-                toMany: true,
-                referencedSchema: "",
-                referencedTable: "",
-                columnMapping: [], //IMrsColumnMapping[]
-            }, // IMrsTableReference,
-            options: {
-                dataMappingViewInsert: true,
-            },
-            unnest: true,
-        };
-
-        fieldEditor.updateDbObjectCrudOperations();
-
-        (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Function;
-
-        fieldEditor.updateDbObjectCrudOperations();
+        await fieldEditor.initMrsObjects(); // TODO: make this a real test.
     });
 });

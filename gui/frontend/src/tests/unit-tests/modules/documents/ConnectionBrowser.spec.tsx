@@ -23,24 +23,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it, vi } from "vitest";
 
 import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser.js";
+import { render } from "@testing-library/preact";
 
 describe("Connection browser tests", (): void => {
 
     it("Test ConnectionBrowser instantiation", () => {
-        const component = mount<ConnectionBrowser>(
+        const { container, unmount } = render(
             <ConnectionBrowser
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-                onAddConnection={jest.fn()}
-                onUpdateConnection={jest.fn()}
-                onRemoveConnection={jest.fn()}
+                onAddConnection={vi.fn()}
+                onUpdateConnection={vi.fn()}
+                onRemoveConnection={vi.fn()}
             />,
         );
 
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
 });

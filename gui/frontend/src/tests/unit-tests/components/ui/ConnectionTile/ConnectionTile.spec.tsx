@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { ConnectionTile, ConnectionTileType } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Assets } from "../../../../../supplement/Assets.js";
@@ -41,7 +42,7 @@ describe("ConnectionTile component tests", (): void => {
     };
 
     it("Test ConnectionTile output (Snapshot)", () => {
-        const component = mount<ConnectionTile>(
+        const { container, unmount } = render(
             <ConnectionTile
                 id="tile1"
                 tileId={"1"}
@@ -52,8 +53,8 @@ describe("ConnectionTile component tests", (): void => {
 
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

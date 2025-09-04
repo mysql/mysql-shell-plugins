@@ -23,11 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { vi } from "vitest";
+
 import type { IOpenConnectionData, IStatusData } from "../../../communication/ProtocolGui.js";
 import type {
-    IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsRouterData, IMrsRouterService, IMrsSchemaData,
-    IMrsServiceData, IMrsStatusData, IMrsUserData,
+    IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsDbObjectData, IMrsRouterData, IMrsRouterService,
+    IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsUserData
 } from "../../../communication/ProtocolMrs.js";
+import { MrsDbObjectType } from "../../../modules/mrs/types.js";
 import type { IWebviewProvider } from "../../../supplement/RequisitionTypes.js";
 import {
     ConnectionEditorType, DBType, type IConnectionDetails, type IFolderPath,
@@ -132,15 +135,15 @@ export const mrsStatusMock: IMrsStatusData = {
 
 export const authAppsData: IMrsAuthAppData[] = [{
     id: "1",
-    authVendorId: "1",
+    authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
     authVendor: "Test vendor",
-    authVendorName: "Test vendor name",
+    authVendorName: "MRS",
     serviceId: "1",
     name: "Test app",
     appId: "app1",
     enabled: true,
     limitToRegisteredUsers: false,
-    defaultRoleId: null,
+    defaultRoleId: "0x31000000000000000000000000000000",
 }];
 
 export const mrsServicesData: IMrsServiceData[] = [{
@@ -250,18 +253,33 @@ export const mrsContentFileData: IMrsContentFileData[] = [{
     changedAt: "2021-01-01 00:00:00",
 }];
 
+export const mrsDbObjectData: IMrsDbObjectData[] = [{
+    comments: "<this is a comment>",
+    crudOperations: ["create"],
+    crudOperationFormat: "FEED",
+    dbSchemaId: "1",
+    enabled: 1,
+    id: "obj1",
+    name: "actor",
+    objectType: MrsDbObjectType.Table,
+    requestPath: "/actor",
+    requiresAuth: 1,
+    serviceId: "1",
+    autoDetectMediaType: 1,
+}];
+
 export interface OpenConnectionResponse { result?: IOpenConnectionData | IStatusData; }
 
 export const webviewProviderMock1: IWebviewProvider = {
     caption: "Webview Provider 1",
 
-    close: jest.fn(),
-    runCommand: jest.fn().mockReturnValue(Promise.resolve(true)),
+    close: vi.fn(),
+    runCommand: vi.fn().mockReturnValue(Promise.resolve(true)),
 };
 
 export const webviewProviderMock2: IWebviewProvider = {
     caption: "Webview Provider 2",
 
-    close: jest.fn(),
-    runCommand: jest.fn().mockReturnValue(Promise.resolve(false)),
+    close: vi.fn(),
+    runCommand: vi.fn().mockReturnValue(Promise.resolve(false)),
 };

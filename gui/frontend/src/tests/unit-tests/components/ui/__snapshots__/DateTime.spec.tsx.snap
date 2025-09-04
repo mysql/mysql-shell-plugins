@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Calendar render testing > DateTime view test properties (autoFocus) 1`] = `
+<div>
+  <input
+    class="msg dateTime"
+    spellcheck="true"
+    type="datetime-local"
+  />
+</div>
+`;
+
+exports[`Calendar render testing > DateTime view test properties 1`] = `
+<div>
+  <input
+    class="msg dateTime"
+    spellcheck="true"
+    type="datetime-local"
+  />
+</div>
+`;

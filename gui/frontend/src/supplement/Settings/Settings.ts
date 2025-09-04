@@ -23,12 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { webSession } from "../WebSession.js";
-import { ValueType } from "../index.js";
-import { requisitions } from "../Requisitions.js";
-import { categoryFromPath, registerSettings } from "./SettingsRegistry.js";
-import { IDictionary } from "../../app-logic/general-types.js";
+import { IDictionary, type ValueType } from "../../app-logic/general-types.js";
 import type { IShellDictionary } from "../../communication/Protocol.js";
+import { requisitions } from "../Requisitions.js";
+import { webSession } from "../WebSession.js";
+import { categoryFromPath, registerSettings } from "./SettingsRegistry.js";
 
 interface IUserSettings extends IDictionary {
     theming: {

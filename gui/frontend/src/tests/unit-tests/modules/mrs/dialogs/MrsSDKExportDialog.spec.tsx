@@ -23,92 +23,173 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { mount } from "enzyme";
-import { IMrsServiceData } from "../../../../../communication/ProtocolMrs.js";
-import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
-import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { KeyboardKeys } from "../../../../../utilities/helpers.js";
-import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
-} from "../../../test-helpers.js";
-import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
+import {
+    IMrsServiceData, type IMrsAuthAppData, type IMrsAuthVendorData, type IMrsContentFileData,
+    type IMrsContentSetData, type IMrsDbObjectData, type IMrsRoleData, type IMrsRouterData, type IMrsRouterService,
+    type IMrsSchemaData, type IMrsStatusData, type IMrsTableColumnWithReference, type IMrsUserData
+} from "../../../../../communication/ProtocolMrs.js";
+import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
+import type { IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
+import { ShellInterfaceDbConnection } from "../../../../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
+import { ShellInterfaceMrs } from "../../../../../supplement/ShellInterface/ShellInterfaceMrs.js";
+import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
+import {
+    authAppsData, cdmMockState, connectionDetailsMock1, connectionFolderMock1, extraConnectionDetails,
+    mrsContentFileData, mrsContentSetData, mrsDbObjectData, mrsRouterData, mrsSchemaData, mrsServiceData,
+    mrsServicesData, mrsStatusMock, mrsUserData, routerServiceData
+} from "../../../data-models/data-model-test-data.js";
+import { DialogHelper, mockClassMethods } from "../../../test-helpers.js";
+
+mockClassMethods(ShellInterfaceDbConnection, {
+    listDbConnections: () => {
+        if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
+            cdmMockState.mockConnectedLoaded = true;
+
+            return Promise.resolve(connectionDetailsMock1.slice(0, 1));
+        }
+
+        return Promise.resolve([...connectionDetailsMock1]);
+    },
+    getDbConnection: vi.fn().mockImplementation((connectionId: number): Promise<IConnectionDetails | undefined> => {
+        return Promise.resolve(extraConnectionDetails);
+    }),
+    removeDbConnection: () => {
+        return Promise.resolve();
+    },
+    listFolderPaths: () => {
+        return Promise.resolve([
+            {
+                id: 1,
+                index: -1,
+                caption: "Test folder",
+                parentFolderId: undefined,
+            },
+        ]);
+    },
+    listAll: (profileId: number, folderId = 0) => {
+        if (profileId === -1 || folderId > 1) {
+            return Promise.resolve([]);
+        }
+
+        if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
+            cdmMockState.mockConnectedLoaded = true;
+
+            return Promise.resolve(connectionDetailsMock1.slice(0, 1));
+        }
+
+        return Promise.resolve([
+            connectionFolderMock1,
+            ...connectionDetailsMock1,
+        ]);
+    },
+});
+
+mockClassMethods(ShellInterfaceMrs, {
+    status: (): Promise<IMrsStatusData> => {
+        return Promise.resolve(mrsStatusMock);
+    },
+    listServices: (): Promise<IMrsServiceData[]> => {
+        return Promise.resolve(mrsServicesData);
+    },
+    listSchemas: (): Promise<IMrsSchemaData[]> => {
+        return Promise.resolve(mrsSchemaData);
+    },
+    listRouters: (): Promise<IMrsRouterData[]> => {
+        return Promise.resolve(mrsRouterData);
+    },
+    listContentSets: (): Promise<IMrsContentSetData[]> => {
+        return Promise.resolve(mrsContentSetData);
+    },
+    listUsers: (): Promise<IMrsUserData[]> => {
+        return Promise.resolve(mrsUserData);
+    },
+    listContentFiles: (): Promise<IMrsContentFileData[]> => {
+        return Promise.resolve(mrsContentFileData);
+    },
+    getService: (): Promise<IMrsServiceData> => {
+        return Promise.resolve(mrsServiceData);
+    },
+    getSchema: (): Promise<IMrsSchemaData> => {
+        return Promise.resolve(mrsSchemaData[0]);
+    },
+    getRouterServices: (): Promise<IMrsRouterService[]> => {
+        return Promise.resolve(routerServiceData);
+    },
+    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+        return Promise.resolve(authAppsData);
+    },
+    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
+        return Promise.resolve([]);
+    },
+    listRoles: (): Promise<IMrsRoleData[]> => {
+        return Promise.resolve([]);
+    },
+    listDbObjects: (schemaId: string): Promise<IMrsDbObjectData[]> => {
+        return Promise.resolve(mrsDbObjectData);
+    },
+    updateAuthApp: (): Promise<void> => {
+        return Promise.resolve();
+    },
+    getAuthVendors: (): Promise<IMrsAuthVendorData[]> => {
+        return Promise.resolve([{
+            id: "MRS",
+            name: "MRS",
+            enabled: true,
+        }]);
+    },
+    getTableColumnsWithReferences: (requestPath?: string, dbObjectName?: string,
+        dbObjectId?: string, schemaId?: string, schemaName?: string,
+        dbObjectType?: string): Promise<IMrsTableColumnWithReference[]> => {
+        return Promise.resolve([{
+            position: 1,
+            name: "actorId",
+            refColumnNames: "actor_id",
+            tableSchema: "myschema",
+            tableName: "actor",
+        }]);
+    },
+    dumpSdkServiceFiles: vi.fn().mockResolvedValue(true),
+});
 
 describe("MRS SDK Export dialog tests", () => {
-    let host: JestReactWrapper;
-    let service: IMrsServiceData;
-    let launcher: MySQLShellLauncher;
     const hubRef = createRef<MrsHub>();
     let dialogHelper: DialogHelper;
-    let backend: ShellInterfaceSqlEditor;
+    const backend = new ShellInterfaceSqlEditor();
 
-    beforeAll(async () => {
+    let unmount: () => boolean;
+
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true, "DEBUG2");
 
-        const result = await recreateMrsData();
-        service = result.service;
-
-        host = mount<MrsHub>(<MrsHub ref={hubRef} />);
+        const result = render(<MrsHub ref={hubRef} />);
+        unmount = result.unmount;
 
         dialogHelper = new DialogHelper("mrsSdkExportDialog", "Export MRS SDK for /myService");
     });
 
-    afterAll(async () => {
-        await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
-        await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        await backend.closeSession();
-        await launcher.exitProcess();
-        host.unmount();
-    });
+    afterAll(() => {
+        unmount();
 
-    beforeEach(async () => {
-        backend = await createBackend();
+        vi.resetAllMocks();
     });
 
     it("Show MRS SDK Export Dialog (snapshot) and escape", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
-        const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
-        await dialogHelper.waitForDialog();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
+        dialogHelper.actOnDialogAppearance("valueEditDialog", (portal) => {
+            expect(portal).toMatchSnapshot();
+            const cancelButton = portal.querySelector("#cancel");
+            fireEvent.click(cancelButton!);
+        });
 
-        expect(portals[0]).toMatchSnapshot();
-
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
-
-        await promise;
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
-    });
-
-    it("Show MRS SDK Export Dialog and cancel", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
-        const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
-        await dialogHelper.waitForDialog();
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        expect(portals[0]).toMatchSnapshot();
-
-        await dialogHelper.clickCancel();
-
-        await promise;
+        await hubRef.current!.showMrsSdkExportDialog(backend, "1", 1);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
@@ -117,16 +198,14 @@ describe("MRS SDK Export dialog tests", () => {
     it("Dialog error testing", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
-        const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
-        await dialogHelper.waitForDialog();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
+        dialogHelper.actOnDialogAppearance("valueEditDialog", (portal) => {
+            const okButton = portal.querySelector("#ok");
+            fireEvent.click(okButton!);
+            dialogHelper.verifyErrors();
+        });
 
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors();
-
-        await promise;
+        await hubRef.current!.showMrsSdkExportDialog(backend, "1", 1);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);

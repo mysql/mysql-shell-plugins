@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`BarGraphRenderer Tests Base Rendering 1`] = `<svg />`;
+exports[`BarGraphRenderer Tests > Base Rendering 1`] = `<svg />`;
 
-exports[`BarGraphRenderer Tests Base Rendering 2`] = `
+exports[`BarGraphRenderer Tests > Base Rendering 2`] = `
 <svg>
   <svg
     id="graph1"
@@ -18,7 +18,7 @@ exports[`BarGraphRenderer Tests Base Rendering 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(0,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -28,7 +28,7 @@ exports[`BarGraphRenderer Tests Base Rendering 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,870.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -60,7 +60,7 @@ exports[`BarGraphRenderer Tests Base Rendering 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -73,7 +73,7 @@ exports[`BarGraphRenderer Tests Base Rendering 2`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
+exports[`BarGraphRenderer Tests > With JSON Data and Updates 1`] = `
 <svg>
   <svg
     id="graph2"
@@ -89,7 +89,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(0,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -99,7 +99,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,870.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -123,7 +123,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,832)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -147,7 +147,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,793.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -171,7 +171,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,755)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -195,7 +195,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,716.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -219,7 +219,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,678)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -243,7 +243,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,639.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -267,7 +267,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,601)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -291,7 +291,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,562.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -315,7 +315,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,524)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -339,7 +339,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,485.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -363,7 +363,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,446.99999999999994)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -387,7 +387,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,408.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -411,7 +411,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,370)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -435,7 +435,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,331.50000000000006)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -459,7 +459,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,293)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -483,7 +483,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,254.49999999999997)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -507,7 +507,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,216.00000000000003)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -531,7 +531,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,177.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -555,7 +555,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,139.00000000000003)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -579,7 +579,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,100.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -640,7 +640,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -650,7 +650,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(212.90322580645164,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -667,7 +667,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(600,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -684,7 +684,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(987.0967741935483,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -704,7 +704,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
+exports[`BarGraphRenderer Tests > With JSON Data and Updates 2`] = `
 <svg>
   <svg
     id="graph2"
@@ -720,7 +720,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -730,7 +730,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -754,7 +754,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,549.26)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -778,7 +778,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,531.02)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -802,7 +802,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,512.78)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -826,7 +826,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,494.53999999999996)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -850,7 +850,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,476.3)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -874,7 +874,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,458.06)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -898,7 +898,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,439.82)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -922,7 +922,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,421.5799999999999)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -946,7 +946,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,403.34)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -970,7 +970,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,385.1)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -994,7 +994,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,366.86)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1018,7 +1018,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,348.62)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1042,7 +1042,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,330.38)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1066,7 +1066,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,312.14)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1090,7 +1090,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,293.9)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1122,7 +1122,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,275.66)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1146,7 +1146,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,257.41999999999996)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1170,7 +1170,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,239.18)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1194,7 +1194,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,220.94)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1218,7 +1218,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,202.7)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1242,7 +1242,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,184.46)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1266,7 +1266,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,166.22)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1290,7 +1290,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,147.98)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1314,7 +1314,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,129.74)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1338,7 +1338,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1366,7 +1366,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -1376,7 +1376,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(687.2272727272727,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1393,7 +1393,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(735.7727272727273,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1413,7 +1413,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
+exports[`BarGraphRenderer Tests > With JSON Data and Updates 3`] = `
 <svg>
   <svg
     id="graph2"
@@ -1429,7 +1429,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -1439,7 +1439,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1463,7 +1463,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,549.26)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1487,7 +1487,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,531.02)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1511,7 +1511,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,512.78)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1535,7 +1535,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,494.53999999999996)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1559,7 +1559,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,476.3)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1583,7 +1583,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,458.06)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1607,7 +1607,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,439.82)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1631,7 +1631,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,421.5799999999999)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1655,7 +1655,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,403.34)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1679,7 +1679,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,385.1)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1703,7 +1703,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,366.86)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1727,7 +1727,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,348.62)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1751,7 +1751,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,330.38)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1775,7 +1775,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,312.14)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1799,7 +1799,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,293.9)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1831,7 +1831,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,275.66)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1855,7 +1855,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,257.41999999999996)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1879,7 +1879,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,239.18)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1903,7 +1903,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,220.94)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1927,7 +1927,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,202.7)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1951,7 +1951,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,184.46)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1975,7 +1975,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,166.22)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -1999,7 +1999,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,147.98)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2023,7 +2023,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,129.74)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2047,7 +2047,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2075,7 +2075,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2085,7 +2085,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(711.5,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2113,7 +2113,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
+exports[`BarGraphRenderer Tests > With JSON Data and Updates 4`] = `
 <svg>
   <svg
     id="graph2"
@@ -2129,7 +2129,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2139,7 +2139,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2163,7 +2163,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2199,7 +2199,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2212,7 +2212,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
+exports[`BarGraphRenderer Tests > With JSON Data and Updates 5`] = `
 <svg>
   <svg
     id="graph2"
@@ -2228,7 +2228,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2238,7 +2238,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2262,7 +2262,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2298,7 +2298,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2308,7 +2308,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(711.5,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2335,7 +2335,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
+exports[`BarGraphRenderer Tests > With JSON Data and Updates 6`] = `
 <svg>
   <svg
     id="graph2"
@@ -2351,7 +2351,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2361,7 +2361,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2385,7 +2385,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2421,7 +2421,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2431,7 +2431,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(711.5,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2459,7 +2459,7 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With Tabular Data and Updates 1`] = `
+exports[`BarGraphRenderer Tests > With Tabular Data and Updates 1`] = `
 <svg>
   <svg
     id="graph3"
@@ -2475,7 +2475,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 1`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(0,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2485,7 +2485,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 1`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,870.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2537,7 +2537,7 @@ n"
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2547,7 +2547,7 @@ n"
         <g
           class="tick"
           opacity="1"
-          transform="translate(314.2857142857143,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2564,7 +2564,7 @@ n"
         <g
           class="tick"
           opacity="1"
-          transform="translate(885.7142857142858,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2584,7 +2584,7 @@ n"
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
+exports[`BarGraphRenderer Tests > With Tabular Data and Updates 2`] = `
 <svg>
   <svg
     id="graph3"
@@ -2600,7 +2600,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2610,7 +2610,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2642,7 +2642,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2670,7 +2670,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2680,7 +2680,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(687.2272727272727,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2697,7 +2697,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(735.7727272727273,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2717,7 +2717,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
+exports[`BarGraphRenderer Tests > With Tabular Data and Updates 3`] = `
 <svg>
   <svg
     id="graph3"
@@ -2733,7 +2733,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -2743,7 +2743,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2775,7 +2775,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,549.26)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2799,7 +2799,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,531.02)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2823,7 +2823,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,512.78)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2847,7 +2847,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,494.53999999999996)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2871,7 +2871,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,476.3)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2895,7 +2895,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,458.06)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2919,7 +2919,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,439.82)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2943,7 +2943,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,421.5799999999999)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2967,7 +2967,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,403.34)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -2991,7 +2991,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,385.1)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3015,7 +3015,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,366.86)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3039,7 +3039,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,348.62)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3063,7 +3063,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,330.38)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3087,7 +3087,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,312.14)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3111,7 +3111,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,293.9)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3135,7 +3135,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,275.66)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3159,7 +3159,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,257.41999999999996)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3183,7 +3183,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,239.18)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3207,7 +3207,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,220.94)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3231,7 +3231,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,202.7)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3255,7 +3255,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,184.46)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3279,7 +3279,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,166.22)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3303,7 +3303,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,147.98)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3327,7 +3327,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,129.74)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3351,7 +3351,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3379,7 +3379,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -3389,7 +3389,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(711.5,0)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3417,7 +3417,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
+exports[`BarGraphRenderer Tests > With Tabular Data and Updates 4`] = `
 <svg>
   <svg
     id="graph3"
@@ -3433,7 +3433,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -3443,7 +3443,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3475,7 +3475,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3503,7 +3503,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -3516,7 +3516,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
+exports[`BarGraphRenderer Tests > With Tabular Data and Updates 5`] = `
 <svg>
   <svg
     id="graph3"
@@ -3532,7 +3532,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -3542,7 +3542,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3574,7 +3574,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3602,7 +3602,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -3615,7 +3615,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
 </svg>
 `;
 
-exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
+exports[`BarGraphRenderer Tests > With Tabular Data and Updates 6`] = `
 <svg>
   <svg
     id="graph3"
@@ -3631,7 +3631,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
-        transform="translate(444,0)"
+        transform="<filtered>"
       >
         <path
           class="domain"
@@ -3641,7 +3641,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,567.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3673,7 +3673,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
         <g
           class="tick"
           opacity="1"
-          transform="translate(0,111.5)"
+          transform="<filtered>"
         >
           <line
             stroke="currentColor"
@@ -3701,7 +3701,7 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,567)"
+        transform="<filtered>"
       >
         <path
           class="domain"

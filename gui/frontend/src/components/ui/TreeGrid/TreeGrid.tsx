@@ -83,7 +83,7 @@ export interface ITreeGridOptions {
     /** The number of pixels child nodes should be indented */
     treeChildIndent?: number;
 
-    /** Determines how columns are initially layed out (default: none). */
+    /** Determines how columns are initially laid out (default: none). */
     layout?: "fitData" | "fitDataFill" | "fitDataStretch" | "fitDataTable" | "fitColumns";
 
     /**
@@ -206,6 +206,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     // True when the grid is in edit mode.
     private isEditing = false;
 
+    // The component is being unmounted. Don't add any more data.
+    private cancelled = false;
+
     public constructor(props: ITreeGridProperties) {
         super(props);
 
@@ -293,6 +296,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public override componentWillUnmount(): void {
+        this.tableReady = false;
+        this.cancelled = true;
         if (this.timeoutId) {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
@@ -314,42 +319,44 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             if (tableData) {
                 // The call to replaceData does not change the scroll position.
                 void this.tabulator.replaceData(tableData as Array<{}>).then(() => {
-                    if (columns) {
-                        // The call to setColumns does. Record the current position and restore it after the update.
-                        // Also restore the column widths.
-                        const rowManager = this.tabulator!.rowManager as IDictionary;
-                        const columnManager = this.tabulator!.columnManager as IDictionary;
-                        const rowElement = rowManager.element as HTMLElement;
+                    if (!this.cancelled) {
+                        if (columns) {
+                            // The call to setColumns does. Record the current position and restore it after the update.
+                            // Also restore the column widths.
+                            const rowManager = this.tabulator!.rowManager as IDictionary;
+                            const columnManager = this.tabulator!.columnManager as IDictionary;
+                            const rowElement = rowManager.element as HTMLElement;
 
-                        const scrollTop = (rowManager.element as IDictionary).scrollTop as number;
-                        const scrollLeft = rowElement.scrollLeft;
+                            const scrollTop = (rowManager.element as IDictionary).scrollTop as number;
+                            const scrollLeft = rowElement.scrollLeft;
 
-                        const previousColumnComponents = this.tabulator!.getColumns(true);
-                        const widths = previousColumnComponents.map((component) => {
-                            return component.getWidth();
-                        });
-                        this.tabulator?.setColumns(columns);
-
-                        const newColumnComponents = this.tabulator!.getColumns(true);
-                        if (previousColumnComponents.length === newColumnComponents.length) {
-                            newColumnComponents.forEach((component, index) => {
-                                component.setWidth(widths[index]);
+                            const previousColumnComponents = this.tabulator!.getColumns(true);
+                            const widths = previousColumnComponents.map((component) => {
+                                return component.getWidth();
                             });
+                            this.tabulator?.setColumns(columns);
+
+                            const newColumnComponents = this.tabulator!.getColumns(true);
+                            if (previousColumnComponents.length === newColumnComponents.length) {
+                                newColumnComponents.forEach((component, index) => {
+                                    component.setWidth(widths[index]);
+                                });
+                            }
+
+                            rowElement.scrollTop = scrollTop;
+
+                            (rowManager.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
+                            (columnManager.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
                         }
 
-                        rowElement.scrollTop = scrollTop;
-
-                        (rowManager.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
-                        (columnManager.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
-                    }
-
-                    // Both columns and rows have been set. Now update the UI.
-                    this.tabulator?.redraw();
-                    if (selectedRows) {
-                        this.tabulator?.selectRow(selectedRows);
+                        // Both columns and rows have been set. Now update the UI.
+                        this.tabulator?.redraw();
+                        if (selectedRows) {
+                            this.tabulator?.selectRow(selectedRows);
+                        }
                     }
                 });
-            } else if (selectedRows) {
+            } else if (selectedRows && !this.cancelled) {
                 if (columns) {
                     // No data here, so no need to restore the scroll position.
                     this.tabulator.setColumns(columns);
@@ -401,7 +408,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     public setColumns(columns: ColumnDefinition[]): Promise<void> {
         return new Promise((resolve, reject) => {
             this.table.then(() => {
-                this.tabulator?.setColumns(columns);
+                if (!this.cancelled) {
+                    this.tabulator?.setColumns(columns);
+                }
                 resolve();
             }).catch((reason: unknown) => {
                 reject(reason as Error);
@@ -417,6 +426,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     public async setData(data: unknown[], action: SetDataAction): Promise<void> {
         const table = await this.table;
+
+        if (this.cancelled) {
+            return;
+        }
 
         switch (action) {
             case SetDataAction.Replace: {

@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { beforeAll, describe, expect, it } from "vitest";
+
 import { ApplicationDB, StoreType } from "../../../app-logic/ApplicationDB.js";
 
 describe("ApplicationDB tests", () => {

@@ -24,17 +24,19 @@
  */
 
 import { basename } from "path";
+import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
 import { driver, loadDriver } from "../lib/driver.js";
-import { Misc } from "../lib/misc.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
+
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2EShellConsole } from "../lib/E2EShellConsole.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
-import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import * as interfaces from "../lib/interfaces.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -45,11 +47,10 @@ let e2eProfile: string | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
 
-describe.skip("OCI", () => {
+describe("OCI", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(url);
         const configs = await Misc.mapOciConfig();
         ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
             return item.name === "E2ETESTS";
@@ -59,14 +60,14 @@ describe.skip("OCI", () => {
         ociTree = [e2eProfile, "/ (Root Compartment)", "QA", "MySQLShellTesting"];
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
             await settings.close();
             await ociTreeSection.focus();
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_OCI");
+            await Misc.storeScreenShot(undefined, "beforeAll_OCI");
             throw e;
         }
 
@@ -78,10 +79,10 @@ describe.skip("OCI", () => {
         await driver.quit();
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
 
         await tabContainer.closeAllTabs();
@@ -130,7 +131,7 @@ describe.skip("OCI", () => {
                 .execute("mds.get.currentCompartmentId()") as E2ECommandResultData;
             expect(result.text).toContain("ocid1");
         } catch (e) {
-            await Misc.storeScreenShot();
+            testFailed = true;
             throw e;
         }
     });
@@ -162,10 +163,9 @@ describe.skip("OCI", () => {
             await driver.wait(treeBastion.untilIsDefault(),
                 constants.wait10seconds, "Bastion is not the default item");
         } catch (e) {
-            await Misc.storeScreenShot();
+            testFailed = true;
             throw e;
         }
     });
 
 });
-

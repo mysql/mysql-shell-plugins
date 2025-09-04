@@ -23,47 +23,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition } from "monaco-editor";
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { FormattingProvider } from "../../../../../components/ui/CodeEditor/FormattingProvider.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
-import { mockModel, mockTextModel } from "../../../__mocks__/CodeEditorMocks.js";
-
-jest.mock("../../../../../script-execution/PresentationInterface");
+import { mockModel } from "../../../__mocks__/CodeEditorMocks.js";
 
 describe("DocumentHighlightProvider tests", () => {
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Create instance and init", () => {
         const lang = { tabSize: 0, insertSpaces: false };
         const formattingProvider = new FormattingProvider();
-        expect(formattingProvider).not.toBeNull();
+
+        const pi = new PresentationInterface("javascript");
+        const execContext = mockModel.executionContexts!.addContext(pi);
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
 
         let result = formattingProvider.provideDocumentFormattingEdits(mockModel, lang);
-        expect(result).toBeNull();
+        expect(result).toBeUndefined();
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
-
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0 };
-        });
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
         result = formattingProvider.provideDocumentFormattingEdits(mockModel, lang);
-        expect(result).toBe(undefined);
+        expect(result).toBeUndefined();
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
-        if (execContext.model) {
-            execContext.model.isDisposed = jest.fn().mockReturnValue(false);
-        } else {
-            jest.spyOn(execContext, "model", "get").mockReturnValue(mockTextModel);
-        }
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const services = ScriptingLanguageServices.instance;
-        services.format = jest.fn().mockReturnValue({
+        services.format = vi.fn().mockReturnValue({
             uri: "",
             range: null,
         });
@@ -72,8 +63,8 @@ describe("DocumentHighlightProvider tests", () => {
         // TODO: Improve mocking to actually get a result.
         expect(result).toBeUndefined();
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        jest.spyOn(execContext, "code", "get").mockReturnValue("my new test");
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
+        vi.spyOn(execContext, "code", "get").mockReturnValue("my new test");
         result = formattingProvider.provideDocumentFormattingEdits(mockModel, lang);
 
         // TODO: Improve mocking to actually get a result.

@@ -23,9 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { render } from "@testing-library/preact";
 import { act } from "preact/test-utils";
-import { mount } from "enzyme";
-import { Accordion, IAccordionProperties } from "../../../../components/ui/Accordion/Accordion.js";
+import { describe, expect, it, vi } from "vitest";
+
+import { Accordion } from "../../../../components/ui/Accordion/Accordion.js";
 import { Codicon } from "../../../../components/ui/Codicon.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
@@ -34,12 +36,10 @@ const icon = Assets.documents.overviewPageIcon as string;
 describe("Accordion component tests", (): void => {
 
     it("Test Accordion callbacks", async () => {
-        const event: unknown = {
-            preventDefault: jest.fn(),
-            stopPropagation: jest.fn(),
-        };
+        const onSectionExpand = vi.fn();
+        const onSectionAction = vi.fn();
 
-        const component = mount(
+        const { container, unmount } = render(
             <Accordion
                 id="sidebar1"
                 style={{
@@ -49,8 +49,8 @@ describe("Accordion component tests", (): void => {
                 caption="SIDEBAR TITLE"
                 footer={"Lorem ipsum dolor sit amen, consenter"}
                 singleExpand={true}
-                onSectionExpand={jest.fn()}
-                onSectionAction={jest.fn()}
+                onSectionExpand={onSectionExpand}
+                onSectionAction={onSectionAction}
 
                 sections={[
                     {
@@ -110,47 +110,37 @@ describe("Accordion component tests", (): void => {
             />,
         );
 
-        expect(component).toBeTruthy();
-        const instance = component.instance();
-        const section1 = component.findWhere((node) => {
-            return node.text() === "FIRST SECTION";
-        }).first();
-        expect(section1).toHaveLength(1);
+        const section1 = container.querySelector("#first") as HTMLElement;
+        expect(section1).toBeDefined();
 
-        const section2 = component.findWhere((node) => {
-            return node.text() === "SECOND SECTION";
-        }).first();
-        expect(section2).toHaveLength(1);
+        const section2 = container.querySelector("#second") as HTMLElement;
+        expect(section2).toBeDefined();
 
-        const section3 = component.findWhere((node) => {
-            return node.text() === "THIRD SECTION";
-        }).first();
-        expect(section3).toHaveLength(1);
+        const section3 = container.querySelector("#third");
+        expect(section3).toBeDefined();
 
-        const spyExpand = jest.spyOn(instance.props as IAccordionProperties, "onSectionExpand");
-        expect(spyExpand).not.toHaveBeenCalled();
-
-        let onClick = (section1.props() as IAccordionProperties).onClick;
-        await act(() => {
-            onClick?.(event as MouseEvent | KeyboardEvent, { id: "2" });
-        });
-        expect(spyExpand).toHaveBeenCalled();
-
-        const spyAction = jest.spyOn(instance.props as IAccordionProperties, "onSectionAction");
-        expect(spyAction).not.toHaveBeenCalled();
-        onClick = (component.find("#addConsole").first().props() as IAccordionProperties).onClick;
-        expect(onClick).toBeDefined();
+        expect(onSectionExpand).not.toHaveBeenCalled();
 
         await act(() => {
-            onClick?.(event as MouseEvent | KeyboardEvent, { id: "2" });
+            const title = section1.getElementsByClassName("title")[0] as HTMLElement;
+            title.click();
         });
-        expect(spyAction).toHaveBeenCalled();
+        expect(onSectionExpand).toHaveBeenCalled();
 
-        component.unmount();
+        expect(onSectionAction).not.toHaveBeenCalled();
+        const addConsoleButton = container.querySelector<HTMLButtonElement>("#addConsole");
+        expect(addConsoleButton).toBeDefined();
+
+        await act(() => {
+            addConsoleButton?.click();
+        });
+        expect(onSectionAction).toHaveBeenCalled();
+
+        unmount();
     });
 
     it("Test accordion output (Snapshot)", () => {
-        const component = mount<Accordion>(
+        const { container, unmount } = render(
             <Accordion
                 id="sidebar1"
                 style={{
@@ -207,8 +197,8 @@ describe("Accordion component tests", (): void => {
                 ]}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

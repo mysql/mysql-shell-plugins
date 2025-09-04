@@ -1,78 +1,48 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Checkbox component tests Test checkbox output (Snapshot) 1`] = `
+exports[`Checkbox component tests > Test checkbox output (Snapshot) 1`] = `
 <div>
-  <Checkbox
-    checkState={0}
-    disabled={false}
-    id="cb1"
-  >
+  <div>
     <label
-      className="msg checkbox unchecked"
+      class="msg checkbox unchecked"
       id="cb1"
-      onClick={[Function]}
-      onKeyPress={[Function]}
-      tabIndex={0}
+      tabindex="0"
     >
       <span
-        className="checkMark"
+        class="checkMark"
       />
       Unchecked checkbox
     </label>
-  </Checkbox>
-  <Checkbox
-    checkState={2}
-    disabled={false}
-    id="cb2"
-  >
     <label
-      className="msg checkbox indeterminate"
+      class="msg checkbox indeterminate"
       id="cb2"
-      onClick={[Function]}
-      onKeyPress={[Function]}
-      tabIndex={0}
+      tabindex="0"
     >
       <span
-        className="checkMark"
+        class="checkMark"
       />
       Indeterminate checkbox
     </label>
-  </Checkbox>
-  <Checkbox
-    checkState={1}
-    disabled={false}
-    id="cb3"
-  >
     <label
-      className="msg checkbox checked"
+      class="msg checkbox checked"
       id="cb3"
-      onClick={[Function]}
-      onKeyPress={[Function]}
-      tabIndex={0}
+      tabindex="0"
     >
       <span
-        className="checkMark"
+        class="checkMark"
       />
       Checked checkbox
     </label>
-  </Checkbox>
-  <Checkbox
-    checkState={2}
-    disabled={true}
-    id="cb4"
-  >
     <label
-      className="msg checkbox indeterminate disabled"
+      class="msg checkbox indeterminate disabled"
       id="cb4"
-      onClick={[Function]}
-      onKeyPress={[Function]}
-      tabIndex={0}
+      tabindex="0"
     >
       <span
-        className="checkMark"
+        class="checkMark"
       />
       Disabled checkbox
     </label>
-  </Checkbox>
+  </div>
 </div>
 `;

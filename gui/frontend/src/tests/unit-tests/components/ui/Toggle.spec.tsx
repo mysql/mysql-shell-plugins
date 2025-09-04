@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,39 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
+
 import Color from "color";
-import { mount } from "enzyme";
 
 import { CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
-import { Toggle, IToggleProperties } from "../../../../components/ui/Toggle/Toggle.js";
+import { Toggle } from "../../../../components/ui/Toggle/Toggle.js";
 
 describe("Toggle testing", () => {
-
-    it("Toggle test properties", () => {
-        const component = mount(
-            <Toggle
-                checkState={CheckState.Checked}
-                disabled={false}
-                round={true}
-                caption="My toggle"
-                borderWidth={123}
-                color={Color.rgb(12, 12, 12)}
-                checkedColor={Color.rgb(1, 1, 1)}
-            />,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props() as IToggleProperties;
-        expect(props.checkState).toEqual(CheckState.Checked);
-        expect(props.disabled).toEqual(false);
-        expect(props.round).toEqual(true);
-        expect(props.caption).toEqual("My toggle");
-        expect(props.borderWidth).toEqual(123);
-        expect(props.color).toEqual(Color.rgb(12, 12, 12));
-        expect(props.checkedColor).toEqual(Color.rgb(1, 1, 1));
-    });
-
     it("Render test", () => {
-        const component = mount(
+        const { container, unmount } = render(
             <Toggle
                 checkState={CheckState.Checked}
                 disabled={false}
@@ -66,8 +44,9 @@ describe("Toggle testing", () => {
                 checkedColor={Color.rgb(1, 1, 1)}
             />,
         );
-        expect(component).toMatchSnapshot();
-        component.unmount();
+
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
 });

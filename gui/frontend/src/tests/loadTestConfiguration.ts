@@ -25,7 +25,7 @@
 
 /** This script loads the .env.test.json file and registers it as a globalThis field (`globalThis.testConfig`). */
 
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -34,7 +34,12 @@ const testConfigFile = join(dirname(filename), "./.env.test.json");
 let testConfig: Record<string, string> = {};
 
 try {
-    testConfig = JSON.parse(readFileSync(testConfigFile, "utf-8")) as Record<string, string>;
+    let configContent = "{}";
+    if (existsSync(testConfigFile)) {
+        configContent = readFileSync(testConfigFile, "utf-8");
+    }
+
+    testConfig = JSON.parse(configContent) as Record<string, string>;
 } catch (e) {
     console.error(`Failed to read or parse the test configuration file: ${testConfigFile}`);
     console.error(e);

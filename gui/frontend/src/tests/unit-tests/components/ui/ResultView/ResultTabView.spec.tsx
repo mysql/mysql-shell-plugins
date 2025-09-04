@@ -23,12 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { MessageType } from "../../../../../app-logic/general-types.js";
-import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
 import { IResultTabViewToggleOptions, ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
-import { Button } from "../../../../../components/ui/Button/Button.js";
 import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
 import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 
@@ -41,7 +41,7 @@ const toggleOptions: IResultTabViewToggleOptions = {
 describe("Result Tabview Tests", (): void => {
 
     it("Standard Rendering", () => {
-        const component = mount<ResultTabView>(
+        const { container, unmount } = render(
             <ResultTabView
                 resultSets={{
                     type: "resultSets",
@@ -53,13 +53,13 @@ describe("Result Tabview Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Rendering Only Output", () => {
-        const component = mount<ResultTabView>(
+        const { container, unmount } = render(
             <ResultTabView
                 resultSets={{
                     type: "resultSets",
@@ -75,13 +75,13 @@ describe("Result Tabview Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Tabview With Result Sets", () => {
-        const component = mount<ResultTabView>(
+        const { container, unmount } = render(
             <ResultTabView
                 currentSet={1}
                 resultSets={{
@@ -130,14 +130,16 @@ describe("Result Tabview Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Update Data", async () => {
-        const component = mount<ResultTabView>(
+        const viewRef = createRef<ResultTabView>();
+        const { container, unmount, rerender } = render(
             <ResultTabView
+                ref={viewRef}
                 currentSet={1}
                 resultSets={{
                     type: "resultSets",
@@ -175,34 +177,38 @@ describe("Result Tabview Tests", (): void => {
             />,
         );
 
-        let tabs = component.find(Button);
+        await nextRunLoop();
+        expect(viewRef.current).toBeDefined();
+
+        let tabs = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
         expect(tabs).toHaveLength(2);
 
         let found = false;
-        tabs.forEach((tab) => {
-            if (tab.props().id === "123") {
+        for (const tab of tabs) {
+            if (tab.id === "123") {
                 found = true;
-                tab.getDOMNode<HTMLButtonElement>().click(); // Select the first as the current result set.
+                tab.click(); // Select the first as the current result set.
             }
-        });
-        expect(found).toBe(true);
-        expect(component.state().currentResultSet).toBeDefined();
-        expect(component.state().currentResultSet?.resultId).toBe("123");
+        }
 
-        await component.instance().updateColumns("123", []);
+        expect(found).toBe(true);
+        expect(viewRef.current!.state.currentResultSet).toBeDefined();
+        expect(viewRef.current!.state.currentResultSet?.resultId).toBe("123");
+
+        await viewRef.current!.updateColumns("123", []);
 
         // Add data with and w/o execution info.
-        await component.instance().addData({
+        await viewRef.current!.addData({
             type: "resultSetRows",
             columns: [],
             rows: [],
             currentPage: 111,
         }, "123");
 
-        let status = component.find(ResultStatus);
+        let status = container.getElementsByClassName("resultStatus");
         expect(status).toHaveLength(0);
 
-        await component.instance().addData({
+        await viewRef.current!.addData({
             type: "resultSetRows",
             columns: [],
             rows: [],
@@ -215,17 +221,19 @@ describe("Result Tabview Tests", (): void => {
         await nextProcessTick();
 
         // Data added via addData does not modify the original data. The owner has to take care to provide this data.
-        status = component.find(ResultStatus);
+        status = container.getElementsByClassName("resultStatus");
         expect(status).toHaveLength(0);
 
-        const onSelectTab = jest.fn();
+        const onSelectTab = vi.fn();
 
         // Now update the component with data that has an executionInfo field to create a status.
         // We keep the original result set by intention, to keep it selected.
         // Also add output text to the set, while we are at it, to add an output tab to the set.
-        component.setProps({
-            onSelectTab,
-            resultSets: {
+        rerender(<ResultTabView
+            ref={viewRef}
+            onSelectTab={onSelectTab}
+            currentSet={1}
+            resultSets={{
                 type: "resultSets",
                 output: [
                     {
@@ -261,29 +269,35 @@ describe("Result Tabview Tests", (): void => {
                         currentPage: 10,
                     },
                 }],
-            },
-        });
+            }}
+            contextId="ec123"
+            hideTabs="never"
+            toggleOptions={{
+                showMaximizeButton: "statusBar",
+                handleResultToggle,
+            }}
 
+        />);
         await nextProcessTick();
 
-        status = component.find(ResultStatus);
+        status = container.getElementsByClassName("resultStatus");
         expect(status).toHaveLength(1);
 
         // Check the output tab.
-        tabs = component.find(Button);
+        tabs = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
         expect(tabs).toHaveLength(3); // Like before, but now with the output tab.
 
         found = false;
-        tabs.forEach((tab) => {
-            if (tab.props().id === "output") {
+        for (const tab of tabs) {
+            if (tab.id === "output") {
                 found = true;
-                tab.getDOMNode<HTMLButtonElement>().click(); // Select the first as the current result set.
+                tab.click(); // Select the first as the current result set.
             }
-        });
+        }
         expect(found).toBe(true);
         expect(onSelectTab).toHaveBeenCalledWith(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("Toolbar", async () => {
@@ -327,12 +341,12 @@ describe("Result Tabview Tests", (): void => {
             }],
         };
 
-        const onResultPageChange = jest.fn(() => {
-            // no-op
-        });
+        const viewRef = createRef<ResultTabView>();
+        const onResultPageChange = vi.fn();
 
-        const component = mount<ResultTabView>(
+        const { container, unmount, rerender } = render(
             <ResultTabView
+                ref={viewRef}
                 currentSet={1}
                 resultSets={resultSets}
                 contextId="ec123"
@@ -346,30 +360,46 @@ describe("Result Tabview Tests", (): void => {
         );
 
         await nextProcessTick();
+        expect(viewRef.current).toBeDefined();
 
         // Select the second result set.
-        const tabs = component.find(Button);
+        const tabs = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
         expect(tabs).toHaveLength(5);
 
         let found = false;
-        tabs.forEach((tab) => {
-            if (tab.props().id === "456") {
+        for (const tab of tabs) {
+            if (tab.id === "456") {
                 found = true;
-                tab.getDOMNode<HTMLButtonElement>().click();
+                tab.click();
             }
-        });
-        component.setProps({ currentSet: 2 });
+        }
+
+        rerender(
+            <ResultTabView
+                ref={viewRef}
+                currentSet={2}
+                resultSets={resultSets}
+                contextId="ec123"
+                hideTabs="single"
+                toggleOptions={{
+                    showMaximizeButton: "tab",
+                    handleResultToggle,
+                }}
+                onResultPageChange={onResultPageChange}
+            />,
+        );
+
         expect(found).toBe(true);
-        expect(component.state().currentResultSet).toBeDefined();
+        expect(viewRef.current!.state.currentResultSet).toBeDefined();
         await nextRunLoop();
 
-        const toolbars = component.getDOMNode().getElementsByClassName("toolbar");
+        const toolbars = container.getElementsByClassName("toolbar");
         expect(toolbars).toHaveLength(1);
 
-        const buttons = component.getDOMNode().getElementsByClassName("button");
+        const buttons = container.getElementsByClassName("button");
         expect(buttons).toHaveLength(13);
 
-        const dividers = component.getDOMNode().getElementsByClassName("divider");
+        const dividers = container.getElementsByClassName("divider");
         expect(dividers).toHaveLength(3);
 
         // Click all buttons:
@@ -384,7 +414,7 @@ describe("Result Tabview Tests", (): void => {
         // page counter for visual updates).
         // We only need to update the UI here.
         button.click();
-        component.instance().forceUpdate();
+        viewRef.current!.forceUpdate();
         await nextRunLoop();
 
         expect(button.classList.contains("disabled")).toBe(true);
@@ -452,7 +482,7 @@ describe("Result Tabview Tests", (): void => {
         (items[2] as HTMLButtonElement).click();
         (items[3] as HTMLButtonElement).click();
 
-        component.unmount();
+        unmount();
     });
 
     describe("Test getDerivedStateFromProps", () => {

@@ -1,23 +1,10 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Icon component tests Standard Rendering 1`] = `
-<Icon
-  disabled={false}
-  src="close.svg"
->
+exports[`Icon component tests > Standard Rendering 1`] = `
+<div>
   <div
-    className="msg icon"
-    style={
-      {
-        "WebkitMaskImage": "url("close.svg")",
-        "backgroundColor": undefined,
-        "height": undefined,
-        "maskComposite": undefined,
-        "maskImage": "url("close.svg")",
-        "maskSize": undefined,
-        "width": undefined,
-      }
-    }
+    class="msg icon"
+    style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%20522.85,%20522.85'%3e%3cg%20id='Close'%20transform='translate(-250.575,%20-250.575)'%3e%3cg%3e%3cg%3e%3cpath%20d='M304.931,256.848%20L768.152,720.069%20C776.921,728.838%20773.265,746.71%20759.987,759.987%20L759.987,759.987%20C746.71,773.265%20728.838,776.921%20720.069,768.152%20L256.848,304.931%20C248.079,296.162%20251.735,278.29%20265.013,265.013%20L265.013,265.013%20C278.29,251.735%20296.162,248.079%20304.931,256.848%20z'%20fill='%23000000'/%3e%3cpath%20d='M304.931,256.848%20L768.152,720.069%20C776.921,728.838%20773.265,746.71%20759.987,759.987%20L759.987,759.987%20C746.71,773.265%20728.838,776.921%20720.069,768.152%20L256.848,304.931%20C248.079,296.162%20251.735,278.29%20265.013,265.013%20L265.013,265.013%20C278.29,251.735%20296.162,248.079%20304.931,256.848%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M768.152,304.931%20L304.931,768.152%20C296.162,776.921%20278.29,773.265%20265.013,759.987%20L265.013,759.987%20C251.735,746.71%20248.079,728.838%20256.848,720.069%20L720.069,256.848%20C728.838,248.079%20746.71,251.735%20759.987,265.013%20L759.987,265.013%20C773.265,278.29%20776.921,296.162%20768.152,304.931%20z'%20fill='%23000000'/%3e%3cpath%20d='M768.152,304.931%20L304.931,768.152%20C296.162,776.921%20278.29,773.265%20265.013,759.987%20L265.013,759.987%20C251.735,746.71%20248.079,728.838%20256.848,720.069%20L720.069,256.848%20C728.838,248.079%20746.71,251.735%20759.987,265.013%20L759.987,265.013%20C773.265,278.29%20776.921,296.162%20768.152,304.931%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
   />
-</Icon>
+</div>
 `;

@@ -1,3 +1,14 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Input render testing Test Input output (Snapshot) 1`] = `""`;
+exports[`Input render testing > Test Input output (Snapshot) 1`] = `
+<div>
+  <input
+    class="msg input"
+    disabled=""
+    id="input2"
+    placeholder="Disabled input"
+    spellcheck="true"
+    type="text"
+  />
+</div>
+`;

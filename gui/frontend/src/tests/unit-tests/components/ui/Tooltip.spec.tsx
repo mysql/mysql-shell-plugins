@@ -23,22 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "@testing-library/jest-dom";
 import { fireEvent, render, waitFor } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
+
 import { Label } from "../../../../components/ui/Label/Label.js";
 import { TooltipProvider } from "../../../../components/ui/Tooltip/Tooltip.js";
+import * as helpers from "../../../../components/ui/html-helpers.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 import { loremIpsum, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
-import * as helpers from "../../../../components/ui/html-helpers.js";
-
-// We have to do this here instead of within the test itself
-// because all named imports are already resolved and spy won't function correctly otherwise
-jest.mock("../../../../components/ui/html-helpers.js", (): unknown => {
-    return {
-        __esModule: true, // this is important
-        ...jest.requireActual("../../../../components/ui/html-helpers.js"),
-    };
-});
 
 describe("Tooltip component tests", (): void => {
     const delay = 200;
@@ -50,7 +42,7 @@ describe("Tooltip component tests", (): void => {
         const text = "hover me";
         const tooltip = "tooltip";
 
-        const rendered = render(
+        const { unmount, queryByText } = render(
             <div>
                 <div id="other" />
                 <Label data-tooltip={tooltip}>
@@ -62,10 +54,10 @@ describe("Tooltip component tests", (): void => {
 
         // Tooltip should not be visible initially
         expect(queryTooltipElement()).toBeNull();
-        expect(rendered.queryByText(tooltip)).toBeNull();
+        expect(queryByText(tooltip)).toBeNull();
 
         // Getting target element for the tooltip
-        const element = rendered.queryByText(text);
+        const element = queryByText(text);
         expect(element).not.toBe(null);
 
         // Hovering target element
@@ -73,20 +65,19 @@ describe("Tooltip component tests", (): void => {
 
         // Wait for ${delay} and then check if the tooltip appears
         await waitFor(() => {
-
-            expect(rendered.queryByText(tooltip)).toBeInTheDocument();
-            expect(queryTooltipElement()).toBeInTheDocument();
+            expect(queryByText(tooltip)).toBeDefined();
+            expect(queryTooltipElement()).toBeDefined();
 
             // Basically the same as mouse leave from target
             fireEvent.mouseOver(document.getElementById("other") as Element);
 
             // Now it has to disappear
-            expect(rendered.queryByText(tooltip)).toBeNull();
+            expect(queryByText(tooltip)).toBeNull();
             expect(queryTooltipElement()).toBeNull();
 
         }, { timeout: delay });
 
-        rendered.unmount();
+        unmount();
     });
 
     it("Tooltip from JSON", async () => {
@@ -108,29 +99,28 @@ describe("Tooltip component tests", (): void => {
             </div>
         );
 
-        const rendered = render(component);
+        const { unmount, queryByText, getByTestId } = render(component);
 
         expect(queryTooltipElement()).toBeNull();
-        expect(rendered.queryByText(tooltip)).toBeNull();
+        expect(queryByText(tooltip)).toBeNull();
 
-        const element = rendered.getByTestId(testId);
+        const element = getByTestId(testId);
         expect(element).not.toBe(null);
 
         fireEvent.mouseOver(element as Element);
 
         await waitFor(() => {
-
-            expect(rendered.queryByText(tooltip)).toBeInTheDocument();
-            expect(queryTooltipElement()).toBeInTheDocument();
+            expect(queryByText(tooltip)).toBeDefined();
+            expect(queryTooltipElement()).toBeDefined();
 
             fireEvent.mouseOver(document.getElementById("other") as Element);
 
-            expect(rendered.queryByText(tooltip)).toBeNull();
+            expect(queryByText(tooltip)).toBeNull();
             expect(queryTooltipElement()).toBeNull();
 
         }, { timeout: delay });
 
-        rendered.unmount();
+        unmount();
     });
 
     it("Tooltip disappears on escape", async () => {
@@ -146,34 +136,34 @@ describe("Tooltip component tests", (): void => {
             </div>
         );
 
-        const rendered = render(component);
+        const { unmount, queryByText } = render(component);
 
         expect(queryTooltipElement()).toBeNull();
-        expect(rendered.queryByText(tooltip)).toBeNull();
+        expect(queryByText(tooltip)).toBeNull();
 
-        const element = rendered.queryByText(text);
+        const element = queryByText(text);
         expect(element).not.toBe(null);
 
         fireEvent.mouseOver(element as Element);
 
         await waitFor(async () => {
 
-            expect(rendered.queryByText(tooltip)).toBeInTheDocument();
-            expect(queryTooltipElement()).toBeInTheDocument();
+            expect(queryByText(tooltip)).toBeDefined();
+            expect(queryTooltipElement()).toBeDefined();
 
             sendKeyPress(KeyboardKeys.Escape);
             await nextProcessTick();
 
-            expect(rendered.queryByText(tooltip)).toBeNull();
+            expect(queryByText(tooltip)).toBeNull();
             expect(queryTooltipElement()).toBeNull();
 
         }, { timeout: delay });
 
-        rendered.unmount();
+        unmount();
     });
 
     it("Tooltip from (expanded) target text", async () => {
-        jest.spyOn(helpers, "isElementClipped").mockImplementation(
+        vi.spyOn(helpers, "isElementClipped").mockImplementation(
             () => {
                 return true;
             },
@@ -182,7 +172,7 @@ describe("Tooltip component tests", (): void => {
         const text = loremIpsum;
         const testId = "expandable";
 
-        const rendered = render(
+        const { unmount, getByTestId } = render(
             <div>
                 <div id="other" />
                 <div
@@ -197,13 +187,13 @@ describe("Tooltip component tests", (): void => {
 
         expect(queryTooltipElement()).toBeNull();
 
-        const element = rendered.getByTestId(testId);
+        const element = getByTestId(testId);
         expect(element).not.toBe(null);
 
         fireEvent.mouseOver(element);
 
         await waitFor(() => {
-            expect(queryTooltipElement()).toBeInTheDocument();
+            expect(queryTooltipElement()).toBeDefined();
 
             fireEvent.mouseOver(document.getElementById("other") as Element);
 
@@ -211,6 +201,6 @@ describe("Tooltip component tests", (): void => {
 
         }, { timeout: delay });
 
-        rendered.unmount();
+        unmount();
     });
 });

@@ -24,6 +24,27 @@
  */
 
 export default class Worker {
-     
-    public addEventListener(name: string, handler: unknown): void { /**/ }
+    private onMessage?: ((event: MessageEvent) => void);
+
+    public addEventListener = (type: string, cb: (e: MessageEvent) => void): void => {
+        if (type === "message") {
+            this.onMessage = cb;
+        }
+    };
+
+    public removeEventListener = (): void => { };
+    public terminate = (): void => { };
+
+    public postMessage = (data: { taskId: number; data: { api: string; }; }): void => {
+        // Simulate a response from the worker.
+        setTimeout(() => {
+            switch (data.data.api) {
+                case "cleanup": { break; }
+                default: {
+                    const fakeResponse = { taskId: data.taskId, data: { final: true } };
+                    this.onMessage?.({ data: fakeResponse } as unknown as MessageEvent);
+                }
+            }
+        }, 100);
+    };
 }

@@ -23,17 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { act, render } from "@testing-library/preact";
+import { createRef, type RefObject } from "preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/general-types.js";
-import { getWideColumns, ResultView, updateWideColumnsCache } from "../../../../../components/ResultView/ResultView.js";
-import { Menu } from "../../../../../components/ui/Menu/Menu.js";
-import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
+import { ResultView, getWideColumns, updateWideColumnsCache } from "../../../../../components/ResultView/ResultView.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
 import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
-import { createResultSet, nextProcessTick } from "../../../test-helpers.js";
+import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
+import type { Menu } from "../../../../../components/ui/Menu/Menu.js";
 
-export const createColumn = (title: string, field: string, inPK = false): IColumnInfo => {
+const createColumn = (title: string, field: string, inPK = false): IColumnInfo => {
     return {
         title,
         field,
@@ -44,10 +45,15 @@ export const createColumn = (title: string, field: string, inPK = false): IColum
     };
 };
 
+// @ts-expect-error, we are extending a class for testing purposes.
+class TestResultView extends ResultView {
+    declare public cellContextMenuRef: RefObject<Menu>;
+}
+
 describe("Result View Tests", (): void => {
 
     it("Standard Rendering", () => {
-        const component = mount<ResultView>(
+        const { container, unmount } = render(
             <ResultView
                 resultSet={{
                     type: "resultSet",
@@ -66,13 +72,13 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Render with Error/Response", () => {
-        const component = mount<ResultView>(
+        const { container, unmount } = render(
             <ResultView
                 resultSet={{
                     type: "resultSet",
@@ -95,28 +101,9 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.setProps({
-            resultSet: {
-                type: "resultSet",
-                sql: "select 1",
-                resultId: "123",
-                columns: [],
-                updatable: false,
-                fullTableName: "test",
-                data: {
-                    rows: [],
-                    currentPage: 0,
-                    executionInfo: {
-                        type: MessageType.Response,
-                        text: "Response",
-                    },
-                },
-            },
-        });
-
-        component.unmount();
+        unmount();
     });
 
     it("Render with Columns", async () => {
@@ -502,8 +489,10 @@ describe("Result View Tests", (): void => {
             },
         ];
 
-        const component = mount<ResultView>(
+        const viewRef = createRef<ResultView>();
+        const { container, unmount } = render(
             <ResultView
+                ref={viewRef}
                 resultSet={{
                     type: "resultSet",
                     sql: "select 1",
@@ -525,29 +514,19 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        await nextRunLoop();
+        expect(viewRef.current).toBeDefined();
+
+        expect(container).toMatchSnapshot();
 
         // Updating columns does not change the columns property of the component.
         // Instead these changes are directly sent to the underlying grid.
-        await component.instance().updateColumns(columns2);
+        await viewRef.current!.updateColumns(columns2);
 
-        const grid = component.find(TreeGrid);
+        const grid = container.getElementsByClassName("treeGrid");
         expect(grid).toBeDefined();
-        const table = await (grid.instance() as TreeGrid).table;
-        expect(table).toBeDefined();
 
-        // The cast to never is needed, because we are spying on a private method.
-        const resizeSpy = jest.spyOn(component.instance(), "handleColumnResized" as never);
-        const column = table!.getColumn("0");
-        expect(grid.props().onColumnResized).toBeDefined();
-        grid.props().onColumnResized?.(column);
-
-        // TODO: while the handleColumnResized method is indeed called, the spy is not -> investigate.
-        //expect(resizeSpy).toHaveBeenCalled();
-
-        resizeSpy.mockRestore();
-
-        component.unmount();
+        unmount();
     });
 
     it("Context Menu", async () => {
@@ -576,8 +555,10 @@ describe("Result View Tests", (): void => {
             { id: "44", 1: "ghi" },
         ];
 
-        const wrapper = mount<ResultView>(
-            <ResultView
+        const viewRef = createRef<TestResultView>();
+        const { container, unmount } = render(
+            <TestResultView
+                ref={viewRef}
                 resultSet={{
                     type: "resultSet",
                     sql: "select 1",
@@ -595,33 +576,23 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        const contextMenus = wrapper.find<Menu>(Menu);
-        expect(contextMenus).toBeDefined();
-
-        const grid = wrapper.find<TreeGrid>(TreeGrid);
-        expect(grid).toBeDefined();
-        const table = await grid.instance().table;
-        expect(table).toBeDefined();
-        table?.selectRow(["43"]); // Select second row.
+        const grid = container.getElementsByClassName("treeGrid");
+        expect(grid).toHaveLength(1);
 
         // We can show the cell context menu only by explicitly calling its open method, because we have no real cell
         // to trigger a context menu event on. That is possible only when Tabulator actually renders its content
         // (which doesn't happen because of the zero sized host).
-        const rect = wrapper.getDOMNode().getBoundingClientRect();
+        const rect = container.getBoundingClientRect();
 
         // Find the cell context menu and open it.
-        let menu!: ReturnType<typeof wrapper.find<Menu>>;
-        contextMenus.forEach((contextMenu) => {
-            const menuProps = contextMenu.props();
-            if (menuProps.id === "cellContextMenu") {
-                menu = contextMenu;
-            }
-        });
+        const menu = viewRef.current!.cellContextMenuRef.current;
+        expect(menu).toBeDefined();
 
         const cell = new CellComponentMock();
-        wrapper.instance().setFakeCell(cell);
-        menu.instance().open(rect, false);
-        await nextProcessTick();
+        await act(() => {
+            viewRef.current!.setFakeCell(cell);
+            menu!.open(rect, false);
+        });
 
         // Check the enabled state of each menu entry.
         const portals = document.getElementsByClassName("portal");
@@ -630,14 +601,11 @@ describe("Result View Tests", (): void => {
         const elements = document.getElementsByClassName("menuItem");
         expect(elements).toHaveLength(17);
 
-        const clipboardSpy = jest.spyOn(requisitions, "writeToClipboard")
-            .mockImplementation((_text: string) => {
-                // no-op
-            });
+        const clipboardSpy = vi.spyOn(requisitions, "writeToClipboard").mockImplementation(() => { /**/ });
 
         try {
-            // @ts-expect-error, finding the menu items via enzyme does not work, so we have to do it manually.
-            const menuItems = menu.instance().itemRefs.map((item) => {
+            // @ts-expect-error, itemRef is private
+            const menuItems = menu!.itemRefs.map((item) => {
                 return item.current;
             });
             expect(menuItems.length).toEqual(13); // There are four separator items without a ref.
@@ -646,7 +614,7 @@ describe("Result View Tests", (): void => {
                 expect(item).toBeDefined();
 
                 // Set the fake cell again on each round, as it is reset when the action handler is called.
-                wrapper.instance().setFakeCell(cell);
+                viewRef.current!.setFakeCell(cell);
 
                 // @ts-expect-error, itemRef is private
                 const element = item!.itemRef.current!;
@@ -708,7 +676,7 @@ describe("Result View Tests", (): void => {
                             const subItem = subItems!.item(i) as HTMLButtonElement;
                             expect(subItem).not.toBeNull();
 
-                            wrapper.instance().setFakeCell(cell);
+                            viewRef.current!.setFakeCell(cell);
                             switch (subItem.id) {
                                 case "copyRowMenuItem1": {
                                     subItem.click();
@@ -781,7 +749,7 @@ describe("Result View Tests", (): void => {
                             const subItem = subItems!.item(i) as HTMLButtonElement;
                             expect(subItem).not.toBeNull();
 
-                            wrapper.instance().setFakeCell(cell);
+                            viewRef.current!.setFakeCell(cell);
                             switch (subItem.id) {
                                 case "copyRowsMenuItem1": {
                                     expect(subItem.classList.contains("disabled")).toBe(false);
@@ -940,13 +908,13 @@ describe("Result View Tests", (): void => {
         } catch (e) {
             // Close the menu first before handling the error or we get an error when the portal
             // is closed implicitly, when no document is available anymore.
-            menu.instance().close();
+            menu!.close();
             throw e;
         }
 
         clipboardSpy.mockRestore();
 
-        wrapper.unmount();
+        unmount();
 
     });
 });

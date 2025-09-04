@@ -23,16 +23,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { DialogResponseClosure, DialogType } from "../../../../app-logic/general-types.js";
 import { ShellPromptResponseType } from "../../../../communication/Protocol.js";
 import { ShellPromptHandler } from "../../../../modules/common/ShellPromptHandler.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
+import { mockClassMethods } from "../../test-helpers.js";
 
+mockClassMethods(ShellInterfaceSqlEditor, {
+    "sendReply": vi.fn().mockImplementation(() => {
+        return Promise.resolve();
+    }),
+});
 describe("Shell Prompt Handler Tests", (): void => {
     beforeAll(() => {
         registerUiLayer(uiLayerMock);
+    });
+
+    afterAll(() => {
+        vi.resetAllMocks();
     });
 
     it("ShellPrompt Base Test", () => {
@@ -44,20 +56,14 @@ describe("Shell Prompt Handler Tests", (): void => {
     });
 
     it("ShellPrompt 'password' prompt", () => {
-        const handler = new ShellPromptHandler();
         const backend = new ShellInterfaceSqlEditor();
-
-        // The handler only implements specific requisition handlers, no properties or similar.
-        // Hence there's not much to test in this base test.
-        expect(handler).toBeDefined();
 
         const result: boolean = ShellPromptHandler.handleShellPrompt({
             prompt: "",
             type: "password",
             title: "<Some Title>",
             description: ["<This is a description>"],
-        },
-        "<requestId>", backend);
+        }, "<requestId>", backend);
 
         expect(result).toBe(true);
     });
@@ -75,8 +81,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             type: "confirm",
             title: "<Some Title>",
             description: ["<This is a description>"],
-        },
-        "requestId", backend);
+        }, "requestId", backend);
 
         expect(result).toBeTruthy();
     });
@@ -95,8 +100,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             title: "<Some Title>",
             description: ["<This is a description>"],
             options: [],
-        },
-        "<requestId>", backend);
+        }, "<requestId>", backend);
 
         expect(result).toBeTruthy();
     });
@@ -114,8 +118,7 @@ describe("Shell Prompt Handler Tests", (): void => {
             type: "text",
             title: "<Some Title>",
             description: ["<This is a description>"],
-        },
-        "<requestId>", backend);
+        }, "<requestId>", backend);
 
         expect(result).toBeTruthy();
     });

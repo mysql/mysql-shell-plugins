@@ -23,17 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { DBDataType, DialogResponseClosure, DialogType, IDialogRequest } from "../../../../app-logic/general-types.js";
 import { IDialogSection, IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { FieldEditor, IFieldEditorData } from "../../../../components/ResultView/FieldEditor.js";
-import { DialogHelper, nextProcessTick } from "../../test-helpers.js";
+import { DialogHelper, nextProcessTick, nextRunLoop } from "../../test-helpers.js";
 
 // @ts-expect-error, we need access to a private members here.
 class TestFieldEditor extends FieldEditor {
     public declare processResults: (dialogValues: IDialogValues) => IDictionary;
-    public declare validateInput: (closing: boolean, values: IDialogValues) => IDialogValidations;
+    public declare validateInput: (closing: boolean, values: IDialogValues) => Promise<IDialogValidations>;
     public declare dialogValues: (request: IDialogRequest, dataType: DBDataType,
         data?: string | null) => IDialogValues;
 }
@@ -46,9 +48,13 @@ describe("FieldEditor basic tests", () => {
     });
 
     it("should return the processed results when closure is Accept", async () => {
-        const component = mount<FieldEditor>(
-            <FieldEditor />,
+        const editorRef = createRef<FieldEditor>();
+        const { unmount } = render(
+            <FieldEditor ref={editorRef} />,
         );
+
+        await nextRunLoop();
+        expect(editorRef.current).toBeDefined();
 
         const request: IDialogRequest = {
             type: DialogType.Prompt,
@@ -62,7 +68,7 @@ describe("FieldEditor basic tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const result = component.instance().show(request);
+        const result = editorRef.current!.show(request);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -76,13 +82,17 @@ describe("FieldEditor basic tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("should return DialogResponseClosure.Cancel when closure is not Accept", async () => {
-        const component = mount<FieldEditor>(
-            <FieldEditor />,
+        const editorRef = createRef<FieldEditor>();
+        const { unmount } = render(
+            <FieldEditor ref={editorRef} />,
         );
+
+        await nextRunLoop();
+        expect(editorRef.current).toBeDefined();
 
         const request: IDialogRequest = {
             type: DialogType.Prompt,
@@ -96,7 +106,7 @@ describe("FieldEditor basic tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const result = component.instance().show(request);
+        const result = editorRef.current!.show(request);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -110,11 +120,11 @@ describe("FieldEditor basic tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test processResults function", () => {
-        const component = mount<FieldEditor>(
+        const { unmount } = render(
             <FieldEditor />,
         );
 
@@ -129,7 +139,7 @@ describe("FieldEditor basic tests", () => {
             ]),
         };
 
-        const testFieldEditor = new TestFieldEditor(component.instance().props);
+        const testFieldEditor = new TestFieldEditor({});
 
         const result = testFieldEditor.processResults(dialogValues);
 
@@ -140,11 +150,11 @@ describe("FieldEditor basic tests", () => {
 
         expect(result).toEqual(expected);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test validateInput function", async () => {
-        const component = mount<FieldEditor>(
+        const { unmount } = render(
             <FieldEditor />,
         );
 
@@ -164,7 +174,7 @@ describe("FieldEditor basic tests", () => {
             requiredContexts: [],
         };
 
-        const testFieldEditor = new TestFieldEditor(component.instance().props);
+        const testFieldEditor = new TestFieldEditor({});
 
         let result = await testFieldEditor.validateInput(false, request);
         expect(result).toEqual(expected);
@@ -172,11 +182,11 @@ describe("FieldEditor basic tests", () => {
         result = await testFieldEditor.validateInput(true, request);
         expect(result).toEqual(expected);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test dialogValues function", () => {
-        const component = mount<FieldEditor>(
+        const { unmount } = render(
             <FieldEditor />,
         );
 
@@ -199,7 +209,7 @@ describe("FieldEditor basic tests", () => {
             },
         };
 
-        const testFieldEditor = new TestFieldEditor(component.instance().props);
+        const testFieldEditor = new TestFieldEditor({});
 
         let result = testFieldEditor.dialogValues(pngRequest, DBDataType.Blob, pngImg);
 
@@ -214,7 +224,7 @@ describe("FieldEditor basic tests", () => {
         expect(jsonSection?.caption).toBe("JSON");
         expect(jsonSection?.values.value.value).toBe("");
 
-        component.unmount();
+        unmount();
     });
 
 });

@@ -23,10 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
-
 import { ComponentChild } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
+import { describe, it } from "vitest";
+
+import { render } from "@testing-library/preact";
 import { DBDataType, IColumnInfo } from "../../../../app-logic/general-types.js";
 import { ClientConnections } from "../../../../modules/db-editor/ClientConnections.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -77,97 +78,97 @@ class TestClientConnections extends ClientConnections {
 }
 
 describe("Client connections module tests", (): void => {
-
-    it("Test ClientConnections instantiation", async () => {
+    it("Test ClientConnections instantiation", async ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
+        const { container, rerender, unmount } = render(
             <ClientConnections
                 backend={backend}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
+
         // Component updates.
-        component.setProps({ backend });
+        rerender(
+            <ClientConnections
+                backend={backend}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+            />,
+        );
+
         await nextRunLoop();
 
-        expect(component).toMatchSnapshot("ClientConnections1");
+        expect(container).toMatchSnapshot("ClientConnections1");
 
         backend.closeSession().catch(() => {
             throw new Error("Close session failed");
         });
-        await nextRunLoop();
-        expect(component).toMatchSnapshot("ClientConnections2");
 
-        component.unmount();
+        await nextRunLoop();
+        expect(container).toMatchSnapshot("ClientConnections2");
+
+        unmount();
     });
 
-    it("Test ClientConnections getClientConnectionDetails function", () => {
+    it("Test ClientConnections getClientConnectionDetails function", ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
 
-        const instance = new TestClientConnections(component.instance().props);
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
 
+        const instance = new TestClientConnections(props);
         let result = instance.testGetClientConnectionDetails();
-
         expect(result).toEqual(undefined);
 
         instance.testHandleClientConnectionTreeRowSelected(new RowComponentMock());
-
         result = instance.testGetClientConnectionDetails();
-
         expect(result).toMatchSnapshot("ClientConnections3");
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test ClientConnections getClientConnectionLocks function", () => {
+    it("Test ClientConnections getClientConnectionLocks function", ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-        const instance = new TestClientConnections(component.instance().props);
 
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
+
+        const instance = new TestClientConnections(props);
         const result = instance.testGetClientConnectionLocks();
-
         expect(result).toEqual(undefined);
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test ClientConnections getClientConnectionAttributes function", () => {
+    it("Test ClientConnections getClientConnectionAttributes function", ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-        const instance = new TestClientConnections(component.instance().props);
 
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
+
+        const instance = new TestClientConnections(props);
         const result = instance.testGetClientConnectionAttributes();
-
         expect(result).toEqual(undefined);
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test ClientConnections generateColumnDefinitions function", () => {
+    it("Test ClientConnections generateColumnDefinitions function", ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-        const instance = new TestClientConnections(component.instance().props);
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
+        const instance = new TestClientConnections(props);
 
         const columns = [
             {
@@ -261,52 +262,47 @@ describe("Client connections module tests", (): void => {
         ];
 
         const definitions = instance.testGenerateColumnDefinitions(columns);
-
         expect(definitions).toEqual(expectedDefinitions);
-        component.unmount();
+
+        unmount();
     });
 
-    it("Test ClientConnections stringFormatter function", () => {
+    it("Test ClientConnections stringFormatter function", ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-        const instance = new TestClientConnections(component.instance().props);
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
+        const instance = new TestClientConnections(props);
 
         const result = instance.testStringFormatter(new CellComponentMock());
-
         expect(result).toEqual("Animal");
 
-        component.unmount();
+        unmount();
     });
 
     it("Test ClientConnections showDialog function", () => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-        const instance = new TestClientConnections(component.instance().props);
-
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
+        const instance = new TestClientConnections(props);
         instance.testShowDialog("1", "Title", "Test Message");
 
-        component.unmount();
+        unmount();
     });
 
-    it("Test ClientConnections testEscapeSqlString function", () => {
+    it("Test ClientConnections testEscapeSqlString function", ({ expect }) => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ClientConnections>(
-            <ClientConnections
-                backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-        const instance = new TestClientConnections(component.instance().props);
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const { unmount } = render(<ClientConnections {...props} />);
+        const instance = new TestClientConnections(props);
 
         let result = instance.testEscapeSqlString("test");
         expect(result).toEqual("test");
@@ -323,7 +319,7 @@ describe("Client connections module tests", (): void => {
         result = instance.testEscapeSqlString("\r test %s");
         expect(result).toEqual("\\r test \\%s");
 
-        component.unmount();
+        unmount();
     });
 
 });

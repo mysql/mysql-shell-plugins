@@ -1,34 +1,111 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`TreeGrid tests TreeGrid snapshot 1`] = `
-<TreeGrid
-  columns={
-    [
-      {
-        "field": "field1",
-        "title": "col1",
-      },
-      {
-        "field": "field2",
-        "title": "col2",
-      },
-    ]
-  }
-  onVerticalScroll={[Function]}
-  selectedRows={
-    [
-      "a",
-    ]
-  }
-  tableData={[]}
->
+exports[`TreeGrid tests > TreeGrid snapshot 1`] = `
+<div>
   <div
-    className="msg treeGrid"
-    selectedRows={
-      [
-        "a",
-      ]
-    }
-  />
-</TreeGrid>
+    class="msg treeGrid tabulator"
+    role="grid"
+    selectedrows="a"
+    style="height: 100%;"
+    tabulator-layout="fitData"
+  >
+    <div
+      class="tabulator-header"
+      role="rowgroup"
+    >
+      <div
+        class="tabulator-header-contents"
+        role="rowgroup"
+      >
+        <div
+          class="tabulator-headers"
+          role="row"
+          style="height: 0px;"
+        >
+          <div
+            aria-sort="none"
+            class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
+            role="columnheader"
+            style="min-width: 40px; height: 0px;"
+            tabulator-field="field1"
+          >
+            <div
+              class="tabulator-col-content"
+            >
+              <div
+                class="tabulator-col-title-holder"
+              >
+                <div
+                  class="tabulator-col-title"
+                  style="text-align: undefined;"
+                >
+                  col1
+                </div>
+                <div
+                  class="tabulator-col-sorter"
+                >
+                  <div
+                    class="tabulator-arrow"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <span
+            class="tabulator-col-resize-handle"
+            style="height: 0px;"
+          />
+          <div
+            aria-sort="none"
+            class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
+            role="columnheader"
+            style="min-width: 40px; height: 0px;"
+            tabulator-field="field2"
+          >
+            <div
+              class="tabulator-col-content"
+            >
+              <div
+                class="tabulator-col-title-holder"
+              >
+                <div
+                  class="tabulator-col-title"
+                  style="text-align: undefined;"
+                >
+                  col2
+                </div>
+                <div
+                  class="tabulator-col-sorter"
+                >
+                  <div
+                    class="tabulator-arrow"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <span
+            class="tabulator-col-resize-handle"
+            style="height: 0px;"
+          />
+        </div>
+        <br />
+        <div
+          class="tabulator-frozen-rows-holder"
+          style="min-width: 0px;"
+        />
+      </div>
+    </div>
+    <div
+      class="tabulator-tableholder fixedScrollbar"
+      style="min-height: falsepx; height: calc(100% - 0px); max-height: calc(100% - 0px);"
+      tabindex="0"
+    >
+      <div
+        class="tabulator-table"
+        role="rowgroup"
+      />
+    </div>
+  </div>
+</div>
 `;

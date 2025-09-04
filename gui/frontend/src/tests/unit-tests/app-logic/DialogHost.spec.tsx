@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,29 +23,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { cleanup, render } from "@testing-library/preact";
+import { userEvent } from "@testing-library/user-event";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { DialogHost } from "./../../../app-logic/DialogHost.js";
-import { JestReactWrapper, nextProcessTick, sendKeyPress } from "../test-helpers.js";
 import { DialogType, IDialogRequest } from "../../../app-logic/general-types.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
-import { KeyboardKeys } from "../../../utilities/helpers.js";
+import { nextProcessTick } from "../test-helpers.js";
+import { DialogHost } from "./../../../app-logic/DialogHost.js";
 
 describe("DialogHost Tests", () => {
-    let host: JestReactWrapper;
+    const localEvent = userEvent.setup();
+    let container: HTMLElement;
 
     beforeAll(() => {
-        host = mount<DialogHost>(<DialogHost />);
+        const renderResult = render(<DialogHost />);
+        container = renderResult.container as HTMLElement;
     });
 
     afterAll(() => {
-        host.unmount();
+        cleanup();
     });
 
     it("Standard Rendering (snapshot)", () => {
         // The host itself has no properties, but implicit children (the different dialogs).
-        expect(host.props().children).toEqual([]);
-        expect(host).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it("Show Prompt Dialog (snapshot)", async () => {
@@ -74,7 +76,7 @@ describe("DialogHost Tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
 
-        sendKeyPress(KeyboardKeys.Escape);
+        await localEvent.keyboard("{Escape}");
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

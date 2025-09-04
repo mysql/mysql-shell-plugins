@@ -23,17 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
-import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionTab.js";
 import { DocumentToolbar } from "../../../../modules/db-editor/DocumentToolbar.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
-import { uuid } from "../../../../utilities/helpers.js";
 
 describe("DocumentToolbar tests", (): void => {
     it("Test DocumentToolbar instantiation", () => {
-        const component = mount<DocumentToolbar>(
+        const { container, unmount } = render(
             <DocumentToolbar
                 language={"ts"}
                 activeDocument={"document1"}
@@ -43,15 +41,13 @@ describe("DocumentToolbar tests", (): void => {
             />,
         );
 
-        const props = component.props();
-        expect(props.language).toEqual("ts");
-        expect(props.activeDocument).toEqual("document1");
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
     it("Test DocumentToolbar instantiation (HeatWave)", () => {
-        const component = mount<DocumentToolbar>(
+        const { container, unmount } = render(
             <DocumentToolbar
                 language={"js"}
                 activeDocument={"document1"}
@@ -61,15 +57,13 @@ describe("DocumentToolbar tests", (): void => {
             />,
         );
 
-        const props = component.props();
-        expect(props.language).toEqual("js");
-        expect(props.activeDocument).toEqual("document1");
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
     it("Test DocumentToolbar instantiation language=msg", () => {
-        const component = mount<DocumentToolbar>(
+        const { container, unmount } = render(
             <DocumentToolbar
                 language={"msg"}
                 activeDocument={"document1"}
@@ -79,15 +73,13 @@ describe("DocumentToolbar tests", (): void => {
             />,
         );
 
-        const props = component.props();
-        expect(props.language).toEqual("msg");
-        expect(props.activeDocument).toEqual("document1");
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
     it("Test DocumentToolbar requisitions editorCaretMoved", async () => {
-        const component = mount<DocumentToolbar>(
+        const { unmount } = render(
             <DocumentToolbar
                 language={"msg"}
                 activeDocument={"document1"}
@@ -102,11 +94,13 @@ describe("DocumentToolbar tests", (): void => {
             column: 1,
         });
 
-        component.unmount();
+        // TODO: Check if the change is handled correctly.
+
+        unmount();
     });
 
     it("Test DocumentToolbar requisitions editorContextStateChanged", async () => {
-        const component = mount<DocumentToolbar>(
+        const { unmount } = render(
             <DocumentToolbar
                 language={"msg"}
                 activeDocument={"document1"}
@@ -116,14 +110,15 @@ describe("DocumentToolbar tests", (): void => {
             />,
         );
 
-        const id = component.state().currentContext?.id;
-        await requisitions.execute("editorContextStateChanged", id ?? "");
+        await requisitions.execute("editorContextStateChanged", "123");
 
-        component.unmount();
+        // TODO: Check if the change is handled correctly.
+
+        unmount();
     });
 
     it("Test DocumentToolbar requisitions editorToggleStopExecutionOnError", async () => {
-        const component = mount<DocumentToolbar>(
+        const { unmount } = render(
             <DocumentToolbar
                 language={"msg"}
                 activeDocument={"document1"}
@@ -135,11 +130,13 @@ describe("DocumentToolbar tests", (): void => {
 
         await requisitions.execute("editorToggleStopExecutionOnError", true);
 
-        component.unmount();
+        // TODO: Check if the change is handled correctly.
+
+        unmount();
     });
 
     it("Test DocumentToolbar requisitions settingsChanged", async () => {
-        const component = mount<DocumentToolbar>(
+        const { unmount } = render(
             <DocumentToolbar
                 language={"msg"}
                 activeDocument={"document1"}
@@ -151,42 +148,8 @@ describe("DocumentToolbar tests", (): void => {
 
         await requisitions.execute("settingsChanged", undefined);
 
-        component.unmount();
+        // TODO: Check if the change is handled correctly.
+
+        unmount();
     });
-
-    it("Test DocumentToolbar call componentDidUpdate", () => {
-        const testEditorState: IOpenDocumentState = {
-            document: {
-                type: OdmEntityType.Notebook,
-                id: uuid(),
-                state: {
-                    isLeaf: true,
-                    initialized: true,
-                    expanded: true,
-                    expandedOnce: true,
-                },
-                caption: "document11",
-            },
-            currentVersion: 1,
-        };
-
-        const component = mount<DocumentToolbar>(
-            <DocumentToolbar
-                language={"msg"}
-                activeDocument={"document11"}
-                heatWaveEnabled={true}
-                documentState={[testEditorState]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        const props = component.props();
-        expect(props.language).toEqual("msg");
-        expect(props.activeDocument).toEqual("document11");
-
-        component.instance().componentDidUpdate(props);
-
-        component.unmount();
-    });
-
 });

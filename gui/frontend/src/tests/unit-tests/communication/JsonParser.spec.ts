@@ -24,6 +24,7 @@
  */
 
 import { readFileSync, readdirSync } from "fs";
+import { describe, expect, it } from "vitest";
 
 import { JsonParser } from "../../../communication/JsonParser.js";
 
@@ -48,7 +49,7 @@ describe("JsonParser", () => {
         });
     });
 
-    xit("Invalid JSON", () => { // Not all invalid cases are covered. Need to investigate further.
+    it.skip("Invalid JSON", () => { // Not all invalid cases are covered. Need to investigate further.
         const fileList = readdirSync("./data/json/reject/");
         fileList.forEach((file) => {
             const json = readFileSync(`./data/json/reject/${file}`, { encoding: "utf-8" });

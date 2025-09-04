@@ -1,31 +1,25 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Radiobutton component tests Test Radiobutton output (snapshot) 1`] = `
-<Radiobutton
-  caption="Disabled Radiobutton"
-  checkState={1}
-  disabled={true}
-  id="rb4"
-  name="rbx"
->
-  <label
-    className="msg radioButton disabled"
-    htmlFor="rb4"
+exports[`Radiobutton component tests > Test Radiobutton output (snapshot) 1`] = `
+<div>
+  <div
+    aria-checked="true"
+    class="msg radioButton disabled"
+    htmlfor="rb4"
     id="rb4"
-    onClick={[Function]}
-    onKeyPress={[Function]}
-    tabIndex={0}
+    role="radio"
+    tabindex="0"
   >
     <input
       name="rbx"
-      readOnly={true}
-      tabIndex={-1}
+      readonly=""
+      tabindex="-1"
       type="radio"
     />
     <span
-      className="checkMark"
+      class="checkMark"
     />
     Disabled Radiobutton
-  </label>
-</Radiobutton>
+  </div>
+</div>
 `;

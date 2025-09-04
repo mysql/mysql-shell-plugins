@@ -1,42 +1,365 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`JsonView tests Component rendering should render with correct className and snapshot 1`] = `
-<JsonView
-  json={
-    {
-      "array": [
-        1,
-        2,
-        3,
-      ],
-      "boolean": true,
-      "nullValue": null,
-      "number": 42,
-      "object": {
-        "deep": {
-          "level": 3,
-        },
-        "nested": "value",
-      },
-      "relativeUrl": "/api/data",
-      "string": "test string",
-      "url": "https://example.com",
-    }
-  }
->
+exports[`JsonView tests > Component rendering > should render with correct className and snapshot 1`] = `
+<div>
   <div
-    className="msg jsonView"
-    style={
-      {
-        "--arrayDelimiterColor": "#FF0000",
-        "--colonDelimiterColor": "#FF0000",
-        "--commaDelimiterColor": "#FF0000",
-        "--keyColor": "#FF0000",
-        "--keywordColor": "#FF0000",
-        "--objectDelimiterColor": "#FF0000",
-        "--valueColor": "#FF0000",
-      }
-    }
-  />
-</JsonView>
+    class="msg jsonView"
+    style="--arrayDelimiterColor: #FF0000; --objectDelimiterColor: #FF0000; --colonDelimiterColor: #FF0000; --commaDelimiterColor: #FF0000; --keyColor: #FF0000; --valueColor: #FF0000; --keywordColor: #FF0000;"
+  >
+    <span
+      class="entry arrElem"
+      data-size=" // 8 items"
+    >
+      <span
+        class="e"
+      />
+      <span
+        class="o"
+      >
+        {
+      </span>
+      <span
+        class="ell"
+      />
+      <span
+        class="blockInner"
+      >
+        <span
+          class="entry objProp"
+        >
+          "
+          <span
+            class="k"
+          >
+            string
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          "
+          <span
+            class="s"
+          >
+            test string
+          </span>
+          "
+          ,
+        </span>
+        <span
+          class="entry objProp"
+        >
+          "
+          <span
+            class="k"
+          >
+            number
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          <span
+            class="n"
+          >
+            42
+          </span>
+          ,
+        </span>
+        <span
+          class="entry objProp"
+        >
+          "
+          <span
+            class="k"
+          >
+            boolean
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          <span
+            class="bl"
+          >
+            true
+          </span>
+          ,
+        </span>
+        <span
+          class="entry objProp"
+        >
+          "
+          <span
+            class="k"
+          >
+            nullValue
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          <span
+            class="nl"
+          >
+            null
+          </span>
+          ,
+        </span>
+        <span
+          class="entry objProp"
+          data-size=" // 3 items"
+        >
+          "
+          <span
+            class="k"
+          >
+            array
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          <span
+            class="a"
+          >
+            [
+          </span>
+          <span
+            class="ell"
+          />
+          <span
+            class="blockInner"
+          >
+            <span
+              class="entry arrElem"
+            >
+              <span
+                class="n"
+              >
+                1
+              </span>
+              ,
+            </span>
+            <span
+              class="entry arrElem"
+            >
+              <span
+                class="n"
+              >
+                2
+              </span>
+              ,
+            </span>
+            <span
+              class="entry arrElem"
+            >
+              <span
+                class="n"
+              >
+                3
+              </span>
+            </span>
+          </span>
+          <span
+            class="a"
+          >
+            ]
+          </span>
+          ,
+        </span>
+        <span
+          class="entry objProp"
+          data-size=" // 2 items"
+        >
+          <span
+            class="e"
+          />
+          "
+          <span
+            class="k"
+          >
+            object
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          <span
+            class="o"
+          >
+            {
+          </span>
+          <span
+            class="ell"
+          />
+          <span
+            class="blockInner"
+          >
+            <span
+              class="entry objProp"
+            >
+              "
+              <span
+                class="k"
+              >
+                nested
+              </span>
+              "
+              <span
+                class="del"
+              >
+                : 
+              </span>
+              "
+              <span
+                class="s"
+              >
+                value
+              </span>
+              "
+              ,
+            </span>
+            <span
+              class="entry objProp"
+              data-size=" // 1 item"
+            >
+              <span
+                class="e"
+              />
+              "
+              <span
+                class="k"
+              >
+                deep
+              </span>
+              "
+              <span
+                class="del"
+              >
+                : 
+              </span>
+              <span
+                class="o"
+              >
+                {
+              </span>
+              <span
+                class="ell"
+              />
+              <span
+                class="blockInner"
+              >
+                <span
+                  class="entry objProp"
+                >
+                  "
+                  <span
+                    class="k"
+                  >
+                    level
+                  </span>
+                  "
+                  <span
+                    class="del"
+                  >
+                    : 
+                  </span>
+                  <span
+                    class="n"
+                  >
+                    3
+                  </span>
+                </span>
+              </span>
+              <span
+                class="o"
+              >
+                }
+              </span>
+            </span>
+          </span>
+          <span
+            class="o"
+          >
+            }
+          </span>
+          ,
+        </span>
+        <span
+          class="entry objProp"
+        >
+          "
+          <span
+            class="k"
+          >
+            url
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          "
+          <span
+            class="s"
+          >
+            <a
+              href="https://example.com"
+            >
+              https://example.com
+            </a>
+          </span>
+          "
+          ,
+        </span>
+        <span
+          class="entry objProp"
+        >
+          "
+          <span
+            class="k"
+          >
+            relativeUrl
+          </span>
+          "
+          <span
+            class="del"
+          >
+            : 
+          </span>
+          "
+          <span
+            class="s"
+          >
+            <a
+              href="/api/data"
+            >
+              /api/data
+            </a>
+          </span>
+          "
+        </span>
+      </span>
+      <span
+        class="o"
+      >
+        }
+      </span>
+    </span>
+  </div>
+</div>
 `;

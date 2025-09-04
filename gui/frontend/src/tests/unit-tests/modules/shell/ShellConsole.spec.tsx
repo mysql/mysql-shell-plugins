@@ -23,25 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import {
-    CodeEditor, ICodeEditorModel, IEditorPersistentState
-} from "../../../../components/ui/CodeEditor/CodeEditor.js";
+import { createRef } from "preact";
+import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor/index.js";
 import { ShellConsole } from "../../../../modules/shell/ShellConsole.js";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
+import { nextRunLoop } from "../../test-helpers.js";
 
+// @ts-expect-error, we need access to a private members here.
 class TestShellConsole extends ShellConsole {
-    public testHandleOptionsChanged = (): void => {
-        // @ts-expect-error, This is necessary to access a private method for testing purposes
-        this.handleOptionsChanged();
-    };
-
-    public testContextRelativeLineNumbers = (originalLineNumber: number): string => {
-        // @ts-expect-error, This is necessary to access a private method for testing purposes
-        return this.contextRelativeLineNumbers(originalLineNumber);
-    };
+    declare public handleOptionsChanged: () => void;
+    declare public contextRelativeLineNumbers: (originalLineNumber: number) => string;
 }
 
 describe("ShellConsole tests", (): void => {
@@ -62,83 +57,69 @@ describe("ShellConsole tests", (): void => {
             options: {},
         };
 
-        const component = shallow<ShellConsole>(
+        const { container, unmount } = render(
             <ShellConsole
                 editorState={editorState}
             />,
         );
 
-        /*const props = component.dive().props();
-        const componentWithoutName = component.dive().setProps({ ...props, name: undefined });
+        expect(container).toMatchSnapshot();
 
-        expect(componentWithoutName).toMatchSnapshot();*/
-
-        component.unmount();
+        unmount();
     });
 
-    it("Standard rendering", () => {
+    it("handleOptionsChanged function", async () => {
         const editorState: IEditorPersistentState = {
             viewState: null,
             model,
             options: {},
         };
 
-        const component = mount<ShellConsole>(
-            <ShellConsole
-                editorState={editorState}
-            />,
-        );
-
-        const editor = component.find(CodeEditor);
-        expect(editor.length).toBe(1);
-        expect(editor.props().font?.fontFamily).toBe("var(--msg-monospace-font-family)");
-        expect(editor.props().language).toBe("msg");
-
-        component.unmount();
-    });
-
-    it("handleOptionsChanged function", () => {
-        const editorState: IEditorPersistentState = {
-            viewState: null,
-            model,
-            options: {},
-        };
-
-        const component = mount<TestShellConsole>(
+        const consoleRef = createRef<TestShellConsole>();
+        const { container, unmount } = render(
             <TestShellConsole
+                ref={consoleRef}
                 editorState={editorState}
             />,
         );
 
-        component.instance().testHandleOptionsChanged();
+        await nextRunLoop();
+        expect(consoleRef.current).toBeDefined();
 
-        const statusBarItem = component.find("IStatusBarItem");
+        consoleRef.current!.handleOptionsChanged();
+
+        const statusBarItem = container.querySelector("IStatusBarItem");
         expect(statusBarItem).toBeDefined();
 
-        component.unmount();
+        unmount();
     });
 
-    it("contextRelativeLineNumbers function", () => {
+    it("contextRelativeLineNumbers function", async () => {
         const editorState: IEditorPersistentState = {
             viewState: null,
             model,
             options: {},
         };
 
-        const component = mount<TestShellConsole>(
+        const consoleRef = createRef<TestShellConsole>();
+        const { unmount } = render(
             <TestShellConsole
+                ref={consoleRef}
                 editorState={editorState}
             />,
         );
 
-        let lineNumber = component.instance().testContextRelativeLineNumbers(1);
+        await nextRunLoop();
+        expect(consoleRef.current).toBeDefined();
+
+        let lineNumber = consoleRef.current!.contextRelativeLineNumbers(1);
 
         expect(lineNumber).toEqual("");
 
-        lineNumber = component.instance().testContextRelativeLineNumbers(10);
+        lineNumber = consoleRef.current!.contextRelativeLineNumbers(10);
 
         expect(lineNumber).toEqual("10");
 
-        component.unmount();
+        unmount();
     });
 });

@@ -1,47 +1,18 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Search component tests Test Search output (snapshot) 1`] = `
-<Search>
-  <Container
-    className="searchContainer"
-    orientation="row"
+exports[`Search component tests > Test Search elements 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar searchContainer"
+    style="flex-direction: row;"
   >
-    <div
-      className="msg container fixedScrollbar searchContainer"
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
-    >
-      <Input
-        className="msg search"
-        id="search"
-        onChange={[Function]}
-        onConfirm={[Function]}
-        placeholder="Search"
-        spellCheck={true}
-      >
-        <input
-          className="msg input search"
-          id="search"
-          onInput={[Function]}
-          onKeyDown={[Function]}
-          placeholder="Search"
-          spellCheck={true}
-          spellcheck={true}
-          style={
-            {
-              "textAlign": undefined,
-            }
-          }
-          type="text"
-        />
-      </Input>
-    </div>
-  </Container>
-</Search>
+    <input
+      class="msg input search"
+      id="search"
+      placeholder="Search"
+      spellcheck="true"
+      type="text"
+    />
+  </div>
+</div>
 `;

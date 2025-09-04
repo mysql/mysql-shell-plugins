@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,28 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import { Group, IGroupProperties } from "../../../../components/ui/Group/Group.js";
+import { Group } from "../../../../components/ui/Group/Group.js";
 
 describe("Group component tests", (): void => {
 
-    it("Test group elements", () => {
-        const component = mount(
-            <Group id="group1" caption="Name of the group"></Group>,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props() as IGroupProperties;
-        expect(props.caption).toBe("Name of the group");
-    });
-
     it("Standard Rendering", () => {
-        const component = mount<Group>(
+        const { container, unmount } = render(
             <Group id="group2" caption="Group with Title"></Group>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

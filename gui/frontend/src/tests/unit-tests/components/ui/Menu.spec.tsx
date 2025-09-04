@@ -23,10 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-import { fireEvent } from "@testing-library/preact";
-import { mount } from "enzyme";
+import { fireEvent, render } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase.js";
 import { Menu } from "../../../../components/ui/Menu/Menu.js";
@@ -34,14 +32,15 @@ import { MenuBar } from "../../../../components/ui/Menu/MenuBar.js";
 import { MenuItem } from "../../../../components/ui/Menu/MenuItem.js";
 import { Assets } from "../../../../supplement/Assets.js";
 import { nextRunLoop } from "../../test-helpers.js";
+import { createRef } from "preact";
 
 describe("Menu component tests", (): void => {
     it("Test Menu output (snapshot)", () => {
-        const component = mount<Menu>(
+        const { container, unmount } = render(
             <Menu
                 id="tileActionMenu"
                 placement={ComponentPlacement.BottomLeft}
-                onItemClick={jest.fn()}
+                onItemClick={vi.fn()}
             >
                 <MenuItem command={{ title: "Heading", command: "item1" }} disabled />
                 <MenuItem command={{ title: "Cut", command: "item2" }} />
@@ -119,13 +118,13 @@ describe("Menu component tests", (): void => {
             </Menu >,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test MenuBar output (snapshot)", () => {
-        const component = mount<MenuBar>(
+        const { container, unmount } = render(
             <MenuBar>
                 <MenuItem id="fileMenu" command={{ title: "File", command: "" }} >
                     <MenuItem id="item80" command={{ title: "Item 1", command: "" }} />
@@ -187,17 +186,21 @@ describe("Menu component tests", (): void => {
                 </MenuItem >
             </MenuBar >,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test menu callbacks", async () => {
-        const component = mount<Menu>(
+        const onItemClick = vi.fn();
+        const menuRef = createRef<Menu>();
+
+        const { container, unmount } = render(
             <Menu
+                ref={menuRef}
                 id="tileActionMenu"
                 placement={ComponentPlacement.BottomLeft}
-                onItemClick={jest.fn()}
+                onItemClick={onItemClick}
             >
                 <MenuItem
                     id="edit"
@@ -232,12 +235,14 @@ describe("Menu component tests", (): void => {
             </Menu >,
         );
 
+        await nextRunLoop();
+        expect(menuRef.current).toBeDefined();
+        expect(container).toMatchSnapshot();
+
         // Keep in mind here that menu (popup, portal) content is not rendered in the same DOM tree as the menu itself!
 
-        const itemClickSpy = jest.spyOn(component.props(), "onItemClick");
-
         const targetRect = new DOMRect(0, 0, 2, 2);
-        component.instance().open(targetRect, false);
+        menuRef.current!.open(targetRect, false);
         await nextRunLoop();
 
         const portals = document.getElementsByClassName("portal");
@@ -247,7 +252,9 @@ describe("Menu component tests", (): void => {
         expect(items).toHaveLength(7);
 
         fireEvent.click(items[0]);
-        expect(itemClickSpy).toHaveBeenCalled();
+        expect(onItemClick).toHaveBeenCalled();
+
+        unmount;
     });
 
 });

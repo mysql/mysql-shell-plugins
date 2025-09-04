@@ -37,7 +37,15 @@ export default tslint.config(
     ...tslint.configs.stylisticTypeChecked,
     jsdoc.configs["flat/recommended"],
     {
-        ignores: ["**/generated/*", "src/oci-typings", "**/.antlr", "src/modules/mrs/sdk"],
+        ignores: [
+            "**/generated/*",
+            "src/oci-typings",
+            "**/.antlr",
+            "src/modules/mrs/sdk",
+            "**/*.js"
+        ],
+    }, {
+        files: ["*.ts", "*.tsx", "*.mjs" ],
     },
     {
         plugins: {
@@ -55,11 +63,11 @@ export default tslint.config(
                         "eslint.config.mjs",
                         "vite.config.ts",
                         "vitest.config.ts",
-                        "unit-tests.jest.config.ts",
-                        "src/tests/globalSetup.ts",
-                        "src/tests/globalTearDown.ts",
+                        "e2e.vitest.config.ts",
+                        "src/tests/tsconfig.json",
+                        "src/tests/e2e/*.mjs",
                     ],
-                    defaultProject: "tsconfig.eslint.json",
+                    defaultProject: "tsconfig.json",
                 },
                 tsconfigRootDir: import.meta.dirname,
                 sourceType: "module",

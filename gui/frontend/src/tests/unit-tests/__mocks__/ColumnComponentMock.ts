@@ -23,7 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable max-classes-per-file */
+
+import { vi } from "vitest";
 import { ColumnComponent, ColumnDefinition } from "tabulator-tables";
+
 import { DBDataType, IColumnInfo } from "../../../app-logic/general-types.js";
 
 const mockColumnsInfo: IColumnInfo = {
@@ -38,30 +42,30 @@ const mockColumnsInfo: IColumnInfo = {
 export class ColumnComponentMock implements ColumnComponent {
     public fieldType = "";
 
-    public getElement = jest.fn();
-    public getTable = jest.fn();
-    public getField = jest.fn();
-    public getCells = jest.fn();
-    public getNextColumn = jest.fn();
-    public getPrevColumn = jest.fn();
-    public move = jest.fn();
-    public isVisible = jest.fn();
-    public show = jest.fn();
-    public hide = jest.fn();
-    public toggle = jest.fn();
-    public delete = jest.fn();
-    public scrollTo = jest.fn();
-    public getSubColumns = jest.fn();
-    public getParentColumn = jest.fn();
-    public headerFilterFocus = jest.fn();
-    public setHeaderFilterValue = jest.fn();
-    public reloadHeaderFilter = jest.fn();
-    public getHeaderFilterValue = jest.fn();
-    public updateDefinition = jest.fn();
-    public getWidth = jest.fn();
-    public setWidth = jest.fn();
-    public validate = jest.fn();
-    public popup = jest.fn();
+    public getElement = vi.fn();
+    public getTable = vi.fn();
+    public getField = vi.fn();
+    public getCells = vi.fn();
+    public getNextColumn = vi.fn();
+    public getPrevColumn = vi.fn();
+    public move = vi.fn();
+    public isVisible = vi.fn();
+    public show = vi.fn();
+    public hide = vi.fn();
+    public toggle = vi.fn();
+    public delete = vi.fn();
+    public scrollTo = vi.fn();
+    public getSubColumns = vi.fn();
+    public getParentColumn = vi.fn();
+    public headerFilterFocus = vi.fn();
+    public setHeaderFilterValue = vi.fn();
+    public reloadHeaderFilter = vi.fn();
+    public getHeaderFilterValue = vi.fn();
+    public updateDefinition = vi.fn();
+    public getWidth = vi.fn();
+    public setWidth = vi.fn();
+    public validate = vi.fn();
+    public popup = vi.fn();
     public getDefinition = (): ColumnDefinition => {
         return {
             title: "",

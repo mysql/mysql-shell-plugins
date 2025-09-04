@@ -21,12 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
-import { MdsEndpointDialog } from "../../../../../modules/mds/dialogs/MdsEndpointDialog.js";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { DialogResponseClosure, MdsDialogType } from "../../../../../app-logic/general-types.js";
 import { IDialogSection, IDialogValues } from "../../../../../components/Dialogs/ValueEditDialog.js";
-import { DialogHelper, nextProcessTick, sendKeyPress } from "../../../test-helpers.js";
+import { MdsEndpointDialog } from "../../../../../modules/mds/dialogs/MdsEndpointDialog.js";
 import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
+import { DialogHelper, nextProcessTick, nextRunLoop, sendKeyPress } from "../../../test-helpers.js";
 
 describe("MdsEndpointDialog show tests", () => {
     let dialogHelper: DialogHelper;
@@ -36,29 +39,34 @@ describe("MdsEndpointDialog show tests", () => {
     });
 
     it("Test render MdsEndpointDialog", () => {
-        const component = mount<MdsEndpointDialog>(
+        const { container, unmount } = render(
             <MdsEndpointDialog
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
     it("Test close dialog by clicking Ok button", async () => {
-        const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {
-            // no-op
-        });
+        const onCloseMock = vi.fn();
 
-        const component = mount<MdsEndpointDialog>(
+        const dialogRef = createRef<MdsEndpointDialog>();
+        const { unmount } = render(
             <MdsEndpointDialog
+                ref={dialogRef}
                 onClose={onCloseMock}
             />,
         );
 
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "test-id",
                 type: MdsDialogType.MdsEndpoint,
@@ -109,18 +117,23 @@ describe("MdsEndpointDialog show tests", () => {
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
+
+        unmount();
     });
 
     it("Test close dialog by clicking Cancel button", async () => {
-        const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {
-            // no-op
-        });
+        const onCloseMock = vi.fn();
 
-        const component = mount<MdsEndpointDialog>(
+        const dialogRef = createRef<MdsEndpointDialog>();
+        const { unmount } = render(
             <MdsEndpointDialog
+                ref={dialogRef}
                 onClose={onCloseMock}
             />,
         );
+
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
 
         const instanceName = "Test Instance";
         const shapeName = "Test Shape";
@@ -133,7 +146,7 @@ describe("MdsEndpointDialog show tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "test-id",
                 type: MdsDialogType.MdsEndpoint,
@@ -165,18 +178,23 @@ describe("MdsEndpointDialog show tests", () => {
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
+
+        unmount();
     });
 
     it("Test close dialog with Decline closure", async () => {
-        const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {
-            // no-op
-        });
+        const onCloseMock = vi.fn();
 
-        const component = mount<MdsEndpointDialog>(
+        const dialogRef = createRef<MdsEndpointDialog>();
+        const { unmount } = render(
             <MdsEndpointDialog
+                ref={dialogRef}
                 onClose={onCloseMock}
             />,
         );
+
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
 
         const instanceName = "Test Instance";
         const shapeName = "Test Shape";
@@ -189,7 +207,7 @@ describe("MdsEndpointDialog show tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "test-id",
                 type: MdsDialogType.MdsEndpoint,
@@ -221,6 +239,8 @@ describe("MdsEndpointDialog show tests", () => {
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
+
+        unmount();
     });
 });
 
@@ -228,7 +248,7 @@ describe("MdsEndpointDialog validateInput tests", () => {
     let dialog: MdsEndpointDialog;
 
     beforeEach(() => {
-        dialog = new MdsEndpointDialog({ onClose: jest.fn() });
+        dialog = new MdsEndpointDialog({ onClose: vi.fn() });
     });
 
     it("should return empty messages when closing is false", async () => {

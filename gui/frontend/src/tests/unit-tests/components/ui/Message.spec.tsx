@@ -23,35 +23,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it } from "vitest";
 
 import { MessageType } from "../../../../app-logic/general-types.js";
 import { Message } from "../../../../components/ui/Message/Message.js";
+import { render } from "@testing-library/preact";
 
 describe("Message render testing", (): void => {
-    it("Test Message elements", () => {
-        const component = mount<Message>(
-            <Message type={MessageType.Error}>
-                Error: This is an unusual error
-            </Message>,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.type).toEqual(MessageType.Error);
-
-        component.unmount();
-    });
-
     it("Test Message output (snapshot)", () => {
-        const component = mount<Message>(
+        const { container, unmount } = render(
             <Message type={MessageType.Warning}>
                 Warning: Don't touch, it's hot
             </Message>,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

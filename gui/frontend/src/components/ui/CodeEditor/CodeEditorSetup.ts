@@ -104,7 +104,7 @@ export class CodeEditorSetup {
         Monaco.createModel("", "json").dispose();
 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (languages.typescript) { // This field is not set when running under Jest.
+        if (languages.typescript) { // This field is not set when running under Vitest.
             const compilerOptions: languages.typescript.CompilerOptions = {
                 allowNonTsExtensions: true,
                 target: languages.typescript.ScriptTarget.ESNext,

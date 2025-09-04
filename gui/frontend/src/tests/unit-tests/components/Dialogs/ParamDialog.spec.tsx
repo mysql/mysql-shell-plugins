@@ -23,40 +23,44 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { describe, expect, it, vi } from "vitest";
 
-import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 import { ParamDialog } from "../../../../components/Dialogs/ParamDialog.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
+import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 
 describe("Param Dialog Tests", (): void => {
     it("Render Test", () => {
-        const component = mount<ParamDialog>(
+        const { container, unmount } = render(
             <ParamDialog
                 caption="Lorem Ipsum"
             />,
         );
 
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
     it("Show Panel and Escape", async () => {
-        const spyOnClose = jest.fn((_accepted: boolean, _payload?: unknown): void => {
-            // no-op
-        });
+        const spyOnClose = vi.fn();
+        const dialogRef = createRef<ParamDialog>();
 
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const component = mount<ParamDialog>(
+        const { unmount } = render(
             <ParamDialog
+                ref={dialogRef}
                 caption="Dolor Sit Amet"
                 onClose={spyOnClose}
             />,
         );
 
-        component.instance().show();
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
+        dialogRef.current!.show();
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -71,30 +75,32 @@ describe("Param Dialog Tests", (): void => {
         expect(spyOnClose).toHaveBeenCalledTimes(1);
         expect(spyOnClose).toHaveBeenCalledWith(true, { name: "", value: "", initialValues: { name: "", value: "" } });
 
-        component.unmount();
+        unmount();
     });
 
     it("Show Panel and Escape", async () => {
-        const spyOnClose = jest.fn((_accepted: boolean, _payload?: unknown): void => {
-            // no-op
-        });
+        const spyOnClose = vi.fn();
+        const dialogRef = createRef<ParamDialog>();
 
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const component = mount<ParamDialog>(
+        const { unmount } = render(
             <ParamDialog
+                ref={dialogRef}
                 onClose={spyOnClose}
             />,
         );
 
-        component.instance().show();
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
+        dialogRef.current!.show();
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
         expect(portals[0]).toMatchSnapshot();
-        expect(component.state()).toStrictEqual({ name: "", value: "", initialValues: { name: "", value: "" } });
+        expect(dialogRef.current!.state).toStrictEqual({ name: "", value: "", initialValues: { name: "", value: "" } });
 
         const inputs = portals[0].getElementsByClassName("input");
         expect(inputs).toHaveLength(2);
@@ -103,11 +109,11 @@ describe("Param Dialog Tests", (): void => {
 
         changeInputValue(inputs[0], "ABC");
         await nextProcessTick();
-        expect(component.state().name).toBe("ABC");
+        expect(dialogRef.current!.state.name).toBe("ABC");
 
         changeInputValue(inputs[1], "XYZ");
         await nextProcessTick();
-        expect(component.state().value).toBe("XYZ");
+        expect(dialogRef.current!.state.value).toBe("XYZ");
 
         const buttons = portals[0].getElementsByClassName("button");
         expect(buttons).toHaveLength(3);
@@ -116,13 +122,15 @@ describe("Param Dialog Tests", (): void => {
 
         (buttons[1] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(1);
-        expect(spyOnClose).toHaveBeenCalledWith(false, { name: "ABC", value: "XYZ",
-            initialValues: { name: "", value: "" } });
+        expect(spyOnClose).toHaveBeenCalledWith(false, {
+            name: "ABC", value: "XYZ",
+            initialValues: { name: "", value: "" },
+        });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 });

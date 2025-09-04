@@ -38,12 +38,13 @@ import {
 import { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../frontend/src/supplement/index.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 
+import { LibraryDialogType } from "../../frontend/src/app-logic/general-types.js";
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.js";
 import {
     cdbDbEntityTypeName, CdmEntityType, ConnectionDataModelEntry, ICdmConnectionEntry, ICdmEventEntry,
     ICdmRestDbObjectEntry, type ConnectionDataModelNoGroupEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
-    type ICdmRoutineEntry, type ICdmLibraryEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
+    type ICdmLibraryEntry, type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
     type ICdmTriggerEntry, type ICdmViewEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import {
@@ -72,9 +73,8 @@ import {
     OpenEditorsTreeDataProvider,
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
 import { isExternalLangRoutine, showMessageWithTimeout } from "./utilities.js";
-import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
-import { LibraryDialogType } from "../../frontend/src/app-logic/general-types.js";
 import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
+import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 
 const homeDir = os.homedir();
 
@@ -491,7 +491,7 @@ export class DocumentCommandHandler {
                         type: LibraryDialogType.CreateLibraryFrom,
                         id: "createLibraryDialog",
                         parameters: {},
-                        values: { schemaName: entry.parent.caption , serverVersion: connection.details.version},
+                        values: { schemaName: entry.parent.caption, serverVersion: connection.details.version },
                     };
                     if (provider) {
                         void provider.runCommand("job", [
@@ -515,7 +515,6 @@ export class DocumentCommandHandler {
             if (entry) {
                 const entryType = entry.type === CdmEntityType.StoredFunction ? "function" : "procedure";
                 const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true, true);
-
 
                 void this.addNewSqlScript(entry.connection.details, "msg.editRoutine",
                     entry.parent.caption, "Edit Routine", sql, isExternalLangRoutine(entry));

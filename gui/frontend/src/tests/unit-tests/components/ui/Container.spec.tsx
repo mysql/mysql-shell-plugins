@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { Button } from "../../../../components/ui/Button/Button.js";
 import { Container, Orientation } from "../../../../components/ui/Container/Container.js";
@@ -35,7 +36,7 @@ const icon = Assets.documents.overviewPageIcon as string;
 describe("Container component tests", (): void => {
 
     it("Test Container output (snapshot)", () => {
-        const component = mount<Container>(
+        const { container, unmount } = render(
             <Container className="demoContainer">
                 <Container
                     orientation={Orientation.TopDown}
@@ -60,9 +61,9 @@ describe("Container component tests", (): void => {
                 </Container>
             </Container>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

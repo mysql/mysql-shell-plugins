@@ -23,60 +23,32 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import { ComponentSize } from "../../../../components/ui/Component/ComponentBase.js";
-import { Label, TextAlignment, ILabelProperties } from "../../../../components/ui/Label/Label.js";
-
+import { Label } from "../../../../components/ui/Label/Label.js";
 import { loremIpsum } from "../../test-helpers.js";
 
 describe("Label component test", (): void => {
 
-    it("Test Label elements", () => {
-        const component = shallow<Label>(
-            <Label
-                id="myLabel1"
-                textAlignment={TextAlignment.Center}
-                size={ComponentSize.Tiny}>
-                Tiny Label
-            </Label>,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.id).toEqual("myLabel1");
-    });
-
     it("Test Label output", () => {
-        const component = mount<Label>(
+        const { container, unmount } = render(
             <Label>A Label</Label>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Label with ansi formatting", () => {
-        const component = shallow<ILabelProperties>(
-            <Label
-                caption={loremIpsum}
-                language="ansi"
-            />,
-        );
-
-        const props = component.props();
-        expect(props.className).toEqual("msg label");
-    });
-
-    it("Label with ansi formatting", () => {
-        const component = mount<Label>(
+        const { container, unmount } = render(
             <Label
                 language="ansi"
                 caption={loremIpsum}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
-
 });

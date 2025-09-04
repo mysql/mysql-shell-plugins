@@ -23,27 +23,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { act, render, waitFor } from "@testing-library/preact";
+import { userEvent } from "@testing-library/user-event";
+import { createRef } from "preact";
+import { describe, expect, it } from "vitest";
 
 import { IServicePasswordRequest } from "../../../../app-logic/general-types.js";
 import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog.js";
-import { KeyboardKeys } from "../../../../utilities/helpers.js";
-import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { nextProcessTick } from "../../test-helpers.js";
 
 describe("Password Dialog Tests", (): void => {
     it("Render Test", () => {
-        const component = mount<PasswordDialog>(
+        const { container, unmount } = render(
             <PasswordDialog />,
         );
 
-        expect(component).toMatchSnapshot();
-        component.unmount();
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
     it("Show and Cancel Dialog", async () => {
-        const component = mount<PasswordDialog>(
-            <PasswordDialog />,
+        const dialogRef = createRef<PasswordDialog>();
+        const { unmount } = render(
+            <PasswordDialog ref={dialogRef} />,
         );
+
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
 
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
@@ -57,30 +63,32 @@ describe("Password Dialog Tests", (): void => {
             payload: { extra: 123 },
         };
 
-        const promise = component.instance().show(request);
+        const promise = dialogRef.current!.show(request);
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-            portals = document.getElementsByClassName("portal");
-            expect(portals.length).toBe(1);
-            expect(portals[0]).toMatchSnapshot();
+        // Wait until the dialog is rendered.
+        await waitFor(() => {
+            expect(document.getElementsByClassName("portal").length).toBe(1);
+        });
+        portals = document.getElementsByClassName("portal");
+        expect(portals[0]).toMatchSnapshot();
 
-            sendKeyPress(KeyboardKeys.Escape);
-            await nextProcessTick();
+        await userEvent.keyboard("{Escape}");
 
-            portals = document.getElementsByClassName("portal");
-            expect(portals.length).toBe(0);
+        // And wait until the dialog is closed.
+        await waitFor(() => {
+            expect(document.getElementsByClassName("portal").length).toBe(0);
         });
 
         const password = await promise;
         expect(password).toBeUndefined();
 
-        component.unmount();
+        unmount();
     });
 
     it("Show and Accept Dialog", async () => {
-        const component = mount<PasswordDialog>(
-            <PasswordDialog />,
+        const dialogRef = createRef<PasswordDialog>();
+        const { unmount } = render(
+            <PasswordDialog ref={dialogRef} />,
         );
 
         let portals = document.getElementsByClassName("portal");
@@ -94,11 +102,14 @@ describe("Password Dialog Tests", (): void => {
             payload: { extra: 123 },
         };
 
-        const promise = component.instance().show(request);
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
+
+        const promise = dialogRef.current!.show(request);
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
-            expect(component.state().password).toBe("");
+            expect(dialogRef.current!.state.password).toBe("");
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -106,11 +117,13 @@ describe("Password Dialog Tests", (): void => {
 
             const inputs = portals[0].getElementsByTagName("input");
             expect(inputs).toHaveLength(1);
-            changeInputValue(inputs[0], "swordfish");
-            expect(component.state().password).toBe("swordfish");
+            await userEvent.type(inputs[0], "swordfish");
+            await act(() => {
+                expect(dialogRef.current!.state.password).toBe("swordfish");
+            });
 
             // Close dialog using the enter key in the password field.
-            sendKeyPress(KeyboardKeys.Enter, inputs[0]);
+            await userEvent.keyboard("{Enter}");
             await nextProcessTick();
 
             portals = document.getElementsByClassName("portal");
@@ -119,6 +132,6 @@ describe("Password Dialog Tests", (): void => {
 
         const password = await promise;
         expect(password).toBe("swordfish");
-        component.unmount();
+        unmount();
     });
 });

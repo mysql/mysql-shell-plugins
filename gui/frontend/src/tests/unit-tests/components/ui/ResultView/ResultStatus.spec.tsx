@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
@@ -31,7 +32,7 @@ import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.
 describe("Result Status Tests", (): void => {
 
     it("Default Rendering", () => {
-        const component = mount<ResultStatus>(
+        const { container, unmount } = render(
             <ResultStatus
                 statusInfo={{
                     type: MessageType.Info,
@@ -40,9 +41,9 @@ describe("Result Status Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

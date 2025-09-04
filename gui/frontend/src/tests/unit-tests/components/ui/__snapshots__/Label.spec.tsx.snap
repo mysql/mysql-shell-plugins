@@ -1,38 +1,27 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Label component test Label with ansi formatting 1`] = `
-<Label
-  caption="Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua."
-  language="ansi"
->
+exports[`Label component test > Label with ansi formatting 1`] = `
+<div>
   <label
-    className="msg resultText"
+    class="msg resultText"
     data-tooltip="expand"
-    style={{}}
   >
     <span
       data-tooltip="inherit"
-      style={
-        {
-          "backgroundColor": undefined,
-          "color": undefined,
-        }
-      }
     >
       Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.
     </span>
   </label>
-</Label>
+</div>
 `;
 
-exports[`Label component test Test Label output 1`] = `
-<Label>
+exports[`Label component test > Test Label output 1`] = `
+<div>
   <label
-    className="msg label"
+    class="msg label"
     data-tooltip="expand"
-    style={{}}
   >
     A Label
   </label>
-</Label>
+</div>
 `;

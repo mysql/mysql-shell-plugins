@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { describe, expect, it } from "vitest";
 
-import { TreeGrid, SetDataAction } from "../../../../components/ui/TreeGrid/TreeGrid.js";
+import { SetDataAction, TreeGrid } from "../../../../components/ui/TreeGrid/TreeGrid.js";
+import { nextRunLoop } from "../../test-helpers.js";
 
 describe("TreeGrid tests", (): void => {
 
     it("Test TreeGrid instantiation", async () => {
-        let component = mount<TreeGrid>(
+        const { unmount: unmount1 } = render(
             <TreeGrid
                 columns={[]}
                 tableData={[]}
@@ -38,27 +41,36 @@ describe("TreeGrid tests", (): void => {
         );
 
         // Unmount it asap to test if the wait timer in the component is properly cancelled.
-        component.unmount();
+        unmount1();
 
-        component = mount<TreeGrid>(
+        const gridRef = createRef<TreeGrid>();
+        const { unmount: unmount2 } = render(
             <TreeGrid
+                ref={gridRef}
                 columns={[]}
                 tableData={[]}
             />,
         );
 
+        await nextRunLoop();
+        expect(gridRef.current).toBeDefined();
+
         // Wait for the underlying table to be created.
-        await component.instance().table;
+        const table = await gridRef.current!.table;
+        expect(table).toBeDefined();
 
-        const props = component.props();
-        expect(props.columns).toEqual([]);
+        expect(gridRef.current!.updateLockCount).toBe(0);
+        expect(await gridRef.current!.table).toBe(table);
+        expect(gridRef.current!.getSelectedRows().length).toBe(0);
 
-        component.unmount();
+        unmount2();
     });
 
     it("TreeGrid snapshot", async () => {
-        const component = mount<TreeGrid>(
+        const gridRef = createRef<TreeGrid>();
+        const { container, unmount } = render(
             <TreeGrid
+                ref={gridRef}
                 columns={[
                     { title: "col1", field: "field1" },
                     { title: "col2", field: "field2" },
@@ -68,64 +80,85 @@ describe("TreeGrid tests", (): void => {
                 onVerticalScroll={() => { /**/ }}
             />,
         );
-        await component.instance().table;
 
-        expect(component).toMatchSnapshot();
+        await nextRunLoop();
+        expect(gridRef.current).toBeDefined();
 
-        component.unmount();
+        await gridRef.current!.table;
+
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
     it("TreeGrid updates", async () => {
-        const component = mount<TreeGrid>(
-            <TreeGrid
-                onVerticalScroll={() => { /**/ }}
+        const gridRef = createRef<TreeGrid>();
+        const { unmount, rerender } = render(
+            < TreeGrid
+                ref={gridRef}
             />,
         );
 
-        const grid = component.instance();
-
         // Change the properties before the table is ready.
-        component.setProps({ height: "100%" });
-        expect(grid.getSelectedRows().length).toBe(0);
-        grid.beginUpdate();
+        render(
+            < TreeGrid
+                ref={gridRef}
+                height={"100%"}
+            />,
+        );
 
-        expect(grid.updateLockCount).toBe(0);
-        grid.endUpdate();
+        await nextRunLoop();
+        expect(gridRef.current).toBeDefined();
 
-        await grid.table;
+        expect(gridRef.current!.getSelectedRows().length).toBe(0);
+        gridRef.current!.beginUpdate();
 
-        component.setProps({});
-        component.setProps({
-            columns: [{ title: "col1" }],
-            tableData: [{ id: "1", col1: "a", col2: "2" }],
-            selectedRows: ["1"],
-        });
+        expect(gridRef.current!.updateLockCount).toBe(1);
+        gridRef.current!.endUpdate();
 
-        await grid.setColumns([]);
-        await grid.setData([{ id: "1", col1: "b" }], SetDataAction.Add);
-        await grid.setData([{ id: "1", col1: "c" }], SetDataAction.Replace);
-        await grid.setData([{ id: "1", col1: "d" }], SetDataAction.Update);
-        await grid.setData([], SetDataAction.Set);
+        await gridRef.current!.table;
 
-        expect(grid.getSelectedRows().length).toBe(1);
+        rerender(
+            < TreeGrid />,
+        );
 
-        grid.beginUpdate();
-        grid.beginUpdate();
-        grid.beginUpdate();
+        rerender(
+            < TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1" }]}
+                tableData={[{ id: "1", col1: "a", col2: "2" }]}
+                selectedRows={["1"]}
+            />,
+        );
 
-        expect(grid.updateLockCount).toBe(3);
-        grid.endUpdate();
-        expect(grid.updateLockCount).toBe(2);
-        grid.endUpdate();
-        grid.endUpdate();
-        grid.endUpdate();
-        grid.endUpdate();
-        grid.endUpdate();
-        grid.endUpdate();
-        grid.endUpdate();
-        expect(grid.updateLockCount).toBe(0);
+        await nextRunLoop();
+        expect(gridRef.current).toBeDefined();
 
-        component.unmount();
+        await gridRef.current!.setColumns([]);
+        await gridRef.current!.setData([{ id: "1", col1: "b" }], SetDataAction.Add);
+        await gridRef.current!.setData([{ id: "1", col1: "c" }], SetDataAction.Replace);
+        await gridRef.current!.setData([{ id: "1", col1: "d" }], SetDataAction.Update);
+        await gridRef.current!.setData([], SetDataAction.Set);
+
+        expect(gridRef.current!.getSelectedRows().length).toBe(1);
+
+        gridRef.current!.beginUpdate();
+        gridRef.current!.beginUpdate();
+        gridRef.current!.beginUpdate();
+
+        expect(gridRef.current!.updateLockCount).toBe(3);
+        gridRef.current!.endUpdate();
+        expect(gridRef.current!.updateLockCount).toBe(2);
+        gridRef.current!.endUpdate();
+        gridRef.current!.endUpdate();
+        gridRef.current!.endUpdate();
+        gridRef.current!.endUpdate();
+        gridRef.current!.endUpdate();
+        gridRef.current!.endUpdate();
+        gridRef.current!.endUpdate();
+        expect(gridRef.current!.updateLockCount).toBe(0);
+
+        unmount();
     });
 
 });

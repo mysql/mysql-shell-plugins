@@ -24,8 +24,8 @@
  */
 
 import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
-import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
-import { ShellAPIGui, IShellResultType } from "../../communication/ProtocolGui.js";
+import { IPromptReplyBackend, Protocol, ShellPromptResponseType } from "../../communication/Protocol.js";
+import { IShellResultType, ShellAPIGui } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 

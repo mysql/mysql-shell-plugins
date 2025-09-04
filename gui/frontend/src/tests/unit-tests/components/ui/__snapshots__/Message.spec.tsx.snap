@@ -1,13 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Message render testing Test Message output (snapshot) 1`] = `
-<Message
-  type={1}
->
+exports[`Message render testing > Test Message output (snapshot) 1`] = `
+<div>
   <div
-    className="msg message warning"
+    class="msg message warning"
   >
     Warning: Don't touch, it's hot
   </div>
-</Message>
+</div>
 `;

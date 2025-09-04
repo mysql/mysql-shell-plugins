@@ -23,16 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { HoverProvider } from "../../../../../components/ui/CodeEditor/HoverProvider.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
-jest.mock("../../../../../script-execution/PresentationInterface");
-
 describe("HoverProvider tests", () => {
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Create instance and init", () => {
         const hoverProvider = new HoverProvider();
@@ -41,25 +43,23 @@ describe("HoverProvider tests", () => {
         let result = hoverProvider.provideHover(mockModel, position);
         expect(result).toBe(null);
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
+        const pi = new PresentationInterface("javascript");
+        const execContext = mockModel.executionContexts!.addContext(pi);
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
 
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
         result = hoverProvider.provideHover(mockModel, position);
-        expect(result).toBe(undefined);
+        expect(result).toBeUndefined();
 
         const services = ScriptingLanguageServices.instance;
-        services.getHover = jest.fn().mockReturnValue({
+        services.getHover = vi.fn().mockReturnValue({
             uri: "",
             range: null,
         });
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
-        const hover = jest.spyOn(services, "getHover");
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
+        const hover = vi.spyOn(services, "getHover");
         void hoverProvider.provideHover(mockModel, position);
         expect(hover).toHaveBeenCalled();
     });

@@ -23,16 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { afterAll, beforeAll, describe, it, vi } from "vitest";
 
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { ICodeEditorModel, IEditorPersistentState } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor/index.js";
+import type { ISavedEditorState } from "../../../../../modules/db-editor/ConnectionTab.js";
 import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
 import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
 import { notebookDocumentMock } from "../../../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
-import type { ISavedEditorState } from "../../../../../modules/db-editor/ConnectionTab.js";
+import { render } from "@testing-library/preact";
 
 describe("Standalone presentation interface tests", (): void => {
 
@@ -51,6 +52,10 @@ describe("Standalone presentation interface tests", (): void => {
 
     beforeAll(() => {
         registerUiLayer(uiLayerMock);
+    });
+
+    afterAll(() => {
+        vi.resetAllMocks();
     });
 
     it("Standalone presentation interface instantiation", () => {
@@ -72,7 +77,7 @@ describe("Standalone presentation interface tests", (): void => {
             isCloudInstance: false,
         };
 
-        const component = mount<ScriptEditor>(
+        const { unmount } = render(
             <ScriptEditor
                 savedState={savedState}
                 standaloneMode={false}
@@ -81,6 +86,6 @@ describe("Standalone presentation interface tests", (): void => {
             />,
         );
 
-        component.unmount();
+        unmount();
     });
 });

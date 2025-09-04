@@ -23,19 +23,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition } from "../../../../../components/ui/CodeEditor/index.js";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { CodeCompletionProvider } from "../../../../../components/ui/CodeEditor/CodeCompletionProvider.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
-
-jest.mock("../../../../../script-execution/PresentationInterface");
 
 describe("CodeCompletionProvider basic test", () => {
 
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
+
     it("Test provider without actual result", async () => {
         const completionProvider = new CodeCompletionProvider();
+
+        const pi = new PresentationInterface("javascript");
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        const execContext = mockModel.executionContexts!.addContext(pi);
+
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
 
         expect(completionProvider.triggerCharacters).toEqual(
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.\\@(".split(""),
@@ -43,26 +50,7 @@ describe("CodeCompletionProvider basic test", () => {
         let items = await completionProvider.provideCompletionItems(mockModel, position);
         expect(items).toBeUndefined();
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
-
-        pi.context = new ExecutionContext(pi, StoreType.Document);
-        expect(pi.context).toBeDefined();
-
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0 };
-        });
-
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
-
-        items = await completionProvider.provideCompletionItems(mockModel, position);
-        // items are always undefined, while testing.
-
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        mockModel.getWordUntilPosition = jest.fn().mockReturnValue({ startColumn: 10, endColumn: 10 });
+        mockModel.getWordUntilPosition = vi.fn().mockReturnValue({ startColumn: 10, endColumn: 10 });
         items = await completionProvider.provideCompletionItems(mockModel, position);
 
     });

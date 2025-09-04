@@ -1,19 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Divider render testing Test Divider output 1`] = `
-<Divider
-  thickness={4}
-  vertical={true}
->
+exports[`Divider render testing > Test Divider output 1`] = `
+<div>
   <div
-    className="msg divider vertical"
-    onMouseEnter={[Function]}
-    onMouseLeave={[Function]}
-    style={
-      {
-        "--thickness": "4px",
-      }
-    }
+    class="msg divider vertical"
+    style="--thickness: 4px;"
   />
-</Divider>
+</div>
 `;

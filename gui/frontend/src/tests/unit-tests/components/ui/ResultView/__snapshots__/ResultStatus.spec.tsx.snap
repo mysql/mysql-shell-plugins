@@ -1,40 +1,16 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Result Status Tests Default Rendering 1`] = `
-<ResultStatus
-  statusInfo={
-    {
-      "text": "Lorem ipsum",
-      "type": 2,
-    }
-  }
-  statusTextPosition="left"
->
-  <Container
-    className="msg resultStatus containsMessage"
-    orientation="row"
+exports[`Result Status Tests > Default Rendering 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar resultStatus containsMessage"
+    style="flex-direction: row;"
   >
     <div
-      className="msg container fixedScrollbar resultStatus containsMessage"
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
+      class="msg message info"
     >
-      <Message
-        type={2}
-      >
-        <div
-          className="msg message info"
-        >
-          Lorem ipsum
-        </div>
-      </Message>
+      Lorem ipsum
     </div>
-  </Container>
-</ResultStatus>
+  </div>
+</div>
 `;

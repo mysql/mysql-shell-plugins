@@ -484,3 +484,16 @@ declare global {
     /** Holds the current vite run mode. */
     var VITE_MODE: "development" | "production";
 }
+
+/** This conditional type enforces type widening on generic parameter types. */
+export type ValueType<T> = T extends string
+    ? string
+    : T extends number
+        ? number
+        : T extends boolean
+            ? boolean
+            : T extends undefined
+                ? undefined
+                : [T] extends [unknown]
+                    ? T
+                    : object;

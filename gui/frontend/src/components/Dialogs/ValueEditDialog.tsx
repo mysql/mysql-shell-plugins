@@ -1703,8 +1703,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
     };
 
-    private btnClick = (sectionId: string, _e: MouseEvent | KeyboardEvent, props: IButtonProperties):
-        void => {
+    private btnClick = (sectionId: string, _e: MouseEvent | KeyboardEvent,
+        props: IButtonProperties): void => {
         const { values } = this.state;
 
         const section = values.sections.get(sectionId);
@@ -1985,4 +1985,3 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         return validations;
     };
 }
-

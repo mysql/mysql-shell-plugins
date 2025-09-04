@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,38 +23,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { Orientation } from "../../../../components/ui/Container/Container.js";
-import { TagInput, ITagInputProperties } from "../../../../components/ui/TagInput/TagInput.js";
+import { TagInput } from "../../../../components/ui/TagInput/TagInput.js";
 
 describe("TagInput testing", () => {
 
-    it("TagInput test properties", () => {
-        const component = mount(
-            <TagInput
-                tags={[{ id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
-                removable={false}
-                orientation={Orientation.BottomUp}
-            />,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props() as ITagInputProperties;
-        expect(props.tags).toEqual([{ id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]);
-        expect(props.removable).toEqual(false);
-        expect(props.orientation).toEqual(Orientation.BottomUp);
-    });
-
     it("Render test", () => {
-        const component = mount(
+        const { container, unmount } = render(
             <TagInput
                 tags={[{ id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
                 removable={false}
                 orientation={Orientation.BottomUp}
             />,
         );
-        expect(component).toMatchSnapshot();
-        component.unmount();
+
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
 });

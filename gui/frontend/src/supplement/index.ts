@@ -25,12 +25,9 @@
 
 import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo.js";
 import { DBDataType, type IColumnInfo, type IDBDataTypeDetails, type IDictionary } from "../app-logic/general-types.js";
-import { ITableColumn, IGetColumnsMetadataItem } from "../communication/ProtocolGui.js";
-import { QueryType } from "../parsing/parser-common.js";
+import { ITableColumn } from "../communication/ProtocolGui.js";
 import { Base64Convert } from "../utilities/Base64Convert.js";
-import { unquote } from "../utilities/string-helpers.js";
 import { IConnectionInfo } from "./RequisitionTypes.js";
-import { ShellInterfaceSqlEditor } from "./ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "./ShellInterface/index.js";
 
 export { Stack } from "./Stack.js";
@@ -165,19 +162,6 @@ export interface IThenableCallback<T> {
     then: (onResult?: ((taskId: number, value: T) => void)) => IThenableCallback<T>;
     catch: (onError?: ((taskId: number, reason?: unknown) => void)) => void;
 }
-
-/** This conditional type enforces type widening on generic parameter types. */
-export type ValueType<T> = T extends string
-    ? string
-    : T extends number
-        ? number
-        : T extends boolean
-            ? boolean
-            : T extends undefined
-                ? undefined
-                : [T] extends [unknown]
-                    ? T
-                    : object;
 
 export const getDataTypeDetails = (dbType: DBType, dataType: string): IDBDataTypeDetails => {
     const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
@@ -373,68 +357,4 @@ export const parseColumnLength = (rawType: string, characterMaximumLength?: numb
     }
 
     return length;
-};
-
-export const parseSchemaTable = async (fullTableName: string,
-    backend?: ShellInterfaceSqlEditor): Promise<{ schema: string; table: string; }> => {
-
-    const parts = fullTableName.split(".");
-    const table = unquote(parts.pop()!);
-    let schema = "";
-    if (parts.length > 0) {
-        schema = unquote(parts.pop()!);
-    }
-
-    if (schema.length === 0) {
-        schema = await backend?.getCurrentSchema() ?? "";
-    }
-
-    return { schema, table };
-};
-
-export const getColumnsMetadataForEmptyResultSet = async (
-    fullTableName: string | undefined, queryType: QueryType, dbType: DBType, backend?: ShellInterfaceSqlEditor,
-): Promise<Array<IGetColumnsMetadataItem & { length: number; }>> => {
-
-    const metadata: Array<IGetColumnsMetadataItem & { length: number; }> = [];
-    if (queryType !== QueryType.Select || !fullTableName || !backend) {
-        return metadata;
-    }
-
-    const { schema, table } = await parseSchemaTable(fullTableName, backend);
-    if (!schema || !table) {
-        return metadata;
-    }
-
-    const columnNames = await backend.getTableObjectNames(schema, table, "Column");
-    const request = columnNames.map((column) => {
-        return {
-            schema,
-            table,
-            column,
-        };
-    });
-    const response = await backend.getColumnsMetadata(request);
-
-    // We need to preserve the same columns order as in getTableObjectNames,
-    // therefore cannot iterate through getColumnsMetadata response directly.
-    columnNames.forEach((column) => {
-        const data = response.find((data) => {
-            return data.name === column;
-        });
-        if (!data) {
-            return;
-        }
-
-        const details = getDataTypeDetails(dbType, data.type);
-        const type = parseDataTypeFromRaw(dbType, data.type);
-
-        metadata.push({
-            ...data,
-            type,
-            length: parseColumnLength(data.type, details.characterMaximumLength),
-        });
-    });
-
-    return metadata;
 };

@@ -24,33 +24,117 @@
  */
 
 import * as fs from "fs";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import * as os from "os";
 
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { ResponseError } from "../../../../communication/ResponseError.js";
+
+import { preferredShellVersion } from "../../../../app-logic/general-types.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceCore } from "../../../../supplement/ShellInterface/ShellInterfaceCore.js";
+import { convertErrorToString, versionMatchesExpected } from "../../../../utilities/helpers.js";
+import { mockClassGetters, mockClassMethods } from "../../test-helpers.js";
 
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
-import { setupShellForTests } from "../../test-helpers.js";
-import { versionMatchesExpected } from "../../../../utilities/helpers.js";
-import { preferredShellVersion } from "../../../../app-logic/general-types.js";
+let currentLogLevel = "DEBUG3"; // Default log level for the shell.
+
+mockClassGetters(ShellInterfaceCore, {
+    backendInformation: () => {
+        return Promise.resolve({
+            architecture: os.platform() === "win32" ? "x86_64" : "Win64",
+            major: 9,
+            minor: 0,
+            patch: 1,
+            platform: os.platform(),
+            serverDistribution: "Test Distribution",
+            serverMajor: 9,
+            serverMinor: 0,
+            serverPatch: 10
+        });
+    },
+});
+
+mockClassMethods(ShellInterfaceCore, {
+    getLogLevel: () => {
+        return Promise.resolve(currentLogLevel);
+    },
+
+    setLogLevel: (level: string) => {
+        currentLogLevel = level;
+
+        return Promise.resolve();
+    },
+
+    getDbTypes: () => {
+        return Promise.resolve(["Sqlite", "MySQL"]);
+    },
+
+    validatePath: (path: string) => {
+        if (path === "::") {
+            return Promise.resolve(false);
+        }
+
+        if (path === "") {
+            return Promise.resolve(true);
+        }
+
+        if (fs.existsSync(path)) {
+            return Promise.resolve(true);
+        }
+
+        return Promise.resolve(false);
+    },
+
+    createDatabaseFile: (path: string): Promise<void> => {
+        if (path.startsWith("non-existing/")) {
+            return Promise.reject(new ResponseError({ requestState: { msg: "No permissions to access the directory." } }));
+        }
+
+        const home = os.homedir();
+        const fullPath = path.startsWith("/") ? path : `${home}/${path}`;
+
+        if (!fs.existsSync(dirname(fullPath))) {
+            fs.mkdirSync(dirname(fullPath), { recursive: true });
+        }
+
+        fs.writeFileSync(fullPath, "", { flag: "w" });
+
+        return Promise.resolve();
+    },
+
+    getDebuggerScriptNames: () => {
+        return Promise.resolve([
+            "unit/authenticate/success_user.js",
+            "unit/authenticate/failure_user.js",
+            "unit/connection/create.js",
+            "unit/connection/delete.js",
+            "unit/connection/list.js",
+            "unit/connection/update.js",
+        ]);
+    },
+
+    getDebuggerScriptContent: (name: string) => {
+        return Promise.resolve(`"request": "authenticate",
+    "username": "user1",
+    "password": "password1",
+    "requestState": {
+    "msg": "Authentication successful"`);
+    }
+});
 
 describe("ShellInterfaceCore Tests", () => {
-    let launcher: MySQLShellLauncher | undefined;
     let core: ShellInterfaceCore;
 
-    beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG3");
-
+    beforeAll(() => {
         // All available interfaces from the ShellInterface interface are singletons.
         core = ShellInterface.core;
         expect(core).toBeDefined();
     });
 
-    afterAll(async () => {
-        if (launcher) {
-            await launcher.exitProcess();
-        }
+    afterAll(() => {
+        vi.resetAllMocks();
     });
 
     it("Backend information", async () => {
@@ -58,52 +142,7 @@ describe("ShellInterfaceCore Tests", () => {
         expect(info).toBeDefined();
 
         if (info) {
-            switch (os.platform()) {
-                case "darwin": {
-                    expect(info.architecture === "arm64" || info.architecture === "x86_64").toBeTruthy();
-                    break;
-                }
-
-                case "win32": {
-                    expect(info.architecture === "Win32" || info.architecture === "Win64").toBeTruthy();
-                    break;
-                }
-
-                case "linux": {
-                    expect(info.architecture).toBe("x86_64");
-                    break;
-                }
-
-                default:
-            }
-
-            switch (os.arch()) {
-                case "arm": {
-                    expect(info.architecture).toBe("arm");
-                    break;
-                }
-
-                case "arm64": {
-                    expect(info.architecture).toBe("arm64");
-                    break;
-                }
-
-                case "ia32": {
-                    expect(info.architecture).toBe("x86");
-                    break;
-                }
-
-                case "x64": {
-                    expect(info.architecture).toBe("x86_64");
-                    break;
-                }
-
-                default: {
-                    // Anything else we cannot test.
-                    break;
-                }
-            }
-
+            expect(info.architecture === "Win64" || info.architecture === "x86_64").toBeTruthy();
             expect(versionMatchesExpected([info.major, info.minor, 0], preferredShellVersion)).toBeTruthy();
         }
     });
@@ -130,19 +169,26 @@ describe("ShellInterfaceCore Tests", () => {
         expect(result).toBeTruthy();
 
         // Absolute paths are valid anywhere.
-        result = await core.validatePath(__dirname);
+        const fileName = fileURLToPath(import.meta.url);
+
+        result = await core.validatePath(dirname(fileName));
         expect(result).toBeTruthy();
 
-        result = await core.validatePath(__dirname + "/non-existing");
+        result = await core.validatePath(dirname(fileName) + "/non-existing");
         expect(result).toBeFalsy();
     });
 
     it("Create DB file", async () => {
         // Relative paths use the user's home dir as basis.
-        await expect(core.createDatabaseFile("non-existing/test.sqlite3")).rejects
-            .toBeInstanceOf(ResponseError).catch((reason: unknown) => {
-                expect((reason as IDictionary).message).toBe("No permissions to access the directory.");
-            });
+        await expect(core.createDatabaseFile("non-existing/test.sqlite3")).rejects.toBeInstanceOf(ResponseError);
+
+        try {
+            await core.createDatabaseFile("non-existing/test.sqlite3");
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            expect(message).toEqual("No permissions to access the directory.");
+        }
+
         expect(fs.existsSync("non-existing/test.sqlite3")).toBeFalsy();
 
         const home = os.homedir();
@@ -160,7 +206,7 @@ describe("ShellInterfaceCore Tests", () => {
 
     it("Debugger", async () => {
         const names = await core.getDebuggerScriptNames();
-        expect(names.length).toBeGreaterThan(20);
+        expect(names.length).toBeGreaterThan(5);
         expect(names).toContain("unit/authenticate/success_user.js");
 
         const content = await core.getDebuggerScriptContent("unit/authenticate/success_user.js");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-//This script attaches screenshots to failed tests
-//This script marks pending tests to existing bugs if there is the tag <bug:> before the test title
+// This script attaches screenshots to failed tests.
+// This script marks pending tests to existing bugs if there is the tag <bug:> before the test title.
 
+import * as fs from "fs";
 import * as jsdom from "jsdom";
+import { join } from "path";
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const { JSDOM } = jsdom;
-import * as fs from "fs";
-import { join } from "path";
+
 const baseDir = "src/tests/e2e";
 const html = fs.readFileSync(join(baseDir, "test-report.html"));
 const parsedHtml = new JSDOM(html, { includeNodeLocations: true });
@@ -45,14 +47,16 @@ if (fs.existsSync(join(baseDir, "screenshots"))) {
     for (const file of files) {
         for (let i = 0; i <= testTitles.length - 1; i++) {
             const domTestName = String(testTitles[i].textContent).toLowerCase().replace(/\s/g, "_");
-            if (file.indexOf(domTestName) !== -1) {
-                const img = document.createElement("img");
-                img.src = "screenshots/" + file;
+            if (file.includes(domTestName)) {
                 for (let j = 0; j <= failedDivs.length - 1; j++) {
-                    if (failedDivs[j].querySelector("div.test-title").textContent.toLowerCase()
-                        .replace(/\s/g, "_") === domTestName) {
-                        if (!failedDivs[j].querySelector("div.failureMessages img")) {
-                            failedDivs[j].querySelector("div.failureMessages").appendChild(img);
+                    const title = failedDivs[j].querySelector("div.test-title");
+                    if (title && title.textContent?.toLowerCase() .replace(/\s/g, "_") === domTestName) {
+                        const failureMessages = failedDivs[j].querySelector("div.failureMessages");
+                        const image = failedDivs[j].querySelector("div.failureMessages img");
+                        if (!image && failureMessages) {
+                            const screenShot = document.createElement("img");
+                            screenShot.src = "screenshots/" + file;
+                            failureMessages.appendChild(screenShot);
                         }
                     }
                 }

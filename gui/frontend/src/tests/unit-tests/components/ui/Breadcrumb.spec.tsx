@@ -23,72 +23,82 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
 import { act } from "preact/test-utils";
+import { describe, expect, it, vi } from "vitest";
 
-import { Breadcrumb, IBreadcrumbProperties } from "../../../../components/ui/Breadcrumb/Breadcrumb.js";
+import { Breadcrumb } from "../../../../components/ui/Breadcrumb/Breadcrumb.js";
 import { Button } from "../../../../components/ui/Button/Button.js";
 import { Label } from "../../../../components/ui/Label/Label.js";
-
-import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 
 describe("Breadcrumb render testing", (): void => {
 
     it("Test Breadcrumb onSelect callback", async () => {
-        const component = mount(
+        const onSelect = vi.fn();
+        const { container, unmount } = render(
             <Breadcrumb
                 id="breadcrumb1"
-                path={["root", "folder", "subfolder"]}
+                path={[
+                    { id: "root", caption: "Root" },
+                    { id: "folder", caption: "Folder" },
+                    { id: "subfolder", caption: "Subfolder", selected: true },
+                ]}
                 className="dropShadow"
                 showPicker={true}
-                selected={2}
-                onSelect={jest.fn()}
+                onSelect={onSelect}
             />,
         );
-        expect(component).toBeTruthy();
-        const buttons = component.find(Button);
-        expect(buttons).toHaveLength(4);
-        const instance = component.instance();
-        const spyOnChange = jest.spyOn(instance.props as IBreadcrumbProperties, "onSelect");
-        const onClick = (buttons.first().props()).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, {});
-        });
-        expect(spyOnChange).toHaveBeenCalled();
 
-        component.unmount();
+        const buttons = container.querySelectorAll<HTMLButtonElement>(".button");
+        expect(buttons).toHaveLength(4);
+
+        await act(() => {
+            buttons[0].click();
+        });
+        expect(onSelect).toHaveBeenCalled();
+
+        unmount();
     });
 
     it("Test Breadcrumb (Snapshot) 1", () => {
-        const component = mount<Breadcrumb>(
+        const { container, unmount } = render(
             <Breadcrumb
                 id="breadcrumb1"
-                path={["root", "folder", "subfolder"]}
+                path={[
+                    { id: "root", caption: "Root" },
+                    { id: "folder", caption: "Folder" },
+                    { id: "subfolder", caption: "Subfolder", selected: true },
+                ]}
                 className="dropShadow"
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test Breadcrumb (Snapshot) 2", () => {
-        const component = mount<Breadcrumb>(
+        const { container, unmount } = render(
             <Breadcrumb
                 id="breadcrumb2"
-                path={["root", "folder", "subfolder", "subfolder2"]}
+                path={[
+                    { id: "root", caption: "Root" },
+                    { id: "folder", caption: "Folder" },
+                    { id: "subfolder", caption: "Subfolder", selected: true },
+                    { id: "subfolder2", caption: "Subfolder 2" },
+                ]}
                 separator="☞"
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test Breadcrumb (Snapshot) 3", () => {
-        const component = mount<Breadcrumb>(
+        const { container, unmount } = render(
             <Breadcrumb id="breadcrumb3">
                 <Button style={{ backgroundColor: "white", color: "white" }}>
                     <span style={{ color: "#00758f" }}>My</span>
@@ -108,9 +118,9 @@ describe("Breadcrumb render testing", (): void => {
             </Breadcrumb>,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

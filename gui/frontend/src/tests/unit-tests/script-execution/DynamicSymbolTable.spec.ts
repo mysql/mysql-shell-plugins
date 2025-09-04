@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,10 +24,12 @@
  */
 
 import { BaseSymbol, SymbolTable } from "antlr4-c3";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import {
     CharsetSymbol, CollationSymbol, ColumnSymbol, EngineSymbol, EventSymbol, ForeignKeySymbol, IndexSymbol,
-    PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol, LibrarySymbol,
+    LibrarySymbol,
+    PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol,
     StoredProcedureSymbol, SystemFunctionSymbol, SystemVariableSymbol, TableSymbol, TablespaceSymbol, TriggerSymbol,
     UdfSymbol, UserSymbol, UserVariableSymbol, ViewSymbol,
 } from "../../../parsing/DBSymbolTable.js";

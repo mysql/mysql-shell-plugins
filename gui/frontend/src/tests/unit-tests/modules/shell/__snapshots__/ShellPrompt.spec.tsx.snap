@@ -1,90 +1,25 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Shell prompt tests ShellPrompt output test 1`] = `
-<ShellPrompt
-  getSchemas={[MockFunction]}
-  values={
-    {
-      "promptDescriptor": {
-        "host": "localhost",
-        "isProduction": true,
-        "mode": "readonly",
-        "port": 3366,
-        "schema": "myDb",
-        "session": "classic",
-        "socket": "socket1",
-        "ssl": "yes",
-      },
-    }
-  }
->
-  <Breadcrumb
-    className="msg shellPrompt"
-    path={
-      [
-        "",
-      ]
-    }
-    showPicker={false}
+exports[`Shell prompt tests > ShellPrompt output test 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar breadcrumb shellPrompt"
+    style="flex-direction: row;"
   >
-    <Container
-      className="msg breadcrumb shellPrompt"
-      orientation="row"
-      showPicker={false}
+    <label
+      class="msg label shellPromptItem"
+      data-tooltip="Connection to server localhost at port 3366, using the classic protocol"
+      id="server"
     >
-      <div
-        className="msg container fixedScrollbar breadcrumb shellPrompt"
-        showPicker={false}
-        style={
-          {
-            "alignItems": undefined,
-            "flexDirection": "row",
-            "flexWrap": undefined,
-            "justifyContent": undefined,
-          }
-        }
-      >
-        <Label
-          caption=" localhost:3366"
-          className="shellPromptItem"
-          data-tooltip="Connection to server localhost at port 3366, using the classic protocol"
-          id="server"
-          key="server"
-        >
-          <label
-            className="msg label shellPromptItem"
-            data-tooltip="Connection to server localhost at port 3366, using the classic protocol"
-            id="server"
-            style={{}}
-          >
-             localhost:3366
-          </label>
-        </Label>
-        <Label
-          caption=" myDb"
-          className="shellPromptItem"
-          id="schema"
-          key="schema"
-          onClick={[Function]}
-        >
-          <label
-            className="msg label shellPromptItem"
-            data-tooltip="expand"
-            id="schema"
-            onClick={[Function]}
-            style={{}}
-          >
-             myDb
-          </label>
-        </Label>
-      </div>
-    </Container>
-  </Breadcrumb>
-  <Menu
-    className="shellPromptSchemaMenu"
-    onItemClick={[Function]}
-    orientation="column"
-    placement="right-start"
-  />
-</ShellPrompt>
+       localhost:3366
+    </label>
+    <label
+      class="msg label shellPromptItem"
+      data-tooltip="expand"
+      id="schema"
+    >
+       myDb
+    </label>
+  </div>
+</div>
 `;

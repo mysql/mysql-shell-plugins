@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,33 +23,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "@testing-library/jest-dom";
-import { mount } from "enzyme";
+import { act, fireEvent, render, waitFor } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import { fireEvent } from "@testing-library/preact";
 import {
     NotificationCenter, NotificationType,
 } from "../../../../components/ui/NotificationCenter/NotificationCenter.js";
+import { createRef } from "preact";
+import { nextRunLoop } from "../../test-helpers.js";
 
 describe("NotificationCenter component tests", () => {
     it("Standard rendering (snapshot)", () => {
-        const notificationCenter = mount<NotificationCenter>(
+        const { container, unmount } = render(
             <NotificationCenter />,
         );
-        expect(notificationCenter).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        notificationCenter.unmount();
+        unmount();
     });
 
     it("Information messages", async () => {
-        const notificationCenter = mount<NotificationCenter>(
-            <NotificationCenter />,
+        const centerRef = createRef<NotificationCenter>();
+        const { container, unmount } = render(
+            <NotificationCenter ref={centerRef} />,
         );
 
-        const slices = notificationCenter.find(".toast");
+        await nextRunLoop();
+        expect(centerRef.current).toBeDefined();
+
+        const slices = container.querySelectorAll(".toast");
         expect(slices).toHaveLength(0);
 
-        const promise1 = notificationCenter.instance().showNotification({
+        const promise1 = centerRef.current!.showNotification({
             text: "Information message",
             type: NotificationType.Information,
             timeout: 2000,
@@ -57,57 +62,61 @@ describe("NotificationCenter component tests", () => {
 
         // Can only test with history on here, because the main list animates toasts in and out and waits for the
         // animation to finish.
-        notificationCenter.instance().toggleHistory();
-        notificationCenter.update();
-        let toasts = notificationCenter.find(".toast").hostNodes();
+        centerRef.current!.toggleHistory();
+
+        await nextRunLoop();
+
+        let toasts = container.querySelectorAll(".toast");
         expect(toasts).toHaveLength(1);
 
-        toasts = notificationCenter.find(".info").hostNodes();
+        toasts = container.querySelectorAll(".info");
         expect(toasts).toHaveLength(1);
 
-        const promise2 = notificationCenter.instance().showNotification({
+        const promise2 = centerRef.current!.showNotification({
             text: "Choice",
             type: NotificationType.Information,
             items: ["Yes", "No"],
         });
 
-        notificationCenter.update();
+        await nextRunLoop();
 
         // There are two toasts (one in the main list and one in the history).
-        const buttons = notificationCenter.find(".itemButton").hostNodes();
+        const buttons = container.querySelectorAll(".itemButton");
         expect(buttons).toHaveLength(2);
-        expect(buttons.at(0).text()).toEqual("Yes");
-        expect(buttons.at(1).text()).toEqual("No");
+        expect(buttons[0].innerHTML).toEqual("Yes");
+        expect(buttons[1].innerHTML).toEqual("No");
 
-        setTimeout(() => {
-            const buttons = notificationCenter.find(".itemButton");
-            expect(buttons).toHaveLength(4);
-            const yes = buttons.at(0);
-            expect(yes.text()).toEqual("Yes");
-            const element = yes.getDOMNode();
-            fireEvent.click(element);
-        }, 250);
+        await act(() => {
+            const buttons = container.querySelectorAll(".itemButton");
+            expect(buttons).toHaveLength(2);
+            const yes = buttons[0];
+            expect(yes.innerHTML).toEqual("Yes");
+            fireEvent.click(yes);
+        });
 
         const result = await Promise.all([promise1, promise2]);
         expect(result[0]).toBeUndefined();
         expect(result[1]).toEqual("Yes");
-        notificationCenter.update();
 
-        toasts = notificationCenter.find(".toast").hostNodes();
+        toasts = container.querySelectorAll(".toast");
         expect(toasts).toHaveLength(0);
 
-        notificationCenter.unmount();
+        unmount();
     });
 
     it("Clear history", async () => {
-        const notificationCenter = mount<NotificationCenter>(
-            <NotificationCenter />,
+        const centerRef = createRef<NotificationCenter>();
+        const { container, unmount } = render(
+            <NotificationCenter ref={centerRef} />,
         );
 
-        const slices = notificationCenter.find(".toast");
+        await nextRunLoop();
+        expect(centerRef.current).toBeDefined();
+
+        const slices = container.querySelectorAll(".toast");
         expect(slices).toHaveLength(0);
 
-        const promise1 = notificationCenter.instance().showNotification({
+        const promise1 = centerRef.current!.showNotification({
             text: "Error message",
             type: NotificationType.Error,
             timeout: 2000,
@@ -115,71 +124,75 @@ describe("NotificationCenter component tests", () => {
 
         // Can only test with history on here, because the main list animates toasts in and out and waits for the
         // animation to finish.
-        notificationCenter.instance().toggleHistory();
-        notificationCenter.update();
-        let toasts = notificationCenter.find(".toast").hostNodes();
+        centerRef.current!.toggleHistory();
+
+        await nextRunLoop();
+
+        let toasts = container.querySelectorAll(".toast");
         expect(toasts).toHaveLength(1);
 
-        toasts = notificationCenter.find(".error").hostNodes();
+        toasts = container.querySelectorAll(".error");
         expect(toasts).toHaveLength(1);
 
-        const promise2 = notificationCenter.instance().showNotification({
+        const promise2 = centerRef.current!.showNotification({
             text: "Warning message",
             type: NotificationType.Warning,
         });
 
-        notificationCenter.update();
+        await nextRunLoop();
 
-        toasts = notificationCenter.find(".warning").hostNodes();
+        toasts = container.querySelectorAll(".warning");
         expect(toasts).toHaveLength(1);
 
         // There are two toasts (one in the main list and one in the history).
-        const buttons = notificationCenter.find(".itemButton").hostNodes();
+        const buttons = container.querySelectorAll(".itemButton");
         expect(buttons).toHaveLength(0);
 
-        setTimeout(() => {
-            const buttons = notificationCenter.find(".itemButton");
-            expect(buttons).toHaveLength(0);
+        await act(() => {
             fireEvent.keyDown(document.body, { key: "Escape", code: "Escape" });
-            notificationCenter.update();
+        });
 
-            expect(notificationCenter.state().showHistory).toBe(false);
+        await waitFor(() => {
+            expect(centerRef.current!.state.showHistory).toBe(false);
+        });
 
+        await act(async () => {
             // Fire escape again. This should close the waring toast.
             fireEvent.keyDown(document.body, { key: "Escape", code: "Escape" });
-            notificationCenter.update();
+            await nextRunLoop();
 
             // And again for the error toast.
             fireEvent.keyDown(document.body, { key: "Escape", code: "Escape" });
-            notificationCenter.update();
+            await nextRunLoop();
+        });
 
-            // The toasts are still on screen, as they expect to be removed by the animation.
-            // We have to simulate the end of the animation here.
-            toasts = notificationCenter.find(".toast").hostNodes();
-            expect(toasts).toHaveLength(2);
-            toasts.forEach((toast) => {
-                const event = new Event("transitionend", {
-                    bubbles: true,
-                    cancelable: false,
-                });
+        // The toasts are still on screen, as they expect to be removed by the animation.
+        // We have to simulate the end of the animation here.
+        toasts = container.querySelectorAll(".toast");
+        expect(toasts).toHaveLength(2);
 
-                toast.getDOMNode().dispatchEvent(event);
+        toasts.forEach((toast) => {
+            const event = new Event("transitionend", {
+                bubbles: true,
+                cancelable: false,
             });
 
-            // At this point the toasts should be removed, but they are still in the history.
-            // Do the final step to remove the toasts from the history, by clearing it,
-            // which in turn will resolve the promises the code below is waiting for.
-            notificationCenter.instance().clearHistory();
-            notificationCenter.update();
-        }, 250);
+            toast.dispatchEvent(event);
+        });
+
+        // At this point the toasts should be removed, but they are still in the history.
+        // Do the final step to remove the toasts from the history, by clearing it,
+        // which in turn will resolve the promises the code below is waiting for.
+        centerRef.current!.clearHistory();
+        await nextRunLoop();
 
         const result = await Promise.all([promise1, promise2]);
         expect(result[0]).toBeUndefined();
         expect(result[1]).toBeUndefined();
 
-        toasts = notificationCenter.find(".toast").hostNodes();
+        toasts = container.querySelectorAll(".toast");
         expect(toasts).toHaveLength(0);
 
-        notificationCenter.unmount();
+        unmount();
     });
 });

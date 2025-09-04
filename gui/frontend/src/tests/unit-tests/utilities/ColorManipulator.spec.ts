@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,6 +24,8 @@
  */
 
 import Color from "color";
+import { describe, expect, it } from "vitest";
+
 import { ColorManipulator } from "../../../utilities/ColorManipulator.js";
 
 describe("ColorManipulator tests", () => {
@@ -202,10 +204,10 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "primary",
                     colorAdjustment: {
                         dark: {
-                            hue: {absolute: -30},
-                            saturation: {relative: -0.25},
-                            lightness: {relative: -0.1},
-                            alpha: {relative: -0.3},
+                            hue: { absolute: -30 },
+                            saturation: { relative: -0.25 },
+                            lightness: { relative: -0.1 },
+                            alpha: { relative: -0.3 },
                         },
                     },
                 },
@@ -213,10 +215,10 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "secondary",
                     colorAdjustment: {
                         light: {
-                            hue: {absolute: 80},
-                            saturation: {absolute: -10},
-                            lightness: {absolute: 5},
-                            alpha: {absolute: -0.4},
+                            hue: { absolute: 80 },
+                            saturation: { absolute: -10 },
+                            lightness: { absolute: 5 },
+                            alpha: { absolute: -0.4 },
                         },
                     },
                 },
@@ -245,7 +247,7 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "primary",
                     colorAdjustment: {
                         dark: {
-                            hue: {absolute: 180},
+                            hue: { absolute: 180 },
                         },
                     },
                 },
@@ -268,10 +270,10 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "primary",
                     colorAdjustment: {
                         dark: {
-                            hue: {absolute: -30},
-                            saturation: {relative: -0.25},
-                            lightness: {relative: -0.1},
-                            alpha: {relative: -0.3},
+                            hue: { absolute: -30 },
+                            saturation: { relative: -0.25 },
+                            lightness: { relative: -0.1 },
+                            alpha: { relative: -0.3 },
                         },
                     },
                 },
@@ -300,10 +302,10 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "primary",
                     colorAdjustment: {
                         dark: {
-                            hue: {absolute: 0},
-                            saturation: {absolute: 0},
-                            lightness: {absolute: 0},
-                            alpha: {absolute: 0},
+                            hue: { absolute: 0 },
+                            saturation: { absolute: 0 },
+                            lightness: { absolute: 0 },
+                            alpha: { absolute: 0 },
                         },
                     },
                 },
@@ -311,10 +313,10 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "secondary",
                     colorAdjustment: {
                         dark: {
-                            hue: {absolute: 0},
-                            saturation: {relative: 0},
-                            lightness: {relative: 0},
-                            alpha: {relative: 0},
+                            hue: { absolute: 0 },
+                            saturation: { relative: 0 },
+                            lightness: { relative: 0 },
+                            alpha: { relative: 0 },
                         },
                     },
                 },
@@ -338,7 +340,7 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "secondary",
                     colorAdjustment: {
                         light: {
-                            hue: {absolute: 120},
+                            hue: { absolute: 120 },
                         },
                     },
                 },
@@ -384,7 +386,7 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "$primary",
                     colorAdjustment: {
                         light: {
-                            hue: {absolute: 120},
+                            hue: { absolute: 120 },
                         },
                     },
                 },
@@ -461,7 +463,7 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "base.foo",
                     colorAdjustment: {
                         light: {
-                            hue: {absolute: 0},
+                            hue: { absolute: 0 },
                         },
                     },
                 },
@@ -476,7 +478,7 @@ describe("ColorManipulator tests", () => {
                 baseColorKey: "base.foo",
                 colorAdjustment: {
                     light: {
-                        hue: {absolute: 0},
+                        hue: { absolute: 0 },
                     },
                 },
             });
@@ -489,7 +491,7 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "base.foo",
                     colorAdjustment: {
                         light: {
-                            hue: {absolute: 0},
+                            hue: { absolute: 0 },
                         },
                     },
                 },
@@ -505,7 +507,7 @@ describe("ColorManipulator tests", () => {
                 baseColorKey: "base.foo",
                 colorAdjustment: {
                     light: {
-                        hue: {absolute: 0},
+                        hue: { absolute: 0 },
                     },
                 },
             });
@@ -518,7 +520,7 @@ describe("ColorManipulator tests", () => {
                     baseColorKey: "base.foo",
                     colorAdjustment: {
                         light: {
-                            hue: {absolute: 0},
+                            hue: { absolute: 0 },
                         },
                     },
                 },
@@ -535,7 +537,7 @@ describe("ColorManipulator tests", () => {
                 baseColorKey: "base.foo",
                 colorAdjustment: {
                     light: {
-                        hue: {absolute: 0},
+                        hue: { absolute: 0 },
                     },
                 },
             });

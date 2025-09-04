@@ -23,24 +23,83 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
 import { IDictionary } from "../../../../app-logic/general-types.js";
+import type { DataCallback } from "../../../../communication/MessageScheduler.js";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
-import { IShellPromptValues } from "../../../../communication/ProtocolGui.js";
+import { IShellPromptValues, type ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { ShellInterfaceDbConnection } from "../../../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
 import { webSession } from "../../../../supplement/WebSession.js";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
-import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
+import { getDbCredentials, ITestDbCredentials, mockClassMethods } from "../../test-helpers.js";
+
+const connections: IConnectionDetails[] = [];
+
+mockClassMethods(ShellInterfaceDbConnection, {
+    listDbConnections: vi.fn().mockImplementation((profileId: string, folderPathId?: number) => {
+        if (folderPathId === 42) {
+            return Promise.resolve(connections);
+        }
+
+        return [];
+    }),
+    addDbConnection: vi.fn().mockImplementation((profileId, connection: IConnectionDetails) => {
+        connection.id = 1; // Mock ID for the new connection.
+        connections.push(connection);
+
+        return [connection.id];
+    }),
+});
+
+mockClassMethods(ShellInterfaceShellSession, {
+    startShellSession: vi.fn().mockImplementation((id: string, dbConnectionId?: number, shellArgs?: unknown[],
+        requestId?: string, callback?: DataCallback<ShellAPIGui.GuiShellStartSession>) => {
+        if (dbConnectionId === -1) {
+            return Promise.reject(new Error("Invalid connection ID"));
+        }
+
+        if (webSession.moduleSessionId("xyz") === undefined) {
+            webSession.setModuleSessionId("xyz", "session1");
+
+            return Promise.resolve({ moduleSessionId: "session1" });
+        }
+
+        return Promise.resolve();
+    }),
+
+    execute: vi.fn().mockImplementation((command: string, requestId?: string) => {
+        if (command === "\\sql") {
+            return Promise.resolve({
+                promptDescriptor: {
+                    mode: "SQL",
+                },
+            } as IShellPromptValues);
+        }
+
+        return Promise.resolve();
+    }),
+
+    getCompletionItems: vi.fn().mockImplementation((command: string, position: number) => {
+        if (command.startsWith("select sa") && position === 8) {
+            return Promise.resolve([{
+                label: "sample_table",
+                kind: 10,
+                options: [],
+            }]);
+        }
+
+        return Promise.resolve([]);
+    }),
+});
 
 describe("ShellInterfaceShellSession Tests", () => {
-    let launcher: MySQLShellLauncher;
     let credentials: ITestDbCredentials;
     let testConnection: IConnectionDetails;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG3");
-
         // Create a connection for our tests.
         credentials = getDbCredentials();
         testConnection = {
@@ -65,11 +124,6 @@ describe("ShellInterfaceShellSession Tests", () => {
         testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
             testConnection))[0];
         expect(testConnection.id).toBeGreaterThan(-1);
-    });
-
-    afterAll(async () => {
-        await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id);
-        await launcher.exitProcess();
     });
 
     it("Creation and interaction", async () => {

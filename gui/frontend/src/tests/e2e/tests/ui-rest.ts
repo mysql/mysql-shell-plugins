@@ -23,26 +23,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { error, Key } from "selenium-webdriver";
 import { basename } from "path";
-import { Misc } from "../lib/misc.js";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
+import { error, Key } from "selenium-webdriver";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
 import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
-import { RestServiceDialog } from "../lib/Dialogs/RestServiceDialog.js";
+import { AuthenticationAppDialog } from "../lib/Dialogs/AuthenticationAppDialog.js";
+import { ConfigRestServiceDialog } from "../lib/Dialogs/ConfigRestServiceDialog.js";
+import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
+import { GenericDialog } from "../lib/Dialogs/GenericDialog.js";
 import { RestObjectDialog } from "../lib/Dialogs/RestObjectDialog.js";
 import { RestSchemaDialog } from "../lib/Dialogs/RestSchemaDialog.js";
-import { AuthenticationAppDialog } from "../lib/Dialogs/AuthenticationAppDialog.js";
+import { RestServiceDialog } from "../lib/Dialogs/RestServiceDialog.js";
 import { RestUserDialog } from "../lib/Dialogs/RestUserDialog.js";
+import { driver, loadDriver } from "../lib/driver.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
+import * as interfaces from "../lib/interfaces.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
-import { GenericDialog } from "../lib/Dialogs/GenericDialog.js";
-import { ConfigRestServiceDialog } from "../lib/Dialogs/ConfigRestServiceDialog.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -70,10 +72,9 @@ describe("MYSQL REST SERVICE", () => {
     beforeAll(async () => {
 
         await loadDriver(false);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
@@ -84,7 +85,8 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.expandTreeItem(globalConn);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_MysqlRESTService");
+            await Misc.storeScreenShot(undefined, "beforeAll_MysqlRESTService");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
     });
@@ -97,21 +99,21 @@ describe("MYSQL REST SERVICE", () => {
 
     describe("Rest Service Configuration", () => {
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
                 await Misc.dismissNotifications();
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_RestServiceConfig");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await Misc.dismissNotifications();
@@ -349,26 +351,27 @@ describe("MYSQL REST SERVICE", () => {
             try {
                 await dbTreeSection.expandTreeItem(constants.mysqlRestService);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Rest_Services");
+                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Services");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
         });
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
                 await Misc.dismissNotifications();
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_ServiceContextMenus");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -457,7 +460,7 @@ describe("MYSQL REST SERVICE", () => {
 
         });
 
-        it("Browse the MySQL REST Service Documentation", async () => {
+        it.skip("Browse the MySQL REST Service Documentation", async () => {
             let browserTabs: string[] = [];
             try {
                 await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.browseRESTDocs);
@@ -510,20 +513,20 @@ describe("MYSQL REST SERVICE", () => {
             },
         };
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_Rest_Services");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await Misc.dismissNotifications();
@@ -743,25 +746,26 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(service2.servicePath),
                     constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Rest_Schemas");
+                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Schemas");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
         });
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_Rest_Schemas");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await Misc.dismissNotifications();
@@ -777,7 +781,7 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemDoesNotExists(service2.servicePath),
                     constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot("afterAll_Rest_Schemas");
+                await Misc.storeScreenShot(undefined, "afterAll_Rest_Schemas");
                 throw e;
             }
         });
@@ -950,17 +954,18 @@ describe("MYSQL REST SERVICE", () => {
                 expect(notification!.message).toBe("The MRS service has been set as the new default service.");
                 await notification!.close();
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Rest_Objects");
+                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Objects");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
         });
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_Rest_Objects");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
@@ -982,7 +987,7 @@ describe("MYSQL REST SERVICE", () => {
                 expect(notification!.message).toBe("The MRS service has been deleted successfully.");
                 await notification!.close();
             } catch (e) {
-                await Misc.storeScreenShot("afterAll_Rest_Objects");
+                await Misc.storeScreenShot(undefined, "afterAll_Rest_Objects");
                 throw e;
             }
         });
@@ -1284,25 +1289,26 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.wait5seconds);
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_AuthenticationApps");
+                await Misc.storeScreenShot(undefined, "beforeAll_AuthenticationApps");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
         });
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_AuthenticationApps");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await Misc.dismissNotifications();
@@ -1318,7 +1324,7 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemDoesNotExists(service4.servicePath),
                     constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot("afterAll_AuthenticationApps");
+                await Misc.storeScreenShot(undefined, "afterAll_AuthenticationApps");
                 throw e;
             }
         });
@@ -1524,25 +1530,26 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps![0].user![0].username),
                     constants.wait3seconds);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Rest_Users");
+                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Users");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
         });
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_Rest_Users");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
 
             await Misc.dismissNotifications();

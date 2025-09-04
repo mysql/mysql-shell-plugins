@@ -1,544 +1,116 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
-<ConnectionBrowser
-  onAddConnection={[MockFunction]}
-  onRemoveConnection={[MockFunction]}
-  onUpdateConnection={[MockFunction]}
-  toolbarItems={
-    {
-      "auxiliary": [],
-      "editor": [],
-      "execution": [],
-      "navigation": [],
-    }
-  }
->
-  <Container
-    className="msg connectionBrowser"
-    orientation="column"
-    wrap="nowrap"
+exports[`Connection browser tests > Test ConnectionBrowser instantiation 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar connectionBrowser"
+    style="flex-direction: column; flex-wrap: nowrap;"
   >
     <div
-      className="msg container fixedScrollbar connectionBrowser"
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "column",
-          "flexWrap": "nowrap",
-          "justifyContent": undefined,
-        }
-      }
+      class="msg container fixedScrollbar toolbar verticalCenterContent"
+      id="connectionOverviewToolbar"
+      style="flex-direction: row; align-items: center;"
     >
-      <Toolbar
-        dropShadow={false}
-        id="connectionOverviewToolbar"
-        vibrant={false}
-      >
-        <Container
-          className="msg toolbar verticalCenterContent"
-          crossAlignment="center"
-          id="connectionOverviewToolbar"
-          orientation="row"
-        >
-          <div
-            className="msg container fixedScrollbar toolbar verticalCenterContent"
-            id="connectionOverviewToolbar"
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <div
-              className="expander"
-            />
-          </div>
-        </Container>
-      </Toolbar>
-      <ConnectionEditor
-        id="connectionEditor"
-        onAddConnection={[Function]}
-        onUpdateConnection={[Function]}
-      >
-        <ValueEditDialog
-          id="connectionEditor"
-          onClose={[Function]}
-          onSelectTab={[Function]}
-          onValidate={[Function]}
-        >
-          <Dialog
-            actions={
-              {
-                "begin": [],
-                "end": [
-                  <Button
-                    caption="OK"
-                    disabled={false}
-                    id="ok"
-                    onClick={[Function]}
-                  />,
-                  <Button
-                    caption="Cancel"
-                    id="cancel"
-                    onClick={[Function]}
-                  />,
-                ],
-              }
-            }
-            caption={
-              <k>
-                <Icon
-                  disabled={false}
-                  src={391}
-                />
-                <Label />
-              </k>
-            }
-            className="msg valueEditDialog"
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            content={
-              <Grid
-                columnGap={16}
-                columns={8}
-                id="contentGrid"
-                rowGap={16}
-              />
-            }
-            id="connectionEditor"
-            onClose={[Function]}
-            onSelectTab={[Function]}
-          >
-            <Portal
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              id="connectionEditor"
-              onClose={[Function]}
-              onOpen={[Function]}
-              onSelectTab={[Function]}
-            />
-          </Dialog>
-          <Menu
-            onItemClick={[Function]}
-            orientation="column"
-            placement="right-start"
-          />
-        </ValueEditDialog>
-        <ConfirmDialog
-          id="confirmClearPasswordDlg"
-        >
-          <Dialog
-            actions={
-              {
-                "end": [],
-              }
-            }
-            caption={
-              <k>
-                <Icon
-                  disabled={false}
-                  src={278}
-                />
-                <Label>
-                  Confirm
-                </Label>
-              </k>
-            }
-            className="msg confirmDialog"
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            content={
-              <Container
-                orientation="column"
-              >
-                
-                <Container
-                  className="description"
-                  orientation="column"
-                />
-              </Container>
-            }
-            onClose={[Function]}
-          >
-            <Portal
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              onClose={[Function]}
-              onOpen={[Function]}
-            />
-          </Dialog>
-        </ConfirmDialog>
-        <ConfirmDialog
-          id="confirmNewBastionDialog"
-          onClose={[Function]}
-        >
-          <Dialog
-            actions={
-              {
-                "end": [],
-              }
-            }
-            caption={
-              <k>
-                <Icon
-                  disabled={false}
-                  src={278}
-                />
-                <Label>
-                  Confirm
-                </Label>
-              </k>
-            }
-            className="msg confirmDialog"
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            content={
-              <Container
-                orientation="column"
-              >
-                
-                <Container
-                  className="description"
-                  orientation="column"
-                />
-              </Container>
-            }
-            onClose={[Function]}
-          >
-            <Portal
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              onClose={[Function]}
-              onOpen={[Function]}
-            />
-          </Dialog>
-        </ConfirmDialog>
-      </ConnectionEditor>
-      <Menu
-        id="tileActionMenu"
-        onItemClick={[Function]}
-        orientation="column"
-        placement="bottom-start"
+      <div
+        class="expander"
       />
-      <FrontPage
-        caption="MySQL Shell - DB Connections"
-        description="Welcome to the MySQL Shell for VS Code extension.
-
-Click the [New Connection] tile to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
-
-DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data."
-        id="frontPageContent"
-        onCloseGreeting={[Function]}
-        showGreeting={true}
+    </div>
+    <div
+      class="msg container fixedScrollbar frontPage"
+      style="flex-direction: column;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        id="title"
+        style="text-align: center;"
       >
-        <Container
-          className="msg frontPage"
-          orientation="column"
-        >
-          <div
-            className="msg container fixedScrollbar frontPage"
-            style={
-              {
-                "alignItems": undefined,
-                "flexDirection": "column",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label
-              id="title"
-              textAlignment="center"
-            >
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                id="title"
-                style={
-                  {
-                    "textAlign": "center",
-                  }
-                }
-              >
-                MySQL Shell - DB Connections
-              </label>
-            </Label>
-            <Label
-              id="description"
-              textAlignment="center"
-            >
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                id="description"
-                style={
-                  {
-                    "textAlign": "center",
-                  }
-                }
-              >
-                Welcome to the MySQL Shell for VS Code extension.
+        MySQL Shell - DB Connections
+      </label>
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        id="description"
+        style="text-align: center;"
+      >
+        Welcome to the MySQL Shell for VS Code extension.
 
 Click the [New Connection] tile to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
 
 DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
-              </label>
-            </Label>
-            <Container
-              id="linksHost"
-              mainAlignment="center"
-              orientation="row"
-              wrap="wrap"
+      </label>
+      <div
+        class="msg container fixedScrollbar"
+        id="linksHost"
+        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+      >
+        <a
+          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+          rel="noopener noreferrer"
+          tabindex="0"
+          target="_blank"
+        >
+          Learn More &gt;
+        </a>
+        <a
+          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+          rel="noopener noreferrer"
+          tabindex="0"
+          target="_blank"
+        >
+          Documentation &gt;
+        </a>
+      </div>
+      <div
+        class="msg button round"
+        data-tooltip="Close Greeting"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg container fixedScrollbar"
+        style="flex-direction: column;"
+      >
+        <div
+          class="msg container"
+          id="frontPageHeading"
+          style="flex-direction: row; align-items: center;"
+        >
+          <label
+            class="msg label"
+            data-tooltip="expand"
+            id="contentTitle"
+          >
+            Database Connections
+          </label>
+          <div
+            class="msg container fixedScrollbar breadcrumb"
+            style="flex-direction: row;"
+          >
+            <div
+              class="msg button breadcrumbItem"
+              id="1"
+              role="button"
+              tabindex="0"
             >
-              <div
-                className="msg container fixedScrollbar"
-                id="linksHost"
-                style={
-                  {
-                    "alignItems": undefined,
-                    "flexDirection": "row",
-                    "flexWrap": "wrap",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <HelpLinkList
-                  helpUrlMap={
-                    Map {
-                      "Learn More" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
-                      "Documentation" => "https://dev.mysql.com/doc/mysql-shell-gui/en/",
-                    }
-                  }
-                >
-                  <a
-                    href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
-                    key="Learn More"
-                    rel="noopener noreferrer"
-                    tabIndex={0}
-                    target="_blank"
-                  >
-                    Learn More &gt;
-                  </a>
-                  <a
-                    href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
-                    key="Documentation"
-                    rel="noopener noreferrer"
-                    tabIndex={0}
-                    target="_blank"
-                  >
-                    Documentation &gt;
-                  </a>
-                </HelpLinkList>
-              </div>
-            </Container>
-            <Button
-              data-tooltip="Close Greeting"
-              id="closeButton"
-              onClick={[Function]}
-              round={true}
-            >
-              <div
-                className="msg button round"
-                data-tooltip="Close Greeting"
-                id="closeButton"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="close2.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("close2.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("close2.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Container
-              orientation="column"
-            >
-              <div
-                className="msg container fixedScrollbar"
-                style={
-                  {
-                    "alignItems": undefined,
-                    "flexDirection": "column",
-                    "flexWrap": undefined,
-                    "justifyContent": undefined,
-                  }
-                }
-              >
-                <Container
-                  crossAlignment="center"
-                  fixedScrollbars={false}
-                  id="frontPageHeading"
-                  orientation="row"
-                >
-                  <div
-                    className="msg container"
-                    id="frontPageHeading"
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Label
-                      caption="Database Connections"
-                      id="contentTitle"
-                    >
-                      <label
-                        className="msg label"
-                        data-tooltip="expand"
-                        id="contentTitle"
-                        style={{}}
-                      >
-                        Database Connections
-                      </label>
-                    </Label>
-                    <Breadcrumb
-                      onSelect={[Function]}
-                      path={
-                        [
-                          {
-                            "caption": "/",
-                            "id": 1,
-                            "selected": false,
-                          },
-                        ]
-                      }
-                      showPicker={false}
-                    >
-                      <Container
-                        className="msg breadcrumb"
-                        orientation="row"
-                        showPicker={false}
-                      >
-                        <div
-                          className="msg container fixedScrollbar breadcrumb"
-                          showPicker={false}
-                          style={
-                            {
-                              "alignItems": undefined,
-                              "flexDirection": "row",
-                              "flexWrap": undefined,
-                              "justifyContent": undefined,
-                            }
-                          }
-                        >
-                          <Button
-                            className="breadcrumbItem"
-                            id="1"
-                            key={1}
-                            onClick={[Function]}
-                          >
-                            <div
-                              className="msg button breadcrumbItem"
-                              id="1"
-                              onClick={[Function]}
-                              onMouseDown={[Function]}
-                              role="button"
-                              style={
-                                {
-                                  "flexDirection": undefined,
-                                }
-                              }
-                              tabIndex={0}
-                            >
-                              /
-                            </div>
-                          </Button>
-                        </div>
-                      </Container>
-                    </Breadcrumb>
-                  </div>
-                </Container>
-                <Container
-                  id="tilesHost"
-                  innerRef={
-                    {
-                      "current": <div
-                        class="msg container fixedScrollbar"
-                        id="tilesHost"
-                        style="flex-direction: row; flex-wrap: wrap;"
-                      />,
-                    }
-                  }
-                  onDragEnter={[Function]}
-                  onDragLeave={[Function]}
-                  onDragOver={[Function]}
-                  onDrop={[Function]}
-                  orientation="row"
-                  wrap="wrap"
-                >
-                  <div
-                    className="msg container fixedScrollbar"
-                    id="tilesHost"
-                    onDragEnter={[Function]}
-                    onDragLeave={[Function]}
-                    onDragOver={[Function]}
-                    onDrop={[Function]}
-                    style={
-                      {
-                        "alignItems": undefined,
-                        "flexDirection": "row",
-                        "flexWrap": "wrap",
-                        "justifyContent": undefined,
-                      }
-                    }
-                  />
-                </Container>
-              </div>
-            </Container>
+              /
+            </div>
           </div>
-        </Container>
-      </FrontPage>
+        </div>
+        <div
+          class="msg container fixedScrollbar"
+          id="tilesHost"
+          style="flex-direction: row; flex-wrap: wrap;"
+        />
+      </div>
     </div>
-  </Container>
-</ConnectionBrowser>
+  </div>
+</div>
 `;

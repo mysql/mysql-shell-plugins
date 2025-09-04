@@ -1,408 +1,162 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
-<Breadcrumb
-  className="dropShadow"
-  id="breadcrumb1"
-  path={
-    [
-      "root",
-      "folder",
-      "subfolder",
-    ]
-  }
-  showPicker={false}
->
-  <Container
-    className="msg breadcrumb dropShadow"
+exports[`Breadcrumb render testing > Test Breadcrumb (Snapshot) 1 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar breadcrumb dropShadow"
     id="breadcrumb1"
-    orientation="row"
-    showPicker={false}
+    style="flex-direction: row;"
   >
     <div
-      className="msg container fixedScrollbar breadcrumb dropShadow"
-      id="breadcrumb1"
-      showPicker={false}
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
+      class="msg button breadcrumbItem"
+      id="root"
+      role="button"
+      tabindex="0"
     >
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
+      Root
     </div>
-  </Container>
-</Breadcrumb>
+    <div
+      class="msg button breadcrumbItem"
+      id="folder"
+      role="button"
+      tabindex="0"
+    >
+      Folder
+    </div>
+    <div
+      class="msg button breadcrumbItem selected"
+      id="subfolder"
+      role="button"
+      tabindex="0"
+    >
+      Subfolder
+    </div>
+  </div>
+</div>
 `;
 
-exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
-<Breadcrumb
-  id="breadcrumb2"
-  path={
-    [
-      "root",
-      "folder",
-      "subfolder",
-      "subfolder2",
-    ]
-  }
-  separator="☞"
-  showPicker={false}
->
-  <Container
-    className="msg breadcrumb"
+exports[`Breadcrumb render testing > Test Breadcrumb (Snapshot) 2 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar breadcrumb"
     id="breadcrumb2"
-    orientation="row"
-    showPicker={false}
+    style="flex-direction: row;"
   >
     <div
-      className="msg container fixedScrollbar breadcrumb"
-      id="breadcrumb2"
-      showPicker={false}
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
+      class="msg button breadcrumbItem"
+      id="root"
+      role="button"
+      tabindex="0"
     >
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
-      <Label
-        caption="☞"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ☞
-        </label>
-      </Label>
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
-      <Label
-        caption="☞"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ☞
-        </label>
-      </Label>
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
-      <Label
-        caption="☞"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ☞
-        </label>
-      </Label>
-      <Button
-        className="breadcrumbItem"
-        id="undefined"
-        onClick={[Function]}
-      >
-        <div
-          className="msg button breadcrumbItem"
-          id="undefined"
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        />
-      </Button>
-      <Label
-        caption="☞"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ☞
-        </label>
-      </Label>
+      Root
     </div>
-  </Container>
-</Breadcrumb>
+    <label
+      class="msg label separator"
+      data-tooltip="expand"
+    >
+      ☞
+    </label>
+    <div
+      class="msg button breadcrumbItem"
+      id="folder"
+      role="button"
+      tabindex="0"
+    >
+      Folder
+    </div>
+    <label
+      class="msg label separator"
+      data-tooltip="expand"
+    >
+      ☞
+    </label>
+    <div
+      class="msg button breadcrumbItem selected"
+      id="subfolder"
+      role="button"
+      tabindex="0"
+    >
+      Subfolder
+    </div>
+    <label
+      class="msg label separator"
+      data-tooltip="expand"
+    >
+      ☞
+    </label>
+    <div
+      class="msg button breadcrumbItem"
+      id="subfolder2"
+      role="button"
+      tabindex="0"
+    >
+      Subfolder 2
+    </div>
+    <label
+      class="msg label separator"
+      data-tooltip="expand"
+    >
+      ☞
+    </label>
+  </div>
+</div>
 `;
 
-exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
-<Breadcrumb
-  id="breadcrumb3"
-  path={
-    [
-      "",
-    ]
-  }
-  showPicker={false}
->
-  <Container
-    className="msg breadcrumb"
+exports[`Breadcrumb render testing > Test Breadcrumb (Snapshot) 3 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar breadcrumb"
     id="breadcrumb3"
-    orientation="row"
-    showPicker={false}
+    style="flex-direction: row;"
   >
     <div
-      className="msg container fixedScrollbar breadcrumb"
-      id="breadcrumb3"
-      showPicker={false}
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
+      class="msg button"
+      role="button"
+      style="background-color: white; color: white;"
+      tabindex="0"
     >
-      <Button
-        style={
-          {
-            "backgroundColor": "white",
-            "color": "white",
-          }
-        }
+      <span
+        style="color: rgb(0, 117, 143);"
       >
-        <div
-          className="msg button"
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "backgroundColor": "white",
-              "color": "white",
-            }
-          }
-          tabIndex={0}
-        >
-          <span
-            style={
-              {
-                "color": "#00758f",
-              }
-            }
-          >
-            My
-          </span>
-          <span
-            style={
-              {
-                "color": "#f29111",
-              }
-            }
-          >
-            SQL
-          </span>
-        </div>
-      </Button>
-      <Button
-        style={
-          {
-            "backgroundColor": "#505050",
-          }
-        }
+        My
+      </span>
+      <span
+        style="color: rgb(242, 145, 17);"
       >
-        <div
-          className="msg button"
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "backgroundColor": "#505050",
-            }
-          }
-          tabIndex={0}
-        >
-          <Label>
-            <label
-              className="msg label"
-              data-tooltip="expand"
-              style={{}}
-            >
-              localhost:3307
-            </label>
-          </Label>
-        </div>
-      </Button>
-      <Button
-        caption="mysql"
-        style={
-          {
-            "backgroundColor": "gray",
-          }
-        }
-      >
-        <div
-          caption="mysql"
-          className="msg button"
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "backgroundColor": "gray",
-            }
-          }
-          tabIndex={0}
-        >
-          mysql
-        </div>
-      </Button>
-      <Button
-        caption="SQL"
-        style={
-          {
-            "backgroundColor": "darkorange",
-            "color": "white",
-          }
-        }
-      >
-        <div
-          caption="SQL"
-          className="msg button"
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "backgroundColor": "darkorange",
-              "color": "white",
-            }
-          }
-          tabIndex={0}
-        >
-          SQL
-        </div>
-      </Button>
+        SQL
+      </span>
     </div>
-  </Container>
-</Breadcrumb>
+    <div
+      class="msg button"
+      role="button"
+      style="background-color: rgb(80, 80, 80);"
+      tabindex="0"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        localhost:3307
+      </label>
+    </div>
+    <div
+      caption="mysql"
+      class="msg button"
+      role="button"
+      style="background-color: gray;"
+      tabindex="0"
+    >
+      mysql
+    </div>
+    <div
+      caption="SQL"
+      class="msg button"
+      role="button"
+      style="background-color: darkorange; color: white;"
+      tabindex="0"
+    >
+      SQL
+    </div>
+  </div>
+</div>
 `;

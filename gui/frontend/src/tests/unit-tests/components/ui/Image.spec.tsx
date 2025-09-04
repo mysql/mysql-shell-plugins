@@ -23,36 +23,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it } from "vitest";
 
 import { Image } from "../../../../components/ui/Image/Image.js";
 import { Assets } from "../../../../supplement/Assets.js";
+import { render } from "@testing-library/preact";
 
 describe("Image component tests", (): void => {
 
-    it("Test Image elements", () => {
-        const component = mount<Image>(
-            <Image
-                id="image1"
-                src={Assets.misc.closeIcon as string}
-                alt="image alt description"
-                style={{ height: "64px" }}
-            />,
-        );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.id).toEqual("image1");
-        expect(props.alt).toEqual("image alt description");
-        expect(props.src).toEqual("close.svg");
-    });
-
     it("Standard Rendering", () => {
-        const component = mount<Image>(
-            <Image src={Assets.misc.closeIcon as string} style={{ height: "64px" }} />,
+        const { container, unmount } = render(
+            <Image src={Assets.misc.closeIcon} style={{ height: "64px" }} />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

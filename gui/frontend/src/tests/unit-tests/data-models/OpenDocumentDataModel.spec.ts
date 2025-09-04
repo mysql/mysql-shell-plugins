@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import {
     OdmEntityType, OpenDocumentDataModel, type OpenDocumentDataModelEntry,
@@ -32,7 +34,7 @@ import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
 import { connectionDetailsMock1, webviewProviderMock1, webviewProviderMock2 } from "./data-model-test-data.js";
 
-const dataModelChanged = jest.fn();
+const dataModelChanged = vi.fn();
 
 describe("OpenDocumentDataModel", () => {
     let dataModel = new OpenDocumentDataModel(false);
@@ -45,11 +47,11 @@ describe("OpenDocumentDataModel", () => {
     afterAll(() => {
         dataModel.unsubscribe(dataModelChanged);
 
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         dataModelChanged.mockClear();
     });
 

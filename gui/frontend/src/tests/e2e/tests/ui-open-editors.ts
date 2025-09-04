@@ -23,18 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { join, basename } from "path";
-import { Misc } from "../lib/misc.js";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
+import { basename, join } from "path";
+import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
 import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
-import { E2EScript } from "../lib/E2EScript.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { driver, loadDriver } from "../lib/driver.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
-import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { E2EScript } from "../lib/E2EScript.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import * as interfaces from "../lib/interfaces.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -62,10 +64,9 @@ describe("OPEN EDITORS", () => {
     beforeAll(async () => {
 
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -75,7 +76,8 @@ describe("OPEN EDITORS", () => {
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_OPEN_EDITORS");
+            await Misc.storeScreenShot(undefined, "beforeAll_OPEN_EDITORS");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
     });
@@ -86,10 +88,10 @@ describe("OPEN EDITORS", () => {
         await driver.quit();
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
     });
 

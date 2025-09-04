@@ -29,7 +29,6 @@ import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../modules/mrs/t
 
 /* eslint-disable max-len */
 
-
 export enum ShellAPIMrs {
     /** Returns basic information about this plugin. */
     MrsInfo = "mrs.info",
@@ -1842,7 +1841,6 @@ export interface IMrsRouterService {
     sortedDevelopers: string | null;
 }
 
-
 export interface IMrsCurrentServiceMetadata {
     id?: string;
     hostCtx?: string;
@@ -2120,9 +2118,7 @@ export interface IMrsConfigGtid {
     cache?: IMrsConfigGtidCache;
 }
 
-export interface IStringDict {
-    [key: string]: string;
-}
+export type IStringDict = Record<string, string>;
 
 export interface IMrsConfigData {
     authentication?: IMrsConfigAuthentication;

@@ -23,34 +23,32 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import { nextRunLoop } from "../../test-helpers.js";
 import { ServerStatus } from "../../../../modules/db-editor/ServerStatus.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { nextRunLoop } from "../../test-helpers.js";
 
 describe("Server status module tests", (): void => {
 
     it("Test ServerStatus instantiation", async () => {
         const backend = new ShellInterfaceSqlEditor();
-        const component = mount<ServerStatus>(
+        const { container, unmount } = render(
             <ServerStatus backend={backend}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
-        // Component updates.
-        component.setProps({ backend });
-        await nextRunLoop();
 
-        expect(component).toMatchSnapshot("ServerStatus1");
+        expect(container).toMatchSnapshot("ServerStatus1");
 
         backend.closeSession().catch(() => {
             throw new Error("Close session failed");
         });
         await nextRunLoop();
-        expect(component).toMatchSnapshot("ServerStatus2");
+        expect(container).toMatchSnapshot("ServerStatus2");
 
-        component.unmount();
+        unmount();
     });
 
 });

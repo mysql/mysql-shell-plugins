@@ -255,8 +255,8 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         }
     };
 
-    private validateProfileValues = (closing: boolean, values: IDialogValues, payload: unknown):
-        Promise<IDialogValidations> => {
+    private validateProfileValues = (closing: boolean, values: IDialogValues,
+        payload: unknown): Promise<IDialogValidations> => {
         const result: IDialogValidations = {
             requiredContexts: [],
             messages: {},

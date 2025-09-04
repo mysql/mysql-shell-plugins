@@ -23,18 +23,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition } from "monaco-editor";
+import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
 import { DocumentHighlightProvider } from "../../../../../components/ui/CodeEditor/DocumentHighlightProvider.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
-jest.mock("../../../../../script-execution/PresentationInterface");
+// Mock the interface to avoid references to the monaco editor language services.
+vi.mock("../../../../../script-execution/PresentationInterface.js");
 
 describe("DocumentHighlightProvider tests", () => {
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Create instance and init", () => {
         const dhp = new DocumentHighlightProvider();
@@ -43,23 +46,18 @@ describe("DocumentHighlightProvider tests", () => {
         let result = dhp.provideDocumentHighlights(mockModel, position);
         expect(result).toBe(undefined);
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
+        const pi = new PresentationInterface("javascript");
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        const execContext = mockModel.executionContexts!.addContext(pi);
 
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
-            return { lineNumber: 0, column: 0 };
-        });
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
         result = dhp.provideDocumentHighlights(mockModel, position);
         expect(result).toBe(undefined);
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const services = ScriptingLanguageServices.instance;
-        services.findDefinition = jest.fn().mockReturnValue({
+        services.findDefinition = vi.fn().mockReturnValue({
             uri: "",
             range: null,
         });

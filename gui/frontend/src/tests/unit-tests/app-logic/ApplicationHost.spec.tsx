@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
+import { act, render } from "@testing-library/preact";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import ApplicationHost from "../../../app-logic/ApplicationHost.js";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
@@ -31,9 +32,10 @@ import { appParameters } from "../../../supplement/AppParameters.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { RunMode, webSession } from "../../../supplement/WebSession.js";
 
+import { createRef } from "preact";
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
-import { ignoreSnapshotUuids, nextRunLoop, stateChange } from "../test-helpers.js";
+import { nextRunLoop } from "../test-helpers.js";
 
 describe("Application host tests", () => {
     beforeAll(() => {
@@ -46,31 +48,39 @@ describe("Application host tests", () => {
     });
 
     it("Reacts to commands + unmount", async () => {
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
+
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
 
         expect(requisitions.registrations("showAbout")).toBe(1);
         expect(requisitions.registrations("showPreferences")).toBe(1);
 
         await requisitions.execute("showAbout", undefined);
-        expect(component.instance().state).toMatchObject({ settingsVisible: false, aboutVisible: true });
+        expect(hostRef.current!.state).toMatchObject({ settingsVisible: false, aboutVisible: true });
 
         await requisitions.execute("showPreferences", undefined);
-        expect(component.state()).toMatchObject({ settingsVisible: true, aboutVisible: false });
+        expect(hostRef.current!.state).toMatchObject({ settingsVisible: true, aboutVisible: false });
 
-        component.unmount();
+        unmount();
         expect(requisitions.registrations("showAbout")).toBe(0);
         expect(requisitions.registrations("showPreferences")).toBe(0);
     });
 
-    it("Standard Rendering", () => {
-        const component = shallow<ApplicationHost>(
-            <ApplicationHost />,
+    it("Standard Rendering", async () => {
+        const hostRef = createRef<ApplicationHost>();
+        const { container, unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
 
-        expect(component).toMatchSnapshot();
-        expect(component.state()).toEqual({
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
+
+        expect(container).toMatchSnapshot();
+        expect(hostRef.current!.state).toEqual({
             aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: false,
@@ -78,20 +88,22 @@ describe("Application host tests", () => {
             debuggerMaximized: true,
         });
 
-        component.unmount();
+        unmount();
     });
 
     it("Rendering About", async () => {
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { container, unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
+
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
 
         await requisitions.execute("showAbout", undefined);
 
-        ignoreSnapshotUuids();
-
-        expect(component).toMatchSnapshot();
-        expect(component.state()).toEqual({
+        expect(container).toMatchSnapshot();
+        expect(hostRef.current!.state).toEqual({
             aboutVisible: true,
             settingsVisible: false,
             debuggerVisible: false,
@@ -99,18 +111,22 @@ describe("Application host tests", () => {
             debuggerMaximized: true,
         });
 
-        component.unmount();
+        unmount();
     });
 
     it("Rendering Preferences", async () => {
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { container, unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
+
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
 
         await requisitions.execute("showPreferences", undefined);
 
-        expect(component).toMatchSnapshot();
-        expect(component.state()).toEqual({
+        expect(container).toMatchSnapshot();
+        expect(hostRef.current!.state).toEqual({
             aboutVisible: false,
             settingsVisible: true,
             debuggerVisible: false,
@@ -118,22 +134,28 @@ describe("Application host tests", () => {
             debuggerMaximized: true,
         });
 
-        component.unmount();
+        unmount();
     });
 
     it("Rendering Debugger Normal", async () => {
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { container, unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
 
-        await stateChange(component, {
-            debuggerVisible: true,
-            debuggerEnabledInBackground: true,
-            debuggerMaximized: false,
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
+
+        await act(() => {
+            hostRef.current!.setState({
+                debuggerVisible: true,
+                debuggerEnabledInBackground: true,
+                debuggerMaximized: false,
+            });
         });
 
-        expect(component).toMatchSnapshot();
-        expect(component.state()).toEqual({
+        expect(container).toMatchSnapshot();
+        expect(hostRef.current!.state).toEqual({
             aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: true,
@@ -141,22 +163,28 @@ describe("Application host tests", () => {
             debuggerMaximized: false,
         });
 
-        component.unmount();
+        unmount();
     });
 
     it("Rendering Debugger Maximized", async () => {
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { container, unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
 
-        await stateChange(component, {
-            debuggerVisible: true,
-            debuggerEnabledInBackground: true,
-            debuggerMaximized: true,
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
+
+        await act(() => {
+            hostRef.current!.setState({
+                debuggerVisible: true,
+                debuggerEnabledInBackground: true,
+                debuggerMaximized: true,
+            });
         });
 
-        expect(component).toMatchSnapshot();
-        expect(component.state()).toEqual({
+        expect(container).toMatchSnapshot();
+        expect(hostRef.current!.state).toEqual({
             aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: true,
@@ -164,36 +192,43 @@ describe("Application host tests", () => {
             debuggerMaximized: true,
         });
 
-        component.unmount();
+        unmount();
     });
 
     it("Debugger State Switches", async () => {
         webSession.runMode = RunMode.LocalUser;
         appParameters.embedded = false;
 
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { container, unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
+
+        await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
 
         const id = "debuggerPaneHost";
 
         // The debugger is only mounted when first activated (to allow receiving messages in background later on).
-        let debugComponent = component.find(`#${id}`);
+        let debugComponent = container.querySelectorAll(`#${id}`);
         expect(debugComponent.length).toBe(0);
 
-        await stateChange(component, {
-            debuggerVisible: true,
-            debuggerEnabledInBackground: true,
-            debuggerMaximized: true,
+        await act(() => {
+            hostRef.current?.setState({
+                debuggerVisible: true,
+                debuggerEnabledInBackground: true,
+                debuggerMaximized: true,
+            });
         });
 
-        debugComponent = component.find(`#${id}`);
+        debugComponent = container.querySelectorAll(`#${id}`);
+        expect(debugComponent.length).toBe(1);
 
-        const element = debugComponent.last().getDOMNode();
+        const [[_, element]] = debugComponent.entries();
         expect(element.getAttribute("id")).toEqual(id);
         expect(element.classList.contains("stretch")).toBeTruthy();
 
-        component.unmount();
+        unmount();
     });
 
     it("Miscellaneous code", async () => {
@@ -205,15 +240,17 @@ describe("Application host tests", () => {
         let result = await requisitions.execute("dialogResponse", data);
         expect(result).toBe(false);
 
-        const component = mount<ApplicationHost>(
-            <ApplicationHost />,
+        const hostRef = createRef<ApplicationHost>();
+        const { unmount } = render(
+            <ApplicationHost ref={hostRef} />,
         );
         await nextRunLoop();
+        expect(hostRef.current).toBeDefined();
 
         result = await requisitions.execute("dialogResponse", data);
         expect(result).toBe(false);
         await nextRunLoop();
 
-        component.unmount();
+        unmount();
     });
 });

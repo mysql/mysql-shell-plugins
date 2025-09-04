@@ -67,9 +67,7 @@ export class ShellInterface {
     }
 
     public static get msm(): ShellInterfaceMsm {
-        if (!ShellInterface.interfaces.msm) {
-            ShellInterface.interfaces.msm = new ShellInterfaceMsm();
-        }
+        ShellInterface.interfaces.msm ??= new ShellInterfaceMsm();
 
         return ShellInterface.interfaces.msm;
     }

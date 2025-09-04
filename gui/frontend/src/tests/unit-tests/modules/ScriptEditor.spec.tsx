@@ -23,16 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
+import type { ISavedEditorState } from "../../../modules/db-editor/ConnectionTab.js";
 import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { scriptDocumentMock } from "../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
-import type { ISavedEditorState } from "../../../modules/db-editor/ConnectionTab.js";
 
 describe("Script editor tests", (): void => {
 
@@ -58,6 +59,10 @@ describe("Script editor tests", (): void => {
         registerUiLayer(uiLayerMock);
     });
 
+    afterAll(() => {
+        vi.clearAllMocks();
+    });
+
     it("Script editor instantiation", () => {
         const savedState: ISavedEditorState = {
             documentStates: [{
@@ -75,7 +80,7 @@ describe("Script editor tests", (): void => {
             isCloudInstance: false,
         };
 
-        const component = mount<ScriptEditor>(
+        const { container, unmount } = render(
             <ScriptEditor
                 savedState={savedState}
                 standaloneMode={false}
@@ -83,8 +88,9 @@ describe("Script editor tests", (): void => {
                 toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
-        const props = component.props();
-        expect(props.savedState).toEqual(savedState);
-        component.unmount();
+
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 });

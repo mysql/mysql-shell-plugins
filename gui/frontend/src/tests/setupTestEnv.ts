@@ -23,30 +23,34 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import Enzyme from "enzyme";
-import { Adapter } from "enzyme-adapter-preact-pure";
-
 import "fake-indexeddb/auto";
-import "jest-canvas-mock";
+import { vi } from "vitest";
+import "vitest-canvas-mock";
 
 import "./loadTestConfiguration.js";
 
-Enzyme.configure({
-    adapter: new Adapter({ simulateEventsOnComponents: true }),
-});
+import { ignoreSnapshotFieldContent } from "./unit-tests/test-helpers.js";
+
+ignoreSnapshotFieldContent([
+    /^[a-f0-9-]{36}$/, // UUIDs
+    /^translate/, // translate values
+    /^[0-9]{2}(.[0-9]{2}| (AM|PM))$/, // time values
+]);
+
+vi.setSystemTime(new Date("2100-10-12T09:09:09Z"));
 
 Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: jest.fn().mockImplementation((query: unknown) => {
+    value: vi.fn().mockImplementation((query: unknown) => {
         return {
             matches: false,
             media: query,
             onchange: null,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            dispatchEvent: jest.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
         };
     }),
 });
@@ -64,32 +68,32 @@ Object.defineProperty(window, "location", {
 */
 Object.defineProperty(window.webkitURL, "createObjectURL", {
     writable: true,
-    value: jest.fn().mockImplementation((query: unknown) => {
+    value: vi.fn().mockImplementation((query: unknown) => {
         return {
             matches: false,
             media: query,
             onchange: null,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            dispatchEvent: jest.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
         };
     }),
 });
 
 Object.defineProperty(window.webkitURL, "revokeObjectURL", {
     writable: true,
-    value: jest.fn().mockImplementation((query: unknown) => {
+    value: vi.fn().mockImplementation((query: unknown) => {
         return {
             matches: false,
             media: query,
             onchange: null,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            dispatchEvent: jest.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
         };
     }),
 });
@@ -97,14 +101,14 @@ Object.defineProperty(window.webkitURL, "revokeObjectURL", {
 Object.defineProperty(global.self, "DOMPoint", {
     writable: true,
     enumerable: true,
-    value: jest.fn().mockImplementation((x?: number, y?: number, z?: number, w?: number) => {
+    value: vi.fn().mockImplementation((x?: number, y?: number, z?: number, w?: number) => {
         return {
             x: x ?? 0,
             y: y ?? 0,
             z: z ?? 0,
             w: w ?? 0,
-            matrixTransform: jest.fn(),
-            toJSON: jest.fn(),
+            matrixTransform: vi.fn(),
+            toJSON: vi.fn(),
         };
     }),
 });
@@ -112,7 +116,7 @@ Object.defineProperty(global.self, "DOMPoint", {
 Object.defineProperty(global.self, "DOMRect", {
     writable: true,
     enumerable: true,
-    value: jest.fn().mockImplementation((x?: number, y?: number, width?: number, height?: number) => {
+    value: vi.fn().mockImplementation((x?: number, y?: number, width?: number, height?: number) => {
         return {
             x: x ?? 0,
             y: y ?? 0,

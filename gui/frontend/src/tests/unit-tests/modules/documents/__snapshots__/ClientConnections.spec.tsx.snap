@@ -1,1429 +1,457 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Client connections module tests Test ClientConnections getClientConnectionDetails function: ClientConnections3 1`] = `undefined`;
+exports[`Client connections module tests > Test ClientConnections getClientConnectionDetails function > ClientConnections3 1`] = `undefined`;
 
-exports[`Client connections module tests Test ClientConnections instantiation: ClientConnections1 1`] = `
-<ClientConnections
-  backend={
-    ShellInterfaceSqlEditor {
-      "mhs": ShellInterfaceMhs {},
-      "moduleSessionLookupId": "",
-      "mrs": ShellInterfaceMrs {
-        "moduleSessionLookupId": "",
-      },
-    }
-  }
-  toolbarItems={
-    {
-      "auxiliary": [],
-      "editor": [],
-      "execution": [],
-      "navigation": [],
-    }
-  }
->
-  <Container
-    className="msg clientConnections"
-    mainAlignment="flex-start"
-    orientation="column"
+exports[`Client connections module tests > Test ClientConnections instantiation > ClientConnections1 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar clientConnections"
+    style="flex-direction: column; justify-content: flex-start;"
   >
     <div
-      className="msg container fixedScrollbar clientConnections"
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "column",
-          "flexWrap": undefined,
-          "justifyContent": "flex-start",
-        }
-      }
+      class="msg container fixedScrollbar toolbar verticalCenterContent"
+      id="clientConnectionToolbar"
+      style="flex-direction: row; align-items: center;"
     >
-      <Toolbar
-        dropShadow={false}
-        id="clientConnectionToolbar"
-        vibrant={false}
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        style="margin-left: 8px;"
       >
-        <Container
-          className="msg toolbar verticalCenterContent"
-          crossAlignment="center"
-          id="clientConnectionToolbar"
-          orientation="row"
+        Refresh Rate:
+      </label>
+      <div
+        class="msg container fixedScrollbar dropdown"
+        data-tooltip="inherit"
+        id="refreshSelector"
+        style="flex-direction: row; align-items: center;"
+        tabindex="0"
+      >
+        <label
+          class="msg label ellipsis"
+          data-tooltip="expand"
         >
-          <div
-            className="msg container fixedScrollbar toolbar verticalCenterContent"
-            id="clientConnectionToolbar"
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label
-              key="mainLabel"
-              style={
-                {
-                  "marginLeft": "8px",
-                }
-              }
-            >
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={
-                  {
-                    "marginLeft": "8px",
-                  }
-                }
-              >
-                Refresh Rate:
-              </label>
-            </Label>
-            <Dropdown
-              id="refreshSelector"
-              key="selector"
-              multiSelect={false}
-              onSelect={[Function]}
-              optional={false}
-              selection="5"
-              showDescription={false}
-              withoutArrow={false}
-            >
-              <Container
-                className="msg dropdown"
-                crossAlignment="center"
-                data-tooltip="inherit"
-                id="refreshSelector"
-                innerRef={
-                  {
-                    "current": <div
-                      class="msg container fixedScrollbar dropdown"
-                      data-tooltip="inherit"
-                      id="refreshSelector"
-                      style="flex-direction: row; align-items: center;"
-                      tabindex="0"
-                    >
-                      <label
-                        class="msg label ellipsis"
-                        data-tooltip="expand"
-                      >
-                        5 seconds
-                      </label>
-                    </div>,
-                  }
-                }
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onKeyDown={[Function]}
-                orientation="row"
-                tabIndex={0}
-              >
-                <div
-                  className="msg container fixedScrollbar dropdown"
-                  data-tooltip="inherit"
-                  id="refreshSelector"
-                  onClick={[Function]}
-                  onKeyDown={[Function]}
-                  onfocusin={[Function]}
-                  onfocusout={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "flexWrap": undefined,
-                      "justifyContent": undefined,
-                    }
-                  }
-                  tabIndex={0}
-                >
-                  <Label
-                    className="ellipsis"
-                  >
-                    <label
-                      className="msg label ellipsis"
-                      data-tooltip="expand"
-                      style={{}}
-                    >
-                      5 seconds
-                    </label>
-                  </Label>
-                </div>
-              </Container>
-              <Popup
-                className="dropdownList"
-                id="refreshSelectorPopup"
-                innerRef={
-                  {
-                    "current": null,
-                  }
-                }
-                onClose={[Function]}
-                onOpen={[Function]}
-                orientation="column"
-                pinned={false}
-                placement="bottom-end"
-                showArrow={false}
-              >
-                <Portal
-                  className="popupPortal"
-                  id="refreshSelectorPopup"
-                  onClose={[Function]}
-                  onOpen={[Function]}
-                />
-              </Popup>
-            </Dropdown>
-            <Divider
-              key="refreshSeparator"
-              thickness={1}
-              vertical={true}
-            >
-              <div
-                className="msg divider vertical"
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
-                style={
-                  {
-                    "--thickness": "1px",
-                  }
-                }
-              />
-            </Divider>
-            <Button
-              data-tooltip="Hide sleeping connections"
-              imageOnly={true}
-              key="hideSleepConn"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Hide sleeping connections"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-sleeping_conns-active.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-sleeping_conns-active.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-sleeping_conns-active.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Button
-              data-tooltip="Hide background threads"
-              imageOnly={true}
-              key="hideBkgThreads"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Hide background threads"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-background-threads-active.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-background-threads-active.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-background-threads-active.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Divider
-              key="filterSeparator"
-              thickness={1}
-              vertical={true}
-            >
-              <div
-                className="msg divider vertical"
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
-                style={
-                  {
-                    "--thickness": "1px",
-                  }
-                }
-              />
-            </Divider>
-            <Button
-              data-tooltip="Don't load full thread info"
-              imageOnly={true}
-              key="noFullInfo"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Don't load full thread info"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-info-inactive.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-info-inactive.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-info-inactive.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Button
-              data-tooltip="Show/Hide Details"
-              imageOnly={true}
-              key="showDetails"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Show/Hide Details"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-show-details-inactive.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-show-details-inactive.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-show-details-inactive.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Divider
-              key="actionSeparator"
-              thickness={1}
-              vertical={true}
-            >
-              <div
-                className="msg divider vertical"
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
-                style={
-                  {
-                    "--thickness": "1px",
-                  }
-                }
-              />
-            </Divider>
-            <Button
-              data-tooltip="Kill Query"
-              disabled={true}
-              imageOnly={true}
-              key="killQuery"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly disabled"
-                data-tooltip="Kill Query"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-kill_query.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-kill_query.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-kill_query.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Button
-              data-tooltip="Kill Connection"
-              disabled={true}
-              imageOnly={true}
-              key="killCOnnection"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly disabled"
-                data-tooltip="Kill Connection"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-kill_connection.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-kill_connection.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-kill_connection.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <div
-              className="expander"
-            />
-          </div>
-        </Container>
-      </Toolbar>
-      <Container
-        id="contentHost"
-        orientation="column"
+          5 seconds
+        </label>
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Hide sleeping connections"
+        role="button"
+        tabindex="0"
       >
         <div
-          className="msg container fixedScrollbar"
-          id="contentHost"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "column",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
-        >
-          <Container
-            crossAlignment="flex-start"
-            id="connectionProps"
-            orientation="row"
-            wrap="wrap"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="connectionProps"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "flexWrap": "wrap",
-                  "justifyContent": undefined,
-                }
-              }
-            >
-              <Label
-                data-testid="threadsConnected"
-                key="threadConnectedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsConnected"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Connected: 
-                </label>
-              </Label>
-              <Label
-                data-testid="threadsRunning"
-                key="threadRunningLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsRunning"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Running: 
-                </label>
-              </Label>
-              <Label
-                data-testid="threadsCreated"
-                key="threadsCreatedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsCreated"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Created: 
-                </label>
-              </Label>
-              <Label
-                data-testid="threadsCached"
-                key="threadsCachedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsCached"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Cached: 
-                </label>
-              </Label>
-              <Label
-                data-testid="rejected"
-                key="rejectedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="rejected"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Rejected (over limit): 
-                </label>
-              </Label>
-              <Label
-                data-testid="totalConnections"
-                key="totalConnectionsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="totalConnections"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Total Connections: 
-                </label>
-              </Label>
-              <Label
-                data-testid="connectionsLimit"
-                key="connectionsLimitLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="connectionsLimit"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Connection Limit: 
-                </label>
-              </Label>
-              <Label
-                data-testid="abortedClients"
-                key="abortedClientsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="abortedClients"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Aborted Clients: 
-                </label>
-              </Label>
-              <Label
-                data-testid="abortedConnections"
-                key="abortedConnectionsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="abortedConnections"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Aborted Connections: 
-                </label>
-              </Label>
-              <Label
-                data-testid="errors"
-                key="errorsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="errors"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Errors: 
-                </label>
-              </Label>
-            </div>
-          </Container>
-          <Container
-            id="connectionListTitle"
-            orientation="column"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="connectionListTitle"
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "column",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            >
-              <Divider
-                thickness={4}
-                vertical={false}
-              >
-                <div
-                  className="msg divider horizontal"
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
-                  style={
-                    {
-                      "--thickness": "4px",
-                    }
-                  }
-                />
-              </Divider>
-              <Label>
-                <label
-                  className="msg label"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Client Connection List
-                </label>
-              </Label>
-            </div>
-          </Container>
-          <Container
-            id="connectionList"
-            orientation="row"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="connectionList"
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "row",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            />
-          </Container>
-        </div>
-      </Container>
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-161)'%3e%3cg%20transform='matrix(0.0299708,0,0,0.035632,344.296,127.499)'%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3cpath%20d='M624.083,1014.97C624.083,973.695%20584.24,940.183%20535.166,940.183L-54.414,940.183C-103.489,940.183%20-143.331,973.695%20-143.331,1014.97L-143.331,1398.62C-143.331,1439.9%20-103.489,1473.41%20-54.414,1473.41L535.166,1473.41C584.24,1473.41%20624.083,1439.9%20624.083,1398.62L624.083,1014.97ZM392.925,1094.3C479.637,1114.25%20543.432,1181.06%20543.432,1260.31C543.432,1355.33%20451.714,1432.48%20338.744,1432.48C265.889,1432.48%20201.873,1400.39%20165.643,1352.1C182.904,1356.13%20201.071,1358.25%20219.825,1358.25C332.795,1358.25%20424.513,1281.11%20424.513,1186.09C424.513,1152.34%20412.948,1120.85%20392.925,1094.3ZM188.044,1220.83L307.108,1220.83C316.315,1220.83%20323.79,1214.54%20323.79,1206.8L323.79,1178.73C323.79,1170.99%20316.315,1164.7%20307.108,1164.7L188.044,1164.7L188.044,1108.57L307.108,1108.57C316.315,1108.57%20323.79,1102.28%20323.79,1094.54L323.79,1066.47C323.79,1058.73%20316.315,1052.44%20307.108,1052.44L188.044,1052.44L188.044,1009.03C188.044,986.521%20169.408,968.248%20146.453,968.248L63.272,968.248C48.317,968.248%2035.195,976.004%2027.865,987.636L-64.102,1077.81C-97.432,1110.49%20-97.432,1163.56%20-64.102,1196.24L29.463,1287.99C37.012,1298.3%2049.347,1305.02%2063.272,1305.02L146.453,1305.02C169.408,1305.02%20188.044,1286.75%20188.044,1264.24L188.044,1220.83Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Hide background threads"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-486,-161)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3cpath%20d='M510,163.665C510,162.194%20508.806,161%20507.335,161L489.665,161C488.194,161%20487,162.194%20487,163.665L487,177.335C487,178.806%20488.194,180%20489.665,180L507.335,180C508.806,180%20510,178.806%20510,177.335L510,163.665ZM506,175.401C506,175.18%20505.82,175%20505.599,175L498.401,175C498.18,175%20498,175.18%20498,175.401L498,176.599C498,176.82%20498.18,177%20498.401,177L505.599,177C505.82,177%20506,176.82%20506,176.599L506,175.401ZM497.387,168C498.277,168%20499,167.277%20499,166.387L499,165.613C499,164.723%20498.277,164%20497.387,164L490.613,164C489.723,164%20489,164.723%20489,165.613L489,166.387C489,167.277%20489.723,168%20490.613,168L493.999,168L493.999,175.233C493.999,175.233%20494.046,176.009%20495,176C495.279,176%20495,176%20495,176L497,176L497,176.393C497,177.28%20497.72,178%20498.607,178L505.393,178C506.28,178%20507,177.28%20507,176.393L507,175.607C507,174.72%20506.28,174%20505.393,174L498.607,174C497.72,174%20497,174.72%20497,175.607L497,175L495,175L495,171L497,171L497,171.425C497,172.294%20497.706,173%20498.575,173L505.425,173C506.294,173%20507,172.294%20507,171.425L507,170.575C507,169.706%20506.294,169%20505.425,169L498.575,169C497.706,169%20497,169.706%20497,170.575L497,170L495,170L495,168L497.387,168ZM506,170.402C506,170.18%20505.82,170%20505.598,170L498.402,170C498.18,170%20498,170.18%20498,170.402L498,171.598C498,171.82%20498.18,172%20498.402,172L505.598,172C505.82,172%20506,171.82%20506,171.598L506,170.402Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Don't load full thread info"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-450,-128)'%3e%3cg%20id='Infos'%20transform='matrix(1,0,0,1,-2,0)'%3e%3cg%20transform='matrix(1.13501,0,0,1.13501,-61.4294,-17.5513)'%3e%3cpath%20d='M462.5,130C466.639,130%20470,133.361%20470,137.5C470,141.639%20466.639,145%20462.5,145C458.361,145%20455,141.639%20455,137.5C455,133.361%20458.361,130%20462.5,130ZM462.5,131.226C465.963,131.226%20468.774,134.037%20468.774,137.5C468.774,140.963%20465.963,143.774%20462.5,143.774C459.037,143.774%20456.226,140.963%20456.226,137.5C456.226,134.037%20459.037,131.226%20462.5,131.226Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20transform='matrix(1.94821,0,0,1.11574,-477.155,-9.48829)'%3e%3cpath%20d='M483.457,131.163C483.453,131.311%20483.447,131.522%20483.439,131.795C483.388,133.366%20483.363,134.471%20483.363,135.112L483.363,135.733C483.363,136.186%20483.406,136.471%20483.492,136.588C483.578,136.706%20483.746,136.764%20483.996,136.764C484.019,136.764%20484.05,136.762%20484.089,136.758C484.128,136.754%20484.158,136.752%20484.177,136.752L484.177,137.151C483.845,137.127%20483.578,137.112%20483.375,137.104C483.171,137.096%20483,137.092%20482.859,137.092C482.734,137.092%20482.575,137.096%20482.381,137.104C482.188,137.112%20481.898,137.127%20481.511,137.151L481.511,136.741L481.658,136.741C482.142,136.741%20482.386,136.264%20482.39,135.311L482.39,134.989L482.414,133.542C482.414,133.436%20482.416,133.303%20482.419,133.143C482.423,132.983%20482.425,132.875%20482.425,132.821C482.425,132.504%20482.395,132.295%20482.334,132.194C482.274,132.092%20482.164,132.042%20482.003,132.042C481.972,132.042%20481.926,132.044%20481.866,132.05C481.805,132.056%20481.74,132.063%20481.669,132.071L481.611,131.702C481.919,131.643%20482.227,131.569%20482.534,131.479C482.84,131.389%20483.148,131.284%20483.457,131.163ZM482.822,128.196L483.265,128.252C483.375,128.334%20483.554,128.647%20483.574,128.758C483.61,128.955%20483.578,129.056%20483.578,129.146C483.578,129.236%20483.55,129.465%20483.509,129.53C483.468,129.594%20483.426,129.797%20483.312,129.882L482.824,130.008L482.382,129.867C482.268,129.777%20482.218,129.513%20482.167,129.437C482.117,129.361%20482.091,129.28%20482.091,129.194C482.091,129.108%20482.096,129.027%20482.08,128.94C482.013,128.586%20482.31,128.352%20482.431,128.262L482.822,128.196Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Show/Hide Details"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-412,-128)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3cg%20id='Show-Details-Enabled'%20serif:id='Show%20Details%20Enabled'%3e%3c/g%3e%3cg%20id='Show-Details1'%20serif:id='Show%20Details'%20transform='matrix(1,0,0,1,1,0)'%3e%3cpath%20d='M430,132.077C430,131.483%20429.517,131%20428.923,131L417.077,131C416.483,131%20416,131.483%20416,132.077L416,143.923C416,144.517%20416.483,145%20417.077,145L428.923,145C429.517,145%20430,144.517%20430,143.923L430,132.077ZM429,132.537C429,132.241%20428.759,132%20428.463,132L417.537,132C417.241,132%20417,132.241%20417,132.537L417,143.463C417,143.759%20417.241,144%20417.537,144L428.463,144C428.759,144%20429,143.759%20429,143.463L429,132.537Z'%20style='fill:rgb(34,34,36);'/%3e%3crect%20x='424'%20y='132'%20width='1'%20height='12'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly disabled"
+        data-tooltip="Kill Query"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-374,-128)'%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3cg%20transform='matrix(0.0299708,0,0,0.035632,195.543,120.799)'%3e%3cpath%20d='M6538.18,536.857L6447.26,460.384L6376.48,519.919L6467.4,596.391L6376.48,672.864L6447.26,732.398L6538.18,655.925L6629.1,732.398L6699.88,672.864L6608.96,596.391L6699.88,519.919L6629.1,460.384L6538.18,536.857Z'/%3e%3c/g%3e%3cg%20id='Execute'%20transform='matrix(0.946417,0,0,0.947368,-258.894,-1778.05)'%3e%3cpath%20d='M676,2013L670,2023L675,2023L670,2032L684,2020L678,2019L685,2013L676,2013Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly disabled"
+        data-tooltip="Kill Connection"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-306,-128)'%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%20transform='matrix(0.0299708,0,0,0.035632,309.296,128.499)'%3e%3cpath%20d='M188.044,238.567L307.108,238.567C316.315,238.567%20323.79,232.279%20323.79,224.535L323.79,196.47C323.79,188.725%20316.315,182.438%20307.108,182.438L188.044,182.438L188.044,126.308L307.108,126.308C316.315,126.308%20323.79,120.021%20323.79,112.276L323.79,84.212C323.79,76.467%20316.315,70.179%20307.108,70.179L188.044,70.179L188.044,26.767C188.044,4.259%20169.408,-14.015%20146.453,-14.015L63.272,-14.015C48.317,-14.015%2035.195,-6.258%2027.865,5.373L-64.102,95.55C-97.432,128.231%20-97.432,181.298%20-64.102,213.979L29.463,305.723C37.012,316.037%2049.347,322.761%2063.272,322.761L146.453,322.761C169.408,322.761%20188.044,304.487%20188.044,281.98L188.044,238.567Z'/%3e%3cg%20transform='matrix(1,0,0,1,-6064.34,-216.098)'%3e%3cpath%20d='M6538.18,536.857L6447.26,460.384L6376.48,519.919L6467.4,596.391L6376.48,672.864L6447.26,732.398L6538.18,655.925L6629.1,732.398L6699.88,672.864L6608.96,596.391L6699.88,519.919L6629.1,460.384L6538.18,536.857Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="expander"
+      />
     </div>
-  </Container>
-</ClientConnections>
+    <div
+      class="msg container fixedScrollbar"
+      id="contentHost"
+      style="flex-direction: column;"
+    >
+      <div
+        class="msg container fixedScrollbar"
+        id="connectionProps"
+        style="flex-direction: row; align-items: flex-start; flex-wrap: wrap;"
+      >
+        <label
+          class="msg label"
+          data-testid="threadsConnected"
+          data-tooltip="expand"
+        >
+          Threads Connected: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="threadsRunning"
+          data-tooltip="expand"
+        >
+          Threads Running: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="threadsCreated"
+          data-tooltip="expand"
+        >
+          Threads Created: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="threadsCached"
+          data-tooltip="expand"
+        >
+          Threads Cached: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="rejected"
+          data-tooltip="expand"
+        >
+          Rejected (over limit): 
+        </label>
+        <label
+          class="msg label"
+          data-testid="totalConnections"
+          data-tooltip="expand"
+        >
+          Total Connections: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="connectionsLimit"
+          data-tooltip="expand"
+        >
+          Connection Limit: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="abortedClients"
+          data-tooltip="expand"
+        >
+          Aborted Clients: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="abortedConnections"
+          data-tooltip="expand"
+        >
+          Aborted Connections: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="errors"
+          data-tooltip="expand"
+        >
+          Errors: 
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar"
+        id="connectionListTitle"
+        style="flex-direction: column;"
+      >
+        <div
+          class="msg divider horizontal"
+          style="--thickness: 4px;"
+        />
+        <label
+          class="msg label"
+          data-tooltip="expand"
+        >
+          Client Connection List
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar"
+        id="connectionList"
+        style="flex-direction: row;"
+      />
+    </div>
+  </div>
+</div>
 `;
 
-exports[`Client connections module tests Test ClientConnections instantiation: ClientConnections2 1`] = `
-<ClientConnections
-  backend={
-    ShellInterfaceSqlEditor {
-      "mhs": ShellInterfaceMhs {},
-      "moduleSessionLookupId": "",
-      "mrs": ShellInterfaceMrs {
-        "moduleSessionLookupId": "",
-      },
-    }
-  }
-  toolbarItems={
-    {
-      "auxiliary": [],
-      "editor": [],
-      "execution": [],
-      "navigation": [],
-    }
-  }
->
-  <Container
-    className="msg clientConnections"
-    mainAlignment="flex-start"
-    orientation="column"
+exports[`Client connections module tests > Test ClientConnections instantiation > ClientConnections2 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar clientConnections"
+    style="flex-direction: column; justify-content: flex-start;"
   >
     <div
-      className="msg container fixedScrollbar clientConnections"
-      style={
-        {
-          "alignItems": undefined,
-          "flexDirection": "column",
-          "flexWrap": undefined,
-          "justifyContent": "flex-start",
-        }
-      }
+      class="msg container fixedScrollbar toolbar verticalCenterContent"
+      id="clientConnectionToolbar"
+      style="flex-direction: row; align-items: center;"
     >
-      <Toolbar
-        dropShadow={false}
-        id="clientConnectionToolbar"
-        vibrant={false}
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        style="margin-left: 8px;"
       >
-        <Container
-          className="msg toolbar verticalCenterContent"
-          crossAlignment="center"
-          id="clientConnectionToolbar"
-          orientation="row"
+        Refresh Rate:
+      </label>
+      <div
+        class="msg container fixedScrollbar dropdown"
+        data-tooltip="inherit"
+        id="refreshSelector"
+        style="flex-direction: row; align-items: center;"
+        tabindex="0"
+      >
+        <label
+          class="msg label ellipsis"
+          data-tooltip="expand"
         >
-          <div
-            className="msg container fixedScrollbar toolbar verticalCenterContent"
-            id="clientConnectionToolbar"
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label
-              key="mainLabel"
-              style={
-                {
-                  "marginLeft": "8px",
-                }
-              }
-            >
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={
-                  {
-                    "marginLeft": "8px",
-                  }
-                }
-              >
-                Refresh Rate:
-              </label>
-            </Label>
-            <Dropdown
-              id="refreshSelector"
-              key="selector"
-              multiSelect={false}
-              onSelect={[Function]}
-              optional={false}
-              selection="5"
-              showDescription={false}
-              withoutArrow={false}
-            >
-              <Container
-                className="msg dropdown"
-                crossAlignment="center"
-                data-tooltip="inherit"
-                id="refreshSelector"
-                innerRef={
-                  {
-                    "current": <div
-                      class="msg container fixedScrollbar dropdown"
-                      data-tooltip="inherit"
-                      id="refreshSelector"
-                      style="flex-direction: row; align-items: center;"
-                      tabindex="0"
-                    >
-                      <label
-                        class="msg label ellipsis"
-                        data-tooltip="expand"
-                      >
-                        5 seconds
-                      </label>
-                    </div>,
-                  }
-                }
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onKeyDown={[Function]}
-                orientation="row"
-                tabIndex={0}
-              >
-                <div
-                  className="msg container fixedScrollbar dropdown"
-                  data-tooltip="inherit"
-                  id="refreshSelector"
-                  onClick={[Function]}
-                  onKeyDown={[Function]}
-                  onfocusin={[Function]}
-                  onfocusout={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "flexWrap": undefined,
-                      "justifyContent": undefined,
-                    }
-                  }
-                  tabIndex={0}
-                >
-                  <Label
-                    className="ellipsis"
-                  >
-                    <label
-                      className="msg label ellipsis"
-                      data-tooltip="expand"
-                      style={{}}
-                    >
-                      5 seconds
-                    </label>
-                  </Label>
-                </div>
-              </Container>
-              <Popup
-                className="dropdownList"
-                id="refreshSelectorPopup"
-                innerRef={
-                  {
-                    "current": null,
-                  }
-                }
-                onClose={[Function]}
-                onOpen={[Function]}
-                orientation="column"
-                pinned={false}
-                placement="bottom-end"
-                showArrow={false}
-              >
-                <Portal
-                  className="popupPortal"
-                  id="refreshSelectorPopup"
-                  onClose={[Function]}
-                  onOpen={[Function]}
-                />
-              </Popup>
-            </Dropdown>
-            <Divider
-              key="refreshSeparator"
-              thickness={1}
-              vertical={true}
-            >
-              <div
-                className="msg divider vertical"
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
-                style={
-                  {
-                    "--thickness": "1px",
-                  }
-                }
-              />
-            </Divider>
-            <Button
-              data-tooltip="Hide sleeping connections"
-              imageOnly={true}
-              key="hideSleepConn"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Hide sleeping connections"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-sleeping_conns-active.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-sleeping_conns-active.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-sleeping_conns-active.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Button
-              data-tooltip="Hide background threads"
-              imageOnly={true}
-              key="hideBkgThreads"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Hide background threads"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-background-threads-active.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-background-threads-active.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-background-threads-active.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Divider
-              key="filterSeparator"
-              thickness={1}
-              vertical={true}
-            >
-              <div
-                className="msg divider vertical"
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
-                style={
-                  {
-                    "--thickness": "1px",
-                  }
-                }
-              />
-            </Divider>
-            <Button
-              data-tooltip="Don't load full thread info"
-              imageOnly={true}
-              key="noFullInfo"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Don't load full thread info"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-info-inactive.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-info-inactive.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-info-inactive.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Button
-              data-tooltip="Show/Hide Details"
-              imageOnly={true}
-              key="showDetails"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly"
-                data-tooltip="Show/Hide Details"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-show-details-inactive.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-show-details-inactive.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-show-details-inactive.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Divider
-              key="actionSeparator"
-              thickness={1}
-              vertical={true}
-            >
-              <div
-                className="msg divider vertical"
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
-                style={
-                  {
-                    "--thickness": "1px",
-                  }
-                }
-              />
-            </Divider>
-            <Button
-              data-tooltip="Kill Query"
-              disabled={true}
-              imageOnly={true}
-              key="killQuery"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly disabled"
-                data-tooltip="Kill Query"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-kill_query.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-kill_query.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-kill_query.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <Button
-              data-tooltip="Kill Connection"
-              disabled={true}
-              imageOnly={true}
-              key="killCOnnection"
-              onClick={[Function]}
-            >
-              <div
-                className="msg button imageOnly disabled"
-                data-tooltip="Kill Connection"
-                onClick={[Function]}
-                onMouseDown={[Function]}
-                role="button"
-                style={
-                  {
-                    "flexDirection": undefined,
-                  }
-                }
-                tabIndex={0}
-              >
-                <Icon
-                  data-tooltip="inherit"
-                  disabled={false}
-                  src="toolbar-kill_connection.svg"
-                >
-                  <div
-                    className="msg icon"
-                    data-tooltip="inherit"
-                    style={
-                      {
-                        "WebkitMaskImage": "url("toolbar-kill_connection.svg")",
-                        "backgroundColor": undefined,
-                        "height": undefined,
-                        "maskComposite": undefined,
-                        "maskImage": "url("toolbar-kill_connection.svg")",
-                        "maskSize": undefined,
-                        "width": undefined,
-                      }
-                    }
-                  />
-                </Icon>
-              </div>
-            </Button>
-            <div
-              className="expander"
-            />
-          </div>
-        </Container>
-      </Toolbar>
-      <Container
-        id="contentHost"
-        orientation="column"
+          5 seconds
+        </label>
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Hide sleeping connections"
+        role="button"
+        tabindex="0"
       >
         <div
-          className="msg container fixedScrollbar"
-          id="contentHost"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "column",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
-        >
-          <Container
-            crossAlignment="flex-start"
-            id="connectionProps"
-            orientation="row"
-            wrap="wrap"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="connectionProps"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "flexWrap": "wrap",
-                  "justifyContent": undefined,
-                }
-              }
-            >
-              <Label
-                data-testid="threadsConnected"
-                key="threadConnectedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsConnected"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Connected: 
-                </label>
-              </Label>
-              <Label
-                data-testid="threadsRunning"
-                key="threadRunningLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsRunning"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Running: 
-                </label>
-              </Label>
-              <Label
-                data-testid="threadsCreated"
-                key="threadsCreatedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsCreated"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Created: 
-                </label>
-              </Label>
-              <Label
-                data-testid="threadsCached"
-                key="threadsCachedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="threadsCached"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Threads Cached: 
-                </label>
-              </Label>
-              <Label
-                data-testid="rejected"
-                key="rejectedLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="rejected"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Rejected (over limit): 
-                </label>
-              </Label>
-              <Label
-                data-testid="totalConnections"
-                key="totalConnectionsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="totalConnections"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Total Connections: 
-                </label>
-              </Label>
-              <Label
-                data-testid="connectionsLimit"
-                key="connectionsLimitLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="connectionsLimit"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Connection Limit: 
-                </label>
-              </Label>
-              <Label
-                data-testid="abortedClients"
-                key="abortedClientsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="abortedClients"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Aborted Clients: 
-                </label>
-              </Label>
-              <Label
-                data-testid="abortedConnections"
-                key="abortedConnectionsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="abortedConnections"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Aborted Connections: 
-                </label>
-              </Label>
-              <Label
-                data-testid="errors"
-                key="errorsLabel"
-              >
-                <label
-                  className="msg label"
-                  data-testid="errors"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Errors: 
-                </label>
-              </Label>
-            </div>
-          </Container>
-          <Container
-            id="connectionListTitle"
-            orientation="column"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="connectionListTitle"
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "column",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            >
-              <Divider
-                thickness={4}
-                vertical={false}
-              >
-                <div
-                  className="msg divider horizontal"
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
-                  style={
-                    {
-                      "--thickness": "4px",
-                    }
-                  }
-                />
-              </Divider>
-              <Label>
-                <label
-                  className="msg label"
-                  data-tooltip="expand"
-                  style={{}}
-                >
-                  Client Connection List
-                </label>
-              </Label>
-            </div>
-          </Container>
-          <Container
-            id="connectionList"
-            orientation="row"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="connectionList"
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "row",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            />
-          </Container>
-        </div>
-      </Container>
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-161)'%3e%3cg%20transform='matrix(0.0299708,0,0,0.035632,344.296,127.499)'%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3cpath%20d='M624.083,1014.97C624.083,973.695%20584.24,940.183%20535.166,940.183L-54.414,940.183C-103.489,940.183%20-143.331,973.695%20-143.331,1014.97L-143.331,1398.62C-143.331,1439.9%20-103.489,1473.41%20-54.414,1473.41L535.166,1473.41C584.24,1473.41%20624.083,1439.9%20624.083,1398.62L624.083,1014.97ZM392.925,1094.3C479.637,1114.25%20543.432,1181.06%20543.432,1260.31C543.432,1355.33%20451.714,1432.48%20338.744,1432.48C265.889,1432.48%20201.873,1400.39%20165.643,1352.1C182.904,1356.13%20201.071,1358.25%20219.825,1358.25C332.795,1358.25%20424.513,1281.11%20424.513,1186.09C424.513,1152.34%20412.948,1120.85%20392.925,1094.3ZM188.044,1220.83L307.108,1220.83C316.315,1220.83%20323.79,1214.54%20323.79,1206.8L323.79,1178.73C323.79,1170.99%20316.315,1164.7%20307.108,1164.7L188.044,1164.7L188.044,1108.57L307.108,1108.57C316.315,1108.57%20323.79,1102.28%20323.79,1094.54L323.79,1066.47C323.79,1058.73%20316.315,1052.44%20307.108,1052.44L188.044,1052.44L188.044,1009.03C188.044,986.521%20169.408,968.248%20146.453,968.248L63.272,968.248C48.317,968.248%2035.195,976.004%2027.865,987.636L-64.102,1077.81C-97.432,1110.49%20-97.432,1163.56%20-64.102,1196.24L29.463,1287.99C37.012,1298.3%2049.347,1305.02%2063.272,1305.02L146.453,1305.02C169.408,1305.02%20188.044,1286.75%20188.044,1264.24L188.044,1220.83Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Hide background threads"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-486,-161)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3cpath%20d='M510,163.665C510,162.194%20508.806,161%20507.335,161L489.665,161C488.194,161%20487,162.194%20487,163.665L487,177.335C487,178.806%20488.194,180%20489.665,180L507.335,180C508.806,180%20510,178.806%20510,177.335L510,163.665ZM506,175.401C506,175.18%20505.82,175%20505.599,175L498.401,175C498.18,175%20498,175.18%20498,175.401L498,176.599C498,176.82%20498.18,177%20498.401,177L505.599,177C505.82,177%20506,176.82%20506,176.599L506,175.401ZM497.387,168C498.277,168%20499,167.277%20499,166.387L499,165.613C499,164.723%20498.277,164%20497.387,164L490.613,164C489.723,164%20489,164.723%20489,165.613L489,166.387C489,167.277%20489.723,168%20490.613,168L493.999,168L493.999,175.233C493.999,175.233%20494.046,176.009%20495,176C495.279,176%20495,176%20495,176L497,176L497,176.393C497,177.28%20497.72,178%20498.607,178L505.393,178C506.28,178%20507,177.28%20507,176.393L507,175.607C507,174.72%20506.28,174%20505.393,174L498.607,174C497.72,174%20497,174.72%20497,175.607L497,175L495,175L495,171L497,171L497,171.425C497,172.294%20497.706,173%20498.575,173L505.425,173C506.294,173%20507,172.294%20507,171.425L507,170.575C507,169.706%20506.294,169%20505.425,169L498.575,169C497.706,169%20497,169.706%20497,170.575L497,170L495,170L495,168L497.387,168ZM506,170.402C506,170.18%20505.82,170%20505.598,170L498.402,170C498.18,170%20498,170.18%20498,170.402L498,171.598C498,171.82%20498.18,172%20498.402,172L505.598,172C505.82,172%20506,171.82%20506,171.598L506,170.402Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Don't load full thread info"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-450,-128)'%3e%3cg%20id='Infos'%20transform='matrix(1,0,0,1,-2,0)'%3e%3cg%20transform='matrix(1.13501,0,0,1.13501,-61.4294,-17.5513)'%3e%3cpath%20d='M462.5,130C466.639,130%20470,133.361%20470,137.5C470,141.639%20466.639,145%20462.5,145C458.361,145%20455,141.639%20455,137.5C455,133.361%20458.361,130%20462.5,130ZM462.5,131.226C465.963,131.226%20468.774,134.037%20468.774,137.5C468.774,140.963%20465.963,143.774%20462.5,143.774C459.037,143.774%20456.226,140.963%20456.226,137.5C456.226,134.037%20459.037,131.226%20462.5,131.226Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20transform='matrix(1.94821,0,0,1.11574,-477.155,-9.48829)'%3e%3cpath%20d='M483.457,131.163C483.453,131.311%20483.447,131.522%20483.439,131.795C483.388,133.366%20483.363,134.471%20483.363,135.112L483.363,135.733C483.363,136.186%20483.406,136.471%20483.492,136.588C483.578,136.706%20483.746,136.764%20483.996,136.764C484.019,136.764%20484.05,136.762%20484.089,136.758C484.128,136.754%20484.158,136.752%20484.177,136.752L484.177,137.151C483.845,137.127%20483.578,137.112%20483.375,137.104C483.171,137.096%20483,137.092%20482.859,137.092C482.734,137.092%20482.575,137.096%20482.381,137.104C482.188,137.112%20481.898,137.127%20481.511,137.151L481.511,136.741L481.658,136.741C482.142,136.741%20482.386,136.264%20482.39,135.311L482.39,134.989L482.414,133.542C482.414,133.436%20482.416,133.303%20482.419,133.143C482.423,132.983%20482.425,132.875%20482.425,132.821C482.425,132.504%20482.395,132.295%20482.334,132.194C482.274,132.092%20482.164,132.042%20482.003,132.042C481.972,132.042%20481.926,132.044%20481.866,132.05C481.805,132.056%20481.74,132.063%20481.669,132.071L481.611,131.702C481.919,131.643%20482.227,131.569%20482.534,131.479C482.84,131.389%20483.148,131.284%20483.457,131.163ZM482.822,128.196L483.265,128.252C483.375,128.334%20483.554,128.647%20483.574,128.758C483.61,128.955%20483.578,129.056%20483.578,129.146C483.578,129.236%20483.55,129.465%20483.509,129.53C483.468,129.594%20483.426,129.797%20483.312,129.882L482.824,130.008L482.382,129.867C482.268,129.777%20482.218,129.513%20482.167,129.437C482.117,129.361%20482.091,129.28%20482.091,129.194C482.091,129.108%20482.096,129.027%20482.08,128.94C482.013,128.586%20482.31,128.352%20482.431,128.262L482.822,128.196Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Show/Hide Details"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-412,-128)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3cg%20id='Show-Details-Enabled'%20serif:id='Show%20Details%20Enabled'%3e%3c/g%3e%3cg%20id='Show-Details1'%20serif:id='Show%20Details'%20transform='matrix(1,0,0,1,1,0)'%3e%3cpath%20d='M430,132.077C430,131.483%20429.517,131%20428.923,131L417.077,131C416.483,131%20416,131.483%20416,132.077L416,143.923C416,144.517%20416.483,145%20417.077,145L428.923,145C429.517,145%20430,144.517%20430,143.923L430,132.077ZM429,132.537C429,132.241%20428.759,132%20428.463,132L417.537,132C417.241,132%20417,132.241%20417,132.537L417,143.463C417,143.759%20417.241,144%20417.537,144L428.463,144C428.759,144%20429,143.759%20429,143.463L429,132.537Z'%20style='fill:rgb(34,34,36);'/%3e%3crect%20x='424'%20y='132'%20width='1'%20height='12'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg divider vertical"
+        style="--thickness: 1px;"
+      />
+      <div
+        class="msg button imageOnly disabled"
+        data-tooltip="Kill Query"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-374,-128)'%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3cg%20transform='matrix(0.0299708,0,0,0.035632,195.543,120.799)'%3e%3cpath%20d='M6538.18,536.857L6447.26,460.384L6376.48,519.919L6467.4,596.391L6376.48,672.864L6447.26,732.398L6538.18,655.925L6629.1,732.398L6699.88,672.864L6608.96,596.391L6699.88,519.919L6629.1,460.384L6538.18,536.857Z'/%3e%3c/g%3e%3cg%20id='Execute'%20transform='matrix(0.946417,0,0,0.947368,-258.894,-1778.05)'%3e%3cpath%20d='M676,2013L670,2023L675,2023L670,2032L684,2020L678,2019L685,2013L676,2013Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly disabled"
+        data-tooltip="Kill Connection"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-306,-128)'%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%20transform='matrix(0.0299708,0,0,0.035632,309.296,128.499)'%3e%3cpath%20d='M188.044,238.567L307.108,238.567C316.315,238.567%20323.79,232.279%20323.79,224.535L323.79,196.47C323.79,188.725%20316.315,182.438%20307.108,182.438L188.044,182.438L188.044,126.308L307.108,126.308C316.315,126.308%20323.79,120.021%20323.79,112.276L323.79,84.212C323.79,76.467%20316.315,70.179%20307.108,70.179L188.044,70.179L188.044,26.767C188.044,4.259%20169.408,-14.015%20146.453,-14.015L63.272,-14.015C48.317,-14.015%2035.195,-6.258%2027.865,5.373L-64.102,95.55C-97.432,128.231%20-97.432,181.298%20-64.102,213.979L29.463,305.723C37.012,316.037%2049.347,322.761%2063.272,322.761L146.453,322.761C169.408,322.761%20188.044,304.487%20188.044,281.98L188.044,238.567Z'/%3e%3cg%20transform='matrix(1,0,0,1,-6064.34,-216.098)'%3e%3cpath%20d='M6538.18,536.857L6447.26,460.384L6376.48,519.919L6467.4,596.391L6376.48,672.864L6447.26,732.398L6538.18,655.925L6629.1,732.398L6699.88,672.864L6608.96,596.391L6699.88,519.919L6629.1,460.384L6538.18,536.857Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="expander"
+      />
     </div>
-  </Container>
-</ClientConnections>
+    <div
+      class="msg container fixedScrollbar"
+      id="contentHost"
+      style="flex-direction: column;"
+    >
+      <div
+        class="msg container fixedScrollbar"
+        id="connectionProps"
+        style="flex-direction: row; align-items: flex-start; flex-wrap: wrap;"
+      >
+        <label
+          class="msg label"
+          data-testid="threadsConnected"
+          data-tooltip="expand"
+        >
+          Threads Connected: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="threadsRunning"
+          data-tooltip="expand"
+        >
+          Threads Running: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="threadsCreated"
+          data-tooltip="expand"
+        >
+          Threads Created: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="threadsCached"
+          data-tooltip="expand"
+        >
+          Threads Cached: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="rejected"
+          data-tooltip="expand"
+        >
+          Rejected (over limit): 
+        </label>
+        <label
+          class="msg label"
+          data-testid="totalConnections"
+          data-tooltip="expand"
+        >
+          Total Connections: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="connectionsLimit"
+          data-tooltip="expand"
+        >
+          Connection Limit: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="abortedClients"
+          data-tooltip="expand"
+        >
+          Aborted Clients: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="abortedConnections"
+          data-tooltip="expand"
+        >
+          Aborted Connections: 
+        </label>
+        <label
+          class="msg label"
+          data-testid="errors"
+          data-tooltip="expand"
+        >
+          Errors: 
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar"
+        id="connectionListTitle"
+        style="flex-direction: column;"
+      >
+        <div
+          class="msg divider horizontal"
+          style="--thickness: 4px;"
+        />
+        <label
+          class="msg label"
+          data-tooltip="expand"
+        >
+          Client Connection List
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar"
+        id="connectionList"
+        style="flex-direction: row;"
+      />
+    </div>
+  </div>
+</div>
 `;

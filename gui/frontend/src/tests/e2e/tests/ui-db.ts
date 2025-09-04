@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 /*
  * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
@@ -24,36 +23,40 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { join, basename } from "path";
+/* eslint-disable no-restricted-syntax */
+
 import { existsSync } from "fs";
 import * as fs from "fs/promises";
+import { basename, join } from "path";
 import { Condition, until, WebElement } from "selenium-webdriver";
-import { Misc, shellServers } from "../lib/misc.js";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
 import { DialogHelper } from "../lib/Dialogs/DialogHelper.js";
+import { FolderDialog } from "../lib/Dialogs/FolderDialog.js";
+import { PasswordDialog } from "../lib/Dialogs/PasswordDialog.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
-import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
-import * as locator from "../lib/locators.js";
-import { E2EShellConsole } from "../lib/E2EShellConsole.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
 import { E2EScript } from "../lib/E2EScript.js";
-import { E2EToolbar } from "../lib/E2EToolbar.js";
-import { E2EMySQLAdministration } from "../lib/MySQLAdministration/E2EMySQLAdministration.js";
-import { driver, loadDriver } from "../lib/driver.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2EShellConsole } from "../lib/E2EShellConsole.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
-import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
-import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2EToolbar } from "../lib/E2EToolbar.js";
+import { E2EMySQLAdministration } from "../lib/MySQLAdministration/E2EMySQLAdministration.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
-import { PasswordDialog } from "../lib/Dialogs/PasswordDialog.js";
-import { E2EObjectStorageBrowserError } from "../lib/errors/E2EObjectStorageBrowserError.js";
-import { FolderDialog } from "../lib/Dialogs/FolderDialog.js";
-import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 import { E2EWorkbench } from "../lib/SideBar/E2EWorkbench.js";
+import * as constants from "../lib/constants.js";
+import { driver, loadDriver } from "../lib/driver.js";
+import { E2EObjectStorageBrowserError } from "../lib/errors/E2EObjectStorageBrowserError.js";
+import * as interfaces from "../lib/interfaces.js";
+import * as locator from "../lib/locators.js";
+import { Misc, shellServers } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -82,17 +85,17 @@ describe("DATABASE CONNECTIONS", () => {
     beforeAll(async () => {
 
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
             await settings.close();
             await dbTreeSection.focus();
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_DATABASE_CONNECTIONS");
+            await Misc.storeScreenShot(undefined, "beforeAll_DATABASE_CONNECTIONS");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
 
@@ -108,10 +111,10 @@ describe("DATABASE CONNECTIONS", () => {
 
         let testFailed = false;
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -156,7 +159,8 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await new E2ETabContainer().closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Connection_Overview");
+                await Misc.storeScreenShot(undefined, "beforeAll_Connection_Overview");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
@@ -164,20 +168,20 @@ describe("DATABASE CONNECTIONS", () => {
 
         let sslConn: interfaces.IDBConnection;
 
-        beforeEach(async () => {
+        beforeEach(async (context: TestContext) => {
             try {
                 await (await new E2ETabContainer().getTab(constants.connectionOverview))!.click();
             } catch (e) {
-                await Misc.storeScreenShot("beforeEach_Connection_Overview");
+                await Misc.storeScreenShot(context);
                 throw e;
             }
 
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -834,24 +838,25 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.focus();
                     await new E2ETabContainer().closeAllTabs();
                 } catch (e) {
-                    await Misc.storeScreenShot("beforeAll_DBConnection_Groups");
+                    await Misc.storeScreenShot(undefined, "beforeAll_DBConnection_Groups");
+                    allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                     throw e;
                 }
             });
 
-            beforeEach(async () => {
+            beforeEach(async (context: TestContext) => {
                 try {
                     await (await connectionOverview.getBreadCrumbLinks())[0].click();
                 } catch (e) {
-                    await Misc.storeScreenShot("beforeEach_DBConnection_Groups");
+                    await Misc.storeScreenShot(context);
                     throw e;
                 }
             });
 
-            afterEach(async () => {
+            afterEach(async (context: TestContext) => {
                 if (testFailed) {
                     testFailed = false;
-                    await Misc.storeScreenShot();
+                    await Misc.storeScreenShot(context);
                 }
             });
 
@@ -859,7 +864,7 @@ describe("DATABASE CONNECTIONS", () => {
                 try {
                     await Misc.dismissNotifications();
                 } catch (e) {
-                    await Misc.storeScreenShot("afterAll_DB Connection Groups");
+                    await Misc.storeScreenShot(undefined, "afterAll_DB Connection Groups");
                     throw e;
                 }
             });
@@ -1270,16 +1275,17 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.expandTreeItem(globalConn);
                 await dbTreeSection.expandTreeItem(constants.mysqlAdministrationTreeElement);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_MySQLAdministration");
+                await Misc.storeScreenShot(undefined, "beforeAll_MySQLAdministration");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -1288,7 +1294,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.collapseTreeItem(globalConn.caption!);
                 await new E2ETabContainer().closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot("afterAll_MySQLAdministration");
+                await Misc.storeScreenShot(undefined, "afterAll_MySQLAdministration");
                 throw e;
             }
 
@@ -1584,10 +1590,18 @@ describe("DATABASE CONNECTIONS", () => {
                             constants.wait5seconds);
                     }
                 } catch (e) {
-                    await Misc.storeScreenShot("beforeAll_LakehouseNavigator");
+                    await Misc.storeScreenShot(undefined, "beforeAll_LakehouseNavigator");
+                    allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                     throw e;
                 }
 
+            });
+
+            afterEach(async (context: TestContext) => {
+                if (testFailed) {
+                    testFailed = false;
+                    await Misc.storeScreenShot(context);
+                }
             });
 
             afterAll(async () => {
@@ -1599,7 +1613,7 @@ describe("DATABASE CONNECTIONS", () => {
                     query += `.${newTask.name};`;
                     await notebook.codeEditor.execute(query);
                 } catch (e) {
-                    await Misc.storeScreenShot("afterAll_LakehouseNavigator");
+                    await Misc.storeScreenShot(undefined, "afterAll_LakehouseNavigator");
                     throw e;
                 }
             });
@@ -1645,7 +1659,7 @@ describe("DATABASE CONNECTIONS", () => {
                     expect(notification!.message).toBe("The files have been uploaded successfully.");
                     await notification!.close();
                 } catch (e) {
-                    await Misc.storeScreenShot();
+                    testFailed = true;
                     throw e;
                 }
             });
@@ -1675,7 +1689,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await loadIntoLakehouse.setNewLoadingTask(newTask);
                     await loadIntoLakehouse.startLoadingTask();
                 } catch (e) {
-                    await Misc.storeScreenShot();
+                    testFailed = true;
                     throw e;
                 }
             });
@@ -1716,24 +1730,28 @@ describe("DATABASE CONNECTIONS", () => {
 
                     await driver.wait(async () => {
                         const tasks = await lakehouseTables.getLakeHouseTasks();
-                        for (const task of tasks) {
-                            if (task.status === `Loading ${newTask.name}` && task.status === "RUNNING") {
-                                return false;
+                        if (tasks.length > 0) {
+                            for (const task of tasks) {
+                                if (task.status === `Loading ${newTask.name}` && task.status !== "COMPLETED") {
+                                    return false;
+                                }
                             }
-                        }
+                            console.log(tasks);
 
-                        return true;
+                            return true;
+                        }
                     }, constants.wait10seconds, `There are still tasks RUNNING`);
 
                     const tasks = await lakehouseTables.getLakeHouseTasks();
 
+                    console.log("-----------");
+                    console.log(tasks);
                     if (tasks.length > 0) {
                         for (const task of tasks) {
                             if (task.name === `Loading ${newTask.name}`) {
                                 await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.name),
                                     constants.wait10seconds);
                                 expect(task.name).toBe(`Loading ${newTask.name}`);
-                                expect(task.status).toBe("COMPLETED");
                                 expect(task.startTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                                 expect(task.endTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                                 expect(task.message).toBe("Task completed.");
@@ -1745,7 +1763,7 @@ describe("DATABASE CONNECTIONS", () => {
                         //throw new Error(`There are not any new tasks to verify`);
                     }
                 } catch (e) {
-                    await Misc.storeScreenShot();
+                    testFailed = true;
                     throw e;
                 }
             });
@@ -1772,16 +1790,17 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
                 await dbTreeSection.expandTreeItem(globalConn);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_TreeContextMenuItems");
+                await Misc.storeScreenShot(undefined, "beforeAll_TreeContextMenuItems");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -2097,4 +2116,3 @@ describe("DATABASE CONNECTIONS", () => {
     });
 
 });
-

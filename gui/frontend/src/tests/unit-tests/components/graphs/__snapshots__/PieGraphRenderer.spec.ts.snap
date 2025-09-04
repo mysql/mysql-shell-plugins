@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`PieGraphRenderer Tests Base Rendering 1`] = `<svg />`;
+exports[`PieGraphRenderer Tests > Base Rendering 1`] = `<svg />`;
 
-exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
+exports[`PieGraphRenderer Tests > With Data and Updates 1`] = `
 <svg>
   <svg
     id="graph2"
@@ -38,7 +38,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
           dy=".35em"
           fill="currentColor"
           text-anchor="start"
-          transform="translate(480,-438.4253606658721)"
+          transform="<filtered>"
         >
           1.00
         </text>
@@ -46,7 +46,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
           dy=".35em"
           fill="currentColor"
           text-anchor="start"
-          transform="translate(480,253.12499999999991)"
+          transform="<filtered>"
         >
           2.00
         </text>
@@ -54,7 +54,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
           dy=".35em"
           fill="currentColor"
           text-anchor="end"
-          transform="translate(-480,6.199774420683475e-14)"
+          transform="<filtered>"
         >
           3.00
         </text>
@@ -77,7 +77,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 1`] = `
 </svg>
 `;
 
-exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
+exports[`PieGraphRenderer Tests > With Data and Updates 2`] = `
 <svg>
   <svg
     id="graph2"
@@ -113,7 +113,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
           dy=".35em"
           fill="currentColor"
           text-anchor="start"
-          transform="translate(480,-438.4253606658721)"
+          transform="<filtered>"
         >
           1.00
         </text>
@@ -121,7 +121,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
           dy=".35em"
           fill="currentColor"
           text-anchor="start"
-          transform="translate(330,168.74999999999994)"
+          transform="<filtered>"
         >
           2.00
         </text>
@@ -129,7 +129,7 @@ exports[`PieGraphRenderer Tests With Data and Updates 2`] = `
           dy=".35em"
           fill="currentColor"
           text-anchor="end"
-          transform="translate(-330,4.133182947122317e-14)"
+          transform="<filtered>"
         >
           3.00
         </text>

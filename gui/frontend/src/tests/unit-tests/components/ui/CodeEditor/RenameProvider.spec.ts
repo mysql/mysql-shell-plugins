@@ -23,9 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
+import { describe, expect, it, vi } from "vitest";
+
 import { RenameProvider } from "../../../../../components/ui/CodeEditor/RenameProvider.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 
@@ -40,25 +40,23 @@ describe("RenameProvider tests", () => {
         let result = renameProvider.provideRenameEdits(mockModel, position, "renamed");
         expect(result).toBe(undefined);
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
+        const pi = new PresentationInterface("javascript");
+        const execContext = mockModel.executionContexts!.addContext(pi);
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
 
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
         result = renameProvider.provideRenameEdits(mockModel, position, "renamed");
         expect(result).toBe(undefined);
 
         const services = ScriptingLanguageServices.instance;
-        services.findReferences = jest.fn().mockReturnValue({
+        services.findReferences = vi.fn().mockReturnValue({
             uri: "",
             range: null,
         });
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
-        const getRenameLocations = jest.spyOn(services, "getRenameLocations");
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
+        const getRenameLocations = vi.spyOn(services, "getRenameLocations");
         void renameProvider.provideRenameEdits(mockModel, position, "renamed");
         expect(getRenameLocations).toHaveBeenCalled();
     });

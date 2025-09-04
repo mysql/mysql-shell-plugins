@@ -24,6 +24,7 @@
  */
 
 import * as fs from "fs";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { MySQLParsingServices } from "../../../../parsing/mysql/MySQLParsingServices.js";
 import { MySQLParseUnit } from "../../../../parsing/mysql/MySQLServiceTypes.js";
@@ -85,6 +86,9 @@ const runParserTests = () => {
 };
 
 describe("MySQL Parsing Services Tests", () => {
+    beforeAll(async () => {
+        await MySQLParsingServices.loaded;
+    });
 
     it("Statement splitter test", () => {
         const data = fs.readFileSync("./data/sakila-db/sakila-data.sql", { encoding: "utf-8" });
@@ -127,7 +131,7 @@ describe("MySQL Parsing Services Tests", () => {
 
     it("Parse a number of files with various statements (cold run)", () => {
         runParserTests();
-    });
+    }, 100000);
 
     /* Enable for measurement purposes. Doesn't add anything to the test suite.
     it("Parse a number of files with various statements (warm run)", () => {

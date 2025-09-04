@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it } from "vitest";
+import { render } from "@testing-library/preact";
 
-import { ActionOutput } from "../../../../../components/ResultView/ActionOutput.js";
 import { MessageType } from "../../../../../app-logic/general-types.js";
+import { ActionOutput } from "../../../../../components/ResultView/ActionOutput.js";
 import { nextRunLoop } from "../../../test-helpers.js";
 
 describe("Action Output Tests", (): void => {
     it("Standard Rendering", () => {
-        const component = mount(
+        const { container, unmount } = render(
             <ActionOutput
                 output={[]}
                 showIndexes={false}
@@ -39,13 +40,13 @@ describe("Action Output Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Action Full Rendering", async () => {
-        const component = mount<ActionOutput>(
+        const { container, unmount, rerender } = render(
             <ActionOutput
                 id="actionOutput1"
                 output={
@@ -59,22 +60,29 @@ describe("Action Output Tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.setProps({
-            output:
-                [{
-                    type: MessageType.Response,
-                    content: "A simple response",
-                }],
-        });
+        rerender(
+            <ActionOutput
+                id="actionOutput1"
+                output={
+                    [{
+                        type: MessageType.Response,
+                        content: "A simple response",
+                    }]
+                }
+                contextId="ec123"
+                showIndexes={true}
+            />,
+        );
+
         await nextRunLoop();
 
-        const output = component.getDOMNode().getElementsByClassName("msg");
-        expect(output).toHaveLength(1);
+        const output = container.getElementsByClassName("msg");
+        expect(output).toHaveLength(4);
         expect(output).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

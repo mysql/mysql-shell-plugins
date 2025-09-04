@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,37 +23,46 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it, vi } from "vitest";
 
 import { Label } from "../../../../components/ui/Label/Label.js";
 
-import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
 import { DialogResponseClosure } from "../../../../app-logic/general-types.js";
 import { ConfirmDialog } from "../../../../components/Dialogs/ConfirmDialog.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
+import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 
 describe("Confirm Dialog Tests", (): void => {
 
     it("Confirm Dialog Render Test", () => {
-        const component = mount<ConfirmDialog>(
+        const { container, unmount } = render(
             <ConfirmDialog />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Show Dialog with simple and no message", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const component = mount<ConfirmDialog>(
-            <ConfirmDialog />,
+        const dialogRef = createRef<ConfirmDialog>();
+        const { unmount } = render(
+            <ConfirmDialog ref={dialogRef} />,
         );
 
-        component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
-            "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" });
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show("Answer The Question", {
+            refuse: "No, I'm not a spy",
+            accept: "Yes, you got me",
+        }, "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" },
+        );
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -67,7 +76,7 @@ describe("Confirm Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.instance().show("", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+        dialogRef.current!.show("", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
             "Resistance is futile", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
@@ -82,19 +91,23 @@ describe("Confirm Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("Show Dialog with React Element", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const component = mount<ConfirmDialog>(
-            <ConfirmDialog />,
+        const dialogRef = createRef<ConfirmDialog>();
+        const { unmount } = render(
+            <ConfirmDialog ref={dialogRef} />,
         );
 
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
+
         const label = <Label>Time to say goodbye</Label>;
-        component.instance().show(label, { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+        dialogRef.current!.show(label, { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
             "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
@@ -109,22 +122,24 @@ describe("Confirm Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test Buttons", async () => {
-        const spyOnClose = jest.fn((_closure: DialogResponseClosure, _payload?: unknown): void => {
+        const spyOnClose = vi.fn((_closure: DialogResponseClosure, _payload?: unknown): void => {
             // no-op
         });
 
-        const component = mount<ConfirmDialog>(
-            <ConfirmDialog
-                onClose={spyOnClose}
-            />,
+        const dialogRef = createRef<ConfirmDialog>();
+        const { unmount } = render(
+            <ConfirmDialog ref={dialogRef} onClose={spyOnClose} />,
         );
 
+        await nextProcessTick();
+        expect(dialogRef.current).toBeDefined();
+
         // First round: accept.
-        component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+        dialogRef.current!.show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
             "Confirm you are a spy!", undefined, { brain: "Lorem Ipsum" });
         await nextProcessTick();
 
@@ -147,7 +162,7 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(0);
 
         // Second round: deny.
-        component.instance().show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
+        dialogRef.current!.show("Answer The Question", { refuse: "No, I'm not a spy", accept: "Yes, you got me" },
             "Resistance is futile", undefined, { brain: "Dolor Sit" });
         await nextProcessTick();
 
@@ -168,6 +183,6 @@ describe("Confirm Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 });

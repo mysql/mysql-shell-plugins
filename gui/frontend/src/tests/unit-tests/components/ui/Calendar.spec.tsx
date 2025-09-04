@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,28 +23,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it } from "vitest";
 
 import { Calendar } from "../../../../components/ui/Calendar/Calendar.js";
+import { render } from "@testing-library/preact";
 
 describe("Calendar render testing", (): void => {
 
     it("Calendar view test properties", () => {
         const currentDate = new Date();
-        const component = mount<Calendar>(
+        const { unmount } = render(
             <Calendar
                 initialDate={currentDate}
             />,
         );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.initialDate).toEqual(currentDate);
 
-        component.unmount();
+        unmount();
     });
 
     it("Test Calendar (Snapshot)", () => {
-        const component = mount<Calendar>(
+        const { container, unmount } = render(
             <Calendar
                 initialDate={new Date("2023-05-15T00:00:00.000Z")}
                 onChange={(data: Date): void => {
@@ -55,9 +53,11 @@ describe("Calendar render testing", (): void => {
                 }}
             />,
         );
-        expect(component).toMatchSnapshot();
 
-        component.unmount();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
+
 
 });

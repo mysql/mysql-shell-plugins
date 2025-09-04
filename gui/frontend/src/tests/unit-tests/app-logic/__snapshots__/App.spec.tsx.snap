@@ -1,823 +1,159 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Application tests Application readiness 1`] = `
-<App>
-  <ErrorBoundary>
-    <LoginPage>
-      <Container
-        id="loginDialog"
-        orientation="column"
-      >
-        <div
-          className="msg container fixedScrollbar"
-          id="loginDialog"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "column",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
-        >
-          <Icon
-            disabled={false}
-            id="loginDialogSakilaLogo"
-            src="module-shell.svg"
-          >
-            <div
-              className="msg icon"
-              id="loginDialogSakilaLogo"
-              style={
-                {
-                  "WebkitMaskImage": "url("module-shell.svg")",
-                  "backgroundColor": undefined,
-                  "height": undefined,
-                  "maskComposite": undefined,
-                  "maskImage": "url("module-shell.svg")",
-                  "maskSize": undefined,
-                  "width": undefined,
-                }
-              }
-            />
-          </Icon>
-          <Container
-            id="heading"
-            orientation="column"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="heading"
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "column",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            >
-              <Label
-                id="headingLabel"
-              >
-                <label
-                  className="msg label"
-                  data-tooltip="expand"
-                  id="headingLabel"
-                  style={{}}
-                >
-                  MySQL Shell
-                </label>
-              </Label>
-              <Label
-                id="headingSubLabel"
-              >
-                <label
-                  className="msg label"
-                  data-tooltip="expand"
-                  id="headingSubLabel"
-                  style={{}}
-                >
-                  Welcome to the 
-                  MySQL Shell Workbench
-                  .
-                  <br />
-                  Please provide your 
-                  MySQL Shell Workbench
-                   credentials to log into the shell interface.
-                </label>
-              </Label>
-            </div>
-          </Container>
-          <Container
-            id="loginDialogLinks"
-            mainAlignment="center"
-            orientation="row"
-            wrap="wrap"
-          >
-            <div
-              className="msg container fixedScrollbar"
-              id="loginDialogLinks"
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "row",
-                  "flexWrap": "wrap",
-                  "justifyContent": "center",
-                }
-              }
-            >
-              <HelpLinkList
-                helpUrlMap={
-                  Map {
-                    "Learn More" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
-                    "Documentation" => "https://dev.mysql.com/doc/mysql-shell-gui/en/",
-                  }
-                }
-              >
-                <a
-                  href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
-                  key="Learn More"
-                  rel="noopener noreferrer"
-                  tabIndex={0}
-                  target="_blank"
-                >
-                  Learn More &gt;
-                </a>
-                <a
-                  href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
-                  key="Documentation"
-                  rel="noopener noreferrer"
-                  tabIndex={0}
-                  target="_blank"
-                >
-                  Documentation &gt;
-                </a>
-              </HelpLinkList>
-            </div>
-          </Container>
-          <Grid
-            columnGap={8}
-            columns={
-              [
-                220,
-                40,
-              ]
-            }
-            id="loginDialogControls"
-          >
-            <div
-              className="msg grid"
-              id="loginDialogControls"
-              style={
-                {
-                  "columnGap": "8px",
-                  "gridTemplateColumns": "220px 40px",
-                  "rowGap": undefined,
-                }
-              }
-            >
-              <GridCell
-                orientation="column"
-              >
-                <Container
-                  className="msg gridCell"
-                  orientation="column"
-                  style={{}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell"
-                    style={
-                      {
-                        "alignItems": undefined,
-                        "flexDirection": "column",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Input
-                      autoFocus={true}
-                      id="loginUsername"
-                      onChange={[Function]}
-                      onConfirm={[Function]}
-                      placeholder="Username"
-                      spellCheck={false}
-                      value=""
-                    >
-                      <input
-                        className="msg input"
-                        id="loginUsername"
-                        onKeyDown={[Function]}
-                        oninput={[Function]}
-                        placeholder="Username"
-                        spellCheck={false}
-                        spellcheck={false}
-                        style={
-                          {
-                            "textAlign": undefined,
-                          }
-                        }
-                        type="text"
-                        value=""
-                      />
-                    </Input>
-                  </div>
-                </Container>
-              </GridCell>
-              <GridCell>
-                <Container
-                  className="msg gridCell"
-                  orientation="row"
-                  style={{}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell"
-                    style={
-                      {
-                        "alignItems": undefined,
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  />
-                </Container>
-              </GridCell>
-              <GridCell
-                orientation="column"
-              >
-                <Container
-                  className="msg gridCell"
-                  orientation="column"
-                  style={{}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell"
-                    style={
-                      {
-                        "alignItems": undefined,
-                        "flexDirection": "column",
-                        "flexWrap": undefined,
-                        "justifyContent": undefined,
-                      }
-                    }
-                  >
-                    <Input
-                      id="loginPassword"
-                      onChange={[Function]}
-                      onConfirm={[Function]}
-                      password={true}
-                      placeholder="Password"
-                      spellCheck={true}
-                      value=""
-                    >
-                      <input
-                        className="msg input"
-                        id="loginPassword"
-                        onKeyDown={[Function]}
-                        oninput={[Function]}
-                        placeholder="Password"
-                        spellCheck={true}
-                        spellcheck={true}
-                        style={
-                          {
-                            "textAlign": undefined,
-                          }
-                        }
-                        type="password"
-                        value=""
-                      />
-                    </Input>
-                  </div>
-                </Container>
-              </GridCell>
-              <GridCell
-                mainAlignment="center"
-                orientation="column"
-              >
-                <Container
-                  className="msg gridCell"
-                  mainAlignment="center"
-                  orientation="column"
-                  style={{}}
-                >
-                  <div
-                    className="msg container fixedScrollbar gridCell"
-                    style={
-                      {
-                        "alignItems": undefined,
-                        "flexDirection": "column",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
-                      }
-                    }
-                  >
-                    <Button
-                      id="loginButton"
-                      onClick={[Function]}
-                      round={true}
-                    >
-                      <div
-                        className="msg button round"
-                        id="loginButton"
-                        onClick={[Function]}
-                        onMouseDown={[Function]}
-                        role="button"
-                        style={
-                          {
-                            "flexDirection": undefined,
-                          }
-                        }
-                        tabIndex={0}
-                      >
-                        <Icon
-                          disabled={false}
-                          src="chevron-right.svg"
-                        >
-                          <div
-                            className="msg icon"
-                            style={
-                              {
-                                "WebkitMaskImage": "url("chevron-right.svg")",
-                                "backgroundColor": undefined,
-                                "height": undefined,
-                                "maskComposite": undefined,
-                                "maskImage": "url("chevron-right.svg")",
-                                "maskSize": undefined,
-                                "width": undefined,
-                              }
-                            }
-                          />
-                        </Icon>
-                      </div>
-                    </Button>
-                  </div>
-                </Container>
-              </GridCell>
-            </div>
-          </Grid>
-          <Label
-            id="loginDialogSubtext"
-          >
-            <label
-              className="msg label"
-              data-tooltip="expand"
-              id="loginDialogSubtext"
-              style={{}}
-            >
-              If you do not have a 
-              MySQL Shell Workbench
-               account yet, please
-              <br />
-              ask your administrator to have one created for you.
-            </label>
-          </Label>
-          <div
-            className="copyright"
-          />
-        </div>
-      </Container>
-    </LoginPage>
-    <TooltipProvider
-      showDelay={200}
+exports[`Application tests > Application readiness 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar"
+    id="loginDialog"
+    style="flex-direction: column;"
+  >
+    <div
+      class="msg icon"
+      id="loginDialogSakilaLogo"
+      style="mask-image: url("/src/assets/images/modules/module-shell.svg");"
     />
-    <NotificationCenter>
-      <Container
-        className="msg notificationCenter"
-        innerRef={
-          {
-            "current": <div
-              class="msg container fixedScrollbar notificationCenter"
-              style="flex-direction: column;"
-            />,
-          }
-        }
-        orientation="column"
+    <div
+      class="msg container fixedScrollbar"
+      id="heading"
+      style="flex-direction: column;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        id="headingLabel"
       >
-        <div
-          className="msg container fixedScrollbar notificationCenter"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "column",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
+        MySQL Shell
+      </label>
+      <label
+        class="msg label"
+        data-tooltip="expand"
+        id="headingSubLabel"
+      >
+        Welcome to the 
+        MySQL Shell Workbench
+        .
+        <br />
+        Please provide your 
+        MySQL Shell Workbench
+         credentials to log into the shell interface.
+      </label>
+    </div>
+    <div
+      class="msg container fixedScrollbar"
+      id="loginDialogLinks"
+      style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+    >
+      <a
+        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+        rel="noopener noreferrer"
+        tabindex="0"
+        target="_blank"
+      >
+        Learn More &gt;
+      </a>
+      <a
+        href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+        rel="noopener noreferrer"
+        tabindex="0"
+        target="_blank"
+      >
+        Documentation &gt;
+      </a>
+    </div>
+    <div
+      class="msg grid"
+      id="loginDialogControls"
+      style="grid-template-columns: 220px 40px; column-gap: 8px;"
+    >
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column;"
+      >
+        <input
+          class="msg input"
+          id="loginUsername"
+          placeholder="Username"
+          type="text"
         />
-      </Container>
-    </NotificationCenter>
-    <PasswordDialog />
-    <DialogHost>
-      <MrsAuthDialog
-        key="mrsAuthDialog"
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: row;"
       />
-      <ValueEditDialog
-        key="promptDialog"
-        onClose={[Function]}
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column;"
       >
-        <Dialog
-          actions={
-            {
-              "begin": [],
-              "end": [
-                <Button
-                  caption="OK"
-                  disabled={false}
-                  id="ok"
-                  onClick={[Function]}
-                />,
-                <Button
-                  caption="Cancel"
-                  id="cancel"
-                  onClick={[Function]}
-                />,
-              ],
-            }
-          }
-          caption={
-            <k>
-              <Icon
-                disabled={false}
-                src={391}
-              />
-              <Label />
-            </k>
-          }
-          className="msg valueEditDialog"
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          content={
-            <Grid
-              columnGap={16}
-              columns={8}
-              id="contentGrid"
-              rowGap={16}
-            />
-          }
-          id=""
-          onClose={[Function]}
-        >
-          <Portal
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            id=""
-            onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-        <Menu
-          onItemClick={[Function]}
-          orientation="column"
-          placement="right-start"
+        <input
+          class="msg input"
+          id="loginPassword"
+          placeholder="Password"
+          spellcheck="true"
+          type="password"
         />
-      </ValueEditDialog>
-      <ConfirmDialog
-        key="confirmDialog"
-        onClose={[Function]}
-      >
-        <Dialog
-          actions={
-            {
-              "end": [],
-            }
-          }
-          caption={
-            <k>
-              <Icon
-                disabled={false}
-                src={278}
-              />
-              <Label>
-                Confirm
-              </Label>
-            </k>
-          }
-          className="msg confirmDialog"
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          content={
-            <Container
-              orientation="column"
-            >
-              
-              <Container
-                className="description"
-                orientation="column"
-              />
-            </Container>
-          }
-          onClose={[Function]}
-        >
-          <Portal
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-      </ConfirmDialog>
-      <MdsHWClusterDialog
-        onClose={[Function]}
-      >
-        <ValueEditDialog
-          id="mdsHWClusterDialog"
-          onClose={[Function]}
-          onValidate={[Function]}
-        >
-          <Dialog
-            actions={
-              {
-                "begin": [],
-                "end": [
-                  <Button
-                    caption="OK"
-                    disabled={false}
-                    id="ok"
-                    onClick={[Function]}
-                  />,
-                  <Button
-                    caption="Cancel"
-                    id="cancel"
-                    onClick={[Function]}
-                  />,
-                ],
-              }
-            }
-            caption={
-              <k>
-                <Icon
-                  disabled={false}
-                  src={391}
-                />
-                <Label />
-              </k>
-            }
-            className="msg valueEditDialog"
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            content={
-              <Grid
-                columnGap={16}
-                columns={8}
-                id="contentGrid"
-                rowGap={16}
-              />
-            }
-            id="mdsHWClusterDialog"
-            onClose={[Function]}
-          >
-            <Portal
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              id="mdsHWClusterDialog"
-              onClose={[Function]}
-              onOpen={[Function]}
-            />
-          </Dialog>
-          <Menu
-            onItemClick={[Function]}
-            orientation="column"
-            placement="right-start"
-          />
-        </ValueEditDialog>
-      </MdsHWClusterDialog>
-      <MdsHWLoadDataDialog
-        onClose={[Function]}
-      >
-        <ValueEditDialog
-          id="mdsHWLoadDataDialog"
-          onClose={[Function]}
-          onValidate={[Function]}
-        >
-          <Dialog
-            actions={
-              {
-                "begin": [],
-                "end": [
-                  <Button
-                    caption="OK"
-                    disabled={false}
-                    id="ok"
-                    onClick={[Function]}
-                  />,
-                  <Button
-                    caption="Cancel"
-                    id="cancel"
-                    onClick={[Function]}
-                  />,
-                ],
-              }
-            }
-            caption={
-              <k>
-                <Icon
-                  disabled={false}
-                  src={391}
-                />
-                <Label />
-              </k>
-            }
-            className="msg valueEditDialog"
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            content={
-              <Grid
-                columnGap={16}
-                columns={8}
-                id="contentGrid"
-                rowGap={16}
-              />
-            }
-            id="mdsHWLoadDataDialog"
-            onClose={[Function]}
-          >
-            <Portal
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              id="mdsHWLoadDataDialog"
-              onClose={[Function]}
-              onOpen={[Function]}
-            />
-          </Dialog>
-          <Menu
-            onItemClick={[Function]}
-            orientation="column"
-            placement="right-start"
-          />
-        </ValueEditDialog>
-      </MdsHWLoadDataDialog>
-      <MdsEndpointDialog
-        onClose={[Function]}
-      >
-        <ValueEditDialog
-          id="mdsEndpointDialog"
-          onClose={[Function]}
-          onValidate={[Function]}
-        >
-          <Dialog
-            actions={
-              {
-                "begin": [],
-                "end": [
-                  <Button
-                    caption="OK"
-                    disabled={false}
-                    id="ok"
-                    onClick={[Function]}
-                  />,
-                  <Button
-                    caption="Cancel"
-                    id="cancel"
-                    onClick={[Function]}
-                  />,
-                ],
-              }
-            }
-            caption={
-              <k>
-                <Icon
-                  disabled={false}
-                  src={391}
-                />
-                <Label />
-              </k>
-            }
-            className="msg valueEditDialog"
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            content={
-              <Grid
-                columnGap={16}
-                columns={8}
-                id="contentGrid"
-                rowGap={16}
-              />
-            }
-            id="mdsEndpointDialog"
-            onClose={[Function]}
-          >
-            <Portal
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              id="mdsEndpointDialog"
-              onClose={[Function]}
-              onOpen={[Function]}
-            />
-          </Dialog>
-          <Menu
-            onItemClick={[Function]}
-            orientation="column"
-            placement="right-start"
-          />
-        </ValueEditDialog>
-      </MdsEndpointDialog>
-    </DialogHost>
-    <StatusBar>
-      <Container
-        className="msg statusbar verticalCenterContent"
-        orientation="row"
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: center;"
       >
         <div
-          className="msg container fixedScrollbar statusbar verticalCenterContent"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "row",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
+          class="msg button round"
+          id="loginButton"
+          role="button"
+          tabindex="0"
         >
-          <Container
-            className="leftItems"
-            crossAlignment="stretch"
-            fixedScrollbars={false}
-            orientation="row"
-          >
-            <div
-              className="msg container leftItems"
-              style={
-                {
-                  "alignItems": "stretch",
-                  "flexDirection": "row",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            />
-          </Container>
-          <Container
-            className="rightItems"
-            crossAlignment="stretch"
-            fixedScrollbars={false}
-            orientation="row"
-          >
-            <div
-              className="msg container rightItems"
-              style={
-                {
-                  "alignItems": "stretch",
-                  "flexDirection": "row",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
-            >
-              <Button
-                className="statusbarItem"
-                data-command="notifications:showHistory"
-                disabled={false}
-                id="showNotificationHistory"
-                imageOnly={false}
-                key="statusbarItem0"
-                onClick={[Function]}
-                style={
-                  {
-                    "backgroundColor": undefined,
-                    "color": undefined,
-                  }
-                }
-                title="No Notifications"
-              >
-                <div
-                  className="msg button statusbarItem"
-                  data-command="notifications:showHistory"
-                  id="showNotificationHistory"
-                  onClick={[Function]}
-                  onMouseDown={[Function]}
-                  role="button"
-                  style={
-                    {
-                      "backgroundColor": undefined,
-                      "color": undefined,
-                    }
-                  }
-                  tabIndex={0}
-                  title="No Notifications"
-                >
-                  <span
-                    className="codicon codicon-bell"
-                    key="icon-0-0"
-                  />
-                </div>
-              </Button>
-            </div>
-          </Container>
+          <div
+            class="msg icon"
+            style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2049%2049'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cpath%20id='Ok'%20d='M24.5,0C38.022,0%2049,10.978%2049,24.5C49,38.022%2038.022,49%2024.5,49C10.978,49%200,38.022%200,24.5C0,10.978%2010.978,0%2024.5,0ZM34.357,24.531L31.495,27.333L21.414,37.414L18.586,34.586L28.554,24.618L18.644,15.47L21.357,12.53L31.385,21.787L34.357,24.531Z'%20style='fill:rgb(162,162,176);'/%3e%3c/svg%3e");"
+          />
         </div>
-      </Container>
-    </StatusBar>
-  </ErrorBoundary>
-</App>
+      </div>
+    </div>
+    
+    <label
+      class="msg label"
+      data-tooltip="expand"
+      id="loginDialogSubtext"
+    >
+      If you do not have a 
+      MySQL Shell Workbench
+       account yet, please
+      <br />
+      ask your administrator to have one created for you.
+    </label>
+    <div
+      class="copyright"
+    />
+  </div>
+  <div
+    class="msg container fixedScrollbar notificationCenter"
+    style="flex-direction: column;"
+  />
+  <div
+    class="msg container fixedScrollbar statusbar verticalCenterContent"
+    style="flex-direction: row;"
+  >
+    <div
+      class="msg container leftItems"
+      style="flex-direction: row; align-items: stretch;"
+    />
+    <div
+      class="msg container rightItems"
+      style="flex-direction: row; align-items: stretch;"
+    >
+      <div
+        class="msg button statusbarItem"
+        data-command="notifications:showHistory"
+        id="showNotificationHistory"
+        role="button"
+        tabindex="0"
+        title="No Notifications"
+      >
+        <span
+          class="codicon codicon-bell"
+        />
+      </div>
+    </div>
+  </div>
+</div>
 `;

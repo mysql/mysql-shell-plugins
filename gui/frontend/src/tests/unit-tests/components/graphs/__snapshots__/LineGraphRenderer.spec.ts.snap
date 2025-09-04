@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`LineGraphRenderer Tests Base Rendering 1`] = `<svg />`;
+exports[`LineGraphRenderer Tests > Base Rendering 1`] = `<svg />`;
 
-exports[`LineGraphRenderer Tests Base Rendering 2`] = `
+exports[`LineGraphRenderer Tests > Base Rendering 2`] = `
 <svg>
   <svg
     height="900"
@@ -19,7 +19,7 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,870)"
+      transform="<filtered>"
     >
       <path
         class="domain"
@@ -29,7 +29,7 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(605.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -50,12 +50,12 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
       font-size="10"
       id="yAxis"
       text-anchor="end"
-      transform="translate(40,0)"
+      transform="<filtered>"
     >
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,445.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -101,7 +101,7 @@ exports[`LineGraphRenderer Tests Base Rendering 2`] = `
 </svg>
 `;
 
-exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
+exports[`LineGraphRenderer Tests > With Data and Updates 1`] = `
 <svg>
   <svg
     height="900"
@@ -118,7 +118,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,870)"
+      transform="<filtered>"
     >
       <path
         class="domain"
@@ -128,7 +128,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(40.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -145,7 +145,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(605.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -162,7 +162,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(1170.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -183,12 +183,12 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       font-size="10"
       id="yAxis"
       text-anchor="end"
-      transform="translate(40,0)"
+      transform="<filtered>"
     >
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,870.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -210,7 +210,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,842.1666666666666)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -232,7 +232,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,813.8333333333334)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -254,7 +254,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,785.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -276,7 +276,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,757.1666666666666)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -298,7 +298,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,728.8333333333334)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -320,7 +320,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,700.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -342,7 +342,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,672.1666666666666)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -364,7 +364,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,643.8333333333334)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -386,7 +386,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,615.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -408,7 +408,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,587.1666666666667)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -430,7 +430,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,558.8333333333334)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -452,7 +452,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,530.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -474,7 +474,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,502.1666666666667)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -496,7 +496,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,473.8333333333333)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -518,7 +518,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,445.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -540,7 +540,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,417.1666666666667)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -562,7 +562,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,388.8333333333333)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -584,7 +584,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,360.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -606,7 +606,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,332.1666666666667)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -628,7 +628,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,303.83333333333337)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -650,7 +650,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,275.50000000000006)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -672,7 +672,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,247.1666666666667)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -694,7 +694,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,218.8333333333333)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -716,7 +716,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,190.49999999999997)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -738,7 +738,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,162.16666666666663)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -760,7 +760,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,133.83333333333331)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -782,7 +782,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,105.49999999999999)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -804,7 +804,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,77.16666666666666)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -826,7 +826,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,48.83333333333333)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -848,7 +848,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,20.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -899,7 +899,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 1`] = `
 </svg>
 `;
 
-exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
+exports[`LineGraphRenderer Tests > With Data and Updates 2`] = `
 <svg>
   <svg
     height="900"
@@ -916,7 +916,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,567)"
+      transform="<filtered>"
     >
       <path
         class="domain"
@@ -926,7 +926,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(444.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -943,7 +943,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(551.3000000000001,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -960,7 +960,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(658.1,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -977,7 +977,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(764.9,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -994,7 +994,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(871.7,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1011,7 +1011,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(978.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1032,12 +1032,12 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       font-size="10"
       id="yAxis"
       text-anchor="end"
-      transform="translate(444,0)"
+      transform="<filtered>"
     >
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,567.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1059,7 +1059,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,549.26)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1081,7 +1081,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,531.02)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1103,7 +1103,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,512.78)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1125,7 +1125,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,494.53999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1147,7 +1147,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,476.3)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1169,7 +1169,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,458.06)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1191,7 +1191,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,439.82)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1213,7 +1213,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,421.5799999999999)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1235,7 +1235,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,403.34)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1257,7 +1257,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,385.1)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1279,7 +1279,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,366.86)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1301,7 +1301,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,348.62)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1323,7 +1323,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,330.38)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1345,7 +1345,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,312.14)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1367,7 +1367,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,293.9)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1389,7 +1389,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,275.66)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1411,7 +1411,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,257.41999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1433,7 +1433,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,239.18)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1455,7 +1455,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,220.94)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1477,7 +1477,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,202.7)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1499,7 +1499,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,184.46)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1521,7 +1521,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,166.22)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1543,7 +1543,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,147.98)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1565,7 +1565,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,129.74)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1587,7 +1587,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,111.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1640,7 +1640,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 2`] = `
 </svg>
 `;
 
-exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
+exports[`LineGraphRenderer Tests > With Data and Updates 3`] = `
 <svg>
   <svg
     height="900"
@@ -1657,7 +1657,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,567)"
+      transform="<filtered>"
     >
       <path
         class="domain"
@@ -1667,7 +1667,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(711.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1688,12 +1688,12 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       font-size="10"
       id="yAxis"
       text-anchor="end"
-      transform="translate(444,0)"
+      transform="<filtered>"
     >
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,567.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1715,7 +1715,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,549.26)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1737,7 +1737,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,531.02)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1759,7 +1759,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,512.78)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1781,7 +1781,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,494.53999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1803,7 +1803,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,476.3)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1825,7 +1825,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,458.06)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1847,7 +1847,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,439.82)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1869,7 +1869,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,421.5799999999999)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1891,7 +1891,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,403.34)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1913,7 +1913,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,385.1)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1935,7 +1935,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,366.86)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1957,7 +1957,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,348.62)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -1979,7 +1979,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,330.38)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2001,7 +2001,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,312.14)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2023,7 +2023,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,293.9)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2045,7 +2045,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,275.66)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2067,7 +2067,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,257.41999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2089,7 +2089,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,239.18)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2111,7 +2111,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,220.94)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2133,7 +2133,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,202.7)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2155,7 +2155,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,184.46)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2177,7 +2177,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,166.22)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2199,7 +2199,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,147.98)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2221,7 +2221,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,129.74)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2243,7 +2243,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,111.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2296,7 +2296,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 3`] = `
 </svg>
 `;
 
-exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
+exports[`LineGraphRenderer Tests > With Data and Updates 4`] = `
 <svg>
   <svg
     height="900"
@@ -2313,7 +2313,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,567)"
+      transform="<filtered>"
     >
       <path
         class="domain"
@@ -2323,7 +2323,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(711.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2344,12 +2344,12 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       font-size="10"
       id="yAxis"
       text-anchor="end"
-      transform="translate(444,0)"
+      transform="<filtered>"
     >
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,567.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2371,7 +2371,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,549.26)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2393,7 +2393,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,531.02)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2415,7 +2415,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,512.78)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2437,7 +2437,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,494.53999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2459,7 +2459,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,476.3)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2481,7 +2481,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,458.06)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2503,7 +2503,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,439.82)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2525,7 +2525,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,421.5799999999999)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2547,7 +2547,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,403.34)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2569,7 +2569,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,385.1)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2591,7 +2591,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,366.86)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2613,7 +2613,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,348.62)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2635,7 +2635,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,330.38)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2657,7 +2657,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,312.14)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2679,7 +2679,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,293.9)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2701,7 +2701,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,275.66)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2723,7 +2723,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,257.41999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2745,7 +2745,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,239.18)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2767,7 +2767,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,220.94)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2789,7 +2789,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,202.7)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2811,7 +2811,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,184.46)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2833,7 +2833,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,166.22)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2855,7 +2855,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,147.98)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2877,7 +2877,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,129.74)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2899,7 +2899,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,111.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2947,7 +2947,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 4`] = `
 </svg>
 `;
 
-exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
+exports[`LineGraphRenderer Tests > With Data and Updates 5`] = `
 <svg>
   <svg
     height="900"
@@ -2964,7 +2964,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       font-size="10"
       id="xAxis"
       text-anchor="middle"
-      transform="translate(0,567)"
+      transform="<filtered>"
     >
       <path
         class="domain"
@@ -2974,7 +2974,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(711.5,0)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -2995,12 +2995,12 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       font-size="10"
       id="yAxis"
       text-anchor="end"
-      transform="translate(444,0)"
+      transform="<filtered>"
     >
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,567.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3022,7 +3022,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,549.26)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3044,7 +3044,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,531.02)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3066,7 +3066,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,512.78)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3088,7 +3088,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,494.53999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3110,7 +3110,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,476.3)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3132,7 +3132,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,458.06)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3154,7 +3154,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,439.82)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3176,7 +3176,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,421.5799999999999)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3198,7 +3198,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,403.34)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3220,7 +3220,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,385.1)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3242,7 +3242,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,366.86)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3264,7 +3264,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,348.62)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3286,7 +3286,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,330.38)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3308,7 +3308,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,312.14)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3330,7 +3330,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,293.9)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3352,7 +3352,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,275.66)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3374,7 +3374,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,257.41999999999996)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3396,7 +3396,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,239.18)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3418,7 +3418,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,220.94)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3440,7 +3440,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,202.7)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3462,7 +3462,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,184.46)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3484,7 +3484,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,166.22)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3506,7 +3506,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,147.98)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3528,7 +3528,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,129.74)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"
@@ -3550,7 +3550,7 @@ exports[`LineGraphRenderer Tests With Data and Updates 5`] = `
       <g
         class="tick"
         opacity="1"
-        transform="translate(0,111.5)"
+        transform="<filtered>"
       >
         <line
           stroke="currentColor"

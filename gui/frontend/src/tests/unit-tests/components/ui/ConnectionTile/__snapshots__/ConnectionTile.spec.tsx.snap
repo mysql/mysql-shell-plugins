@@ -1,318 +1,84 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`] = `
-<ConnectionTile
-  caption="Tile 1"
-  description="A description"
-  icon="scriptMysql.svg"
-  id="tile1"
-  tileId="1"
-  type={0}
->
-  <Button
-    className="msg connectionTile"
+exports[`ConnectionTile component tests > Test ConnectionTile output (Snapshot) 1`] = `
+<div>
+  <div
+    class="msg button connectionTile"
     id="tile1"
-    onClick={[Function]}
-    onDragEnter={[Function]}
-    onDragLeave={[Function]}
-    onDragOver={[Function]}
-    onDragStart={[Function]}
-    onDrop={[Function]}
-    onKeyPress={[Function]}
+    role="button"
+    tabindex="0"
   >
     <div
-      className="msg button connectionTile"
-      id="tile1"
-      onClick={[Function]}
-      onDragEnter={[Function]}
-      onDragLeave={[Function]}
-      onDragOver={[Function]}
-      onDragStart={[Function]}
-      onDrop={[Function]}
-      onKeyPress={[Function]}
-      onMouseDown={[Function]}
-      role="button"
-      style={
-        {
-          "flexDirection": undefined,
-        }
-      }
-      tabIndex={0}
+      class="msg icon"
+      style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-618,-162)'%3e%3cg%20id='scriptMysql'%3e%3cg%20transform='matrix(1,0,0,1,616,161)'%3e%3cpath%20d='M14.71,4.29L11.71,1.29L11,1L4,1L3,2L3,15L4,16L14,16L15,15L15,5L14.71,4.29ZM14,15L4,15L4,2L10,2L10,6L14,6L14,15ZM11,5L11,2L14,5L11,5Z'%20style='fill:rgb(93,135,161);'/%3e%3c/g%3e%3cg%20id='Sakila'%20transform='matrix(0.873417,0,0,0.873417,615.48,165.888)'%3e%3cpath%20d='M15.794,8.45C15.513,8.075%2015.303,7.959%2015.105,7.509C14.906,7.057%2014.854,7.088%2014.655,6.626C14.556,6.397%2014.282,5.959%2014.169,5.744C13.471,4.402%2012.349,3.279%2011.1,2.489C10.69,2.23%2010.139,1.991%209.635,1.838C9.35,1.752%209.008,1.8%208.703,1.729L8.508,1.729C8.337,1.679%208.194,1.498%208.053,1.404C7.758,1.209%207.529,0.955%207.182,0.81C7.051,0.756%207.027,0.683%207.003,0.757C6.93,0.868%206.898,0.799%206.947,0.906C7.086,1.209%207.288,1.394%207.467,1.644C7.63,1.87%207.828,2.126%207.945,2.38C8.19,2.912%208.301,3.393%208.533,3.919C8.622,4.121%208.766,4.363%208.895,4.538C8.999,4.68%209.166,4.886%209.223,5.072C9.341,5.257%209.295,5.874%209.24,6.078C9.009,6.93%208.97,8.178%209.359,8.811C9.511,9.058%209.394,9.234%209.477,9.138C9.571,9.03%209.555,8.235%209.728,7.824C9.837,7.566%2010.163,7.339%2010.355,7.276C10.468,7.239%2010.665,7.704%2010.701,7.824C10.803,8.162%2011.161,8.643%2011.313,8.935C11.631,9.546%2012.285,9.98%2012.348,10.063C12.586,10.38%2011.563,10.134%2011.228,9.891C10.965,9.7%2010.85,9.577%2010.644,9.318C10.463,9.091%2010.329,8.667%2010.199,8.406C10.199,8.4%2010.161,8.637%2010.134,8.745C10.011,9.222%2010.107,9.764%209.679,9.939C9.189,10.138%208.833,9.617%208.682,9.375C8.189,8.583%208.061,7.254%208.4,6.185C8.475,5.948%208.482,5.657%208.617,5.469C8.595,5.301%208.458,5.253%208.378,5.144C8.248,4.966%208.134,4.756%208.031,4.558C7.828,4.165%207.691,3.703%207.533,3.278C7.469,3.105%207.456,2.942%207.381,2.778C7.267,2.531%207.064,2.283%206.904,2.062C6.678,1.748%206.044,1.143%206.298,0.522C6.7,-0.461%208.095,0.287%208.638,0.63C8.775,0.717%208.926,0.895%209.072,0.956C9.31,0.971%209.476,0.943%209.787,0.999C10.236,1.081%2010.651,1.186%2011.001,1.39C12.641,2.351%2013.701,3.329%2014.685,4.948C14.89,5.286%2015.149,5.808%2015.313,6.185C15.554,6.736%2015.825,7.49%2015.869,7.692C15.929,7.968%2015.949,8.035%2015.952,8.294C15.955,8.55%2015.879,8.563%2015.794,8.45ZM10.522,2.989C10.657,3.018%2010.766,3.146%2010.843,3.257C10.901,3.34%2010.923,3.402%2010.938,3.549C10.968,3.833%2010.902,3.971%2010.736,4.087C10.727,4.096%2010.508,4.2%2010.499,4.208C10.409,4.021%2010.338,3.824%2010.231,3.646C10.038,3.327%2010.014,3.382%209.856,3.163C9.851,3.156%209.838,3.163%209.829,3.163L9.829,3.137C9.976,3.105%2010.325,2.985%2010.522,2.989Z'%20style='fill:rgb(93,135,161);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+    />
+    <div
+      class="msg container fixedScrollbar textHost"
+      style="flex-direction: column;"
     >
-      <Icon
-        disabled={false}
-        src="scriptMysql.svg"
+      <label
+        class="msg label tileCaption"
+        data-tooltip="expand"
       >
-        <div
-          className="msg icon"
-          style={
-            {
-              "WebkitMaskImage": "url("scriptMysql.svg")",
-              "backgroundColor": undefined,
-              "height": undefined,
-              "maskComposite": undefined,
-              "maskImage": "url("scriptMysql.svg")",
-              "maskSize": undefined,
-              "width": undefined,
-            }
-          }
-        />
-      </Icon>
-      <Container
-        className="textHost"
-        orientation="column"
+        Tile 1
+      </label>
+      <label
+        class="msg label tileDescription"
+        data-tooltip="expand"
       >
-        <div
-          className="msg container fixedScrollbar textHost"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "column",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
-        >
-          <Label
-            className="tileCaption"
-          >
-            <label
-              className="msg label tileCaption"
-              data-tooltip="expand"
-              style={{}}
-            >
-              Tile 1
-            </label>
-          </Label>
-          <Label
-            className="tileDescription"
-          >
-            <label
-              className="msg label tileDescription"
-              data-tooltip="expand"
-              style={{}}
-            >
-              A description
-            </label>
-          </Label>
-        </div>
-      </Container>
-      <Container
-        id="actionsBackground"
-        orientation="row"
-      >
-        <div
-          className="msg container fixedScrollbar"
-          id="actionsBackground"
-          style={
-            {
-              "alignItems": undefined,
-              "flexDirection": "row",
-              "flexWrap": undefined,
-              "justifyContent": undefined,
-            }
-          }
-        />
-      </Container>
-      <Container
-        crossAlignment="center"
-        id="actions"
-        innerRef={
-          {
-            "current": <div
-              class="msg container fixedScrollbar"
-              id="actions"
-              style="flex-direction: column; justify-content: center; align-items: center;"
-            >
-              <div
-                class="msg button imageOnly"
-                data-tooltip="More Actions"
-                id="tileMoreActionsAction"
-                role="button"
-                tabindex="0"
-              >
-                <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("toolbar-menu.svg");"
-                />
-              </div>
-              <div
-                class="msg button imageOnly"
-                data-tooltip="Create New Notebook"
-                id="tileNewNotebookAction"
-                role="button"
-                tabindex="0"
-              >
-                <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("newNotebook.svg");"
-                />
-              </div>
-              <div
-                class="msg button imageOnly"
-                data-tooltip="Create New Script"
-                id="tileNewScriptAction"
-                role="button"
-                tabindex="0"
-              >
-                <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("newScript.svg");"
-                />
-              </div>
-            </div>,
-          }
-        }
-        mainAlignment="center"
-        orientation="column"
-      >
-        <div
-          className="msg container fixedScrollbar"
-          id="actions"
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "column",
-              "flexWrap": undefined,
-              "justifyContent": "center",
-            }
-          }
-        >
-          <Button
-            data-tooltip="More Actions"
-            id="tileMoreActionsAction"
-            imageOnly={true}
-            onClick={[Function]}
-          >
-            <div
-              className="msg button imageOnly"
-              data-tooltip="More Actions"
-              id="tileMoreActionsAction"
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              role="button"
-              style={
-                {
-                  "flexDirection": undefined,
-                }
-              }
-              tabIndex={0}
-            >
-              <Icon
-                data-tooltip="inherit"
-                disabled={false}
-                src="toolbar-menu.svg"
-              >
-                <div
-                  className="msg icon"
-                  data-tooltip="inherit"
-                  style={
-                    {
-                      "WebkitMaskImage": "url("toolbar-menu.svg")",
-                      "backgroundColor": undefined,
-                      "height": undefined,
-                      "maskComposite": undefined,
-                      "maskImage": "url("toolbar-menu.svg")",
-                      "maskSize": undefined,
-                      "width": undefined,
-                    }
-                  }
-                />
-              </Icon>
-            </div>
-          </Button>
-          <Button
-            data-tooltip="Create New Notebook"
-            id="tileNewNotebookAction"
-            imageOnly={true}
-            onClick={[Function]}
-          >
-            <div
-              className="msg button imageOnly"
-              data-tooltip="Create New Notebook"
-              id="tileNewNotebookAction"
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              role="button"
-              style={
-                {
-                  "flexDirection": undefined,
-                }
-              }
-              tabIndex={0}
-            >
-              <Icon
-                data-tooltip="inherit"
-                disabled={false}
-                src="newNotebook.svg"
-              >
-                <div
-                  className="msg icon"
-                  data-tooltip="inherit"
-                  style={
-                    {
-                      "WebkitMaskImage": "url("newNotebook.svg")",
-                      "backgroundColor": undefined,
-                      "height": undefined,
-                      "maskComposite": undefined,
-                      "maskImage": "url("newNotebook.svg")",
-                      "maskSize": undefined,
-                      "width": undefined,
-                    }
-                  }
-                />
-              </Icon>
-            </div>
-          </Button>
-          <Button
-            data-tooltip="Create New Script"
-            id="tileNewScriptAction"
-            imageOnly={true}
-            onClick={[Function]}
-          >
-            <div
-              className="msg button imageOnly"
-              data-tooltip="Create New Script"
-              id="tileNewScriptAction"
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              role="button"
-              style={
-                {
-                  "flexDirection": undefined,
-                }
-              }
-              tabIndex={0}
-            >
-              <Icon
-                data-tooltip="inherit"
-                disabled={false}
-                src="newScript.svg"
-              >
-                <div
-                  className="msg icon"
-                  data-tooltip="inherit"
-                  style={
-                    {
-                      "WebkitMaskImage": "url("newScript.svg")",
-                      "backgroundColor": undefined,
-                      "height": undefined,
-                      "maskComposite": undefined,
-                      "maskImage": "url("newScript.svg")",
-                      "maskSize": undefined,
-                      "width": undefined,
-                    }
-                  }
-                />
-              </Icon>
-            </div>
-          </Button>
-        </div>
-      </Container>
+        A description
+      </label>
     </div>
-  </Button>
-</ConnectionTile>
+    <div
+      class="msg container fixedScrollbar"
+      id="actionsBackground"
+      style="flex-direction: row;"
+    />
+    <div
+      class="msg container fixedScrollbar"
+      id="actions"
+      style="flex-direction: column; justify-content: center; align-items: center;"
+    >
+      <div
+        class="msg button imageOnly"
+        data-tooltip="More Actions"
+        id="tileMoreActionsAction"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-450,-94)'%3e%3cg%20id='Menu'%20transform='matrix(0.499498,0,0,0.5,-280.339,-815.5)'%3e%3cg%20transform='matrix(1,0,0,1,0.154349,0)'%3e%3crect%20x='1470'%20y='1823'%20width='30'%20height='6'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20transform='matrix(1,0,0,1,0.154349,12)'%3e%3crect%20x='1470'%20y='1823'%20width='30'%20height='6'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20transform='matrix(1.00101,0,0,1,-1.32378,24)'%3e%3crect%20x='1470'%20y='1823'%20width='30'%20height='6'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Create New Notebook"
+        id="tileNewNotebookAction"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='newNotebook'%3e%3cpath%20id='Add-Notebook'%20serif:id='Add%20Notebook'%20d='M1,3L0,3L0,2L1,2L1,1L2,0L12,0L13,1L13,10L12,10L12,1L2,1L2,2L3,2L3,3L2,3L2,4L3,4L3,5L2,5L2,6L3,6L3,7L2,7L2,8L3,8L3,9L2,9L2,10L3,10L3,11L2,11L2,12L3,12L3,13L2,13L2,14L10,14L10,15L2,15L1,14L1,13L0,13L0,12L1,12L1,11L0,11L0,10L1,10L1,9L0,9L0,8L1,8L1,7L0,7L0,6L1,6L1,5L0,5L0,4L1,4L1,3ZM14,16L13,16L13,14L11,14L11,13L13,13L13,11L14,11L14,13L16,13L16,14L14,14L14,16ZM14,10L14,8L15,8L15,10L14,10ZM15,5L15,7L14,7L14,5L15,5Z'/%3e%3cg%20transform='matrix(1.14286,0,0,1,-1.07513,-0.000590513)'%3e%3cpath%20d='M4,4L5,3L9.125,3.002L10.125,4.002L10.125,5.002L9.125,6.002L5,6L4,5L4,4ZM4.878,4L4.878,5L9.249,5.002L9.249,4.002L4.878,4Z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+      <div
+        class="msg button imageOnly"
+        data-tooltip="Create New Script"
+        id="tileNewScriptAction"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          data-tooltip="inherit"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-1,0)'%3e%3cg%20id='newScript'%3e%3cpath%20d='M10.5,0.1L13.9,3.6L14,4L14,9.982L13,9.982L13,5L9,5L9,1L3,1L3,14L10.991,14L10.991,15L2.5,15L2,14.5L2,0.5L2.5,0L10.2,0L10.5,0.1ZM10,1L10,4L12.9,4L10,1ZM15,16L14,16L14,14L12,14L12,13L14,13L14,11L15,11L15,13L17,13L17,14L15,14L15,16Z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+    </div>
+  </div>
+</div>
 `;

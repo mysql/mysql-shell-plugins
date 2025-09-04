@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "@testing-library/jest-dom";
 import { fireEvent, render, waitFor } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { CloseMenuItem, ITabviewPage, Tabview } from "../../../../components/ui/Tabview/Tabview.js";
 import { nextProcessTick } from "../../test-helpers.js";
@@ -55,36 +55,40 @@ describe("Tabview component tests", (): void => {
     };
 
     it("Test only captions are visible", () => {
-        const rendered = render(
+        const { unmount, queryByText } = render(
             <Tabview
                 pages={examplePages}
             />,
         );
 
-        expect(rendered.queryByText("One")).toBeVisible();
-        expect(rendered.queryByText("Two")).toBeVisible();
-        expect(rendered.queryByText("Three")).toBeVisible();
+        expect(queryByText("One")).toBeDefined();
+        expect(queryByText("Two")).toBeDefined();
+        expect(queryByText("Three")).toBeDefined();
 
-        expect(rendered.queryByText("Content")).toBeNull();
+        expect(queryByText("Content")).toBeNull();
+
+        unmount();
     });
 
     it("Test selected tab contents is present", () => {
-        const rendered = render(
+        const { unmount, queryByTestId } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="2"
             />,
         );
 
-        expect(rendered.queryByTestId("content-1")).toBeNull();
-        expect(rendered.getByTestId("content-2")).toBeVisible();
-        expect(rendered.queryByTestId("content-3")).toBeNull();
+        expect(queryByTestId("content-1")).toBeNull();
+        expect(queryByTestId("content-2")).toBeDefined();
+        expect(queryByTestId("content-3")).toBeNull();
+
+        unmount();
     });
 
     it("Test select other tab", () => {
-        const onSelectTab = jest.fn();
+        const onSelectTab = vi.fn();
 
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="2"
@@ -92,35 +96,39 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        fireEvent.click(rendered.getByText("One") as Element);
+        fireEvent.click(getByText("One") as Element);
 
         expect(onSelectTab).toHaveBeenCalledWith("1");
+
+        unmount();
     });
 
     it("Test context menu", () => {
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="1"
-                closeTabs={jest.fn()}
+                closeTabs={vi.fn()}
             />,
         );
 
         expect(queryMenu()).toBeNull();
-        fireEvent.contextMenu(rendered.getByText("One") as Element);
+        fireEvent.contextMenu(getByText("One"));
 
-        expect(queryMenu()).toBeVisible();
+        expect(queryMenu()).toBeTruthy();
 
-        expect(rendered.getByText("Close")).toBeVisible();
-        expect(rendered.getByText("Close Others")).toBeVisible();
-        expect(rendered.getByText("Close to the Right")).toBeVisible();
-        expect(rendered.getByText("Close All")).toBeVisible();
+        expect(getByText("Close")).toBeTruthy();
+        expect(getByText("Close Others")).toBeTruthy();
+        expect(getByText("Close to the Right")).toBeTruthy();
+        expect(getByText("Close All")).toBeTruthy();
+
+        unmount();
     });
 
     it("Test close current tab", async () => {
-        const closeTabs = jest.fn();
+        const closeTabs = vi.fn();
 
-        const rendered = render(
+        const { unmount, getByText, queryByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="3"
@@ -128,20 +136,22 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("Three") as Element);
-        fireEvent.click(rendered.getByText("Close") as Element);
+        fireEvent.contextMenu(getByText("Three") as Element);
+        fireEvent.click(getByText("Close") as Element);
 
         expect(closeTabs).toHaveBeenCalledWith(["3"]);
 
         await waitFor(() => {
-            expect(rendered.queryByText("Close")).not.toBeInTheDocument();
+            expect(queryByText("Close")).toBeNull();
         }, { timeout: 100 });
+
+        unmount();
     });
 
     it("Test close other tabs", () => {
-        const closeTabs = jest.fn();
+        const closeTabs = vi.fn();
 
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="3"
@@ -149,16 +159,18 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("One") as Element);
-        fireEvent.click(rendered.getByText("Close Others") as Element);
+        fireEvent.contextMenu(getByText("One") as Element);
+        fireEvent.click(getByText("Close Others") as Element);
 
         expect(closeTabs).toHaveBeenCalledWith(["3"]);
+
+        unmount();
     });
 
     it("Test close all tabs", () => {
-        const closeTabs = jest.fn();
+        const closeTabs = vi.fn();
 
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="3"
@@ -166,14 +178,16 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("Three") as Element);
-        fireEvent.click(rendered.getByText("Close All") as Element);
+        fireEvent.contextMenu(getByText("Three") as Element);
+        fireEvent.click(getByText("Close All") as Element);
 
         expect(closeTabs).toHaveBeenCalledWith(["1", "3"]);
+
+        unmount();
     });
 
     it("Test close tabs to the right", () => {
-        const closeTabs = jest.fn();
+        const closeTabs = vi.fn();
 
         const initialPages = [
             ...examplePages,
@@ -184,7 +198,7 @@ describe("Tabview component tests", (): void => {
                 canClose: true,
             },
         ];
-        const rendered = render(
+        const { unmount, getByText, getByTestId } = render(
             <Tabview
                 pages={initialPages}
                 selectedId="4"
@@ -192,34 +206,38 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        expect(rendered.getByText("Four")).toBeVisible();
-        expect(rendered.getByTestId("content-4")).toBeVisible();
+        expect(getByText("Four")).toBeDefined();
+        expect(getByTestId("content-4")).toBeDefined();
 
-        fireEvent.contextMenu(rendered.getByText("One") as Element);
-        fireEvent.click(rendered.getByText("Close to the Right") as Element);
+        fireEvent.contextMenu(getByText("One") as Element);
+        fireEvent.click(getByText("Close to the Right") as Element);
 
         expect(closeTabs).toHaveBeenCalledWith(["3", "4"]);
+
+        unmount();
     });
 
     it("Test close right is disabled for the rightmost", () => {
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="2"
-                closeTabs={jest.fn()}
+                closeTabs={vi.fn()}
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("Three") as Element);
+        fireEvent.contextMenu(getByText("Three") as Element);
 
-        expect(document.getElementById(CloseMenuItem.CloseTab)).not.toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseOthers)).not.toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseRight)).toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseAll)).not.toHaveClass("disabled");
+        expect(document.getElementById(CloseMenuItem.CloseTab)!.classList.contains("disabled")).toBeFalsy();
+        expect(document.getElementById(CloseMenuItem.CloseOthers)!.classList.contains("disabled")).toBeFalsy();
+        expect(document.getElementById(CloseMenuItem.CloseRight)!.classList.contains("disabled")).toBeTruthy();
+        expect(document.getElementById(CloseMenuItem.CloseAll)!.classList.contains("disabled")).toBeFalsy();
+
+        unmount();
     });
 
     it("Test close others is disabled for the only one closable", () => {
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={[{
                     id: "1",
@@ -228,20 +246,22 @@ describe("Tabview component tests", (): void => {
                     canClose: true,
                 }]}
                 selectedId="1"
-                closeTabs={jest.fn()}
+                closeTabs={vi.fn()}
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("One") as Element);
+        fireEvent.contextMenu(getByText("One") as Element);
 
-        expect(document.getElementById(CloseMenuItem.CloseTab)).not.toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseOthers)).toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseRight)).toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseAll)).not.toHaveClass("disabled");
+        expect(document.getElementById(CloseMenuItem.CloseTab)!.classList.contains("disabled")).toBeFalsy();
+        expect(document.getElementById(CloseMenuItem.CloseOthers)!.classList.contains("disabled")).toBeTruthy();
+        expect(document.getElementById(CloseMenuItem.CloseRight)!.classList.contains("disabled")).toBeTruthy();
+        expect(document.getElementById(CloseMenuItem.CloseAll)!.classList.contains("disabled")).toBeFalsy();
+
+        unmount();
     });
 
     it("Test no context menu without closable tabs", () => {
-        const rendered = render(
+        const { unmount, queryByText } = render(
             <Tabview
                 pages={[{
                     id: "2",
@@ -249,59 +269,63 @@ describe("Tabview component tests", (): void => {
                     content: <h1 data-testid="content-2">Content 2</h1>,
                 }]}
                 selectedId="2"
-                closeTabs={jest.fn()}
+                closeTabs={vi.fn()}
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("Two") as Element);
+        fireEvent.contextMenu(queryByText("Two") as Element);
 
         expect(queryMenu()).toBeNull();
-        expect(rendered.queryByText("Close")).toBeNull();
-        expect(rendered.queryByText("Close Others")).toBeNull();
-        expect(rendered.queryByText("Close to the Right")).toBeNull();
-        expect(rendered.queryByText("Close All")).toBeNull();
+        expect(queryByText("Close")).toBeNull();
+        expect(queryByText("Close Others")).toBeNull();
+        expect(queryByText("Close to the Right")).toBeNull();
+        expect(queryByText("Close All")).toBeNull();
+
+        unmount();
     });
 
     it("Test only close all is enabled for non-closable tab", () => {
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="2"
-                closeTabs={jest.fn()}
+                closeTabs={vi.fn()}
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("Two") as Element);
+        fireEvent.contextMenu(getByText("Two"));
 
-        expect(queryMenu()).toBeVisible();
+        expect(queryMenu()).toBeDefined();
 
-        expect(document.getElementById(CloseMenuItem.CloseTab)).toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseOthers)).toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseRight)).toHaveClass("disabled");
-        expect(document.getElementById(CloseMenuItem.CloseAll)).not.toHaveClass("disabled");
+        expect(document.getElementById(CloseMenuItem.CloseTab)!.classList.contains("disabled")).toBeTruthy();
+        expect(document.getElementById(CloseMenuItem.CloseOthers)!.classList.contains("disabled")).toBeTruthy();
+        expect(document.getElementById(CloseMenuItem.CloseRight)!.classList.contains("disabled")).toBeTruthy();
+        expect(document.getElementById(CloseMenuItem.CloseAll)!.classList.contains("disabled")).toBeFalsy();
+
+        unmount();
     });
 
     it("Test no context menu without closeTab prop", () => {
-        const rendered = render(
+        const { unmount, queryByText } = render(
             <Tabview
                 pages={examplePages}
                 selectedId="1"
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("One") as Element);
-
         expect(queryMenu()).toBeNull();
-        expect(rendered.queryByText("Close")).toBeNull();
-        expect(rendered.queryByText("Close Others")).toBeNull();
-        expect(rendered.queryByText("Close to the Right")).toBeNull();
-        expect(rendered.queryByText("Close All")).toBeNull();
+        expect(queryByText("Close")).toBeNull();
+        expect(queryByText("Close Others")).toBeNull();
+        expect(queryByText("Close to the Right")).toBeNull();
+        expect(queryByText("Close All")).toBeNull();
+
+        unmount();
     });
 
     it("Test cannot close", async () => {
         const cannotCloseId = "4";
-        const closeTabs = jest.fn();
-        const canCloseTab = jest.fn().mockImplementation((arg: string) => {
+        const closeTabs = vi.fn();
+        const canCloseTab = vi.fn().mockImplementation((arg: string) => {
             return arg !== cannotCloseId;
         });
 
@@ -314,7 +338,7 @@ describe("Tabview component tests", (): void => {
                 canClose: true,
             },
         ];
-        const rendered = render(
+        const { unmount, getByText } = render(
             <Tabview
                 pages={initialPages}
                 selectedId={"1"}
@@ -323,13 +347,15 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        fireEvent.contextMenu(rendered.getByText("One") as Element);
-        fireEvent.click(rendered.getByText("Close All") as Element);
+        fireEvent.contextMenu(getByText("One") as Element);
+        fireEvent.click(getByText("Close All") as Element);
 
         await nextProcessTick();
         expect(canCloseTab).toHaveBeenCalledTimes(3);
         expect(closeTabs).toHaveBeenCalledTimes(1);
         expect(closeTabs).toHaveBeenCalledWith(["1", "3"]);
+
+        unmount();
     });
 
     describe("Tabview::getSelectedPageId tests", (): void => {

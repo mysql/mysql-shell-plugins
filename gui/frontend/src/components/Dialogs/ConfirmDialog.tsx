@@ -152,12 +152,12 @@ export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConf
         );
     }
 
-    public show = (message: ComponentChild, buttons: IConfirmDialogButtons, title?: string, description?: string[],
-        values?: IDictionary): void => {
+    public show(message: ComponentChild, buttons: IConfirmDialogButtons, title?: string, description?: string[],
+        values?: IDictionary): void {
         this.setState({ title, message, buttons, values, description }, () => {
             return this.dialogRef.current?.open({ closeOnEscape: true });
         });
-    };
+    }
 
     private handleActionClick = (e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;

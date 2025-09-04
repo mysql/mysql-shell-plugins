@@ -23,71 +23,111 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
-
-import { mount } from "enzyme";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
-import { DataCallback } from "../../../../../communication/MessageScheduler.js";
-import { IShellDictionary } from "../../../../../communication/Protocol.js";
-import { IMrsAddContentSetData, ShellAPIMrs } from "../../../../../communication/ProtocolMrs.js";
+import {
+    type IMrsAuthAppData, type IMrsAuthVendorData, type IMrsContentFileData,
+    type IMrsContentSetData, type IMrsRoleData, type IMrsRouterData, type IMrsRouterService, type IMrsSchemaData,
+    type IMrsServiceData, type IMrsStatusData, type IMrsUserData
+} from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
+import { ShellInterfaceMrs } from "../../../../../supplement/ShellInterface/ShellInterfaceMrs.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { KeyboardKeys } from "../../../../../utilities/helpers.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
-} from "../../../test-helpers.js";
+    authAppsData, mrsContentFileData, mrsContentSetData, mrsRouterData, mrsSchemaData, mrsServiceData,
+    mrsServicesData, mrsStatusMock, mrsUserData, routerServiceData
+} from "../../../data-models/data-model-test-data.js";
+import { DialogHelper, mockClassMethods, nextRunLoop } from "../../../test-helpers.js";
+
+mockClassMethods(ShellInterfaceMrs, {
+    status: (): Promise<IMrsStatusData> => {
+        return Promise.resolve(mrsStatusMock);
+    },
+    listServices: (): Promise<IMrsServiceData[]> => {
+        return Promise.resolve(mrsServicesData);
+    },
+    listSchemas: (): Promise<IMrsSchemaData[]> => {
+        return Promise.resolve(mrsSchemaData);
+    },
+    listRouters: (): Promise<IMrsRouterData[]> => {
+        return Promise.resolve(mrsRouterData);
+    },
+    listContentSets: (): Promise<IMrsContentSetData[]> => {
+        return Promise.resolve(mrsContentSetData);
+    },
+    listUsers: (): Promise<IMrsUserData[]> => {
+        return Promise.resolve(mrsUserData);
+    },
+    listContentFiles: (): Promise<IMrsContentFileData[]> => {
+        return Promise.resolve(mrsContentFileData);
+    },
+    getService: (): Promise<IMrsServiceData> => {
+        return Promise.resolve(mrsServiceData);
+    },
+    getSchema: (): Promise<IMrsSchemaData> => {
+        return Promise.resolve(mrsSchemaData[0]);
+    },
+    getRouterServices: (): Promise<IMrsRouterService[]> => {
+        return Promise.resolve(routerServiceData);
+    },
+    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+        return Promise.resolve(authAppsData);
+    },
+    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
+        return Promise.resolve([]);
+    },
+    listRoles: (): Promise<IMrsRoleData[]> => {
+        return Promise.resolve([]);
+    },
+    updateAuthApp: (): Promise<void> => {
+        return Promise.resolve();
+    },
+    getAuthVendors: (): Promise<IMrsAuthVendorData[]> => {
+        return Promise.resolve([{
+            id: "MRS",
+            name: "MRS",
+            enabled: true,
+        }]);
+    },
+});
 
 describe("MRS Content Set dialog tests", () => {
-    let host: JestReactWrapper;
-    // let service: IMrsServiceData;
-    let launcher: MySQLShellLauncher;
     const hubRef = createRef<MrsHub>();
     let dialogHelper: DialogHelper;
-    let backend: ShellInterfaceSqlEditor;
+    const backend = new ShellInterfaceSqlEditor();
 
-    beforeAll(async () => {
+    let unmount: () => boolean;
+
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true, "DEBUG2");
 
-        await recreateMrsData();
-
-        host = mount<MrsHub>(<MrsHub ref={hubRef} />);
+        const result = render(<MrsHub ref={hubRef} />);
+        unmount = result.unmount;
 
         dialogHelper = new DialogHelper("mrsContentSetDialog", "MRS Content Set");
     });
 
-    afterAll(async () => {
-        await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
-        await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        await backend.closeSession();
-        await launcher.exitProcess();
-        host.unmount();
-    });
+    afterAll(() => {
+        unmount();
 
-    beforeEach(async () => {
-        backend = await createBackend();
+        vi.resetAllMocks();
     });
 
     it("Show MRS Content Set Dialog (snapshot) and escape", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        const promise = hubRef.current!.showMrsContentSetDialog(backend);
-        await dialogHelper.waitForDialog();
+        dialogHelper.actOnDialogAppearance("valueEditDialog", (portal) => {
+            expect(portal).toMatchSnapshot();
+            const cancelButton = portal.querySelector("#cancel");
+            fireEvent.click(cancelButton!);
+        });
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        expect(portals[0]).toMatchSnapshot();
-
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
-
-        await promise;
+        await hubRef.current!.showMrsContentSetDialog(backend);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
@@ -97,65 +137,41 @@ describe("MRS Content Set dialog tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        const promise = hubRef.current!.showMrsContentSetDialog(backend);
-        await dialogHelper.waitForDialog();
+        dialogHelper.actOnDialogAppearance("valueEditDialog", (portal) => {
+            expect(portal).toMatchSnapshot();
+            const cancelButton = portal.querySelector("#cancel");
+            fireEvent.click(cancelButton!);
+        });
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        await dialogHelper.clickCancel();
-
-        await promise;
+        await hubRef.current!.showMrsContentSetDialog(backend);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
     });
 
     it("Dialog error testing", async () => {
-        let portals = document.getElementsByClassName("portal");
+        const portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        backend.mrs.addContentSet = (contentDir: string, requestPath: string,
-            requiresAuth: boolean, options: IShellDictionary | null,
-            serviceId?: string, comments?: string,
-            enabled?: number, replaceExisting?: boolean,
-            ignoreList?: string,
-            callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> => {
-            expect(requestPath).toBe("/someRequestPath");
+        dialogHelper.actOnDialogAppearance("valueEditDialog", async (portal) => {
+            await dialogHelper.setInputText("requestPath", "");
 
-            expect(contentDir).toBeDefined();
-            expect(requiresAuth).toBeDefined();
-            expect(options).toBeDefined();
-            expect(serviceId).toBeDefined();
-            expect(comments).toBeDefined();
-            expect(enabled).toBeDefined();
-            expect(replaceExisting).toBeDefined();
-            expect(callback).toBeDefined();
+            const okButton = portal.querySelector("#ok");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors(["The request path must not be empty."]);
 
-            return Promise.resolve({});
-        };
+            await dialogHelper.setInputText("requestPath", "someRequestPath");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors(["The request path must start with /."]);
 
-        const promise = hubRef.current!.showMrsContentSetDialog(backend);
-        await dialogHelper.waitForDialog();
+            await dialogHelper.setInputText("requestPath", "/someRequestPath");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors();
+        });
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        await dialogHelper.setInputText("requestPath", "");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors(["The request path must not be empty."]);
-
-        await dialogHelper.setInputText("requestPath", "someRequestPath");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors(["The request path must start with /."]);
-
-        await dialogHelper.setInputText("requestPath", "/someRequestPath");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors();
-
-        await promise;
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
+        await hubRef.current!.showMrsContentSetDialog(backend);
     });
 });

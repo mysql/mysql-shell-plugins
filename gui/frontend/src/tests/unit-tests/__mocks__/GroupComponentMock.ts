@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Oracle and/or its affiliates.
+* Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, version 2.0,
@@ -24,23 +24,24 @@
 */
 
 import { GroupComponent, PopupPosition, RowComponent, Tabulator } from "tabulator-tables";
+import { vi } from "vitest";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class GroupComponentMock implements GroupComponent {
-    public getElement: () => HTMLElement = jest.fn();
-    public getTable: () => Tabulator = jest.fn();
-    public getKey: () => any = jest.fn();
-    public getField: () => string = jest.fn();
-    public getRows: () => RowComponent[] = jest.fn();
-    public getSubGroups: () => GroupComponent[] = jest.fn();
-    public getParentGroup: () => GroupComponent | false = jest.fn();
-    public isVisible: () => boolean = jest.fn();
-    public show: () => void = jest.fn();
-    public hide: () => void = jest.fn();
-    public toggle: () => void = jest.fn();
-    public popup: (contents: string, position: PopupPosition) => void = jest.fn();
+    public getElement: () => HTMLElement = vi.fn();
+    public getTable: () => Tabulator = vi.fn();
+    public getKey: () => any = vi.fn();
+    public getField: () => string = vi.fn();
+    public getRows: () => RowComponent[] = vi.fn();
+    public getSubGroups: () => GroupComponent[] = vi.fn();
+    public getParentGroup: () => GroupComponent | false = vi.fn();
+    public isVisible: () => boolean = vi.fn();
+    public show: () => void = vi.fn();
+    public hide: () => void = vi.fn();
+    public toggle: () => void = vi.fn();
+    public popup: (contents: string, position: PopupPosition) => void = vi.fn();
     public scrollTo: (
         position?: "top" | "center" | "bottom" | "nearest",
         scrollIfVisible?: boolean
-    ) => Promise<void> = jest.fn();
+    ) => Promise<void> = vi.fn();
 }

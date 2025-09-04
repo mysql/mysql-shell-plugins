@@ -23,9 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 /* eslint-disable max-len */
-
 
 export enum ShellAPIMsm {
     /** Returns basic information about this plugin. */

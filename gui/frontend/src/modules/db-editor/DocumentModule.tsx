@@ -1968,15 +1968,18 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (document.type === OdmEntityType.ShellSession) {
             void this.activateShellTab(document.id);
         } else {
-            const tabId = document.type === (
-                OdmEntityType.StandaloneDocument | OdmEntityType.SchemaDiagram) ? document.id : document.parent!.id;
+            let tabId = document.parent?.id;
+            if (document.type === OdmEntityType.StandaloneDocument || document.type === OdmEntityType.SchemaDiagram) {
+                // For notebooks and scripts we use the parent id as the tab id.
+                tabId = document.id;
+            }
 
             // Activate the tab for the selected document.
-            this.handleSelectTab(tabId);
+            this.handleSelectTab(tabId!);
 
             // Activate the document.
             this.handleSelectItem({
-                tabId,
+                tabId: tabId!,
                 document,
             });
         }
@@ -2398,7 +2401,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private addEditorFromScript(tabId: string, connection: ICdmConnectionEntry, script: IOdmScriptEntry,
         content: string, spName?: string, schemaName?: string, is3rdLanguage?: boolean): IOpenDocumentState {
         const model = this.createEditorModel(connection.backend, content, script.language,
-            connection.details.version!, connection.details.sqlMode!, schemaName ? schemaName : "", spName,
+            connection.details.version!, connection.details.sqlMode!, schemaName ?? "", spName,
             is3rdLanguage);
 
         const newState: IOpenDocumentState = {

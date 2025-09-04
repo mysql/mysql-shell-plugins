@@ -26,8 +26,7 @@
 /* eslint-disable no-restricted-syntax */ // Allow "process".
 
 import { screen, waitFor } from "@testing-library/preact";
-import { CommonWrapper, ReactWrapper } from "enzyme";
-import { ComponentChild } from "preact";
+import { expect, vi } from "vitest";
 
 import { range } from "d3";
 
@@ -48,15 +47,12 @@ import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../communicat
 import { IMrsAuthAppData, IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { MrsDbObjectType, MrsObjectKind } from "../../modules/mrs/types.js";
 import { IResultSet } from "../../script-execution/index.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
-import { uuidBinary16Base64 } from "../../utilities/helpers.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { convertErrorToString, uuidBinary16Base64 } from "../../utilities/helpers.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
-
-export type JestReactWrapper<P = {}, S = unknown> =
-    ReactWrapper<Readonly<P> & Readonly<{ children?: ComponentChild; }>, Readonly<S>>;
 
 export interface ITestDbCredentials {
     userName: string;
@@ -64,23 +60,6 @@ export interface ITestDbCredentials {
     host: string;
     password?: string;
 }
-
-/**
- * Promisified version of a component's setState function. Our Component class contains this as well,
- * but it cannot be used in tests, it seems.
- *
- * @param component The component to set the new state for.
- * @param state The new state.
- *
- * @returns A promise that fulfills when setState has finished.
- */
-export const stateChange = <P, S>(component: CommonWrapper<P, S>, state: object): Promise<void> => {
-    return new Promise((resolve) => {
-        component.setState(state, () => {
-            resolve();
-        });
-    });
-};
 
 const versionPattern = /^\[(<|<=|>|>=|=)(\d{5})\]/;
 const relationMap = new Map<string, number>([
@@ -215,7 +194,7 @@ export const checkMinStatementVersion = (statement: string, minimumVersion: numb
 };
 
 /**
- * Jest doesn't have a fail() function, so we have to provide one.
+ * Vitest doesn't have a fail() function, so we have to provide one.
  * The disadvantage of this solution is that the tests immediately stop, instead continuing with other cases.
  *
  * @param message The message to show.
@@ -225,18 +204,39 @@ export const fail = (message: string): void => {
 };
 
 /**
- * Helper function to be used when a mock implementation is needed. It enforces the correct parameter types and
- * return type for the mock.
+ * Helper method to mock all methods of a class, which are given in the `mocks` parameter.
  *
- * @param implementation The implementation to use for the mock. It must be a function that takes the correct
- *                       parameters and returns the correct type.
- *
- * @returns A jest mock function with the given implementation.
+ * @param targetClass The class to mock the methods of.
+ * @param mocks An object with the method names as keys and the mock implementations as values.
  */
-export const createRequiredMock = <T, Args extends unknown[]>(
-    implementation: (...args: Args) => T
-): jest.Mock<T, Args> => {
-    return jest.fn(implementation);
+export const mockClassMethods = <T extends abstract new (...args: never[]) => unknown>(
+    targetClass: T,
+    mocks: {
+        [K in keyof InstanceType<T>]?: InstanceType<T>[K] extends (...args: infer P) => infer R
+        ? (...args: P) => R
+        : never;
+    },
+): void => {
+    (Object.keys(mocks) as Array<keyof typeof mocks>).forEach((methodName) => {
+        const impl = mocks[methodName];
+        if (impl) {
+            vi.spyOn(targetClass.prototype, methodName as string).mockImplementation(impl);
+        }
+    });
+};
+
+export const mockClassGetters = <T extends abstract new (...args: never[]) => unknown>(
+    targetClass: T,
+    mocks: {
+        [K in keyof InstanceType<T>]?: () => InstanceType<T>[K];
+    },
+): void => {
+    (Object.keys(mocks) as Array<keyof typeof mocks>).forEach((methodName) => {
+        const impl = mocks[methodName];
+        if (impl) {
+            vi.spyOn(targetClass.prototype, methodName as string, "get").mockImplementation(impl);
+        }
+    });
 };
 
 /**
@@ -272,6 +272,27 @@ export const nextRunLoop = async (): Promise<void> => {
             resolve();
         }, 0);
     });
+};
+
+/**
+ * Waits for an element with the given class to appear in the container.
+ * This is useful to wait for elements that are added dynamically.
+ * There's a timeout of 5 seconds, after which the promise is rejected.
+ *
+ * @param container The container to search in.
+ * @param className The class name to wait for.
+ *
+ * @returns A promise resolving to the found element.
+ */
+export const waitForClass = async (container: HTMLElement, className: string) => {
+    return await waitFor(() => {
+        const element = container.querySelector(`.${className}`);
+        if (!element) {
+            throw new Error("Not found");
+        }
+
+        return element;
+    }, { timeout: 5000 });
 };
 
 /**
@@ -393,7 +414,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
     const event1 = new MouseEvent("pointerenter", {
         bubbles: true,
         cancelable: false,
-        view: window,
         clientX: element.getBoundingClientRect().x,
         clientY: element.getBoundingClientRect().y,
     });
@@ -403,7 +423,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
     const event2 = new MouseEvent("pointermove", {
         bubbles: true,
         cancelable: false,
-        view: window,
         clientX: element.getBoundingClientRect().x,
         clientY: element.getBoundingClientRect().y,
     });
@@ -413,7 +432,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
     const event3 = new MouseEvent("pointerleave", {
         bubbles: true,
         cancelable: false,
-        view: window,
         clientX: element.getBoundingClientRect().x,
         clientY: element.getBoundingClientRect().y,
     });
@@ -424,7 +442,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
         const event4 = new MouseEvent("touchstart", {
             bubbles: true,
             cancelable: false,
-            view: window,
             clientX: element.getBoundingClientRect().x,
             clientY: element.getBoundingClientRect().y,
         });
@@ -434,7 +451,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
         const event5 = new MouseEvent("touchmove", {
             bubbles: true,
             cancelable: false,
-            view: window,
             clientX: element.getBoundingClientRect().x,
             clientY: element.getBoundingClientRect().y,
         });
@@ -444,7 +460,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
         const event6 = new MouseEvent("touchend", {
             bubbles: true,
             cancelable: false,
-            view: window,
             clientX: element.getBoundingClientRect().x,
             clientY: element.getBoundingClientRect().y,
         });
@@ -682,6 +697,47 @@ export class DialogHelper {
         return waitFor(() => {
             expect(screen.getByText(this.title)).toBeDefined();
         }, { timeout: 3000 });
+    }
+
+    /**
+     * Sets up an observer that waits for a dialog with the given class to appear as a portal in the document.
+     * When the dialog appears, the callback is called with the dialog element as a parameter.
+     * The method itself does not wait, to allow the caller to continue working (e.g. set up the dialog).
+     * Make sure no other portals are present in the document before calling this method, otherwise it will
+     * throw an error.
+     *
+     * @param className The class name of the dialog to wait for.
+     * @param callback The callback to call when the dialog appears. The callback receives the portal element
+     *                 as a parameter and can be an async function.
+     */
+    public actOnDialogAppearance(className: string, callback: (portal: HTMLElement) => Promise<void> | void): void {
+        const portals = document.getElementsByClassName("portal");
+        if (portals.length > 0) {
+            throw new Error("There are already portals present in the document.");
+        }
+
+        let dialogFound = false;
+
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        const observer = new MutationObserver(async () => {
+            const portals = document.getElementsByClassName("portal");
+            if (portals.length > 0) {
+                const dialogEl = portals[0].querySelector(`.${className}`);
+                if (dialogEl && !dialogFound) {
+                    dialogFound = true;
+                    try {
+                        await callback(dialogEl as HTMLElement);
+                    } catch (err) {
+                        const message = convertErrorToString(err);
+                        console.error(`Error in actOnDialogAppearance callback: ${message}`);
+                    }
+
+                    observer.disconnect();
+                }
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     /**
@@ -1053,6 +1109,39 @@ export const ignoreSnapshotUuids = (): void => {
         },
         print: () => {
             return `""`;
+        },
+    });
+};
+
+/**
+ * A method to set up snapshot serializers that filter out content of fields that match one of the given patterns.
+ * Additionally, it filters out the content of Monaco Editor fields, as those contain a lot of non-deterministic data.
+ *
+ * @param patterns The patterns to match against. If the entire content of a string matches one of the patterns,
+ *                 it is filtered out.
+ */
+export const ignoreSnapshotFieldContent = (patterns: RegExp[]): void => {
+    expect.addSnapshotSerializer({
+        test: (val: unknown): boolean => {
+            if (typeof val === "object") {
+                const element = val as HTMLElement;
+                if (element.nodeType === 1
+                    && typeof element.className === "string"
+                    && element.className.includes("monaco-editor")) {
+                    return true;
+                }
+            }
+
+            if (typeof val !== "string") {
+                return false;
+            }
+
+            return patterns.some((pattern) => {
+                return val.trim().match(pattern);
+            });
+        },
+        print: () => {
+            return `"<filtered>"`;
         },
     });
 };

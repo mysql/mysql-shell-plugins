@@ -23,17 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { ReferencesProvider } from "../../../../../components/ui/CodeEditor/ReferencesProvider.js";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
-jest.mock("../../../../../script-execution/PresentationInterface");
-
 describe("ReferenceProvider tests", () => {
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Create instance and init", () => {
         const referenceProvider = new ReferencesProvider();
@@ -42,25 +44,23 @@ describe("ReferenceProvider tests", () => {
         let result = referenceProvider.provideReferences(mockModel, position);
         expect(result).toBe(undefined);
 
-        const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
-        expect(pi).toBeDefined();
+        const pi = new PresentationInterface("javascript");
+        const execContext = mockModel.executionContexts!.addContext(pi);
+        vi.spyOn(pi, "model", "get").mockReturnValue(mockModel);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
 
-        const execContext = new ExecutionContext(pi, StoreType.Document);
-        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
-            execContext,
-        );
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
         result = referenceProvider.provideReferences(mockModel, position);
         expect(result).toBe(undefined);
 
         const services = ScriptingLanguageServices.instance;
-        services.findReferences = jest.fn().mockReturnValue({
+        services.findReferences = vi.fn().mockReturnValue({
             uri: "",
             range: null,
         });
 
-        jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
-        const findReferences = jest.spyOn(services, "findReferences");
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
+        const findReferences = vi.spyOn(services, "findReferences");
         void referenceProvider.provideReferences(mockModel, position);
         expect(findReferences).toHaveBeenCalled();
     });

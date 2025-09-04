@@ -26,29 +26,27 @@
 import {
     CellComponent, ColumnComponent, PopupPosition, type RangeComponent, type RowComponent,
 } from "tabulator-tables";
+import { vi } from "vitest";
 
 import {
     IMrsObjectFieldTreeItem, MrsObjectFieldTreeEntryType
 } from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
-import { createRequiredMock } from "../test-helpers.js";
 import { ColumnComponentMock } from "./ColumnComponentMock.js";
 import { RowComponentMock } from "./RowComponentMock.js";
 
 export class CellComponentMock implements CellComponent {
     public parent?: RowComponentMock;
-    public getElement = createRequiredMock(() => {
-        return document.createElement("div");
-    });
-    public getTable = jest.fn();
-    public getType = jest.fn();
-    public checkHeight = jest.fn();
-    public edit = jest.fn();
-    public cancelEdit = jest.fn();
-    public navigateUp = jest.fn();
-    public navigateDown = jest.fn();
-    public clearEdited = jest.fn();
-    public clearValidation = jest.fn();
-    public validate = jest.fn();
+    public getElement = vi.fn();
+    public getTable = vi.fn();
+    public getType = vi.fn();
+    public checkHeight = vi.fn();
+    public edit = vi.fn();
+    public cancelEdit = vi.fn();
+    public navigateUp = vi.fn();
+    public navigateDown = vi.fn();
+    public clearEdited = vi.fn();
+    public clearValidation = vi.fn();
+    public validate = vi.fn();
 
     public data: IMrsObjectFieldTreeItem;
     public fieldType = "json";

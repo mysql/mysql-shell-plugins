@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,18 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { act, render } from "@testing-library/preact";
+import { userEvent } from "@testing-library/user-event";
+import { createRef } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import {
-    changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests, stateChange,
-} from "../../test-helpers.js";
-import { LoginPage } from "../../../../components/Login/LoginPage.js";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { MessageScheduler } from "../../../../communication/MessageScheduler.js";
 import { IShellProfile } from "../../../../communication/ProtocolGui.js";
 import { ResponseError } from "../../../../communication/ResponseError.js";
+import { LoginPage } from "../../../../components/Login/LoginPage.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
+import { changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests } from "../../test-helpers.js";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
@@ -49,39 +50,49 @@ describe("Login Page Tests", (): void => {
     });
 
     it("Render Test", () => {
-        const component = mount<LoginPage>(
+        const { container, unmount } = render(
             <LoginPage />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
-    it("Change User and Password", () => {
-        const component = mount<LoginPage>(
-            <LoginPage />,
+    it("Change User and Password", async () => {
+        const pageRef = createRef<LoginPage>();
+        const { container, unmount } = render(
+            <LoginPage ref={pageRef} />,
         );
 
-        const edits = component.getDOMNode().getElementsByClassName("input");
+        await nextRunLoop();
+        expect(pageRef.current).toBeDefined();
+
+        const edits = container.getElementsByClassName("input");
         expect(edits).toHaveLength(2);
         expect(edits[0].id).toBe("loginUsername");
         expect(edits[1].id).toBe("loginPassword");
 
         changeInputValue(edits[0], "mike");
         changeInputValue(edits[1], "swordfish");
-        expect(component.state()).toStrictEqual({ errorMessage: "", userName: "mike", password: "swordfish" });
 
-        component.unmount();
+        await nextRunLoop();
+        expect(pageRef.current!.state).toStrictEqual({ errorMessage: "", userName: "mike", password: "swordfish" });
+
+        unmount();
     });
 
     it("Trigger Login", async () => {
-        const component = mount<LoginPage>(
-            <LoginPage />,
+        const pageRef = createRef<LoginPage>();
+        const { container, unmount } = render(
+            <LoginPage ref={pageRef} />,
         );
 
-        const authenticateMock = jest.spyOn(ShellInterface.users, "authenticate")
-            .mockImplementation((username: string, password: string) => {
+        await nextRunLoop();
+        expect(pageRef.current).toBeDefined();
+
+        const authenticateMock = vi.spyOn(ShellInterface.users, "authenticate")
+            .mockImplementation(async (username: string, password: string) => {
                 if (username === "mike") {
                     if (password === "swordfish") {
                         const profile: IShellProfile = {
@@ -101,36 +112,42 @@ describe("Login Page Tests", (): void => {
                 return Promise.reject(new ResponseError({ requestState: { msg: "User unknown" } }));
             });
 
-        expect(component.state()).toStrictEqual({ errorMessage: "", userName: "", password: "" });
+        expect(pageRef.current!.state).toStrictEqual({ errorMessage: "", userName: "", password: "" });
 
-        const edits = component.getDOMNode().getElementsByClassName("input");
+        const edits = container.getElementsByClassName("input");
         expect(edits).toHaveLength(2);
 
         // Wrong user name.
-        await stateChange(component, { errorMessage: "", userName: "mike1", password: "swordfish" });
-
+        await act(() => {
+            pageRef.current?.setState({ errorMessage: "", userName: "mike1", password: "swordfish" });
+        });
         sendKeyPress(KeyboardKeys.Enter, edits[0]);
         await nextRunLoop();
 
-        expect(component.state().errorMessage).toBe("User unknown");
+        expect(pageRef.current?.state.errorMessage).toBe("User unknown");
 
         // Wrong password.
-        await stateChange(component, { errorMessage: "", userName: "mike", password: "" });
+        await act(() => {
+            pageRef.current?.setState({ errorMessage: "", userName: "mike", password: "" });
+        });
 
-        sendKeyPress(KeyboardKeys.Enter, edits[0]);
+        (edits[0] as HTMLElement).focus();
+        await userEvent.keyboard("{Enter}");
         await nextRunLoop();
 
-        expect(component.state().errorMessage).toBe("Wrong password");
+        expect(pageRef.current!.state.errorMessage).toBe("Wrong password");
 
         // Correct login.
-        await stateChange(component, { errorMessage: "", userName: "mike", password: "swordfish" });
+        await act(() => {
+            pageRef.current?.setState({ errorMessage: "", userName: "mike", password: "swordfish" });
+        });
 
         sendKeyPress(KeyboardKeys.Enter, edits[0]);
         await nextRunLoop();
 
-        expect(component.state().errorMessage).toBe("");
+        expect(pageRef.current!.state.errorMessage).toBe("");
 
-        component.unmount();
+        unmount();
 
         authenticateMock.mockRestore();
     });

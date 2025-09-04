@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { Button } from "../../../../components/ui/Button/Button.js";
 import { Grid } from "../../../../components/ui/Grid/Grid.js";
@@ -35,7 +36,7 @@ import { Assets } from "../../../../supplement/Assets.js";
 describe("Grid component test", (): void => {
 
     it("Standard Rendering", () => {
-        const component = mount<Grid>(
+        const { container, unmount } = render(
             <Grid id="loginDialogControls" columns={[220, 40]} columnGap={8}>
                 <GridCell>
                     <Input
@@ -61,8 +62,8 @@ describe("Grid component test", (): void => {
                 </GridCell>
             </Grid>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

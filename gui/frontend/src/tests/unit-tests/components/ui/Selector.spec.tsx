@@ -23,9 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
-
+import { render, screen } from "@testing-library/preact";
 import { act } from "preact/test-utils";
+import { describe, expect, it, vi } from "vitest";
 
 import { Orientation } from "../../../../components/ui/Container/Container.js";
 import { Label } from "../../../../components/ui/Label/Label.js";
@@ -50,57 +50,40 @@ describe("Selector component tests", (): void => {
     ];
 
     it("Test Selector onSelect callback", async () => {
-        const component = shallow<Selector>(
+        const onSelect = vi.fn();
+        const { container, unmount } = render(
             <Selector
                 id="selector1"
                 orientation={Orientation.TopDown}
                 smoothScroll={true}
-                onSelect={jest.fn()}
+                onSelect={onSelect}
                 items={[
-                    { caption: "1", icon },
-                    { caption: "2", icon },
-                    { caption: "3", icon },
-                    { caption: "4", icon },
-                    { caption: "5", icon },
-                    { caption: "6", icon },
-                    { caption: "7", icon },
-                    { caption: "8", icon },
-                    { caption: "9", icon },
-                    { caption: "10", icon },
+                    { id: "id1", caption: "1", icon: Assets.documents.overviewPageIcon },
+                    { id: "id2", caption: "2", icon: Assets.documents.overviewPageIcon },
+                    { id: "id3", caption: "3", icon: Assets.documents.overviewPageIcon },
+                    { id: "id4", caption: "4", icon: Assets.documents.overviewPageIcon },
+                    { id: "id5", caption: "5", icon: Assets.documents.overviewPageIcon },
+                    { id: "id6", caption: "6", icon: Assets.documents.overviewPageIcon },
+                    { id: "id7", caption: "7", icon: Assets.documents.overviewPageIcon },
+                    { id: "id8", caption: "8", icon: Assets.documents.overviewPageIcon },
+                    { id: "id9", caption: "9", icon: Assets.documents.overviewPageIcon },
+                    { id: "id10", caption: "10", icon: Assets.documents.overviewPageIcon },
                 ]}
             />,
         );
-        const instance = component.instance();
-        const spyOnChange = jest.spyOn(instance.props, "onSelect");
 
         await act(() => {
-            instance.props.onSelect?.("5");
+            const item = container.querySelector("#id5") as HTMLElement;
+            item.click();
         });
-        expect(spyOnChange).toHaveBeenCalled();
-    });
 
-    it("Test Selector properties and updates", () => {
-        const component = mount<Selector>(
-            <Selector
-                id="selector1"
-                orientation={Orientation.TopDown}
-                smoothScroll={true}
-                items={itemArray}
-            />,
-        );
+        expect(onSelect).toHaveBeenCalled();
 
-        const props = component.props();
-        expect(props.smoothScroll).toBe(true);
-        expect(props.orientation).toBe(Orientation.TopDown);
-        expect(props.items).toBe(itemArray);
-
-        // Component updates.
-        component.setProps({ items: [], id: undefined });
-        expect(component.instance().props.items?.length).toBe(0);
+        unmount();
     });
 
     it("Test Selector with children", () => {
-        const component = mount<Selector>(
+        const { container, unmount } = render(
             <Selector
                 id="selector1"
                 orientation={Orientation.TopDown}
@@ -111,13 +94,19 @@ describe("Selector component tests", (): void => {
             </Selector>,
         );
 
-        const props = component.props();
-        expect(props.items).toBe(undefined);
+        // The text "123" is not rendered as a child of the selector, because only preact elements
+        // are rendered as children.
+        expect(container.childNodes).toHaveLength(1);
 
+        const t = screen.getByText("Lorem Ipsum");
+        expect(t).toBeTruthy();
+        expect(t.textContent).toEqual("Lorem Ipsum");
+
+        unmount();
     });
 
     it("Test Selector output (snapshot)", () => {
-        const component = mount<Selector>(
+        const { container, unmount } = render(
             <Selector
                 id="selector1"
                 orientation={Orientation.TopDown}
@@ -125,7 +114,9 @@ describe("Selector component tests", (): void => {
                 items={itemArray}
             />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
 });

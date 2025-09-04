@@ -1,50 +1,20 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Toggle testing Render test 1`] = `
-<Toggle
-  borderWidth={123}
-  caption="My toggle"
-  checkState={1}
-  checkedColor={
-    {
-      "color": [
-        1,
-        1,
-        1,
-      ],
-      "model": "rgb",
-      "valpha": 1,
-    }
-  }
-  color={
-    {
-      "color": [
-        12,
-        12,
-        12,
-      ],
-      "model": "rgb",
-      "valpha": 1,
-    }
-  }
-  disabled={false}
-  round={true}
->
+exports[`Toggle testing > Render test 1`] = `
+<div>
   <input
-    className="msg toggle round"
+    class="msg toggle round"
     id=""
-    onInput={[Function]}
-    readOnly={true}
+    readonly=""
     type="checkbox"
   />
   <label
-    className="msg toggle round"
-    htmlFor=""
-    onClick={[Function]}
-    onKeyPress={[Function]}
-    tabIndex={0}
+    class="msg toggle round"
+    for=""
+    style="--toggle-color: 0, 0%, 4.705882352941177%; --toggle-checked-color: 0, 0%, 0.39215686274509803%; --toggle-border-width: 123px;"
+    tabindex="0"
   >
     My toggle
   </label>
-</Toggle>
+</div>
 `;

@@ -290,7 +290,6 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     }
 
     private getClientConnectionDetails = (): ComponentChild => {
-
         return (
             this.selectedRow && <Grid id="clientConnectionDetails" columns={2} rowGap={5} columnGap={12}>
                 <GridCell>Processlist Id</GridCell>

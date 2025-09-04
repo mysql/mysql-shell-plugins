@@ -29,7 +29,12 @@ node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
 
 echo "Fixing node module(s)..."
+# Fix for pixi-viewport: correct export path in TypeScript definition file
 sed -i.bak "s|^export \* from './Viewport';|export * from './Viewport.js';|" node_modules/pixi-viewport/dist/index.d.ts && rm node_modules/pixi-viewport/dist/index.d.ts.bak
+
+# Fix a missing source-map im monaco-editor.
+sed -i.bak "/sourceMappingURL=marked.umd.js.map/d" node_modules/monaco-editor/esm/vs/base/common/marked/marked.js && rm node_modules/monaco-editor/esm/vs/base/common/marked/marked.js.bak
+
 printf "\n"
 
 # Generate parsers only if something in the source folder changed.

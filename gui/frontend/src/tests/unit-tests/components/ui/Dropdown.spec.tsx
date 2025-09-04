@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
 import { Dropdown } from "../../../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../../../components/ui/Dropdown/DropdownItem.js";
@@ -31,7 +32,7 @@ import { DropdownItem } from "../../../../components/ui/Dropdown/DropdownItem.js
 describe("Dropdown render testing", (): void => {
 
     it("Standard Rendering", () => {
-        const component = mount<Dropdown>(
+        const { container, unmount } = render(
             <Dropdown selection="tesla" optional={false} style={{ maxWidth: "300px" }}>
                 <DropdownItem id="tesla" caption="Tesla" />
                 <DropdownItem id="volvo" caption="Volvo" />
@@ -39,9 +40,9 @@ describe("Dropdown render testing", (): void => {
                 <DropdownItem id="renault" caption="Renault" />
             </Dropdown>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

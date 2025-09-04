@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,39 +23,35 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { describe, expect, it } from "vitest";
 
-import {
-    DateTime, IDateTimeValueType,
-} from "../../../../components/ui/DataTime/DateTime.js";
+import { DateTime, IDateTimeValueType } from "../../../../components/ui/DataTime/DateTime.js";
 
 describe("Calendar render testing", (): void => {
 
     it("DateTime view test properties", () => {
-        const component = mount<DateTime>(
+        const { container, unmount } = render(
             <DateTime
                 type={IDateTimeValueType.DateTime}
             />,
         );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.type).toEqual(IDateTimeValueType.DateTime);
 
-        component.unmount();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 
     it("DateTime view test properties (autoFocus)", () => {
-        const component = mount<DateTime>(
+        const { container, unmount } = render(
             <DateTime
                 type={IDateTimeValueType.DateTime}
                 autoFocus={true}
             />,
         );
-        expect(component).toBeTruthy();
-        const props = component.props();
-        expect(props.type).toEqual(IDateTimeValueType.DateTime);
 
-        component.unmount();
+        expect(container).toMatchSnapshot();
+
+        unmount();
     });
 });
-

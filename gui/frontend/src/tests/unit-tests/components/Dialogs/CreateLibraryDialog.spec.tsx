@@ -23,29 +23,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { render } from "@testing-library/preact";
 import { createRef } from "preact";
 
-import { mount } from "enzyme";
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
+import { LibraryDialogType } from "../../../../app-logic/general-types.js";
 import { CreateLibraryDialog } from "../../../../components/Dialogs/CreateLibraryDialog.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
-import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    sendKeyPress,
-    setupShellForTests,
-    nextProcessTick
-} from "../../test-helpers.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
-import { registerUiLayer } from "../../../../app-logic/UILayer.js";
-import { LibraryDialogType } from "../../../../app-logic/general-types.js";
+import { DialogHelper, createBackend, nextProcessTick, sendKeyPress, setupShellForTests } from "../../test-helpers.js";
 
 describe("MRS SDK Export dialog tests", () => {
-    let host: JestReactWrapper;
-    let launcher: MySQLShellLauncher;
     const dialogRef = createRef<CreateLibraryDialog>();
+    let unmount: () => boolean;
+
+    let launcher: MySQLShellLauncher;
     let dialogHelper: DialogHelper;
     let backend: ShellInterfaceSqlEditor;
 
@@ -53,7 +49,8 @@ describe("MRS SDK Export dialog tests", () => {
         registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
-        host = mount<CreateLibraryDialog>(<CreateLibraryDialog ref={dialogRef} />);
+        const result = render(<CreateLibraryDialog ref={dialogRef} />);
+        unmount = result.unmount;
 
         dialogHelper = new DialogHelper("createLibraryDialog", "Create Library From");
     });
@@ -62,7 +59,8 @@ describe("MRS SDK Export dialog tests", () => {
         await backend.execute("DROP DATABASE IF EXISTS CREATE_LIBRARY_TEST");
         await backend.closeSession();
         await launcher.exitProcess();
-        host.unmount();
+
+        unmount();
     });
 
     beforeEach(async () => {

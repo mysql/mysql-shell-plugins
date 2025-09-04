@@ -23,10 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable no-restricted-syntax */
+
 import { access, link, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-
-import type { Config } from "jest";
 
 const generateMrsSdkResourceLinks = async () => {
     const targetDir = resolve(__dirname, "..", "modules", "mrs", "sdk");
@@ -50,8 +50,13 @@ const generateMrsSdkResourceLinks = async () => {
     }
 };
 
-module.exports = async (_globalConfig: unknown, _projectConfig: Config) => {
+const currentDir = process.cwd();
+export const setup = async (): Promise<void> => {
     await generateMrsSdkResourceLinks();
-    // eslint-disable-next-line no-restricted-syntax
+
     process.chdir("./src/tests/unit-tests");
+};
+
+export const teardown = (): void => {
+    process.chdir(currentDir);
 };

@@ -1,464 +1,75 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Menu component tests Test Menu output (snapshot) 1`] = `
-<Menu
-  id="tileActionMenu"
-  onItemClick={[MockFunction]}
-  orientation="column"
-  placement="bottom-start"
-/>
-`;
+exports[`Menu component tests > Test Menu output (snapshot) 1`] = `<div />`;
 
-exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
-<MenuBar
-  orientation="row"
->
-  <Container
-    className="msg menubar"
-    crossAlignment="center"
-    onMouseEnter={[Function]}
-    onMouseLeave={[Function]}
-    orientation="row"
+exports[`Menu component tests > Test MenuBar output (snapshot) 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar menubar"
+    style="flex-direction: row; align-items: center;"
   >
     <div
-      className="msg container fixedScrollbar menubar"
-      onMouseEnter={[Function]}
-      onMouseLeave={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
+      class="msg container menuItem nohover submenu"
+      id="fileMenu"
+      style="flex-direction: row;"
     >
-      <MenuItem
-        className="nohover"
-        command={
-          {
-            "command": "",
-            "title": "File",
-          }
-        }
-        id="fileMenu"
-        onClick={[Function]}
-        onMouseEnter={[Function]}
-        onSubMenuClose={[Function]}
-        onSubMenuOpen={[Function]}
-        subMenuPlacement="bottom-start"
-        subMenuShowOnClick={true}
+      <label
+        class="msg label"
+        data-tooltip="expand"
       >
-        <Container
-          className="msg menuItem nohover submenu"
-          fixedScrollbars={false}
-          id="fileMenu"
-          innerRef={
-            {
-              "current": <div
-                class="msg container menuItem nohover submenu"
-                id="fileMenu"
-                style="flex-direction: row;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="expand"
-                >
-                  File
-                </label>
-              </div>,
-            }
-          }
-          onClick={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          orientation="row"
-        >
-          <div
-            className="msg container menuItem nohover submenu"
-            id="fileMenu"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "alignItems": undefined,
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label>
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={{}}
-              >
-                File
-              </label>
-            </Label>
-          </div>
-        </Container>
-        <Menu
-          command={
-            {
-              "command": "",
-              "title": "File",
-            }
-          }
-          id="fileMenu"
-          onClick={[Function]}
-          onClose={[Function]}
-          onItemClick={[Function]}
-          onMenuBack={[Function]}
-          onMouseEnter={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          placement="bottom-start"
-        />
-      </MenuItem>
-      <MenuItem
-        className="nohover"
-        command={
-          {
-            "command": "",
-            "title": "Edit",
-          }
-        }
-        id="editMenu"
-        onClick={[Function]}
-        onMouseEnter={[Function]}
-        onSubMenuClose={[Function]}
-        onSubMenuOpen={[Function]}
-        subMenuPlacement="bottom-start"
-        subMenuShowOnClick={true}
-      >
-        <Container
-          className="msg menuItem nohover submenu"
-          fixedScrollbars={false}
-          id="editMenu"
-          innerRef={
-            {
-              "current": <div
-                class="msg container menuItem nohover submenu"
-                id="editMenu"
-                style="flex-direction: row;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="expand"
-                >
-                  Edit
-                </label>
-              </div>,
-            }
-          }
-          onClick={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          orientation="row"
-        >
-          <div
-            className="msg container menuItem nohover submenu"
-            id="editMenu"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "alignItems": undefined,
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label>
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={{}}
-              >
-                Edit
-              </label>
-            </Label>
-          </div>
-        </Container>
-        <Menu
-          command={
-            {
-              "command": "",
-              "title": "Edit",
-            }
-          }
-          id="editMenu"
-          onClick={[Function]}
-          onClose={[Function]}
-          onItemClick={[Function]}
-          onMenuBack={[Function]}
-          onMouseEnter={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          placement="bottom-start"
-        />
-      </MenuItem>
-      <MenuItem
-        className="nohover"
-        command={
-          {
-            "command": "",
-            "title": "Selection",
-          }
-        }
-        id="selectionMenu"
-        onClick={[Function]}
-        onMouseEnter={[Function]}
-        onSubMenuClose={[Function]}
-        onSubMenuOpen={[Function]}
-        subMenuPlacement="bottom-start"
-        subMenuShowOnClick={true}
-      >
-        <Container
-          className="msg menuItem nohover submenu"
-          fixedScrollbars={false}
-          id="selectionMenu"
-          innerRef={
-            {
-              "current": <div
-                class="msg container menuItem nohover submenu"
-                id="selectionMenu"
-                style="flex-direction: row;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="expand"
-                >
-                  Selection
-                </label>
-              </div>,
-            }
-          }
-          onClick={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          orientation="row"
-        >
-          <div
-            className="msg container menuItem nohover submenu"
-            id="selectionMenu"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "alignItems": undefined,
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label>
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={{}}
-              >
-                Selection
-              </label>
-            </Label>
-          </div>
-        </Container>
-        <Menu
-          command={
-            {
-              "command": "",
-              "title": "Selection",
-            }
-          }
-          id="selectionMenu"
-          onClick={[Function]}
-          onClose={[Function]}
-          onItemClick={[Function]}
-          onMenuBack={[Function]}
-          onMouseEnter={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          placement="bottom-start"
-        />
-      </MenuItem>
-      <MenuItem
-        className="nohover"
-        command={
-          {
-            "command": "",
-            "title": "View",
-          }
-        }
-        id="viewMenu"
-        onClick={[Function]}
-        onMouseEnter={[Function]}
-        onSubMenuClose={[Function]}
-        onSubMenuOpen={[Function]}
-        subMenuPlacement="bottom-start"
-        subMenuShowOnClick={true}
-      >
-        <Container
-          className="msg menuItem nohover submenu"
-          fixedScrollbars={false}
-          id="viewMenu"
-          innerRef={
-            {
-              "current": <div
-                class="msg container menuItem nohover submenu"
-                id="viewMenu"
-                style="flex-direction: row;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="expand"
-                >
-                  View
-                </label>
-              </div>,
-            }
-          }
-          onClick={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          orientation="row"
-        >
-          <div
-            className="msg container menuItem nohover submenu"
-            id="viewMenu"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "alignItems": undefined,
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label>
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={{}}
-              >
-                View
-              </label>
-            </Label>
-          </div>
-        </Container>
-        <Menu
-          command={
-            {
-              "command": "",
-              "title": "View",
-            }
-          }
-          id="viewMenu"
-          onClick={[Function]}
-          onClose={[Function]}
-          onItemClick={[Function]}
-          onMenuBack={[Function]}
-          onMouseEnter={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          placement="bottom-start"
-        />
-      </MenuItem>
-      <MenuItem
-        className="nohover"
-        command={
-          {
-            "command": "",
-            "title": "Go",
-          }
-        }
-        id="goMenu"
-        onClick={[Function]}
-        onMouseEnter={[Function]}
-        onSubMenuClose={[Function]}
-        onSubMenuOpen={[Function]}
-        subMenuPlacement="bottom-start"
-        subMenuShowOnClick={true}
-      >
-        <Container
-          className="msg menuItem nohover submenu"
-          fixedScrollbars={false}
-          id="goMenu"
-          innerRef={
-            {
-              "current": <div
-                class="msg container menuItem nohover submenu"
-                id="goMenu"
-                style="flex-direction: row;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="expand"
-                >
-                  Go
-                </label>
-              </div>,
-            }
-          }
-          onClick={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          orientation="row"
-        >
-          <div
-            className="msg container menuItem nohover submenu"
-            id="goMenu"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "alignItems": undefined,
-                "flexDirection": "row",
-                "flexWrap": undefined,
-                "justifyContent": undefined,
-              }
-            }
-          >
-            <Label>
-              <label
-                className="msg label"
-                data-tooltip="expand"
-                style={{}}
-              >
-                Go
-              </label>
-            </Label>
-          </div>
-        </Container>
-        <Menu
-          command={
-            {
-              "command": "",
-              "title": "Go",
-            }
-          }
-          id="goMenu"
-          onClick={[Function]}
-          onClose={[Function]}
-          onItemClick={[Function]}
-          onMenuBack={[Function]}
-          onMouseEnter={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          placement="bottom-start"
-        />
-      </MenuItem>
+        File
+      </label>
     </div>
-  </Container>
-</MenuBar>
+    <div
+      class="msg container menuItem nohover submenu"
+      id="editMenu"
+      style="flex-direction: row;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Edit
+      </label>
+    </div>
+    <div
+      class="msg container menuItem nohover submenu"
+      id="selectionMenu"
+      style="flex-direction: row;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Selection
+      </label>
+    </div>
+    <div
+      class="msg container menuItem nohover submenu"
+      id="viewMenu"
+      style="flex-direction: row;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        View
+      </label>
+    </div>
+    <div
+      class="msg container menuItem nohover submenu"
+      id="goMenu"
+      style="flex-direction: row;"
+    >
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Go
+      </label>
+    </div>
+  </div>
+</div>
 `;
+
+exports[`Menu component tests > Test menu callbacks 1`] = `<div />`;

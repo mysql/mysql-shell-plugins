@@ -23,60 +23,46 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+/* eslint-disable dot-notation */
+
+import { render } from "@testing-library/preact";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { CellComponent } from "tabulator-tables";
 
+import { createRef } from "preact";
 import { IMdsChatData, IMdsChatTable } from "../../../../communication/ProtocolMds.js";
 import {
     ChatOptionAction, ChatOptions, IChatOptionsProperties, IChatOptionsState,
 } from "../../../../components/Chat/ChatOptions.js";
 import { IAccordionProperties } from "../../../../components/ui/Accordion/Accordion.js";
-import type { IComponentProperties } from "../../../../components/ui/Component/ComponentBase.js";
 import { IInputChangeProperties } from "../../../../components/ui/Input/Input.js";
-import type { ITagInputProperties } from "../../../../components/ui/TagInput/TagInput.js";
-
-// @ts-expect-error, we need access to a private members here.
-class ChatOptionsMock extends ChatOptions {
-    declare public handleSectionExpand: (props: IAccordionProperties, sectionId: string, expanded: boolean) => void;
-    declare public handleStartNewChatClick: (e: MouseEvent | KeyboardEvent,
-        props: Readonly<IComponentProperties>) => void;
-    declare public handleSaveOptionsBtnClick: (e: MouseEvent | KeyboardEvent,
-        props: Readonly<IComponentProperties>) => void;
-    declare public handleLoadOptionsBtnClick: (e: MouseEvent | KeyboardEvent,
-        props: Readonly<IComponentProperties>) => void;
-    declare public handleSchemaChange: (accept: boolean, ids: Set<string>) => void;
-    declare public handleModelIdChange: (accept: boolean, ids: Set<string>) => void;
-    declare public handleModelLanguageChange: (accept: boolean, ids: Set<string>) => void;
-    declare public handleLanguageModelIdChange: (accept: boolean, ids: Set<string>) => void;
-    declare public handlePreambleChange: (e: InputEvent, props: IInputChangeProperties) => void;
-    declare public handleTranslationLanguageChange: (accept: boolean, ids: Set<string>) => void;
-    declare public handleModelOptionChange: (e: FocusEvent, props: Readonly<IComponentProperties>) => void;
-    declare public removeVectorTable: (id: string, props: ITagInputProperties) => void;
-    declare public historyMessageColumnFormatter: (cell: CellComponent) => string | HTMLElement;
-}
+import { nextRunLoop } from "../../test-helpers.js";
 
 describe("ChatOptions", () => {
     it("Standard Rendering (snapshot)", () => {
-        const component = mount<ChatOptionsMock>(
-            <ChatOptionsMock
+        const { container, unmount } = render(
+            <ChatOptions
                 savedState={{
                     chatOptionsExpanded: true,
                     chatOptionsWidth: 300,
                     options: {} as IMdsChatData,
                 }}
-                onAction={jest.fn()}
-                onChatOptionsStateChange={jest.fn()}
+                onAction={vi.fn()}
+                onChatOptionsStateChange={vi.fn()}
             />,
         );
-        expect(component).toMatchSnapshot();
+
+        expect(container).toMatchSnapshot();
+        unmount();
     });
 
     describe("getDerivedStateFromProps", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
         it("should return savedState when chatOptionsExpanded is undefined", () => {
@@ -140,16 +126,18 @@ describe("ChatOptions", () => {
     });
 
     describe("handleSectionExpand", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update section state when expanding a section", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update section state when expanding a section", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -160,20 +148,27 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSectionExpand({} as IAccordionProperties, "testSection", true);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "testSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
                 sectionStates: new Map([["testSection", { expanded: true }]]),
             });
+
+            unmount();
         });
 
-        it("should update existing section state", () => {
+        it("should update existing section state", async () => {
             const initialSectionStates = new Map([
                 ["existingSection", { expanded: false, size: 100 }],
             ]);
 
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -184,7 +179,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSectionExpand({} as IAccordionProperties, "existingSection", true);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "existingSection", true);
 
             const expectedMap = new Map([
                 ["existingSection", { expanded: true, size: 100 }],
@@ -192,11 +190,15 @@ describe("ChatOptions", () => {
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
                 sectionStates: expectedMap,
             });
+
+            unmount();
         });
 
-        it("should set returnPrompt to true when expanding promptSection", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should set returnPrompt to true when expanding promptSection", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -210,7 +212,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSectionExpand({} as IAccordionProperties, "promptSection", true);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "promptSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(2);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -221,11 +226,15 @@ describe("ChatOptions", () => {
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
                 sectionStates: new Map([["promptSection", { expanded: true }]]),
             });
+
+            unmount();
         });
 
-        it("should not set returnPrompt when expanding promptSection if already true", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should not set returnPrompt when expanding promptSection if already true", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -239,26 +248,33 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSectionExpand({} as IAccordionProperties, "promptSection", true);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "promptSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
                 sectionStates: new Map([["promptSection", { expanded: true }]]),
             });
+
+            unmount();
         });
     });
 
     describe("handleStartNewChatClick", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should trigger StartNewChat action", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should trigger StartNewChat action", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -269,15 +285,22 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleStartNewChatClick({} as MouseEvent, {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleStartNewChatClick"]({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.StartNewChat);
+
+            unmount();
         });
 
-        it("should handle keyboard event", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle keyboard event", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -288,24 +311,31 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleStartNewChatClick({} as KeyboardEvent, {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleStartNewChatClick"]({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.StartNewChat);
+
+            unmount();
         });
     });
 
     describe("handleSaveOptionsBtnClick", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should trigger SaveChatOptions action", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should trigger SaveChatOptions action", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -316,15 +346,22 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSaveOptionsBtnClick({} as MouseEvent, {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSaveOptionsBtnClick"]({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.SaveChatOptions);
+
+            unmount();
         });
 
-        it("should handle keyboard event", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle keyboard event", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -335,24 +372,31 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSaveOptionsBtnClick({} as KeyboardEvent, {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSaveOptionsBtnClick"]({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.SaveChatOptions);
+
+            unmount();
         });
     });
 
     describe("handleLoadOptionsBtnClick", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should trigger LoadChatOptions action", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should trigger LoadChatOptions action", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -363,15 +407,22 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleLoadOptionsBtnClick({} as MouseEvent, {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleLoadOptionsBtnClick"]({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.LoadChatOptions);
+
+            unmount();
         });
 
-        it("should handle keyboard event", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle keyboard event", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -382,24 +433,31 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleLoadOptionsBtnClick({} as KeyboardEvent, {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleLoadOptionsBtnClick"]({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.LoadChatOptions);
+
+            unmount();
         });
     });
 
     describe("handleSchemaChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update schema name when selecting a specific schema", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update schema name when selecting a specific schema", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -413,7 +471,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSchemaChange(true, new Set(["newSchema"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSchemaChange"](true, new Set(["newSchema"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -421,11 +482,15 @@ describe("ChatOptions", () => {
                     schemaName: "newSchema",
                 },
             });
+
+            unmount();
         });
 
-        it("should set schema name to undefined when selecting 'All Schemas'", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should set schema name to undefined when selecting 'All Schemas'", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -439,7 +504,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSchemaChange(true, new Set(["schemaDropdownAllSchemas"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSchemaChange"](true, new Set(["schemaDropdownAllSchemas"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -447,11 +515,15 @@ describe("ChatOptions", () => {
                     schemaName: undefined,
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve other options when updating schema", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve other options when updating schema", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -467,7 +539,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleSchemaChange(true, new Set(["newSchema"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleSchemaChange"](true, new Set(["newSchema"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -477,20 +552,24 @@ describe("ChatOptions", () => {
                     lockTableList: false,
                 },
             });
+
+            unmount();
         });
     });
 
     describe("handleModelIdChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update modelId when modelOptions exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update modelId when modelOptions exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -507,7 +586,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelIdChange(true, new Set(["newModel"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelIdChange"](true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -518,11 +600,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should create modelOptions when they don't exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should create modelOptions when they don't exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -534,7 +620,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelIdChange(true, new Set(["newModel"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelIdChange"](true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -544,11 +633,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve other options when updating modelId", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve other options when updating modelId", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -567,7 +660,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelIdChange(true, new Set(["newModel"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelIdChange"](true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -580,20 +676,24 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
     });
 
     describe("handleModelLanguageChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update model language when modelOptions exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update model language when modelOptions exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -610,7 +710,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelLanguageChange(true, new Set(["en"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["en"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -621,11 +724,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should create modelOptions when they don't exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should create modelOptions when they don't exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -637,7 +744,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelLanguageChange(true, new Set(["es"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["es"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -647,11 +757,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should clear languageOptions.language when setting non-English model language", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should clear languageOptions.language when setting non-English model language", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -672,7 +786,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelLanguageChange(true, new Set(["es"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["es"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -687,11 +804,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve languageOptions.language when setting English model language", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve languageOptions.language when setting English model language", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -712,7 +833,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleModelLanguageChange(true, new Set(["en"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["en"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -727,20 +851,24 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
     });
 
     describe("handleLanguageModelIdChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update modelId when languageOptions exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update modelId when languageOptions exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -757,7 +885,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleLanguageModelIdChange(true, new Set(["newTranslator"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -768,11 +899,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should create languageOptions when they don't exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should create languageOptions when they don't exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -784,7 +919,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleLanguageModelIdChange(true, new Set(["newTranslator"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -794,11 +932,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve other options when updating language modelId", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve other options when updating language modelId", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -821,7 +963,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleLanguageModelIdChange(true, new Set(["newTranslator"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -838,20 +983,24 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
     });
 
     describe("handlePreambleChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update preamble when options exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update preamble when options exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -871,7 +1020,10 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -879,11 +1031,15 @@ describe("ChatOptions", () => {
                     preamble: "new preamble",
                 },
             });
+
+            unmount();
         });
 
-        it("should create options with preamble when options don't exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should create options with preamble when options don't exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -900,7 +1056,10 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -908,11 +1067,15 @@ describe("ChatOptions", () => {
                     preamble: "new preamble",
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve other options when updating preamble", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve other options when updating preamble", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -937,7 +1100,10 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -950,11 +1116,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should handle empty preamble value", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle empty preamble value", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -974,7 +1144,10 @@ describe("ChatOptions", () => {
                 },
             } as unknown as InputEvent;
 
-            component.instance().handlePreambleChange(mockEvent, {} as IInputChangeProperties);
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -982,20 +1155,24 @@ describe("ChatOptions", () => {
                     preamble: "",
                 },
             });
+
+            unmount();
         });
     });
 
     describe("handleTranslationLanguageChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update translation language when languageOptions exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update translation language when languageOptions exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1012,7 +1189,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleTranslationLanguageChange(true, new Set(["fr"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1023,11 +1203,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should create languageOptions when they don't exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should create languageOptions when they don't exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1039,7 +1223,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleTranslationLanguageChange(true, new Set(["fr"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1049,11 +1236,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should set language to undefined when selecting 'noTranslation'", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should set language to undefined when selecting 'noTranslation'", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1070,7 +1261,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleTranslationLanguageChange(true, new Set(["noTranslation"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["noTranslation"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1081,11 +1275,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve other options when updating translation language", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve other options when updating translation language", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1108,7 +1306,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().handleTranslationLanguageChange(true, new Set(["fr"]));
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1125,20 +1326,24 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
     });
 
     describe("handleModelOptionChange", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should update model option when modelOptions exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should update model option when modelOptions exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1161,7 +1366,11 @@ describe("ChatOptions", () => {
                     value: "0.9",
                 },
             } as unknown as FocusEvent;
-            component.instance().handleModelOptionChange(e, {});
+
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelOptionChange"](e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1172,11 +1381,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should create modelOptions when they don't exist", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should create modelOptions when they don't exist", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1194,7 +1407,11 @@ describe("ChatOptions", () => {
                     value: "0.9",
                 },
             } as unknown as FocusEvent;
-            component.instance().handleModelOptionChange(e, {});
+
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelOptionChange"](e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1204,11 +1421,15 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
 
-        it("should preserve other options when updating model option", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should preserve other options when updating model option", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1237,7 +1458,11 @@ describe("ChatOptions", () => {
                     value: "0.9",
                 },
             } as unknown as FocusEvent;
-            component.instance().handleModelOptionChange(e, {});
+
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["handleModelOptionChange"](e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1254,20 +1479,24 @@ describe("ChatOptions", () => {
                     },
                 },
             });
+
+            unmount();
         });
     });
 
     describe("removeVectorTable", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should remove vector table from vectorTables array", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should remove vector table from vectorTables array", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1285,7 +1514,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().removeVectorTable("schema1.table1", {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["removeVectorTable"]("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1296,11 +1528,15 @@ describe("ChatOptions", () => {
                     ],
                 },
             });
+
+            unmount();
         });
 
-        it("should handle removing the last vector table", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle removing the last vector table", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1314,7 +1550,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().removeVectorTable("schema1.table1", {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["removeVectorTable"]("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1322,11 +1561,15 @@ describe("ChatOptions", () => {
                     tables: [],
                 },
             });
+
+            unmount();
         });
 
-        it("should handle case when vectorTables is undefined", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle case when vectorTables is undefined", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1338,7 +1581,10 @@ describe("ChatOptions", () => {
                 />,
             );
 
-            component.instance().removeVectorTable("schema1.table1", {});
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            chatOptionsRef.current!["removeVectorTable"]("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1346,20 +1592,24 @@ describe("ChatOptions", () => {
                     tables: undefined,
                 },
             });
+
+            unmount();
         });
     });
 
     describe("historyMessageColumnFormatter", () => {
-        const mockOnAction = jest.fn();
-        const mockOnChatOptionsStateChange = jest.fn();
+        const mockOnAction = vi.fn();
+        const mockOnChatOptionsStateChange = vi.fn();
 
         beforeEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
-        it("should format message without truncation", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should format message without truncation", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1371,16 +1621,24 @@ describe("ChatOptions", () => {
             );
 
             const message = {
-                getValue: jest.fn().mockReturnValue("Hello, this is a test message"),
+                getValue: vi.fn().mockReturnValue("Hello, this is a test message"),
             } as unknown as CellComponent;
-            const result = component.instance().historyMessageColumnFormatter(message);
+
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            const result = chatOptionsRef.current!["historyMessageColumnFormatter"](message);
 
             expect(result).toMatchSnapshot();
+
+            unmount();
         });
 
-        it("should handle empty message", () => {
-            const component = mount<ChatOptionsMock>(
-                <ChatOptionsMock
+        it("should handle empty message", async () => {
+            const chatOptionsRef = createRef<ChatOptions>();
+            const { unmount } = render(
+                <ChatOptions
+                    ref={chatOptionsRef}
                     savedState={{
                         chatOptionsExpanded: true,
                         chatOptionsWidth: 300,
@@ -1392,11 +1650,17 @@ describe("ChatOptions", () => {
             );
 
             const message = {
-                getValue: jest.fn().mockReturnValue(""),
+                getValue: vi.fn().mockReturnValue(""),
             } as unknown as CellComponent;
-            const result = component.instance().historyMessageColumnFormatter(message);
+
+            await nextRunLoop();
+            expect(chatOptionsRef.current).toBeDefined();
+
+            const result = chatOptionsRef.current!["historyMessageColumnFormatter"](message);
 
             expect(result).toMatchSnapshot();
+
+            unmount();
         });
     });
 });

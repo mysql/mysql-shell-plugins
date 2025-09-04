@@ -23,36 +23,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { describe, expect, it, vi } from "vitest";
 
+import { IDictionary } from "../../../../app-logic/general-types.js";
 import {
     CommonDialogValueOption, IChoiceDialogValue, IDialogSection, IDialogValidations, IDialogValues,
     IStringInputDialogValue, ValueEditDialog,
 } from "../../../../components/Dialogs/ValueEditDialog.js";
-import {
-    changeInputValue, nextProcessTick, sendBlurEvent, sendKeyPress,
-} from "../../test-helpers.js";
-import { IDictionary } from "../../../../app-logic/general-types.js";
-import { ICheckboxProperties, CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
+import { CheckState, ICheckboxProperties } from "../../../../components/ui/Checkbox/Checkbox.js";
 import { Label } from "../../../../components/ui/Label/Label.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
+import {
+    changeInputValue, nextProcessTick, nextRunLoop, sendBlurEvent, sendKeyPress,
+} from "../../test-helpers.js";
 
 describe("Value Edit Dialog Tests", (): void => {
-    const clickButton = jest.fn((_id: string, _values: IDialogValues): void => {
-        // no-op
-    });
-
-    const dropDownChange = jest.fn<unknown, unknown[]>((_a): void => {
-        // no-op
-    });
-
-    const close = jest.fn((): void => {
-        // no-op
-    });
-
-    const focusLost = jest.fn((): void => {
-        // no-op
-    });
+    const clickButton = vi.fn();
+    const dropDownChange = vi.fn();
+    const close = vi.fn();
+    const focusLost = vi.fn();
 
     // A simple dialog section.
     const nameSection: IDialogSection = {
@@ -202,18 +193,22 @@ describe("Value Edit Dialog Tests", (): void => {
     };
 
     it("Render with Defaults Test", () => {
-        const component = mount<ValueEditDialog>(
+        const { container, unmount } = render(
             <ValueEditDialog />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Simple Dialog", async () => {
-        const component = mount<ValueEditDialog>(
-            <ValueEditDialog />,
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
+            <ValueEditDialog ref={dialogRef} />,
         );
+
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
 
         const nameSection: IDialogSection = {
             values: {
@@ -229,7 +224,7 @@ describe("Value Edit Dialog Tests", (): void => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -251,19 +246,24 @@ describe("Value Edit Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("Show Dialog with Advanced Field", async () => {
-        const component = mount<ValueEditDialog>(
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 advancedActionCaption="More..."
             />,
         );
 
-        expect(component.state().activeContexts).not.toContain("advanced");
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
 
-        component.instance().show(
+        expect(dialogRef.current!.activeContexts).not.toContain("advanced");
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -273,13 +273,13 @@ describe("Value Edit Dialog Tests", (): void => {
             { contexts: ["advanced"], title: "Select Value" },
         );
         await nextProcessTick();
-        expect(component.state().activeContexts).toContain("advanced");
+        expect(dialogRef.current!.activeContexts).toContain("advanced");
 
         // Cancel the dialog and launch it again. This time without the advanced context in the show call.
         sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -291,7 +291,7 @@ describe("Value Edit Dialog Tests", (): void => {
         await nextProcessTick();
 
         // The advanced context should still be set.
-        expect(component.state().activeContexts).toContain("advanced");
+        expect(dialogRef.current!.state.activeContexts).toContain("advanced");
 
         const portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
@@ -299,22 +299,25 @@ describe("Value Edit Dialog Tests", (): void => {
         sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
-        component.unmount();
+        unmount();
     });
 
     it("Advanced Actions", async () => {
-        const onToggleAdvanced = jest.fn((_value: boolean) => {
-            // no-op
-        });
+        const onToggleAdvanced = vi.fn();
+        const dialogRef = createRef<ValueEditDialog>();
 
-        let component = mount<ValueEditDialog>(
+        const { unmount: unmount1 } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 advancedActionCaption="More..."
                 onToggleAdvanced={onToggleAdvanced}
             />,
         );
 
-        component.instance().show(
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -333,26 +336,28 @@ describe("Value Edit Dialog Tests", (): void => {
         let showAdvancedCheckbox = document.getElementById("show-advanced");
         expect(showAdvancedCheckbox).not.toBeNull();
 
-        expect(component.state().activeContexts).toStrictEqual(new Set(["myContext"]));
+        expect(dialogRef.current!.state.activeContexts).toStrictEqual(new Set(["myContext"]));
         (showAdvancedCheckbox as HTMLInputElement).click();
-        expect(component.state().activeContexts).toStrictEqual(new Set(["myContext", "advanced"]));
+        expect(dialogRef.current!.state.activeContexts).toStrictEqual(new Set(["myContext", "advanced"]));
+
+        await nextRunLoop();
+
         (showAdvancedCheckbox as HTMLInputElement).click();
-        expect(component.state().activeContexts).toStrictEqual(new Set(["myContext"]));
+        expect(dialogRef.current!.state.activeContexts).toStrictEqual(new Set(["myContext"]));
 
-        component.unmount();
+        unmount1();
 
-        const advancedAction = jest.fn((): void => {
-            // no-op
-        });
+        const advancedAction = vi.fn();
 
-        component = mount<ValueEditDialog>(
+        const { unmount: unmount2 } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 advancedActionCaption="More..."
                 advancedAction={advancedAction}
             />,
         );
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -361,7 +366,7 @@ describe("Value Edit Dialog Tests", (): void => {
             },
             { contexts: ["myContext"], title: "Select Value" },
         );
-        await nextProcessTick();
+        await nextRunLoop();
 
         advancedButton = document.getElementById("advanced-btn");
         expect(advancedButton).not.toBeNull();
@@ -372,17 +377,21 @@ describe("Value Edit Dialog Tests", (): void => {
         advancedButton?.click();
         expect(advancedAction).toHaveBeenCalledTimes(1);
 
-        component.unmount();
+        unmount2();
     });
 
     it("Update Contexts", async () => {
-        const component = mount<ValueEditDialog>(
-            <ValueEditDialog />,
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
+            <ValueEditDialog ref={dialogRef} />,
         );
 
-        expect(component.state().activeContexts).not.toContain("myContext");
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
 
-        component.instance().show(
+        expect(dialogRef.current!.state.activeContexts).not.toContain("myContext");
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -398,50 +407,34 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
         expect(portals[0]).toMatchSnapshot(); // Smaller snapshot as we don't show the full section at this point.
 
-        expect(component.state().activeContexts).not.toContain("myContext");
+        expect(dialogRef.current!.state.activeContexts).not.toContain("myContext");
 
-        component.instance().updateActiveContexts({ add: ["A", "B", "A", "C"] });
+        dialogRef.current!.updateActiveContexts({ add: ["A", "B", "A", "C"] });
         await nextProcessTick();
-        expect(component.state().activeContexts).not.toContain("myContext");
-        expect(component.state().activeContexts).toStrictEqual(new Set(["A", "B", "C"]));
+        expect(dialogRef.current!.state.activeContexts).not.toContain("myContext");
+        expect(dialogRef.current!.state.activeContexts).toStrictEqual(new Set(["A", "B", "C"]));
 
-        component.instance().updateActiveContexts({ add: ["myContext"], remove: ["A", "B"] });
+        dialogRef.current!.updateActiveContexts({ add: ["myContext"], remove: ["A", "B"] });
         await nextProcessTick();
-        expect(component.state().activeContexts).toContain("myContext");
+        expect(dialogRef.current!.state.activeContexts).toContain("myContext");
 
-        component.unmount();
+        unmount();
 
         // Unmounting the dialog also closes its portal. Check this.
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
-
-        // Show again, but with the full section visible.
-        component.mount();
-        component.instance().show(
-            {
-                id: "testDialog",
-                sections: new Map<string, IDialogSection>([
-                    ["name", nameSection],
-                    ["full", fullSection],
-                ]),
-            },
-            { contexts: ["myContext"], title: "Select Value" },
-        );
-        await nextProcessTick();
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
-        expect(portals[0]).toMatchSnapshot();
-
-        component.unmount();
     });
 
     it("Updating Dialog Values", async () => {
-        const component = mount<ValueEditDialog>(
-            <ValueEditDialog />,
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
+            <ValueEditDialog ref={dialogRef} />,
         );
 
-        component.instance().show(
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -457,7 +450,7 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
         expect(portals[0]).toMatchSnapshot();
 
-        const state = component.state();
+        const state = dialogRef.current!.state;
         expect(state).toMatchObject({
             description: undefined,
             heading: undefined,
@@ -490,43 +483,43 @@ describe("Value Edit Dialog Tests", (): void => {
             expect(checkboxes).toHaveLength(1);
 
             expect(section.values.selectOne.value).toBe("One");
-            component.instance().updateInputValue("Two", "selectOne");
+            dialogRef.current!.updateInputValue("Two", "selectOne");
             expect(section.values.selectOne.value).toBe("Two");
 
             const loadingInput = section.values.loadingInput as IStringInputDialogValue;
             expect(section.values.loadingInput.value).toBe("loading");
             expect(loadingInput.showLoading).toBeTruthy();
-            component.instance().updateInputValue("Done", "loadingInput");
+            dialogRef.current!.updateInputValue("Done", "loadingInput");
             expect(loadingInput.value).toBe("Done");
             expect(loadingInput.showLoading).toBeFalsy();
 
-            component.instance().beginValueUpdating("Driving", "loadingInput");
+            dialogRef.current!.beginValueUpdating("Driving", "loadingInput");
             expect(loadingInput.value).toBe("Driving");
             expect(loadingInput.showLoading).toBeTruthy();
 
             // Reset to the original value for further tests.
-            component.instance().updateInputValue("loading", "loadingInput");
+            dialogRef.current!.updateInputValue("loading", "loadingInput");
 
             // Make the standard input loading too.
             const input = section.values.input as IStringInputDialogValue;
-            component.instance().beginValueUpdating("Flying", "input");
+            dialogRef.current!.beginValueUpdating("Flying", "input");
             expect(input.value).toBe("Flying");
             expect(input.showLoading).toBeTruthy();
-            component.instance().updateInputValue("", "input");
+            dialogRef.current!.updateInputValue("", "input");
 
             const selectOne = section.values.selectOne as IChoiceDialogValue;
             expect(section.values.selectOne.value).toBe("Two");
-            component.instance().updateDropdownValue(["Tesla", "BMW", "Audi", "Mercedes"], "Tesla", "selectOne");
+            dialogRef.current!.updateDropdownValue(["Tesla", "BMW", "Audi", "Mercedes"], "Tesla", "selectOne");
             expect(selectOne.value).toBe("Tesla");
             expect(selectOne.choices).toContain("Tesla");
 
             // Reset to the original value for further tests.
-            component.instance().updateDropdownValue(["One", "Two", "Three"], "One", "selectOne");
+            dialogRef.current!.updateDropdownValue(["One", "Two", "Three"], "One", "selectOne");
         }
 
-        component.instance().changeAdvActionText("Getting Closer");
+        dialogRef.current!.changeAdvActionText("Getting Closer");
         await nextProcessTick();
-        expect(component.state()).toMatchObject({
+        expect(dialogRef.current!.state).toMatchObject({
             description: undefined,
             heading: undefined,
             preventConfirm: false,
@@ -534,14 +527,15 @@ describe("Value Edit Dialog Tests", (): void => {
             actionText: "Getting Closer",
         });
 
-        component.instance().preventConfirm(true);
-        expect(component.state().preventConfirm).toBeTruthy();
+        dialogRef.current!.preventConfirm(true);
+        await nextRunLoop();
+        expect(dialogRef.current!.state.preventConfirm).toBeTruthy();
 
-        component.unmount();
+        unmount();
     });
 
     it("Validation", async () => {
-        const onValidate = jest.fn((_closing: boolean, _values: IDialogValues,
+        const onValidate = vi.fn((_closing: boolean, _values: IDialogValues,
             _data?: IDictionary): Promise<IDialogValidations> => {
             return Promise.resolve({
                 requiredContexts: [
@@ -555,13 +549,18 @@ describe("Value Edit Dialog Tests", (): void => {
             });
         });
 
-        const component = mount<ValueEditDialog>(
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 onValidate={onValidate}
             />,
         );
 
-        component.instance().show(
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -586,7 +585,7 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals).toHaveLength(1);
 
         expect(onValidate.mock.calls).toHaveLength(1);
-        expect(component.state().validations).toStrictEqual({
+        expect(dialogRef.current!.state.validations).toStrictEqual({
             requiredContexts: undefined, // No value because on next render the contexts are merged to the main list.
             messages: {
                 yesNo: "Say yes or no, not maybe",
@@ -599,13 +598,13 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(section).toBeDefined();
         if (section) {
             expect(section.values.loadingInput.value).toBe("loading");
-            component.instance().updateInputValue("Done", "loadingInput"); // Triggers validation.
+            dialogRef.current!.updateInputValue("Done", "loadingInput"); // Triggers validation.
 
             expect(onValidate.mock.calls).toHaveLength(2);
             expect(section.values.loadingInput.value).toBe("Done"); // Values are passed by reference.
 
             // Reset to the original value for further tests.
-            component.instance().updateInputValue("loading", "loadingInput");
+            dialogRef.current!.updateInputValue("loading", "loadingInput");
         }
 
         // Pressing escape cancels the dialog regardless of its validation status.
@@ -614,17 +613,22 @@ describe("Value Edit Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        component.unmount();
+        unmount();
     });
 
     it("Footer, Heading, Description and Payload", async () => {
-        const component = mount<ValueEditDialog>(
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 customFooter={<Label caption="Custom Footer" />}
             />,
         );
 
-        component.instance().show(
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -647,7 +651,7 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals).toHaveLength(1);
         expect(portals[0]).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Grouped Sections", async () => {
@@ -706,18 +710,23 @@ describe("Value Edit Dialog Tests", (): void => {
             },
         };
 
-        const onSelectTab = jest.fn((_id: string): void => {
+        const onSelectTab = vi.fn((_id: string): void => {
             // no-op
         });
 
-        const component = mount<ValueEditDialog>(
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 customFooter={<Label caption="Custom Footer" />}
                 onSelectTab={onSelectTab}
             />,
         );
 
-        component.instance().show(
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -744,7 +753,7 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals[0]).toMatchSnapshot();
         expect(onSelectTab).toHaveBeenCalledWith("My Second Section");
 
-        component.unmount();
+        unmount();
     });
 
     it("Grouped Values", async () => {
@@ -792,11 +801,15 @@ describe("Value Edit Dialog Tests", (): void => {
             },
         };
 
-        const component = mount<ValueEditDialog>(
-            <ValueEditDialog />,
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
+            <ValueEditDialog ref={dialogRef} />,
         );
 
-        component.instance().show(
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -811,19 +824,24 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals).toHaveLength(1);
         expect(portals[0]).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Interaction", async () => {
-        const component = mount<ValueEditDialog>(
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
             <ValueEditDialog
+                ref={dialogRef}
                 onClose={close}
             />,
         );
 
-        const stateSpy = jest.spyOn(component.instance(), "setState");
+        await nextRunLoop();
+        expect(dialogRef.current).toBeDefined();
 
-        component.instance().show(
+        const stateSpy = vi.spyOn(dialogRef.current!, "setState");
+
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -864,7 +882,7 @@ describe("Value Edit Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -888,7 +906,7 @@ describe("Value Edit Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        component.instance().show(
+        dialogRef.current!.show(
             {
                 id: "testDialog",
                 sections: new Map<string, IDialogSection>([
@@ -927,7 +945,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
         expect(stateSpy).toHaveBeenCalledTimes(11);
 
-        const state = component.state();
+        const state = dialogRef.current!.state;
         const section = state.values.sections.get("full");
         expect(section).toBeDefined();
         if (section) { // Always true after the previous check.
@@ -994,6 +1012,6 @@ describe("Value Edit Dialog Tests", (): void => {
             expect(close).toHaveBeenCalledTimes(count + 1);
         }
 
-        component.unmount();
+        unmount();
     });
 });

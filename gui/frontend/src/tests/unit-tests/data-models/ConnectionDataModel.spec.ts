@@ -23,7 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
+import type { DataCallback } from "../../../communication/MessageScheduler.js";
+import type { IOpenConnectionData, ShellAPIGui } from "../../../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsRouterData, IMrsRouterService, IMrsSchemaData,
     IMrsServiceData, IMrsStatusData, IMrsUserData,
@@ -32,169 +36,156 @@ import {
     CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
     type ICdmConnectionGroupEntry,
 } from "../../../data-models/ConnectionDataModel.js";
+import { ShellInterfaceMrs } from "../../../supplement/ShellInterface/ShellInterfaceMrs.js";
+import { ShellInterfaceCore } from "../../../supplement/ShellInterface/ShellInterfaceCore.js";
+import { ShellInterfaceDbConnection } from "../../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { ILoginCredentials, webSession } from "../../../supplement/WebSession.js";
 import { sleep } from "../../../utilities/helpers.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
-import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
+import { checkNoUiWarningsOrErrors, mockClassMethods } from "../test-helpers.js";
 import {
     authAppsData, cdmMockState, connectionDetailsMock1, connectionFolderMock1, extraConnectionDetails,
     mrsContentFileData, mrsContentSetData, mrsRouterData, mrsSchemaData, mrsServiceData, mrsServicesData,
-    mrsStatusMock, mrsUserData, openConnectionDataMock1, routerServiceData, type OpenConnectionResponse,
+    mrsStatusMock, mrsUserData, openConnectionDataMock1, routerServiceData,
 } from "./data-model-test-data.js";
 
-const dataModelChanged = jest.fn();
+const dataModelChanged = vi.fn();
 
-jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () => {
-    return {
+mockClassMethods(ShellInterfaceSqlEditor, {
+    startSession: vi.fn(),
+    closeSession: vi.fn(),
+    openConnection: async (
+        dbConnectionId: number,
+        requestId?: string,
+        credentials?: ILoginCredentials,
+        callback?: DataCallback<ShellAPIGui.GuiSqlEditorOpenConnection>,
+    ) => {
+        await callback?.({
+            result: cdmMockState.haveMockConnectionResponse ? openConnectionDataMock1 : {} as IOpenConnectionData,
+            requestState: { type: "success", msg: "" },
+        }, requestId!);
 
-        ShellInterfaceSqlEditor: jest.fn().mockImplementation(() => {
-            return {
-                startSession: jest.fn(),
-                closeSession: jest.fn(),
-                openConnection: (id: string, requestId: string, credentials: ILoginCredentials | undefined,
-                    callback: (response: OpenConnectionResponse, resultId: string) => void) => {
-                    callback({
-                        result: cdmMockState.haveMockConnectionResponse ? openConnectionDataMock1 : undefined,
-                    }, requestId);
-                },
-                getCatalogObjects: jest.fn().mockReturnValue([
-                    "sakila", "mysql_rest_service_metadata",
-                ]),
-                getSchemaObjectNames: jest.fn().mockReturnValue([
-                    "actor", "address", "category", "city", "country", "customer", "film", "film_actor",
-                    "film_category", "inventory", "language", "payment", "rental", "staff", "store",
-                ]),
-                getRoutinesMetadata: jest.fn().mockReturnValue([
-                    { type: "PROCEDURE", language: "SQL", name: "proc1" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc2" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc3" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc4" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc5" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc6" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc7" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc8" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc9" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc10" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc11" },
-                    { type: "PROCEDURE", language: "SQL", name: "proc12" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc13" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc14" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc15" },
-                ]),
-                getLibrariesMetadata: jest.fn().mockReturnValue([
-                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib1" },
-                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib2" },
-                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib3" },
-                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib4" },
-                ]),
-                getTableObjectNames: jest.fn().mockReturnValue([
-                    "object1", "object1", // In lieu of any database object name.
-                ]),
-                getTableObject: jest.fn().mockReturnValue({
-                    name: "object1",
-                }),
-
-                mrs: {
-                    status: (): Promise<IMrsStatusData> => {
-                        return Promise.resolve(mrsStatusMock);
-                    },
-                    listServices: (): Promise<IMrsServiceData[]> => {
-                        return Promise.resolve(mrsServicesData);
-                    },
-                    listSchemas: (): Promise<IMrsSchemaData[]> => {
-                        return Promise.resolve(mrsSchemaData);
-                    },
-                    listRouters: (): Promise<IMrsRouterData[]> => {
-                        return Promise.resolve(mrsRouterData);
-                    },
-                    listContentSets: (): Promise<IMrsContentSetData[]> => {
-                        return Promise.resolve(mrsContentSetData);
-                    },
-                    listUsers: (): Promise<IMrsUserData[]> => {
-                        return Promise.resolve(mrsUserData);
-                    },
-                    listContentFiles: (): Promise<IMrsContentFileData[]> => {
-                        return Promise.resolve(mrsContentFileData);
-                    },
-                    getService: (): Promise<IMrsServiceData> => {
-                        return Promise.resolve(mrsServiceData);
-                    },
-                    getAuthApps: (): Promise<IMrsAuthAppData[]> => {
-                        return Promise.resolve(authAppsData);
-                    },
-                    getSchema: (): Promise<IMrsSchemaData> => {
-                        return Promise.resolve(mrsSchemaData[0]);
-                    },
-                    getRouterServices: (): Promise<IMrsRouterService[]> => {
-                        return Promise.resolve(routerServiceData);
-                    },
-                    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
-                        return Promise.resolve(authAppsData);
-                    },
-                    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
-                        return Promise.resolve([]);
-                    },
-                },
-            };
-        }),
-    };
+        return Promise.resolve(undefined);
+    },
+    getCatalogObjects: vi.fn().mockReturnValue([
+        "sakila", "mysql_rest_service_metadata",
+    ]),
+    getSchemaObjectNames: vi.fn().mockReturnValue([
+        "actor", "address", "category", "city", "country", "customer", "film", "film_actor",
+        "film_category", "inventory", "language", "payment", "rental", "staff", "store",
+    ]),
+    getRoutinesMetadata: vi.fn().mockReturnValue([
+        { type: "PROCEDURE", language: "SQL", name: "proc1" },
+        { type: "PROCEDURE", language: "SQL", name: "proc2" },
+        { type: "PROCEDURE", language: "SQL", name: "proc3" },
+        { type: "PROCEDURE", language: "SQL", name: "proc4" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc5" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc6" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc7" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc8" },
+        { type: "PROCEDURE", language: "SQL", name: "proc9" },
+        { type: "PROCEDURE", language: "SQL", name: "proc10" },
+        { type: "PROCEDURE", language: "SQL", name: "proc11" },
+        { type: "PROCEDURE", language: "SQL", name: "proc12" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc13" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc14" },
+        { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc15" },
+    ]),
+    getLibrariesMetadata: vi.fn().mockReturnValue([
+        { type: "LIBRARY", language: "JAVASCRIPT", name: "lib1" },
+        { type: "LIBRARY", language: "JAVASCRIPT", name: "lib2" },
+        { type: "LIBRARY", language: "JAVASCRIPT", name: "lib3" },
+        { type: "LIBRARY", language: "JAVASCRIPT", name: "lib4" },
+    ]),
+    getTableObjectNames: vi.fn().mockReturnValue([
+        "object1", "object1", // In lieu of any database object name.
+    ]),
+    getTableObject: vi.fn().mockReturnValue({
+        name: "object1",
+    }),
 });
 
-jest.mock("../../../supplement/ShellInterface/ShellInterfaceDbConnection.js", () => {
-    return {
-
-        ShellInterfaceDbConnection: jest.fn().mockImplementation(() => {
-            return {
-                listDbConnections: jest.fn().mockImplementation(() => {
-                    if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
-                        cdmMockState.mockConnectedLoaded = true;
-
-                        return connectionDetailsMock1.slice(0, 1);
-                    }
-
-                    return [...connectionDetailsMock1];
-                }),
-                removeDbConnection: jest.fn(),
-                listFolderPaths: jest.fn().mockImplementation(() => {
-                    return Promise.resolve([
-                        {
-                            id: 1,
-                            caption: "Test folder",
-                            parentFolderId: undefined,
-                        },
-                    ]);
-                }),
-                listAll: jest.fn().mockImplementation((profileId: number, folderId: number) => {
-                    if (profileId === -1 || folderId > 1) {
-                        return Promise.resolve([]);
-                    }
-
-                    if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
-                        cdmMockState.mockConnectedLoaded = true;
-
-                        return connectionDetailsMock1.slice(0, 1);
-                    }
-
-                    return Promise.resolve([
-                        connectionFolderMock1,
-                        ...connectionDetailsMock1,
-                    ]);
-                }),
-            };
-        }),
-    };
+mockClassMethods(ShellInterfaceMrs, {
+    status: (): Promise<IMrsStatusData> => {
+        return Promise.resolve(mrsStatusMock);
+    },
+    listServices: (): Promise<IMrsServiceData[]> => {
+        return Promise.resolve(mrsServicesData);
+    },
+    listSchemas: (): Promise<IMrsSchemaData[]> => {
+        return Promise.resolve(mrsSchemaData);
+    },
+    listRouters: (): Promise<IMrsRouterData[]> => {
+        return Promise.resolve(mrsRouterData);
+    },
+    listContentSets: (): Promise<IMrsContentSetData[]> => {
+        return Promise.resolve(mrsContentSetData);
+    },
+    listUsers: (): Promise<IMrsUserData[]> => {
+        return Promise.resolve(mrsUserData);
+    },
+    listContentFiles: (): Promise<IMrsContentFileData[]> => {
+        return Promise.resolve(mrsContentFileData);
+    },
+    getService: (): Promise<IMrsServiceData> => {
+        return Promise.resolve(mrsServiceData);
+    },
+    getSchema: (): Promise<IMrsSchemaData> => {
+        return Promise.resolve(mrsSchemaData[0]);
+    },
+    getRouterServices: (): Promise<IMrsRouterService[]> => {
+        return Promise.resolve(routerServiceData);
+    },
+    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+        return Promise.resolve(authAppsData);
+    },
+    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
+        return Promise.resolve([]);
+    },
 });
 
-jest.mock("../../../supplement/ShellInterface/ShellInterfaceCore.js", () => {
-    return {
+mockClassMethods(ShellInterfaceDbConnection, {
+    listDbConnections: vi.fn().mockImplementation(() => {
+        if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
+            cdmMockState.mockConnectedLoaded = true;
 
-        ShellInterfaceCore: jest.fn().mockImplementation(() => {
-            return {
-                createDatabaseFile: jest.fn(),
-                validatePath: jest.fn().mockReturnValue(Promise.resolve(true)),
-            };
-        }),
-    };
+            return connectionDetailsMock1.slice(0, 1);
+        }
+
+        return [...connectionDetailsMock1];
+    }),
+    removeDbConnection: vi.fn(),
+    listFolderPaths: vi.fn().mockImplementation(() => {
+        return Promise.resolve([
+            {
+                id: 1,
+                caption: "Test folder",
+                parentFolderId: undefined,
+            },
+        ]);
+    }),
+    listAll: vi.fn().mockImplementation((profileId: number, folderId: number) => {
+        if (profileId === -1 || folderId > 1) {
+            return Promise.resolve([]);
+        }
+
+        if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
+            cdmMockState.mockConnectedLoaded = true;
+
+            return connectionDetailsMock1.slice(0, 1);
+        }
+
+        return Promise.resolve([
+            connectionFolderMock1,
+            ...connectionDetailsMock1,
+        ]);
+    }),
+});
+
+mockClassMethods(ShellInterfaceCore, {
+    createDatabaseFile: vi.fn(),
+    validatePath: vi.fn().mockReturnValue(Promise.resolve(true)),
 });
 
 describe("ConnectionDataModel", () => {
@@ -217,14 +208,11 @@ describe("ConnectionDataModel", () => {
     afterAll(() => {
         dataModel.unsubscribe(dataModelChanged);
 
-        jest.restoreAllMocks();
-        jest.unmock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js");
-        jest.unmock("../../../supplement/ShellInterface/ShellInterfaceDbConnection.js");
-        jest.unmock("../../../supplement/ShellInterface/ShellInterfaceCore.js");
+        vi.restoreAllMocks();
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         dataModelChanged.mockClear();
     });
 

@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,9 @@
  */
 
 import { join } from "path";
-import Sequencer from "@jest/test-sequencer";
+import { BaseSequencer, type TestSpecification } from "vitest/node";
+
+// eslint-disable-next-line no-restricted-syntax
 const basePath = join(process.cwd(), "src", "tests", "e2e", "tests");
 
 const testPriority = new Map([
@@ -40,20 +42,17 @@ const testPriority = new Map([
     [join(basePath, "ui-open-editors.ts"), 9],
 ]);
 
-class CustomSequencer extends Sequencer.default {
-    // eslint-disable-next-line max-len
-    // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility, @typescript-eslint/explicit-module-boundary-types
-    sort(tests) {
+export class CustomSequencer extends BaseSequencer {
+
+    public override sort(tests: TestSpecification[]): Promise<TestSpecification[]> {
         const copyTests = [...tests];
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return copyTests.sort((testA, testB) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const testAPriority = testPriority.get(testA.path);
-            const testBPriority = testPriority.get(testB.path);
+        return Promise.resolve(copyTests.sort((testA, testB) => {
+
+            const testAPriority = testPriority.get(testA.moduleId) ?? Number.MAX_SAFE_INTEGER;
+            const testBPriority = testPriority.get(testB.moduleId) ?? Number.MAX_SAFE_INTEGER;
 
             return testAPriority > testBPriority ? 1 : -1;
-        });
+        }));
     }
 }
-export default CustomSequencer;

@@ -220,7 +220,7 @@ export interface IMySQLConnectionOptions {
     "mrs-service-host"?: string;
 
     /** Additional connection options. */
-    "extra-options"?: { [key: string]: string; };
+    "extra-options"?: Record<string, string>;
 }
 
 export const getMySQLDbConnectionUri = (details: IConnectionDetails): string => {

@@ -23,25 +23,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { IThemeObject, ThemeManager } from "../../../../components/Theming/ThemeManager.js";
- 
-jest.mock("../../../../components/Theming/assets/light-modern-color-theme.json", (): unknown => {
+
+vi.mock("../../../../components/Theming/assets/light-modern-color-theme.json", () => {
     return {
-        name: "Light Modern",
-        type: "light",
-        colors: {
-            "foreground": "#000",
-            "textLink.foreground": "#000",
+        default: {
+            name: "Light Modern",
+            type: "light",
+            colors: {
+                "foreground": "#000",
+                "textLink.foreground": "#000",
+            },
+            tokenColors: [{
+                scope: [],
+                settings: { background: "#FFF" },
+            }],
         },
-        tokenColors: [{
-            scope: [],
-            settings: { background: "#FFF" },
-        }],
     };
-}, { virtual: true });
+});
 
 describe("ThemeManager tests", () => {
     const themeManager = ThemeManager.get;
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Create instance and init", () => {
 

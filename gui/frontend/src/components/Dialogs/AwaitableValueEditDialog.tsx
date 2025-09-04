@@ -93,7 +93,6 @@ export class AwaitableValueEditDialog extends ComponentBase {
      *
      * @returns A dictionary of validation messages.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected validateInput = (closing: boolean, values: IDialogValues): Promise<IDialogValidations> => {
         return Promise.resolve({ messages: {} });
     };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { describe, expect, it } from "vitest";
+
 import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
 
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
@@ -35,7 +37,7 @@ describe("ScriptingLanguageServices Tests", () => {
     const services = ScriptingLanguageServices.instance;
 
     // TODO: cannot test the services, because workers are mocked.
-    xit("Code Completion", async () => {
+    it.skip("Code Completion", async () => {
         await sleep(1000);
         const jsModel: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
             executionContexts: new ExecutionContexts(),

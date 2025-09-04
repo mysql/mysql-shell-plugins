@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,41 +23,36 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
-import { act } from "preact/test-utils";
+import { render } from "@testing-library/preact";
+import { userEvent } from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
-import { Radiobutton, IRadiobuttonProperties } from "../../../../components/ui/Radiobutton/Radiobutton.js";
-import { KeyboardKeys } from "../../../../utilities/helpers.js";
-
-import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
-import { mouseEventMock } from "../../__mocks__/EventMocks.js";
+import { Radiobutton } from "../../../../components/ui/Radiobutton/Radiobutton.js";
 
 describe("Radiobutton component tests", (): void => {
+    const localEvent = userEvent.setup();
 
     it("Test Radiobutton output 1", async () => {
-        const component = mount(
-            <Radiobutton id="rb1" onClick={jest.fn()} name="rb">
+        const onClick = vi.fn();
+        const { getByText, unmount } = render(
+            <Radiobutton id="rb1" onClick={onClick} name="rb">
                 Unchecked radiobutton
             </Radiobutton>,
         );
-        expect(component).toBeTruthy();
-        expect(component.text()).toEqual("Unchecked radiobutton");
 
-        const instance = component.instance();
-        const spyOnClick = jest.spyOn(instance.props as IRadiobuttonProperties, "onClick");
-        expect(spyOnClick).not.toHaveBeenCalled();
-        const click = (component.props() as IRadiobuttonProperties).onClick;
-        await act(() => {
-            click?.(mouseEventMock, { id: "1" });
-        });
-        expect(spyOnClick).toHaveBeenCalled();
+        const radioLabel = getByText("Unchecked radiobutton");
+        expect(radioLabel).toBeTruthy();
+        expect(radioLabel.textContent).toEqual("Unchecked radiobutton");
+        expect(onClick).not.toHaveBeenCalled();
+        await localEvent.click(radioLabel);
+        expect(onClick).toHaveBeenCalled();
 
-        component.unmount();
+        unmount();
     });
 
     it("Test Radiobutton output (snapshot)", () => {
-        const component = mount<Radiobutton>(
+        const { container, unmount } = render(
             <Radiobutton
                 id="rb4"
                 name="rbx"
@@ -67,13 +62,13 @@ describe("Radiobutton component tests", (): void => {
             />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
     it("Radiobutton interaction", async () => {
-        const component = mount<Radiobutton>(
+        const { getByRole, unmount } = render(
             <Radiobutton
                 id="rb4"
                 name="rbx"
@@ -83,14 +78,12 @@ describe("Radiobutton component tests", (): void => {
             />,
         );
 
-        await nextProcessTick();
-
-        const button = component.find(Radiobutton);
+        const button = getByRole("radio", { name: "Disabled Radiobutton" });
         expect(button).not.toBeNull();
+        button.focus();
 
-        sendKeyPress(KeyboardKeys.Space);
-        await nextProcessTick();
+        await userEvent.keyboard("[Space]");
 
-        component.unmount();
+        unmount();
     });
 });

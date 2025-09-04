@@ -216,7 +216,6 @@ export interface IMrsRouterService {
     sortedDevelopers: string | null;
 }
 
-
 export interface IMrsCurrentServiceMetadata {
     id?: string;
     hostCtx?: string;
@@ -494,9 +493,7 @@ export interface IMrsConfigGtid {
     cache?: IMrsConfigGtidCache;
 }
 
-export interface IStringDict {
-    [key: string]: string;
-}
+export type IStringDict = Record<string, string>;
 
 export interface IMrsConfigData {
     authentication?: IMrsConfigAuthentication;

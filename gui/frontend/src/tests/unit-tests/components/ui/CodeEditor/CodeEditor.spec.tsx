@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,19 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount } from "enzyme";
+import { describe, expect, it } from "vitest";
 
+import { render } from "@testing-library/preact";
 import { CodeEditor } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 
 describe("CodeEditor component tests", (): void => {
 
     it("Standard Rendering", () => {
-        const component = mount<CodeEditor>(
+        const { container, unmount } = render(
             <CodeEditor />,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 
 });

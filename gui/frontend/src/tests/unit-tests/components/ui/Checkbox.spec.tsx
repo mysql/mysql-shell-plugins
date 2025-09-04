@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,39 +23,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
-import { act } from "@testing-library/preact";
+import { act, render } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
 
-import { Checkbox, CheckState, ICheckboxProperties } from "../../../../components/ui/Checkbox/Checkbox.js";
-import { mouseEventMock } from "../../__mocks__/EventMocks.js";
+import { Checkbox, CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
 
 describe("Checkbox component tests", (): void => {
     it("Test checkbox click", async () => {
-        const checkbox = shallow(
+        const onChange = vi.fn();
+        const { container, unmount } = render(
             <Checkbox
                 id="cb1"
                 checkState={CheckState.Unchecked}
-                onChange={jest.fn()}
+                onChange={onChange}
             >
                 Off
             </Checkbox>,
         );
-        expect(checkbox).toBeTruthy();
-        expect(checkbox.text()).toEqual("Off");
-        const chb = checkbox.find("label");
-        expect(chb.hasClass("unchecked")).toBeTruthy();
 
-        const instance = checkbox.instance();
-        const spyOnChange = jest.spyOn(instance.props as ICheckboxProperties, "onChange");
-        const click = (checkbox.props() as ICheckboxProperties).onClick;
+        const chb = container.getElementsByTagName("label")[0];
+        expect(chb.childNodes[1].textContent).toEqual("Off");
+        expect(chb?.classList.contains("unchecked")).toBeTruthy();
+
         await act(() => {
-            click?.(mouseEventMock, { id: "1" });
+            chb?.click();
         });
-        expect(spyOnChange).toHaveBeenCalled();
+        expect(onChange).toHaveBeenCalled();
+
+        unmount();
     });
 
     it("Test checkbox output (Snapshot)", () => {
-        const component = mount(
+        const { container, unmount } = render(
             <div>
                 <Checkbox id="cb1">
                     Unchecked checkbox
@@ -78,8 +77,8 @@ describe("Checkbox component tests", (): void => {
                 </Checkbox>
             </div>,
         );
-        expect(component).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        component.unmount();
+        unmount();
     });
 });

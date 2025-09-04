@@ -238,7 +238,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             if (index > -1) {
                 const context = this.model?.executionContexts?.contextAt(index);
                 if (context) {
-                    void onExplainError?.(context, {}).then(() => { this.editor?.focus(); });
+                    void onExplainError?.(context, {}).then(() => {
+                        this.editor?.focus();
+                    });
                 }
             }
         });

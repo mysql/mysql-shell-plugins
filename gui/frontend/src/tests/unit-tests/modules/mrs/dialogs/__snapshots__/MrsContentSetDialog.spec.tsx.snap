@@ -1,331 +1,651 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and escape 1`] = `
+exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog (snapshot) and escape 1`] = `
 <div
-  class="msg portal"
-  id="mrsContentSetDialog"
-  style="--background-opacity: 0.5;"
+  class="msg dialog visible valueEditDialog"
 >
   <div
-    class="msg dialog visible valueEditDialog"
+    class="title verticalCenterContent"
   >
     <div
-      class="title verticalCenterContent"
+      class="msg icon codicon codicon-terminal"
+    />
+    <label
+      class="msg label"
+      data-tooltip="expand"
     >
-      <div
-        class="msg icon codicon codicon-terminal"
-      />
-      <label
-        class="msg label"
-        data-tooltip="expand"
-      >
-        MRS Content Set
-      </label>
-      <div
-        class="msg button imageOnly"
-        id="closeButton"
-        role="button"
-        tabindex="0"
-      >
-        <div
-          class="msg icon"
-          style="mask-image: url("close2.svg");"
-        />
-      </div>
-    </div>
+      MRS Content Set
+    </label>
     <div
-      class="content fixedScrollbar"
+      class="msg button imageOnly"
+      id="closeButton"
+      role="button"
+      tabindex="0"
     >
       <div
-        class="msg grid"
-        id="contentGrid"
-        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+        class="msg icon"
+        style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+      />
+    </div>
+  </div>
+  <div
+    class="content fixedScrollbar"
+  >
+    <div
+      class="msg grid"
+      id="contentGrid"
+      style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+    >
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: row; grid-column: span 8;"
+      >
+        <label
+          class="msg label sectionTitle"
+          data-tooltip="expand"
+        >
+          Enter Configuration Values for the New MRS Static Content Set
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Request Path
+        </label>
+        <div
+          class="msg container fixedScrollbar inputWithProgress"
+          style="flex-direction: row;"
+        >
+          <input
+            class="msg input valueEditor"
+            id="requestPath"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          The request path to access the content, has to start with /
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          REST Service Path
+        </label>
+        <div
+          class="msg container fixedScrollbar dropdown valueEditor"
+          data-tooltip="inherit"
+          id="service"
+          style="flex-direction: row; align-items: center;"
+          tabindex="0"
+        >
+          <label
+            class="msg label ellipsis"
+            data-tooltip="expand"
+          >
+            
+          </label>
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          The MRS Service to hold the content
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Access Control
+        </label>
+        <div
+          class="msg container fixedScrollbar dropdown valueEditor"
+          data-tooltip="inherit"
+          id="enabled"
+          style="flex-direction: row; align-items: center;"
+          tabindex="0"
+        >
+          <label
+            class="msg label ellipsis"
+            data-tooltip="expand"
+          >
+            Access ENABLED
+          </label>
+        </div>
+        <label
+          class="msg checkbox unchecked valueEditor"
+          id="requiresAuth"
+          tabindex="0"
+        >
+          <span
+            class="checkMark"
+          />
+          Auth. Required
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Folder to upload
+        </label>
+        <div
+          class="msg container fixedScrollbar fileSelector valueEditor"
+          style="flex-direction: row;"
+        >
+          <input
+            class="msg input"
+            id="directory"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          The folder that should be uploaded, including all its files and sub-folders
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Files to ignore
+        </label>
+        <div
+          class="msg container fixedScrollbar inputWithProgress"
+          style="flex-direction: row;"
+        >
+          <input
+            class="msg input valueEditor"
+            id="ignoreList"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          A list of files to ignore, use * and ? as wildcards
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: row; grid-column: span 8;"
       >
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-column: span 8;"
+          class="msg container fixedScrollbar tabview top"
+          style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
         >
-          <label
-            class="msg label sectionTitle"
-            data-tooltip="expand"
-          >
-            Enter Configuration Values for the New MRS Static Content Set
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Request Path
-          </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
+            class="msg container tabAreaContainer"
             style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="requestPath"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The request path to access the content, has to start with /
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            REST Service Path
-          </label>
-          <div
-            class="msg container fixedScrollbar dropdown valueEditor"
-            data-tooltip="inherit"
-            id="service"
-            style="flex-direction: row; align-items: center;"
-            tabindex="0"
-          >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
-            >
-              /myService
-            </label>
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The MRS Service to hold the content
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Access Control
-          </label>
-          <div
-            class="msg container fixedScrollbar dropdown valueEditor"
-            data-tooltip="inherit"
-            id="enabled"
-            style="flex-direction: row; align-items: center;"
-            tabindex="0"
-          >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
-            >
-              Access ENABLED
-            </label>
-          </div>
-          <label
-            class="msg checkbox unchecked valueEditor"
-            id="requiresAuth"
-            tabindex="0"
-          >
-            <span
-              class="checkMark"
-            />
-            Auth. Required
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Folder to upload
-          </label>
-          <div
-            class="msg container fixedScrollbar fileSelector valueEditor"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input"
-              id="directory"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The folder that should be uploaded, including all its files and sub-folders
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Files to ignore
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="ignoreList"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            A list of files to ignore, use * and ? as wildcards
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-column: span 8;"
-        >
-          <div
-            class="msg container fixedScrollbar tabview top"
-            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container tabAreaContainer"
-              style="flex-direction: row;"
+              class="scrollable"
             >
               <div
-                class="scrollable"
+                class="msg container tabArea stretched"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg container tabArea stretched"
-                  style="flex-direction: row;"
-                >
-                  <div
-                    class="msg button tabItem selected"
-                    id="page0"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Settings
-                    </label>
-                  </div>
-                  <div
-                    class="msg button tabItem"
-                    id="page1"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Options
-                    </label>
-                  </div>
-                </div>
-                <div
-                  class="scrollbar"
-                >
-                  <div
-                    class="slider"
-                  />
-                </div>
-              </div>
-            </div>
-            <div
-              class="msg container fixedScrollbar tabContent"
-              style="flex-direction: column;"
-            >
-              <div
-                class="msg grid"
-                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
-              >
-                <div
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                  class="msg button tabItem selected"
+                  id="page0"
+                  role="button"
+                  tabindex="-1"
                 >
                   <label
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
+                    class="msg label"
+                    data-tooltip="inherit"
                   >
-                    Comments
+                    Settings
                   </label>
-                  <div
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
-                  >
-                    <textarea
-                      class="msg input valueEditor"
-                      id="comments"
-                      rows="3"
-                      spellcheck="true"
-                    />
-                  </div>
                 </div>
                 <div
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
+                  class="msg button tabItem"
+                  id="page1"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    Options
+                  </label>
+                </div>
+              </div>
+              <div
+                class="scrollbar"
+              >
+                <div
+                  class="slider"
                 />
               </div>
             </div>
           </div>
+          <div
+            class="msg container fixedScrollbar tabContent"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg grid"
+              style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+            >
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+              >
+                <label
+                  class="msg label valueTitle"
+                  data-tooltip="expand"
+                >
+                  Comments
+                </label>
+                <div
+                  class="msg container fixedScrollbar inputWithProgress"
+                  style="flex-direction: row;"
+                >
+                  <textarea
+                    class="msg input valueEditor"
+                    id="comments"
+                    rows="3"
+                    spellcheck="true"
+                  />
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+  <div
+    class="footer verticalCenterContent"
+  >
     <div
-      class="footer verticalCenterContent"
+      class="msg container fixedScrollbar leftItems"
+      style="flex-direction: row;"
+    />
+    <div
+      class="msg container fixedScrollbar rightItems"
+      style="flex-direction: row-reverse;"
     >
       <div
-        class="msg container fixedScrollbar leftItems"
-        style="flex-direction: row;"
-      />
+        caption="OK"
+        class="msg button"
+        id="ok"
+        role="button"
+        tabindex="0"
+      >
+        OK
+      </div>
       <div
-        class="msg container fixedScrollbar rightItems"
-        style="flex-direction: row-reverse;"
+        caption="Cancel"
+        class="msg button"
+        id="cancel"
+        role="button"
+        tabindex="0"
+      >
+        Cancel
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog and cancel 1`] = `
+<div
+  class="msg dialog visible valueEditDialog"
+>
+  <div
+    class="title verticalCenterContent"
+  >
+    <div
+      class="msg icon codicon codicon-terminal"
+    />
+    <label
+      class="msg label"
+      data-tooltip="expand"
+    >
+      MRS Content Set
+    </label>
+    <div
+      class="msg button imageOnly"
+      id="closeButton"
+      role="button"
+      tabindex="0"
+    >
+      <div
+        class="msg icon"
+        style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+      />
+    </div>
+  </div>
+  <div
+    class="content fixedScrollbar"
+  >
+    <div
+      class="msg grid"
+      id="contentGrid"
+      style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+    >
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: row; grid-column: span 8;"
+      >
+        <label
+          class="msg label sectionTitle"
+          data-tooltip="expand"
+        >
+          Enter Configuration Values for the New MRS Static Content Set
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Request Path
+        </label>
+        <div
+          class="msg container fixedScrollbar inputWithProgress"
+          style="flex-direction: row;"
+        >
+          <input
+            class="msg input valueEditor"
+            id="requestPath"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          The request path to access the content, has to start with /
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          REST Service Path
+        </label>
+        <div
+          class="msg container fixedScrollbar dropdown valueEditor"
+          data-tooltip="inherit"
+          id="service"
+          style="flex-direction: row; align-items: center;"
+          tabindex="0"
+        >
+          <label
+            class="msg label ellipsis"
+            data-tooltip="expand"
+          >
+            
+          </label>
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          The MRS Service to hold the content
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Access Control
+        </label>
+        <div
+          class="msg container fixedScrollbar dropdown valueEditor"
+          data-tooltip="inherit"
+          id="enabled"
+          style="flex-direction: row; align-items: center;"
+          tabindex="0"
+        >
+          <label
+            class="msg label ellipsis"
+            data-tooltip="expand"
+          >
+            Access ENABLED
+          </label>
+        </div>
+        <label
+          class="msg checkbox unchecked valueEditor"
+          id="requiresAuth"
+          tabindex="0"
+        >
+          <span
+            class="checkMark"
+          />
+          Auth. Required
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Folder to upload
+        </label>
+        <div
+          class="msg container fixedScrollbar fileSelector valueEditor"
+          style="flex-direction: row;"
+        >
+          <input
+            class="msg input"
+            id="directory"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          The folder that should be uploaded, including all its files and sub-folders
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+      >
+        <label
+          class="msg label valueTitle"
+          data-tooltip="expand"
+        >
+          Files to ignore
+        </label>
+        <div
+          class="msg container fixedScrollbar inputWithProgress"
+          style="flex-direction: row;"
+        >
+          <input
+            class="msg input valueEditor"
+            id="ignoreList"
+            spellcheck="true"
+            type="text"
+          />
+        </div>
+        <label
+          class="msg label cellDescription"
+          data-tooltip="expand"
+        >
+          A list of files to ignore, use * and ? as wildcards
+        </label>
+      </div>
+      <div
+        class="msg container fixedScrollbar gridCell"
+        style="flex-direction: row; grid-column: span 8;"
       >
         <div
-          caption="OK"
-          class="msg button"
-          id="ok"
-          role="button"
-          tabindex="0"
+          class="msg container fixedScrollbar tabview top"
+          style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
         >
-          OK
+          <div
+            class="msg container tabAreaContainer"
+            style="flex-direction: row;"
+          >
+            <div
+              class="scrollable"
+            >
+              <div
+                class="msg container tabArea stretched"
+                style="flex-direction: row;"
+              >
+                <div
+                  class="msg button tabItem selected"
+                  id="page0"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    Settings
+                  </label>
+                </div>
+                <div
+                  class="msg button tabItem"
+                  id="page1"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    Options
+                  </label>
+                </div>
+              </div>
+              <div
+                class="scrollbar"
+              >
+                <div
+                  class="slider"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar tabContent"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg grid"
+              style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+            >
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+              >
+                <label
+                  class="msg label valueTitle"
+                  data-tooltip="expand"
+                >
+                  Comments
+                </label>
+                <div
+                  class="msg container fixedScrollbar inputWithProgress"
+                  style="flex-direction: row;"
+                >
+                  <textarea
+                    class="msg input valueEditor"
+                    id="comments"
+                    rows="3"
+                    spellcheck="true"
+                  />
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
+              />
+            </div>
+          </div>
         </div>
-        <div
-          caption="Cancel"
-          class="msg button"
-          id="cancel"
-          role="button"
-          tabindex="0"
-        >
-          Cancel
-        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="footer verticalCenterContent"
+  >
+    <div
+      class="msg container fixedScrollbar leftItems"
+      style="flex-direction: row;"
+    />
+    <div
+      class="msg container fixedScrollbar rightItems"
+      style="flex-direction: row-reverse;"
+    >
+      <div
+        caption="OK"
+        class="msg button"
+        id="ok"
+        role="button"
+        tabindex="0"
+      >
+        OK
+      </div>
+      <div
+        caption="Cancel"
+        class="msg button"
+        id="cancel"
+        role="button"
+        tabindex="0"
+      >
+        Cancel
       </div>
     </div>
   </div>

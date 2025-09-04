@@ -24,9 +24,17 @@
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
 
-(Get-Content node_modules/pixi-viewport/dist/index.d.ts) |
-  ForEach-Object { $_ -replace "^export \* from './Viewport';", "export * from './Viewport.js';" } |
-  Set-Content node_modules/pixi-viewport/dist/index.d.ts
+Write-Host "Fixing node module(s)..."
+
+# Fix for pixi-viewport: correct export path in TypeScript definition file
+$pixiPath = "node_modules\pixi-viewport\dist\index.d.ts"
+(Get-Content $pixiPath) -replace "^(export \* from './Viewport';)$", "export * from './Viewport.js';" | Set-Content $pixiPath
+
+# Fix for monaco-editor: remove a missing source-map reference.
+$monacoPath = "node_modules\monaco-editor\esm\vs\base\common\marked\marked.js"
+(Get-Content $monacoPath) | Where-Object {$_ -notmatch "sourceMappingURL=marked.umd.js.map"} | Set-Content $monacoPath
+
+Write-Host ""
 
 antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLLexer.g4
 antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLParser.g4

@@ -23,90 +23,171 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { mount } from "enzyme";
-
+import { userEvent } from "@testing-library/user-event";
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
-import { IMrsAuthAppData, IMrsUserRoleData } from "../../../../../communication/ProtocolMrs.js";
+import {
+    IMrsAuthAppData, type IMrsAuthVendorData, type IMrsContentFileData,
+    type IMrsContentSetData, type IMrsDbObjectData, type IMrsRoleData, type IMrsRouterData,
+    type IMrsRouterService, type IMrsSchemaData, type IMrsServiceData, type IMrsStatusData,
+    type IMrsTableColumnWithReference, type IMrsUserData
+} from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
+import { ShellInterfaceMrs } from "../../../../../supplement/ShellInterface/ShellInterfaceMrs.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { KeyboardKeys } from "../../../../../utilities/helpers.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
-} from "../../../test-helpers.js";
+    authAppsData, mrsContentFileData, mrsContentSetData, mrsDbObjectData, mrsRouterData, mrsSchemaData,
+    mrsServiceData, mrsServicesData, mrsStatusMock, mrsUserData, routerServiceData
+} from "../../../data-models/data-model-test-data.js";
+import { DialogHelper, mockClassMethods, nextRunLoop } from "../../../test-helpers.js";
+
+mockClassMethods(ShellInterfaceMrs, {
+    status: (): Promise<IMrsStatusData> => {
+        return Promise.resolve(mrsStatusMock);
+    },
+    listServices: (): Promise<IMrsServiceData[]> => {
+        return Promise.resolve(mrsServicesData);
+    },
+    listSchemas: (): Promise<IMrsSchemaData[]> => {
+        return Promise.resolve(mrsSchemaData);
+    },
+    listRouters: (): Promise<IMrsRouterData[]> => {
+        return Promise.resolve(mrsRouterData);
+    },
+    listContentSets: (): Promise<IMrsContentSetData[]> => {
+        return Promise.resolve(mrsContentSetData);
+    },
+    listUsers: (): Promise<IMrsUserData[]> => {
+        return Promise.resolve(mrsUserData);
+    },
+    listContentFiles: (): Promise<IMrsContentFileData[]> => {
+        return Promise.resolve(mrsContentFileData);
+    },
+    getService: (): Promise<IMrsServiceData> => {
+        return Promise.resolve(mrsServiceData);
+    },
+    getSchema: (): Promise<IMrsSchemaData> => {
+        return Promise.resolve(mrsSchemaData[0]);
+    },
+    getRouterServices: (): Promise<IMrsRouterService[]> => {
+        return Promise.resolve(routerServiceData);
+    },
+    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+        return Promise.resolve(authAppsData);
+    },
+    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
+        return Promise.resolve([]);
+    },
+    listRoles: (): Promise<IMrsRoleData[]> => {
+        return Promise.resolve([{
+            id: "role1",
+            derivedFromRoleId: "",
+            specificToServiceId: "",
+            caption: "unknown role",
+            description: "",
+        }]);
+    },
+    listDbObjects: (schemaId: string): Promise<IMrsDbObjectData[]> => {
+        return Promise.resolve(mrsDbObjectData);
+    },
+    updateAuthApp: (): Promise<void> => {
+        return Promise.resolve();
+    },
+    getAuthVendors: (): Promise<IMrsAuthVendorData[]> => {
+        return Promise.resolve([{
+            id: "MRS",
+            name: "MRS",
+            enabled: true,
+        }]);
+    },
+    getTableColumnsWithReferences: (): Promise<IMrsTableColumnWithReference[]> => {
+        return Promise.resolve([{
+            position: 1,
+            name: "actorId",
+            refColumnNames: "actor_id",
+            tableSchema: "myschema",
+            tableName: "actor",
+        }]);
+    },
+    dumpSdkServiceFiles: vi.fn().mockResolvedValue(true),
+    addService: (urlContextRoot: string, name: string,
+        urlProtocol: string[], urlHostName: string,
+        comments: string, enabled: boolean, options: IShellDictionary | null,
+        authPath: string, authCompletedUrl: string,
+        authCompletedUrlValidation: string, authCompletedPageContent: string,
+        metadata?: IShellDictionary, published = false): Promise<IMrsServiceData> => {
+        return Promise.resolve({
+            enabled: Number(enabled),
+            published: Number(published),
+            hostCtx: "",
+            id: "",
+            isCurrent: 1,
+            urlContextRoot,
+            urlHostName,
+            urlProtocol: urlProtocol.join(","),
+            comments,
+            options: options ?? {},
+            authPath,
+            authCompletedUrl,
+            authCompletedUrlValidation,
+            authCompletedPageContent,
+            enableSqlEndpoint: 0,
+            customMetadataSchema: "",
+            metadata,
+            name,
+        });
+    },
+    setCurrentService: (serviceId: string): Promise<void> => {
+        return Promise.resolve();
+    },
+    linkAuthAppToService: (appId: string, serviceId: string): Promise<void> => {
+        return Promise.resolve();
+    },
+    addUser: () => {
+        return Promise.resolve();
+    },
+});
 
 describe("MRS User dialog tests", () => {
-    let host: JestReactWrapper;
-    let authApp: IMrsAuthAppData;
-    let launcher: MySQLShellLauncher;
+    const localEvent = userEvent.setup();
+
     const hubRef = createRef<MrsHub>();
     let dialogHelper: DialogHelper;
-    let backend: ShellInterfaceSqlEditor;
+    const backend = new ShellInterfaceSqlEditor();
 
-    beforeAll(async () => {
+    let unmount: () => boolean;
+
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
 
-        launcher = await setupShellForTests(false, true, "DEBUG2");
-
-        const result = await recreateMrsData();
-        authApp = result.authApp;
-
-        host = mount<MrsHub>(<MrsHub ref={hubRef} />);
+        const result = render(<MrsHub ref={hubRef} />);
+        unmount = result.unmount;
 
         dialogHelper = new DialogHelper("mrsUserDialog", "MySQL REST User");
     });
 
-    afterAll(async () => {
-        await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
-        await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        await backend.closeSession();
-        await launcher.exitProcess();
-        host.unmount();
-    });
+    afterAll(() => {
+        unmount();
 
-    beforeEach(async () => {
-        backend = await createBackend();
+        vi.resetAllMocks();
     });
 
     it("Show MRS User Dialog (snapshot) and escape", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
-        await dialogHelper.waitForDialog();
+        dialogHelper.actOnDialogAppearance("valueEditDialog", (portal) => {
+            expect(portal).toMatchSnapshot();
+            const cancelButton = portal.querySelector("#cancel");
+            fireEvent.click(cancelButton!);
+        });
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        expect(portals[0]).toMatchSnapshot();
-
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
-
-        await promise;
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
-    });
-
-    it("Show MRS User Dialog and cancel", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
-
-        const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
-        await dialogHelper.waitForDialog();
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        await dialogHelper.clickCancel();
-
-        await promise;
+        await hubRef.current!.showMrsUserDialog(backend, authAppsData[0]);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
@@ -116,48 +197,32 @@ describe("MRS User dialog tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        backend.mrs.addUser = (authAppId: string, name: string, email: string, vendorUserId: string,
-            loginPermitted: boolean, mappedUserId: string,
-            options: IShellDictionary | null, appOptions: IShellDictionary | null,
-            authString: string, userRoles: IMrsUserRoleData[]): Promise<void> => {
-            expect(name).toBe("MyUser");
-            expect(authString).toBe("AAAAAA");
-            expect(authAppId.length).toBeGreaterThan(0);
+        dialogHelper.actOnDialogAppearance("valueEditDialog", async (portal) => {
+            const okButton = portal.querySelector("#ok");
 
-            expect(email).toBeDefined();
-            expect(vendorUserId).toBeDefined();
-            expect(loginPermitted).toBeDefined();
-            expect(mappedUserId).toBeDefined();
-            expect(options).toBeDefined();
-            expect(appOptions).toBeDefined();
-            expect(userRoles).toBeDefined();
+            await localEvent.clear(portal.querySelector(".input#name")!);
+            await localEvent.clear(portal.querySelector(".input#authString")!);
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors([
+                "The authentication string is required for this app.",
+                "The user name or email are required for this app.",
+            ]);
 
-            return Promise.resolve();
-        };
+            await dialogHelper.setInputText("name", "My User");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors(["The authentication string is required for this app."]);
 
-        const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
-        await dialogHelper.waitForDialog();
+            await dialogHelper.setInputText("authString", "MySQLR0cks!");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
+            fireEvent.click(okButton!);
+        });
 
-        await dialogHelper.setInputText("name", "");
-        await dialogHelper.setInputText("authString", "");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors([
-            "The authentication string is required for this app.",
-            "The user name or email are required for this app.",
-        ]);
-
-        await dialogHelper.setInputText("name", "My User");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors(["The authentication string is required for this app."]);
-
-        await dialogHelper.setInputText("authString", "MySQLR0cks!");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors();
-
-        await promise;
+        await hubRef.current!.showMrsUserDialog(backend, authAppsData[0]);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);

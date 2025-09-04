@@ -23,9 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-import { IBackendInformation } from "./index.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { IBackendInformation } from "./index.js";
 
 import { filterInt } from "../../utilities/string-helpers.js";
 

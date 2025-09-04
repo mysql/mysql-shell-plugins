@@ -23,20 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import { mysqlInfo } from "../../../app-logic/RdbmsInfo.js";
 import { DBDataType, IColumnInfo } from "../../../app-logic/general-types.js";
-import {
-    convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet, getDataTypeDetails,
-    parseColumnLength, parseDataTypeFromRaw, parseSchemaTable
-} from "../../../supplement/index.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { QueryType } from "../../../parsing/parser-common.js";
-import { IGetColumnsMetadataItem } from "../../../communication/ProtocolGui.js";
+import {
+    convertRows, generateColumnInfo, getDataTypeDetails, parseColumnLength, parseDataTypeFromRaw,
+} from "../../../supplement/index.js";
 
 describe("General Supplement Tests", (): void => {
+    /* TOOD: Move this code to the SqlQueryExecutor tests, once they are implemented.
     const schema = "sakila";
     const table = "actor";
+
     const getColumnsMetadataResponse: IGetColumnsMetadataItem[] = [
         {
             name: "first_name",
@@ -59,10 +59,10 @@ describe("General Supplement Tests", (): void => {
     ];
 
     const mockBackend = {
-        getCurrentSchema: jest.fn().mockResolvedValue(schema),
-        getTableObjectNames: jest.fn().mockResolvedValue(["actor_id", "first_name", "last_update"]),
-        getColumnsMetadata: jest.fn().mockResolvedValue(getColumnsMetadataResponse),
-    } as unknown as ShellInterfaceSqlEditor;
+        getCurrentSchema: vi.fn().mockResolvedValue(schema),
+        getTableObjectNames: vi.fn().mockResolvedValue(["actor_id", "first_name", "last_update"]),
+        getColumnsMetadata: vi.fn().mockResolvedValue(getColumnsMetadataResponse),
+    } as unknown as ShellInterfaceSqlEditor;*/
 
     beforeAll(() => {
         // Add some mock types for lookup.
@@ -196,32 +196,6 @@ describe("General Supplement Tests", (): void => {
         expect(converted2).toEqual(converted);
     });
 
-    describe("Test parseSchemaTable", () => {
-        it("Test without quotes", async () => {
-            const expected = { schema: "sakila", table: "actor" };
-            const actual = await parseSchemaTable("sakila.actor");
-            expect(expected).toEqual(actual);
-        });
-
-        it("Test with quotes and missing backend", async () => {
-            const expected = { schema: "sakila", table: "actor" };
-            const actual = await parseSchemaTable("`sakila`.`actor`");
-            expect(expected).toEqual(actual);
-        });
-
-        it("Test missing schema", async () => {
-            const expected = { schema: "", table };
-            const actual = await parseSchemaTable(table);
-            expect(expected).toEqual(actual);
-        });
-
-        it("Test schema provided by the backend", async () => {
-            const expected = { schema, table };
-            const actual = await parseSchemaTable(table, mockBackend);
-            expect(expected).toEqual(actual);
-        });
-    });
-
     describe("Test parseColumnLength", () => {
         it("Test parsed length", () => {
             expect(parseColumnLength("VARCHAR(16)")).toEqual(16);
@@ -292,6 +266,33 @@ describe("General Supplement Tests", (): void => {
         });
     });
 
+    /* TODO: Move this code to the SqlQueryExecutor tests, once they are implemented.
+    describe("Test parseSchemaTable", () => {
+        it("Test without quotes", async () => {
+            const expected = { schema: "sakila", table: "actor" };
+            const actual = await parseSchemaTable("sakila.actor");
+            expect(expected).toEqual(actual);
+        });
+
+        it("Test with quotes and missing backend", async () => {
+            const expected = { schema: "sakila", table: "actor" };
+            const actual = await parseSchemaTable("`sakila`.`actor`");
+            expect(expected).toEqual(actual);
+        });
+
+        it("Test missing schema", async () => {
+            const expected = { schema: "", table };
+            const actual = await parseSchemaTable(table);
+            expect(expected).toEqual(actual);
+        });
+
+        it("Test schema provided by the backend", async () => {
+            const expected = { schema, table };
+            const actual = await parseSchemaTable(table, mockBackend);
+            expect(expected).toEqual(actual);
+        });
+    });
+
     describe("Test getColumnsMetadataForEmptyResultSet", () => {
         it("Test without full table name", async () => {
             const actual = await getColumnsMetadataForEmptyResultSet(
@@ -317,7 +318,7 @@ describe("General Supplement Tests", (): void => {
         it("Test with no database selected", async () => {
             const actual = await getColumnsMetadataForEmptyResultSet(
                 table, QueryType.Select, DBType.MySQL, {
-                    getCurrentSchema: jest.fn().mockResolvedValue(""),
+                    getCurrentSchema: vi.fn().mockResolvedValue(""),
                 } as unknown as ShellInterfaceSqlEditor,
             );
             expect(actual).toEqual([]);
@@ -359,5 +360,5 @@ describe("General Supplement Tests", (): void => {
             );
             expect(actual).toEqual(expected);
         });
-    });
+    });*/
 });

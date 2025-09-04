@@ -23,9 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CodeEditorMode, Monaco, tokenModifiers, tokenTypes } from "../../../../../components/ui/CodeEditor/index.js";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { ICodeEditorModel } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 import { MsgSemanticTokensProvider } from "../../../../../components/ui/CodeEditor/MsgSemanticTokensProvider.js";
+import { CodeEditorMode, Monaco, tokenModifiers, tokenTypes } from "../../../../../components/ui/CodeEditor/index.js";
 import {
     EmbeddedPresentationInterface,
 } from "../../../../../modules/db-editor/execution/EmbeddedPresentationInterface.js";
@@ -33,10 +35,12 @@ import { ExecutionContexts } from "../../../../../script-execution/ExecutionCont
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { nextProcessTick } from "../../../test-helpers.js";
 
-jest.mock("../../../../../script-execution/PresentationInterface");
-
 describe("MsgSemanticTokensProvider Tests", () => {
     const provider = new MsgSemanticTokensProvider();
+
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
 
     it("Token Types and Modifiers", () => {
         expect(tokenTypes).toEqual([
@@ -113,7 +117,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const cancellationToken = {
             isCancellationRequested: false,
             onCancellationRequested: () => {
-                return { dispose: () => { /**/ } }; 
+                return { dispose: () => { /**/ } };
             },
         };
 
@@ -134,22 +138,24 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const cancellationToken = {
             isCancellationRequested: false,
             onCancellationRequested: () => {
-                return { dispose: () => { /**/ } }; 
+                return { dispose: () => { /**/ } };
             },
         };
 
-        const presentation = new PresentationInterface("mysql");
-        model.executionContexts?.addContext(presentation);
+        const pi = new PresentationInterface("mysql");
+        const execContext = model.executionContexts!.addContext(pi);
+        vi.spyOn(pi, "model", "get").mockReturnValue(model);
+        vi.spyOn(pi, "endLine", "get").mockReturnValue(1);
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
+
         await nextProcessTick(); // To allow the new context to process the text.
 
         let tokens = await provider.provideDocumentSemanticTokens(model, null, cancellationToken);
         expect(tokens.data).toHaveLength(0);
 
-        model.setValue("SELECT * FROM t1;");
+        vi.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
         tokens = await provider.provideDocumentSemanticTokens(model, null, cancellationToken);
-
-        // TODO: enable once we switched to vitest. Cannot test web workers with jest.
-        // expect(tokens.data).toHaveLength(5 * 5);
+        expect(tokens.data).toHaveLength(5);
     });
 
     it("Mixed Language Model with 3 Blocks in a Row with the same Language", async () => {
@@ -161,7 +167,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const cancellationToken = {
             isCancellationRequested: false,
             onCancellationRequested: () => {
-                return { dispose: () => { /**/ } }; 
+                return { dispose: () => { /**/ } };
             },
         };
 
@@ -227,7 +233,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const cancellationToken = {
             isCancellationRequested: false,
             onCancellationRequested: () => {
-                return { dispose: () => { /**/ } }; 
+                return { dispose: () => { /**/ } };
             },
         };
 

@@ -24,27 +24,29 @@
  */
 
 import { basename } from "path";
-import { Misc } from "../lib/misc.js";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { Os } from "../lib/os.js";
-import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
-import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { until } from "selenium-webdriver";
-import * as locator from "../lib/locators.js";
-import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { E2ELogin } from "../lib/E2ELogin.js";
-import { E2EStatusBar } from "../lib/E2EStatusBar.js";
-import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
-import { E2ENotificationsCenter } from "../lib/E2ENotificationsCenter.js";
-import { E2EDebugger } from "../lib/E2EDebugger.js";
-import { E2ETabContainer } from "../lib/E2ETabContainer.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
-import { E2EWorkbench } from "../lib/SideBar/E2EWorkbench.js";
+import * as constants from "../lib/constants.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
+import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
+import { driver, loadDriver } from "../lib/driver.js";
+import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
+import { E2EDebugger } from "../lib/E2EDebugger.js";
+import { E2ELogin } from "../lib/E2ELogin.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { E2ENotificationsCenter } from "../lib/E2ENotificationsCenter.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2EStatusBar } from "../lib/E2EStatusBar.js";
+import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import { E2EToastNotification } from "../lib/E2EToastNotification.js";
+import * as interfaces from "../lib/interfaces.js";
+import * as locator from "../lib/locators.js";
+import { Misc } from "../lib/misc.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
+import { E2EWorkbench } from "../lib/SideBar/E2EWorkbench.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -56,16 +58,16 @@ describe("Token Verification", () => {
     beforeEach(async () => {
 
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.confirmationOnClose(false);
             await settings.close();
         } catch (e) {
-            await Misc.storeScreenShot("beforeEach_TOKEN_VERIFICATION");
+            await Misc.storeScreenShot(undefined, "beforeEach_TOKEN_VERIFICATION");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
     });
@@ -74,10 +76,10 @@ describe("Token Verification", () => {
         await driver.quit();
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
 
         await driver.close();
@@ -139,15 +141,20 @@ describe("Login", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(String(globalThis.testConfig!.SHELL_UI_MU_HOSTNAME));
-
-        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+        try {
+            await driver.wait(Misc
+                .untilHomePageIsLoaded(String(globalThis.testConfig!.SHELL_UI_MU_HOSTNAME)), constants.wait20seconds);
+        } catch (e) {
+            await Misc.storeScreenShot(undefined, "beforeAll_LOGIN");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            throw e;
+        }
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
     });
 
@@ -205,29 +212,29 @@ describe("Notifications", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.confirmationOnClose(false);
             await settings.close();
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(localConn);
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             await driver.wait(dbTreeSection.untilTreeItemExists(localConn.caption!), constants.wait5seconds);
             await dbTreeSection.expandTreeItem(localConn);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
+            await Misc.storeScreenShot(undefined, "beforeAll_NOTEBOOKS");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
     });
 
@@ -417,22 +424,22 @@ describe("Communication Debugger", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             await driver.findElement(locator.e2eDebugger.toggle).click();
             await driver.wait(E2EDebugger.untilIsOpened(), constants.wait3seconds, "The Debugger page was not opened");
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_DEBUGGER");
+            await Misc.storeScreenShot(undefined, "beforeAll_DEBUGGER");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
     });
 
@@ -498,14 +505,21 @@ describe("Single Server Mode", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(String(globalThis.testConfig!.SHELL_UI_SS_HOSTNAME));
-        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+        try {
+            await driver.wait(
+                Misc.untilHomePageIsLoaded(String(globalThis.testConfig!.SHELL_UI_SS_HOSTNAME)),
+                constants.wait20seconds);
+        } catch (e) {
+            await Misc.storeScreenShot(undefined, "beforeAll_SINGLE_SERVER_MODE");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            throw e;
+        }
     });
 
-    afterEach(async () => {
+    afterEach(async (context: TestContext) => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(context);
         }
     });
 
@@ -602,7 +616,9 @@ describe("Single Server Mode", () => {
     it("Logout", async () => {
         try {
             await new E2EWorkbench().selectFromSubmenu("Log Out");
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait5seconds);
+            await driver.wait(
+                Misc.untilHomePageIsLoaded(String(globalThis.testConfig!.SHELL_UI_SS_HOSTNAME)),
+                constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;

@@ -31,8 +31,7 @@ import { AboutBox } from "../components/ui/AboutBox/AboutBox.js";
 import { ComponentBase, type IComponentProperties } from "../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import {
-    ISplitterPane, SplitContainer,
-    type ISplitterPaneSizeInfo
+    ISplitterPane, SplitContainer, type ISplitterPaneSizeInfo,
 } from "../components/ui/SplitContainer/SplitContainer.js";
 import { StatusBarAlignment, type IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
 import { DocumentModule } from "../modules/db-editor/DocumentModule.js";

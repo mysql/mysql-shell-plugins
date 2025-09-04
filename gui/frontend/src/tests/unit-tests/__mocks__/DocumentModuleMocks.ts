@@ -29,6 +29,7 @@ import {
 import { DBType, type IConnectionDetails } from "../../../supplement/ShellInterface/index.js";
 
 export const connectionDetailsMock: IConnectionDetails = {
+    index: -1,
     id: 123,
     dbType: DBType.MySQL,
     caption: "details1",

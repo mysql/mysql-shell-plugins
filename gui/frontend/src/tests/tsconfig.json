@@ -40,13 +40,13 @@
         "baseUrl": "./",
     },
     "include": [
-        "./e2e/**/*",
-        "./unit-tests/**/*",
-        "./loadTestConfiguration.ts",
-        "./setupTestEnv.ts",
+        "setupTestEnv.ts",
+        "globalSetup.ts",
+        "e2e/**/*",
+        "e2e/*.mjs",
+        "unit-tests/**/*",
+        "loadTestConfiguration.ts",
+        "setupTestEnv.ts",
     ],
     "exclude": [],
-    "ts-node": {
-        "esm": true
-    },
 }

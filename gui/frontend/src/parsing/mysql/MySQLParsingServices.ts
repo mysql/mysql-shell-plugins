@@ -48,6 +48,8 @@ import { isKeyword, numberToVersion } from "./MySQLRecognizerCommon.js";
 import { MySQLVersion } from "./mysql-keywords.js";
 
 export class MySQLParsingServices {
+    public static loaded: Promise<void>;
+    private static loadedResolver: () => void;
 
     private static services?: MySQLParsingServices;
     private static readonly delimiterKeyword = /delimiter /i;
@@ -76,27 +78,31 @@ export class MySQLParsingServices {
     );
 
     private constructor() {
+        MySQLParsingServices.loaded = new Promise<void>((res) => { MySQLParsingServices.loadedResolver = res; });
+
         this.lexer.removeErrorListeners();
         this.lexer.addErrorListener(this.errorListener);
 
         this.globalSymbols = new DBSymbolTable("globals", { allowDuplicateSymbols: true });
 
-        void import("./data/system-variables.json").then((systemVariables) => {
-            for (const [key, value] of Object.entries(systemVariables.default)) {
-                this.globalSymbols.addNewSymbolOfType(SystemVariableSymbol, undefined, key.toLowerCase(), value);
-            }
-        });
-
-        void import("./data/system-functions.json").then((systemFunctions) => {
-            for (const [key, value] of Object.entries(systemFunctions.default)) {
-                this.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key.toLowerCase(), value);
-            }
-        });
-
-        void import("./data/rdbms-info.json").then((rdbmsInfo) => {
-            Object.keys(rdbmsInfo.default.characterSets).forEach((set: string) => {
-                this.lexer.charsets.add("_" + set.toLowerCase());
-            });
+        void Promise.all([
+            import("./data/system-variables.json").then((systemVariables) => {
+                for (const [key, value] of Object.entries(systemVariables.default)) {
+                    this.globalSymbols.addNewSymbolOfType(SystemVariableSymbol, undefined, key.toLowerCase(), value);
+                }
+            }),
+            import("./data/system-functions.json").then((systemFunctions) => {
+                for (const [key, value] of Object.entries(systemFunctions.default)) {
+                    this.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key.toLowerCase(), value);
+                }
+            }),
+            import("./data/rdbms-info.json").then((rdbmsInfo) => {
+                Object.keys(rdbmsInfo.default.characterSets).forEach((set: string) => {
+                    this.lexer.charsets.add("_" + set.toLowerCase());
+                });
+            }),
+        ]).then(() => {
+            MySQLParsingServices.loadedResolver();
         });
 
         this.parser.removeParseListeners();

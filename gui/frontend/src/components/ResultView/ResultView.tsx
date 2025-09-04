@@ -1138,7 +1138,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 default:
             }
 
-            this.selectedCell.getElement().classList.remove("manualFocus");
+            // During testing the element is not rendered.
+            const element = this.selectedCell.getElement() as HTMLElement | undefined;
+            element?.classList.remove("manualFocus");
             this.selectedCell = undefined;
         }
 

@@ -24,24 +24,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { basename } from "path";
 import * as fs from "fs/promises";
-import { Condition, Key, until, error } from "selenium-webdriver";
-import { driver, loadDriver } from "../lib/driver.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
-import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
-import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
-import { Os } from "../lib/os.js";
-import { Misc } from "../lib/misc.js";
-import * as constants from "../lib/constants.js";
-import * as interfaces from "../lib/interfaces.js";
-import * as locator from "../lib/locators.js";
-import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
-import { E2EHeatWaveProfileEditor } from "../lib/MySQLAdministration/E2EHeatWaveProfileEditor.js";
-import { E2ETabContainer } from "../lib/E2ETabContainer.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
+import { basename } from "path";
+import { Condition, error, Key, until } from "selenium-webdriver";
+import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
+import * as allure from "allure-js-commons";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import * as constants from "../lib/constants.js";
+import { driver, loadDriver } from "../lib/driver.js";
+import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
+import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import * as interfaces from "../lib/interfaces.js";
+import * as locator from "../lib/locators.js";
+import { Misc } from "../lib/misc.js";
+import { E2EHeatWaveProfileEditor } from "../lib/MySQLAdministration/E2EHeatWaveProfileEditor.js";
+import { Os } from "../lib/os.js";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -66,10 +68,9 @@ describe("NOTEBOOKS", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
-        await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -84,7 +85,8 @@ describe("NOTEBOOKS", () => {
                 constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
+            await Misc.storeScreenShot(undefined, "beforeAll_NOTEBOOKS");
+            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
             throw e;
         }
     });
@@ -101,10 +103,10 @@ describe("NOTEBOOKS", () => {
         let testFailed = false;
         const destFile = `${process.cwd()}/${globalConn.caption} - ${constants.dbNotebook}.mysql-notebook`;
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
 
                 if (!cleanEditor) {
                     await notebook.codeEditor.build();
@@ -122,7 +124,7 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.collapse();
                 await new E2ETabContainer().closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot("afterAll_CodeEditor");
+                await Misc.storeScreenShot(undefined, "afterAll_CodeEditor");
                 throw e;
             }
         });
@@ -624,7 +626,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe.skip("HeatWave Chat", () => {
+    describe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
@@ -659,16 +661,17 @@ describe("NOTEBOOKS", () => {
                 const result = await notebook.codeEditor.getLastExistingCommandResult() as E2ECommandResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_HeatWaveChat");
+                await Misc.storeScreenShot(undefined, "beforeAll_HeatWaveChat");
+                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
                 throw e;
             }
 
         });
 
-        afterEach(async () => {
+        afterEach(async (context: TestContext) => {
             if (testFailed) {
                 testFailed = false;
-                await Misc.storeScreenShot();
+                await Misc.storeScreenShot(context);
             }
         });
 
@@ -707,4 +710,3 @@ describe("NOTEBOOKS", () => {
     });
 
 });
-

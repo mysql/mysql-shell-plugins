@@ -25,6 +25,8 @@
 
 /* eslint-disable @typescript-eslint/unbound-method */ // Don't want to make the UI layer methods properties.
 
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import type { IMdsProfileData } from "../../../communication/ProtocolMds.js";
 import {
@@ -37,10 +39,11 @@ import { SessionLifecycleState } from "../../../oci-typings/oci-bastion/lib/mode
 import { Instance } from "../../../oci-typings/oci-core/lib/model/instance.js";
 import { Compartment } from "../../../oci-typings/oci-identity/lib/model/compartment.js";
 import { DeletionPolicyDetails } from "../../../oci-typings/oci-mysql/lib/model/deletion-policy-details.js";
+import { ShellInterfaceMhs } from "../../../supplement/ShellInterface/ShellInterfaceMhs.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
-import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
+import { checkNoUiWarningsOrErrors, mockClassMethods } from "../test-helpers.js";
 
-const dataModelChanged = jest.fn();
+const dataModelChanged = vi.fn();
 
 const profile1: IMdsProfileData = {
     fingerprint: "fingerprint",
@@ -176,32 +179,23 @@ const loadBalancer1: LoadBalancer = {
     isPrivate: false,
 };
 
-jest.mock("../../../supplement/ShellInterface/ShellInterfaceMhs.js", () => {
-    return {
-
-        ShellInterfaceMhs: jest.fn().mockImplementation(() => {
-            return {
-                getMdsConfigProfiles: jest.fn().mockResolvedValue([
-                    profile1,
-                ]),
-                setDefaultConfigProfile: jest.fn(),
-                setDefaultConfigCompartment: jest.fn(),
-                setCurrentCompartment: jest.fn(),
-                getMdsCompartments: jest.fn().mockResolvedValue([compartment1]),
-                setCurrentDepartment: jest.fn(),
-                getMdsMySQLDbSystems: jest.fn().mockResolvedValue([dbSystem1, dbSystem2]),
-                getMdsComputeInstances: jest.fn().mockResolvedValue([computeInstance1]),
-                getMdsBastions: jest.fn().mockResolvedValue([bastion1]),
-                listLoadBalancers: jest.fn().mockResolvedValue([loadBalancer1]),
-                setCurrentBastion: jest.fn(),
-            };
-        }),
-    };
+mockClassMethods(ShellInterfaceMhs, {
+    getMdsConfigProfiles: vi.fn().mockResolvedValue([
+        profile1,
+    ]),
+    setDefaultConfigProfile: vi.fn(),
+    setCurrentCompartment: vi.fn(),
+    getMdsCompartments: vi.fn().mockResolvedValue([compartment1]),
+    getMdsMySQLDbSystems: vi.fn().mockResolvedValue([dbSystem1, dbSystem2]),
+    getMdsComputeInstances: vi.fn().mockResolvedValue([computeInstance1]),
+    getMdsBastions: vi.fn().mockResolvedValue([bastion1]),
+    listLoadBalancers: vi.fn().mockResolvedValue([loadBalancer1]),
+    setCurrentBastion: vi.fn(),
 });
 
 describe("OciDataModel", () => {
     const dataModel = new OciDataModel();
-    const updateProfileSpy = jest.spyOn(dataModel, "updateProfiles");
+    const updateProfileSpy = vi.spyOn(dataModel, "updateProfiles");
     dataModel.subscribe(dataModelChanged);
 
     beforeAll(async () => {
@@ -212,12 +206,11 @@ describe("OciDataModel", () => {
     afterAll(() => {
         dataModel.unsubscribe(dataModelChanged);
 
-        jest.restoreAllMocks();
-        jest.unmock("../../../supplement/ShellInterface/ShellInterfaceMhs.js");
+        vi.restoreAllMocks();
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         dataModelChanged.mockClear();
     });
 

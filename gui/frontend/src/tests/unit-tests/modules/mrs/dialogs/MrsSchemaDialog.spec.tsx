@@ -23,92 +23,111 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { mount } from "enzyme";
-import { IShellDictionary } from "../../../../../communication/Protocol.js";
-import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
-import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { KeyboardKeys } from "../../../../../utilities/helpers.js";
-import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
-} from "../../../test-helpers.js";
-import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
+import { IShellDictionary } from "../../../../../communication/Protocol.js";
+import type {
+    IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData, IMrsRoleData, IMrsRouterData,
+    IMrsRouterService, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsUserData
+} from "../../../../../communication/ProtocolMrs.js";
+import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
+import { ShellInterfaceMrs } from "../../../../../supplement/ShellInterface/ShellInterfaceMrs.js";
+import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
+import {
+    authAppsData, mrsContentFileData, mrsContentSetData, mrsRouterData, mrsSchemaData, mrsServiceData,
+    mrsServicesData, mrsStatusMock, mrsUserData, routerServiceData
+} from "../../../data-models/data-model-test-data.js";
+import { DialogHelper, mockClassMethods, nextRunLoop } from "../../../test-helpers.js";
+
+mockClassMethods(ShellInterfaceMrs, {
+    status: (): Promise<IMrsStatusData> => {
+        return Promise.resolve(mrsStatusMock);
+    },
+    listServices: (): Promise<IMrsServiceData[]> => {
+        return Promise.resolve(mrsServicesData);
+    },
+    listSchemas: (): Promise<IMrsSchemaData[]> => {
+        return Promise.resolve(mrsSchemaData);
+    },
+    listRouters: (): Promise<IMrsRouterData[]> => {
+        return Promise.resolve(mrsRouterData);
+    },
+    listContentSets: (): Promise<IMrsContentSetData[]> => {
+        return Promise.resolve(mrsContentSetData);
+    },
+    listUsers: (): Promise<IMrsUserData[]> => {
+        return Promise.resolve(mrsUserData);
+    },
+    listContentFiles: (): Promise<IMrsContentFileData[]> => {
+        return Promise.resolve(mrsContentFileData);
+    },
+    getService: (): Promise<IMrsServiceData> => {
+        return Promise.resolve(mrsServiceData);
+    },
+    getSchema: (): Promise<IMrsSchemaData> => {
+        return Promise.resolve(mrsSchemaData[0]);
+    },
+    getRouterServices: (): Promise<IMrsRouterService[]> => {
+        return Promise.resolve(routerServiceData);
+    },
+    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+        return Promise.resolve(authAppsData);
+    },
+    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
+        return Promise.resolve([]);
+    },
+    listRoles: (): Promise<IMrsRoleData[]> => {
+        return Promise.resolve([]);
+    },
+    updateAuthApp: (): Promise<void> => {
+        return Promise.resolve();
+    },
+    getAuthVendors: (): Promise<IMrsAuthVendorData[]> => {
+        return Promise.resolve([{
+            id: "MRS",
+            name: "MRS",
+            enabled: true,
+        }]);
+    },
+});
 
 describe("MRS Schema dialog tests", () => {
-    let host: JestReactWrapper;
-    // let service: IMrsServiceData;
-    let launcher: MySQLShellLauncher;
     const hubRef = createRef<MrsHub>();
     let dialogHelper: DialogHelper;
-    let backend: ShellInterfaceSqlEditor;
+    const backend = new ShellInterfaceSqlEditor();
 
-    beforeAll(async () => {
+    let unmount: () => boolean;
+
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true, "DEBUG2");
 
-        await recreateMrsData();
-
-        host = mount<MrsHub>(<MrsHub ref={hubRef} />);
+        const result = render(<MrsHub ref={hubRef} />);
+        unmount = result.unmount;
 
         dialogHelper = new DialogHelper("mrsSchemaDialog", "MySQL REST Schema");
     });
 
-    afterAll(async () => {
-        await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
-        await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        await backend.closeSession();
-        await launcher.exitProcess();
-        host.unmount();
-    });
+    afterAll(() => {
+        unmount();
 
-    beforeEach(async () => {
-        backend = await createBackend();
+        vi.resetAllMocks();
     });
 
     it("Show MRS Schema Dialog (snapshot) and escape", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        const promise = hubRef.current!.showMrsSchemaDialog(backend);
-        await dialogHelper.waitForDialog();
+        dialogHelper.actOnDialogAppearance("valueEditDialog", (portal) => {
+            expect(portal).toMatchSnapshot();
+            const cancelButton = portal.querySelector("#cancel");
+            fireEvent.click(cancelButton!);
+        });
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        expect(portals[0]).toMatchSnapshot();
-
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
-
-        await promise;
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
-    });
-
-    it("Show MRS Schema Dialog and cancel", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(0);
-
-        const promise = hubRef.current!.showMrsSchemaDialog(backend);
-        await dialogHelper.waitForDialog();
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
-
-        await dialogHelper.clickCancel();
-
-        await promise;
-
+        await hubRef.current!.showMrsSchemaDialog(backend);
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
     });
@@ -117,37 +136,37 @@ describe("MRS Schema dialog tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        backend.mrs.addSchema = (serviceId: string, schemaName: string, enabled: number,
-            requestPath: string, requiresAuth: boolean,
-            options: IShellDictionary | null,
-            itemsPerPage: number | null, comments?: string): Promise<string> => {
-            expect(serviceId).not.toBeNull();
-            expect(schemaName).toBe("mySchema");
-            expect(requestPath).toBe("/schema");
-            expect(requiresAuth).toBeFalsy();
-            expect(itemsPerPage).toBeNull();
-            expect(options).toBeNull();
-            expect(comments).toBe("");
+        vi.spyOn(ShellInterfaceMrs.prototype, "addSchema").mockImplementation(
+            (serviceId: string, schemaName: string, enabled: number,
+                requestPath: string, requiresAuth: boolean,
+                options: IShellDictionary | null,
+                itemsPerPage: number | null, comments?: string): Promise<string> => {
+                expect(serviceId).not.toBeNull();
+                expect(schemaName).toBe("mySchema");
+                expect(requestPath).toBe("/schema");
+                expect(requiresAuth).toBeFalsy();
+                expect(itemsPerPage).toBeNull();
+                expect(options).toBeNull();
+                expect(comments).toBe("");
 
-            return Promise.resolve("done");
-        };
+                return Promise.resolve("done");
+            });
 
-        const promise = hubRef.current!.showMrsSchemaDialog(backend);
-        await dialogHelper.waitForDialog();
+        dialogHelper.actOnDialogAppearance("valueEditDialog", async (portal) => {
+            const okButton = portal.querySelector("#ok");
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals).toHaveLength(1);
+            await dialogHelper.setInputText("dbSchemaName", "");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors(["The database schema name must not be empty."]);
 
-        await dialogHelper.setInputText("dbSchemaName", "");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors(["The database schema name must not be empty."]);
+            await dialogHelper.setInputText("dbSchemaName", "mySchema");
+            fireEvent.click(okButton!);
+            await nextRunLoop();
+            dialogHelper.verifyErrors();
+        });
 
-        await dialogHelper.setInputText("dbSchemaName", "mySchema");
-        await dialogHelper.clickOk();
-        dialogHelper.verifyErrors();
-
-        await promise;
-
+        await hubRef.current!.showMrsSchemaDialog(backend);
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
     });

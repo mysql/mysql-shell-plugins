@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { beforeAll, describe, it } from "vitest";
+
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
-import { nextRunLoop, setupShellForTests } from "../../test-helpers.js";
+import { mockClassMethods, nextRunLoop } from "../../test-helpers.js";
+
+mockClassMethods(ShellInterfaceSqlEditor, {
+    closeSession: () => {
+        return Promise.resolve();
+    },
+});
 
 describe("ShellInterfaceSqlEditor Tests", () => {
-    let launcher: MySQLShellLauncher;
     let backend: ShellInterfaceSqlEditor;
 
-    beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG2");
+    beforeAll(() => {
         backend = new ShellInterfaceSqlEditor();
-    });
-
-    afterAll(async () => {
-        await launcher.exitProcess();
     });
 
     it("Base tests", async () => {

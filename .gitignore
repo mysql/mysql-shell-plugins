@@ -11,3 +11,4 @@
 .idea
 **/.env.test.json
 **/port_*
+gui/frontend/test-reports

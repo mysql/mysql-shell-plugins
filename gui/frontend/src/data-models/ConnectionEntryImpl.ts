@@ -238,7 +238,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             return Promise.resolve();
         }));
 
-        if (!connectionData) {
+        if (!connectionData || Object.keys(connectionData).length === 0) {
             return false;
         }
 

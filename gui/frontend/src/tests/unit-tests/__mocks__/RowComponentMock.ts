@@ -22,7 +22,9 @@
 * along with this program; if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
+import { vi } from "vitest";
 import { CellComponent, GroupComponent, RowComponent } from "tabulator-tables";
+
 import { GroupComponentMock } from "./GroupComponentMock.js";
 import { IMrsObjectFieldTreeItem } from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
 
@@ -32,19 +34,19 @@ export class RowComponentMock implements RowComponent {
     public prevRow: RowComponentMock | false = false;
     public nextRow: RowComponentMock | false = false;
 
-    public getTable = jest.fn();
-    public getCells = jest.fn();
-    public getCell = jest.fn();
-    public select = jest.fn();
-    public deselect = jest.fn();
-    public toggleSelect = jest.fn();
-    public normalizeHeight = jest.fn();
-    public reformat = jest.fn();
-    public freeze = jest.fn();
-    public unfreeze = jest.fn();
-    public treeExpand = jest.fn();
-    public treeCollapse = jest.fn();
-    public treeToggle = jest.fn();
+    public getTable = vi.fn();
+    public getCells = vi.fn();
+    public getCell = vi.fn();
+    public select = vi.fn();
+    public deselect = vi.fn();
+    public toggleSelect = vi.fn();
+    public normalizeHeight = vi.fn();
+    public reformat = vi.fn();
+    public freeze = vi.fn();
+    public unfreeze = vi.fn();
+    public treeExpand = vi.fn();
+    public treeCollapse = vi.fn();
+    public treeToggle = vi.fn();
 
     public constructor(row?: IMrsObjectFieldTreeItem) {
         this.row = row;
