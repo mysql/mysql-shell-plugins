@@ -582,6 +582,8 @@ def substitute_objects_in_template(
             obj_unique_list = []
             obj_meta_interfaces = []
             db_object_crud_ops = ""
+            obj_bigint_field_list = []
+            obj_fixed_point_field_list = []
 
             # BUG#37926204 Get SDK objects if they have not been retrieved beforehand
             objects = lib.db_objects.get_objects(
@@ -631,6 +633,12 @@ def substitute_objects_in_template(
                                     required_datatypes.add(
                                         client_datatype.replace("Field", "")
                                     )
+
+                                if sdk_language == "typescript":
+                                    if client_datatype == "BigInteger":
+                                        obj_bigint_field_list.append(f'"{field.get("name")}"')
+                                    elif client_datatype == "Decimal":
+                                        obj_fixed_point_field_list.append(f'"{field.get("name")}"')
 
                 # Get sdk_language specific options
                 sdk_lang_options = get_mrs_object_sdk_language_options(
@@ -774,6 +782,8 @@ def substitute_objects_in_template(
                 "obj_quoted_pk_list": ", ".join(obj_quoted_pk_list),
                 "obj_function_result_datatype": obj_function_result_datatype,
                 "obj_procedure_result_set_datatype": obj_procedure_result_set_datatype,
+                "obj_bigint_field_list": ", ".join(obj_bigint_field_list),
+                "obj_fixed_point_field_list": ", ".join(obj_fixed_point_field_list),
             }
 
             # Loop over all CRUD operations and filter the sections that are not applicable for the specific object
@@ -831,8 +841,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
     if sdk_language == "typescript":
         if db_datatype.startswith(("tinyint(1)", "bit(1)")):
             return "boolean"
-        if db_datatype.startswith(("tinyint", "smallint", "mediumint", "int", "bigint", "decimal", "numeric",
-                                     "float", "double")):
+        if db_datatype.startswith(("tinyint", "smallint", "mediumint", "int", "float", "double")):
             return "number"
         if db_datatype.startswith("json"):
             return "JsonValue"
@@ -852,6 +861,10 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "Polygon"
         if db_datatype.startswith("multipolygon"):
             return "MultiPolygon"
+        if db_datatype.startswith(("bigint")):
+            return "BigInteger"
+        if db_datatype.startswith(("decimal", "numeric")):
+            return "Decimal"
         return "string"
     if sdk_language == "python":
         if db_datatype.startswith(("tinyint(1)", "bit(1)")):

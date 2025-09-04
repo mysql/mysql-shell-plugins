@@ -81,8 +81,6 @@ def test_get_datatype_mapping():
                 "smallint",
                 "mediumint",
                 "int",
-                "decimal",
-                "numeric",
                 "float",
                 "double",
             ): "number",
@@ -96,6 +94,8 @@ def test_get_datatype_mapping():
             ("POLYGON",): "Polygon",
             ("MULTIPOLYGON",): "MultiPolygon",
             ("varchar",): "string",
+            ("bigint",): "BigInteger",
+            ("numeric", "decimal",): "Decimal",
         },
         "python": {
             ("tinyint(1)", "bit(1)"): "bool",

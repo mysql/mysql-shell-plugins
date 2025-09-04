@@ -67,7 +67,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
 
     // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<INew${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}, [${obj_quoted_pk_list}]>(this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
+        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}, [${obj_quoted_pk_list}], [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, args, { identifierKeys: [${obj_quoted_pk_list}], bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetch();
 
         return response;
@@ -87,8 +88,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudCreateOnlyEnd
     // --- crudReadOnlyStart
     public async find(args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors>): Promise<PaginatedList<I${obj_class_name}>> {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
-            this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}], [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, args, { identifierKeys: [${obj_quoted_pk_list}], bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetch();
         const docs: I${obj_class_name}[] = response.items;
 
@@ -108,8 +109,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     }
 
     public async findFirst(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
-            this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}], [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: [${obj_quoted_pk_list}], bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetchOne();
 
         return response;
@@ -127,8 +128,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadOnlyEnd
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable, never, never, [${obj_quoted_pk_list}]>(
-            this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable, never, never, [${obj_quoted_pk_list}], [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: [${obj_quoted_pk_list}], bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetchOne();
 
         return response;
@@ -146,8 +147,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadUniqueOnlyEnd
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<IUpdate${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, [${obj_quoted_pk_list}], I${obj_class_name}>(
-            this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
+        const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, [${obj_quoted_pk_list}], I${obj_class_name}, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, args, { identifierKeys: [${obj_quoted_pk_list}], bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetch();
 
         return response;
@@ -181,26 +182,26 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudDeleteOnlyEnd
     // --- crudProcedureCallOnlyStart
     public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> => {
-        const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, I${obj_param_interface}Out, ${obj_meta_interface}>(
-            this.schema, this.requestPath, ${obj_name}Params);
+        const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, I${obj_param_interface}Out, ${obj_meta_interface}, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, ${obj_name}Params, { bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetch();
 
         return response;
     };
     // --- crudProcedureCallOnlyEnd
     // --- crudProcedureTaskRunOnlyStart
-    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>> {
+    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>> {
         const request = new MrsBaseTaskStart<I${obj_param_interface}, object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
             this.schema, this.requestPath, ${obj_name}Params, options);
         const response = await request.submit();
 
-        return new MrsTask(this.schema, this.requestPath, response.taskId, "PROCEDURE", options);
+        return new MrsTask(this.schema, this.requestPath, response.taskId, { ...options, routineType: "PROCEDURE", bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
     }
 
     async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> {
         const task = await this.start(${obj_name}Params, options);
-        const poll = new MrsBaseTaskRun<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
-            this.schema, this.requestPath, task, options);
+        const poll = new MrsBaseTaskRun<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, task);
         const response = await poll.execute();
 
         return response;
@@ -208,17 +209,17 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudProcedureTaskRunOnlyEnd
     // --- crudFunctionCallOnlyStart
     public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
-        const request = new MrsBaseObjectFunctionCall<I${obj_param_interface}, ${obj_function_result_datatype}>(
-            this.schema, this.requestPath, ${obj_name}Params);
+        const request = new MrsBaseObjectFunctionCall<I${obj_param_interface}, ${obj_function_result_datatype}, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, ${obj_name}Params, { bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetch();
 
         return response.result;
     };
     // --- crudFunctionCallOnlyEnd
     // --- crudFunctionTaskRunOnlyStart
-    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsFunctionResponse<${obj_function_result_datatype}>>> {
+    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsFunctionResponse<${obj_function_result_datatype}>, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>> {
         const request = new MrsBaseTaskStart<I${obj_param_interface}, object, IMrsFunctionResponse<${obj_function_result_datatype}>>(
-            this.schema, this.requestPath, ${obj_name}Params, options);
+            this.schema, this.requestPath, ${obj_name}Params, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}], options);
         const response = await request.submit();
 
         return new MrsTask(this.schema, this.requestPath, response.taskId, "FUNCTION", options);
@@ -226,8 +227,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
 
     async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype}> {
         const task = await this.start(${obj_name}Params, options);
-        const poll = new MrsBaseTaskRun<object, IMrsFunctionResponse<${obj_function_result_datatype}>>(
-            this.schema, this.requestPath, task, options);
+        const poll = new MrsBaseTaskRun<object, IMrsFunctionResponse<${obj_function_result_datatype}>, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+            this.schema, this.requestPath, task.options);
         const response = await poll.execute();
 
         return response.result;

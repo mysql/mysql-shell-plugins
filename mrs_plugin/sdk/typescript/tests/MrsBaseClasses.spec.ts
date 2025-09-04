@@ -29,7 +29,7 @@ import {
     MrsDownstreamDocumentData, MrsBaseObjectCreate, IFindFirstOptions, MrsDownstreamDocumentListData,
     MrsBaseObjectDelete, MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionResponse, MrsBaseObjectFunctionCall,
     IMrsProcedureResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
-    MrsBaseTaskStart, MrsBaseTaskWatch, MrsTask, MrsBaseTaskRun,
+    MrsBaseTaskStart, MrsBaseTaskWatch, MrsTask, MrsBaseTaskRun, BigInteger,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -193,7 +193,7 @@ describe("MRS SDK API", () => {
             expect(fetch).toHaveBeenCalledWith("/foo/authentication/logout", expect.objectContaining({
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${accessToken}`
+                    "Authorization": `Bearer ${accessToken}`,
                 },
             }));
         });
@@ -207,7 +207,52 @@ describe("MRS SDK API", () => {
         });
     });
 
-    describe("when accessing REST objects", () => {
+    describe("when retrieving REST documents", () => {
+        beforeEach(() => {
+            const response = `{
+                "count": 2,
+                "hasMore": false,
+                "limit": 25,
+                "offset": 0,
+                "items": [{
+                    "big": 123,
+                    "dec": 1.23456789012345678,
+                    "id": 1,
+                    "str": "qux",
+                    "_metadata": {
+                        "etag": "XYZ"
+                    },
+                    "links": [{
+                        "href": "http://localhost:8443/foo/bar/baz/1",
+                        "rel": "self"
+                    }]
+                }, {
+                    "big": 18446744073709551615,
+                    "dec": 1.234,
+                    "id": 2,
+                    "str": "quux",
+                    "_metadata": {
+                        "etag": "ZYX"
+                    },
+                    "links": [{
+                        "href": "http://localhost:8443/foo/bar/baz/2",
+                        "rel": "self"
+                    }]
+                }],
+                "links": [{
+                    "rel": "self",
+                    "href": "foo/bar/baz/"
+                }, {
+                    "rel": "next",
+                    "href": "foo/bar/baz/?offset=25"
+                }]
+            }`;
+
+            FetchMock
+                .push({ response })
+                .push({ response });
+        });
+
         it("selects fields to include in the result set using the field names", async () => {
             const options: IFindManyOptions<ITableMetadata1, unknown> = {
                 select: ["str", "json", "oneToMany.oneToOne.str"],
@@ -308,6 +353,20 @@ describe("MRS SDK API", () => {
             await query.fetch();
 
             const searchParams = new URLSearchParams({ q: '{"str":{"$like":"%foo%"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+        });
+
+        it("converts bigint values to strings in a query filter", async () => {
+            interface ITestDocument { big: BigInteger }
+            const options: IFindManyOptions<unknown, ITestDocument> = {
+                where: {
+                    big: 123n
+                }
+            };
+            const query = new MrsBaseObjectQuery<unknown, { big: BigInteger }>(schema, "/baz", options);
+            await query.fetch();
+
+            const searchParams = new URLSearchParams({ q: '{"big":"123"}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
@@ -419,58 +478,37 @@ describe("MRS SDK API", () => {
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        beforeEach(() => {
-            const collectionResponse: MrsDownstreamDocumentListData<ITableMetadata1> = {
-                count: 2,
-                hasMore: false,
-                limit: 25,
-                offset: 0,
-                items: [{
-                    id: 1,
-                    str: "qux",
-                    _metadata: {
-                        etag: "XYZ",
-                    },
-                    links: [{
-                        href: "http://localhost:8443/foo/bar/baz/1",
-                        rel: "self",
-                    }],
-                }, {
-                    id: 2,
-                    str: "quux",
-                    _metadata: {
-                        etag: "ZYX",
-                    },
-                    links: [{
-                        href: "http://localhost:8443/foo/bar/baz/2",
-                        rel: "self",
-                    }],
-                }],
-                links: [{
-                    rel: "self",
-                    href: "foo/bar/baz/",
-                }, {
-                    rel: "next",
-                    href: "foo/bar/baz/?offset=25",
-                }],
-            };
+        it("converts values in the JSON response body to appropriate client-side types", async () => {
+            const query = new MrsBaseObjectQuery<unknown, unknown, [], unknown, [], ["big"], ["dec"]>(
+                schema, "/baz", undefined, { bigIntKeys: ["big"], fixedPointKeys: ["dec"] });
+            await query.fetch();
+            const got = await query.fetch();
 
-            FetchMock
-                .push({ response: JSON.stringify(collectionResponse) })
-                .push({ response: JSON.stringify(collectionResponse) });
+            expect(got.items[0]).toHaveProperty("big", 123);
+            expect(got.items[0]).toHaveProperty("dec", "1.23456789012345678");
+            expect(got.items[1]).toHaveProperty("big", 18446744073709551615n);
+            expect(got.items[1]).toHaveProperty("dec", 1.234);
         });
 
-        it("metadata are not part of the JSON representation of an application resource instance",
-            async () => {
-                const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
-                const collection = await query.fetch();
+        it("metadata are not part of the JSON representation of an application resource instance", async () => {
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
+            const collection = await query.fetch();
+            let json = JSON.stringify(collection);
+            let got: unknown = JSON.parse(json);
 
-                expect(JSON.stringify(collection)).toEqual('[{"id":1,"str":"qux"},{"id":2,"str":"quux"}]');
+            expect(got).not.toHaveProperty("links");
+            expect(got).not.toHaveProperty("count");
+            expect(got).not.toHaveProperty("hasMore");
+            expect(got).not.toHaveProperty("limit");
+            expect(got).not.toHaveProperty("offset");
 
-                const resource = await query.fetchOne();
+            const resource = await query.fetchOne();
+            json = JSON.stringify(resource);
+            got = JSON.parse(json);
 
-                expect(JSON.stringify(resource)).toEqual('{"id":1,"str":"qux"}');
-            });
+            expect(got).not.toHaveProperty("_metadata");
+            expect(got).not.toHaveProperty("links");
+        });
 
         it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
@@ -479,8 +517,10 @@ describe("MRS SDK API", () => {
             expect(Object.keys(collection)).toEqual([]);
 
             const resource = await query.fetchOne() ?? {};
+            const keys = Object.keys(resource);
 
-            expect(Object.keys(resource)).toEqual(["id", "str"]);
+            expect(keys).not.toContain("_metadata");
+            expect(keys).not.toContain("links");
         });
 
         it("metadata are not iterable in an application resource instance", async () => {
@@ -621,7 +661,8 @@ describe("MRS SDK API", () => {
             await query.fetch();
 
             const searchParams = new URLSearchParams({ q: '{"id":{"$gt":10},"$orderby":{"id":"ASC"}}' });
-            expect(fetch).toHaveBeenNthCalledWith(1, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            expect(fetch).toHaveBeenNthCalledWith(1, `/foo/bar/baz?${searchParams.toString()}`,
+                expect.anything());
 
             // explicit query filter
             query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
@@ -689,6 +730,11 @@ describe("MRS SDK API", () => {
                     await request.submit();
                 });
 
+                afterEach(() => {
+                    // reset session
+                    delete service.session.accessToken;
+                });
+
                 it("includes the appropriate access token in the request", async () => {
                     const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
 
@@ -696,7 +742,7 @@ describe("MRS SDK API", () => {
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
                         headers: {
-                            "Authorization": "Bearer ABC"
+                            "Authorization": "Bearer ABC",
                         },
                     }));
                 });
@@ -708,6 +754,10 @@ describe("MRS SDK API", () => {
         const response: MrsDownstreamDocumentData<ITableMetadata1> = {
             id: 1,
             str: "qux",
+            small: "123",
+            large: "18446744073709551615",
+            wide: "1.234",
+            narrow: "1.23456789012345678",
             _metadata: {
                 etag: "XYZ",
             },
@@ -718,10 +768,26 @@ describe("MRS SDK API", () => {
         };
 
         beforeEach(() => {
-            FetchMock.push({ response: JSON.stringify(response) });
+            const response = `{
+                "id":1,
+                "str": "qux",
+                "small": 123,
+                "large": 18446744073709551615,
+                "wide": 1.234,
+                "narrow": 1.23456789012345678,
+                "_metadata": {
+                    "etag": "XYZ"
+                },
+                "links": [{
+                    "href": "http://localhost:8443/foo/bar/baz/1",
+                    "rel": "self"
+                }]
+            }`;
+
+            FetchMock.push({ response });
         });
 
-        it("encodes the resource as a JSON string in the request body", async () => {
+        it("encodes the resource as a JSON string in a POST request body", async () => {
             const data = { id: 1, str: "qux" };
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data });
             await query.fetch();
@@ -732,21 +798,49 @@ describe("MRS SDK API", () => {
             }));
         });
 
+        it("converts bigint values to string in the JSON request body", async () => {
+            interface ITestDocument { big: BigInteger }
+            const data: ITestDocument = { big: 123n };
+            const query = new MrsBaseObjectCreate<ITestDocument, unknown>(schema, "/baz", { data });
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.objectContaining({
+                body: `{"big":"123"}`,
+            }));
+        });
+
+        it("converts numeric values in the JSON response body to appropriate client-side types", async () => {
+            const query = new MrsBaseObjectCreate<unknown, ITableMetadata1, never, ["large", "small"],
+                ["narrow", "wide"]>(schema, "/baz", { data: {} }, { bigIntKeys: ["large", "small"],
+                fixedPointKeys: ["narrow", "wide"] });
+            const got = await query.fetch();
+
+            expect(got).toHaveProperty("large", 18446744073709551615n);
+            expect(got).toHaveProperty("narrow", "1.23456789012345678");
+            expect(got).toHaveProperty("small", 123);
+            expect(got).toHaveProperty("wide", 1.234);
+        });
+
         it("metadata are not part of the JSON representation of an application resource instance",
             async () => {
                 const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                     str: "qux" } });
                 const res = await query.fetch();
+                const json = JSON.stringify(res);
+                const got = JSON.parse(json) as ITableMetadata1;
 
-                expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
+                expect(got).not.toHaveProperty("_metadata");
+                expect(got).not.toHaveProperty("links");
             });
 
         it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
             const res = await query.fetch();
+            const got = Object.keys(res);
 
-            expect(Object.keys(res)).toEqual(["id", "str"]);
+            expect(got).not.toContain("_metadata");
+            expect(got).not.toContain("links");
         });
 
         it("metadata are not iterable in an application resource instance", async () => {
@@ -856,7 +950,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
@@ -883,7 +978,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
@@ -925,6 +1021,11 @@ describe("MRS SDK API", () => {
                     await request.submit();
                 });
 
+                afterEach(() => {
+                    // reset session
+                    delete service.session.accessToken;
+                });
+
                 it("includes the appropriate access token in the request", async () => {
                     const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: {
                         str: "foobar" } });
@@ -932,7 +1033,7 @@ describe("MRS SDK API", () => {
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
                         headers: {
-                            "Authorization": "Bearer ABC"
+                            "Authorization": "Bearer ABC",
                         },
                     }));
                 });
@@ -941,42 +1042,86 @@ describe("MRS SDK API", () => {
     });
 
     describe("when updating a REST document", () => {
-        const response: MrsDownstreamDocumentData<ITableMetadata1> = {
-            id: 1,
-            str: "qux",
-            _metadata: {
-                etag: "XYZ",
+        const response = `{
+            "id": 1,
+            "str": "qux",
+            "small": 123,
+            "large": 18446744073709551615,
+            "wide": 1.234,
+            "narrow": 1.23456789012345678,
+            "_metadata": {
+                "etag": "XYZ"
             },
-            links: [{
-                href: "http://localhost:8443/foo/bar/baz/1",
-                rel: "self",
-            }],
-        };
+            "links": [{
+                "href": "http://localhost:8443/foo/bar/baz/1",
+                "rel": "self"
+            }]
+        }`;
 
         beforeEach(() => {
-            FetchMock.push({ response: JSON.stringify(response) });
+            FetchMock.push({ response });
         });
 
-        it("metadata are not part of the JSON representation of an application document instance",
-            async () => {
-                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                    { data: { id: 1, str: "qux" } }, ["id"]);
-                const res = await query.fetch();
+        it("encodes the resource as a JSON string in a PUT request body", async () => {
+            const data: ITableMetadata1 = { id: 1, str: "qux" };
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz", { data }, {
+                identifierKeys: ["id"] });
+            await query.fetch();
 
-                expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
-            });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz/${data.id}`, expect.objectContaining({
+                method: "PUT",
+                body: JSON.stringify(data),
+            }));
+        });
+
+        it("converts bigint values to string in the JSON request body", async () => {
+            interface ITestDocument { id: number, big: BigInteger }
+            const data: ITestDocument = { id: 1, big: 123n };
+            const query = new MrsBaseObjectUpdate<ITestDocument, unknown, ["id"]>(schema, "/baz", { data }, {
+                identifierKeys: ["id"] });
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz/${data.id}`, expect.objectContaining({
+                body: `{"id":1,"big":"123"}`,
+            }));
+        });
+
+        it("converts numeric values in the JSON response body to appropriate client-side types", async () => {
+            const query = new MrsBaseObjectUpdate<unknown, unknown, ["id"], ["large", "small"], ["narrow", "wide"]>(
+                schema, "/baz", { data: {} }, { identifierKeys: ["id"], bigIntKeys: ["large", "small"],
+                    fixedPointKeys: ["narrow", "wide"] });
+            const got = await query.fetch();
+
+            expect(got).toHaveProperty("large", 18446744073709551615n);
+            expect(got).toHaveProperty("narrow", "1.23456789012345678");
+            expect(got).toHaveProperty("small", 123);
+            expect(got).toHaveProperty("wide", 1.234);
+        });
+
+        it("metadata are not part of the JSON representation of an application document instance", async () => {
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
+            const res = await query.fetch();
+            const json = JSON.stringify(res);
+            const got = JSON.parse(json) as ITableMetadata1;
+
+            expect(got).not.toHaveProperty("_metadata");
+            expect(got).not.toHaveProperty("links");
+        });
 
         it("metadata are not enumerable in an application document instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                { data: { id: 1, str: "qux" } }, ["id"]);
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
             const res = await query.fetch();
+            const got = Object.keys(res);
 
-            expect(Object.keys(res)).toEqual(["id", "str"]);
+            expect(got).not.toContain("_metadata");
+            expect(got).not.toContain("links");
         });
 
         it("metadata are not iterable in an application document instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                { data: { id: 1, str: "qux" } }, ["id"]);
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
             const res = await query.fetch();
 
             expect("_metadata" in res).toBeFalsy();
@@ -984,8 +1129,8 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not writable in an application document instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                { data: { id: 1, str: "qux" } }, ["id"]);
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
             const res = await query.fetch();
 
             expect(() => {
@@ -998,8 +1143,8 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not removable from an application document instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                { data: { id: 1, str: "qux" } }, ["id"]);
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
             const res = await query.fetch() as Omit<MrsDownstreamDocumentData<ITableMetadata1>, "_metadata" | "links">;
 
             expect(() => {
@@ -1012,8 +1157,8 @@ describe("MRS SDK API", () => {
 
         it("metadata and database object fields are directly accessible in an application document instance",
             async () => {
-                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
-                    { data: { id: 1, str: "qux" } }, ["id"]);
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz",
+                    { data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
                 const res = await query.fetch();
 
                 expect(res.id).toEqual(1);
@@ -1048,13 +1193,12 @@ describe("MRS SDK API", () => {
                     schema, "/baz", { where: { id: 1 } });
                 const doc = await readQuery.fetchOne();
 
-                const updateQuery = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
-                    data: doc as ITableMetadata1 }, ["id"]);
+                const updateQuery = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz", {
+                    data: doc as ITableMetadata1 }, { identifierKeys: ["id"] });
                 await updateQuery.fetch();
 
                 expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz/${doc?.id}`, expect.objectContaining({
                     method: "PUT",
-
                     body: JSON.stringify({ id: doc?.id, str: doc?.str, _metadata: doc?._metadata }),
                 }));
             });
@@ -1062,8 +1206,8 @@ describe("MRS SDK API", () => {
 
         describe("when the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
-                    data: { id: 1, str: "qux" } }, ["id"]);
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz", {
+                    data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
                 await query.fetch();
             });
 
@@ -1108,8 +1252,8 @@ describe("MRS SDK API", () => {
 
                 FetchMock.push({ response: JSON.stringify(response) });
 
-                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
-                    data: { id: 1, str: "qux" } }, ["id"]);
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz", {
+                    data: { id: 1, str: "qux" } }, { identifierKeys: ["id"] });
                 await query.fetch();
             });
 
@@ -1119,7 +1263,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
@@ -1146,7 +1291,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
@@ -1177,7 +1323,7 @@ describe("MRS SDK API", () => {
 
                 beforeEach(async () => {
                     FetchMock
-                        .push({ response: JSON.stringify(response) })
+                        .push({ response })
                         .push({
                             matchUrl: "/foo/authentication/login",
                             matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
@@ -1188,10 +1334,15 @@ describe("MRS SDK API", () => {
                     await request.submit();
                 });
 
+                afterEach(() => {
+                    // reset session
+                    delete service.session.accessToken;
+                });
+
                 it("includes the appropriate access token in the request", async () => {
                     const data: ITableMetadata1 = { id: 1, str: "qux" };
-                    const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
-                        data }, ["id"]);
+                    const query = new MrsBaseObjectUpdate<ITableMetadata1, unknown, ["id"]>(schema, "/baz", {
+                        data }, { identifierKeys: ["id"] });
                     await query.fetch();
 
                     expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz/${data.id}`, expect.objectContaining({
@@ -1282,7 +1433,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
@@ -1309,7 +1461,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
@@ -1351,6 +1504,11 @@ describe("MRS SDK API", () => {
                     await request.submit();
                 });
 
+                afterEach(() => {
+                    // reset session
+                    delete service.session.accessToken;
+                });
+
                 it("includes the appropriate access token in the request", async () => {
                     const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
                     await query.fetch();
@@ -1372,16 +1530,88 @@ describe("MRS SDK API", () => {
             FetchMock.push();
         });
 
-        it("sets the appropriate input parameters", async () => {
-            interface IInputParameters { name: string }
-            const args: IInputParameters = { name: "foobar" };
-            const query = new MrsBaseObjectFunctionCall<IInputParameters, string>(schema, "/baz", args);
-            await query.fetch();
+        describe("a value of an input parameter", () => {
+            it("is encoded in a JSON string embedded in a POST request body", async () => {
+                interface IInputParameters { name: string }
+                const args: IInputParameters = { name: "foobar" };
+                const query = new MrsBaseObjectFunctionCall<IInputParameters, string>(schema, "/baz", args);
+                await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
-                method: "POST",
-                body: JSON.stringify(args),
-            }));
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify(args),
+                }));
+            });
+
+            it("is converted to a string if it is a bigint", async () => {
+                interface ITestInputParams { big: BigInteger }
+                const query = new MrsBaseObjectFunctionCall<ITestInputParams, unknown, ["big"]>(
+                    schema, "/baz", { big: 123n });
+
+                await query.fetch();
+
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                    body: `{"big":"123"}`,
+                }));
+            });
+        });
+
+        describe("a lossless value of a BIGINT result", () => {
+            beforeEach(() => {
+                FetchMock.push({ response: `{"result":123}` });
+            });
+
+            it("is converted to a number", async () => {
+                const query = new MrsBaseObjectFunctionCall<unknown, unknown, ["result"]>(schema, "/baz", undefined, {
+                    bigIntKeys: ["result"]
+                });
+                const got = await query.fetch();
+
+                expect(got).toHaveProperty("result", 123);
+            });
+        });
+
+        describe("a lossy value of a BIGINT result", () => {
+            beforeEach(() => {
+                FetchMock.push({ response: `{"result":18446744073709551615}` });
+            });
+
+            it("is converted to a BigInt", async () => {
+                const query = new MrsBaseObjectFunctionCall<unknown, unknown, ["result"]>(schema, "/baz", undefined, {
+                    bigIntKeys: ["result"]
+                });
+                const got = await query.fetch();
+
+                expect(got).toHaveProperty("result", 18446744073709551615n);
+            });
+        });
+
+        describe("a lossless value of a DECIMAL/NUMERIC result", () => {
+            beforeEach(() => {
+                FetchMock.push({ response: `{"result":1.234}` });
+            });
+
+            it("is converted to a number", async () => {
+                const query = new MrsBaseObjectFunctionCall<unknown, unknown, never, ["result"]>(
+                    schema, "/baz", undefined, { fixedPointKeys: ["result"] });
+                const got = await query.fetch();
+
+                expect(got).toHaveProperty("result", 1.234);
+            });
+        });
+
+        describe("a lossy value of a DECIMAL/NUMERIC result", () => {
+            beforeEach(() => {
+                FetchMock.push({ response: `{"result":1.23456789012345678}` });
+            });
+
+            it("is converted to a string", async () => {
+                const query = new MrsBaseObjectFunctionCall<unknown, unknown, never, ["result"]>(
+                    schema, "/baz", undefined, { fixedPointKeys: ["result"] });
+                const got = await query.fetch();
+
+                expect(got).toHaveProperty("result", "1.23456789012345678");
+            });
         });
 
         describe("transactional metadata", () => {
@@ -1492,7 +1722,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
@@ -1519,7 +1750,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
@@ -1561,6 +1793,11 @@ describe("MRS SDK API", () => {
                     await request.submit();
                 });
 
+                afterEach(() => {
+                    // reset session
+                    delete service.session.accessToken;
+                });
+
                 it("includes the appropriate access token in the request", async () => {
                     const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", {
                         name: "foo" });
@@ -1577,26 +1814,72 @@ describe("MRS SDK API", () => {
     });
 
     describe("when calling a REST procedure", () => {
-        const response: IMrsProcedureResponse<unknown, unknown> = {
-            resultSets: [],
-        };
+        describe("a value of an input parameter", () => {
+            beforeEach(() => {
+                const response: IMrsProcedureResponse<unknown, unknown> = { resultSets: [] };
+                FetchMock.push({ response: JSON.stringify(response) });
+            });
 
-        beforeEach(() => {
-            FetchMock.push({ response: JSON.stringify(response) });
+            it("is encoded in a JSON string embedded in a POST request body", async () => {
+                interface IInputParameters { firstName: string, lastName: string }
+                const args: IInputParameters = { firstName: "foo", lastName: "bar" };
+                const query = new MrsBaseObjectProcedureCall<IInputParameters, { name: string },
+                    JsonObject>(schema, "/baz", args);
+
+                await query.fetch();
+
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify(args),
+                }));
+            });
+
+            it("is converted to a string if it is a bigint", async () => {
+                interface ITestInputParams { big: BigInteger }
+                const query = new MrsBaseObjectProcedureCall<ITestInputParams, unknown, {}, ["big"]>(
+                    schema, "/baz", { big: 123n });
+
+                await query.fetch();
+
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                    body: `{"big":"123"}`,
+                }));
+            });
         });
 
-        it("sets the appropriate input parameters", async () => {
-            interface IInputParameters { firstName: string, lastName: string }
-            const args: IInputParameters = { firstName: "foo", lastName: "bar" };
-            const query = new MrsBaseObjectProcedureCall<IInputParameters, { name: string },
-                JsonObject>(schema, "/baz", args);
+        describe("a value of an output parameter", () => {
+            interface ITestOutParams {
+                large: string;
+                narrow: string;
+                small: string;
+                wide: string;
+            }
 
-            await query.fetch();
+            beforeEach(() => {
+                const response = `{
+                    "outParameters": {
+                        "large": 18446744073709551615,
+                        "narrow": 1.23456789012345678,
+                        "small": 123,
+                        "wide": 1.234
+                    },
+                    "resultSets": []
+                }`;
 
-            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
-                method: "POST",
-                body: JSON.stringify(args),
-            }));
+                FetchMock.push({ response });
+            });
+
+            it("is converted to an appropriate client-side type", async () => {
+                const query = new MrsBaseObjectProcedureCall<ITestOutParams, unknown, JsonObject, ["large", "small"],
+                    ["narrow", "wide"]>(schema, "/baz", undefined, { bigIntKeys: ["large", "small"],
+                    fixedPointKeys: ["narrow", "wide"] });
+                const got = await query.fetch();
+
+                expect(got.outParameters).toHaveProperty("large", 18446744073709551615n);
+                expect(got.outParameters).toHaveProperty("narrow", "1.23456789012345678");
+                expect(got.outParameters).toHaveProperty("small", 123);
+                expect(got.outParameters).toHaveProperty("wide", 1.234);
+            });
         });
 
         describe("transactional and column metadata", () => {
@@ -1696,6 +1979,9 @@ describe("MRS SDK API", () => {
 
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
+                const response: IMrsProcedureResponse<unknown, unknown> = { resultSets: [] };
+                FetchMock.push({ response: JSON.stringify(response) });
+
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 await query.fetch();
@@ -1747,7 +2033,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent GET requests do not include the GTID if the application does not want read consistency",
@@ -1774,7 +2061,8 @@ describe("MRS SDK API", () => {
                 await query.fetch();
 
                 const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
-                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                    expect.anything());
             });
 
             it("subsequent DELETE requests do not include the GTID if the application does not want read consistency",
@@ -1804,6 +2092,10 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
+                    const response: IMrsProcedureResponse<unknown, unknown> = {
+                        resultSets: [],
+                    };
+
                     FetchMock
                         .push({ response: JSON.stringify(response) })
                         .push({
@@ -1814,6 +2106,11 @@ describe("MRS SDK API", () => {
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
+                });
+
+                afterEach(() => {
+                    // reset session
+                    delete service.session.accessToken;
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -1862,6 +2159,11 @@ describe("MRS SDK API", () => {
                         const request = new MrsAuthenticate(schema.service, "qux", "quux", "biz",
                             "0x31000000000000000000000000000000");
                         await request.submit();
+                    });
+
+                    afterEach(() => {
+                        // reset session
+                        delete service.session.accessToken;
                     });
 
                     it("includes the appropriate access token in the request", async () => {
@@ -1922,6 +2224,11 @@ describe("MRS SDK API", () => {
                         const request = new MrsAuthenticate(schema.service, "qux", "quux", "biz",
                             "0x31000000000000000000000000000000");
                         await request.submit();
+                    });
+
+                    afterEach(() => {
+                        // reset session
+                        delete service.session.accessToken;
                     });
 
                     it("includes the appropriate access token in the request", async () => {
@@ -2027,6 +2334,17 @@ describe("MRS SDK API", () => {
                         schema, "/baz", input, { refreshRate: 400 });
                 }).toThrowError("Refresh rate needs to be a number greater than or equal to 500ms.");
             });
+
+            it("encodes BigInt input parameter values as a string", async () => {
+                interface ITestParams { big: BigInteger }
+                const startTaskRequest = new MrsBaseTaskStart<ITestParams, unknown, unknown>(
+                    schema, "/baz", { big: 123n });
+                await startTaskRequest.submit();
+
+                expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.objectContaining({
+                    body: `{"big":"123"}`,
+                }));
+            });
         });
 
         describe("while it is running", () => {
@@ -2058,9 +2376,9 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { progress });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { progress });
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 const { value: value1 } = await iterator.next();
@@ -2077,9 +2395,10 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, {
+                    refreshRate });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { refreshRate });
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
@@ -2094,9 +2413,10 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, {
+                    progress, refreshRate });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { progress, refreshRate });
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 const { value: value1 } = await iterator.next();
@@ -2128,7 +2448,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, "PROCEDURE");
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, {
+                    routineType: "PROCEDURE" });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
@@ -2149,7 +2470,8 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, "FUNCTION");
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, {
+                    routineType: "FUNCTION" });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
                     schema, "/baz", task);
 
@@ -2190,15 +2512,302 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { progress });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { progress });
+                    schema, "/baz", task);
 
                 for await (const _ of watchTaskRequest.submit()) {
                     void vi.advanceTimersByTimeAsync(4000);
                 }
 
                 expect(progress).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        describe("that is a function and produces a lossy BIGINT result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":18446744073709551615}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a BigInt", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, ["result"]>(schema, "/baz", startedTaskId, {
+                    routineType: "FUNCTION", bigIntKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: 18446744073709551615n });
+            });
+        });
+
+        describe("that is a function and produces a lossless BIGINT result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":123}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a number", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, ["result"]>(schema, "/baz", startedTaskId, {
+                    routineType: "FUNCTION", bigIntKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: 123 });
+            });
+        });
+
+        describe("that is a function and produces a lossy DECIMAL/NUMERIC result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":1.23456789012345678}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a string", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, never, ["result"]>(schema, "/baz",
+                    startedTaskId, { routineType: "FUNCTION", fixedPointKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, never, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: "1.23456789012345678" });
+            });
+        });
+
+        describe("that is a function and produces a lossless DECIMAL/NUMERIC result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":1.234}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a number", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, never, ["result"]>(schema, "/baz",
+                    startedTaskId, { routineType: "FUNCTION", fixedPointKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, never, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: 1.234 });
+            });
+        });
+
+        describe("that is a procedure and produces a lossy BIGINT output parameter value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"prop":18446744073709551615}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a BigInt", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, ["prop"]>(schema, "/baz", startedTaskId, {
+                    routineType: "PROCEDURE", bigIntKeys: ["prop"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, ["prop"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", {
+                    outParameters: { prop: 18446744073709551615n },
+                    resultSets: [],
+                });
+            });
+        });
+
+        describe("that is a procedure and produces a lossless BIGINT output parameter value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"prop":123}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a number", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, ["prop"]>(schema, "/baz", startedTaskId, {
+                    routineType: "PROCEDURE", bigIntKeys: ["prop"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, ["prop"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", {
+                    outParameters: { prop: 123 },
+                    resultSets: [],
+                });
+            });
+        });
+
+        describe("that is a procedure and produces a lossy DECIMAL/NUMERIC output parameter value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"prop":1.23456789012345678}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a string", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, never, ["prop"]>(schema, "/baz",
+                    startedTaskId, { routineType: "PROCEDURE", fixedPointKeys: ["prop"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, never, ["prop"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", {
+                    outParameters: { prop: "1.23456789012345678" },
+                    resultSets: [],
+                });
+            });
+        });
+
+        describe("that is a procedure and produces a lossless DECIMAL/NUMERIC output parameter value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"prop":1.234}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a number", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, never, ["prop"]>(schema, "/baz",
+                    startedTaskId, { routineType: "PROCEDURE", fixedPointKeys: ["prop"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, never, ["prop"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", {
+                    outParameters: { prop: 1.234 },
+                    resultSets: [],
+                });
+            });
+        });
+
+        describe("that is a function and produces a lossless BIGINT result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":123}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a number", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, ["result"]>(schema, "/baz", startedTaskId, {
+                    routineType: "FUNCTION", bigIntKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: 123 });
+            });
+        });
+
+        describe("that is a function and produces a lossy DECIMAL/NUMERIC result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":1.23456789012345678}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a string", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, never, ["result"]>(schema, "/baz",
+                    startedTaskId, { routineType: "FUNCTION", fixedPointKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, never, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: "1.23456789012345678" });
+            });
+        });
+
+        describe("that is a function and produces a lossless DECIMAL/NUMERIC result value", () => {
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: `{"status":"COMPLETED","data":{"result":1.234}}`,
+                    })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("converts the value to a number", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<unknown, unknown, unknown>(schema, "/baz");
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                const task = new MrsTask<object, IAsyncRoutineResultData, never, ["result"]>(schema, "/baz",
+                    startedTaskId, { routineType: "FUNCTION", fixedPointKeys: ["result"] });
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData, never, ["result"]>(
+                    schema, "/baz", task);
+
+                const iterator = watchTaskRequest.submit();
+                const { value } = await iterator.next();
+
+                expect(value).toHaveProperty("data", { result: 1.234 });
             });
         });
 
@@ -2258,9 +2867,9 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { progress });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { progress });
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
@@ -2338,9 +2947,9 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { timeout });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { timeout: 3000 });
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
@@ -2365,9 +2974,9 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { timeout });
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { timeout: 3000 });
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
@@ -2383,9 +2992,9 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { timeout });
                 const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { timeout: 3000 });
+                    schema, "/baz", task);
 
                 void vi.advanceTimersByTimeAsync(4000);
 
@@ -2400,9 +3009,9 @@ describe("MRS SDK API", () => {
                     schema, "/baz", input);
                 const { taskId: startedTaskId } = await startTaskRequest.submit();
                 expect(startedTaskId).to.equal(taskId);
-                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId);
+                const task = new MrsTask<object, IAsyncRoutineResultData>(schema, "/baz", startedTaskId, { timeout });
                 const pollTaskRequest = new MrsBaseTaskRun<object, IAsyncRoutineResultData>(
-                    schema, "/baz", task, { timeout: 3000 });
+                    schema, "/baz", task);
 
                 void vi.advanceTimersByTimeAsync(4000);
 

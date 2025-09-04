@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Working with Data Types
 
-MySQL supports and extensive list of data types that cannot be directly mapped development language native datatypes in many cases. This section discusses how to handles those MySQL datatypes in the Client SDK.
+MySQL supports and extensive list of data types that cannot be directly mapped development language native datatypes in many cases. This section discusses how to handles those MySQL datatypes in the Client SDK. The conversion rules apply consistently across REST View fields, REST Procedure input and output parameters and REST function input parameters and results.
 
 ## Spatial Data Types
 
@@ -569,4 +569,66 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+## Working with lossy numbers
+
+TypeScript `number`s use a double precision 64-bit binary format as defined by the IEEE 754 standard. This means that it is not capable, without losing precision, of representing integers above 2^53-1 (which are valid in the 64-bit integer range) and also fixed-point arbitrary precision decimals. This is particularly important because the `BIGINT` data type in MySQL can represent numbers up to 2^64-1 and the `DECIMAL`/`NUMERIC` data type can represent fixed point numbers.
+
+64-bit integers can still be represented using a `BigInt` type without losing precision, so the TypeScript SDK converts the raw JSON number into a corresponding instance of this type, if the value, in fact, looses precision. Otherwise it converts it to a regular `number` instance.
+
+For example, consider a table as follows:
+
+```sql
+    CREATE TABLE IF NOT EXISTS my_db.my_table (small BIGINT UNSIGNED, large BIGINT UNSIGNED);
+    INSERT INTO my_db.my_table (small, large) VALUES (1234, 18446744073709551615);
+```
+
+with a corresponding REST View created as follows:
+
+```sql
+    CREATE REST VIEW /myTable
+        ON SERVICE /myService SCHEMA /myDb
+        AS `my_db`.`my_table` {
+            small: small,
+            large: large,
+        };
+```
+
+The document can be retrieved, using the TypeScript SDK, as follows:
+
+```TypeScript
+const doc = await myService.myDb.myTable.findFirst({ where: { large: 18446744073709551615n } })
+console.log(doc.small) // 123
+console.log(typeof doc.small) // number
+console.log(doc.large) // 18446744073709551615n
+console.log(typeof doc.large) // bigint
+```
+
+However, there is no similar construct for fixed-point decimals. In this case, the MRS TypeScript SDK handles these values as `string`s, if they, in fact, lose precision. For example, consider a table as follows:
+
+```sql
+    CREATE TABLE IF NOT EXISTS my_db.my_table (wide DECIMAL(18, 17) narrow DECIMAL(18, 17));
+    INSERT INTO my_db.my_table (wide, narrow) VALUES (1.234, 1.23456789012345678);
+```
+
+with a corresponding REST View created as follows:
+
+```sql
+    CREATE REST VIEW /myTable
+        ON SERVICE /myService SCHEMA /myDb
+        AS `my_db`.`my_table` {
+            wide: wide,
+            narrow: narrow,
+        };
+```
+
+The document can be retrieved, using the TypeScript SDK, as follows:
+
+```TypeScript
+const doc = await myService.myDb.myTable.findFirst({ where: { narrow: "1.23456789012345678" } })
+console.log(doc.wide) // 123
+console.log(typeof doc.wide) // number
+console.log(doc.narrow) // 1.23456789012345678
+console.log(typeof doc.narrow) // string
 ```

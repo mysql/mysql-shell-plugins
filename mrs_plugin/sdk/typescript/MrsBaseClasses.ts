@@ -160,7 +160,7 @@ export class MrsBaseSession {
             response = await fetch(`${this.serviceUrl}${input}`, {
                 method,
                 headers: (this.accessToken !== undefined) ? { Authorization: "Bearer " + this.accessToken } : undefined,
-                body: (body !== undefined) ? JSON.stringify(body) : undefined,
+                body: (body !== undefined) ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined,
                 signal,
             });
         } catch (e) {
@@ -686,6 +686,9 @@ export type IPojo = Record<symbol | string, JsonValue | undefined>;
  */
 export type MaybeNull<T> = T | null;
 
+export type BigInteger = bigint | number;
+export type Decimal = string | number;
+
 /**
  * A GEOMETRY column can store geometry values of any spatial type.
  */
@@ -772,6 +775,26 @@ export interface MultiPolygon {
 export type Cursor<EligibleFields> = {
     [Key in keyof EligibleFields]: EligibleFields[Key]
 };
+
+interface IMrsTaskOptions<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames extends string[],
+    FixedPointParameterNames extends string[]> extends IMrsObjectMetadata<BigIntParameterNames,
+        FixedPointParameterNames>, IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> {
+    routineType?: "FUNCTION" | "PROCEDURE";
+}
+
+interface IMrsObjectMetadata<BigIntFieldNames extends string[] = never, FixedPointFieldNames extends string[] = never> {
+    bigIntKeys?: BigIntFieldNames;
+    fixedPointKeys?: FixedPointFieldNames;
+}
+
+interface IMrsViewMetadata<PrimaryKeyFieldNames extends string[] = never, BigIntFieldNames extends string[] = never,
+    FixedPointFieldNames extends string[] = never> extends IMrsObjectMetadata<BigIntFieldNames, FixedPointFieldNames> {
+    identifierKeys?: PrimaryKeyFieldNames;
+};
+
+interface IMrsRoutineMetadata<BigIntParameterNames extends string[] = never,
+    FixedPointParameterNames extends string[] = never> extends IMrsObjectMetadata<BigIntParameterNames,
+        FixedPointParameterNames> {}
 
 // authenticate() API
 
@@ -948,8 +971,8 @@ type MrsQueryFilter<Sortable extends string[]> = {
  * JSON utilities with MRS-specific glue code.
  */
 class MrsJSON {
-    public static stringify = <T>(obj: T): string => {
-        return JSON.stringify(obj, (key: string, value: MaybeNull<{ not?: null; } & T>) => {
+    public static stringify = <InputType>(obj: InputType): string => {
+        return JSON.stringify(obj, (key: string, value: MaybeNull<{ not?: null; } & InputType>) => {
             // expand $notnull operator (lookup at the child level)
             // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
             // left to do
@@ -966,8 +989,42 @@ class MrsJSON {
                 return { $null: null };
             }
 
+            if (typeof value === "bigint") {
+                // value must be sent as string
+                return `${value}`;
+            }
+
             return value;
         });
+    };
+
+    public static parse = <ReturnType, BigIntFieldNames extends string[], FixedPointFieldNames extends string[]>(
+        json: string, options: IMrsObjectMetadata<BigIntFieldNames, FixedPointFieldNames> = {}): ReturnType => {
+        return JSON.parse(json, (key, value: MaybeNull<ReturnType>, context?: { source: string }) => {
+            const rawValue = context?.source ?? String(value);
+
+            if (value !== null && options.bigIntKeys?.includes(key)) {
+                const int = BigInt(rawValue);
+
+                if (int <= Number.MAX_SAFE_INTEGER && int >= Number.MIN_SAFE_INTEGER) {
+                    return Number.parseInt(rawValue, 10);
+                }
+
+                return int;
+            }
+
+            if (value !== null && options.fixedPointKeys?.includes(key)) {
+                // remove trailing zeros
+                const normalized = rawValue.replace(/0+$/, "");
+                const [_, int, decimal] = normalized.match(/(\d+).(\d+)/) ?? [];
+                const isUnsafe = `${int}.${decimal}` !== Number.parseFloat(`${int}.${decimal}`)
+                    .toFixed(decimal.length);
+
+                return isUnsafe ? normalized : Number.parseFloat(normalized);
+            }
+
+            return value;
+        }) as ReturnType;
     };
 }
 
@@ -997,14 +1054,15 @@ class MrsRequestBody<Doc> {
  * @template Doc The type representing an MRS Document produced by a REST View.
  * @template KeyFieldNames The set of fields that constitute the identifying key of a REST View.
  */
-class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
+class MrsDocument<Doc extends IPojo, PrimaryKeyFieldNames extends string[], BigIntFieldNames extends string[] = never,
+    FixedPointFieldNames extends string[] = never> {
     #hypermediaProperties = ["_metadata", "links"];
 
     public constructor (
         private readonly json: Doc,
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly primaryKeys?: KeyFieldNames) {
+        private readonly options?: IMrsViewMetadata<PrimaryKeyFieldNames, BigIntFieldNames, FixedPointFieldNames>) {
     }
 
     /**
@@ -1018,7 +1076,7 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         return new Proxy(this.json, {
             deleteProperty: (target, p) => {
                 const property = String(p); // convert symbols to strings
-                const isPrimaryKey = this.primaryKeys?.includes(property);
+                const isPrimaryKey = this.options?.identifierKeys?.includes(property);
 
                 if (this.#hypermediaProperties.includes(property) || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be deleted.`);
@@ -1038,12 +1096,12 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
 
                 // primaryKeys only contains items if the "UPDATE" CRUD operation is enabled
                 // and there are, in fact, primary keys
-                if (property === "update" && this.primaryKeys?.length) {
+                if (property === "update" && this.options?.identifierKeys?.length) {
                     return this.update.bind(this);
                 }
 
                 // same as above
-                if (property === "delete" && this.primaryKeys?.length) {
+                if (property === "delete" && this.options?.identifierKeys?.length) {
                     return this.delete.bind(this);
                 }
 
@@ -1068,7 +1126,7 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
 
             set: (target, p, newValue) => {
                 const property = String(p); // convert symbols to strings
-                const isPrimaryKey = this.primaryKeys?.includes(property);
+                const isPrimaryKey = this.options?.identifierKeys?.includes(property);
 
                 if (this.#hypermediaProperties.includes(property) || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be changed.`);
@@ -1086,7 +1144,7 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
         const queryFilter: Record<string, unknown> = {};
 
         // the proxy already guarantees that the primaryKeys property is always defined
-        for (const key of this.primaryKeys!) {
+        for (const key of this.options!.identifierKeys!) {
             queryFilter[key] = this.json[key];
         }
 
@@ -1107,9 +1165,9 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
     }
 
     private async update(): Promise<MrsDownstreamDocumentData<Doc>> {
-        const request = new MrsBaseObjectUpdate<Doc, KeyFieldNames, Doc>(
+        const request = new MrsBaseObjectUpdate<Doc, Doc, PrimaryKeyFieldNames, BigIntFieldNames, FixedPointFieldNames>(
             // the proxy already guarantees that the primaryKeys property is always defined
-            this.schema, this.requestPath, { data: this.json }, this.primaryKeys!);
+            this.schema, this.requestPath, { data: this.json }, this.options);
         const response = await request.fetch();
 
         return response;
@@ -1120,12 +1178,13 @@ class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
  * @template Doc The type representing an MRS Document produced by a REST View.
  * @template KeyFieldNames The set of fields that constitute the identifying key of a REST View.
  */
-class MrsDocumentList<Doc, KeyFieldNames extends string[]> {
+class MrsDocumentList<Doc, PrimaryKeyFieldNames extends string[], BigIntFieldNames extends string[] = never,
+    FixedPointFieldNames extends string[] = never> {
     public constructor (
         private readonly json: MrsDownstreamDocumentListData<Doc>,
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly primaryKeys?: KeyFieldNames) {
+        private readonly options?: IMrsViewMetadata<PrimaryKeyFieldNames, BigIntFieldNames, FixedPointFieldNames>) {
     }
 
     /**
@@ -1160,7 +1219,7 @@ class MrsDocumentList<Doc, KeyFieldNames extends string[]> {
                 // .items
                 return target.items.map((item) => {
                     const resource = new MrsDocument(
-                        item, this.schema, this.requestPath, this.primaryKeys);
+                        item, this.schema, this.requestPath, this.options);
 
                     return resource.createProxy();
                 });
@@ -1190,7 +1249,8 @@ class MrsDocumentList<Doc, KeyFieldNames extends string[]> {
  * Creates an object that represents an MRS GET request.
  */
 export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = never, Iterable = never,
-    KeyFieldNames extends string[] = never> {
+    PrimaryKeyFieldNames extends string[] = never, BigIntFieldNames extends string[] = never,
+    FixedPointFieldNames extends string[] = never> {
     private where?: MrsQueryFilter<Sortable>;
     private exclude: string[] = [];
     private include: string[] = [];
@@ -1201,14 +1261,14 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        options?: IFindOptions<Doc, Filterable, Sortable, Iterable>,
-        private readonly primaryKeys?: KeyFieldNames) {
-        if (options === undefined) {
+        args?: IFindOptions<Doc, Filterable, Sortable, Iterable>,
+        private readonly options?: IMrsViewMetadata<PrimaryKeyFieldNames, BigIntFieldNames, FixedPointFieldNames>) {
+        if (args === undefined) {
             return;
         }
 
         const { cursor, orderBy, readOwnWrites, select, skip, take, where } =
-        options as IFindManyOptions<Doc, Filterable, Sortable, Iterable> & { cursor?: Cursor<Iterable> };
+        args as IFindManyOptions<Doc, Filterable, Sortable, Iterable> & { cursor?: Cursor<Iterable> };
 
         if (where !== undefined) {
             this.where = where;
@@ -1279,9 +1339,12 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody = await response.json() as MrsDownstreamDocumentListData<Doc>;
+        const responseBody = await response.text();
+        const json = MrsJSON.parse<MrsDownstreamDocumentListData<Doc>, BigIntFieldNames, FixedPointFieldNames>(
+            responseBody, this.options);
+
         const collection = new MrsDocumentList(
-            responseBody, this.schema, this.requestPath, this.primaryKeys);
+            json, this.schema, this.requestPath, this.options);
 
         return collection.createProxy();
     };
@@ -1325,27 +1388,30 @@ export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = nev
     };
 }
 
-export class MrsBaseObjectCreate<Input, Output, KeyFieldNames extends string[] = never> {
+export class MrsBaseObjectCreate<Input, Output, PrimaryKeyFieldNames extends string[] = never,
+    BigIntFieldNames extends string[] = never, FixedPointFieldNames extends string[] = never> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: ICreateOptions<Input>,
-        protected primaryKeys?: KeyFieldNames) {
+        protected args: ICreateOptions<Input>,
+        protected options?: IMrsViewMetadata<PrimaryKeyFieldNames, BigIntFieldNames, FixedPointFieldNames>) {
     }
 
     public fetch = async (): Promise<MrsDownstreamDocumentData<Output>> => {
         const response = await this.schema.service.session.doFetch({
             input: `${this.schema.requestPath}${this.requestPath}`,
             method: "POST",
-            body: this.options.data,
+            body: MrsJSON.stringify(this.args.data),
             errorMsg: "Failed to create item.",
         });
 
-        const responseBody = await response.json() as MrsDownstreamDocumentData<Output>;
-        this.schema.service.session.gtid = responseBody._metadata.gtid;
+        const responseBody = await response.text();
+        const json = MrsJSON.parse<MrsDownstreamDocumentData<Output>, BigIntFieldNames, FixedPointFieldNames>(
+            responseBody, this.options);
+        this.schema.service.session.gtid = json._metadata.gtid;
 
         const resource = new MrsDocument(
-            responseBody, this.schema, this.requestPath, this.primaryKeys);
+            json, this.schema, this.requestPath, this.options);
 
         return resource.createProxy();
     };
@@ -1389,79 +1455,91 @@ export class MrsBaseObjectDelete<Filterable> {
  * @template InputType A type that enforces only mandatory fields.
  * @template OutputType It is not possible to narrow fields of an update response. So, all fields must be returned.
  */
-export class MrsBaseObjectUpdate<InputType, KeyFieldNames extends string[], OutputType> {
+export class MrsBaseObjectUpdate<InputType, OutputType, PrimaryKeyFieldNames extends string[],
+    BigIntFieldNames extends string[] = never, FixedPointFieldNames extends string[] = never> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: IUpdateOptions<InputType>,
-        protected primaryKeys: KeyFieldNames) {
+        protected args: IUpdateOptions<InputType>,
+        protected options?: IMrsViewMetadata<PrimaryKeyFieldNames, BigIntFieldNames, FixedPointFieldNames>) {
     }
 
     public fetch = async (): Promise<MrsDownstreamDocumentData<OutputType>> => {
         const resourceIdComponents: Array<InputType[Extract<keyof InputType, string>]> = [];
 
-        for (const x in this.options.data) {
-            if (this.primaryKeys.includes(x)) {
-                resourceIdComponents.push(this.options.data[x]);
+        for (const x in this.args.data) {
+            if (this.options?.identifierKeys?.includes(x)) {
+                resourceIdComponents.push(this.args.data[x]);
             }
         }
 
-        const data = new MrsRequestBody(this.options.data as MrsDownstreamDocumentData<InputType>);
+        const data = new MrsRequestBody(this.args.data as MrsDownstreamDocumentData<InputType>);
         const dataProxy = data.createProxy();
 
         const response = await this.schema.service.session.doFetch({
             input: `${this.schema.requestPath}${this.requestPath}/${resourceIdComponents.join(",")}`,
             method: "PUT",
-            body: dataProxy,
+            body: MrsJSON.stringify(dataProxy),
             errorMsg: "Failed to update item.",
         });
 
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
-        const responseBody = await response.json() as MrsDownstreamDocumentData<OutputType>;
-        this.schema.service.session.gtid = responseBody._metadata.gtid;
+        const responseBody = await response.text();
+        const json = MrsJSON.parse<MrsDownstreamDocumentData<OutputType>, BigIntFieldNames, FixedPointFieldNames>(
+            responseBody, this.options);
+        this.schema.service.session.gtid = json._metadata.gtid;
 
         const resource = new MrsDocument(
-            responseBody, this.schema, this.requestPath, this.primaryKeys);
+            json, this.schema, this.requestPath, this.options);
 
         return resource.createProxy();
     };
 }
 
-class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
+class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse, BigIntParameterNames extends string[] = never,
+    FixedPointParameterNames extends string[] = never> {
     protected constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected params?: Input) {
+        protected params?: Input,
+        protected options?: IMrsRoutineMetadata<BigIntParameterNames, FixedPointParameterNames>) {
     }
 
     protected async fetch(): Promise<Output> {
         const input = `${this.schema.requestPath}${this.requestPath}`;
+        // If there are no input parameters and/or values, we need to still send a non-zero Content-Length
+        // payload that is valid from the mime type standpoint (default: application/json).
+        const body = MrsJSON.stringify(this.params ?? {});
 
         const response = await this.schema.service.session.doFetch({
             input,
             method: "POST",
-            body: this.params ?? {},
+            body: body,
             errorMsg: "Failed to call item.",
         });
 
-        const responseBody = await response.json() as Output;
-        this.schema.service.session.gtid = responseBody._metadata?.gtid;
+        const responseBody = await response.text();
+        const json = MrsJSON.parse<Output, BigIntParameterNames, FixedPointParameterNames>(responseBody, this.options);
+        this.schema.service.session.gtid = json._metadata?.gtid;
 
         const resource = new MrsDocument(
-            responseBody, this.schema, this.requestPath);
+            json, this.schema, this.requestPath);
 
         return resource.createProxy();
     }
 }
 
-export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends JsonObject>
-    extends MrsBaseObjectCall<InParams, IMrsProcedureResponse<OutParams, ResultSet>> {
+export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends JsonObject,
+    BigIntParameterNames extends string[] = never, FixedPointParameterNames extends string[] = never>
+    extends MrsBaseObjectCall<InParams, IMrsProcedureResponse<OutParams, ResultSet>, BigIntParameterNames,
+        FixedPointParameterNames> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
-        protected override params?: InParams) {
-        super(schema, requestPath, params);
+        protected override params?: InParams,
+        protected override options?: IMrsRoutineMetadata<BigIntParameterNames, FixedPointParameterNames>) {
+        super(schema, requestPath, params, options);
     }
 
     public override async fetch(): Promise<IMrsProcedureResponse<OutParams, ResultSet>> {
@@ -1475,13 +1553,15 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends J
     }
 }
 
-export class MrsBaseObjectFunctionCall<Input, Output>
-    extends MrsBaseObjectCall<Input, IMrsFunctionResponse<Output>> {
+export class MrsBaseObjectFunctionCall<Input, Output, BigIntParameterNames extends string[] = never,
+    FixedPointParameterNames extends string[] = never>
+    extends MrsBaseObjectCall<Input, IMrsFunctionResponse<Output>, BigIntParameterNames, FixedPointParameterNames> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
-        protected override params?: Input) {
-        super(schema, requestPath, params);
+        protected override params?: Input,
+        protected override options?: IMrsRoutineMetadata<BigIntParameterNames, FixedPointParameterNames>) {
+        super(schema, requestPath, params, options);
     }
 
     public override async fetch(): Promise<IMrsFunctionResponse<Output>> {
@@ -1676,7 +1756,7 @@ export interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     status: "RUNNING"
 }
 
-interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+export interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "progress" | "status"> {
     data: MrsTaskResult
     status: "COMPLETED"
@@ -1719,10 +1799,14 @@ export class MrsBaseTaskStart<MrsTaskInputParameters, MrsTaskStatusUpdate, MrsTa
 
     public async submit(): Promise<IMrsTaskStartResponse> {
         const input = `${this.schema.requestPath}${this.requestPath}`;
+        // If there are no input parameters and/or values, we need to still send a non-zero Content-Length
+        // payload that is valid from the mime type standpoint (default: application/json).
+        const body = MrsJSON.stringify(this.params ?? {});
+
         const response = await this.schema.service.session.doFetch({
             input,
             method: "POST",
-            body: this.params ?? {},
+            body,
             errorMsg: "Failed to start task.",
         });
 
@@ -1732,12 +1816,13 @@ export class MrsBaseTaskStart<MrsTaskInputParameters, MrsTaskStatusUpdate, MrsTa
     }
 }
 
-export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames extends string[] = never,
+    FixedPointParameterNames extends string[] = never> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        protected readonly task: MrsTask<MrsTaskStatusUpdate, MrsTaskResult>,
-        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+        protected readonly task: MrsTask<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames,
+            FixedPointParameterNames>) {
     }
 
     async #getStatus(): Promise<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>> {
@@ -1748,14 +1833,16 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
             errorMsg: "Failed to retrieve the task status report.",
         });
 
-        const responseBody = await response.json() as IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>;
+        const responseBody = await response.text();
+        const json = MrsJSON.parse<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>,
+            BigIntParameterNames, FixedPointParameterNames>(responseBody, this.task.options);
 
-        return responseBody;
+        return json;
     }
 
     public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, void> {
         const startedAt = Date.now();
-        const { refreshRate = 2000, progress, timeout } = this.options;
+        const { refreshRate = 2000, progress, timeout } = this.task.options;
         // the timeout event should be produced only once
         let timeoutReached = false;
 
@@ -1776,13 +1863,14 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
             }
 
             if (statusUpdate.status === "COMPLETED") {
+                // TODO: add support for temporal value conversion
                 // also a final status report that should close the producer
                 const { message, status } = statusUpdate;
 
                 let data: MrsTaskResult;
 
                 // Procedures with an associated async task currently do not support result sets (see BUG#38039060).
-                if (this.task.routineType === "FUNCTION") {
+                if (this.task.options.routineType === "FUNCTION") {
                     data = statusUpdate.data as MrsTaskResult;
                 } else {
                     data = { resultSets: [], outParameters: statusUpdate.data } as MrsTaskResult;
@@ -1815,8 +1903,9 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     }
 }
 
-export class MrsBaseTaskRun<MrsTaskStatusUpdate, MrsTaskResult>
-    extends MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+export class MrsBaseTaskRun<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames extends string[] = never,
+    FixedPointParameterNames extends string[] = never>
+    extends MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames, FixedPointParameterNames> {
     // @ts-expect-error undefined is never returned because all non-exception cases are handled in the loop
     public async execute(): Promise<MrsTaskResult> {
         const errorEvents = ["ERROR", "CANCELLED", "TIMEOUT"];
@@ -1837,13 +1926,14 @@ export class MrsBaseTaskRun<MrsTaskStatusUpdate, MrsTaskResult>
     }
 }
 
-export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
+export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames extends string[] = never,
+    FixedPointParameterNames extends string[] = never> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
         public readonly id: string,
-        public readonly routineType: "FUNCTION" | "PROCEDURE" = "FUNCTION",
-        private readonly options?: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult>) {
+        public readonly options: IMrsTaskOptions<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames,
+            FixedPointParameterNames> = { refreshRate: 2000, routineType: "FUNCTION" }) {
     }
 
     public async kill(): Promise<void> {
@@ -1859,8 +1949,8 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
 
     public async* watch(): AsyncGenerator<
         IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, unknown> {
-        const request = new MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult>(
-            this.schema, this.requestPath, this, this.options);
+        const request = new MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult, BigIntParameterNames,
+            FixedPointParameterNames>(this.schema, this.requestPath, this);
         for await (const response of request.submit()) {
             yield response;
         }

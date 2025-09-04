@@ -451,6 +451,12 @@ Reference 1.19.17+9.4.0</h3>
                                                 class="toc-section-number">8.3</span>
                                                 Working with Vector Data
                                                 Types</a></li>
+                                                <li><a
+                                                href="#working-with-lossy-numbers"
+                                                id="toc-working-with-lossy-numbers"><span
+                                                class="toc-section-number">8.4</span>
+                                                Working with lossy
+                                                numbers</a></li>
                                                 </ul></li>
                                                 <li><a
                                                 href="#application-metadata"
@@ -5628,7 +5634,10 @@ Service - SDK Reference
                 <p>MySQL supports and extensive list of data types that
                 cannot be directly mapped development language native
                 datatypes in many cases. This section discusses how to
-                handles those MySQL datatypes in the Client SDK.</p>
+                handles those MySQL datatypes in the Client SDK. The
+                conversion rules apply consistently across REST View
+                fields, REST Procedure input and output parameters and
+                REST function input parameters and results.</p>
                 <h2 data-number="8.1" id="spatial-data-types"><span
                 class="header-section-number">8.1</span> Spatial Data
                 Types</h2>
@@ -6323,6 +6332,72 @@ Service - SDK Reference
 <span id="cb150-20"><a href="#cb150-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb150-21"><a href="#cb150-21" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
 <span id="cb150-22"><a href="#cb150-22" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
+                <h2 data-number="8.4"
+                id="working-with-lossy-numbers"><span
+                class="header-section-number">8.4</span> Working with
+                lossy numbers</h2>
+                <p>TypeScript <code>number</code>s use a double
+                precision 64-bit binary format as defined by the IEEE
+                754 standard. This means that it is not capable, without
+                losing precision, of representing integers above 2^53-1
+                (which are valid in the 64-bit integer range) and also
+                fixed-point arbitrary precision decimals. This is
+                particularly important because the <code>BIGINT</code>
+                data type in MySQL can represent numbers up to 2^64-1
+                and the <code>DECIMAL</code>/<code>NUMERIC</code> data
+                type can represent fixed point numbers.</p>
+                <p>64-bit integers can still be represented using a
+                <code>BigInt</code> type without losing precision, so
+                the TypeScript SDK converts the raw JSON number into a
+                corresponding instance of this type, if the value, in
+                fact, looses precision. Otherwise it converts it to a
+                regular <code>number</code> instance.</p>
+                <p>For example, consider a table as follows:</p>
+                <div class="sourceCode" id="cb151"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb151-1"><a href="#cb151-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> my_db.my_table (small BIGINT UNSIGNED, large BIGINT UNSIGNED);</span>
+<span id="cb151-2"><a href="#cb151-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INSERT</span> <span class="kw">INTO</span> my_db.my_table (small, large) <span class="kw">VALUES</span> (<span class="dv">1234</span>, <span class="dv">18446744073709551615</span>);</span></code></pre></div>
+                <p>with a corresponding REST View created as
+                follows:</p>
+                <div class="sourceCode" id="cb152"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable</span>
+<span id="cb152-2"><a href="#cb152-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
+<span id="cb152-3"><a href="#cb152-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` {</span>
+<span id="cb152-4"><a href="#cb152-4" aria-hidden="true" tabindex="-1"></a>            small: small,</span>
+<span id="cb152-5"><a href="#cb152-5" aria-hidden="true" tabindex="-1"></a>            large: large,</span>
+<span id="cb152-6"><a href="#cb152-6" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <p>The document can be retrieved, using the TypeScript
+                SDK, as follows:</p>
+                <div class="sourceCode" id="cb153"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb153-1"><a href="#cb153-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> doc <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">findFirst</span>({ where<span class="op">:</span> { large<span class="op">:</span> <span class="dv">18446744073709551615</span>n } })</span>
+<span id="cb153-2"><a href="#cb153-2" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(doc<span class="op">.</span><span class="at">small</span>) <span class="co">// 123</span></span>
+<span id="cb153-3"><a href="#cb153-3" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="kw">typeof</span> doc<span class="op">.</span><span class="at">small</span>) <span class="co">// number</span></span>
+<span id="cb153-4"><a href="#cb153-4" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(doc<span class="op">.</span><span class="at">large</span>) <span class="co">// 18446744073709551615n</span></span>
+<span id="cb153-5"><a href="#cb153-5" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="kw">typeof</span> doc<span class="op">.</span><span class="at">large</span>) <span class="co">// bigint</span></span></code></pre></div>
+                <p>However, there is no similar construct for
+                fixed-point decimals. In this case, the MRS TypeScript
+                SDK handles these values as <code>string</code>s, if
+                they, in fact, lose precision. For example, consider a
+                table as follows:</p>
+                <div class="sourceCode" id="cb154"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb154-1"><a href="#cb154-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> my_db.my_table (wide <span class="dt">DECIMAL</span>(<span class="dv">18</span>, <span class="dv">17</span>) narrow <span class="dt">DECIMAL</span>(<span class="dv">18</span>, <span class="dv">17</span>));</span>
+<span id="cb154-2"><a href="#cb154-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INSERT</span> <span class="kw">INTO</span> my_db.my_table (wide, narrow) <span class="kw">VALUES</span> (<span class="fl">1.234</span>, <span class="fl">1.23456789012345678</span>);</span></code></pre></div>
+                <p>with a corresponding REST View created as
+                follows:</p>
+                <div class="sourceCode" id="cb155"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb155-1"><a href="#cb155-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable</span>
+<span id="cb155-2"><a href="#cb155-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
+<span id="cb155-3"><a href="#cb155-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` {</span>
+<span id="cb155-4"><a href="#cb155-4" aria-hidden="true" tabindex="-1"></a>            wide: wide,</span>
+<span id="cb155-5"><a href="#cb155-5" aria-hidden="true" tabindex="-1"></a>            narrow: narrow,</span>
+<span id="cb155-6"><a href="#cb155-6" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <p>The document can be retrieved, using the TypeScript
+                SDK, as follows:</p>
+                <div class="sourceCode" id="cb156"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb156-1"><a href="#cb156-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> doc <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">findFirst</span>({ where<span class="op">:</span> { narrow<span class="op">:</span> <span class="st">&quot;1.23456789012345678&quot;</span> } })</span>
+<span id="cb156-2"><a href="#cb156-2" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(doc<span class="op">.</span><span class="at">wide</span>) <span class="co">// 123</span></span>
+<span id="cb156-3"><a href="#cb156-3" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="kw">typeof</span> doc<span class="op">.</span><span class="at">wide</span>) <span class="co">// number</span></span>
+<span id="cb156-4"><a href="#cb156-4" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(doc<span class="op">.</span><span class="at">narrow</span>) <span class="co">// 1.23456789012345678</span></span>
+<span id="cb156-5"><a href="#cb156-5" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="kw">typeof</span> doc<span class="op">.</span><span class="at">narrow</span>) <span class="co">// string</span></span></code></pre></div>
                 <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -6355,100 +6430,100 @@ Service - SDK Reference
                 Services</h2>
                 <p>Consider a REST Service, with custom metadata,
                 created as follows:</p>
-                <div class="sourceCode" id="cb151"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb151-1"><a href="#cb151-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
-<span id="cb151-2"><a href="#cb151-2" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
-<span id="cb151-3"><a href="#cb151-3" aria-hidden="true" tabindex="-1"></a>          <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;service&quot;</span></span>
-<span id="cb151-4"><a href="#cb151-4" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <div class="sourceCode" id="cb157"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb157-1"><a href="#cb157-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb157-2"><a href="#cb157-2" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
+<span id="cb157-3"><a href="#cb157-3" aria-hidden="true" tabindex="-1"></a>          <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;service&quot;</span></span>
+<span id="cb157-4"><a href="#cb157-4" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
                 <p>After generating the TypeScript SDK for this service,
                 the custom metadata can be obtained as follows:</p>
-                <div class="sourceCode" id="cb152"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb152-2"><a href="#cb152-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb152-3"><a href="#cb152-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb152-4"><a href="#cb152-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb152-5"><a href="#cb152-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb152-6"><a href="#cb152-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;service&quot; }</span></span></code></pre></div>
+                <div class="sourceCode" id="cb158"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb158-1"><a href="#cb158-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb158-2"><a href="#cb158-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb158-3"><a href="#cb158-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb158-4"><a href="#cb158-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb158-5"><a href="#cb158-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb158-6"><a href="#cb158-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;service&quot; }</span></span></code></pre></div>
                 <p>If the REST Service does not contain custom
                 metadata:</p>
-                <div class="sourceCode" id="cb153"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb153-1"><a href="#cb153-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span></code></pre></div>
+                <div class="sourceCode" id="cb159"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span></code></pre></div>
                 <p>The command returns an empty object:</p>
-                <div class="sourceCode" id="cb154"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb154-1"><a href="#cb154-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb154-2"><a href="#cb154-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb154-3"><a href="#cb154-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb154-4"><a href="#cb154-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb154-5"><a href="#cb154-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb154-6"><a href="#cb154-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// {}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb160"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb160-1"><a href="#cb160-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb160-2"><a href="#cb160-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb160-3"><a href="#cb160-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb160-4"><a href="#cb160-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb160-5"><a href="#cb160-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb160-6"><a href="#cb160-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// {}</span></span></code></pre></div>
                 <h2 data-number="9.2" id="rest-schemas"><span
                 class="header-section-number">9.2</span> REST
                 Schemas</h2>
                 <p>Consider a MySQL database created as follows:</p>
-                <div class="sourceCode" id="cb155"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb155-1"><a href="#cb155-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">DATABASE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> my_db;</span></code></pre></div>
+                <div class="sourceCode" id="cb161"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb161-1"><a href="#cb161-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">DATABASE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> my_db;</span></code></pre></div>
                 <p>and a corresponding REST Schema, with custom
                 metadata, created as follows:</p>
-                <div class="sourceCode" id="cb156"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb156-1"><a href="#cb156-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>myDb <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb156-2"><a href="#cb156-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> `my_db`</span>
-<span id="cb156-3"><a href="#cb156-3" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
-<span id="cb156-4"><a href="#cb156-4" aria-hidden="true" tabindex="-1"></a>          <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;schema&quot;</span></span>
-<span id="cb156-5"><a href="#cb156-5" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <div class="sourceCode" id="cb162"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb162-1"><a href="#cb162-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>myDb <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb162-2"><a href="#cb162-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> `my_db`</span>
+<span id="cb162-3"><a href="#cb162-3" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
+<span id="cb162-4"><a href="#cb162-4" aria-hidden="true" tabindex="-1"></a>          <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;schema&quot;</span></span>
+<span id="cb162-5"><a href="#cb162-5" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
                 <p>The custom metadata can be obtained as follows:</p>
-                <div class="sourceCode" id="cb157"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb157-1"><a href="#cb157-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb157-2"><a href="#cb157-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb157-3"><a href="#cb157-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb157-4"><a href="#cb157-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb157-5"><a href="#cb157-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb157-6"><a href="#cb157-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;schema&quot; }</span></span></code></pre></div>
+                <div class="sourceCode" id="cb163"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb163-1"><a href="#cb163-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb163-2"><a href="#cb163-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb163-3"><a href="#cb163-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb163-4"><a href="#cb163-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb163-5"><a href="#cb163-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb163-6"><a href="#cb163-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;schema&quot; }</span></span></code></pre></div>
                 <p>Just like for a REST Service, if a REST Schema does
                 not specify custom metadata:</p>
-                <div class="sourceCode" id="cb158"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb158-1"><a href="#cb158-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>myDb <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb158-2"><a href="#cb158-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> `my_db`</span></code></pre></div>
+                <div class="sourceCode" id="cb164"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb164-1"><a href="#cb164-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>myDb <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb164-2"><a href="#cb164-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> `my_db`</span></code></pre></div>
                 <p>The command returns an empty object:</p>
-                <div class="sourceCode" id="cb159"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb159-2"><a href="#cb159-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb159-3"><a href="#cb159-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb159-4"><a href="#cb159-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb159-5"><a href="#cb159-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb159-6"><a href="#cb159-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// {}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb165"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb165-1"><a href="#cb165-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb165-2"><a href="#cb165-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb165-3"><a href="#cb165-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb165-4"><a href="#cb165-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb165-5"><a href="#cb165-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb165-6"><a href="#cb165-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// {}</span></span></code></pre></div>
                 <p>If the REST Schema requires authentication:</p>
-                <div class="sourceCode" id="cb160"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb160-1"><a href="#cb160-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>myDb <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb160-2"><a href="#cb160-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> `my_db`</span>
-<span id="cb160-3"><a href="#cb160-3" aria-hidden="true" tabindex="-1"></a>        AUTHENTICATION REQUIRED</span>
-<span id="cb160-4"><a href="#cb160-4" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
-<span id="cb160-5"><a href="#cb160-5" aria-hidden="true" tabindex="-1"></a>          <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;schema&quot;</span></span>
-<span id="cb160-6"><a href="#cb160-6" aria-hidden="true" tabindex="-1"></a>        };</span>
-<span id="cb160-7"><a href="#cb160-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb160-8"><a href="#cb160-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="fu">USER</span> foo <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">&#39;bar&#39;</span>;</span>
-<span id="cb160-9"><a href="#cb160-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb160-10"><a href="#cb160-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService <span class="kw">ADD</span> AUTH APP <span class="ot">&quot;MySQL&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb166"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb166-1"><a href="#cb166-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>myDb <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb166-2"><a href="#cb166-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> `my_db`</span>
+<span id="cb166-3"><a href="#cb166-3" aria-hidden="true" tabindex="-1"></a>        AUTHENTICATION REQUIRED</span>
+<span id="cb166-4"><a href="#cb166-4" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
+<span id="cb166-5"><a href="#cb166-5" aria-hidden="true" tabindex="-1"></a>          <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;schema&quot;</span></span>
+<span id="cb166-6"><a href="#cb166-6" aria-hidden="true" tabindex="-1"></a>        };</span>
+<span id="cb166-7"><a href="#cb166-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb166-8"><a href="#cb166-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="fu">USER</span> foo <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">&#39;bar&#39;</span>;</span>
+<span id="cb166-9"><a href="#cb166-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb166-10"><a href="#cb166-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService <span class="kw">ADD</span> AUTH APP <span class="ot">&quot;MySQL&quot;</span>;</span></code></pre></div>
                 <p>The command only succeeds if the client authenticates
                 beforehand:</p>
-                <div class="sourceCode" id="cb161"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb161-1"><a href="#cb161-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb161-2"><a href="#cb161-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb161-3"><a href="#cb161-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb161-4"><a href="#cb161-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb161-5"><a href="#cb161-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> myService<span class="op">.</span><span class="fu">authenticate</span>({ username<span class="op">:</span> <span class="st">&quot;foo&quot;</span><span class="op">,</span> password<span class="op">:</span> <span class="st">&quot;bar&quot;</span><span class="op">,</span> app<span class="op">:</span> <span class="st">&quot;MySQL&quot;</span> })</span>
-<span id="cb161-6"><a href="#cb161-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span></code></pre></div>
+                <div class="sourceCode" id="cb167"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb167-1"><a href="#cb167-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb167-2"><a href="#cb167-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb167-3"><a href="#cb167-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb167-4"><a href="#cb167-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb167-5"><a href="#cb167-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> myService<span class="op">.</span><span class="fu">authenticate</span>({ username<span class="op">:</span> <span class="st">&quot;foo&quot;</span><span class="op">,</span> password<span class="op">:</span> <span class="st">&quot;bar&quot;</span><span class="op">,</span> app<span class="op">:</span> <span class="st">&quot;MySQL&quot;</span> })</span>
+<span id="cb167-6"><a href="#cb167-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span></code></pre></div>
                 <p>Otherwise, the command yields an authentication
                 error:</p>
-                <div class="sourceCode" id="cb162"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb162-1"><a href="#cb162-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb162-2"><a href="#cb162-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb162-3"><a href="#cb162-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb162-4"><a href="#cb162-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb162-5"><a href="#cb162-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> {</span>
-<span id="cb162-6"><a href="#cb162-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb162-7"><a href="#cb162-7" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">catch</span> (err) {</span>
-<span id="cb162-8"><a href="#cb162-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(err) <span class="co">// Not authenticated. Please authenticate first before accessing the path /myService/myDb/_metadata.</span></span>
-<span id="cb162-9"><a href="#cb162-9" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+                <div class="sourceCode" id="cb168"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb168-1"><a href="#cb168-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb168-2"><a href="#cb168-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb168-3"><a href="#cb168-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb168-4"><a href="#cb168-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb168-5"><a href="#cb168-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> {</span>
+<span id="cb168-6"><a href="#cb168-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb168-7"><a href="#cb168-7" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">catch</span> (err) {</span>
+<span id="cb168-8"><a href="#cb168-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(err) <span class="co">// Not authenticated. Please authenticate first before accessing the path /myService/myDb/_metadata.</span></span>
+<span id="cb168-9"><a href="#cb168-9" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
                 <h2 data-number="9.3" id="rest-objects"><span
                 class="header-section-number">9.3</span> REST
                 Objects</h2>
@@ -6458,76 +6533,76 @@ Service - SDK Reference
                 <code>SCRIPT</code>.</p>
                 <p>As an example, consider any MySQL Table, such as one
                 created as follows:</p>
-                <div class="sourceCode" id="cb163"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb163-1"><a href="#cb163-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> my_table (<span class="kw">id</span> <span class="dt">INT</span> AUTO_INCREMENT <span class="kw">NOT</span> <span class="kw">NULL</span>, name <span class="dt">VARCHAR</span>(<span class="dv">3</span>), <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (<span class="kw">id</span>));</span></code></pre></div>
+                <div class="sourceCode" id="cb169"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb169-1"><a href="#cb169-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> my_table (<span class="kw">id</span> <span class="dt">INT</span> AUTO_INCREMENT <span class="kw">NOT</span> <span class="kw">NULL</span>, name <span class="dt">VARCHAR</span>(<span class="dv">3</span>), <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (<span class="kw">id</span>));</span></code></pre></div>
                 <p>and a corresponding REST View, with custom metadata,
                 created as follows:</p>
-                <div class="sourceCode" id="cb164"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb164-1"><a href="#cb164-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
-<span id="cb164-2"><a href="#cb164-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` <span class="kw">CLASS</span> MyServiceMyDbMyTable {</span>
-<span id="cb164-3"><a href="#cb164-3" aria-hidden="true" tabindex="-1"></a>            <span class="kw">id</span>: <span class="kw">id</span> @SORTABLE @KEY,</span>
-<span id="cb164-4"><a href="#cb164-4" aria-hidden="true" tabindex="-1"></a>            name: name</span>
-<span id="cb164-5"><a href="#cb164-5" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb164-6"><a href="#cb164-6" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
-<span id="cb164-7"><a href="#cb164-7" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;table&quot;</span></span>
-<span id="cb164-8"><a href="#cb164-8" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <div class="sourceCode" id="cb170"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb170-1"><a href="#cb170-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
+<span id="cb170-2"><a href="#cb170-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` <span class="kw">CLASS</span> MyServiceMyDbMyTable {</span>
+<span id="cb170-3"><a href="#cb170-3" aria-hidden="true" tabindex="-1"></a>            <span class="kw">id</span>: <span class="kw">id</span> @SORTABLE @KEY,</span>
+<span id="cb170-4"><a href="#cb170-4" aria-hidden="true" tabindex="-1"></a>            name: name</span>
+<span id="cb170-5"><a href="#cb170-5" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb170-6"><a href="#cb170-6" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
+<span id="cb170-7"><a href="#cb170-7" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;table&quot;</span></span>
+<span id="cb170-8"><a href="#cb170-8" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
                 <p>The custom metadata can be obtained as follows:</p>
-                <div class="sourceCode" id="cb165"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb165-1"><a href="#cb165-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb165-2"><a href="#cb165-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb165-3"><a href="#cb165-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb165-4"><a href="#cb165-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb165-5"><a href="#cb165-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb165-6"><a href="#cb165-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;table&quot; }</span></span></code></pre></div>
+                <div class="sourceCode" id="cb171"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb171-1"><a href="#cb171-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb171-2"><a href="#cb171-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb171-3"><a href="#cb171-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb171-4"><a href="#cb171-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb171-5"><a href="#cb171-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb171-6"><a href="#cb171-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;table&quot; }</span></span></code></pre></div>
                 <p>Just like for a REST Service and Schema, if the REST
                 View does not specify custom metadata:</p>
-                <div class="sourceCode" id="cb166"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb166-1"><a href="#cb166-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
-<span id="cb166-2"><a href="#cb166-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` <span class="kw">CLASS</span> MyServiceMyDbMyTable {</span>
-<span id="cb166-3"><a href="#cb166-3" aria-hidden="true" tabindex="-1"></a>            <span class="kw">id</span>: <span class="kw">id</span> @SORTABLE @KEY,</span>
-<span id="cb166-4"><a href="#cb166-4" aria-hidden="true" tabindex="-1"></a>            name: name</span>
-<span id="cb166-5"><a href="#cb166-5" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <div class="sourceCode" id="cb172"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb172-1"><a href="#cb172-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
+<span id="cb172-2"><a href="#cb172-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` <span class="kw">CLASS</span> MyServiceMyDbMyTable {</span>
+<span id="cb172-3"><a href="#cb172-3" aria-hidden="true" tabindex="-1"></a>            <span class="kw">id</span>: <span class="kw">id</span> @SORTABLE @KEY,</span>
+<span id="cb172-4"><a href="#cb172-4" aria-hidden="true" tabindex="-1"></a>            name: name</span>
+<span id="cb172-5"><a href="#cb172-5" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
                 <p>The command returns an empty object:</p>
-                <div class="sourceCode" id="cb167"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb167-1"><a href="#cb167-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb167-2"><a href="#cb167-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb167-3"><a href="#cb167-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb167-4"><a href="#cb167-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb167-5"><a href="#cb167-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb167-6"><a href="#cb167-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// {}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb173"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb173-1"><a href="#cb173-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb173-2"><a href="#cb173-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb173-3"><a href="#cb173-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb173-4"><a href="#cb173-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb173-5"><a href="#cb173-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb173-6"><a href="#cb173-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// {}</span></span></code></pre></div>
                 <p>If the REST View requires authentication:</p>
-                <div class="sourceCode" id="cb168"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb168-1"><a href="#cb168-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
-<span id="cb168-2"><a href="#cb168-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` <span class="kw">CLASS</span> MyServiceMyDbMyTable {</span>
-<span id="cb168-3"><a href="#cb168-3" aria-hidden="true" tabindex="-1"></a>            <span class="kw">id</span>: <span class="kw">id</span> @SORTABLE @KEY,</span>
-<span id="cb168-4"><a href="#cb168-4" aria-hidden="true" tabindex="-1"></a>            name: name</span>
-<span id="cb168-5"><a href="#cb168-5" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb168-6"><a href="#cb168-6" aria-hidden="true" tabindex="-1"></a>        AUTHENTICATION REQUIRED</span>
-<span id="cb168-7"><a href="#cb168-7" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
-<span id="cb168-8"><a href="#cb168-8" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;table&quot;</span></span>
-<span id="cb168-9"><a href="#cb168-9" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
+                <div class="sourceCode" id="cb174"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb174-1"><a href="#cb174-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>myDb</span>
+<span id="cb174-2"><a href="#cb174-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">AS</span> `my_db`.`my_table` <span class="kw">CLASS</span> MyServiceMyDbMyTable {</span>
+<span id="cb174-3"><a href="#cb174-3" aria-hidden="true" tabindex="-1"></a>            <span class="kw">id</span>: <span class="kw">id</span> @SORTABLE @KEY,</span>
+<span id="cb174-4"><a href="#cb174-4" aria-hidden="true" tabindex="-1"></a>            name: name</span>
+<span id="cb174-5"><a href="#cb174-5" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb174-6"><a href="#cb174-6" aria-hidden="true" tabindex="-1"></a>        AUTHENTICATION REQUIRED</span>
+<span id="cb174-7"><a href="#cb174-7" aria-hidden="true" tabindex="-1"></a>        METADATA {</span>
+<span id="cb174-8"><a href="#cb174-8" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;type&quot;</span>: <span class="ot">&quot;table&quot;</span></span>
+<span id="cb174-9"><a href="#cb174-9" aria-hidden="true" tabindex="-1"></a>        };</span></code></pre></div>
                 <p>Just like for a REST Schema, the command only
                 succeeds if the client authenticates beforehand:</p>
-                <div class="sourceCode" id="cb169"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb169-1"><a href="#cb169-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb169-2"><a href="#cb169-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb169-3"><a href="#cb169-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb169-4"><a href="#cb169-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb169-5"><a href="#cb169-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> myService<span class="op">.</span><span class="fu">authenticate</span>({ username<span class="op">:</span> <span class="st">&quot;foo&quot;</span><span class="op">,</span> password<span class="op">:</span> <span class="st">&quot;bar&quot;</span><span class="op">,</span> app<span class="op">:</span> <span class="st">&quot;MySQL&quot;</span> })</span>
-<span id="cb169-6"><a href="#cb169-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb169-7"><a href="#cb169-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;table&quot; }</span></span></code></pre></div>
+                <div class="sourceCode" id="cb175"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb175-1"><a href="#cb175-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb175-2"><a href="#cb175-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb175-3"><a href="#cb175-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb175-4"><a href="#cb175-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb175-5"><a href="#cb175-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> myService<span class="op">.</span><span class="fu">authenticate</span>({ username<span class="op">:</span> <span class="st">&quot;foo&quot;</span><span class="op">,</span> password<span class="op">:</span> <span class="st">&quot;bar&quot;</span><span class="op">,</span> app<span class="op">:</span> <span class="st">&quot;MySQL&quot;</span> })</span>
+<span id="cb175-6"><a href="#cb175-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb175-7"><a href="#cb175-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(metadata) <span class="co">// { type: &quot;table&quot; }</span></span></code></pre></div>
                 <p>Otherwise, the command yields an authentication
                 error:</p>
-                <div class="sourceCode" id="cb170"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb170-1"><a href="#cb170-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
-<span id="cb170-2"><a href="#cb170-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb170-3"><a href="#cb170-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
-<span id="cb170-4"><a href="#cb170-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb170-5"><a href="#cb170-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> {</span>
-<span id="cb170-6"><a href="#cb170-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
-<span id="cb170-7"><a href="#cb170-7" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">catch</span> (err) {</span>
-<span id="cb170-8"><a href="#cb170-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(err) <span class="co">// Not authenticated. Please authenticate first before accessing the path /myService/myDb/myTable/_metadata.</span></span>
-<span id="cb170-9"><a href="#cb170-9" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+                <div class="sourceCode" id="cb176"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb176-1"><a href="#cb176-1" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&quot;/path/to/sdk/myService&quot;</span></span>
+<span id="cb176-2"><a href="#cb176-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb176-3"><a href="#cb176-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()</span>
+<span id="cb176-4"><a href="#cb176-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb176-5"><a href="#cb176-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> {</span>
+<span id="cb176-6"><a href="#cb176-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> metadata <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">myDb</span><span class="op">.</span><span class="at">myTable</span><span class="op">.</span><span class="fu">getMetadata</span>()</span>
+<span id="cb176-7"><a href="#cb176-7" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">catch</span> (err) {</span>
+<span id="cb176-8"><a href="#cb176-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(err) <span class="co">// Not authenticated. Please authenticate first before accessing the path /myService/myDb/myTable/_metadata.</span></span>
+<span id="cb176-9"><a href="#cb176-9" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
                 <p>Copyright (c) 2022, 2025, Oracle and/or its
                 affiliates.</p>
             </div>
