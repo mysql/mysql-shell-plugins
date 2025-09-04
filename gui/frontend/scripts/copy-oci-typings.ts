@@ -24,8 +24,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { Worker } from "worker_threads";
-import { convertCamelToTitleCase } from "../src/utilities/string-helpers.js";
+
 import { enumerateFiles } from "../src/utilities/file-utilities.js";
+import { convertCamelToTitleCase } from "../src/utilities/string-helpers.js";
 
 const targetFolder = path.join("./src", "oci-typings");
 const copyright = `/*
@@ -72,7 +73,9 @@ class PromiseQueue {
     public async add<T>(task: () => Promise<T>): Promise<T> {
         // Wait if we're at max capacity.
         if (this.pending.length >= maxWorkers) {
-            await new Promise<void>((resolve) => { return this.waiting.push(resolve); });
+            await new Promise<void>((resolve) => {
+                return this.waiting.push(resolve);
+            });
         }
 
         // Wrap task to automatically remove from pending and trigger next.
@@ -100,11 +103,11 @@ class PromiseQueue {
 const runWorker = (file: string, targetName: string): Promise<void> => {
     return new Promise((resolve, reject) => {
         const worker = new Worker("./scripts/copy-oci-worker.js", { workerData: { file, targetName } });
-        worker.on("message", (msg) => {
+        worker.on("message", (msg: { status: string, error: string; }) => {
             if (msg.status === "ok") {
                 resolve();
             } else {
-                reject(new Error(msg.error as string));
+                reject(new Error(msg.error));
             }
         });
 
@@ -128,7 +131,9 @@ const processTypings = (folder: string, names: string[]) => {
 
     for (const file of typings) {
         const targetName = path.join(targetFolder, file.substring("node_modules".length)).replace(".d.ts", ".ts");
-        const promise = promiseQueue.add(() => { return runWorker(file, targetName); });
+        const promise = promiseQueue.add(() => {
+            return runWorker(file, targetName);
+        });
         workerQueue.set(file, promise);
     }
 
@@ -205,7 +210,7 @@ if (!fs.existsSync(targetFolder)) {
         "assign-manual-uuid-handling", "assign-target-uuid-handling", "anonymous-transactions-handling",
         "channel-target-db-system", "ca-certificate", "channel-target", "channel-filter", "rest-details",
         "data-storage", "customer-contact", "read-endpoint-details", "soft-delete", "copy-policy",
-        "rest-configuration-type",
+        "rest-configuration-type", "encrypt-data-details", "key-generation-type",
     ]);
 
     processTypings("oci-loadbalancer/lib/model", [

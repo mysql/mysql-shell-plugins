@@ -41,10 +41,17 @@ export default defineConfig({
         environment: "jsdom",
         pool: "threads",
         coverage: {
+            enabled: false, // Enable coverage on demand using CLI --coverage flag.
             provider: "v8",
+            include: ["src/**/*.ts", "src/**/*.tsx"],
+            exclude: [
+                "**/.antlr/",
+                "**/generated/",
+                "src/oci-typings/",
+                "src/tests/",
+            ],
         },
-        reporters: ["default", "html"],
-        outputFile: "./test-reports/unit-tests/index.html",
+        reporters: ["default"],
     },
     resolve: {
         alias: [
