@@ -148,10 +148,10 @@ export class SqlQueryExecutor {
         let errorCount = 0;
         const startTime = Date.now();
         let jsStartLine = 0;
-        let errorMessage: string = "";
-        let errorStatementIndex: number = -1;
-        let jsCreateStatementStr: string = "";
-        let errorStatementStr: string = "";
+        let errorMessage = "";
+        let errorStatementIndex = -1;
+        let jsCreateStatementStr = "";
+        let errorStatementStr = "";
 
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
@@ -207,7 +207,6 @@ export class SqlQueryExecutor {
                 }
             }
         }
-
 
         return {
             statementCount, errorCount, startTime, jsStartLine,

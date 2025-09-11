@@ -1609,61 +1609,64 @@ Execute \\help or \\? for help;`;
             }
         };
 
-        const command = context.code.trim();
+        const command = context.code.trimStart();
         if (command.length === 0) {
             return false;
         }
 
         this.runningContexts.set(context.id, context);
 
-        const parts = command.split(" ");
-        if (parts.length > 0) {
-            const temp = parts[0].toLowerCase();
-            switch (temp) {
-                case "\\about": {
-                    if (webSession.runMode === RunMode.SingleServer) {
-                        await context.addResultData({
-                            type: "about", title: "MySQL AI", info: "Machine Learning and GenAI Solution",
-                        }, { resultId: "" });
-                    } else if (savedState.heatWaveEnabled) {
-                        await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
-                    } else {
-                        const isMac = navigator.userAgent.includes("Macintosh");
-                        const content = ConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
-                        await context.addResultData({
-                            type: "text",
-                            text: [{ type: MessageType.Info, content, language: "ansi" }],
-                        }, { resultId: "" });
-                    }
+        const firstSpace = command.indexOf(" ");
+        let text = command;
+        if (firstSpace > -1) {
+            text = command.substring(0, firstSpace).trim();
+        }
 
-                    return true;
-                }
-
-                case "\\reconnect": {
+        const temp = text.toLowerCase();
+        switch (temp) {
+            case "\\about": {
+                if (webSession.runMode === RunMode.SingleServer) {
+                    await context.addResultData({
+                        type: "about", title: "MySQL AI", info: "Machine Learning and GenAI Solution",
+                    }, { resultId: "" });
+                } else if (savedState.heatWaveEnabled) {
+                    await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
+                } else {
+                    const isMac = navigator.userAgent.includes("Macintosh");
+                    const content = ConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
                     await context.addResultData({
                         type: "text",
-                        text: [{
-                            type: MessageType.Info,
-                            content: "Reconnecting the current DB connection ...\n",
-                            language: "ansi",
-                        }],
+                        text: [{ type: MessageType.Info, content, language: "ansi" }],
                     }, { resultId: "" });
-                    await this.reconnect(context);
-
-                    return true;
                 }
 
-                case "\\nl": {
-                    const nlQuery = command.substring(parts[0].length + 1);
-                    await this.executeNlQuery(context, options, nlQuery);
-
-                    await storeHistoryEntry(connection, `\\nl ${nlQuery}`, "sql", savedState);
-
-                    return true;
-                }
-
-                default:
+                return true;
             }
+
+            case "\\reconnect": {
+                await context.addResultData({
+                    type: "text",
+                    text: [{
+                        type: MessageType.Info,
+                        content: "Reconnecting the current DB connection ...\n",
+                        language: "ansi",
+                    }],
+                }, { resultId: "" });
+                await this.reconnect(context);
+
+                return true;
+            }
+
+            case "\\nl": {
+                const nlQuery = command.substring(firstSpace + 1);
+                await this.executeNlQuery(context, options, nlQuery);
+
+                await storeHistoryEntry(connection, `\\nl ${nlQuery}`, "sql", savedState);
+
+                return true;
+            }
+
+            default:
         }
 
         await context.clearResult();

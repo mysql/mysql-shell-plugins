@@ -417,7 +417,7 @@ export class SQLExecutionContext extends ExecutionContext {
 
     /**
      * @returns a promise that resolves to all statements from the context. This list includes delimiter changes and is
-     * not affect by a selection in the editor. The promise is resolved as soon as all pending/ongoing statement split
+     * not affected by a selection in the editor. The promise is resolved as soon as all pending/ongoing statement split
      * actions are finished.
      *
      * The line numbers in the returned statements are relative to the start of this context and one-based.

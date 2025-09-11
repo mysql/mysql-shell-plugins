@@ -1554,6 +1554,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                                     : undefined;
                                 if (position) {
                                     position = context.toLocal(position);
+
                                 }
 
                                 const executionOptions = {
@@ -1564,12 +1565,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                                 };
 
                                 void onScriptExecution?.(context, executionOptions).then(() => {
+                                    if (options.advance) {
+                                        // Don't prepare the new block outside of this promise or we
+                                        // will lose the selection.
+                                        this.prepareNextExecutionBlock(index);
+                                    }
+
                                     editor.focus();
                                 });
 
-                                if (options.advance) {
-                                    this.prepareNextExecutionBlock(index);
-                                }
                             }
                         }
                     });
