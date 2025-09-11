@@ -1057,7 +1057,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 {(cellData.field.objectReference && (
                     cellData.field.objectReference.referenceMapping.kind === "1:1" ||
                     cellData.field.objectReference.referenceMapping.kind === "n:1") &&
-                    cellData.field.objectReference.reduceToValueOfFieldId) &&
+                    !cellData.field.objectReference.reduceToValueOfFieldId) &&
                     <Container
                         className={this.getEffectiveClassNames(["unnestDiv",
                             cellData.field.objectReference.unnest ? "unnested" : "notUnnested"])}
@@ -1151,7 +1151,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 return <Container
                     className={this.getEffectiveClassNames([
                         tableCrud.includes(op) ? "activated" : "deactivated",
-                        cellData.field.objectReference?.reduceToValueOfFieldId ? "enabled" : "disabled",
+                        cellData.field.objectReference?.reduceToValueOfFieldId ? "disabled" : "enabled",
                     ])}
                     orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Center}
@@ -2400,15 +2400,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         if (mrsObject) {
             switch (iconGroup) {
                 case ActionIconName.Crud: {
-                    if (icon && treeItem.field.objectReference?.reduceToValueOfFieldId) {
+                    if (icon && !treeItem.field.objectReference?.reduceToValueOfFieldId) {
                         // Get the right options, either from mrsObject or from objectReference and initialize if needed
                         let options;
                         if (treeItem.field.representsReferenceId === undefined) {
                             mrsObject.options ??= {};
                             options = mrsObject.options;
-                        } else {
+                        } else if (treeItem.field.objectReference) {
                             treeItem.field.objectReference.options ??= {};
                             options = treeItem.field.objectReference.options;
+                        } else {
+                            return;
                         }
 
                         // If the individual flag is not set or false, set to true - otherwise false
@@ -2586,7 +2588,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
 
         // Automatically expand fields that represent an objectReference, which will also enabled them
-        if (treeItem?.field.objectReference?.reduceToValueOfFieldId && !treeItem.expanded) {
+        if (treeItem?.field.objectReference && !treeItem.field.objectReference.reduceToValueOfFieldId &&
+            !treeItem.expanded) {
             cell.getRow().treeExpand();
         } else if (treeItem?.field) {
             // Toggle the enabled state
