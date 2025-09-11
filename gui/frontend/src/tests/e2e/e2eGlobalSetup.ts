@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,4 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "../loadTestConfiguration.js";
+import * as path from "path";
+import { existsSync, rmSync, mkdirSync } from "fs";
+
+export const setup = (): void => {
+    const e2eFolder = path.resolve("src/tests/e2e");
+    const screenshotDir = path.join(e2eFolder, "screenshots");
+
+    // Delete and recreate screenshots folder
+    if (existsSync(screenshotDir)) {
+        rmSync(screenshotDir, { recursive: true });
+    }
+    mkdirSync(screenshotDir, { recursive: true });
+
+    console.log("✅ Global setup: Cleaned screenshots folder");
+};

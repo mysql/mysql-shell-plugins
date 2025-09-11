@@ -29,6 +29,8 @@ import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "vitest/config";
 
+import { StaticHtmlReporter } from "./src/tests/reporter/StaticHtmlReporter.js";
+
 const fileName = fileURLToPath(import.meta.url);
 
 export default defineConfig({
@@ -48,10 +50,12 @@ export default defineConfig({
                 "**/.antlr/",
                 "**/generated/",
                 "src/oci-typings/",
+                "**/test-reports/",
                 "src/tests/",
             ],
         },
-        reporters: ["default"],
+        reporters: ["default", new StaticHtmlReporter("MySQL Shell GUI Unit Test Report")],
+        outputFile: resolve("./src/tests/unit-tests/test-report/unit-tests/index.html"),
     },
     resolve: {
         alias: [

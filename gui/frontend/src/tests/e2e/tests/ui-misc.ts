@@ -26,7 +26,6 @@
 import { basename } from "path";
 import { until } from "selenium-webdriver";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import * as constants from "../lib/constants.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
@@ -66,8 +65,7 @@ describe("Token Verification", () => {
             await settings.confirmationOnClose(false);
             await settings.close();
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeEach_TOKEN_VERIFICATION");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "Token Verification");
             throw e;
         }
     });
@@ -145,8 +143,7 @@ describe("Login", () => {
             await driver.wait(Misc
                 .untilHomePageIsLoaded(String(globalThis.testConfig!.SHELL_UI_MU_HOSTNAME)), constants.wait20seconds);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_LOGIN");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "Login");
             throw e;
         }
     });
@@ -225,8 +222,7 @@ describe("Notifications", () => {
             await driver.wait(dbTreeSection.untilTreeItemExists(localConn.caption!), constants.wait5seconds);
             await dbTreeSection.expandTreeItem(localConn);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_NOTEBOOKS");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "Notifications");
             throw e;
         }
     });
@@ -430,8 +426,7 @@ describe("Communication Debugger", () => {
             await driver.findElement(locator.e2eDebugger.toggle).click();
             await driver.wait(E2EDebugger.untilIsOpened(), constants.wait3seconds, "The Debugger page was not opened");
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_DEBUGGER");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "Communication Debugger");
             throw e;
         }
     });
@@ -510,8 +505,7 @@ describe("Single Server Mode", () => {
                 Misc.untilHomePageIsLoaded(String(globalThis.testConfig!.SHELL_UI_SS_HOSTNAME)),
                 constants.wait20seconds);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_SINGLE_SERVER_MODE");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "Single Server Mode");
             throw e;
         }
     });

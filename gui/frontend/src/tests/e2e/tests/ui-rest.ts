@@ -26,7 +26,6 @@
 import { basename } from "path";
 import { error, Key } from "selenium-webdriver";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import * as constants from "../lib/constants.js";
 import { AuthenticationAppDialog } from "../lib/Dialogs/AuthenticationAppDialog.js";
 import { ConfigRestServiceDialog } from "../lib/Dialogs/ConfigRestServiceDialog.js";
@@ -85,8 +84,7 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.expandTreeItem(globalConn);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_MysqlRESTService");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "MYSQL REST SERVICE");
             throw e;
         }
     });
@@ -351,8 +349,7 @@ describe("MYSQL REST SERVICE", () => {
             try {
                 await dbTreeSection.expandTreeItem(constants.mysqlRestService);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Services");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "MySQL Rest Service Context menu");
                 throw e;
             }
         });
@@ -746,8 +743,7 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(service2.servicePath),
                     constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Schemas");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Rest Schemas");
                 throw e;
             }
         });
@@ -954,8 +950,7 @@ describe("MYSQL REST SERVICE", () => {
                 expect(notification!.message).toBe("The MRS service has been set as the new default service.");
                 await notification!.close();
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Objects");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Rest Objects");
                 throw e;
             }
         });
@@ -1289,8 +1284,7 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.wait5seconds);
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_AuthenticationApps");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Authentication Apps");
                 throw e;
             }
         });
@@ -1324,7 +1318,7 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemDoesNotExists(service4.servicePath),
                     constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "afterAll_AuthenticationApps");
+                await Misc.storeScreenShot(undefined, "Authentication Apps");
                 throw e;
             }
         });
@@ -1530,8 +1524,7 @@ describe("MYSQL REST SERVICE", () => {
                 await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps![0].user![0].username),
                     constants.wait3seconds);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_Rest_Users");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Rest Users");
                 throw e;
             }
         });

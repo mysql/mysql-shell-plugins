@@ -25,7 +25,6 @@
 
 import { basename } from "path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import { Key } from "selenium-webdriver";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
@@ -99,8 +98,7 @@ describe("RESULT GRIDS", () => {
             await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_RESULT-GRIDS");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "RESULT GRIDS");
             throw e;
         }
 

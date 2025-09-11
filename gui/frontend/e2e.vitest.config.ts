@@ -26,10 +26,9 @@
 import preact from "@preact/preset-vite";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-
 import { defineConfig } from "vitest/config";
-
 import { CustomSequencer } from "./src/tests/e2e/CustomSequencer.js";
+import { StaticHtmlReporter } from "./src/tests/reporter/StaticHtmlReporter.js";
 
 const fileName = fileURLToPath(import.meta.url);
 
@@ -38,11 +37,10 @@ export default defineConfig({
     test: {
         hookTimeout: 60000,
         testTimeout: 60000,
-        setupFiles: ["allure-vitest/setup", "./src/tests/e2e/setupTests.ts"],
-        reporters: ["default", ["allure-vitest/reporter", {
-            resultsDir:
-                "./src/tests/e2e/raw-test-report"
-        }],],
+        setupFiles: ["./src/tests/e2e/setupTests.ts"],
+        reporters: ["default", new StaticHtmlReporter("MySQL Shell GUI E2E Tests Report")],
+        outputFile: "./test-reports/e2e-tests/index.html",
+        globalSetup: "./src/tests/e2e/e2eGlobalSetup.ts",
         logHeapUsage: false,
         isolate: true,
         environment: "jsdom",
@@ -53,7 +51,7 @@ export default defineConfig({
         sequence: {
             sequencer: CustomSequencer,
         },
-        include: ["src/tests/e2e/tests/**/*.ts"],
+        include: ["src/tests/e2e/tests/**/ui-*.ts"],
     },
     resolve: {
         alias: [

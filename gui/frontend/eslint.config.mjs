@@ -65,6 +65,7 @@ export default tslint.config(
                         "vitest.config.ts",
                         "e2e.vitest.config.ts",
                         "src/tests/tsconfig.json",
+                        "src/tests/reporter/StaticHtmlReporter.ts",
                         "src/tests/e2e/*.mjs",
                     ],
                     defaultProject: "tsconfig.json",

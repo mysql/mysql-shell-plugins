@@ -289,10 +289,6 @@ def main() -> None:
                 # is by adding executor state that we can clean up only those tasks
                 # that was executed. This is temporary solution and will be
                 # reworked eventually.
-            try:
-                NPMScript(executor.environment, "e2e-tests-report", []).run()
-            except task_utils.TaskFailException as internal_exception:
-                task_utils.Logger.error(internal_exception)
             executor.clean_up()
 
     if test_failed:

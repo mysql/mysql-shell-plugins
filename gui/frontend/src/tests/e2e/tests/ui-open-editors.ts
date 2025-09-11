@@ -25,7 +25,6 @@
 
 import { basename, join } from "path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import * as constants from "../lib/constants.js";
 import { driver, loadDriver } from "../lib/driver.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
@@ -76,8 +75,7 @@ describe("OPEN EDITORS", () => {
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_OPEN_EDITORS");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "OPEN EDITORS");
             throw e;
         }
     });

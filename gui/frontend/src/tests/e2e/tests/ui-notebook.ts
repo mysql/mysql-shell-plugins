@@ -28,7 +28,6 @@ import * as fs from "fs/promises";
 import { basename } from "path";
 import { Condition, error, Key, until } from "selenium-webdriver";
 import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import * as constants from "../lib/constants.js";
@@ -85,8 +84,7 @@ describe("NOTEBOOKS", () => {
                 constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_NOTEBOOKS");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "NOTEBOOKS");
             throw e;
         }
     });
@@ -124,7 +122,7 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.collapse();
                 await new E2ETabContainer().closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "afterAll_CodeEditor");
+                await Misc.storeScreenShot(undefined, "Code Editor");
                 throw e;
             }
         });
@@ -661,8 +659,7 @@ describe("NOTEBOOKS", () => {
                 const result = await notebook.codeEditor.getLastExistingCommandResult() as E2ECommandResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait5seconds);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_HeatWaveChat");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "HeatWave Chat");
                 throw e;
             }
 

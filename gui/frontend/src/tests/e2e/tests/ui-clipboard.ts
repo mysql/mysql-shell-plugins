@@ -28,7 +28,6 @@ import * as fs from "fs/promises";
 import { basename, join } from "path";
 import { until } from "selenium-webdriver";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, type TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { DialogHelper } from "../lib/Dialogs/DialogHelper.js";
@@ -88,8 +87,7 @@ describe("CLIPBOARD", () => {
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_CLIPBOARD");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "CLIPBOARD");
             throw e;
         }
 
@@ -101,7 +99,7 @@ describe("CLIPBOARD", () => {
         await driver.quit();
     });
 
-    describe.skip("OCI", () => {
+    describe.skip("OCI CLIPBOARD", () => {
 
         beforeAll(async () => {
             const configs = await Misc.mapOciConfig();
@@ -116,8 +114,7 @@ describe("CLIPBOARD", () => {
                 await ociTreeSection.focus();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_OCI_CLIPBOARD");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "OCI CLIPBOARD");
                 throw e;
             }
 
@@ -255,7 +252,7 @@ describe("CLIPBOARD", () => {
 
     });
 
-    describe("DATABASE CONNECTIONS", () => {
+    describe("DATABASE CONNECTIONS CLIPBOARD", () => {
 
         beforeAll(async () => {
 
@@ -269,8 +266,7 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.expandTreeItem("Procedures");
                 await dbTreeSection.expandTreeItem("Events");
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_DB_CLIPBOARD");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "DATABASE CONNECTIONS CLIPBOARD");
                 throw e;
             }
 
@@ -459,7 +455,7 @@ describe("CLIPBOARD", () => {
 
     });
 
-    describe("RESULT GRIDS", () => {
+    describe("RESULT GRIDS CLIPBOARD", () => {
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         let notebook: E2ENotebook;
@@ -473,8 +469,7 @@ describe("CLIPBOARD", () => {
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_RESULT_GRIDS_CLIPBOARD");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "RESULT GRIDS CLIPBOARD");
                 throw e;
             }
 
@@ -747,7 +742,7 @@ describe("CLIPBOARD", () => {
 
     });
 
-    describe("NOTEBOOKS", () => {
+    describe("NOTEBOOKS CLIPBOARD", () => {
 
         let notebook: E2ENotebook;
 
@@ -758,8 +753,7 @@ describe("CLIPBOARD", () => {
                 await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_NOTEBOOKS_clipboard");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "NOTEBOOKS CLIPBOARD");
                 throw e;
             }
 

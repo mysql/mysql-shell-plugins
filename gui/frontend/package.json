@@ -17,9 +17,7 @@
         "update-snapshots": "vitest run --no-watch --no-coverage -u",
         "clear:node-modules": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings",
         "e2e-tests-setup-and-run": "mysqlsh --py -f src/tests/e2e/setup_local_env_and_run.py",
-        "e2e-tests-run": "vitest --no-watch --no-coverage -c e2e.vitest.config.ts",
-        "e2e-tests-report": "npx allure generate src/tests/e2e/raw-test-report --clean -o src/tests/e2e/html-report",
-        "e2e-tests-report-local": "npx allure serve src/tests/e2e/raw-test-report --clean -o src/tests/e2e/html-report"
+        "e2e-tests-run": "vitest --no-watch --no-coverage -c e2e.vitest.config.ts"
     },
     "dependencies": {
         "anser": "2.3.2",
@@ -56,8 +54,6 @@
         "@typescript-eslint/parser": "8.36.0",
         "@vitest/coverage-v8": "3.2.4",
         "@vitest/ui": "3.2.4",
-        "allure-commandline": "2.34.1",
-        "allure-vitest": "3.3.3",
         "antlr-ng": "1.0.10",
         "autoprefixer": "10.4.21",
         "cheerio": "1.0.0-rc.12",

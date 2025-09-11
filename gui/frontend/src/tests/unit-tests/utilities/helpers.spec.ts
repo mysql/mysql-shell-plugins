@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import { describe, expect, it } from "vitest";
 
 import {

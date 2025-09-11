@@ -213,6 +213,27 @@ export class E2ELakehouseTables {
     };
 
     /**
+     * Verifies if all tasks matching the task name are completed
+     * 
+     * @param task The task name
+     * @returns A promise resolving with true, if the tasks are completed, false otherwise
+     */
+    public untilTaskIsCompleted = (task: string): Condition<boolean | undefined> => {
+        return new Condition(` for all tasks with name '${task}' to be completed`, async () => {
+            const tasks = await this.getLakeHouseTasks();
+            if (tasks.length > 0) {
+                for (const task of tasks) {
+                    if (task.name === `Loading ${task}` && task.status === `RUNNING`) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        });
+    };
+
+    /**
      * Verifies if the lakehouse table exists
      * 
      * @param tableLabel The table label
@@ -267,31 +288,6 @@ export class E2ELakehouseTables {
             });
 
             return wantedTable!.loaded === "Yes";
-        });
-    };
-
-    /**
-     * Verifies if the lakehouse task is completed
-     * 
-     * @param taskName The task id
-     * @returns A promise resolving with true, if the task is completed, false otherwise
-     */
-    public untilLakeHouseTaskIsCompleted = (taskName: string): Condition<boolean> => {
-        return new Condition(` for lakehouse table '${taskName}' to be completed`, async () => {
-            const taskRows = await driver.wait(async () => {
-                const rows = await this.getLakeHouseTasks();
-                if (rows.length > 0) {
-                    return rows;
-                }
-            }, constants.wait5seconds, "Could not find any lakehouse task");
-
-            for (const task of taskRows!) {
-                if (task.name === taskName && task.status !== "COMPLETED") {
-                    return false;
-                }
-            }
-
-            return true;
         });
     };
 

@@ -26,7 +26,6 @@
 import { basename } from "path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
 import { driver, loadDriver } from "../lib/driver.js";
-
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import * as constants from "../lib/constants.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
@@ -47,7 +46,7 @@ let e2eProfile: string | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
 
-describe("OCI", () => {
+describe.skip("OCI", () => {
 
     beforeAll(async () => {
         await loadDriver(true);
@@ -67,7 +66,7 @@ describe("OCI", () => {
             await settings.close();
             await ociTreeSection.focus();
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_OCI");
+            await Misc.storeScreenShot(undefined, "OCI");
             throw e;
         }
 

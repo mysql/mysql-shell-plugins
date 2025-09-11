@@ -25,7 +25,6 @@
 
 import { basename } from "path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import { until } from "selenium-webdriver";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
@@ -82,8 +81,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             await dbConnectionOverview.openNewShellConsole();
             shellConsole = await new E2EShellConsole().untilIsOpened(undefined);
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_MYSQL_SHELL_CONSOLES");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "MYSQL SHELL CONSOLES");
             throw e;
         }
 
@@ -238,8 +236,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await driver.wait(until.elementTextContains(schemaEl, schema),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_Sessions");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Sessions");
                 throw e;
             }
         });

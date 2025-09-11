@@ -30,7 +30,6 @@ import * as fs from "fs/promises";
 import { basename, join } from "path";
 import { Condition, until, WebElement } from "selenium-webdriver";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
-import * as allure from "allure-js-commons";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
@@ -94,8 +93,7 @@ describe("DATABASE CONNECTIONS", () => {
             await settings.close();
             await dbTreeSection.focus();
         } catch (e) {
-            await Misc.storeScreenShot(undefined, "beforeAll_DATABASE_CONNECTIONS");
-            allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+            await Misc.storeScreenShot(undefined, "DATABASE CONNECTIONS");
             throw e;
         }
 
@@ -159,8 +157,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await new E2ETabContainer().closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_Connection_Overview");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Connection Overview");
                 throw e;
             }
 
@@ -838,8 +835,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.focus();
                     await new E2ETabContainer().closeAllTabs();
                 } catch (e) {
-                    await Misc.storeScreenShot(undefined, "beforeAll_DBConnection_Groups");
-                    allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                    await Misc.storeScreenShot(undefined, "DB Connection Groups");
                     throw e;
                 }
             });
@@ -864,7 +860,7 @@ describe("DATABASE CONNECTIONS", () => {
                 try {
                     await Misc.dismissNotifications();
                 } catch (e) {
-                    await Misc.storeScreenShot(undefined, "afterAll_DB Connection Groups");
+                    await Misc.storeScreenShot(undefined, "DB Connection Groups");
                     throw e;
                 }
             });
@@ -1275,8 +1271,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.expandTreeItem(globalConn);
                 await dbTreeSection.expandTreeItem(constants.mysqlAdministrationTreeElement);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_MySQLAdministration");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "MySQL Administration");
                 throw e;
             }
 
@@ -1590,8 +1585,7 @@ describe("DATABASE CONNECTIONS", () => {
                             constants.wait5seconds);
                     }
                 } catch (e) {
-                    await Misc.storeScreenShot(undefined, "beforeAll_LakehouseNavigator");
-                    allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                    await Misc.storeScreenShot(undefined, "Lakehouse Navigator");
                     throw e;
                 }
 
@@ -1728,29 +1722,12 @@ describe("DATABASE CONNECTIONS", () => {
                     expect(latestTable!.date).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                     expect(latestTable!.comment).toBe(newTask.description);
 
-                    await driver.wait(async () => {
-                        const tasks = await lakehouseTables.getLakeHouseTasks();
-                        if (tasks.length > 0) {
-                            for (const task of tasks) {
-                                if (task.status === `Loading ${newTask.name}` && task.status !== "COMPLETED") {
-                                    return false;
-                                }
-                            }
-                            console.log(tasks);
-
-                            return true;
-                        }
-                    }, constants.wait10seconds, `There are still tasks RUNNING`);
-
+                    await driver.wait(lakehouseTables.untilTaskIsCompleted(newTask.name!), constants.wait20seconds);
                     const tasks = await lakehouseTables.getLakeHouseTasks();
 
-                    console.log("-----------");
-                    console.log(tasks);
                     if (tasks.length > 0) {
                         for (const task of tasks) {
                             if (task.name === `Loading ${newTask.name}`) {
-                                await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.name),
-                                    constants.wait10seconds);
                                 expect(task.name).toBe(`Loading ${newTask.name}`);
                                 expect(task.startTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                                 expect(task.endTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
@@ -1790,8 +1767,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
                 await dbTreeSection.expandTreeItem(globalConn);
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "beforeAll_TreeContextMenuItems");
-                allure.attachment("Failure Stacktrace", (e as Error).stack!, "text/plain");
+                await Misc.storeScreenShot(undefined, "Tree context menu items");
                 throw e;
             }
 

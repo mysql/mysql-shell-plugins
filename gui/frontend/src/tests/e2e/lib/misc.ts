@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import * as allure from "allure-js-commons";
+
 import * as fs from "fs/promises";
 import { WebDriver, error, Condition, until } from "selenium-webdriver";
 import { expect } from "vitest";
@@ -33,6 +33,7 @@ import { E2ENotebook } from "./E2ENotebook.js";
 import { E2EAccordionSection } from "./SideBar/E2EAccordionSection.js";
 import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
 import { TestContext } from "vitest";
+import { writeFileSync } from "fs";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -144,9 +145,10 @@ export class Misc {
             }
         }
 
-        await allure.attachment(testName, Buffer.from(img, "base64"), allure.ContentType.PNG);
+        const safeName = testName.replace(/[^\w\d\-_.]/g, "_");
+        writeFileSync(`src/tests/e2e/screenshots/${safeName}.png`, img, "base64");
 
-        return `screenshots/${testName}_screenshot.png`;
+        return `screenshots/${safeName}.png`;
     }
 
     /**

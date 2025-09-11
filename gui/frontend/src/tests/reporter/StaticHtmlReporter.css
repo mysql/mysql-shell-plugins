@@ -1,0 +1,321 @@
+/*
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+body {
+    font-family: sans-serif;
+    font-size: 0.85rem;
+    padding: 2rem 1rem;
+    margin: auto;
+    background: #fafafa;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.screenshot {
+    border:1px solid #ccc;
+}
+
+.summary {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+#title {
+    margin: 0;
+}
+
+#timestamp {
+    color: #777;
+    margin-top: 0.5rem;
+}
+
+#summary {
+    color: #333;
+    margin: 2rem 0;
+    display: flex;
+
+    font-family: Hack, Menlo, monospace;
+}
+
+#test-summary,
+#suite-summary {
+    display: flex;
+    flex-direction: column;
+    margin-right: 2rem;
+    background: #EEE;
+    padding: 1rem;
+    font-size: 1rem;
+    min-width: 20rem;
+}
+
+#summary-total {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: .5rem;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: .5rem;
+}
+
+th {
+    background: #f0f0f0;
+}
+
+.pass {
+    color: rgba(72, 180, 14, 1);
+    border-left: 4px solid rgba(72, 180, 14, 1);
+    padding-left: 0.5rem;
+    margin-bottom: 2px;
+}
+
+.fail {
+    color: rgba(204, 30, 45, 1);
+    border-left: 4px solid rgba(204, 30, 45, 1);
+    padding-left: .5rem;
+    margin-bottom: 2px;
+}
+
+.skip {
+    color: rgba(199, 166, 34, 1);
+    border-left: 4px solid rgba(199, 166, 34, 1);
+    padding-left: .5rem;
+    margin-bottom: 2px;
+}
+
+.suite {
+    margin-left: 60px;
+}
+
+.module {
+    margin-top: 20px;
+}
+
+.module-title {
+    flex-grow: 1;
+    font-weight: bold;
+}
+
+.module-info {
+    display: flex;
+    align-items: center;
+    background: #deecf0;
+    color: black;
+    margin-bottom: 0.25rem;
+    padding: 1rem;
+}
+
+.module-errors,
+.suite-errors {
+    color: rgba(204, 30, 45, 1);
+    overflow: scroll;
+    margin-right: 20px;
+}
+
+.suite-info {
+    display: flex;
+    align-items: center;
+    background: #efefef;
+    color: rgb(119, 119, 119);
+    margin-bottom: 0.25rem;
+    padding: 1rem;
+}
+
+.module-info:before,
+.suite-info:before {
+    content: "\2303";
+    margin-right: 0.5rem;
+    transform: rotate(90deg);
+}
+
+.module > input[type="checkbox"]:checked ~ label .module-info:before,
+.suite > input[type="checkbox"]:checked ~ label .suite-info:before {
+    transform: rotate(180deg);
+}
+
+.suite-path {
+    font-family: Hack, Menlo, monospace;
+
+    white-space: nowrap;
+    text-align: left;
+    user-select: none;
+    flex-grow: 1;
+}
+
+.suite-info .suite-time {
+    padding: 0.2rem 0.3rem;
+    font-size: 0.75rem;
+    user-select: none;
+}
+
+.module > input[type="checkbox"],
+.suite > input[type="checkbox"] {
+    position: absolute;
+    left: -100vw;
+}
+
+.module .module-imports {
+    display: grid;
+    grid-template-columns: 5fr 1fr 1fr;
+    gap: 4px;
+    align-items: center;
+    margin: 0 0 20px 20px;
+
+    overflow-y: hidden;
+    height: 0;
+}
+
+.grid-header {
+    font-weight: bold;
+    background: #eee;
+    padding: 4px;
+}
+
+.grid-row {
+    display: contents;
+}
+
+.grid-row:hover .cell {
+    background: #0099ff30;
+}
+
+.cell {
+    padding: 4px;
+    word-break: break-word;
+}
+
+.module-imports .self-time,
+.module-imports .total-time {
+    font-size: 0.85rem;
+    text-align: right;
+    font-family: Hack, Menlo, monospace;
+}
+
+.module > input[type="checkbox"]:checked ~ .module-imports {
+    height: auto;
+    overflow: visible;
+}
+
+.suite .suite-tests {
+    overflow-y: hidden;
+    height: 0;
+}
+
+.suite > input[type="checkbox"]:checked ~ .suite-tests {
+    height: auto;
+    overflow: visible;
+}
+
+.suite > label {
+    display: block;
+    cursor: pointer;
+}
+
+.suite-info .suite-time.warn {
+    background-color: #d83600;
+    color: #fff;
+}
+
+.test-info {
+    display: flex;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.test-info .test-duration {
+    padding: 0.2rem 0.3rem;
+    font-size: 0.75rem;
+}
+
+.test-info .test-duration.warn {
+    background-color: #d83600;
+    color: #fff;
+}
+
+.test-result {
+    padding: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.test-result.passed {
+    background-color: #dff2bf;
+    color: #4f8a10;
+}
+
+.test-result.skipped {
+    background-color: #ffdf61;
+    color: #9f6000;
+}
+
+.test-result.failed {
+    background-color: #ffbaba;
+    color: #d8000c;
+}
+
+.test-result.failed .test-info {
+    padding-bottom: 2px;
+    border-bottom: 1px dashed;
+}
+
+.test-suitename {
+    width: 20%;
+    text-align: left;
+    font-weight: bold;
+    word-break: break-word;
+}
+
+.test-title {
+    width: 40%;
+    text-align: left;
+    font-style: italic;
+    font-weight: bold;
+}
+
+.test-status {
+    width: 20%;
+    text-align: right;
+}
+
+.test-duration {
+    width: 10%;
+    text-align: right;
+    font-size: 0.75rem;
+}
+
+.error-info {
+    padding-top: 4px;
+}

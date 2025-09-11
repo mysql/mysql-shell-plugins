@@ -396,7 +396,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             void waitFor(1000, () => {
                 return this.tableReady;
             }).then((success) => {
-                if (success) {
+                if (success && !this.cancelled) {
                     resolve(this.tabulator);
                 } else {
                     resolve(undefined);
