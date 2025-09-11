@@ -26,9 +26,9 @@ lexer grammar MySQLLexer;
  */
 
 /*
- * I've merged in all changes up to mysql-trunk git revision [8107c1e] (tagged mysql-9.2.0)  (15. Dec 2024).
+ * I've merged in all changes up to mysql-trunk git revision [6edc2c5] (tagged mysql-9.4.2)  (4. Sep 2025).
  *
- * This is a MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
+ * This is a MySQL grammar for ANTLR 4.5+ and antlr-ng with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
  * to switch the supported feature set dynamically.
  *
@@ -1054,7 +1054,33 @@ VECTOR_SYMBOL:                      V E C T O R                                 
 PARAMETERS_SYMBOL:                  P A R A M E T E R S                                 {this.serverVersion >= 90100}?; // MYSQL
 HEADER_SYMBOL:                      H E A D E R                                         {this.serverVersion >= 90100}?; // MYSQL
 
-LIBRARY_SYMBOL:                     L I B R A R Y                                       {this.serverVersion >= 90200}?; // MYSQL
+LIBRARY_SYMBOL:                     L I B R A R Y                                       {this.serverVersion >= 90300}?; // MYSQL
+URI_SYMBOL:                         U R I                                               {this.serverVersion >= 90500}?; // MYSQL
+DUALITY_SYMBOL:                     D U A L I T Y                                       {this.serverVersion >= 90500}?; // MYSQL
+RELATIONAL_SYMBOL:                  R E L A T I O N A L                                 {this.serverVersion >= 90500}?; // MYSQL
+JSON_DUALITY_OBJECT_SYMBOL:
+    J S O N '_' D U A L I T Y '_' O B J E C T                                           {this.serverVersion >= 90500}?; // MYSQL
+ABSENT_SYMBOL:                      A B S E N T                                         {this.serverVersion >= 90500}?; // SQL-2015-R
+FILE_FORMAT_SYMBOL:                 F I L E '_' F O R M A T                             {this.serverVersion >= 90500}?; // MYSQL
+FILES_SYMBOL:                       F I L E S                                           {this.serverVersion >= 90500}?; // MYSQL
+FILE_NAME_SYMBOL:                   F I L E '_' N A M E                                 {this.serverVersion >= 90500}?; // MYSQL
+FILE_PATTERN_SYMBOL:                F I L E '_' P A T T E R N                           {this.serverVersion >= 90500}?; // MYSQL
+FILE_PREFIX_SYMBOL:                 F I L E '_' P R E F I X                             {this.serverVersion >= 90500}?; // MYSQL
+
+ALLOW_MISSING_FILES_SYMBOL:
+    A L L O W '_' M I S S I N G '_' F I L E S                                           {this.serverVersion >= 90500}?; // MYSQL
+AUTO_REFRESH_SYMBOL:                A U T O '_' R E F R E S H                           {this.serverVersion >= 90500}?; // MYSQL
+AUTO_REFRESH_SOURCE_SYMBOL:
+    A U T O '_' R E F R E S H '_' S O U R C E                                           {this.serverVersion >= 90500}?; // MYSQL
+VERIFY_KEY_CONSTRAINTS_SYMBOL:
+    V E R I F Y '_' K E Y '_' C O N S T R A I N T S                                     {this.serverVersion >= 90500}?; // MYSQL
+
+STRICT_LOAD_SYMBOL:                 S T R I C T '_' L O A D                             {this.serverVersion >= 90500}?; // MYSQL
+EXTERNAL_FORMAT_SYMBOL:             E X T E R N A L '_' F O R M A T                     {this.serverVersion >= 90500}?; // MySQL
+EXTERNAL_SYMBOL:                    E X T E R N A L                                     {this.serverVersion >= 90500}?; // MYSQL
+
+MATERIALIZED_SYMBOL:                M A T E R I A L I Z E D                             {this.serverVersion >= 90500}?; // MYSQL
+GUIDED_SYMBOL:                      G U I D E D                                         {this.serverVersion >= 90500}?; // MYSQL
 
 // $antlr-format groupedAlignments on, alignTrailers off, alignLexerCommands on
 

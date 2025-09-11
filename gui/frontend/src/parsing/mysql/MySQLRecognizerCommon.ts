@@ -98,25 +98,48 @@ export const numberToVersion = (version: number): MySQLVersion => {
     const major = Math.floor(version / 10000);
 
     if (major >= 8) {
-        switch (minor) {
-            case 1: {
-                return MySQLVersion.MySQL81;
+        switch (major) {
+            case 8: {
+                switch (minor) {
+                    case 0: {
+                        return MySQLVersion.MySQL80;
+                    }
+
+                    // All minor versions 8.1, 8.2, 8.3, 8.4 are treated the same for now.
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4: {
+                        return MySQLVersion.MySQL84;
+                    }
+
+                    default: {
+                        return MySQLVersion.MySQL80;
+                    }
+                }
             }
 
-            case 2: {
-                return MySQLVersion.MySQL82;
-            }
+            case 9: {
+                switch (minor) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3: {
+                        return MySQLVersion.MySQL93;
+                    }
 
-            case 3: {
-                return MySQLVersion.MySQL83;
-            }
+                    case 4: {
+                        return MySQLVersion.MySQL94;
+                    }
 
-            case 4: {
-                return MySQLVersion.MySQL84;
-            }
+                    case 5: {
+                        return MySQLVersion.MySQL95;
+                    }
 
-            default: {
-                return MySQLVersion.MySQL80;
+                    default: {
+                        return MySQLVersion.MySQL93;
+                    }
+                }
             }
         }
     }
@@ -514,3 +537,5 @@ export const contextFromPosition = (root: ParserRuleContext, position: number): 
     // Return the root for that case.
     return root;
 };
+
+console.log("Loading MySQL base recognizer...");

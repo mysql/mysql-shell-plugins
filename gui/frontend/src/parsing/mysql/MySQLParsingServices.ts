@@ -78,7 +78,9 @@ export class MySQLParsingServices {
     );
 
     private constructor() {
-        MySQLParsingServices.loaded = new Promise<void>((res) => { MySQLParsingServices.loadedResolver = res; });
+        MySQLParsingServices.loaded = new Promise<void>((res) => {
+            MySQLParsingServices.loadedResolver = res;
+        });
 
         this.lexer.removeErrorListeners();
         this.lexer.addErrorListener(this.errorListener);

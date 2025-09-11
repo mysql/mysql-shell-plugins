@@ -64,6 +64,8 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
     // The interval for auto save can be very large or auto save is even disabled.
     private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+    private isMounted = false;
+
     public constructor(props: ISettingsEditorListProperties) {
         super(props);
 
@@ -74,24 +76,28 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
     }
 
     public override componentDidMount(): void {
+        this.isMounted = true;
         requisitions.register("settingsChanged", this.handleSettingsChanged);
     }
 
     public override componentWillUnmount(): void {
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
+        this.isMounted = false;
     }
 
     public override componentDidUpdate(prevProps: ISettingsEditorListProperties): void {
         const scrollTree = (): void => {
             void this.gridRef.current?.table.then((table) => {
+                if (!table || !this.isMounted) {
+                    return;
+                }
+
                 const { selectedId } = this.state;
 
                 if (selectedId.length > 0) {
-                    const row = table?.getRow(selectedId);
-                    if (row) {
-                        void row.scrollTo();
-                        row.select();
-                    }
+                    const row = table.getRow(selectedId);
+                    void row.scrollTo();
+                    row.select();
                 }
             });
         };
@@ -99,11 +105,11 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         const { settingsTree } = this.props;
         if (prevProps.settingsTree !== settingsTree) {
             this.setState({ selectedId: "", settingsList: this.collectSettingsValues() }, () => {
-                scrollTree(); 
+                scrollTree();
             });
         } else {
             setTimeout(() => {
-                scrollTree(); 
+                scrollTree();
             }, 0);
         }
     }
@@ -139,7 +145,9 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
 
     public scrollToId(id: string): void {
         void this.gridRef.current?.table.then((table) => {
-            void table?.scrollToRow(id, "top");
+            if (!this.isMounted && table) {
+                void table.scrollToRow(id, "top");
+            }
         });
     }
 
@@ -173,7 +181,7 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
             clearTimeout(this.saveTimer);
         }
         this.saveTimer = setTimeout(() => {
-            Settings.saveSettings(); 
+            Settings.saveSettings();
         }, 1000);
 
         const selectedRows = this.gridRef.current?.getSelectedRows() ?? [];
@@ -202,9 +210,13 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
 
     private handleVerticalScrolling = (top: number): void => {
         void this.gridRef.current?.table.then((table) => {
+            if (!table || !this.isMounted) {
+                return;
+            }
+
             const { onListScroll } = this.props;
 
-            const rows = table!.getRows();
+            const rows = table.getRows();
             const direction = top > this.lastScrollPos ? "up" : "down";
             this.lastScrollPos = top;
             onListScroll((rows[top].getData() as IDictionary).id as string, direction);

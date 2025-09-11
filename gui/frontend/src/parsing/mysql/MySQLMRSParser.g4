@@ -26,9 +26,9 @@ parser grammar MySQLMRSParser;
  */
 
 /*
- * I've merged in all changes up to mysql-trunk git revision [8107c1e] (tagged mysql-9.2.0)  (15. Dec 2024).
+ * I've merged in all changes up to mysql-trunk git revision [6edc2c5] (tagged mysql-9.4.2)  (4. Sep 2025).
  *
- * This is a MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
+ * This is a MySQL grammar for ANTLR 4.5+ and antlr-ng with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
  * to switch the supported feature set dynamically.
  *
@@ -117,6 +117,7 @@ simpleStatement:
     | showBinlogEventsStatement
     | showRelaylogEventsStatement
     | showKeysStatement
+    | showLibraryStatusStatement
     | showEnginesStatement
     | showCountWarningsStatement
     | showCountErrorsStatement
@@ -171,6 +172,7 @@ alterStatement:
         | alterServer
         // ALTER USER is part of the user management rule.
         | alterInstanceStatement
+        | {this.serverVersion >= 90500}? alterLibraryStatement
     )
 ;
 
@@ -235,7 +237,11 @@ standaloneAlterCommands:
     | IMPORT_SYMBOL TABLESPACE_SYMBOL
     | alterPartition
     | {this.serverVersion >= 80014}? (
-        SECONDARY_LOAD_SYMBOL ({this.serverVersion >= 80200}? usePartition)?
+        SECONDARY_LOAD_SYMBOL (
+            {this.serverVersion >= 80200}? usePartition (
+                {this.serverVersion >= 90500}? guided
+            )?
+        )?
         | SECONDARY_UNLOAD_SYMBOL ({this.serverVersion >= 80200}? usePartition)?
     )
 ;
@@ -350,6 +356,10 @@ withValidation:
     (WITH_SYMBOL | WITHOUT_SYMBOL) VALIDATION_SYMBOL
 ;
 
+guided:
+    GUIDED_SYMBOL (ON_SYMBOL | OFF_SYMBOL)
+;
+
 removePartitioning:
     REMOVE_SYMBOL PARTITIONING_SYMBOL
 ;
@@ -403,8 +413,11 @@ changeTablespaceOption:
 ;
 
 alterView:
-    viewAlgorithm? definerClause? viewSuid? VIEW_SYMBOL (
-        {this.serverVersion >= 80300}? ifNotExists // Doesn't make much sense, but that's how the server grammar defines it.
+    (
+        {this.serverVersion < 90500}? viewReplaceOrAlgorithm
+        | {this.serverVersion >= 90500}? viewPrefix
+    )? viewPrefix? definerClause? viewSuid? jsonDuality? VIEW_SYMBOL (
+        {this.serverVersion >= 80300}? ifNotExists
     )? viewRef viewTail
 ;
 
@@ -436,6 +449,10 @@ alterInstanceStatement:
     )
 ;
 
+alterLibraryStatement:
+    LIBRARY_SYMBOL libraryRef COMMENT_SYMBOL textLiteral
+;
+
 //----------------------------------------------------------------------------------------------------------------------
 
 createStatement:
@@ -455,7 +472,7 @@ createStatement:
         | createRole
         | {this.serverVersion >= 80011}? createSpatialReference
         | {this.serverVersion >= 80014}? createUndoTablespace
-        | {this.serverVersion >= 90200}? createLibrary
+        | {this.serverVersion >= 90500}? createLibraryStatement
     )
 ;
 
@@ -470,11 +487,16 @@ createDatabaseOption:
 ;
 
 createTable:
-    TEMPORARY_SYMBOL? TABLE_SYMBOL ifNotExists? tableName (
+    temporaryOrExternal? TABLE_SYMBOL ifNotExists? tableName (
         (OPEN_PAR_SYMBOL tableElementList CLOSE_PAR_SYMBOL)? createTableOptionsEtc?
         | LIKE_SYMBOL tableRef
         | OPEN_PAR_SYMBOL LIKE_SYMBOL tableRef CLOSE_PAR_SYMBOL
     )
+;
+
+temporaryOrExternal:
+    TEMPORARY_SYMBOL
+    | EXTERNAL_SYMBOL
 ;
 
 tableElementList:
@@ -513,6 +535,22 @@ createProcedure:
     )? CLOSE_PAR_SYMBOL routineCreateOption* storedRoutineBody
 ;
 
+// lib_chistic in the server grammar.
+libLanguageOrComment:
+    LANGUAGE_SYMBOL identifier
+    | COMMENT_SYMBOL textStringLiteral
+;
+
+libraryName:
+    routineString
+    | UNDERSCORE_CHARSET? (HEX_NUMBER | BIN_NUMBER)
+;
+
+libraryRef:
+    routineString
+    | UNDERSCORE_CHARSET? (HEX_NUMBER | BIN_NUMBER)
+;
+
 routineString:
     textStringLiteral
     | DOLLAR_QUOTED_STRING_TEXT
@@ -542,7 +580,6 @@ createUdf:
 routineCreateOption:
     routineOption
     | NOT_SYMBOL? DETERMINISTIC_SYMBOL
-    | {this.serverVersion >= 90200}? USING_SYMBOL OPEN_PAR_SYMBOL libraryList CLOSE_PAR_SYMBOL
 ;
 
 libraryList:
@@ -555,7 +592,8 @@ libraryNameWithAlias:
 
 // sp_a_chistics in the server grammar.
 routineAlterOptions:
-    routineCreateOption+
+    {this.serverVersion < 90500}? routineOption+
+    | {this.serverVersion >= 90500}? routineAlterOption
 ;
 
 // sp_chistic in the server grammar.
@@ -569,10 +607,19 @@ routineOption:
     | option = CONTAINS_SYMBOL SQL_SYMBOL
     | option = READS_SYMBOL SQL_SYMBOL DATA_SYMBOL
     | option = MODIFIES_SYMBOL SQL_SYMBOL DATA_SYMBOL
-    | option = SQL_SYMBOL SECURITY_SYMBOL security = (
-        DEFINER_SYMBOL
-        | INVOKER_SYMBOL
-    )
+    | routineSuid
+    | {this.serverVersion >= 90500}? option = USING_SYMBOL OPEN_PAR_SYMBOL libraryList CLOSE_PAR_SYMBOL
+;
+
+// sp_a_chistic in the server grammar.
+routineAlterOption:
+    routineOption
+    | USING_SYMBOL OPEN_PAR_SYMBOL CLOSE_PAR_SYMBOL
+;
+
+// sp_suid in the server grammar.
+routineSuid:
+    option = SQL_SYMBOL SECURITY_SYMBOL security = (DEFINER_SYMBOL | INVOKER_SYMBOL)
 ;
 
 createIndex:
@@ -639,8 +686,8 @@ createUndoTablespace:
     UNDO_SYMBOL TABLESPACE_SYMBOL tablespaceName ADD_SYMBOL tsDataFile undoTableSpaceOptions?
 ;
 
-createLibrary:
-    LIBRARY_SYMBOL ifNotExists? libraryName LANGUAGE_SYMBOL identifier AS_SYMBOL routineString
+createLibraryStatement:
+    LIBRARY_SYMBOL ifNotExists? libraryName libLanguageOrComment* AS_SYMBOL routineString
 ;
 
 tsDataFileName:
@@ -717,14 +764,27 @@ tsOptionEngineAttribute:
 ;
 
 createView:
-    viewReplaceOrAlgorithm? definerClause? viewSuid? VIEW_SYMBOL (
+    (
+        {this.serverVersion < 90500}? viewReplaceOrAlgorithm
+        | {this.serverVersion >= 90500}? viewPrefix
+    )? definerClause? viewSuid? jsonDuality? VIEW_SYMBOL (
         {this.serverVersion >= 80300}? ifNotExists
     )? viewName viewTail
+;
+
+viewPrefix:
+    viewReplaceOrAlgorithm viewMaterialization?
+    | viewMaterialization
 ;
 
 viewReplaceOrAlgorithm:
     OR_SYMBOL REPLACE_SYMBOL viewAlgorithm?
     | viewAlgorithm
+;
+
+viewAlgorithmOrMaterialization:
+    viewAlgorithm viewMaterialization?
+    | viewMaterialization
 ;
 
 viewAlgorithm:
@@ -735,8 +795,16 @@ viewAlgorithm:
     )
 ;
 
+viewMaterialization:
+    MATERIALIZED_SYMBOL
+;
+
 viewSuid:
     SQL_SYMBOL SECURITY_SYMBOL (DEFINER_SYMBOL | INVOKER_SYMBOL)
+;
+
+jsonDuality:
+    JSON_SYMBOL RELATIONAL_SYMBOL DUALITY_SYMBOL
 ;
 
 createTrigger:
@@ -794,7 +862,7 @@ dropStatement:
         | dropRole
         | {this.serverVersion >= 80011}? dropSpatialReference
         | {this.serverVersion >= 80014}? dropUndoTablespace
-        | {this.serverVersion >= 90200}? dropLibrary
+        | {this.serverVersion >= 90500}? dropLibraryStatement
     )
 ;
 
@@ -866,7 +934,7 @@ dropUndoTablespace:
     UNDO_SYMBOL TABLESPACE_SYMBOL tablespaceRef undoTableSpaceOptions?
 ;
 
-dropLibrary:
+dropLibraryStatement:
     DROP_SYMBOL LIBRARY_SYMBOL ifExists libraryRef
 ;
 
@@ -954,7 +1022,7 @@ handlerReadOrScan:
 insertStatement:
     INSERT_SYMBOL insertLockOption? IGNORE_SYMBOL? INTO_SYMBOL? tableRef usePartition? (
         insertFromConstructor valuesReference?
-        | SET_SYMBOL updateList valuesReference?
+        | SET_SYMBOL loadDatasetList valuesReference?
         | insertQueryExpression
     ) insertUpdateList?
 ;
@@ -998,7 +1066,7 @@ valuesReference:
 ;
 
 insertUpdateList:
-    ON_SYMBOL DUPLICATE_SYMBOL KEY_SYMBOL UPDATE_SYMBOL updateList
+    ON_SYMBOL DUPLICATE_SYMBOL KEY_SYMBOL UPDATE_SYMBOL loadDatasetList
 ;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1009,7 +1077,8 @@ loadStatement:
         | IGNORE_SYMBOL
     )? INTO_SYMBOL TABLE_SYMBOL tableRef usePartition? (
         { this.serverVersion >= 80300}? compressionAlgorithm
-    )? charsetClause? xmlRowsIdentifiedBy? fieldsClause? linesClause? loadDataFileTail loadParallel? loadMemory? loadAlgorithm?
+    )? charsetClause? xmlRowsIdentifiedBy? fieldsClause? linesClause? ignoreLines? loadDataFileTargetList? loadDataSetSpec?
+        loadParallel? loadMemory? loadAlgorithm?
 ;
 
 dataOrXml:
@@ -1029,6 +1098,7 @@ loadFrom:
 loadSourceType:
     INFILE_SYMBOL
     | {this.serverVersion >= 80200}? (URL_SYMBOL | S3_SYMBOL)
+    | {this.serverVersion >= 90500}? URI_SYMBOL
 ;
 
 sourceCount:
@@ -1046,14 +1116,16 @@ xmlRowsIdentifiedBy:
     ROWS_SYMBOL IDENTIFIED_SYMBOL BY_SYMBOL textString
 ;
 
-loadDataFileTail:
-    (IGNORE_SYMBOL INT_NUMBER (LINES_SYMBOL | ROWS_SYMBOL))? loadDataFileTargetList? (
-        SET_SYMBOL updateList
-    )?
+ignoreLines:
+    IGNORE_SYMBOL INT_NUMBER (LINES_SYMBOL | ROWS_SYMBOL)
 ;
 
 loadDataFileTargetList:
     OPEN_PAR_SYMBOL fieldOrVariableList? CLOSE_PAR_SYMBOL
+;
+
+loadDataSetSpec:
+    SET_SYMBOL loadDatasetList
 ;
 
 fieldOrVariableList:
@@ -1083,7 +1155,7 @@ loadMemory:
 replaceStatement:
     REPLACE_SYMBOL (LOW_PRIORITY_SYMBOL | DELAYED_SYMBOL)? INTO_SYMBOL? tableRef usePartition? (
         insertFromConstructor
-        | SET_SYMBOL updateList
+        | SET_SYMBOL loadDatasetList
         | insertQueryExpression
     )
 ;
@@ -1167,6 +1239,7 @@ limitOption:
 
 outfileURI:
     URL_SYMBOL textString
+    | URI_SYMBOL textString
 ;
 
 outfileFileInfo:
@@ -1516,7 +1589,7 @@ indexListElement:
 //----------------------------------------------------------------------------------------------------------------------
 
 updateStatement:
-    withClause? UPDATE_SYMBOL LOW_PRIORITY_SYMBOL? IGNORE_SYMBOL? tableReferenceList SET_SYMBOL updateList whereClause?
+    withClause? UPDATE_SYMBOL LOW_PRIORITY_SYMBOL? IGNORE_SYMBOL? tableReferenceList SET_SYMBOL loadDatasetList whereClause?
         orderClause? simpleLimitClause?
 ;
 
@@ -2206,7 +2279,7 @@ aclType:
     TABLE_SYMBOL
     | FUNCTION_SYMBOL
     | PROCEDURE_SYMBOL
-    | LIBRARY_SYMBOL
+    | {this.serverVersion >= 90500}? LIBRARY_SYMBOL
 ;
 
 roleOrPrivilegesList:
@@ -2522,6 +2595,10 @@ showKeysStatement:
     SHOW_SYMBOL EXTENDED_SYMBOL? (INDEX_SYMBOL | INDEXES_SYMBOL | KEYS_SYMBOL) fromOrIn tableRef inDb? whereClause?
 ;
 
+showLibraryStatusStatement:
+    SHOW_SYMBOL LIBRARY_SYMBOL STATUS_SYMBOL likeOrWhere?
+;
+
 showEnginesStatement:
     SHOW_SYMBOL STORAGE_SYMBOL? value = ENGINES_SYMBOL
 ;
@@ -2608,7 +2685,7 @@ showCreateFunctionStatement:
     SHOW_SYMBOL CREATE_SYMBOL FUNCTION_SYMBOL functionRef
 ;
 
-show_create_library_stmt:
+showCreateLibraryStatement:
     SHOW_SYMBOL CREATE_SYMBOL LIBRARY_SYMBOL libraryRef
 ;
 
@@ -2939,7 +3016,7 @@ bitExpr:
 simpleExpr:
     columnRef jsonOperator?                                                                                     # simpleExprColumnRef
     | runtimeFunctionCall                                                                                       # simpleExprRuntimeFunction
-    | functionCall                                                                                              # simpleExprFunction
+    | functionCallGeneric                                                                                       # simpleExprGenericFunction
     | simpleExpr COLLATE_SYMBOL textOrIdentifier                                                                # simpleExprCollate
     | literalOrNull                                                                                             # simpleExprLiteral
     | PARAM_MARKER                                                                                              # simpleExprParamMarker
@@ -3069,8 +3146,15 @@ nullTreatment:
 ;
 
 jsonFunction:
-    JSON_ARRAYAGG_SYMBOL OPEN_PAR_SYMBOL inSumExpr CLOSE_PAR_SYMBOL windowingClause?
+    JSON_ARRAYAGG_SYMBOL OPEN_PAR_SYMBOL inSumExpr (
+        {this.serverVersion >= 90500}? jsonConstructorNullClause
+    )? CLOSE_PAR_SYMBOL windowingClause?
     | JSON_OBJECTAGG_SYMBOL OPEN_PAR_SYMBOL inSumExpr COMMA_SYMBOL inSumExpr CLOSE_PAR_SYMBOL windowingClause?
+;
+
+jsonConstructorNullClause:
+    NULL_SYMBOL ON_SYMBOL NULL_SYMBOL
+    | ABSENT_SYMBOL ON_SYMBOL NULL_SYMBOL
 ;
 
 inSumExpr:
@@ -3094,9 +3178,9 @@ fulltextOptions:
     | WITH_SYMBOL QUERY_SYMBOL EXPANSION_SYMBOL
 ;
 
-// function_call_keyword and function_call_nonkeyword in sql_yacc.yy.
+// function_call_keyword, function_call_nonkeyword and function_call_conflict in sql_yacc.yy.
 runtimeFunctionCall:
-    // Function names that are keywords.
+    // Function names that are reserved keywords.
     CHAR_SYMBOL OPEN_PAR_SYMBOL exprList (USING_SYMBOL charsetName)? CLOSE_PAR_SYMBOL
     | CURRENT_USER_SYMBOL parentheses?
     | DATE_SYMBOL exprWithParentheses
@@ -3104,6 +3188,8 @@ runtimeFunctionCall:
     | HOUR_SYMBOL exprWithParentheses
     | INSERT_SYMBOL OPEN_PAR_SYMBOL expr COMMA_SYMBOL expr COMMA_SYMBOL expr COMMA_SYMBOL expr CLOSE_PAR_SYMBOL
     | INTERVAL_SYMBOL OPEN_PAR_SYMBOL expr (COMMA_SYMBOL expr)+ CLOSE_PAR_SYMBOL
+    | {this.serverVersion >= 90500}? JSON_DUALITY_OBJECT_SYMBOL OPEN_PAR_SYMBOL jdvWithTableTags? jdvNameValueList
+        CLOSE_PAR_SYMBOL
     | JSON_VALUE_SYMBOL OPEN_PAR_SYMBOL simpleExpr COMMA_SYMBOL textLiteral returningType? onEmptyOrError CLOSE_PAR_SYMBOL
     | LEFT_SYMBOL OPEN_PAR_SYMBOL expr COMMA_SYMBOL expr CLOSE_PAR_SYMBOL
     | MINUTE_SYMBOL exprWithParentheses
@@ -3117,7 +3203,7 @@ runtimeFunctionCall:
     | VALUES_SYMBOL exprWithParentheses
     | YEAR_SYMBOL exprWithParentheses
 
-    // Function names that are not keywords.
+    // Function names that are no-reserved keywords.
     | (ADDDATE_SYMBOL | SUBDATE_SYMBOL) OPEN_PAR_SYMBOL expr COMMA_SYMBOL (
         expr
         | INTERVAL_SYMBOL expr interval
@@ -3140,7 +3226,7 @@ runtimeFunctionCall:
     | UTC_TIME_SYMBOL timeFunctionParameters?
     | UTC_TIMESTAMP_SYMBOL timeFunctionParameters?
 
-    // Function calls with other conflicts.
+    // Function calls with other conflicts (function_call_conflict in the server grammar).
     | ASCII_SYMBOL exprWithParentheses
     | CHARSET_SYMBOL exprWithParentheses
     | COALESCE_SYMBOL exprListWithParentheses
@@ -3164,6 +3250,28 @@ runtimeFunctionCall:
         | COMMA_SYMBOL ulong_number COMMA_SYMBOL ulong_number COMMA_SYMBOL ulong_number
     ) CLOSE_PAR_SYMBOL
     | geometryFunction
+;
+
+jdvWithTableTags:
+    WITH_SYMBOL (jdvTableTag | OPEN_PAR_SYMBOL jdvTableTags CLOSE_PAR_SYMBOL)
+;
+
+jdvTableTag:
+    INSERT_SYMBOL
+    | UPDATE_SYMBOL
+    | DELETE_SYMBOL
+;
+
+jdvTableTags:
+    jdvTableTag (COMMA_SYMBOL jdvTableTag)*
+;
+
+jdvNameValueList:
+    jdvNameValue (',' jdvNameValue)
+;
+
+jdvNameValue:
+    textStringLiteral ':' expr // [ jdv_column_tags ]
 ;
 
 // JSON_VALUE's optional JSON returning clause.
@@ -3226,7 +3334,7 @@ substringFunction:
     ) CLOSE_PAR_SYMBOL
 ;
 
-functionCall:
+functionCallGeneric:
     pureIdentifier OPEN_PAR_SYMBOL udfExprList? CLOSE_PAR_SYMBOL     // For both UDF + other functions.
     | qualifiedIdentifier OPEN_PAR_SYMBOL exprList? CLOSE_PAR_SYMBOL // Other functions only.
 ;
@@ -3664,6 +3772,7 @@ columnAttribute:
     | {this.serverVersion >= 80017}? constraintEnforcement
     | {this.serverVersion >= 80024}? value = ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
     | {this.serverVersion >= 80024}? value = SECONDARY_ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
+    | {this.serverVersion >= 90500}? EXTERNAL_FORMAT_SYMBOL textStringLiteral
     | {this.serverVersion >= 80024}? visibility
 ;
 
@@ -3953,6 +4062,32 @@ createTableOption: // In the order as they appear in the server grammar.
     | {this.serverVersion >= 80024}? option = ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
     | {this.serverVersion >= 80024}? option = SECONDARY_ENGINE_ATTRIBUTE_SYMBOL EQUAL_OPERATOR? jsonAttribute
     | {this.serverVersion >= 80024}? tsOptionAutoextendSize
+    | {this.serverVersion >= 90500}? FILES_SYMBOL equal? OPEN_PAR_SYMBOL externalFiles CLOSE_PAR_SYMBOL
+    // All alternatives below are guarded by the version check for their introducing keyword.
+    | FILE_FORMAT_SYMBOL equal? OPEN_PAR_SYMBOL outfileFileInfo? fieldTerm? lineTerm? ignoreLines? CLOSE_PAR_SYMBOL
+    | ALLOW_MISSING_FILES_SYMBOL equal? ternaryOption
+    | VERIFY_KEY_CONSTRAINTS_SYMBOL equal? ternaryOption
+    | STRICT_LOAD_SYMBOL equal? ternaryOption
+    | AUTO_REFRESH_SYMBOL equal? ternaryOption
+    | AUTO_REFRESH_SOURCE_SYMBOL equal? (NONE_SYMBOL | textStringLiteral)
+;
+
+externalFiles:
+    fileAttributes (COMMA_SYMBOL fileAttributes)*
+;
+
+fileAttributes:
+    fileAttribute+
+;
+
+fileAttribute:
+    URL_SYMBOL equal? textString
+    | URI_SYMBOL equal? textString
+    | FILE_NAME_SYMBOL equal? textString
+    | FILE_PATTERN_SYMBOL equal? textString
+    | FILE_PREFIX_SYMBOL equal? textString
+    | ALLOW_MISSING_FILES_SYMBOL equal? ternaryOption
+    | STRICT_LOAD_SYMBOL equal? ternaryOption
 ;
 
 ternaryOption:
@@ -4094,11 +4229,11 @@ viewRefList:
     viewRef (COMMA_SYMBOL viewRef)*
 ;
 
-updateList:
-    updateElement (COMMA_SYMBOL updateElement)*
+loadDatasetList:
+    loadDatasetElement (COMMA_SYMBOL loadDatasetElement)*
 ;
 
-updateElement:
+loadDatasetElement:
     columnRef EQUAL_OPERATOR (expr | DEFAULT_SYMBOL)
 ;
 
@@ -4121,6 +4256,7 @@ fieldTerm:
         | NULL_SYMBOL AS_SYMBOL textString
         | EMPTY_SYMBOL AS_SYMBOL textString
     )
+    | {this.serverVersion >= 90500}? DATETIME_SYMBOL FORMAT_SYMBOL textString
 ;
 
 linesClause: // opt_line_term in sql_yacc.yy
@@ -4433,14 +4569,6 @@ resourceGroupRef:
 
 windowName:
     identifier
-;
-
-libraryName:
-    qualifiedIdentifier
-;
-
-libraryRef:
-    qualifiedIdentifier
 ;
 
 //----------------- Common basic rules ---------------------------------------------------------------------------------
@@ -5246,6 +5374,26 @@ identifierKeywordsUnambiguous:
         | AUTO_SYMBOL
     )
     | {this.serverVersion >= 80300}? (VECTOR_SYMBOL)
+    | {this.serverVersion >= 90500}? (
+        ABSENT_SYMBOL
+        | ACTION_SYMBOL
+        | ALLOW_MISSING_FILES_SYMBOL
+        | AUTO_REFRESH_SYMBOL
+        | AUTO_REFRESH_SOURCE_SYMBOL
+        | DUALITY_SYMBOL
+        | EXTERNAL_FORMAT_SYMBOL
+        | FILES_SYMBOL
+        | FILE_FORMAT_SYMBOL
+        | FILE_NAME_SYMBOL
+        | FILE_PATTERN_SYMBOL
+        | FILE_PREFIX_SYMBOL
+        | GUIDED_SYMBOL
+        | MATERIALIZED_SYMBOL
+        | RELATIONAL_SYMBOL
+        | STRICT_LOAD_SYMBOL
+        | URI_SYMBOL
+        | VERIFY_KEY_CONSTRAINTS_SYMBOL
+    )
     | (
         // MRS keywords
         CONFIGURE_SYMBOL
@@ -5278,7 +5426,6 @@ identifierKeywordsUnambiguous:
         | FEED_SYMBOL
         | ITEM_SYMBOL
         | SETS_SYMBOL
-        | FILES_SYMBOL
         | AUTH_SYMBOL
         | APPS_SYMBOL
         | APP_SYMBOL

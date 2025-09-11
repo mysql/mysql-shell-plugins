@@ -2880,5 +2880,5 @@ CREATE TABLE func_index (
 [>=80400]select *, "ABC" into outfile 'abc' fields empty as 'null'$$
 [>=90100]select *, "ABC" into outfile url '123.456.0.1' header on fields empty as 'null'$$
 [>=90100]select *, "ABC" into outfile with parameters '{ value: true}' fields empty as 'null'$$
-[>=90200]create library if not exists myLibrary language typescript as $TS$console.log("done");$TS$ $$
-[>=90200]create procedure myProc () using (myOtherLibrary as MOL, sys.lodash lodash) begin end$$
+[>=90300]create library if not exists myLibrary language typescript as $TS$console.log("done");$TS$ $$
+[>=90300]create procedure myProc () using (myOtherLibrary as MOL, sys.lodash lodash) begin end$$

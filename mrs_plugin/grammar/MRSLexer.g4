@@ -130,7 +130,6 @@ AUTODETECT_SYMBOL:  A U T O D E T E C T;
 FEED_SYMBOL:        F E E D;
 ITEM_SYMBOL:        I T E M;
 SETS_SYMBOL:        S E T S;
-FILES_SYMBOL:       F I L E S;
 AUTH_SYMBOL:        A U T H;
 APPS_SYMBOL:        A P P S;
 APP_SYMBOL:         A P P;
