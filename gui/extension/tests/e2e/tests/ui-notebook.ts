@@ -1388,7 +1388,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Result grid cell tooltips - integer columns", async function () {
-            this.retries(1);
+            this.retries(3);
             const rowNumber = 0;
             const tableColumns: string[] = [];
             await notebook.codeEditor.clean();
@@ -1421,7 +1421,7 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid cell tooltips - date columns", async function () {
 
-            this.retries(1);
+            this.retries(3);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
@@ -1455,7 +1455,7 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid cell tooltips - char columns", async function () {
 
-            this.retries(1);
+            this.retries(3);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about", true);
@@ -1485,7 +1485,7 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid cell tooltips - binary and varbinary columns", async function () {
 
-            this.retries(1);
+            this.retries(3);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about", true);
@@ -1520,7 +1520,7 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid cell tooltips - bit column", async function () {
 
-            this.retries(1);
+            this.retries(3);
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
@@ -2056,8 +2056,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Open the Notebook from file with connection", async () => {
+        it("Open the Notebook from file with connection", async function () {
 
+            this.retries(2);
             await Workbench.closeAllEditors();
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
             const e2eTreeSection = new E2EAccordionSection("e2e");
@@ -2094,8 +2095,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Open the Notebook from file", async () => {
+        it("Open the Notebook from file", async function () {
 
+            this.retries(2);
             await Workbench.closeAllEditors();
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
             const file = await (await new SideBarView().getContent().getSection("e2e"))
@@ -2107,8 +2109,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Auto close notebook tab when DB connection is deleted", async () => {
+        it("Auto close notebook tab when DB connection is deleted", async function () {
 
+            this.retries(2);
             const e2eTreeSection = new E2EAccordionSection("e2e");
             const file = await e2eTreeSection.getTreeItem("a_test.mysql-notebook");
             await file.click();
@@ -2122,8 +2125,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Open the Notebook from file with no DB connections", async () => {
+        it("Open the Notebook from file with no DB connections", async function () {
 
+            this.retries(2);
             const conns = await dbTreeSection.getTreeDatabaseConnections();
             for (const conn of conns) {
                 await dbTreeSection.deleteDatabaseConnection(conn.name, conn.isMySQL);

@@ -227,6 +227,8 @@ export class E2ELakehouseTables {
                         return false;
                     }
                 }
+                console.log(tasks);
+                console.log("Should be completed");
 
                 return true;
             }

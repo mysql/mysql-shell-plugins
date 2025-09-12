@@ -1032,10 +1032,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             treeGlobalSchema = await dbTreeSection.getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL)
                 .schema!);
+            await dbTreeSection.focus();
             await treeGlobalSchema.expand();
             treeGlobalSchemaTables = await dbTreeSection.getTreeItem("Tables");
             await treeGlobalSchemaTables.expand();
-            await dbTreeSection.focus();
             await dbTreeSection.openContextMenuAndSelect("actor", constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
@@ -1403,7 +1403,7 @@ describe("DATABASE CONNECTIONS", () => {
             Workbench.untilNotificationExists(`JavaScript library ${library} successfully created!`);
 
             await driver.wait(async () => {
-                await dbTreeSection.clickTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation);
+                await dbTreeSection.clickTreeItemActionButton(globalConn.caption!, constants.reloadDataBaseInformation);
 
                 return dbTreeSection.treeItemExists(library);
             }, constants.wait1second * 5, `${library} does not exist on the tree`);
@@ -1462,7 +1462,7 @@ describe("DATABASE CONNECTIONS", () => {
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
-            const libraryName = "test_web_assembly_from_file";
+            const libraryName = "test_js_library_from_file";
 
             await dbTreeSection.focus();
             // NAME
@@ -1533,7 +1533,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop Library", async () => {
 
-            const libraryName = "test_web_assembly_from_file";
+            const libraryName = "test_js_library_from_file";
             await dbTreeSection.focus();
             await dbTreeSection.openContextMenuAndSelect(libraryName, constants.dropLibrary);
             await Workbench.pushDialogButton(`Drop ${libraryName}`);
