@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 from __future__ import annotations
 import datetime
+import decimal
 import json
 import os
 import ssl
@@ -55,6 +56,7 @@ from ..mrs_base_classes import (
     Date,
     DateTime,
     DateTimeField,
+    Decimal,
     DeleteOptions,
     Filterable,
     FindFirstOptions,
@@ -3934,7 +3936,19 @@ def test_auth_app_not_found_exception():
         (
             [{"actor_id":1, "first_name":"FOO", "last_name": "BAR"}],
             list[Actor],
-            [Actor(schema=None,data={"actor_id":1, "first_name":"FOO", "last_name": "BAR"})] # type: ignore
+            [Actor(schema=None,data={"actor_id":1, "first_name":"FOO", "last_name": "BAR"})], # type: ignore
+        ),
+        # lossy fixed point
+        (
+            "1.23456789012345678",
+            Decimal,
+            decimal.Decimal("1.23456789012345678"),
+        ),
+        # lossless fixed point
+        (
+            "1.234",
+            Decimal,
+            1.234,
         )
     ],
 )
@@ -4003,6 +4017,17 @@ def test_downstream_converter(value: int | str, type_hint: TypeAlias, exp_output
             datetime.timedelta(seconds=59, microseconds=600),
             "000:00:59.000600",
         ),
+        # lossy fixed point
+        (
+            decimal.Decimal("1.23456789012345678"),
+            "1.23456789012345678",
+        ),
+        # lossless fixed point or floating point
+        (
+            1.234,
+            1.234,
+        )
+
     ],
 )
 def test_upstream_converter(value: Any, exp_output: Any):

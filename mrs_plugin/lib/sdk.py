@@ -871,8 +871,10 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "bool"
         if db_datatype.startswith(("tinyint", "smallint", "mediumint", "int", "bigint")):
             return "int"
-        if db_datatype.startswith(("decimal", "numeric", "float", "double")):
+        if db_datatype.startswith(("float", "double")):
             return "float"
+        if db_datatype.startswith(("decimal", "numeric")):
+            return "Decimal"
         if db_datatype.startswith("json"):
             return "JsonValue"
         if db_datatype.startswith("geometry"):

@@ -40,6 +40,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 import time
+import decimal
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -369,6 +370,8 @@ type Vector = list[float]
 """Type alias object (instance of `typing.TypeAliasType`) identifying
 the client-side counterpart of MySQL VECTOR data type."""
 
+# Fixed point decimals
+type Decimal = decimal.Decimal | float
 
 # Misc types
 UndefinedField = UndefinedDataClassField()
@@ -383,8 +386,12 @@ Sortable = TypeVar("Sortable", bound=Optional[Mapping])
 Cursors = TypeVar("Cursors", bound=Optional[Mapping])
 
 
-EqOperand = TypeVar("EqOperand", bound=str | int | float | DateOrTime | Vector)
-NeqOperand = TypeVar("NeqOperand", bound=str | int | float | DateOrTime | Vector)
+EqOperand = TypeVar(
+    "EqOperand", bound=str | int | float | DateOrTime | Vector | Decimal
+)
+NeqOperand = TypeVar(
+    "NeqOperand", bound=str | int | float | DateOrTime | Vector | Decimal
+)
 NotOperator = TypedDict("NotOperator", {"not": None})
 PatternOperand = TypeVar("PatternOperand", bound=str)
 RangeOperand = TypeVar(
@@ -412,7 +419,8 @@ ResultSetType = TypeVar("ResultSetType", bound=str)
 ResultSetItem = TypeVar("ResultSetItem", bound=Mapping)
 ResultSetDetails = TypeVar("ResultSetDetails", bound=Mapping)
 IMrsFunctionResult = TypeVar(
-    "IMrsFunctionResult", bound=str | int | float | bool | JsonValue | "DateOrTime"
+    "IMrsFunctionResult",
+    bound=str | int | float | bool | JsonValue | "DateOrTime" | Decimal,
 )
 IMrsTaskResult = TypeVar("IMrsTaskResult", bound=Any)
 
@@ -1429,6 +1437,15 @@ class MrsDataDownstreamConverter:
                 ),
             )
 
+        if type_alias_type_instance == Decimal:
+            # Use a decimal.Decimal instance if the value cannot be safely represented as a float without loosing
+            # precision. Otherwise float should be OK.
+            return (
+                decimal.Decimal(str(value))
+                if str(decimal.Decimal(str(value))) != str(float(str(value)))
+                else float(str(value))
+            )
+
         return value
 
 
@@ -1458,6 +1475,8 @@ class MrsDataUpstreamConverter:
         """Convert client value to a JSON formattable value."""
         if isinstance(value, JSON_FORMATTABLE_DATE_OR_TIME):
             return MrsDataUpstreamConverter._convert_date_or_time(value)
+        if isinstance(value, decimal.Decimal):
+            return f"{value}"
         return value
 
 

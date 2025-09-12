@@ -106,11 +106,13 @@ def test_get_datatype_mapping():
                 "int",
             ): "int",
             (
-                "decimal",
-                "numeric",
                 "float",
                 "double",
             ): "float",
+            (
+                "decimal",
+                "numeric",
+            ): "Decimal",
             ("json",): "JsonValue",
             ("varchar",): "str",
             ("GEOMETRY",): "Geometry",

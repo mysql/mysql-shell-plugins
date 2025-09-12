@@ -118,8 +118,8 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         self,
         *args: IMrsTaskStartOptions,
         **parameters: Unpack[I${obj_param_interface}]
-    ) -> MrsTask[IMrsFunctionResponse[${obj_function_result_datatype}]]:
-        request = MrsBaseTaskStartFunction[I${obj_param_interface}, IMrsFunctionResponse[${obj_function_result_datatype}]](
+    ) -> MrsTask[${obj_function_result_datatype}]:
+        request = MrsBaseTaskStartFunction[I${obj_param_interface}, ${obj_function_result_datatype}](
             schema=self._schema,
             request_path=self._request_path,
             options=cast(IMrsTaskStartOptions, merge_task_options(args)),
