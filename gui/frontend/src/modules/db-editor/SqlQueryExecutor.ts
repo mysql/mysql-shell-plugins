@@ -111,7 +111,7 @@ export class SqlQueryExecutor {
             && statement.includes("LANGUAGE JAVASCRIPT") && statement.includes("$");
     }
 
-    public handleDependentTasks?(options: IQueryExecutionOptions): void;
+    public handleDependentTasks?(options: IQueryExecutionOptions): Promise<void>;
 
     public set connection(value: ICdmConnectionEntry | undefined) {
         this.#connection = value;
@@ -834,7 +834,7 @@ export class SqlQueryExecutor {
             });
 
             if (this.handleDependentTasks) {
-                this.handleDependentTasks(options);
+                await this.handleDependentTasks(options);
             }
         } catch (reason) {
             exceptionThrown = reason;

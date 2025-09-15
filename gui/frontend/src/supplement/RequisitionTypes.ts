@@ -543,6 +543,7 @@ export interface IRequestTypeMap {
     "sqlSetCurrentSchema": (data: { id: string; connectionInfo: IConnectionInfo; schema: string; }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;
     "sqlTransactionEnded": SimpleCallback;
+    "sqlModeChanged": (data: { id: string; connectionInfo: IConnectionInfo; sqlMode: string; }) => Promise<boolean>;
 
     "sessionAdded": (session: IShellSessionDetails) => Promise<boolean>;
     "sessionRemoved": (session: IShellSessionDetails) => Promise<boolean>;

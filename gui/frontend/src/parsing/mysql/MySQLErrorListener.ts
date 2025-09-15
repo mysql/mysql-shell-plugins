@@ -23,7 +23,7 @@
 
 import {
     ATNSimulator, BaseErrorListener, FailedPredicateException, InputMismatchException, IntervalSet, Lexer,
-    NoViableAltException, Parser, RecognitionException, Recognizer, Token, Vocabulary,
+    LexerNoViableAltException, NoViableAltException, Parser, RecognitionException, Recognizer, Token, Vocabulary,
 } from "antlr4ng";
 
 import { ErrorReportCallback } from "../parser-common.js";
@@ -140,7 +140,7 @@ export class MySQLErrorListener extends BaseErrorListener {
             }
 
             switch (context.ruleIndex) {
-                case MySQLMRSParser.RULE_functionCall:
+                case MySQLMRSParser.RULE_functionCallGeneric:
                     expectedText = "a complete function call or other expression";
                     break;
 
@@ -272,7 +272,7 @@ export class MySQLErrorListener extends BaseErrorListener {
             this.callback(message, token.type, token.start, line, charPositionInLine, errorLength);
         } else {
             // No offending symbol, which indicates this is a lexer error.
-            if (e instanceof NoViableAltException) {
+            if (e instanceof LexerNoViableAltException) {
                 if (!(recognizer instanceof Lexer)) {
                     throw new Error("Unexpected type of recognizer in MySQLErrorListener.syntaxError()");
                 }

@@ -28,7 +28,7 @@ import type { ISqlUpdateResult } from "../app-logic/general-types.js";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
 import { IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
 import { IStatementSpan } from "../parsing/parser-common.js";
-import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
+import { type IColumnDetails, type IConnectionInfo } from "../supplement/RequisitionTypes.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { EditorLanguage, ITextRange } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
@@ -90,6 +90,7 @@ export class ExecutionContexts implements IContextProvider {
         this.updater = updater ?? new ResultSetUpdater(this.store, params.runUpdates);
 
         requisitions.register("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
+        requisitions.register("sqlModeChanged", this.sqlModeChanged);
     }
 
     public [Symbol.iterator](): Iterator<ExecutionContext> {
@@ -437,6 +438,17 @@ export class ExecutionContexts implements IContextProvider {
 
     private sqlUpdateColumnInfo = async (data: IColumnDetails): Promise<boolean> => {
         return ApplicationDB.updateColumnsForResultId(StoreType.Document, data);
+    };
+
+    private sqlModeChanged = (data: { connectionInfo: IConnectionInfo; sqlMode: string; }): Promise<boolean> => {
+        this.sqlMode = data.sqlMode;
+        for (const context of this) {
+            if (context instanceof SQLExecutionContext) {
+                context.sqlMode = data.sqlMode;
+            }
+        }
+
+        return Promise.resolve(true);
     };
 
     private isDbModuleResultData(data: unknown[]): data is IDocumentResultData[] {

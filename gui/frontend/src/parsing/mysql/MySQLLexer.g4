@@ -1146,7 +1146,7 @@ BACK_TICK_QUOTED_ID:
 
 DOUBLE_QUOTED_TEXT: (
         DOUBLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? DOUBLE_QUOTE
-    )+;
+    )+ { this.type = this.isSqlModeActive(SqlMode.AnsiQuotes) ? MySQLLexer.IDENTIFIER : MySQLLexer.DOUBLE_QUOTED_TEXT; };
 
 SINGLE_QUOTED_TEXT: (
         SINGLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? SINGLE_QUOTE

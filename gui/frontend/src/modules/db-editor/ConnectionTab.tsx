@@ -1415,7 +1415,7 @@ Execute \\help or \\? for help;`;
      *
      * @param options The query execution options.
      */
-    private handleDependentTasks = (options: IQueryExecutionOptions): void => {
+    private handleDependentTasks = async (options: IQueryExecutionOptions): Promise<void> => {
         const { id, connection } = this.props;
 
         switch (options.queryType) {
@@ -1448,6 +1448,21 @@ Execute \\help or \\? for help;`;
             case QueryType.RestUse:
             case QueryType.Rest: {
                 this.mrsSdkUpdateRequired = true;
+
+                break;
+            }
+
+            case QueryType.Set: {
+                if (options.original.toLowerCase().includes("sql_mode")) {
+                    // Read the current SQL mode from the backend and update the execution context.
+                    const result = await connection?.backend.execute("SELECT @@SESSION.sql_mode");
+                    const sqlMode = (result?.rows?.[0] as string[])[0];
+                    options.context.sqlMode = sqlMode;
+
+                    const connectionInfo = getConnectionInfoFromDetails(connection!.details);
+                    requisitions.executeRemote("sqlModeChanged", { id: id ?? "", connectionInfo, sqlMode });
+                    void requisitions.execute("sqlModeChanged", { id: id ?? "", connectionInfo, sqlMode });
+                }
 
                 break;
             }
