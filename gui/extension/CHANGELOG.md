@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- BUG#37697639 FK violation regarding derived role on DROP REST SERVICE
 -
 
 ## Changes in 1.19.17+9.4.0

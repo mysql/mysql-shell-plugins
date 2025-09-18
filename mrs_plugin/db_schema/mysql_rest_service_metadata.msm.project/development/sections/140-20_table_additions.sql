@@ -50,3 +50,13 @@ ALTER TABLE `service`
     "required": [ "developers" ]
     }', s.in_development)
 );
+
+-- Ensure roles associated to a service are deleted in order when that service is deleted.
+ALTER TABLE `mrs_role`
+    DROP FOREIGN KEY `fk_priv_role_priv_role1`;
+ALTER TABLE `mrs_role`
+    ALGORITHM = COPY,
+    ADD CONSTRAINT `fk_priv_role_priv_role1`
+        FOREIGN KEY (`derived_from_role_id`)
+        REFERENCES `mrs_role` (`id`)
+        ON DELETE CASCADE;
