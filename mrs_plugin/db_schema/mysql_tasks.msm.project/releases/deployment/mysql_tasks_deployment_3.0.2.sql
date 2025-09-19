@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,11 +24,12 @@
  */
 
 -- #############################################################################
--- MSM Section 000: Database Schema Development Script
+-- MSM Section 003: Database Schema Deployment Script
 -- -----------------------------------------------------------------------------
--- This script contains the current development version of the database schema
--- `mysql_tasks`
+-- This script either creates or updates the database schema
+-- `mysql_tasks` to version 3.0.2
 -- #############################################################################
+
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
@@ -39,137 +40,293 @@
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
-  'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,'
-  'NO_ENGINE_SUBSTITUTION';
+    'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,'
+    'NO_ENGINE_SUBSTITUTION';
+
 
 -- #############################################################################
 -- MSM Section 110: Database Schema Creation
 -- -----------------------------------------------------------------------------
--- CREATE SCHEMA statement.
+-- CREATE SCHEMA statement
 -- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS `mysql_tasks`
-  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+    DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+USE `mysql_tasks`;
+
 
 -- #############################################################################
--- MSM Section 120: Database Schema Version Creation Indication
+-- MSM Section 340: Non-Idempotent Deployment Procedures
 -- -----------------------------------------------------------------------------
--- Create the `${schema_name}`.`msm_schema_version` VIEW and initialize it with
--- the version 0, 0, 0 which indicates the ongoing creation processes of the
--- `${schema_name}` database schema.
+-- Create the stored procedures used for schema TABLE installation and updates.
+-- These procedures will only be used during the installation and update
+-- process and will be dropped afterwards.
 -- #############################################################################
 
-CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `mysql_tasks`.`msm_schema_version` (
-    `major`,`minor`,`patch`) AS
-SELECT 0, 0, 0;
+USE `mysql_tasks`;
 
--- #############################################################################
--- MSM Section 140: Non-idempotent Schema Objects
+DELIMITER %%
+
 -- -----------------------------------------------------------------------------
--- This section contains creation of schema TABLEs and the initialization of
--- base data (standard INSERTs). It is important to note that all other
--- schema objects (VIEWs, PROCEDUREs, FUNCTIONs, TRIGGERs EVENTs, ...) need to
--- be created inside the MSM Section 150: idempotent schema object changes.
--- ROLEs and GRANTs are defined in the MSM Section 170: Authorization.
+-- PROCEDURE `mysql_tasks`.`msm_update_3.0.0_to_3.0.1`
 -- -----------------------------------------------------------------------------
--- CREATE TABLE statements and standard INSERTs.
--- #############################################################################
+-- Stored procedure to update TABLEs and VIEWs
+-- from version 3.0.0 to 3.0.1
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_update_3.0.0_to_3.0.1`%%
+CREATE PROCEDURE `msm_update_3.0.0_to_3.0.1`()
+SQL SECURITY INVOKER
+BEGIN
+END%%
 
--- -----------------------------------------------------
--- Table `mysql_tasks`.`config`
---   for internal use
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_tasks`.`config` (
-  `id` TINYINT NOT NULL DEFAULT 1,
-  `data` JSON NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT Config_OnlyOneRow CHECK (id = 1)
-) ENGINE = InnoDB;
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_update_3.0.1_to_3.0.2`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to update TABLEs and VIEWs
+-- from version 3.0.1 to 3.0.2
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_update_3.0.1_to_3.0.2`%%
+CREATE PROCEDURE `msm_update_3.0.1_to_3.0.2`()
+SQL SECURITY INVOKER
+BEGIN
+END%%
 
-INSERT IGNORE INTO `mysql_tasks`.`config` (`id`, `data`)
-  VALUES (1, '{
-    "limits": {
-      "maximumPreparedStmtAsyncTasks": 100,
-      "maximumHeatwaveLoadingTasks": 5
-    }
-  }'
-);
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_create_3.0.2`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to install schema TABLEs for version 3.0.2
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_create_3.0.2`%%
+CREATE PROCEDURE `msm_create_3.0.2`()
+SQL SECURITY INVOKER
+BEGIN
+    -- -----------------------------------------------------
+    -- Table `mysql_tasks`.`config`
+    --   for internal use
+    -- -----------------------------------------------------
+    CREATE TABLE IF NOT EXISTS `mysql_tasks`.`config` (
+      `id` TINYINT NOT NULL DEFAULT 1,
+      `data` JSON NULL,
+      PRIMARY KEY (`id`),
+      CONSTRAINT Config_OnlyOneRow CHECK (id = 1)
+    ) ENGINE = InnoDB;
 
--- -----------------------------------------------------
--- Table `mysql_tasks`.`task_impl`
---   for internal use
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_impl` (
-  `id` BINARY(16) NOT NULL COMMENT 'A UUID uniquely identifying the task across
-      replication instances in binary format. The id should be created by the
-      function call UUID_TO_BIN(UUID(), 1) which generates the BINARY
-      representation of the UUID in reverse order to improve indexing.
-      The field is usually hidden from end users.',
-  `mysql_user` VARCHAR(288) DEFAULT (CURRENT_USER()) COMMENT
-      'The MySQL user that created the task.',
-  `app_user_id` VARCHAR(255) COMMENT 'An optional ID representing a specific
-      application user. If set, the app_user_id will be used to filter tasks
-      per application users, preventing an app user to see tasks from other
-      app users.',
-  `alias` VARCHAR(16) COMMENT 'A human readable alias that allows easier
-      referencing of a specific task. It uses the format
-      {Abbreviated weekday name}-{task count per mysql_user or app_user_id if
-      specified}, e.g. Mon-1, Mon-2, Tue-1, etc. Please note that there is
-      no guarantee that the alias will be unique, while still being useful in
-      the majority of cases as old task are deleted after 6 days.',
-  `name` VARCHAR(255) NOT NULL COMMENT 'The name of the task.',
-  `server_uuid`  BINARY(16) NOT NULL COMMENT 'The UUID of the server on which
-      the task has been created. It should be populated using
-      UUID_TO_BIN(@@server_uuid, 1).',
-  `connection_id` BIGINT UNSIGNED NOT NULL COMMENT 'The MySQL server
-      connection_id that was used to created the task.',
-  `task_type` VARCHAR(80) NOT NULL COMMENT 'An application defined task type,
-      used for filtering of tasks per type.',
-  `data` JSON COMMENT 'Can hold application specific data.',
-  `data_json_schema` JSON COMMENT 'A JSON schema defining the structure of the
-      data field for the given task.',
-  `log_data_json_schema` JSON COMMENT 'A JSON schema defining the structure of
-      the task_log_impl.data field for the given task.',
-  PRIMARY KEY(`id`),
-  INDEX(`mysql_user`(192)),
-  INDEX(`mysql_user`(176), `alias`),
-  INDEX(`task_type`)
-) ENGINE=InnoDB;
+    INSERT IGNORE INTO `mysql_tasks`.`config` (`id`, `data`)
+      VALUES (1, '{
+        "limits": {
+          "maximumPreparedStmtAsyncTasks": 100,
+          "maximumHeatwaveLoadingTasks": 5
+        }
+      }'
+    );
 
--- -----------------------------------------------------
--- Table `mysql_tasks`.`task_log_impl`
---   for internal use
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
-  `id` BINARY(16) NOT NULL COMMENT 'A UUID uniquely identifying a task log
-      entry. It should be created by the function call UUID_TO_BIN(UUID(), 1)
-      which generates the BINARY representation of the UUID in the reverse
-      order to improve indexing.',
-  `task_id` BINARY(16) NOT NULL COMMENT 'The task ID (foreign key).',
-  `mysql_user` VARCHAR(288) DEFAULT (CURRENT_USER()) COMMENT 'The MySQL user
-      that created the task / inserted the task log.',
-  `log_time` TIMESTAMP(6) NOT NULL COMMENT 'A timestamp when the task log entry
-      was inserted.',
-  `message` VARCHAR(2000) COMMENT 'A task log message.',
-  `data` JSON COMMENT 'Can hold application specific log data. It must conform
-      to log_data_json_schema defined in the`task_impl` table.',
-  `progress` SMALLINT NOT NULL DEFAULT 0 COMMENT 'A task completion progress
-      between 0 and 100%.',
-  `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED')
-      NOT NULL DEFAULT 'SCHEDULED' COMMENT 'The task state. When created, a task
-      goes in the SCHEDULED state, then is moved to RUNNING and finally
-      COMPLETED state. In case of ERROR, the task status becomes ERROR. When
-      task is killed by the user or by the garbage collector, it gets the
-      CANCELLED status.',
-  PRIMARY KEY(`id`),
-  INDEX(`mysql_user`(192)),
-  INDEX(`log_time`),
-  INDEX(`status`),
-  CONSTRAINT `fk_task_log_task_id`
-    FOREIGN KEY (`task_id`)
-    REFERENCES `mysql_tasks`.`task_impl` (`id`)
-) ENGINE=InnoDB;
+    -- -----------------------------------------------------
+    -- Table `mysql_tasks`.`task_impl`
+    --   for internal use
+    -- -----------------------------------------------------
+    CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_impl` (
+      `id` BINARY(16) NOT NULL COMMENT 'A UUID uniquely identifying the task across
+          replication instances in binary format. The id should be created by the
+          function call UUID_TO_BIN(UUID(), 1) which generates the BINARY
+          representation of the UUID in reverse order to improve indexing.
+          The field is usually hidden from end users.',
+      `mysql_user` VARCHAR(288) DEFAULT (CURRENT_USER()) COMMENT
+          'The MySQL user that created the task.',
+      `app_user_id` VARCHAR(255) COMMENT 'An optional ID representing a specific
+          application user. If set, the app_user_id will be used to filter tasks
+          per application users, preventing an app user to see tasks from other
+          app users.',
+      `alias` VARCHAR(16) COMMENT 'A human readable alias that allows easier
+          referencing of a specific task. It uses the format
+          {Abbreviated weekday name}-{task count per mysql_user or app_user_id if
+          specified}, e.g. Mon-1, Mon-2, Tue-1, etc. Please note that there is
+          no guarantee that the alias will be unique, while still being useful in
+          the majority of cases as old task are deleted after 6 days.',
+      `name` VARCHAR(255) NOT NULL COMMENT 'The name of the task.',
+      `server_uuid`  BINARY(16) NOT NULL COMMENT 'The UUID of the server on which
+          the task has been created. It should be populated using
+          UUID_TO_BIN(@@server_uuid, 1).',
+      `connection_id` BIGINT UNSIGNED NOT NULL COMMENT 'The MySQL server
+          connection_id that was used to created the task.',
+      `task_type` VARCHAR(80) NOT NULL COMMENT 'An application defined task type,
+          used for filtering of tasks per type.',
+      `data` JSON COMMENT 'Can hold application specific data.',
+      `data_json_schema` JSON COMMENT 'A JSON schema defining the structure of the
+          data field for the given task.',
+      `log_data_json_schema` JSON COMMENT 'A JSON schema defining the structure of
+          the task_log_impl.data field for the given task.',
+      PRIMARY KEY(`id`),
+      INDEX(`mysql_user`(192)),
+      INDEX(`mysql_user`(176), `alias`),
+      INDEX(`task_type`)
+    ) ENGINE=InnoDB;
+
+    -- -----------------------------------------------------
+    -- Table `mysql_tasks`.`task_log_impl`
+    --   for internal use
+    -- -----------------------------------------------------
+    CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
+      `id` BINARY(16) NOT NULL COMMENT 'A UUID uniquely identifying a task log
+          entry. It should be created by the function call UUID_TO_BIN(UUID(), 1)
+          which generates the BINARY representation of the UUID in the reverse
+          order to improve indexing.',
+      `task_id` BINARY(16) NOT NULL COMMENT 'The task ID (foreign key).',
+      `mysql_user` VARCHAR(288) DEFAULT (CURRENT_USER()) COMMENT 'The MySQL user
+          that created the task / inserted the task log.',
+      `log_time` TIMESTAMP(6) NOT NULL COMMENT 'A timestamp when the task log entry
+          was inserted.',
+      `message` VARCHAR(2000) COMMENT 'A task log message.',
+      `data` JSON COMMENT 'Can hold application specific log data. It must conform
+          to log_data_json_schema defined in the`task_impl` table.',
+      `progress` SMALLINT NOT NULL DEFAULT 0 COMMENT 'A task completion progress
+          between 0 and 100%.',
+      `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED')
+          NOT NULL DEFAULT 'SCHEDULED' COMMENT 'The task state. When created, a task
+          goes in the SCHEDULED state, then is moved to RUNNING and finally
+          COMPLETED state. In case of ERROR, the task status becomes ERROR. When
+          task is killed by the user or by the garbage collector, it gets the
+          CANCELLED status.',
+      PRIMARY KEY(`id`),
+      INDEX(`mysql_user`(192)),
+      INDEX(`log_time`),
+      INDEX(`status`),
+      CONSTRAINT `fk_task_log_task_id`
+        FOREIGN KEY (`task_id`)
+        REFERENCES `mysql_tasks`.`task_impl` (`id`)
+    ) ENGINE=InnoDB;
+END%%
+
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_create_or_update`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to perform the version sensitive creation or update of
+-- schema TABLEs
+-- -----------------------------------------------------------------------------
+
+DROP PROCEDURE IF EXISTS `msm_create_or_update`%%
+CREATE PROCEDURE `msm_create_or_update`()
+SQL SECURITY INVOKER
+BEGIN
+    DECLARE item_count INT;
+    DECLARE version_str VARCHAR(255);
+    DECLARE signal_msg VARCHAR(128);
+
+    -- Check if the schema is yet empty
+    SELECT COUNT(*) +
+        (SELECT COUNT(*) FROM `information_schema`.`ROUTINES`
+            WHERE ROUTINE_SCHEMA = 'mysql_tasks'
+                AND ROUTINE_NAME NOT LIKE 'msm_%') +
+        (SELECT COUNT(*) FROM `information_schema`.`EVENTS`
+            WHERE `EVENT_SCHEMA` = 'mysql_tasks') INTO item_count
+    FROM `information_schema`.`TABLES`
+    WHERE `TABLE_SCHEMA` = 'mysql_tasks';
+
+    -- If the schema is empty, create the schema from scratch
+    IF item_count = 0 THEN
+        -- Set the @msm_schema_init variable to indicate a fresh creation of the
+        -- schema. This session variable is later used when creating roles
+        SET @msm_schema_init = 1;
+
+        -- Set `mysql_tasks`.`msm_schema_version` VIEW
+        -- to 0, 0, 0 to indicate start of update process
+        CREATE OR REPLACE SQL SECURITY INVOKER
+            VIEW `mysql_tasks`.`msm_schema_version` (
+                `major`,`minor`,`patch`) AS
+                SELECT 0, 0, 0;
+
+        CALL `mysql_tasks`.`msm_create_3.0.2`();
+    ELSE
+        -- If the schema is not empty, update the schema
+        SET @msm_schema_init = 0;
+
+        -- Check if the schema is a managed one
+        SELECT COUNT(*) INTO item_count FROM information_schema.`TABLES`
+            WHERE `TABLE_SCHEMA` = 'mysql_tasks'
+                AND `TABLE_NAME` = 'msm_schema_version'
+                AND `TABLE_TYPE` = 'VIEW';
+        IF item_count = 0 THEN
+            SELECT COUNT(*) INTO item_count FROM `information_schema`.`TABLES`
+                WHERE `TABLE_SCHEMA` = 'mysql_tasks';
+            IF item_count > 0 THEN
+                SET signal_msg = LEFT(CONCAT(
+                    'The schema `mysql_tasks` already exists but ',
+                    'misses a msm_schema_version view ',
+                    'and cannot be updated.'), 128);
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = signal_msg,
+                    MYSQL_ERRNO = 32100;
+            END IF;
+        END IF;
+
+        -- Get the current version of the schema
+        SELECT CONCAT(v.major, '.', v.minor, '.', v.patch) INTO `version_str`
+        FROM `mysql_tasks`.`msm_schema_version` AS v;
+
+        SET @msm_current_version = version_str;
+
+        -- Check if the current version needs to be updated
+        IF version_str != '3.0.2' THEN
+            IF version_str = '0.0.0' THEN
+                SET signal_msg = LEFT(CONCAT(
+                    'The schema `mysql_tasks` is already being updated ',
+                    'as its version is set to 0.0.0.'), 128);
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = signal_msg,
+                    MYSQL_ERRNO = 32101;
+            END IF;
+
+            -- Set `mysql_tasks`.`msm_schema_version` VIEW
+            -- to 0, 0, 0 to indicate start of update process
+            CREATE OR REPLACE SQL SECURITY INVOKER
+                VIEW `mysql_tasks`.`msm_schema_version` (
+                    `major`,`minor`,`patch`) AS
+                    SELECT 0, 0, 0;
+
+
+            -- Check if the current version can be updated by this script
+            IF NOT JSON_CONTAINS('["3.0.0", "3.0.1"]',
+                JSON_QUOTE(version_str), '$') THEN
+                SET signal_msg = LEFT(CONCAT(
+                    'The schema `mysql_tasks` is on version ', version_str,
+                    ' which cannot be updated by this script.'), 128);
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = signal_msg,
+                    MYSQL_ERRNO = 32102;
+            END IF;
+
+            -- Run the update scripts
+            IF version_str = '3.0.0' THEN
+                CALL `mysql_tasks`.`msm_update_3.0.0_to_3.0.1`();
+                SET version_str = '3.0.1';
+            END IF;
+
+            IF version_str = '3.0.1' THEN
+                CALL `mysql_tasks`.`msm_update_3.0.1_to_3.0.2`();
+                SET version_str = '3.0.2';
+            END IF;
+
+        END IF;
+    END IF;
+END%%
+
+DELIMITER ;
+
+-- -----------------------------------------------------------------------------
+-- Execute the installation/upgrade procedure for schema tables
+-- -----------------------------------------------------------------------------
+
+CALL `msm_create_or_update`();
+
+-- -----------------------------------------------------------------------------
+-- Drop the stored procedures used for schema TABLE installation and updates.
+-- -----------------------------------------------------------------------------
+
+USE `mysql_tasks`;
+DROP PROCEDURE `msm_update_3.0.0_to_3.0.1`;
+USE `mysql_tasks`;
+DROP PROCEDURE `msm_update_3.0.1_to_3.0.2`;
+USE `mysql_tasks`;
+DROP PROCEDURE `msm_create_3.0.2`;
+DROP PROCEDURE `msm_create_or_update`;
+
 
 -- #############################################################################
 -- MSM Section 150: Idempotent Schema Objects
@@ -180,7 +337,7 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
 -- CREATE OR REPLACE clauses must be used when creating the objects.
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWS, PROCEDUREs, FUNCTIONs, TRIGGERs,
--- EVENTS, ...).
+-- EVENTS, ...)
 -- #############################################################################
 
 DELIMITER %%
@@ -2431,97 +2588,189 @@ END%%
 
 DELIMITER ;
 
+
 -- #############################################################################
--- MSM Section 170: Authorization
+-- MSM Section 370: Authorization
 -- -----------------------------------------------------------------------------
--- This section is used to define the ROLEs and GRANT statements.
+-- This section is used to define or update ROLEs and GRANTs.
 -- #############################################################################
 
--- Create ROLEs and assign privileges using GRANT statements
+USE `mysql_tasks`;
 
--- The mysql_task_admin ROLE allows to fully manage the MySQL tasks schema
--- The mysql_task_user ROLE allows to create and work with MySQL tasks
+DELIMITER %%
 
-CREATE ROLE IF NOT EXISTS 'mysql_task_admin', 'mysql_task_user';
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_auth_3.0.0_to_3.0.1`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to perform the authorization changes from version 3.0.0
+-- to 3.0.1
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_auth_3.0.0_to_3.0.1`%%
+CREATE PROCEDURE `msm_auth_3.0.0_to_3.0.1`()
+SQL SECURITY INVOKER
+BEGIN
+END%%
 
--- GRANTS for mysql_task_admin
-GRANT SELECT, INSERT, DELETE, EXECUTE ON `mysql_tasks`.* TO
-  'mysql_task_admin';
-GRANT SELECT ON `performance_schema`.`events_statements_current` TO
-  'mysql_task_admin';
-GRANT SELECT ON `performance_schema`.`global_variables` TO 'mysql_task_admin';
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_auth_3.0.1_to_3.0.2`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to perform the authorization changes from version 3.0.1
+-- to 3.0.2
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_auth_3.0.1_to_3.0.2`%%
+CREATE PROCEDURE `msm_auth_3.0.1_to_3.0.2`()
+SQL SECURITY INVOKER
+BEGIN
+END%%
 
--- GRANTS for mysql_task_user
-GRANT SELECT ON `mysql_tasks`.`config` TO 'mysql_task_user';
-GRANT SELECT ON `mysql_tasks`.`msm_schema_version` TO 'mysql_task_user';
-GRANT INSERT ON `mysql_tasks`.`task_i` TO 'mysql_task_user';
-GRANT INSERT ON `mysql_tasks`.`task_log_i` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_list` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_logs` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status_list` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status_brief` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`active_task_count` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`find_task_log_msg` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_ids_from_alias` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_id` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_alias` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_log_data_json_schema` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_connection_id` TO
-  'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_task` TO 'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_task_with_id` TO
-  'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`add_task_log` TO 'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`kill_task` TO 'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`drop_event` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_list` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_logs` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_status_list` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_status` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_status_brief` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_app_task_ids_from_alias` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_app_task_id` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_app_task_alias` TO
-  'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_app_task` TO 'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_app_task_with_id` TO
-  'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`kill_app_task` TO 'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`execute_prepared_stmt_from_app_async`
-  TO 'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`execute_prepared_stmt_async` TO
-  'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`start_task_monitor` TO
-  'mysql_task_user';
-GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`stop_task_monitor` TO
-  'mysql_task_user';
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_auth_3.0.2`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to setup authorization for version 3.0.2
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_auth_3.0.2`%%
+CREATE PROCEDURE `msm_auth_3.0.2`()
+SQL SECURITY INVOKER
+BEGIN
+    -- Create ROLEs and assign privileges using GRANT statements
 
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`quote_identifier` TO 'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`extract_username` TO 'mysql_task_user';
-GRANT SELECT ON `performance_schema`.`events_statements_current` TO
-  'mysql_task_user';
+    -- The mysql_task_admin ROLE allows to fully manage the MySQL tasks schema
+    -- The mysql_task_user ROLE allows to create and work with MySQL tasks
+
+    CREATE ROLE IF NOT EXISTS 'mysql_task_admin', 'mysql_task_user';
+
+    -- GRANTS for mysql_task_admin
+    GRANT SELECT, INSERT, DELETE, EXECUTE ON `mysql_tasks`.* TO
+      'mysql_task_admin';
+    GRANT SELECT ON `performance_schema`.`events_statements_current` TO
+      'mysql_task_admin';
+    GRANT SELECT ON `performance_schema`.`global_variables` TO 'mysql_task_admin';
+
+    -- GRANTS for mysql_task_user
+    GRANT SELECT ON `mysql_tasks`.`config` TO 'mysql_task_user';
+    GRANT SELECT ON `mysql_tasks`.`msm_schema_version` TO 'mysql_task_user';
+    GRANT INSERT ON `mysql_tasks`.`task_i` TO 'mysql_task_user';
+    GRANT INSERT ON `mysql_tasks`.`task_log_i` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_list` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_logs` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status_list` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status_brief` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`active_task_count` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`find_task_log_msg` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_ids_from_alias` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_id` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_alias` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_log_data_json_schema` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_task_connection_id` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_task` TO 'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_task_with_id` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`add_task_log` TO 'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`kill_task` TO 'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`drop_event` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_list` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_logs` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_status_list` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_status` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`app_task_status_brief` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_app_task_ids_from_alias` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_app_task_id` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`get_app_task_alias` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_app_task` TO 'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`create_app_task_with_id` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`kill_app_task` TO 'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`execute_prepared_stmt_from_app_async`
+      TO 'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`execute_prepared_stmt_async` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`start_task_monitor` TO
+      'mysql_task_user';
+    GRANT EXECUTE ON PROCEDURE `mysql_tasks`.`stop_task_monitor` TO
+      'mysql_task_user';
+
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`quote_identifier` TO 'mysql_task_user';
+    GRANT EXECUTE ON FUNCTION `mysql_tasks`.`extract_username` TO 'mysql_task_user';
+    GRANT SELECT ON `performance_schema`.`events_statements_current` TO
+      'mysql_task_user';
+END%%
+
+-- -----------------------------------------------------------------------------
+-- PROCEDURE `mysql_tasks`.`msm_auth`
+-- -----------------------------------------------------------------------------
+-- Stored procedure to setup authorization
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `msm_auth`%%
+CREATE PROCEDURE `msm_auth`()
+SQL SECURITY INVOKER
+BEGIN
+    DECLARE version_str VARCHAR(255);
+
+    SET version_str = @msm_current_version;
+
+    IF @msm_schema_init THEN
+        CALL `mysql_tasks`.`msm_auth_3.0.2`();
+    ELSE
+        IF version_str = '3.0.0' THEN
+            CALL `mysql_tasks`.`msm_auth_3.0.0_to_3.0.1`();
+            SET version_str = '3.0.1';
+        END IF;
+
+        IF version_str = '3.0.1' THEN
+            CALL `mysql_tasks`.`msm_auth_3.0.1_to_3.0.2`();
+            SET version_str = '3.0.2';
+        END IF;
+
+        CALL `mysql_tasks`.`msm_auth_3.0.2`();
+    END IF;
+END%%
+
+DELIMITER ;
+
+-- -----------------------------------------------------------------------------
+-- Execute the installation/upgrade procedure to setup authorization
+-- -----------------------------------------------------------------------------
+
+CALL `msm_auth`();
+
+-- -----------------------------------------------------------------------------
+-- Drop the stored procedures used for authorization setup and updates.
+-- -----------------------------------------------------------------------------
+
+USE `mysql_tasks`;
+DROP PROCEDURE `msm_auth_3.0.0_to_3.0.1`;
+USE `mysql_tasks`;
+DROP PROCEDURE `msm_auth_3.0.1_to_3.0.2`;
+USE `mysql_tasks`;
+DROP PROCEDURE `msm_auth_3.0.2`;
+DROP PROCEDURE `msm_auth`;
+
 
 -- #############################################################################
 -- MSM Section 910: Database Schema Version
 -- -----------------------------------------------------------------------------
--- Setting the correct database schema version.
+-- Setting the correct database schema version
 -- #############################################################################
 
+USE `mysql_tasks`;
+
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `mysql_tasks`.`msm_schema_version` (
-    `major`,`minor`,`patch`) AS
+VIEW `msm_schema_version` (`major`,`minor`,`patch`) AS
 SELECT 3, 0, 2;
+
 
 -- #############################################################################
 -- MSM Section 920: Server Variable Restoration

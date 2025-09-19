@@ -24,11 +24,12 @@
  */
 
 -- #############################################################################
--- MSM Section 000: Database Schema Development Script
+-- MSM Section 001: Database Schema Create Script
 -- -----------------------------------------------------------------------------
 -- This script contains the current development version of the database schema
 -- `mysql_tasks`
 -- #############################################################################
+
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
@@ -2521,7 +2522,7 @@ GRANT SELECT ON `performance_schema`.`events_statements_current` TO
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_tasks`.`msm_schema_version` (
     `major`,`minor`,`patch`) AS
-SELECT 3, 0, 2;
+SELECT 3, 0, 1;
 
 -- #############################################################################
 -- MSM Section 920: Server Variable Restoration
