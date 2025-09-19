@@ -235,13 +235,17 @@ export class Os {
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
      */
-    public static keyboardSelectAll = async (el: WebElement): Promise<void> => {
-        if (Os.isMacOs()) {
+    public static keyboardSelectAll = async (el?: WebElement): Promise<void> => {
+        const osKey = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
+        if (el) {
             await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+            await el.sendKeys(Key.chord(osKey, "a"));
         } else {
-            await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            await driver.actions()
+                .keyDown(osKey)
+                .sendKeys("a")
+                .keyUp(osKey)
+                .perform();
         }
     };
 
@@ -252,13 +256,17 @@ export class Os {
      * @returns A promise resolving when the command is executed
      */
     public static keyboardCopy = async (el?: WebElement): Promise<void> => {
+        const osKey = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
         await driver.wait(async () => {
-            if (Os.isMacOs()) {
+            if (el) {
                 await driver.executeScript("arguments[0].click()", el);
-                await el!.sendKeys(Key.chord(Key.COMMAND, "c"));
+                await el.sendKeys(Key.chord(osKey, "c"));
             } else {
-                await driver.executeScript("arguments[0].click()", el);
-                await el!.sendKeys(Key.chord(Key.CONTROL, "c"));
+                await driver.actions()
+                    .keyDown(osKey)
+                    .sendKeys("c")
+                    .keyUp(osKey)
+                    .perform();
             }
 
             return clipboard.readSync() !== "";
@@ -272,12 +280,16 @@ export class Os {
      * @returns A promise resolving when the command is executed
      */
     public static keyboardPaste = async (el?: WebElement): Promise<void> => {
-        if (Os.isMacOs()) {
+        const osKey = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
+        if (el) {
             await driver.executeScript("arguments[0].click()", el);
-            await el!.sendKeys(Key.chord(Key.COMMAND, "v"));
+            await el.sendKeys(Key.chord(osKey, "v"));
         } else {
-            await driver.executeScript("arguments[0].click()", el);
-            await el!.sendKeys(Key.chord(Key.CONTROL, "v"));
+            await driver.actions()
+                .keyDown(osKey)
+                .sendKeys("v")
+                .keyUp(osKey)
+                .perform();
         }
     };
 
@@ -288,12 +300,16 @@ export class Os {
      * @returns A promise resolving when the command is executed
      */
     public static keyboardCut = async (el?: WebElement): Promise<void> => {
-        if (Os.isMacOs()) {
+        const osKey = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
+        if (el) {
             await driver.executeScript("arguments[0].click()", el);
-            await el!.sendKeys(Key.chord(Key.COMMAND, "X"));
+            await el.sendKeys(Key.chord(osKey, "X"));
         } else {
-            await driver.executeScript("arguments[0].click()", el);
-            await el!.sendKeys(Key.chord(Key.CONTROL, "X"));
+            await driver.actions()
+                .keyDown(osKey)
+                .sendKeys("X")
+                .keyUp(osKey)
+                .perform();
         }
     };
 

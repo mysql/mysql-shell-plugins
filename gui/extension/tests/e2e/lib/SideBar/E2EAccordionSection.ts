@@ -641,19 +641,14 @@ export class E2EAccordionSection {
             try {
                 const treeItem = await this.getTreeItem(element);
                 const btn = await treeItem.findElement(locator.section.itemAction(actionButton));
-
-                const treeItemCoord = await treeItem.getRect();
-                await driver.actions().move({
-                    x: Math.floor(treeItemCoord.x),
-                    y: Math.floor(treeItemCoord.y),
-                }).perform();
+                await driver.actions().move({ origin: treeItem }).perform();
                 await driver.wait(until.elementIsVisible(btn),
                     constants.wait1second * 5, `'${actionButton}' button was not visible`);
                 await btn.click();
 
                 return true;
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(errors.isStaleError(e as Error)) && !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
             }

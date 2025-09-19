@@ -448,6 +448,9 @@ export class E2ETests {
         // REMOVE LOGS
         await this.removeLogs(testSuite);
 
+        // CLEAN VSCODE CACHE 
+        this.cleanVSCodeCache(testSuite);
+
         // RUN THE TESTS
         const result = await this.executeTests(testSuite, log);
         await this.exportExtensionLogsToWorkspace(testSuite);
@@ -580,6 +583,28 @@ export class E2ETests {
         }
 
         return false;
+    };
+
+    /**
+     * Removes cache directories of VS Code
+     * 
+     * @param testSuite The test suite name
+     */
+    public static cleanVSCodeCache = (testSuite: IE2ETestSuite): void => {
+        const cacheDirs = [
+            "Cache",
+            "CachedData",
+            "workspaceStorage",
+        ];
+
+        cacheDirs.forEach((dir: string) => {
+            const path = join(testSuite.testResources!, "settings", dir);
+
+            if (existsSync(path)) {
+                rmSync(path, { recursive: true });
+                E2ELogger.info(`Cleaned ${dir} folder`);
+            }
+        });
     };
 
     /**

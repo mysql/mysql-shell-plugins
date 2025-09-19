@@ -150,7 +150,19 @@ export class E2ENotebook {
     };
 
     /**
-     * Executes a command on the editor using a toolbar button
+     * Verifies if a word exists on the notebook
+     * 
+     * @param word The word
+     * @returns A condition resolving with true if the word is found, false otherwise
+     */
+    public untilExists = (word: string): Condition<boolean> => {
+        return new Condition(`for ${word} to exist on the notebook`, async () => {
+            return this.exists(word);
+        });
+    };
+
+    /**
+     * Executes a command on the editor using a toolbar
      *
      * @param cmd The command
      * @param button The button to click, to trigger the execution

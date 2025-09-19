@@ -760,16 +760,18 @@ describe("NOTEBOOKS", () => {
                 "src", "tests", "e2e", "sql", filename));
             await driver.wait(Workbench.untilTabIsOpened(filename), constants.wait1second * 5);
             let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Os.keyboardSelectAll(textArea);
-            await Os.keyboardCopy(textArea);
+            await Os.keyboardSelectAll();
+            await Os.keyboardCopy();
             await Workbench.openEditor(globalConn.caption!);
-            await Misc.switchToFrame();
-            textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await driver.executeScript("arguments[0].click()", textArea);
             let clipboardText = await clipboard.read();
             clipboardText = clipboardText.replace(/`|;/gm, "");
             await clipboard.write(clipboardText);
-            await Os.keyboardPaste(textArea);
+            await Misc.switchToFrame();
+            textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+
+            const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
+            await promptLine.click();
+            await Os.keyboardPaste();
 
             const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
                 "src", "tests", "e2e", "sql", filename));
@@ -801,17 +803,18 @@ describe("NOTEBOOKS", () => {
             await notebook.codeEditor.write(sentence1, true);
             await notebook.codeEditor.setNewLine();
             await notebook.codeEditor.write(sentence2, true);
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Os.keyboardSelectAll(textArea);
-            await Os.keyboardCut(textArea);
+            await Os.keyboardSelectAll();
+            await Os.keyboardCut();
             expect(await notebook.exists(sentence1), `${sentence1} should not exist on the notebook`)
                 .to.be.false;
             expect(await notebook.exists(sentence2),
                 `${sentence2} should not exist on the notebook`).to.be.false;
-            await Os.keyboardPaste(textArea);
-            expect(await notebook.exists(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
-            expect(await notebook.exists(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
+            const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
+            await promptLine.click();
+            await Os.keyboardPaste();
 
+            await driver.wait(notebook.untilExists(sentence1), constants.wait1second * 5);
+            await driver.wait(notebook.untilExists(sentence2), constants.wait1second * 5);
         });
 
         it("Copy to clipboard button", async function () {

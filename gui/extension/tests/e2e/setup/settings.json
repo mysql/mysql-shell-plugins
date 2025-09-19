@@ -24,5 +24,7 @@
     "search.followSymlinks": false,
     "explorer.autoReveal": false,
     "breadcrumbs.enabled": false,
-    "editor.minimap.enabled": false
+    "editor.minimap.enabled": false,
+    "github.copilot.enable": false,
+    "github.copilot.showWelcome": false
 }

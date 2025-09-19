@@ -19,7 +19,7 @@
     "sqlite3": "5.1.7",
     "tsx": "4.19.4",
     "typescript": "5.4.5",
-    "vscode-extension-tester": "8.13.0"
+    "vscode-extension-tester": "8.17.0"
   },
   "overrides": {
     "@types/node": "20.3.2",

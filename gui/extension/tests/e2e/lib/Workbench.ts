@@ -893,6 +893,8 @@ export class Workbench {
             credentialHelperOk = !credentialHelperOk;
             await Workbench.dismissNotifications();
             await Misc.switchBackToTopFrame();
+            const workbench = new extWorkbench();
+            await workbench.executeCommand("workbench.action.toggleAuxiliaryBar");
 
             return true;
         });
