@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/no-autofocus */
 /*
  * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
@@ -60,6 +59,61 @@ export default class Share extends Component<IShareProps, IShareState> {
         };
     }
 
+    public render = (
+        { showPage }: IShareProps,
+        { success, error, email, viewOnly, canShare, invitationKey }: IShareState): ComponentChild => {
+        const appUrl = window.location.href.replace(window.location.hash, "")
+            .replace(window.location.search, "");
+        const invitationLink = `mailto:${email}?subject=` +
+            encodeURI("Invitation to Work on Shared Note") + "&body=" +
+            encodeURI("Dear User,\n\nYou have been invited to work on a shared note.\n\n" +
+                `Please go to:\n    ${appUrl}?invitationKey=${invitationKey ?? "?"}#notes\n` +
+                `to accept the invitation.\n\nYour invitation key is:\n    ${invitationKey ?? "?"}\n\nThanks.`);
+        const successContent = (<>
+            The user has been invited to share the key successfully.<br /><br />
+            Please share the following invitation key with the user:<br />
+            {invitationKey}<br />
+            <a href={invitationLink}>Send Email</a>
+        </>);
+
+        return (
+            <InputForm headerIcon="shareIcon" headerTitle="Share Note"
+                headerSubtitle="Please enter the email of the user you want to share the note with."
+                successContent={successContent} back={() => {
+                    void showPage("notes");
+                }}
+                submit={() => {
+                    void this.shareNote();
+                }}
+                success={success} error={error}
+            >
+                <div className={style.formField}>
+                    <p>Email</p>
+                    <input id="email" type="text" value={email} autoFocus
+                        onInput={(e) => {
+                            this.setState({ email: (e.target as HTMLInputElement).value });
+                        }} />
+                </div>
+                <div className={style.formField}>
+                    <div className={style.formCheckbox}>
+                        <input id="viewOnly" type="checkbox" value="1" defaultChecked={viewOnly}
+                            onInput={(e) => {
+                                this.setState({ viewOnly: (e.target as HTMLInputElement).value === "1" });
+                            }} />
+                        <label htmlFor="viewOnly">Prevent the user from editing the note</label>
+                    </div>
+                    <div className={style.formCheckbox}>
+                        <input id="canShare" type="checkbox" value="1" defaultChecked={canShare}
+                            onInput={(e) => {
+                                this.setState({ canShare: (e.target as HTMLInputElement).value === "1" });
+                            }} />
+                        <label htmlFor="canShare">Allow the user to share the note with other users</label>
+                    </div>
+                </div>
+            </InputForm>
+        );
+    };
+
     private readonly shareNote = async (): Promise<void> => {
         const { activeNote, myService } = this.props;
         const { email, viewOnly, canShare } = this.state;
@@ -89,54 +143,5 @@ export default class Share extends Component<IShareProps, IShareState> {
         } catch (e) {
             this.setState({ success: false, invitationKey: undefined, error: String(e) });
         }
-    };
-
-    public render = (
-        { showPage }: IShareProps,
-        { success, error, email, viewOnly, canShare, invitationKey }: IShareState): ComponentChild => {
-        const appUrl = window.location.href.replace(window.location.hash, "")
-            .replace(window.location.search, "");
-        const invitationLink = `mailto:${email}?subject=` +
-            encodeURI("Invitation to Work on Shared Note") + "&body=" +
-            encodeURI("Dear User,\n\nYou have been invited to work on a shared note.\n\n" +
-                `Please go to:\n    ${appUrl}?invitationKey=${invitationKey ?? "?"}#notes\n` +
-                `to accept the invitation.\n\nYour invitation key is:\n    ${invitationKey ?? "?"}\n\nThanks.`);
-        const successContent = (<>
-            The user has been invited to share the key successfully.<br /><br />
-            Please share the following invitation key with the user:<br />
-            {invitationKey}<br />
-            <a href={invitationLink}>Send Email</a>
-        </>);
-
-        return (
-            <InputForm headerIcon="shareIcon" headerTitle="Share Note"
-                headerSubtitle="Please enter the email of the user you want to share the note with."
-                successContent={successContent} back={() => { void showPage("notes"); }}
-                submit={() => { void this.shareNote(); }}
-                success={success} error={error}
-            >
-                <div className={style.formField}>
-                    <p>Email</p>
-                    <input id="email" type="text" value={email} autoFocus
-                        onInput={(e) => { this.setState({ email: (e.target as HTMLInputElement).value }); }} />
-                </div>
-                <div className={style.formField}>
-                    <div className={style.formCheckbox}>
-                        <input id="viewOnly" type="checkbox" value="1" defaultChecked={viewOnly}
-                            onInput={(e) => {
-                                this.setState({ viewOnly: (e.target as HTMLInputElement).value === "1" });
-                            }} />
-                        <label htmlFor="viewOnly">Prevent the user from editing the note</label>
-                    </div>
-                    <div className={style.formCheckbox}>
-                        <input id="canShare" type="checkbox" value="1" defaultChecked={canShare}
-                            onInput={(e) => {
-                                this.setState({ canShare: (e.target as HTMLInputElement).value === "1" });
-                            }} />
-                        <label htmlFor="canShare">Allow the user to share the note with other users</label>
-                    </div>
-                </div>
-            </InputForm>
-        );
     };
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -62,6 +62,84 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
     }
 
     /**
+     * The component's render function
+     *
+     * @param props The component's properties
+     * @param state The component's state
+     *
+     * @returns The rendered ComponentChild
+     */
+    public render = (props: IWelcomePageProps, state: IWelcomePageState): ComponentChild => {
+        const query = new URLSearchParams(globalThis.location.search);
+        const { myService, handleLogin, startLogin } = props;
+        const { notesServed, authApps, error } = state;
+        // Build a human readable string of there are notesServed > 0
+        const notesManaged = (notesServed > 0)
+            ? `Managing ${notesServed} note${notesServed !== 1 ? "s" : ""} for our users so far.`
+            : "Managing notes for you.";
+        // The built-in MRS authApp uses a specific ID
+        const mrsAuthAppId = "0x30000000000000000000000000000000";
+        const mrsAuthApp = authApps?.find((authApp) => {
+            return authApp.vendorId === mrsAuthAppId;
+        });
+        const mysqlInternalAuthAppId = "0x31000000000000000000000000000000";
+        const mysqlInternalAuthApp = authApps?.find((authApp) => {
+            return authApp.vendorId === mysqlInternalAuthAppId;
+        });
+        const selectedAuthApp = authApps?.find((authApp) => {
+            return authApp.name === query.get("authApp");
+        });
+        // MRS auth takes precedence, just because.
+        const mainAuthApp = selectedAuthApp ?? mrsAuthApp ?? mysqlInternalAuthApp;
+        const loginOptions = (authApps === undefined)
+            ? <p>Loading ...</p>
+            : ((authApps.length === 0)
+                ? <p>No Authentication Apps setup for this MRS Service yet.</p>
+                : <>
+                    {(mainAuthApp !== undefined)
+                        ? <MrsLogin authApp={mainAuthApp.name} handleLogin={handleLogin} myService={myService} />
+                        : undefined
+                    }
+                    <div className={styles.loginButtons}>
+                        {authApps.map((authApp) => {
+                            // Show a button for each additional auth app.
+                            return (authApp.vendorId !== mainAuthApp?.vendorId)
+                                ? <button key={authApp.name} onClick={() => {
+                                    // If MRS or MySQL Internal, just reload the page for the specific auth app.
+                                    if ([mrsAuthAppId, mysqlInternalAuthAppId].includes(authApp.vendorId)) {
+                                        query.set("authApp", authApp.name);
+                                        globalThis.location.search = query.toString();
+                                    } else {
+                                        // startLogin should be used only for OAuth
+                                        startLogin(authApp.name);
+                                    }
+                                }}
+                                className={styles[`btn${authApp.name}`]}>Sign in with {authApp.name}</button>
+                                : undefined;
+                        })}
+                    </div>
+                </>
+            );
+
+        return (
+            <div className="page">
+                <div className={styles.welcome}>
+                    <h1 className="gradientText">MRS Notes</h1>
+                    <h2>Powered by the<br />MySQL REST Service.</h2>
+                    <div className={styles.productInfo}>
+                        <p>This example implements a simple note taking application that allows
+                            note sharing between its users.</p>
+                        <p className={styles.marketing}>{notesManaged}</p>
+                    </div>
+                    {(error !== undefined) ? <p className={styles.error}>{error}</p> : loginOptions}
+                </div>
+                <div className="footer">
+                    <p>Copyright (c) 2022, 2024, Oracle and/or its affiliates.</p>
+                </div>
+            </div>);
+    };
+
+    /**
      * Get the number of served notes. This is a public API call and needs no authentication
      *
      * @returns The number of served notes or undefined, if there are none or an error occurred
@@ -96,66 +174,8 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
 
         try {
             return await myService.getAuthApps();
-        } catch (e) {
+        } catch {
             return [];
         }
-    };
-
-    /**
-     * The component's render function
-     *
-     * @param props The component's properties
-     * @param state The component's state
-     *
-     * @returns The rendered ComponentChild
-     */
-    public render = (props: IWelcomePageProps, state: IWelcomePageState): ComponentChild => {
-        const { myService, handleLogin, startLogin } = props;
-        const { notesServed, authApps, error } = state;
-        // Build a human readable string of there are notesServed > 0
-        const notesManaged = (notesServed > 0)
-            ? `Managing ${notesServed ?? 0} note${notesServed !== 1 ? "s" : ""} for our users so far.`
-            : "Managing notes for you.";
-        // The built-in MRS authApp uses a specific ID
-        const mrsAuthAppId = "0x30000000000000000000000000000000";
-        const mrsAuthApp = authApps?.find((authApp) => {
-            return authApp.vendorId === mrsAuthAppId;
-        });
-        const loginOptions = (authApps === undefined)
-            ? <p>Loading ...</p>
-            : ((authApps.length === 0)
-                ? <p>No Authentication Apps setup for this MRS Service yet.</p>
-                : <>
-                    {(mrsAuthApp !== undefined)
-                        ? <MrsLogin authApp={mrsAuthApp.name} handleLogin={handleLogin} myService={myService} />
-                        : undefined
-                    }
-                    <div className={styles.loginButtons}>
-                        {authApps.map((authApp) => {
-                            return (authApp.vendorId !== mrsAuthAppId)
-                                ? <button key={authApp.name} onClick={() => { startLogin(authApp.name); }}
-                                    className={styles[`btn${authApp.name}`]}>Sign in with {authApp.name}</button>
-                                : undefined;
-                        })}
-                    </div>
-                </>
-            );
-
-        return (
-            <div className="page">
-                <div className={styles.welcome}>
-                    <h1 className="gradientText">MRS Notes</h1>
-                    <h2>Powered by the<br />MySQL REST Service.</h2>
-                    <div className={styles.productInfo}>
-                        <p>This example implements a simple note taking application that allows
-                            note sharing between its users.</p>
-                        <p className={styles.marketing}>{notesManaged}</p>
-                    </div>
-                    {(error !== undefined) ? <p className={styles.error}>{error}</p> : loginOptions}
-                </div>
-                <div className="footer">
-                    <p>Copyright (c) 2022, 2024, Oracle and/or its affiliates.</p>
-                </div>
-            </div>);
     };
 }

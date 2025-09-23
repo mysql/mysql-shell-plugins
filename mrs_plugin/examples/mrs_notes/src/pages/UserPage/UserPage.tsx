@@ -1,6 +1,5 @@
-/* eslint-disable jsx-a11y/no-autofocus */
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,9 +53,53 @@ export default class UserPage extends Component<IUserPageProps, IUserPageState> 
         this.state = {
             success: false,
             nickname: props.user?.nickname,
-            email: props.user?.email as string,
+            email: props.user!.email!,
         };
     }
+
+    /**
+     * The component's render function
+     *
+     * @param props The component's properties
+     * @param state The component's state
+     *
+     * @returns The rendered ComponentChild
+     */
+    public render = (props: IUserPageProps, state: IUserPageState): ComponentChild => {
+        const { showPage } = props;
+        const { success, error, nickname, email } = state;
+
+        const successContent = <>User updated successfully.</>;
+
+        return (
+            <InputForm headerIcon="userIcon"
+                headerTitle="Edit User Settings"
+                headerSubtitle="Please enter your user settings below."
+                successContent={successContent}
+                back={() => {
+                    showPage("notes");
+                }} submit={() => {
+                    void this.submitUserUpdate();
+                }}
+                success={success} error={error}
+            >
+                <div className={style.formField}>
+                    <p>Nickname</p>
+                    <input id="nickname" type="text" value={nickname} autoFocus
+                        onInput={(e) => {
+                            this.setState({ nickname: (e.target as HTMLInputElement).value });
+                        }} />
+                </div>
+                <div className={style.formField}>
+                    <p>Email</p>
+                    <input id="email" type="text" value={email}
+                        onInput={(e) => {
+                            this.setState({ email: (e.target as HTMLInputElement).value });
+                        }} />
+                </div>
+            </InputForm>
+        );
+    };
 
     /**
      * Updates the user
@@ -90,41 +133,5 @@ export default class UserPage extends Component<IUserPageProps, IUserPageState> 
             });
             showError(e);
         }
-    };
-
-    /**
-     * The component's render function
-     *
-     * @param props The component's properties
-     * @param state The component's state
-     *
-     * @returns The rendered ComponentChild
-     */
-    public render = (props: IUserPageProps, state: IUserPageState): ComponentChild => {
-        const { showPage } = props;
-        const { success, error, nickname, email } = state;
-
-        const successContent = <>User updated successfully.</>;
-
-        return (
-            <InputForm headerIcon="userIcon"
-                headerTitle="Edit User Settings"
-                headerSubtitle="Please enter your user settings below."
-                successContent={successContent}
-                back={() => { showPage("notes"); }} submit={() => { void this.submitUserUpdate(); }}
-                success={success} error={error}
-            >
-                <div className={style.formField}>
-                    <p>Nickname</p>
-                    <input id="nickname" type="text" value={nickname} autoFocus
-                        onInput={(e) => { this.setState({ nickname: (e.target as HTMLInputElement).value }); }} />
-                </div>
-                <div className={style.formField}>
-                    <p>Email</p>
-                    <input id="email" type="text" value={email}
-                        onInput={(e) => { this.setState({ email: (e.target as HTMLInputElement).value }); }} />
-                </div>
-            </InputForm>
-        );
     };
 }

@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -91,6 +90,64 @@ export default class Chat extends Component<IChatPageProps, IChatPageState> {
         }
     };
 
+    /**
+     * The component's render function
+     *
+     * @param props The component's properties
+     * @param state The component's state
+     *
+     * @returns The rendered ComponentChild
+     */
+    public render = (props: IChatPageProps, state: IChatPageState): ComponentChild => {
+        const { chatItems, currentPromptText } = state;
+
+        return (
+            <div className={styles.chat}>
+                <div className={styles.chatTitle}>
+                    <h1>HeatWave Chat</h1>
+                    <p>With a powerful search and conversation interface, find the information you need and
+                        complete tasks as easily as having a conversation.</p>
+                </div>
+                <div className={styles.chatBubbles}>
+                    {chatItems.map((chatItem, itemIndex) => {
+                        return <div className={styles.chatItem} key={itemIndex}>
+                            { // Render chat prompts that have already been sent
+                                chatItem.prompt !== undefined && chatItem.status !== "NOT_SENT" &&
+                                <div className={styles.chatPrompt}>{chatItem.prompt}</div>
+                            }
+                            { // Render textarea input control for the user to type the question
+                                chatItem.prompt !== undefined && chatItem.status === "NOT_SENT" &&
+                                <textarea className={styles.chatPrompt} ref={this.chatPromptTextAreaRef}
+                                    value={currentPromptText}
+                                    onInput={(e) => {
+                                        void this.promptInput((e.target as HTMLInputElement).value);
+                                    }}
+                                    onKeyUp={(e) => {
+                                        const el = (e.target as HTMLInputElement);
+                                        el.style.height = "1px";
+                                        el.style.height = String(8 + el.scrollHeight) + "px";
+                                    }}
+                                    autoFocus={true} />}
+                            { // Render chat responses from the server
+                                chatItem.response !== undefined && chatItem.response.length > 0 &&
+                                <div className={styles.chatResponse}>
+                                    {chatItem.response.map((chatResponseItem, chatResponseIndex) => {
+                                        return <div className={styles.chatResponseItem} key={chatResponseIndex}>
+                                            {chatResponseItem}</div>;
+                                    })}
+                                </div>}
+                            { // Render pending chat response `...`
+                                chatItem.response === undefined && chatItem.status === "PENDING" &&
+                                <div className={styles.chatResponse} ref={this.chatLastResponseRef}>
+                                    <div className={styles.chatResponseItem}>...</div>
+                                </div>}
+                        </div>;
+                    })}
+                </div>
+            </div>
+        );
+    };
+
     private readonly promptInput = async (newPromptText: string): Promise<void> => {
         const { chatApp, showError } = this.props;
         const { chatItems, currentChatOptions } = this.state;
@@ -107,7 +164,8 @@ export default class Chat extends Component<IChatPageProps, IChatPageState> {
                 try {
                     // Build chat options to send, removing all items except chat_history, model_options
                     let newChatOptions;
-                    if (currentChatOptions !== undefined && currentChatOptions !== null) {
+                    if (currentChatOptions !== null) {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         newChatOptions = (({ chat_history, model_options }) => {
                             return ({ chat_history, model_options });
                         })(currentChatOptions as JsonObject);
@@ -164,7 +222,9 @@ export default class Chat extends Component<IChatPageProps, IChatPageState> {
 
             if (response?.response !== null && response?.response !== undefined) {
                 // Update the chat item with the correct id to show the server response
-                const item = chatItems.find((item) => { return item.id === chatItem.id; });
+                const item = chatItems.find((item) => {
+                    return item.id === chatItem.id;
+                });
                 if (item) {
                     item.response = [response.response];
                 }
@@ -178,72 +238,14 @@ export default class Chat extends Component<IChatPageProps, IChatPageState> {
                         { behavior: "smooth", block: "center", inline: "nearest" });
                     (this.chatPromptTextAreaRef.current as HTMLInputElement).focus();
                 });
-            } else if (response !== undefined
-                && response.status !== undefined && response.status !== null && response.status === "ERROR"
-                && response.response !== undefined && response.response !== null) {
+            } else if (response?.status !== undefined && response.status !== null && response.status === "ERROR"
+                && response.response !== null) {
                 throw new Error(response.response);
             } else {
-                void this.waitForChatResponse(chatItem);
+                this.waitForChatResponse(chatItem);
             }
         } catch (e) {
             showError(e);
         }
-    };
-
-    /**
-     * The component's render function
-     *
-     * @param props The component's properties
-     * @param state The component's state
-     *
-     * @returns The rendered ComponentChild
-     */
-    public render = (props: IChatPageProps, state: IChatPageState): ComponentChild => {
-        const { chatItems, currentPromptText } = state;
-
-        return (
-            <div className={styles.chat}>
-                <div className={styles.chatTitle}>
-                    <h1>HeatWave Chat</h1>
-                    <p>With a powerful search and conversation interface, find the information you need and
-                        complete tasks as easily as having a conversation.</p>
-                </div>
-                <div className={styles.chatBubbles}>
-                    {chatItems.map((chatItem, itemIndex) => {
-                        return <div className={styles.chatItem} key={itemIndex}>
-                            { // Render chat prompts that have already been sent
-                                chatItem.prompt !== undefined && chatItem.status !== "NOT_SENT" &&
-                                <div className={styles.chatPrompt}>{chatItem.prompt}</div>
-                            }
-                            { // Render textarea input control for the user to type the question
-                                chatItem.prompt !== undefined && chatItem.status === "NOT_SENT" &&
-                                <textarea className={styles.chatPrompt} ref={this.chatPromptTextAreaRef}
-                                    value={currentPromptText}
-                                    onInput={(e) => { void this.promptInput((e.target as HTMLInputElement).value); }}
-                                    onKeyUp={(e) => {
-                                        const el = (e.target as HTMLInputElement);
-                                        el.style.height = "1px";
-                                        el.style.height = String(8 + el.scrollHeight) + "px";
-                                    }}
-                                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                                    autoFocus={true} />}
-                            { // Render chat responses from the server
-                                chatItem.response !== undefined && chatItem.response.length > 0 &&
-                                <div className={styles.chatResponse}>
-                                    {chatItem.response.map((chatResponseItem, chatResponseIndex) => {
-                                        return <div className={styles.chatResponseItem} key={chatResponseIndex}>
-                                            {chatResponseItem}</div>;
-                                    })}
-                                </div>}
-                            { // Render pending chat response `...`
-                                chatItem.response === undefined && chatItem.status === "PENDING" &&
-                                <div className={styles.chatResponse} ref={this.chatLastResponseRef}>
-                                    <div className={styles.chatResponseItem}>...</div>
-                                </div>}
-                        </div>;
-                    })}
-                </div>
-            </div>
-        );
     };
 }

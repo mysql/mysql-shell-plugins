@@ -5,6 +5,7 @@
 ### Additions
 
 - Allow to load MRS projects from a remote URL and GitHub shortcuts
+- Update MRS sample apps (mrs_notes and heatwave_chat)
 
 ### Fixes
 

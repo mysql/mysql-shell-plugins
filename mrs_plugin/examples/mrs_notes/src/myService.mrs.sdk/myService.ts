@@ -1,8 +1,9 @@
 /* Copyright (c) 2023, 2025, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
-/* eslint-disable max-classes-per-file */
-/* eslint-disable no-multiple-empty-lines */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-arguments */
+/* eslint-disable @stylistic/no-multiple-empty-lines */
+/* eslint-disable @stylistic/lines-between-class-members */
 
 import {
     MrsBaseService,
@@ -27,7 +28,6 @@ import {
     MrsBaseObjectProcedureCall,
     IUpdateOptions,
     MrsBaseObjectUpdate,
-    IMrsDeleteResult,
     IDeleteOptions,
     MrsBaseObjectDelete,
 } from "./MrsBaseClasses";
@@ -41,7 +41,8 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 class MyServiceMrsNotesNoteObject extends MrsBaseObject {
 
     public create = async (args: ICreateOptions<INewMyServiceMrsNotesNote>): Promise<IMyServiceMrsNotesNote> => {
-        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesNote, IMyServiceMrsNotesNote, ["id"]>(this.schema, this.requestPath, args, ["id"]);
+        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesNote, IMyServiceMrsNotesNote, ["id"], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -58,9 +59,9 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
 
         return result;
     };
-    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<PaginatedList<IMyServiceMrsNotesNote>> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors, ["id"]>(
-            this.schema, this.requestPath, args, ["id"]);
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteSortable, IMyServiceMrsNotesNoteCursors>): Promise<PaginatedList<IMyServiceMrsNotesNote>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteSortable, IMyServiceMrsNotesNoteCursors, ["id"], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
         const docs: IMyServiceMrsNotesNote[] = response.items;
 
@@ -79,15 +80,15 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
         return paginatedList;
     }
 
-    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote | undefined> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors, ["id"]>(
-            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteSortable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteSortable, IMyServiceMrsNotesNoteCursors, ["id"], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
     }
 
-    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote> {
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteSortable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote> {
         const response = await this.findFirst(args);
 
         if (response === undefined) {
@@ -97,8 +98,8 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
         return response;
     }
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueFilterable>): Promise<IMyServiceMrsNotesNote | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueFilterable, never, ["id"]>(
-            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueFilterable, never, never, ["id"], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
@@ -114,8 +115,8 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
         return response;
     };
     public update = async (args: IUpdateOptions<IUpdateMyServiceMrsNotesNote>): Promise<IMyServiceMrsNotesNote> => {
-        const request = new MrsBaseObjectUpdate<IUpdateMyServiceMrsNotesNote, ["id"], IMyServiceMrsNotesNote>(
-            this.schema, this.requestPath, args, ["id"]);
+        const request = new MrsBaseObjectUpdate<IUpdateMyServiceMrsNotesNote, IMyServiceMrsNotesNote, ["id"], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -132,14 +133,15 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
 
         return result;
     };
-    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesNoteUniqueFilterable, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesNoteFilterable>);
+    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesNoteUniqueFilterable, { many: false }>): Promise<boolean> => {
+        return await this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesNoteFilterable>) > 0;
+
     };
-    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesNoteFilterable>): Promise<IMrsDeleteResult> => {
+    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesNoteFilterable>): Promise<number> => {
         const request = new MrsBaseObjectDelete<IMyServiceMrsNotesNoteFilterable>(this.schema, this.requestPath, args);
         const response = await request.fetch();
 
-        return response;
+        return response.itemsDeleted;
     };
 
 }
@@ -185,6 +187,8 @@ export interface IMyServiceMrsNotesNote {
     delete(): Promise<void>,
 }
 
+export type IMyServiceMrsNotesNoteSortable = ["id"];
+
 export interface IMyServiceMrsNotesNoteFilterable {
     title?: string,
     id?: number,
@@ -213,7 +217,8 @@ export interface IMyServiceMrsNotesNoteCursors {
 class MyServiceMrsNotesUserObject extends MrsBaseObject {
 
     public create = async (args: ICreateOptions<INewMyServiceMrsNotesUser>): Promise<IMyServiceMrsNotesUser> => {
-        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesUser, IMyServiceMrsNotesUser, ["id"]>(this.schema, this.requestPath, args, ["id"]);
+        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesUser, IMyServiceMrsNotesUser, ["id"], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -230,9 +235,9 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
 
         return result;
     };
-    public async find(args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<PaginatedList<IMyServiceMrsNotesUser>> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors, ["id"]>(
-            this.schema, this.requestPath, args, ["id"]);
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserSortable, IMyServiceMrsNotesUserCursors>): Promise<PaginatedList<IMyServiceMrsNotesUser>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserSortable, IMyServiceMrsNotesUserCursors, ["id"], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
         const docs: IMyServiceMrsNotesUser[] = response.items;
 
@@ -251,15 +256,15 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
         return paginatedList;
     }
 
-    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser | undefined> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors, ["id"]>(
-            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserSortable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserSortable, IMyServiceMrsNotesUserCursors, ["id"], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
     }
 
-    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser> {
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserSortable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser> {
         const response = await this.findFirst(args);
 
         if (response === undefined) {
@@ -269,8 +274,8 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
         return response;
     }
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueFilterable>): Promise<IMyServiceMrsNotesUser | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueFilterable, never, ["id"]>(
-            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueFilterable, never, never, ["id"], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
@@ -286,8 +291,8 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
         return response;
     };
     public update = async (args: IUpdateOptions<IUpdateMyServiceMrsNotesUser>): Promise<IMyServiceMrsNotesUser> => {
-        const request = new MrsBaseObjectUpdate<IUpdateMyServiceMrsNotesUser, ["id"], IMyServiceMrsNotesUser>(
-            this.schema, this.requestPath, args, ["id"]);
+        const request = new MrsBaseObjectUpdate<IUpdateMyServiceMrsNotesUser, IMyServiceMrsNotesUser, ["id"], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: ["id"], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -304,14 +309,15 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
 
         return result;
     };
-    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesUserUniqueFilterable, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesUserFilterable>);
+    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesUserUniqueFilterable, { many: false }>): Promise<boolean> => {
+        return await this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesUserFilterable>) > 0;
+
     };
-    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesUserFilterable>): Promise<IMrsDeleteResult> => {
+    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesUserFilterable>): Promise<number> => {
         const request = new MrsBaseObjectDelete<IMyServiceMrsNotesUserFilterable>(this.schema, this.requestPath, args);
         const response = await request.fetch();
 
-        return response;
+        return response.itemsDeleted;
     };
 
 }
@@ -336,6 +342,8 @@ export interface IMyServiceMrsNotesUser {
     delete(): Promise<void>,
 }
 
+export type IMyServiceMrsNotesUserSortable = ["id"];
+
 export interface IMyServiceMrsNotesUserFilterable {
     id?: string,
     email?: MaybeNull<string>,
@@ -354,9 +362,9 @@ type IMyServiceMrsNotesUserCursors = never;
  */
 class MyServiceMrsNotesUserHasNoteObject extends MrsBaseObject {
 
-    public async find(args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<PaginatedList<IMyServiceMrsNotesUserHasNote>> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors, []>(
-            this.schema, this.requestPath, args, []);
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteSortable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<PaginatedList<IMyServiceMrsNotesUserHasNote>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteSortable, IMyServiceMrsNotesUserHasNoteCursors, [], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
         const docs: IMyServiceMrsNotesUserHasNote[] = response.items;
 
@@ -375,15 +383,15 @@ class MyServiceMrsNotesUserHasNoteObject extends MrsBaseObject {
         return paginatedList;
     }
 
-    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote | undefined> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors, []>(
-            this.schema, this.requestPath, { ...args, take: 1 }, []);
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteSortable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteSortable, IMyServiceMrsNotesUserHasNoteCursors, [], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
     }
 
-    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote> {
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteSortable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote> {
         const response = await this.findFirst(args);
 
         if (response === undefined) {
@@ -393,8 +401,8 @@ class MyServiceMrsNotesUserHasNoteObject extends MrsBaseObject {
         return response;
     }
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueFilterable>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueFilterable, never, []>(
-            this.schema, this.requestPath, { ...args, take: 1 }, []);
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueFilterable, never, never, [], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
@@ -421,6 +429,8 @@ export interface IMyServiceMrsNotesUserHasNote {
     readonly noteId?: number,
 }
 
+export type IMyServiceMrsNotesUserHasNoteSortable = ["noteId", "userId"];
+
 export interface IMyServiceMrsNotesUserHasNoteFilterable {
     canShare?: boolean,
     viewOnly?: boolean,
@@ -443,9 +453,9 @@ type IMyServiceMrsNotesUserHasNoteCursors = never;
  */
 class MyServiceMrsNotesNotesAllObject extends MrsBaseObject {
 
-    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<PaginatedList<IMyServiceMrsNotesNotesAll>> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors, []>(
-            this.schema, this.requestPath, args, []);
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllSortable, IMyServiceMrsNotesNotesAllCursors>): Promise<PaginatedList<IMyServiceMrsNotesNotesAll>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllSortable, IMyServiceMrsNotesNotesAllCursors, [], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
         const docs: IMyServiceMrsNotesNotesAll[] = response.items;
 
@@ -464,15 +474,15 @@ class MyServiceMrsNotesNotesAllObject extends MrsBaseObject {
         return paginatedList;
     }
 
-    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll | undefined> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors, []>(
-            this.schema, this.requestPath, { ...args, take: 1 }, []);
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllSortable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllSortable, IMyServiceMrsNotesNotesAllCursors, [], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
     }
 
-    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll> {
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllSortable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll> {
         const response = await this.findFirst(args);
 
         if (response === undefined) {
@@ -500,6 +510,8 @@ export interface IMyServiceMrsNotesNotesAll {
     userId?: string,
 }
 
+export type IMyServiceMrsNotesNotesAllSortable = [];
+
 export interface IMyServiceMrsNotesNotesAllFilterable {
     lastUpdate?: string,
     createDate?: string,
@@ -524,9 +536,9 @@ type IMyServiceMrsNotesNotesAllCursors = never;
  */
 class MyServiceMrsNotesNotesServedObject extends MrsBaseObject {
 
-    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<PaginatedList<IMyServiceMrsNotesNotesServed>> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors, []>(
-            this.schema, this.requestPath, args, []);
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedSortable, IMyServiceMrsNotesNotesServedCursors>): Promise<PaginatedList<IMyServiceMrsNotesNotesServed>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedSortable, IMyServiceMrsNotesNotesServedCursors, [], [], []>(
+            this.schema, this.requestPath, args, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
         const docs: IMyServiceMrsNotesNotesServed[] = response.items;
 
@@ -545,15 +557,15 @@ class MyServiceMrsNotesNotesServedObject extends MrsBaseObject {
         return paginatedList;
     }
 
-    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed | undefined> {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors, []>(
-            this.schema, this.requestPath, { ...args, take: 1 }, []);
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedSortable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedSortable, IMyServiceMrsNotesNotesServedCursors, [], [], []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, { identifierKeys: [], bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetchOne();
 
         return response;
     }
 
-    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed> {
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedSortable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed> {
         const response = await this.findFirst(args);
 
         if (response === undefined) {
@@ -569,6 +581,8 @@ export interface IMyServiceMrsNotesNotesServed {
     notesServed?: MaybeNull<number>,
 }
 
+export type IMyServiceMrsNotesNotesServedSortable = [];
+
 export interface IMyServiceMrsNotesNotesServedFilterable {
     notesServed?: MaybeNull<number>,
 }
@@ -582,8 +596,8 @@ type IMyServiceMrsNotesNotesServedCursors = never;
 class MyServiceMrsNotesNoteAcceptShareObject extends MrsBaseObject {
 
     public call = async (noteAcceptShareParams?: IMyServiceMrsNotesNoteAcceptShareParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteAcceptShareParams, IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet>(
-            this.schema, this.requestPath, noteAcceptShareParams);
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteAcceptShareParams, IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet, [], []>(
+            this.schema, this.requestPath, noteAcceptShareParams, { bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -607,8 +621,8 @@ export type IMyServiceMrsNotesNoteAcceptShareResultSet = JsonObject;
 class MyServiceMrsNotesNoteDeleteObject extends MrsBaseObject {
 
     public call = async (noteDeleteParams?: IMyServiceMrsNotesNoteDeleteParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteDeleteParams, IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet>(
-            this.schema, this.requestPath, noteDeleteParams);
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteDeleteParams, IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet, [], []>(
+            this.schema, this.requestPath, noteDeleteParams, { bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -632,23 +646,14 @@ export type IMyServiceMrsNotesNoteDeleteResultSet = JsonObject;
 class MyServiceMrsNotesNoteShareObject extends MrsBaseObject {
 
     public call = async (noteShareParams?: IMyServiceMrsNotesNoteShareParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteShareParamsOut, IMyServiceMrsNotesNoteShareResultSet>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareParams, IMyServiceMrsNotesNoteShareParamsOut, IMyServiceMrsNotesNoteShareResultSet>(
-            this.schema, this.requestPath, noteShareParams);
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareParams, IMyServiceMrsNotesNoteShareParamsOut, IMyServiceMrsNotesNoteShareResultSet, [], []>(
+            this.schema, this.requestPath, noteShareParams, { bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
     };
 
 }
-
-export interface IMyServiceMrsNotesNoteShare {
-    invitationKey?: MaybeNull<string>,
-}
-
-export type ITaggedMyServiceMrsNotesNoteShare = {
-    type: "MyServiceMrsNotesNoteShare",
-    items: IMyServiceMrsNotesNoteShare[],
-} & JsonObject;
 
 export interface IMyServiceMrsNotesNoteShareParams {
     viewOnly?: MaybeNull<boolean>,
@@ -660,6 +665,15 @@ export interface IMyServiceMrsNotesNoteShareParams {
 
 type IMyServiceMrsNotesNoteShareParamsOut = never;
 
+export interface IMyServiceMrsNotesNoteShare {
+    invitationKey?: MaybeNull<string>,
+}
+
+export type ITaggedMyServiceMrsNotesNoteShare = {
+    type: "MyServiceMrsNotesNoteShare",
+    items: IMyServiceMrsNotesNoteShare[],
+} & JsonObject;
+
 export type IMyServiceMrsNotesNoteShareResultSet = ITaggedMyServiceMrsNotesNoteShare;
 
 
@@ -669,8 +683,8 @@ export type IMyServiceMrsNotesNoteShareResultSet = ITaggedMyServiceMrsNotesNoteS
 class MyServiceMrsNotesNoteUpdateObject extends MrsBaseObject {
 
     public call = async (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteUpdateParams, IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>(
-            this.schema, this.requestPath, noteUpdateParams);
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteUpdateParams, IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet, [], []>(
+            this.schema, this.requestPath, noteUpdateParams, { bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -775,7 +789,7 @@ class MyServiceMrsNotes extends MrsBaseSchema {
 export class MyService extends MrsBaseService {
     #mrsNotes?: MyServiceMrsNotes;
 
-    public constructor(baseUrl: string = "https://localhost:8443/myService") {
+    public constructor(baseUrl = "https://localhost:8443/myService") {
         super(baseUrl, "/authentication");
     }
 
@@ -788,7 +802,7 @@ export class MyService extends MrsBaseService {
     }
 
     public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
-        const { username, password, app, vendor } = options ?? {};
+        const { username, password, app, vendor } = options;
 
         return super.authenticate({ username, password, app, vendor });
     }

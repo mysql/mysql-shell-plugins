@@ -64,14 +64,20 @@ export default class InputForm extends Component<IInputFormProps> {
                                     <p>{successContent}</p>
                                 </div>
                                 <div className={style.formButtons}>
-                                    <button onClick={() => { back(); }} className="flatButton">OK</button>
+                                    <button onClick={() => {
+                                        back(); 
+                                    }} className="flatButton">OK</button>
                                 </div>
                             </>
                         }
                         {!success &&
                             <div className={style.formButtons}>
-                                <button onClick={() => { back(); }} className="flatButton">Cancel</button>
-                                <button onClick={() => { submit(); }} className="flatButton">Submit</button>
+                                <button onClick={() => {
+                                    back(); 
+                                }} className="flatButton">Cancel</button>
+                                <button onClick={() => {
+                                    submit(); 
+                                }} className="flatButton">Submit</button>
                             </div>
                         }
                         {(error !== undefined) &&

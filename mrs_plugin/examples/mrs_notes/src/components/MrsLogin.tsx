@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/no-autofocus */
 /*
  * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
@@ -54,15 +53,80 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
         };
     }
 
+    /**
+     * The component's render function
+     *
+     * @param props The component's properties
+     * @param state The component's state
+     *
+     * @returns The rendered ComponentChild
+     */
+    public render = (props: IMrsLoginProps, state: IMrsLoginState): ComponentChild => {
+        const { authApp } = props;
+        const { userName, password, loginError, userNameVerified } = state;
+
+        return (
+            <div className={styles.mrsLogin}>
+                <p>Sign in with {authApp}</p>
+                <div className={styles.mrsLoginFields}>
+                    <div className={styles.mrsLoginField}>
+                        <input type="text" id="userName" placeholder="User Name or Email" autoFocus value={userName}
+                            onInput={(e) => {
+                                this.userNameChange((e.target as HTMLInputElement).value);
+                            }}
+                            onKeyPress={(e) => {
+                                if (e.keyCode === 13) {
+                                    this.verifyUserName();
+                                }
+                            }} />
+                        {!userNameVerified && <div id="userNameBtn" className={styles.mrsLoginBtnNext}
+                            onClick={() => {
+                                this.verifyUserName();
+                            }}
+                            onKeyPress={() => { /** */ }} role="button" tabIndex={-1} />
+                        }
+                    </div>
+                    {userNameVerified &&
+                        <div className={styles.mrsLoginField}>
+                            <input type="password" id="userPassword" placeholder="Password" value={password}
+                                onInput={(e) => {
+                                    this.passwordChange((e.target as HTMLInputElement).value);
+                                }}
+                                onKeyPress={(e) => {
+                                    if (e.keyCode === 13) {
+                                        void this.verifyPassword();
+                                    }
+                                }} />
+                            <div id="passwordBtn" className={styles.mrsLoginBtnNext}
+                                onClick={() => {
+                                    void this.verifyPassword();
+                                }}
+                                onKeyPress={() => { /** */ }} role="button" tabIndex={-2} />
+                        </div>
+                    }
+                </div>
+                {loginError !== undefined &&
+                    <div className={styles.mrsLoginError}><p>{loginError}</p></div>
+                }
+                <div className={styles.mrsLoginSeparator}></div>
+            </div>);
+    };
+
     private readonly setStateClassStyle = (id: string, className?: string): void => {
         const e = document.getElementById(id);
 
         // Remove unwanted styles
-        if (className !== styles.active) { e?.classList.remove(styles.active); }
-        if (className !== styles.loading) { e?.classList.remove(styles.loading); }
+        if (className !== styles.active) {
+            e?.classList.remove(styles.active);
+        }
+        if (className !== styles.loading) {
+            e?.classList.remove(styles.loading);
+        }
 
         // Added desired style
-        if (className !== undefined) { e?.classList.add(className); }
+        if (className !== undefined) {
+            e?.classList.add(className);
+        }
     };
 
     private readonly userNameChange = (userName: string): void => {
@@ -88,80 +152,33 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
         });
     };
 
-    private readonly verifyUserName = async (): Promise<void> => {
-        const { authApp, myService } = this.props;
+    private readonly verifyUserName = (): void => {
         const { userName } = this.state;
 
         this.setStateClassStyle("userNameBtn", styles.loading);
-        try {
-            await myService.session.sendClientFirst(authApp, userName);
-
-            this.setState({
-                userNameVerified: true,
-            }, () => { document.getElementById("userPassword")?.focus(); });
-        } finally {
-            this.setStateClassStyle("userNameBtn", userName !== "" ? styles.active : undefined);
-        }
+        this.setState({
+            userNameVerified: true,
+        }, () => {
+            document.getElementById("userPassword")?.focus();
+        });
+        this.setStateClassStyle("userNameBtn", userName !== "" ? styles.active : undefined);
     };
 
     private readonly verifyPassword = async (): Promise<void> => {
-        const { handleLogin, myService } = this.props;
-        const { password } = this.state;
+        const { authApp: app, handleLogin, myService } = this.props;
+        const { userName: username, password } = this.state;
 
         if (password !== undefined && password !== "") {
             this.setStateClassStyle("passwordBtn", styles.loading);
 
-            const response = await myService.session.sendClientFinal(password);
+            const response = await myService.authenticate({ username, password, app });
 
-            if (response.errorCode !== null && response.errorCode !== undefined) {
-                this.showLoginError(response.errorMessage as string);
+            if (response.errorCode !== undefined) {
+                this.showLoginError(response.errorMessage!);
             }
 
-            handleLogin(response.authApp, response.jwt, true);
+            handleLogin(app, response.jwt, true);
             this.setStateClassStyle("userNameBtn", password !== "" ? styles.active : undefined);
         }
-    };
-
-    /**
-     * The component's render function
-     *
-     * @param props The component's properties
-     * @param state The component's state
-     *
-     * @returns The rendered ComponentChild
-     */
-    public render = (props: IMrsLoginProps, state: IMrsLoginState): ComponentChild => {
-        const { authApp } = props;
-        const { userName, password, loginError, userNameVerified } = state;
-
-        return (
-            <div className={styles.mrsLogin}>
-                <p>Sign in with {authApp}</p>
-                <div className={styles.mrsLoginFields}>
-                    <div className={styles.mrsLoginField}>
-                        <input type="text" id="userName" placeholder="User Name or Email" autoFocus value={userName}
-                            onInput={(e) => { this.userNameChange((e.target as HTMLInputElement).value); }}
-                            onKeyPress={(e) => { if (e.keyCode === 13) { void this.verifyUserName(); } }} />
-                        {!userNameVerified && <div id="userNameBtn" className={styles.mrsLoginBtnNext}
-                            onClick={() => { void this.verifyUserName(); }}
-                            onKeyPress={() => { /** */ }} role="button" tabIndex={-1} />
-                        }
-                    </div>
-                    {userNameVerified &&
-                        <div className={styles.mrsLoginField}>
-                            <input type="password" id="userPassword" placeholder="Password" value={password}
-                                onInput={(e) => { this.passwordChange((e.target as HTMLInputElement).value); }}
-                                onKeyPress={(e) => { if (e.keyCode === 13) { void this.verifyPassword(); } }} />
-                            <div id="passwordBtn" className={styles.mrsLoginBtnNext}
-                                onClick={() => { void this.verifyPassword(); }}
-                                onKeyPress={() => { /** */ }} role="button" tabIndex={-2} />
-                        </div>
-                    }
-                </div>
-                {loginError !== undefined &&
-                    <div className={styles.mrsLoginError}><p>{loginError}</p></div>
-                }
-                <div className={styles.mrsLoginSeparator}></div>
-            </div>);
     };
 }

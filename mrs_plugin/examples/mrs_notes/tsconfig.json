@@ -13,25 +13,18 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ES2022",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "composite": true,
-    "types": [
-      "vitest/importMeta"
-    ]
+    "composite": true
   },
   "include": [
     "src",
     "declaration.d.ts",
     "vite.config.ts",
-    "vitest.setup.ts",
     "public/app.config.js"
-  ],
-  "exclude": [
-    "src/tests"
   ]
 }

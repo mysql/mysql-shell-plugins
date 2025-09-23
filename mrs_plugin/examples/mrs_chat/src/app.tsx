@@ -48,24 +48,6 @@ export class App extends MrsBaseApp<ChatApp, IMrsAppConfig, IMyAppState> {
         super(new ChatApp(services[0].url), "HeatWaveChat");
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    protected afterHandleLogin = async (status: IMrsAuthStatus): Promise<void> => {
-        // Make sure the user table has an entry for this user
-        try {
-            // Update the URL
-            this.showPage("chat", false);
-            // End the authenticating status and set the user info
-            this.setState({ authenticating: false, user: status.user});
-        } catch (e) {
-            this.setState({ error: e instanceof Error ? e : Error(String(e)) });
-        }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/require-await
-    protected afterLogout = async (): Promise<void> => {
-        this.setState({ user: undefined });
-    };
-
     /**
      * Displays the given page by setting the URL hash accordingly
      *
@@ -139,6 +121,24 @@ export class App extends MrsBaseApp<ChatApp, IMrsAppConfig, IMyAppState> {
         return (
             <WelcomePage chatApp={this.mrsService} startLogin={this.startLogin} handleLogin={this.handleLogin} />
         );
+    };
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    protected afterHandleLogin = async (status: IMrsAuthStatus): Promise<void> => {
+        // Make sure the user table has an entry for this user
+        try {
+            // Update the URL
+            this.showPage("chat", false);
+            // End the authenticating status and set the user info
+            this.setState({ authenticating: false, user: status.user});
+        } catch (e) {
+            this.setState({ error: e instanceof Error ? e : Error(String(e)) });
+        }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    protected afterLogout = async (): Promise<void> => {
+        this.setState({ user: undefined });
     };
 }
 

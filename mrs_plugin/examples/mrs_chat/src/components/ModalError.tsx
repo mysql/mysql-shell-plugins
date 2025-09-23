@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,8 +47,12 @@ export default class ModalError extends Component<IModalErrorProps> {
                         <p>{error.stack?.replace(/accessToken=.*?[&:]/gm, "accessToken=X:")}</p>
                         {error.cause ?? <p>{String(error.cause)}</p>}
                         <div className="errorButtons">
-                            <button className="flatButton" onClick={() => { resetError(); }}>Close</button>
-                            <button className="flatButton" onClick={() => { logout(); }}>Restart</button>
+                            <button className="flatButton" onClick={() => {
+                                resetError();
+                            }}>Close</button>
+                            <button className="flatButton" onClick={() => {
+                                logout();
+                            }}>Restart</button>
                         </div>
                     </div>
                 </div>

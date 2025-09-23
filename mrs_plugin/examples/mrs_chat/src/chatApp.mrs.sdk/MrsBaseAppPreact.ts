@@ -66,7 +66,7 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, Props, State ex
      *
      * @returns The current URL with a new searchString
      */
-    public static readonly getUrlWithNewSearchString = (searchString: string = ""): string => {
+    public static readonly getUrlWithNewSearchString = (searchString = ""): string => {
         return globalThis.location.protocol + "//" + globalThis.location.host + globalThis.location.pathname +
             (searchString !== "" ? `?${searchString}` : "") + globalThis.location.hash;
     };
@@ -114,17 +114,17 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, Props, State ex
         // If the authApp and accessToken have not been passed as parameters, check if they are given as URL parameters
         if (authApp === undefined) {
             const authAppParam = urlParams.get("authApp");
-            authApp = authAppParam !== null ? authAppParam : undefined;
+            authApp = authAppParam ?? undefined;
         }
         if (accessToken === undefined) {
             const accessTokenParam = urlParams.get("accessToken");
-            accessToken = accessTokenParam !== null ? accessTokenParam : undefined;
+            accessToken = accessTokenParam ?? undefined;
         }
 
         // If accessToken is not specified, check globalThis.localStorage
         if (accessToken === undefined) {
             const storedJwtAccessToken = globalThis.localStorage.getItem(`${this.appName}JwtAccessToken`);
-            accessToken = storedJwtAccessToken !== null ? storedJwtAccessToken : undefined;
+            accessToken = storedJwtAccessToken ?? undefined;
             // TODO: maybe we need a public API to add a token in the SDK
             this.mrsService.session.accessToken = accessToken;
         } else {
@@ -137,7 +137,7 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, Props, State ex
         // Store/restore authApp from globalThis.localStorage as well
         if (authApp === undefined) {
             const storedMrsNotesAuthApp = globalThis.localStorage.getItem(`${this.appName}AuthApp`);
-            authApp = storedMrsNotesAuthApp !== null ? storedMrsNotesAuthApp : undefined;
+            authApp = storedMrsNotesAuthApp ?? undefined;
             const storedMrsBuiltInAuth = globalThis.localStorage.getItem(`${this.appName}BuiltInAuth`);
             mrsBuiltInAuth = storedMrsBuiltInAuth !== null ? (storedMrsBuiltInAuth === "true") : false;
         } else {
@@ -150,10 +150,10 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, Props, State ex
 
         // Check if the current accessToken is still valid
         if (accessToken !== undefined) {
-            void this.mrsService.session.getAuthenticationStatus().then((status) => {
-                if (status?.status === "authorized") {
+            void this.mrsService.session.getAuthenticationStatus().then((response) => {
+                if (response.status === "authorized") {
                     // Execute additional handling that is defined in derived app class
-                    this.afterHandleLogin(status).catch(() => {
+                    this.afterHandleLogin(response).catch(() => {
                         this.logout();
                     });
                 } else {

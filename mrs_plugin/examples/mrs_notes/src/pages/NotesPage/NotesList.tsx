@@ -49,24 +49,28 @@ export default class NoteList extends Component<INotesListProps> {
                 <div className={styles.notesListSearch}>
                     <Icon name="searchIcon" styleClass={styles.searchIconStyle} />
                     <div className={styles.notesListSearchField}>
-                        <input onInput={(e) => { searchNotes((e.target as HTMLInputElement).value); }}
-                            placeholder="Search" value={noteSearchText} />
+                        <input onInput={(e) => {
+                            searchNotes((e.target as HTMLInputElement).value);
+                        }}
+                        placeholder="Search" value={noteSearchText} />
                     </div>
                 </div>
                 <div className={styles.notesList}>
-                    {notes?.map((note) => {
+                    {notes.map((note) => {
                         const noteStyle =
                             `${styles.notesListItem} ` +
                             // Only display active note if there isn't a style set
-                            `${style === undefined && activeNote !== undefined && activeNote.id === note.id
+                            (style === undefined && activeNote !== undefined && activeNote.id === note.id
                                 ? styles.selected
-                                : ""}`;
-                        const noteDate = (new Date(note.lastUpdate as string)).toLocaleDateString(
+                                : "");
+                        const noteDate = (new Date(note.lastUpdate!)).toLocaleDateString(
                             undefined, { dateStyle: "short" });
 
                         return (
                             <div className={noteStyle}
-                                key={note.id} onClick={() => { void setActiveNoteById(note.id, true); }}
+                                key={note.id} onClick={() => {
+                                    void setActiveNoteById(note.id, true);
+                                }}
                                 onKeyPress={() => { /** */ }} role="button" tabIndex={0}>
                                 <div className={styles.notesListItemGutter}>
                                     {note.shared === true &&
@@ -77,7 +81,7 @@ export default class NoteList extends Component<INotesListProps> {
                                     <h3>{note.title}</h3>
                                     <div className={styles.notesListItemSummary}>
                                         <h4>{noteDate}</h4>
-                                        <p>{note?.contentBeginning}</p>
+                                        <p>{note.contentBeginning}</p>
                                     </div>
                                 </div>
                             </div>

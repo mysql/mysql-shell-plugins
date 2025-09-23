@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/// <reference types="vitest" />
-
 // https://vitejs.dev/config/
 
 import { defineConfig } from "vite";
@@ -38,28 +36,14 @@ const shellUserConfigDir = (platform() === "win32")
     ? join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh-gui")
     : join(homedir(), ".mysqlsh-gui");
 const certDir = join(shellUserConfigDir, "plugin_data", "gui_plugin", "web_certs");
-const httpsSetting = existsSync(join(certDir, "server.key")) && existsSync(join(certDir, "server.crt")) && {
-    key: readFileSync(join(certDir, "server.key")),
-    cert: readFileSync(join(certDir, "server.crt")),
-};
+const httpsSetting = !existsSync(join(certDir, "server.key")) || !existsSync(join(certDir, "server.crt"))
+    ? undefined
+    : { key: readFileSync(join(certDir, "server.key")), cert: readFileSync(join(certDir, "server.crt")) };
 
 export default defineConfig({
     server: {
         https: httpsSetting,
     },
     base: "",
-    define: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        "import.meta.vitest": "undefined",
-    },
     plugins: [preact()],
-    test: {
-        setupFiles: ["./vitest.setup.ts"],
-        includeSource: ["src/**/*.{ts,tsx}"],
-        coverage: {
-            reporter: ["text-summary", "text"],
-        },
-        mockReset: true,
-        restoreMocks: true,
-    },
 });

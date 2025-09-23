@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,7 +43,9 @@ export default class Icon extends Component<IHeaderProps> {
 
         return (
             <div className={`icon ${styleClassName}`}
-                onClick={(onClick !== undefined) ? () => { onClick(); } : undefined}
+                onClick={(onClick !== undefined) ? () => {
+                    onClick();
+                } : undefined}
                 onKeyPress={() => { /** */ }} role="button" tabIndex={tabIndex}>
                 <div className={`iconBg ${name}`} ></div >
             </div >

@@ -56,21 +56,6 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
     }
 
     /**
-     * Get the list of supported authApps. This is a public API call and needs no authentication
-     *
-     * @returns The list of enabled authApps
-     */
-    private readonly getAuthApps = async (): Promise<IMrsAuthApp[] | undefined> => {
-        const { chatApp } = this.props;
-
-        try {
-            return await chatApp.getAuthApps();
-        } catch (e) {
-            return [];
-        }
-    };
-
-    /**
      * The component's render function
      *
      * @param props The component's properties
@@ -79,28 +64,47 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      * @returns The rendered ComponentChild
      */
     public render = (props: IWelcomePageProps, state: IWelcomePageState): ComponentChild => {
+        const query = new URLSearchParams(globalThis.location.search);
         const { chatApp, handleLogin, startLogin } = props;
         const { authApps, error } = state;
-
         // The built-in MRS authApp uses a specific ID
         const mrsAuthAppId = "0x30000000000000000000000000000000";
         const mrsAuthApp = authApps?.find((authApp) => {
             return authApp.vendorId === mrsAuthAppId;
         });
+        const mysqlInternalAuthAppId = "0x31000000000000000000000000000000";
+        const mysqlInternalAuthApp = authApps?.find((authApp) => {
+            return authApp.vendorId === mysqlInternalAuthAppId;
+        });
+        const selectedAuthApp = authApps?.find((authApp) => {
+            return authApp.name === query.get("authApp");
+        });
+        // MRS auth takes precedence, just because.
+        const mainAuthApp = selectedAuthApp ?? mrsAuthApp ?? mysqlInternalAuthApp;
         const loginOptions = (authApps === undefined)
             ? <p>Loading ...</p>
             : ((authApps.length === 0)
                 ? <p>No Authentication Apps setup for this MRS Service yet.</p>
                 : <>
-                    {(mrsAuthApp !== undefined)
-                        ? <MrsLogin authApp={mrsAuthApp.name} handleLogin={handleLogin} chatApp={chatApp} />
+                    {(mainAuthApp !== undefined)
+                        ? <MrsLogin authApp={mainAuthApp.name} handleLogin={handleLogin} chatApp={chatApp} />
                         : undefined
                     }
                     <div className={styles.loginButtons}>
                         {authApps.map((authApp) => {
-                            return (authApp.vendorId !== mrsAuthAppId)
-                                ? <button key={authApp.name} onClick={() => { startLogin(authApp.name); }}
-                                    className={styles[`btn${authApp.name}`]}>Sign in with {authApp.name}</button>
+                            // Show a button for each additional auth app.
+                            return (authApp.vendorId !== mainAuthApp?.vendorId)
+                                ? <button key={authApp.name} onClick={() => {
+                                    // If MRS or MySQL Internal, just reload the page for the specific auth app.
+                                    if ([mrsAuthAppId, mysqlInternalAuthAppId].includes(authApp.vendorId)) {
+                                        query.set("authApp", authApp.name);
+                                        globalThis.location.search = query.toString();
+                                    } else {
+                                        // startLogin should be used only for OAuth
+                                        startLogin(authApp.name);
+                                    }
+                                }}
+                                className={styles[`btn${authApp.name}`]}>Sign in with {authApp.name}</button>
                                 : undefined;
                         })}
                     </div>
@@ -121,5 +125,20 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
                     <p>Copyright (c) 2022, 2025, Oracle and/or its affiliates.</p>
                 </div>
             </div>);
+    };
+
+    /**
+     * Get the list of supported authApps. This is a public API call and needs no authentication
+     *
+     * @returns The list of enabled authApps
+     */
+    private readonly getAuthApps = async (): Promise<IMrsAuthApp[] | undefined> => {
+        const { chatApp } = this.props;
+
+        try {
+            return await chatApp.getAuthApps();
+        } catch {
+            return [];
+        }
     };
 }

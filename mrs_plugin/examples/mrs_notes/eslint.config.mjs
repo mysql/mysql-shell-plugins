@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,26 +22,21 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { describe, it, expect } from "vitest";
-import { mount } from "enzyme";
 
-import WelcomePage from "../pages/WelcomePage/WelcomePage";
-import { IFetchInput } from "../app";
+import tslint from "typescript-eslint";
+import guiConfig from "../../../gui/frontend/eslint.config.mjs";
 
-if (import.meta.vitest !== undefined) {
-    describe("WelcomePage", () => {
-        it("should display the title MRS Notes", () => {
-            const startLogin = (_authApp: string): void => { /**/ };
-            const doFetch = async (_input: string | IFetchInput, _errorMsg?: string,
-                _method?: string, _body?: object): Promise<Response> => {
-                const response = await fetch("");
-
-                return response;
-            };
-            const handleLogin = (_authApp?: string, _accessToken?: string): void => { /**/ };
-
-            const wrapper = mount(<WelcomePage startLogin={startLogin} doFetch={doFetch} handleLogin={handleLogin} />);
-            expect(wrapper.text()).to.include("MRS Notes");
-        });
-    });
-}
+export default tslint.config(
+    guiConfig,
+    {
+        languageOptions: {
+            parserOptions: {
+                projectService: {
+                    allowDefaultProject: ["eslint.config.mjs"],
+                    defaultProject: "tsconfig.json",
+                },
+                tsconfigRootDir: import.meta.dirname,
+            }
+        }
+    }
+);

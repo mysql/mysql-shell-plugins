@@ -96,7 +96,6 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
         }
     };
 
-
     /**
      * Refreshes and updates the notes state
      *
@@ -148,9 +147,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 this.setState({ forceNoteListDisplay: undefined });
             } else {
                 // If a new activeNodeId was given or there was an active note, select that note again
-                const noteId = (activeNoteId !== undefined) ? activeNoteId : activeNote?.id;
+                const noteId = activeNoteId ?? activeNote?.id;
                 const newIndex = (noteId !== undefined)
-                    ? newNotes.findIndex((note) => { return note.id === noteId; })
+                    ? newNotes.findIndex((note) => {
+                        return note.id === noteId;
+                    })
                     : -1;
                 let newActiveNote = newIndex > -1 ? newNotes[newIndex] : null;
 
@@ -158,7 +159,9 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 // first list entry.
                 if (newActiveNote === null && newNotes.length > 0) {
                     const oldIndex = (noteId !== undefined)
-                        ? notes.findIndex((note) => { return note.id === noteId; })
+                        ? notes.findIndex((note) => {
+                            return note.id === noteId;
+                        })
                         : -1;
 
                     if (oldIndex > -1) {
@@ -175,13 +178,110 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 // If the activeNote has not already been set above, set it now
                 if (!(activeNoteId !== undefined && activeNote === undefined)) {
                     void this.setActiveNoteById(newActiveNote?.id, selectText, selectText);
-                } else if (activeNoteId !== undefined) {
+                } else {
                     this.setTextAreaFocus(selectText);
                 }
             }
         } catch (e) {
             showError(e as Error);
         }
+    };
+
+    /**
+     * The component's render function
+     *
+     * @param props The component's properties
+     * @param state The component's state
+     *
+     * @returns The rendered ComponentChild
+     */
+    public render = (props: INotesPageProps, state: INotesPageState): ComponentChild => {
+        const { showError, showPage, myService } = props;
+        const { notes, activeNote, noteSearchText, pendingInvitation, infoMessage, forceNoteListDisplay } = state;
+        const page = window.location.hash;
+
+        return (
+            <>
+                {page === "#notes" &&
+                    <div className={styles.notes}>
+                        <NoteList notes={notes} activeNote={activeNote}
+                            noteSearchText={noteSearchText} searchNotes={this.searchNotes}
+                            setActiveNoteById={this.setActiveNoteById}
+                            style={forceNoteListDisplay !== undefined
+
+                                ? { "--force-display": "flex", "--force-100p": "100%" }
+                                : undefined} />
+                        <div className={styles.splitter}></div>
+                        <div className={styles.note} style={forceNoteListDisplay !== undefined
+
+                            ? { "--force-display": "none" }
+                            : {}}>
+                            <div className={styles.toolbar}>
+                                {notes.length > 0 &&
+                                    <Icon name="backIcon" styleClass={styles.backIconStyle}
+                                        onClick={() => {
+                                            this.forceNoteListDisplay();
+                                        }} />
+                                }
+                                {activeNote !== undefined &&
+                                    <Icon name="deleteIcon" styleClass={styles.deleteIconStyle}
+                                        onClick={() => {
+                                            void this.deleteActiveNote();
+                                        }} />}
+                                <div className={styles.spacer}></div>
+                                {infoMessage !== undefined &&
+                                    <div className={styles.info}>{infoMessage}</div>
+                                }
+                                {pendingInvitation &&
+                                    <Icon name="pendingInvitationIcon" styleClass={styles.pendingInvitationIconStyle}
+                                        onClick={() => {
+                                            showPage("notesAcceptShare");
+                                        }} />}
+                                <Icon name="shareIcon" styleClass={styles.shareIconStyle}
+                                    onClick={() => {
+                                        showPage("notesShare");
+                                    }} />
+                                <Icon name="addIcon" styleClass={styles.addIconStyle}
+                                    onClick={() => {
+                                        void this.addNote(undefined, true);
+                                    }} />
+                            </div>
+                            <div className={styles.noteContent}>
+                                <div className={styles.noteDate}
+                                    onClick={() => {
+                                        this.setTextAreaFocus();
+                                    }}
+                                    onKeyPress={() => {/** */ }} role="button" tabIndex={0}>
+                                    {activeNote !== undefined
+                                        ? (new Date(String(activeNote.lastUpdate))).toLocaleString(
+                                            undefined, { dateStyle: "long", timeStyle: "short" })
+                                        : ""}</div>
+                                <textarea ref={this.noteInputRef}
+                                    value={activeNote !== undefined
+                                        ? String(activeNote.content)
+                                        : (this.addingNote ? undefined : "")}
+                                    onInput={(e) => {
+                                        this.onActiveNoteContentInput((e.target as HTMLInputElement).value);
+                                    }} />
+                            </div>
+                        </div>
+                    </div>
+                }
+                {page === "#notesShare" &&
+                    <Share showError={showError} activeNote={activeNote}
+                        showPage={async (page: string) => {
+                            await this.refreshNotes(); showPage(page);
+                        }}
+                        myService={myService} />
+                }
+                {page === "#notesAcceptShare" &&
+                    <AcceptShare showError={showError}
+                        showPage={async (page: string) => {
+                            await this.refreshNotes(); showPage(page);
+                        }}
+                        myService={myService} />
+                }
+            </>);
     };
 
     /**
@@ -205,7 +305,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
             // Refresh the notes and set the new note as new active note and select all the text
             // of the active note so the user can overwrite the default text easily
-            await this.refreshNotes(newNote?.id, selectText);
+            await this.refreshNotes(newNote.id, selectText);
         } catch (e) {
             showError(e as Error);
         } finally {
@@ -243,7 +343,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             title: note.title,
             pinned: note.pinned,
             lockedDown: note.lockedDown,
-            content: note.content as string,
+            content: note.content!,
             tags: note.tags,
         });
 
@@ -378,7 +478,9 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             activeNote.content = content;
 
             // Update notes list immediately
-            const noteInList = notes.find((note) => { return activeNote.id === note.id; });
+            const noteInList = notes.find((note) => {
+                return activeNote.id === note.id;
+            });
             if (noteInList !== undefined) {
                 noteInList.title = activeNote.title;
                 noteInList.contentBeginning = activeNote.content.substring(
@@ -459,90 +561,5 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
     private readonly forceNoteListDisplay = (): void => {
         this.setState({ forceNoteListDisplay: true });
-    };
-
-    /**
-     * The component's render function
-     *
-     * @param props The component's properties
-     * @param state The component's state
-     *
-     * @returns The rendered ComponentChild
-     */
-    public render = (props: INotesPageProps, state: INotesPageState): ComponentChild => {
-        const { showError, showPage, myService } = props;
-        const { notes, activeNote, noteSearchText, pendingInvitation, infoMessage, forceNoteListDisplay } = state;
-        const page = window.location.hash;
-
-        return (
-            <>
-                {page === "#notes" &&
-                    <div className={styles.notes}>
-                        <NoteList notes={notes} activeNote={activeNote}
-                            noteSearchText={noteSearchText} searchNotes={this.searchNotes}
-                            setActiveNoteById={this.setActiveNoteById}
-                            style={forceNoteListDisplay !== undefined
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                ? { "--force-display": "flex", "--force-100p": "100%" }
-                                : undefined} />
-                        <div className={styles.splitter}></div>
-                        <div className={styles.note} style={forceNoteListDisplay !== undefined
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            ? { "--force-display": "none" }
-                            : {}}>
-                            <div className={styles.toolbar}>
-                                {notes.length > 0 &&
-                                    <Icon name="backIcon" styleClass={styles.backIconStyle}
-                                        onClick={() => { void this.forceNoteListDisplay(); }} />
-                                }
-                                {activeNote !== undefined &&
-                                    <Icon name="deleteIcon" styleClass={styles.deleteIconStyle}
-                                        onClick={() => { void this.deleteActiveNote(); }} />}
-                                <div className={styles.spacer}></div>
-                                {infoMessage !== undefined &&
-                                    <div className={styles.info}>{infoMessage}</div>
-                                }
-                                {pendingInvitation &&
-                                    <Icon name="pendingInvitationIcon" styleClass={styles.pendingInvitationIconStyle}
-                                        onClick={() => { showPage("notesAcceptShare"); }} />}
-                                <Icon name="shareIcon" styleClass={styles.shareIconStyle}
-                                    onClick={() => { showPage("notesShare"); }} />
-                                <Icon name="addIcon" styleClass={styles.addIconStyle}
-                                    onClick={() => { void this.addNote(undefined, true); }} />
-                            </div>
-                            <div className={styles.noteContent}>
-                                <div className={styles.noteDate}
-                                    onClick={() => { this.setTextAreaFocus(); }}
-                                    onKeyPress={() => {/** */ }} role="button" tabIndex={0}>
-                                    {activeNote !== undefined
-                                        ? (new Date(String(activeNote.lastUpdate))).toLocaleString(
-                                            undefined, { dateStyle: "long", timeStyle: "short" })
-                                        : ""}</div>
-                                <textarea ref={this.noteInputRef}
-                                    value={activeNote !== undefined
-                                        ? String(activeNote.content)
-                                        : (this.addingNote ? undefined : "")}
-                                    onInput={(e) => {
-                                        void this.onActiveNoteContentInput((e.target as HTMLInputElement).value);
-                                    }} />
-                            </div>
-                        </div>
-                    </div>
-                }
-                {page === "#notesShare" &&
-                    <Share showError={showError} activeNote={activeNote}
-                        showPage={async (page: string) => {
-                            await this.refreshNotes(); showPage(page);
-                        }}
-                        myService={myService} />
-                }
-                {page === "#notesAcceptShare" &&
-                    <AcceptShare showError={showError}
-                        showPage={async (page: string) => {
-                            await this.refreshNotes(); showPage(page);
-                        }}
-                        myService={myService} />
-                }
-            </>);
     };
 }

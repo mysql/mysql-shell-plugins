@@ -1,6 +1,5 @@
-/* eslint-disable jsx-a11y/no-autofocus */
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,6 +53,41 @@ export default class AcceptShare extends Component<IAcceptShareProps, IAcceptSha
     }
 
     /**
+     * The component"s render function
+     *
+     * @param props The component's properties
+     * @param state The component's state
+     *
+     * @returns ComponentChild
+     */
+    public render = (props: IAcceptShareProps, state: IAcceptShareState): ComponentChild => {
+        const { showPage } = props;
+        const { invitationKey, success, error } = state;
+        const successContent = <>The note has been accepted.</>;
+
+        return (
+            <InputForm headerIcon="pendingInvitationIcon" headerTitle="Accept Shared Note"
+                headerSubtitle="Please enter the invitation key."
+                successContent={successContent}
+                back={() => {
+                    void showPage("notes");
+                }} submit={() => {
+                    void this.acceptSharedNote();
+                }}
+                success={success} error={error}
+            >
+                <div className={style.formField}>
+                    <p>Invitation Key</p>
+                    <input id="invitationKey" type="text" value={invitationKey} autoFocus
+                        onInput={(e) => {
+                            this.setState({ invitationKey: (e.target as HTMLInputElement).value });
+                        }} />
+                </div>
+            </InputForm>
+        );
+    };
+
+    /**
      * Accepts a shared note
      */
     private readonly acceptSharedNote = async (): Promise<void> => {
@@ -71,34 +105,5 @@ export default class AcceptShare extends Component<IAcceptShareProps, IAcceptSha
         } catch (e) {
             this.setState({ success: false, error: String(e) });
         }
-    };
-
-    /**
-     * The component"s render function
-     *
-     * @param props The component's properties
-     * @param state The component's state
-     *
-     * @returns ComponentChild
-     */
-    public render = (props: IAcceptShareProps, state: IAcceptShareState): ComponentChild => {
-        const { showPage } = props;
-        const { invitationKey, success, error } = state;
-        const successContent = <>The note has been accepted.</>;
-
-        return (
-            <InputForm headerIcon="pendingInvitationIcon" headerTitle="Accept Shared Note"
-                headerSubtitle="Please enter the invitation key."
-                successContent={successContent}
-                back={() => { void showPage("notes"); }} submit={() => { void this.acceptSharedNote(); }}
-                success={success} error={error}
-            >
-                <div className={style.formField}>
-                    <p>Invitation Key</p>
-                    <input id="invitationKey" type="text" value={invitationKey} autoFocus
-                        onInput={(e) => { this.setState({ invitationKey: (e.target as HTMLInputElement).value }); }} />
-                </div>
-            </InputForm>
-        );
     };
 }

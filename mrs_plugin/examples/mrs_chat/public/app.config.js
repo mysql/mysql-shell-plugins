@@ -26,7 +26,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mrsAppConfig = {
     services: [{
-        name: "myService",
-        url: "https://localhost:8443/myService",
+        name: "chatApp",
+        url: "https://localhost:8443/chatApp",
     }],
 };

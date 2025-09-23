@@ -1,8 +1,9 @@
 /* Copyright (c) 2023, 2025, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
-/* eslint-disable max-classes-per-file */
-/* eslint-disable no-multiple-empty-lines */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-arguments */
+/* eslint-disable @stylistic/no-multiple-empty-lines */
+/* eslint-disable @stylistic/lines-between-class-members */
 
 import {
     MrsBaseService,
@@ -26,8 +27,8 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 class ChatAppChatHeatwaveChatAsyncObject extends MrsBaseObject {
 
     public call = async (heatwaveChatAsyncParams?: IChatAppChatHeatwaveChatAsyncParams): Promise<IMrsProcedureResult<IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet>> => {
-        const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncParams, IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet>(
-            this.schema, this.requestPath, heatwaveChatAsyncParams);
+        const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncParams, IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet, [], []>(
+            this.schema, this.requestPath, heatwaveChatAsyncParams, { bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -53,8 +54,8 @@ export type IChatAppChatHeatwaveChatAsyncResultSet = JsonObject;
 class ChatAppChatHeatwaveChatAsyncResultObject extends MrsBaseObject {
 
     public call = async (heatwaveChatAsyncResultParams?: IChatAppChatHeatwaveChatAsyncResultParams): Promise<IMrsProcedureResult<IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet>> => {
-        const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncResultParams, IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet>(
-            this.schema, this.requestPath, heatwaveChatAsyncResultParams);
+        const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncResultParams, IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet, [], []>(
+            this.schema, this.requestPath, heatwaveChatAsyncResultParams, { bigIntKeys: [], fixedPointKeys: [] });
         const response = await request.fetch();
 
         return response;
@@ -102,7 +103,7 @@ class ChatAppChat extends MrsBaseSchema {
 export class ChatApp extends MrsBaseService {
     #chat?: ChatAppChat;
 
-    public constructor(baseUrl: string = "https://localhost:8443/chatApp") {
+    public constructor(baseUrl = "https://localhost:8443/chatApp") {
         super(baseUrl, "/authentication");
     }
 
@@ -115,7 +116,7 @@ export class ChatApp extends MrsBaseService {
     }
 
     public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
-        const { username, password, app, vendor } = options ?? {};
+        const { username, password, app, vendor } = options;
 
         return super.authenticate({ username, password, app, vendor });
     }

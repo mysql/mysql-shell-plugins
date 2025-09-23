@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,21 +22,21 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { describe, it, expect } from "vitest";
-import { mount } from "enzyme";
-import toJson from "enzyme-to-json";
 
-import Icon from "../components/Icon";
+import tslint from "typescript-eslint";
+import guiConfig from "../../../gui/frontend/eslint.config.mjs";
 
-if (import.meta.vitest !== undefined) {
-    describe("Icon", () => {
-        const f = (): void => { /**/ };
-        const wrapper = mount(<Icon name={"sakila"} styleClass={"MyStyle"} onClick={f} />);
-
-        it("should match the snapshot", () => {
-            const j = toJson(wrapper);
-            j.props.copyright = "Copyright (c) 2022, 2025, Oracle and/or its affiliates.";
-            expect(j).toMatchSnapshot();
-        });
-    });
-}
+export default tslint.config(
+    guiConfig,
+    {
+        languageOptions: {
+            parserOptions: {
+                projectService: {
+                    allowDefaultProject: ["eslint.config.mjs"],
+                    defaultProject: "tsconfig.json",
+                },
+                tsconfigRootDir: import.meta.dirname,
+            }
+        }
+    }
+);

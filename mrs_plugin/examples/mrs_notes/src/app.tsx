@@ -24,14 +24,14 @@
  */
 
 import { ComponentChild } from "preact";
-import { IMyServiceMrsNotesUser, MyService, IMrsAuthUser, IMrsAuthStatus } from "./myService.mrs.sdk/myService";
-import { IAppState, MrsBaseApp } from "./myService.mrs.sdk/MrsBaseAppPreact";
+import { IMyServiceMrsNotesUser, MyService, IMrsAuthUser, IMrsAuthStatus } from "./myService.mrs.sdk/myService.js";
+import { IAppState, MrsBaseApp } from "./myService.mrs.sdk/MrsBaseAppPreact.js";
 
-import WelcomePage from "./pages/WelcomePage/WelcomePage";
-import UserPage from "./pages/UserPage/UserPage";
-import ModalError from "./components/ModalError";
-import Header from "./components/Header";
-import Notes from "./pages/NotesPage/NotesPage";
+import WelcomePage from "./pages/WelcomePage/WelcomePage.js";
+import UserPage from "./pages/UserPage/UserPage.js";
+import ModalError from "./components/ModalError.js";
+import Header from "./components/Header.js";
+import Notes from "./pages/NotesPage/NotesPage.js";
 
 export interface IFetchInput {
     errorMsg?: string;
@@ -48,36 +48,6 @@ export class App extends MrsBaseApp<MyService, IMrsAppConfig, IMyAppState> {
     public constructor({ services = [] }: IMrsAppConfig = { services: [] }) {
         super(new MyService(services[0].url), "MrsNotes");
     }
-
-    protected afterHandleLogin = async (status: IMrsAuthStatus): Promise<void> => {
-        // Make sure the user table has an entry for this user
-        try {
-            const user = await this.ensureUserAccount(status?.user as IMrsAuthUser);
-            // Update the URL
-            this.showPage("notes", false);
-            // End the authenticating status and set the user info
-            this.setState({ authenticating: false, user });
-        } catch (e) {
-            this.setState({ error: e instanceof Error ? e : Error(String(e)) });
-        }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/require-await
-    protected afterLogout = async (): Promise<void> => {
-        this.setState({ user: undefined });
-    };
-
-    private readonly ensureUserAccount = async (user: IMrsAuthUser): Promise<IMyServiceMrsNotesUser> => {
-        const existingUser = await this.mrsService.mrsNotes.user.findFirst();
-
-        // If a user account already exists, return it.
-        if (existingUser) {
-            return existingUser;
-        }
-
-        // Otherwise, create one.
-        return this.mrsService.mrsNotes.user.create({ data: { email: user.email, nickname: user.name } });
-    };
 
     /**
      * Updates the user component state
@@ -167,6 +137,36 @@ export class App extends MrsBaseApp<MyService, IMrsAppConfig, IMyAppState> {
         return (
             <WelcomePage myService={this.mrsService} startLogin={this.startLogin} handleLogin={this.handleLogin} />
         );
+    };
+
+    protected afterHandleLogin = async (status: IMrsAuthStatus): Promise<void> => {
+        // Make sure the user table has an entry for this user
+        try {
+            const user = await this.ensureUserAccount(status.user!);
+            // Update the URL
+            this.showPage("notes", false);
+            // End the authenticating status and set the user info
+            this.setState({ authenticating: false, user });
+        } catch (e) {
+            this.setState({ error: e instanceof Error ? e : Error(String(e)) });
+        }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    protected afterLogout = async (): Promise<void> => {
+        this.setState({ user: undefined });
+    };
+
+    private readonly ensureUserAccount = async (user: IMrsAuthUser): Promise<IMyServiceMrsNotesUser> => {
+        const existingUser = await this.mrsService.mrsNotes.user.findFirst();
+
+        // If a user account already exists, return it.
+        if (existingUser) {
+            return existingUser;
+        }
+
+        // Otherwise, create one.
+        return this.mrsService.mrsNotes.user.create({ data: { email: user.email, nickname: user.name } });
     };
 }
 

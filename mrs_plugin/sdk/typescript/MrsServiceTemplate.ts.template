@@ -1,8 +1,9 @@
 /* Copyright (c) 2023, 2025, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
-/* eslint-disable max-classes-per-file */
-/* eslint-disable no-multiple-empty-lines */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-arguments */
+/* eslint-disable @stylistic/no-multiple-empty-lines */
+/* eslint-disable @stylistic/lines-between-class-members */
 
 // --- importLoopStart
 import {
@@ -47,7 +48,6 @@ import {
     MrsBaseObjectUpdate,
     // --- importUpdateOnlyEnd
     // --- importDeleteOnlyStart
-    IMrsDeleteResult,
     IDeleteOptions,
     MrsBaseObjectDelete,
     // --- importDeleteOnlyEnd
@@ -275,7 +275,7 @@ export class ${service_class_name} extends MrsBaseService {
     #${schema_name}?: ${schema_class_name};
     // --- schemaLoopEnd
 
-    public constructor(baseUrl: string = "${service_url}") {
+    public constructor(baseUrl = "${service_url}") {
         super(baseUrl, "${service_auth_path}");
     }
 
@@ -329,7 +329,7 @@ export class ${service_class_name} extends MrsBaseService {
     public async authenticate(options?: Partial<Omit<IAuthenticateOptions, "password" | "vendor">>): Promise<IMrsLoginResult>;
     // --- MySQL Shell for VS Code Extension Only --- End
     public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
-        const { username, password, app, vendor } = options ?? {};
+        const { username, password, app, vendor } = options;
         // --- MySQL Shell for VS Code Extension Only --- Begin
         if (typeof ${service_class_name}.authenticate === "function") {
             return ${service_class_name}.authenticate({ username, app, vendor });
