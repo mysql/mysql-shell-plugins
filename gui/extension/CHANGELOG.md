@@ -4,7 +4,8 @@
 
 ### Additions
 
--
+- Added support to create Library from a remote source (URL)
+- Updates the MySQL grammar
 
 ### Fixes
 
@@ -14,6 +15,7 @@
 - BUG#38252997 mrs.get.current_service_metadata() returns an error
 - BUG#37052409 mrs.dump.sdkServiceFiles() reports success if service does not exist
 - BUG#37575319 Incorrect output running mrs.getStatus command
+- BUG#38366132 Fix SQL for REST object with nested fields
 - BUG#38384637 Unexpected type alias types for spatial data types in the Typescript SDK
 - BUG#38384773 Unable to insert collections of geometry values as GEOMETRY field in the TypeScript SDK
 - BUG#37767208 Python SDK: access pattern changes for nested results
