@@ -18,6 +18,7 @@
 - BUG#38384773 Unable to insert collections of geometry values as GEOMETRY field in the TypeScript SDK
 - BUG#37767208 Python SDK: access pattern changes for nested results
 - BUG#38418232 INSERT, UPDATE, DELETE buttons do not work for REST Service Objects
+- BUG#38463211 Unexpected compiler errors for updatable Views in the TypeScript SDK
 -
 
 

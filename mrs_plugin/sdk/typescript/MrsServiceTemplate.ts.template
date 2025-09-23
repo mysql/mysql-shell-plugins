@@ -147,7 +147,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadUniqueOnlyEnd
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<IUpdate${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, [${obj_quoted_pk_list}], I${obj_class_name}, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
+        const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, I${obj_class_name}, [${obj_quoted_pk_list}], [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
             this.schema, this.requestPath, args, { identifierKeys: [${obj_quoted_pk_list}], bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
         const response = await request.fetch();
 
@@ -219,16 +219,16 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudFunctionTaskRunOnlyStart
     async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsFunctionResponse<${obj_function_result_datatype}>, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>> {
         const request = new MrsBaseTaskStart<I${obj_param_interface}, object, IMrsFunctionResponse<${obj_function_result_datatype}>>(
-            this.schema, this.requestPath, ${obj_name}Params, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}], options);
+            this.schema, this.requestPath, ${obj_name}Params, options);
         const response = await request.submit();
 
-        return new MrsTask(this.schema, this.requestPath, response.taskId, "FUNCTION", options);
+        return new MrsTask(this.schema, this.requestPath, response.taskId, { ...options, routineType: "FUNCTION", bigIntKeys: [${obj_bigint_field_list}], fixedPointKeys: [${obj_fixed_point_field_list}] });
     }
 
     async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype}> {
         const task = await this.start(${obj_name}Params, options);
         const poll = new MrsBaseTaskRun<object, IMrsFunctionResponse<${obj_function_result_datatype}>, [${obj_bigint_field_list}], [${obj_fixed_point_field_list}]>(
-            this.schema, this.requestPath, task.options);
+            this.schema, this.requestPath, task);
         const response = await poll.execute();
 
         return response.result;
