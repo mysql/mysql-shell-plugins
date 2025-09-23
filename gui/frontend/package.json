@@ -1,6 +1,6 @@
 {
     "name": "mysql-shell-gui",
-    "version": "1.19.17",
+    "version": "1.19.18",
     "publisher": "Oracle",
     "type": "module",
     "scripts": {

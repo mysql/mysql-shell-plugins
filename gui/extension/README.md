@@ -1,4 +1,4 @@
-# MySQL Shell for VS Code 1.19.17+9.4.0
+# MySQL Shell for VS Code 1.19.18+9.4.0
 
 The MySQL Shell for VS Code extension integrates the powerful feature set of MySQL Shell - an advanced MySQL client for developers and DBAs - directly into VS Code.
 

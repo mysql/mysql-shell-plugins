@@ -25,7 +25,7 @@ from mrs_plugin import lib
 import msm_plugin.lib.management as schema_management
 
 # Define plugin version
-VERSION = "1.19.17"
+VERSION = "1.19.18"
 
 DB_VERSION = [4, 1, 4]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
