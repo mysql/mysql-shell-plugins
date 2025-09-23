@@ -1000,6 +1000,18 @@ class MrsDbTransaction:
         self._session.run_sql("ROLLBACK")
         return False
 
+class ServerLocalInFile:
+    def __init__(self, session, on: bool):
+        self._session = session
+        self._local_infile = MrsDbExec("SHOW GLOBAL VARIABLES LIKE 'local_infile'").exec(session).first["Value"]
+
+        self._session.run_sql(f"SET GLOBAL local_infile = '{'ON' if on else 'OFF'}'")
+
+    def __enter__(self):
+        return self._session
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self._session.run_sql(f"SET GLOBAL local_infile = '{self._local_infile}'")
 
 def create_identification_conditions(id, name, id_context, name_col):
     """

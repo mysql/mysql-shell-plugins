@@ -40,7 +40,10 @@ import shutil
 from datetime import datetime
 import mysqlsh
 from typing import Optional
-
+from tempfile import TemporaryDirectory
+from urllib.parse import urlparse, ParseResult
+import urllib.request
+import ssl
 
 DEFAULT_OPTIONS = {
     "headers": {
@@ -923,58 +926,119 @@ def load_service(session, path: str):
     run_sql_script(session, sql_script=sql_script, is_mrs=True)
 
 
-from tempfile import TemporaryDirectory
+def is_url(url) -> bool:
+    result: ParseResult = urlparse(url)
+    return all([result.scheme, result.netloc])
+
+def is_github_shortcut(url) -> bool:
+    if "/" not in url:
+        return False
+
+    parts = url.split("/")
+    if parts[0] not in ["github.com", "github"]:
+        return False
+    if len(parts) != 3:
+        return False
+
+    return True
+
+class LoadProjectFileContext:
+    def __init__(self, path: str) -> None:
+        self.path = path
+        self.download_dir = None
+        self.extract_dir = None
+        self.repo = None
+
+        # if it's a GitHub shortcut, resolve it to download the zip
+        # for the master sources
+        if is_github_shortcut(path):
+            branch = "main"
+            if "|" in path:
+                path, branch = path.split("|")
+
+            _, user, self.repo = path.split("/")
+            path = f"https://github.com/{user}/{self.repo}/archive/refs/heads/{branch}.zip"
+
+        # if it's a remote file, download it
+        if is_url(path):
+            self.download_dir = TemporaryDirectory(delete=False)
+            self.path = os.path.join(self.download_dir.name, "download.zip")
+
+            with urllib.request.urlopen(path, context=ssl._create_unverified_context()) as response:
+
+                with open(self.path, "w+b") as f:
+                    f.write(response.read())
+
+        # if the file is a zip file, extract it to a directory
+        if is_zipfile(self.path):
+            self.extract_dir = TemporaryDirectory(delete=False)
+            zip_file = ZipFile(self.path)
+            zip_file.extractall(self.extract_dir.name)
+            self.path = self.extract_dir.name
+
+            if self.repo is not None:
+                self.path = os.path.join(self.path, f"{self.repo}-{branch}")
+
+
+    def __enter__(self) -> str:
+        return self.path
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if self.download_dir:
+            self.download_dir.cleanup()
+            self.download_dir = None
+
+        if self.extract_dir:
+            self.extract_dir.cleanup()
+            self.extract_dir = None
+
+        return False
 
 
 def load_project(session, path: str):
 
-    if is_zipfile(path):
-        with TemporaryDirectory(delete=False) as base_directory:
-            zip_file = ZipFile(path)
-            zip_file.extractall(base_directory)
-    else:
-        base_directory = path
+    with LoadProjectFileContext(path) as base_directory:
 
-    project_file = os.path.join(base_directory, "mrs.package.json")
-    project_config = None
+        project_file = os.path.join(base_directory, "mrs.package.json")
+        project_config = None
 
-    with open(project_file, "r") as f:
-        project_config = json.load(f)
+        with open(project_file, "r") as f:
+            project_config = json.load(f)
 
-    with core.MrsDbTransaction(session):
-        for schema in project_config.get("schemas", []):
-            schema_path = os.path.join(base_directory, schema["path"])
-            if schema["format"] == "sqlFile":
-                with open(schema_path) as f:
-                    run_sql_script(session, f.read())
-            elif schema["format"] == "folder":
-                folder_path = schema_path
-                only_files = [
-                    f
-                    for f in os.listdir(folder_path)
-                    if os.path.isfile(os.path.join(folder_path, f))
-                    and f.endswith(".sql")
-                ]
-
-                for file in only_files:
-                    file = os.path.join(schema_path, file)
-                    with open(file) as f:
+        with core.MrsDbTransaction(session):
+            for schema in project_config.get("schemas", []):
+                schema_path = os.path.join(base_directory, schema["path"])
+                if schema["format"] == "sqlFile":
+                    with open(schema_path) as f:
                         run_sql_script(session, f.read())
+                elif schema["format"] == "folder":
+                    folder_path = schema_path
+                    only_files = [
+                        f
+                        for f in os.listdir(folder_path)
+                        if os.path.isfile(os.path.join(folder_path, f))
+                        and f.endswith(".sql")
+                    ]
 
-            elif schema["format"] == "dump":
-                if "shell.Object" in str(type(session)):
-                    mysqlsh.globals.shell.set_session(session)
+                    for file in only_files:
+                        file = os.path.join(schema_path, file)
+                        with open(file) as f:
+                            run_sql_script(session, f.read())
+
+                elif schema["format"] == "dump":
+                    if "shell.Object" in str(type(session)):
+                        mysqlsh.globals.shell.set_session(session)
+                    else:
+                        mysqlsh.globals.shell.set_session(session.session)
+
+                    with core.ServerLocalInFile(session, True):
+                        mysqlsh.globals.util.load_dump(schema_path, ignoreExistingObjects=True)
                 else:
-                    mysqlsh.globals.shell.set_session(session.session)
+                    raise Exception("Invalid schema format.")
 
-                session.run_sql("SET GLOBAL local_infile = 'ON'")
-                mysqlsh.globals.util.load_dump(schema_path, ignoreExistingObjects=True)
-            else:
-                raise Exception("Invalid schema format.")
-
-        for service in project_config.get("restServices", []):
-            with open(os.path.join(base_directory, service["fileName"])) as f:
-                run_sql_script(session, f.read())
+            for service in project_config.get("restServices", []):
+                with open(os.path.join(base_directory, service["fileName"])) as f:
+                    run_sql_script(session, f.read())
 
 
 def get_service_sdk_data(session, service_id, binary_formatter=None):

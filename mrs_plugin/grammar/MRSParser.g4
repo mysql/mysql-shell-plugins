@@ -900,7 +900,10 @@ loadRestServiceStatement:
 ;
 
 loadRestProjectStatement:
-    LOAD_SYMBOL REST_SYMBOL PROJECT_SYMBOL FROM_SYMBOL directoryFilePath
+    LOAD_SYMBOL REST_SYMBOL PROJECT_SYMBOL FROM_SYMBOL (
+        ZIP_SYMBOL
+        | URL_SYMBOL
+    )? directoryFilePath
 ;
 
 // Named identifiers ========================================================

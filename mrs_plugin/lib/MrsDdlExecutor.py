@@ -3405,7 +3405,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         self.current_operation: str = mrs_object.pop("current_operation")
         path: str = mrs_object.get("directory_file_path")
-        # create_zip: bool = mrs_object.get("zip", False)
+        from_zip: bool = mrs_object.get("zip", False)
+        from_url: bool = mrs_object.get("url", False)
 
         try:
             lib.services.load_project(self.session, path)

@@ -2157,7 +2157,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.dumpRestProject(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # DUMP REST SERVICE
+    # LOAD REST SERVICE
     def enterLoadRestServiceStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
@@ -2167,7 +2167,8 @@ class MrsDdlListener(MRSListener):
             "request_path": get_text_without_quotes(
                 ctx.serviceRequestPath().getText()
             ) if ctx.serviceRequestPath() is not None else None,
-            #"zip": ctx.ZIP_SYMBOL() is not None,
+            "zip": ctx.ZIP_SYMBOL() is not None,
+            "url": ctx.URL_SYMBOL() is not None,
         }
 
     def exitLoadRestServiceStatement(self, ctx):

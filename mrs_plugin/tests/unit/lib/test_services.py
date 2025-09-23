@@ -210,7 +210,8 @@ def test_change_service(phone_book, table_contents):
     assert service_table.same_as_snapshot
     assert auth_app_table.same_as_snapshot
 
-
+@pytest.mark.skipif(os.getcwd() == "/environment/shell-plugins/mrs_plugin",
+                    reason="Test skipped when running on jenkins")
 def test_service_as_project(phone_book, table_contents):
     session = phone_book["session"]
 
@@ -476,3 +477,109 @@ def test_service_as_project(phone_book, table_contents):
     for service_name in ["myService1", "myService2"]:
         service = lib.services.get_service(session, url_context_root=f"/{service_name}")
         lib.services.delete_service(session, service["id"])
+
+    # test loading from GitHub
+    lib.services.load_project(session, "github.com/migueltadeu/tests-mrs-project|main")
+
+    with tempfile.TemporaryDirectory(delete=False) as directory_3:
+        lib.services.store_project(
+            session, directory_3, services, schemas, project_settings, False
+        )
+
+    compare = filecmp.dircmp(directory_1, directory_3)
+
+    for file in compare.diff_files:
+        with open(os.path.join(directory_1, file)) as f1:
+            with open(os.path.join(directory_3, file)) as f2:
+                if file == "mrs.package.json":
+                    json1 = json.load(f1)
+                    json2 = json.load(f2)
+
+                    assert "creationDate" in json1
+                    assert "creationDate" in json2
+
+                    assert datetime.datetime.strptime(
+                        json1.get("creationDate"), "%Y-%m-%d %H:%M:%S"
+                    )
+                    assert datetime.datetime.strptime(
+                        json2.get("creationDate"), "%Y-%m-%d %H:%M:%S"
+                    )
+
+                    # make these dates the same, so we can compare the json objects
+                    json1["creationDate"] = json2["creationDate"]
+
+                    assert json1 == json2
+
+                    compare.diff_files.remove("mrs.package.json")
+                else:
+                    file1_content = f1.read()
+                    file2_content = f2.read()
+
+                    for line in difflib.unified_diff(
+                        file1_content,
+                        file2_content,
+                        os.path.join(directory_1, file),
+                        os.path.join(directory_3, file),
+                        lineterm="",
+                    ):
+                        print(line)
+
+    assert not compare.diff_files
+
+    for service_name in ["myService1", "myService2"]:
+        service = lib.services.get_service(session, url_context_root=f"/{service_name}")
+        lib.services.delete_service(session, service["id"])
+
+
+    # test loading from GitHub
+    lib.services.load_project(session, "github/migueltadeu/tests-mrs-project")
+
+    with tempfile.TemporaryDirectory(delete=False) as directory_3:
+        lib.services.store_project(
+            session, directory_3, services, schemas, project_settings, False
+        )
+
+    compare = filecmp.dircmp(directory_1, directory_3)
+
+    for file in compare.diff_files:
+        with open(os.path.join(directory_1, file)) as f1:
+            with open(os.path.join(directory_3, file)) as f2:
+                if file == "mrs.package.json":
+                    json1 = json.load(f1)
+                    json2 = json.load(f2)
+
+                    assert "creationDate" in json1
+                    assert "creationDate" in json2
+
+                    assert datetime.datetime.strptime(
+                        json1.get("creationDate"), "%Y-%m-%d %H:%M:%S"
+                    )
+                    assert datetime.datetime.strptime(
+                        json2.get("creationDate"), "%Y-%m-%d %H:%M:%S"
+                    )
+
+                    # make these dates the same, so we can compare the json objects
+                    json1["creationDate"] = json2["creationDate"]
+
+                    assert json1 == json2
+
+                    compare.diff_files.remove("mrs.package.json")
+                else:
+                    file1_content = f1.read()
+                    file2_content = f2.read()
+
+                    for line in difflib.unified_diff(
+                        file1_content,
+                        file2_content,
+                        os.path.join(directory_1, file),
+                        os.path.join(directory_3, file),
+                        lineterm="",
+                    ):
+                        print(line)
+
+    assert not compare.diff_files
+
+    for service_name in ["myService1", "myService2"]:
+        service = lib.services.get_service(session, url_context_root=f"/{service_name}")
+        lib.services.delete_service(session, service["id"])
+

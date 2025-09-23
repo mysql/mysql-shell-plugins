@@ -4,11 +4,11 @@
 
 ### Additions
 
-- 
+- Allow to load MRS projects from a remote URL and GitHub shortcuts
 
 ### Fixes
 
-- 
+-
 
 ## Changes in 1.19.17+9.4.0
 
