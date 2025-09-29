@@ -480,6 +480,19 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     };
 
     /**
+     * Verifies if the cell text has the ellipsis/was truncated (3 dots)
+     * 
+     * @param cell The cell
+     * @returns A promise resolving with true if the cell has the ellipsis, false otherwise
+     */
+    public hasEllipsis = async (cell: WebElement): Promise<boolean> => {
+        const scrollWidth = await driver.executeScript("return arguments[0].scrollWidth", cell);
+        const clientWidth = await driver.executeScript("return arguments[0].clientWidth", cell);
+
+        return scrollWidth !== clientWidth;
+    };
+
+    /**
      * Sets a result grid cell with
      * 
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
@@ -492,9 +505,6 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             try {
                 let counter = 0;
                 let cell = await this.getCell(gridRow, gridRowColumn);
-                const getCellWidth =
-                    "return window.getComputedStyle(arguments[0]).getPropertyValue('width'); ";
-                const cellWidth: string = await driver.executeScript(getCellWidth, cell);
 
                 if (counter > 0) {
                     reduce = "js";
@@ -532,9 +542,8 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 }
 
                 cell = await this.getCell(gridRow, gridRowColumn);
-                const newCellWidth: string = await driver.executeScript(getCellWidth, cell);
 
-                return parseInt(newCellWidth.replace("px", ""), 10) < parseInt(cellWidth.replace("px", ""), 10);
+                return await this.hasEllipsis(cell);
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;

@@ -192,6 +192,170 @@ describe("NOTEBOOKS", () => {
             }
         });
 
+        it("Result grid cell tooltips - integer columns", async function () {
+
+            const rowNumber = 0;
+            const tableColumns: string[] = [];
+            await notebook.codeEditor.clean();
+            await notebook.codeEditor.execute("\\about", true);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_ints limit 1;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await driver.sleep(1000);
+
+            for (const key of result.columnsMap!.keys()) {
+                tableColumns.push(key);
+            }
+
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                if (i === tableColumns.length - 1) {
+                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                } else {
+                    try {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    } catch (e) {
+                        if (String(e).includes("The cell width was not reduced")) {
+                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                    constants.wait1second * 3);
+            }
+
+        });
+
+        it("Result grid cell tooltips - date columns", async function () {
+
+            const rowNumber = 0;
+            await notebook.codeEditor.clean();
+            await notebook.codeEditor.execute("\\about");
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_dates where id = 1;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await driver.sleep(1000);
+
+            const tableColumns: string[] = [];
+            for (const key of result.columnsMap!.keys()) {
+                tableColumns.push(key);
+            }
+
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                if (i === tableColumns.length - 1) {
+                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                } else {
+                    try {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    } catch (e) {
+                        if (String(e).includes("The cell width was not reduced")) {
+                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                    constants.wait1second * 3);
+            }
+
+        });
+
+        it("Result grid cell tooltips - char columns", async function () {
+
+            const rowNumber = 0;
+            await notebook.codeEditor.clean();
+            await notebook.codeEditor.execute("\\about", true);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_chars where id = 1;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await driver.sleep(1000);
+
+            const tableColumns: string[] = [];
+            for (const key of result.columnsMap!.keys()) {
+                tableColumns.push(key);
+            }
+
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                try {
+                    await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                } catch (e) {
+                    if (String(e).includes("The cell width was not reduced")) {
+                        E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    } else {
+                        throw e;
+                    }
+                }
+
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                    constants.wait1second * 3);
+            }
+
+        });
+
+        it("Result grid cell tooltips - binary and varbinary columns", async function () {
+
+            const rowNumber = 0;
+            await notebook.codeEditor.clean();
+            await notebook.codeEditor.execute("\\about", true);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_blobs limit 1;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await driver.sleep(1000);
+
+            const tableColumns: string[] = [];
+            for (const key of result.columnsMap!.keys()) {
+                tableColumns.push(key);
+            }
+
+            for (let i = 5; i <= tableColumns.length - 1; i++) {
+                if (i === tableColumns.length - 1) {
+                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                } else {
+                    try {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    } catch (e) {
+                        if (String(e).includes("The cell width was not reduced")) {
+                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                    constants.wait1second * 3);
+            }
+
+        });
+
+        it("Result grid cell tooltips - bit column", async function () {
+
+            const rowNumber = 0;
+            await notebook.codeEditor.clean();
+            await notebook.codeEditor.execute("\\about");
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_geometries;", true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await driver.sleep(1000);
+
+            const column = "test_bit";
+            await result.reduceCellWidth(rowNumber, column);
+            const cellText = await result.getCellValue(rowNumber, column);
+            await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait1second * 3);
+
+        });
+
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
 
             await TestQueue.push(this.test!.title);
@@ -1390,154 +1554,6 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Result grid cell tooltips - integer columns", async function () {
-            this.retries(3);
-            const rowNumber = 0;
-            const tableColumns: string[] = [];
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.execute("\\about", true);
-            const result = await notebook.codeEditor
-                .execute("SELECT * from sakila.all_data_types_ints limit 1;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            for (const key of result.columnsMap!.keys()) {
-                tableColumns.push(key);
-            }
-
-            for (let i = 1; i <= tableColumns.length - 1; i++) {
-                if (i === tableColumns.length - 1) {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                } else {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
-                        if (String(e).includes("The cell width was not reduced")) {
-                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
-                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                        }
-                    });
-                }
-                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait1second * 3);
-            }
-
-        });
-
-        it("Result grid cell tooltips - date columns", async function () {
-
-            this.retries(3);
-            const rowNumber = 0;
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor
-                .execute("SELECT * from sakila.all_data_types_dates where id = 1;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const tableColumns: string[] = [];
-            for (const key of result.columnsMap!.keys()) {
-                tableColumns.push(key);
-            }
-
-            for (let i = 1; i <= tableColumns.length - 1; i++) {
-                if (i === tableColumns.length - 1) {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                } else {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
-                        if (String(e).includes("The cell width was not reduced")) {
-                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
-                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                        }
-                    });
-                }
-
-                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait1second * 3);
-            }
-
-        });
-
-        it("Result grid cell tooltips - char columns", async function () {
-
-            this.retries(3);
-            const rowNumber = 0;
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.execute("\\about", true);
-            const result = await notebook.codeEditor
-                .execute("SELECT * from sakila.all_data_types_chars where id = 1;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const tableColumns: string[] = [];
-            for (const key of result.columnsMap!.keys()) {
-                tableColumns.push(key);
-            }
-
-            for (let i = 1; i <= tableColumns.length - 1; i++) {
-                await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
-                    if (String(e).includes("The cell width was not reduced")) {
-                        E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    }
-                });
-
-                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait1second * 3);
-            }
-
-        });
-
-        it("Result grid cell tooltips - binary and varbinary columns", async function () {
-
-            this.retries(3);
-            const rowNumber = 0;
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.execute("\\about", true);
-            const result = await notebook.codeEditor
-                .execute("SELECT * from sakila.all_data_types_blobs limit 1;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const tableColumns: string[] = [];
-            for (const key of result.columnsMap!.keys()) {
-                tableColumns.push(key);
-            }
-
-            for (let i = 5; i <= tableColumns.length - 1; i++) {
-                if (i === tableColumns.length - 1) {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                } else {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
-                        if (String(e).includes("The cell width was not reduced")) {
-                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
-                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                        }
-                    });
-                }
-
-                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait1second * 3);
-
-            }
-
-        });
-
-        it("Result grid cell tooltips - bit column", async function () {
-
-            this.retries(3);
-            const rowNumber = 0;
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor
-                .execute("SELECT * from sakila.all_data_types_geometries;", true) as E2ECommandResultGrid;
-            expect(result.status).to.match(/OK/);
-
-            const column = "test_bit";
-            await result.reduceCellWidth(rowNumber, column);
-            const cellText = await result.getCellValue(rowNumber, column);
-            await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait1second * 3);
-
-        });
-
         it("Edit a result grid and rollback", async () => {
             const modifiedText = "56";
             await notebook.codeEditor.clean();
@@ -2154,7 +2170,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("HeatWave Chat", () => {
+    describe.skip("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",

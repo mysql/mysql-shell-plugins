@@ -244,6 +244,7 @@ export class Os {
             await driver.actions()
                 .keyDown(osKey)
                 .sendKeys("a")
+                .pause(1000)
                 .keyUp(osKey)
                 .perform();
         }
@@ -265,6 +266,7 @@ export class Os {
                 await driver.actions()
                     .keyDown(osKey)
                     .sendKeys("c")
+                    .pause(1000)
                     .keyUp(osKey)
                     .perform();
             }
@@ -288,6 +290,7 @@ export class Os {
             await driver.actions()
                 .keyDown(osKey)
                 .sendKeys("v")
+                .pause(1000)
                 .keyUp(osKey)
                 .perform();
         }
@@ -308,6 +311,7 @@ export class Os {
             await driver.actions()
                 .keyDown(osKey)
                 .sendKeys("X")
+                .pause(1000)
                 .keyUp(osKey)
                 .perform();
         }
