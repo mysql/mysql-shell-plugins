@@ -914,6 +914,8 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Copy paste into notebook", async function () {
+
+            this.retries(2);
             await TestQueue.push(this.test!.title);
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);

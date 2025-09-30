@@ -222,8 +222,8 @@ export class E2ELakehouseTables {
         return new Condition(` for all tasks with name '${task}' to be completed`, async () => {
             const tasks = await this.getLakeHouseTasks();
             if (tasks.length > 0) {
-                for (const task of tasks) {
-                    if (task.name === `Loading ${task}` && task.status === `RUNNING`) {
+                for (const refTask of tasks) {
+                    if (refTask.name === `Loading ${task}` && refTask.status === `RUNNING`) {
                         return false;
                     }
                 }
