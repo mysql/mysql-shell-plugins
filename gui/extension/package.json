@@ -2113,6 +2113,7 @@
         "eslint-plugin-jsdoc": "51.2.1",
         "eslint-plugin-prefer-arrow": "1.2.3",
         "oci-mysql": "2.111.2",
+        "tsx": "4.19.4",
         "typescript": "5.8.3",
         "typescript-eslint": "8.34.1"
     },
@@ -2128,6 +2129,6 @@
         "esbuild-watch": "npm run esbuild -- --sourcemap --watch",
         "lint": "eslint \"./src/**/*.ts\"",
         "unit-tests": "mkdir -p .vscode-test/vscode-dummy/ && touch .vscode-test/vscode-dummy/dummy.txt",
-        "package-extension": "pwsh scripts/package_extension.ps1"
+        "package-extension": "tsx scripts/package_extension.ts"
     }
 }
