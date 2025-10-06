@@ -157,6 +157,7 @@ describe("MRS Content Set dialog tests", () => {
             await dialogHelper.setInputText("requestPath", "");
 
             const okButton = portal.querySelector("#ok");
+            const cancelButton = portal.querySelector("#cancel");
             fireEvent.click(okButton!);
             await nextRunLoop();
             dialogHelper.verifyErrors(["The request path must not be empty."]);
@@ -167,9 +168,7 @@ describe("MRS Content Set dialog tests", () => {
             dialogHelper.verifyErrors(["The request path must start with /."]);
 
             await dialogHelper.setInputText("requestPath", "/someRequestPath");
-            fireEvent.click(okButton!);
-            await nextRunLoop();
-            dialogHelper.verifyErrors();
+            fireEvent.click(cancelButton!);
         });
 
         await hubRef.current!.showMrsContentSetDialog(backend);

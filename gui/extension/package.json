@@ -859,12 +859,24 @@
                 "title": "Load REST Schema From JSON File..."
             },
             {
+                "command": "msg.mrs.loadProjectFromDisk",
+                "title": "Load REST Project from Disk ..."
+            },
+            {
+                "command": "msg.mrs.loadProjectFromUrl",
+                "title": "Load REST Project from URL ..."
+            },
+            {
                 "command": "msg.mrs.exportServiceSdk",
                 "title": "Dump REST Client SDK Files ..."
             },
             {
                 "command": "msg.mrs.dumpCreateServiceSql",
                 "title": "Dump REST SERVICE SQL Script..."
+            },
+            {
+                "command": "msg.mrs.dumpServiceAsProject",
+                "title": "Dump REST Service as REST Project ..."
             },
             {
                 "command": "msg.mrs.dumpCreateSchemaSql",
@@ -1164,6 +1176,17 @@
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.mrs.loadProjectFromDisk",
+                    "when": "view == msg.connections && (viewItem == mrs || viewItem == mrsService)",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.loadProjectFromUrl",
+                    "when": "view == msg.connections && (viewItem == mrs || viewItem == mrsService)",
+                    "group": "2_msg@2"
+                },
+
+                {
                     "command": "msg.mrs.loadObjectFromJSONFile",
                     "when": "view == msg.connections && viewItem == mrsSchema",
                     "group": "2_msg@1"
@@ -1199,6 +1222,11 @@
                     "command": "msg.mrs.dumpCreateServiceSql",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mrs.dumpServiceAsProject",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@3"
                 },
                 {
                     "command": "msg.mrs.dumpCreateSchemaSqlIncludeDatabaseEndpoints",
@@ -1547,7 +1575,7 @@
                 },
                 {
                     "submenu": "msg.loadFromDisk",
-                    "when": "viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "when": "viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/ || viewItem == mrs",
                     "group": "2_msg@3"
                 },
                 {

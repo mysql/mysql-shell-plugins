@@ -591,11 +591,15 @@ export interface IShellMrsLoadServiceSqlScriptKwargs {
     filePath?: string;
     /** The name for the new service. */
     newRequest?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
 }
 
 export interface IShellMrsLoadServiceProjectKwargs {
     /** The path where to store the file. */
-    filePath?: string;
+    source?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
 }
 
 export interface IShellMrsAddSchemaKwargs {

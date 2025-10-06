@@ -950,6 +950,26 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Add REST Service...", command: "msg.mrs.addService" }} />
+                    <MenuItem command={{ title: "Load REST Service", command: "" }} >
+                        <MenuItem
+                            command={{
+                                title: "Load REST Project from Disk ...",
+                                command: "msg.mrs.loadProjectFromDisk",
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Load REST Project from URL ...",
+                                command: "msg.mrs.loadProjectFromUrl",
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Load REST Project from Github ...",
+                                command: "msg.mrs.loadProjectFromGithubShortcut",
+                            }}
+                        />
+                    </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Enable MySQL REST Service", command: "msg.mrs.enableMySQLRestService" }}
@@ -1006,6 +1026,24 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                             }}
                             disabled
                         />
+                        <MenuItem
+                            command={{
+                                title: "Load REST Project from Disk ...",
+                                command: "msg.mrs.loadProjectFromDisk",
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Load REST Project from URL ...",
+                                command: "msg.mrs.loadProjectFromUrl",
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Load REST Project from Github ...",
+                                command: "msg.mrs.loadProjectFromGithubShortcut",
+                            }}
+                        />
                     </MenuItem>
                     <MenuItem command={{ title: "Dump to Disk", command: "" }}>
                         <MenuItem
@@ -1013,6 +1051,18 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                             disabled
                         />
                         <MenuItem command={{ title: "-", command: "" }} disabled />
+                        <MenuItem
+                            command={{
+                                title: "Dump REST SERVICE SQL Script...",
+                                command: "msg.mrs.dumpCreateServiceSql"
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Dump REST Service as REST Project ...",
+                                command: "msg.mrs.dumpServiceAsProject"
+                            }}
+                        />
                     </MenuItem>
                     <MenuItem command={{ title: "Copy to Clipboard", command: "" }}>
                         <MenuItem

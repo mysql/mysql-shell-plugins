@@ -459,10 +459,13 @@ export const libraryCtxMenu = new Map([
 
 export const dumpRESTSchemaToSQL = "Rest Schema SQL...";
 export const loadFromDisk = "Load from Disk";
+export const loadProjectFromDisk = "Load REST Project from Disk ...";
+export const loadProjectFromUrl = "Load REST Project from URL ...";
 export const restObjectFromJSONFile = "REST Object From JSON File...";
 export const restSchemaFromJSONFile = "Load REST Schema From JSON File...";
 export const restClientSDKFiles = "Dump REST Client SDK Files ...";
 export const restSQLScript = "Dump REST SERVICE SQL Script...";
+export const restServiceProject = "Dump REST Service as REST Project ...";
 
 export const exportCreateServiceStatement = "Export CREATE REST SERVICE Statement...";
 export const exportCreateServiceStatementAll = "Export CREATE REST SERVICE Statement Including Database Objects";
@@ -495,9 +498,12 @@ export const restServiceCtxMenu = new Map([
     [setAsCurrentREST, 2],
     [loadFromDisk, 3],
     [restSchemaFromJSONFile, 0],
+    [loadProjectFromDisk, 1],
+    [loadProjectFromUrl, 2],
     [dumpToDisk, 4],
     [restClientSDKFiles, 0],
     [restSQLScript, 1],
+    [restServiceProject, 2],
     [exportCreateServiceStatement, 1],
     [exportCreateServiceStatementAll, 2],
     [copyToClipboard, 5],

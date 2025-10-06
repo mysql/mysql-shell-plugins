@@ -172,6 +172,249 @@ export class SidebarCommandHandler {
                             // TODO: works with the file system, not possible in a browser.
                             break;
                         }
+                        case "msg.mrs.loadProjectFromDisk": {
+                            const response = await DialogHost.showDialog({
+                                id: "loadProjectFromUrl",
+                                type: DialogType.Prompt,
+                                title: "Load REST Project",
+                                description: ["Load a REST Project from a ZIP file or folder"],
+                                values: {
+                                    prompt: "Enter the path for the MRS Project ZIP file or folder.",
+                                    value: "",
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept && response.values) {
+                                const source = response.values.input as string;
+
+                                const statusBarItem = ui.createStatusBarItem();
+                                statusBarItem.text = `$(loading~spin) Loading REST Project from ${source} ...`;
+
+                                try {
+                                    await connection.backend.mrs.loadProject(source);
+
+                                    const treeItem = entry.type === CdmEntityType.MrsRoot
+                                        ? entry
+                                        : entry.type === CdmEntityType.MrsService
+                                            ? entry.parent
+                                            : undefined;
+                                    if (treeItem) {
+                                        if (treeItem.state.expanded) {
+                                            await treeItem.refresh?.();
+                                        }
+                                    }
+                                    void ui.showInformationMessage(`The REST Project was loaded successfully.`, {});
+                                } catch (error) {
+                                    console.log(`Failed to load the project.\n${error}`);
+                                    void ui.showInformationMessage(`Failed to load the REST Project.\n${error}`, {});
+                                } finally {
+                                    statusBarItem.dispose();
+                                }
+                            }
+
+                            break;
+                        }
+                        case "msg.mrs.loadProjectFromUrl": {
+                            const response = await DialogHost.showDialog({
+                                id: "loadProjectFromUrl",
+                                type: DialogType.Prompt,
+                                title: "Load REST Project",
+                                description: ["Load a REST Project ZIP from a URL"],
+                                values: {
+                                    prompt: "Enter the URL for the MRS Project ZIP file.",
+                                    value: "https://",
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept && response.values) {
+                                const source = response.values.input as string;
+
+                                const statusBarItem = ui.createStatusBarItem();
+                                statusBarItem.text = `$(loading~spin) Loading REST Project from ${source} ...`;
+
+                                try {
+                                    await connection.backend.mrs.loadProject(source);
+
+                                    const treeItem = entry.type === CdmEntityType.MrsRoot
+                                        ? entry
+                                        : entry.type === CdmEntityType.MrsService
+                                            ? entry.parent
+                                            : undefined;
+                                    if (treeItem) {
+                                        if (treeItem.state.expanded) {
+                                            await treeItem.refresh?.();
+                                        }
+                                    }
+                                    void ui.showInformationMessage(`The REST Project was loaded successfully.`, {});
+                                } catch (error) {
+                                    console.log(`Failed to load the project.\n${error}`);
+                                    void ui.showInformationMessage(`Failed to load the REST Project.\n${error}`, {});
+                                } finally {
+                                    statusBarItem.dispose();
+                                }
+                            }
+
+                            break;
+                        }
+                        case "msg.mrs.loadProjectFromGithubShortcut": {
+                            const response = await DialogHost.showDialog({
+                                id: "loadProjectFromUrl",
+                                type: DialogType.Prompt,
+                                title: "Load REST Project",
+                                description: ["Load a REST Project from Github"],
+                                values: {
+                                    prompt: "Enter the Github shortcut for the REST Project",
+                                    value: "github/<user>/<repository>[|branch]",
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept && response.values) {
+                                const source = response.values.input as string;
+
+                                const statusBarItem = ui.createStatusBarItem();
+                                statusBarItem.text = `$(loading~spin) Loading REST Project from ${source} ...`;
+
+                                try {
+                                    await connection.backend.mrs.loadProject(source);
+
+                                    const treeItem = entry.type === CdmEntityType.MrsRoot
+                                        ? entry
+                                        : entry.type === CdmEntityType.MrsService
+                                            ? entry.parent
+                                            : undefined;
+                                    if (treeItem) {
+                                        if (treeItem.state.expanded) {
+                                            await treeItem.refresh?.();
+                                        }
+                                    }
+                                    void ui.showInformationMessage(`The REST Project was loaded successfully.`, {});
+                                } catch (error) {
+                                    console.log(`Failed to load the project.\n${error}`);
+                                    void ui.showInformationMessage(`Failed to load the REST Project.\n${error}`, {});
+                                } finally {
+                                    statusBarItem.dispose();
+                                }
+                            }
+
+                            break;
+                        }
+                        case "msg.mrs.dumpServiceAsProject": {
+                            const service = entry as ICdmRestServiceEntry;
+                            const dialogRequest: IDialogRequest = {
+                                id: "dumpProjectToDisk",
+                                type: DialogType.Prompt,
+                                title: "Dump REST Project",
+                                description: ["Dump REST Project either to a folder or a ZIP file."],
+                                values: {
+                                    prompt: "Enter the folder or ZIP path",
+                                    value: "",
+                                },
+                            };
+
+                            // request the path to the user
+                            let response = await DialogHost.showDialog(dialogRequest);
+
+                            if (response.closure !== DialogResponseClosure.Accept || response.values === undefined) {
+                                void ui.showInformationMessage("Dump REST Project canceled.", {});
+                                break;
+                            }
+
+                            const destination = response.values.input as string;
+                            const zip = destination.toLowerCase().endsWith(".zip");
+
+                            // request the project name
+                            dialogRequest.values = {
+                                prompt: "Enter the name of the project",
+                                value: "",
+                            };
+
+                            response = await DialogHost.showDialog(dialogRequest);
+
+                            if (response.closure !== DialogResponseClosure.Accept || response.values === undefined) {
+                                void ui.showInformationMessage("Dump REST Project canceled.", {});
+                                break;
+                            }
+
+                            const projectName = response.values.input as string;
+
+                            // request the description
+                            dialogRequest.values = {
+                                prompt: "Enter the project description",
+                                value: "",
+                            };
+
+                            response = await DialogHost.showDialog(dialogRequest);
+
+                            if (response.closure !== DialogResponseClosure.Accept || response.values === undefined) {
+                                void ui.showInformationMessage("Dump REST Project canceled.", {});
+                                break;
+                            }
+
+                            const projectDescription = response.values.input as string;
+
+                            // request the publisher
+                            dialogRequest.values = {
+                                prompt: "Enter the project publisher",
+                                value: "",
+                            };
+
+                            response = await DialogHost.showDialog(dialogRequest);
+
+                            if (response.closure !== DialogResponseClosure.Accept || response.values === undefined) {
+                                void ui.showInformationMessage("Dump REST Project canceled.", {});
+                                break;
+                            }
+
+                            const projectPublisher = response.values.input as string;
+
+                            // request the version
+                            dialogRequest.values = {
+                                prompt: "Enter the project version",
+                                value: "1.0.0",
+                            };
+
+                            response = await DialogHost.showDialog(dialogRequest);
+
+                            if (response.closure != DialogResponseClosure.Accept || response.values === undefined) {
+                                void ui.showInformationMessage("Dump REST Project canceled.", {});
+                                break;
+                            }
+
+                            const projectVersion = response.values.input as string;
+
+                            // request the icon path
+                            dialogRequest.values = {
+                                prompt: "Enter the project icon path",
+                                value: "",
+                            };
+
+                            response = await DialogHost.showDialog(dialogRequest);
+
+                            if (response.closure !== DialogResponseClosure.Accept || response.values === undefined) {
+                                void ui.showInformationMessage("Dump REST Project canceled.", {});
+                                break;
+                            }
+
+                            const projectIcon = response.values.input as string;
+
+                            const statusBarItem = ui.createStatusBarItem();
+                            statusBarItem.text = `$(loading~spin) Dumping REST Project to ${destination} ...`;
+
+                            try {
+                                await connection.backend.mrs.dumpServiceAsProject(service.caption, destination,
+                                    projectName, projectDescription, projectPublisher,
+                                    projectVersion, projectIcon, zip
+                                );
+                                void ui.showInformationMessage(`The REST Project was dumped successfully.`, {});
+                            } catch (error) {
+                                console.log(`Failed to dump the project.\n${error}`);
+                                void ui.showInformationMessage(`Failed to dump the REST Project.\n${error}`, {});
+                            } finally {
+                                statusBarItem.dispose();
+                            }
+
+                            break;
+                        }
 
                         case "msg.mrs.copyCreateServiceSql": {
                             const object = entry as ICdmRestDbObjectEntry;
@@ -1290,7 +1533,7 @@ export class SidebarCommandHandler {
                         entry.schema, 1, `/${convertSnakeToCamelCase(entry.schema)}`, false, null, null, undefined);
                     void ui.showInformationMessage(`The MRS schema ${entry.schema} has been added successfully.`, {});
                 } else {
-                    throw new Error("Operation cancelled.");
+                    throw new Error("Operation canceled.");
                 }
             }
         } else {

@@ -1269,7 +1269,6 @@ def dump_service_as_project(**kwargs):
     schemas = kwargs.get("schemas")
     project_settings = kwargs.get("settings")
     create_zip = kwargs.get("zip")
-    services = kwargs.get("services")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         lib.services.store_project_validations(session,
@@ -1297,6 +1296,7 @@ def load_service_sql_script(**kwargs):
     Keyword Args:
         file_path (str): The path where to store the file.
         new_request (str): The name for the new service.
+        session (object): The database session to use.
     """
     file_path = kwargs.get("file_path")
 
@@ -1315,12 +1315,16 @@ def load_service_project(**kwargs):
         **kwargs: Options to determine what should be generated.
 
     Keyword Args:
-        file_path (str): The path where to store the file.
+        source (str): The path where to store the file.
+        session (object): The database session to use.
     """
-    file_path = kwargs.get("file_path")
+    source = kwargs.get("source")
 
-    if not os.path.isfile(file_path) and not os.path.isdir(file_path):
-        raise Exception(f"The specified file or directory {file_path} was not found.")
+    if (not lib.services.is_zipfile(source)
+        and not os.path.isdir(source)
+        and not lib.services.is_github_shortcut(source)
+        and not lib.services.is_url(source)):
+        raise ValueError("The source must be a ZIP file, a directory, a URL or a Github shortcut.")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        lib.services.load_project(session, file_path)
+        lib.services.load_project(session, source)

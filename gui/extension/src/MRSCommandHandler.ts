@@ -1424,6 +1424,180 @@ export class MRSCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.mrs.loadProjectFromDisk",
+            async (entry?: ICdmRestServiceEntry | Uri) => {
+                if (!entry) {
+                    return;
+                }
+
+                if (!(entry instanceof Uri)) {
+                    const backend = entry.connection.backend;
+
+                    await window.showOpenDialog({
+                        title: "Load REST Project ...",
+                        openLabel: "Select source file or directory",
+                        canSelectFiles: true,
+                        canSelectFolders: true,
+                        canSelectMany: false,
+                        filters: {
+                            "Zip": ["zip"],
+                        },
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            const statusbarItem = window.createStatusBarItem();
+                            try {
+                                statusbarItem.text = "$(loading~spin) Loading REST Schema ...";
+                                statusbarItem.show();
+
+                                const path = value[0].fsPath;
+                                await backend.mrs.loadProject(path);
+                                void commands.executeCommand("msg.refreshConnections");
+                                void ui.showInformationMessage("The REST Project has been loaded successfully.", {});
+                            } catch (reason) {
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorMessage(`Error loading REST Project: ${message}`, {});
+                            } finally {
+                                statusbarItem.hide();
+                            }
+                        }
+                    });
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.loadProjectFromUrl",
+            async (entry?: ICdmRestServiceEntry | Uri) => {
+                if (!entry) {
+                    return;
+                }
+
+                if (!(entry instanceof Uri)) {
+                    const backend = entry.connection.backend;
+
+                    const value = await window.showInputBox({
+                        title: "Load REST Project...",
+                        prompt: "Enter the REST Project URL [https://<url>, " +
+                            "http://<url> or github/<profile>/<repository><| branch>]",
+                        ignoreFocusOut: true,
+                        validateInput: (value: string): string | undefined => {
+                            if (value.startsWith("http://") ||
+                                value.startsWith("https://") ||
+                                value.startsWith("github/") ||
+                                value.startsWith("github.com/")) {
+                                return undefined;
+                            }
+
+                            return "The URL must start with 'http://', 'https://' or 'github/'";
+                        }
+                    });
+
+                    if (value !== undefined) {
+                        const statusbarItem = window.createStatusBarItem();
+                        try {
+                            statusbarItem.text = "$(loading~spin) Loading REST Schema ...";
+                            statusbarItem.show();
+
+                            await backend.mrs.loadProject(value);
+                            void commands.executeCommand("msg.refreshConnections");
+                            void ui.showInformationMessage("The REST Project has been loaded successfully.", {});
+                        } catch (reason) {
+                            const message = convertErrorToString(reason);
+                            void ui.showErrorMessage(`Error loading REST Project: ${message}`, {});
+                        } finally {
+                            statusbarItem.hide();
+                        }
+                    }
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.dumpServiceAsProject",
+            async (entry?: ICdmRestServiceEntry | Uri) => {
+                if (!entry) {
+                    return;
+                }
+
+                if (!(entry instanceof Uri)) {
+                    const backend = entry.connection.backend;
+
+                    const result = await window.showSaveDialog({
+                        title: "Dump REST Project...",
+                        saveLabel: "Select the destination ZIP file or directory",
+                    });
+
+                    if (result === undefined) {
+                        return;
+                    }
+
+                    const destination = result.fsPath;
+                    const zip = destination.toLowerCase().endsWith(".zip");
+
+                    const dialogRequest = {
+                        title: "Dump REST Project...",
+                        prompt: "Enter the name of the REST Project",
+                        ignoreFocusOut: true,
+                    };
+
+                    const projectName = await window.showInputBox(dialogRequest);
+
+                    if (projectName === undefined) {
+                        return;
+                    }
+
+                    dialogRequest.prompt = "Enter the description of the REST Project";
+                    const projectDescription = await window.showInputBox(dialogRequest);
+
+                    if (projectDescription === undefined) {
+                        return;
+                    }
+
+                    dialogRequest.prompt = "Enter the publisher of the REST Project";
+                    const projectPublisher = await window.showInputBox(dialogRequest);
+
+                    if (projectPublisher === undefined) {
+                        return;
+                    }
+
+                    dialogRequest.prompt = "Enter the REST Project version";
+                    const projectVersion = await window.showInputBox(dialogRequest);
+
+                    if (projectVersion === undefined) {
+                        return;
+                    }
+
+                    dialogRequest.prompt = "Enter the icon path for the REST Project";
+
+                    const result2 = await window.showOpenDialog({
+                        title: "Dump REST Project...",
+                        openLabel: "Select the icon file",
+                        filters: {
+                            "Images": ["jpg", "jpeg", "png", "svg", "ico"],
+                        },
+                    });
+
+                    if (result2 === undefined || result2.length == 0) {
+                        return;
+                    }
+
+                    const projectIcon = result2[0].fsPath;
+
+                    const statusbarItem = window.createStatusBarItem();
+                    try {
+                        statusbarItem.text = "$(loading~spin) Dumping REST Schema ...";
+                        statusbarItem.show();
+
+                        await backend.mrs.dumpServiceAsProject(entry.caption, destination,
+                            projectName, projectDescription, projectPublisher, projectVersion,
+                            projectIcon, zip
+                        );
+                        void ui.showInformationMessage("The REST Project has been dumped successfully.", {});
+                    } catch (reason) {
+                        const message = convertErrorToString(reason);
+                        void ui.showErrorMessage(`Error dumping REST Project: ${message}`, {});
+                    } finally {
+                        statusbarItem.hide();
+                    }
+                }
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.mrs.loadObjectFromJSONFile",
             async (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {

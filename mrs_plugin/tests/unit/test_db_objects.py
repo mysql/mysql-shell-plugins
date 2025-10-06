@@ -32,7 +32,7 @@ from .helpers import get_db_object_privileges, TableContents, SchemaCT, DbObject
 
 db_object_create_statement = """CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS `PhoneBook`.`Contacts` CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -639,7 +639,7 @@ def test_dump_create_statement(phone_book, table_contents):
 def test_dump_and_recover(phone_book):
     db_object_create_statement2 = """CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
+    AS `PhoneBook`.`Addresses` CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
     AUTHENTICATION NOT REQUIRED

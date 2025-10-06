@@ -110,7 +110,7 @@ CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /AnalogPhoneBook
-    AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS `AnalogPhoneBook`.`Contacts` CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -125,7 +125,7 @@ CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /MobilePhoneBook
-    AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS `MobilePhoneBook`.`Contacts` CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -140,7 +140,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS `PhoneBook`.`Contacts` CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -748,12 +748,6 @@ def test_service_as_project(phone_book, table_contents):
             db_object_type="PROCEDURE",
         ),
     )
-    DbObjectCT(
-        session,
-        **get_default_db_object_init(
-            session, schema2.id, "ContactBasicInfo", "/ContactBasicInfo"
-        ),
-    )
 
     # Test storing the project into a directory
     with tempfile.TemporaryDirectory(delete=False) as directory_1:
@@ -833,8 +827,13 @@ def test_service_as_project(phone_book, table_contents):
             iconFile.write(" ")
 
         zip_path = os.path.join(directory_zip_1, "project.mrs.zip")
-        lib.services.store_project(
-            session, zip_path, services, schemas, project_settings, True
+        dump_service_as_project(
+            destination=zip_path,
+            services=services,
+            schemas=schemas,
+            settings=project_settings,
+            zip=True,
+            overwrite=True,
         )
 
         assert os.path.isfile(zip_path)
@@ -889,7 +888,7 @@ def test_service_as_project(phone_book, table_contents):
 
     assert os.path.isdir(directory_1)
 
-    load_service_project(file_path=directory_1)
+    load_service_project(source=directory_1)
 
     with tempfile.TemporaryDirectory(delete=False) as directory_2:
         dump_service_as_project(

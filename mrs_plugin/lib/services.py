@@ -763,18 +763,31 @@ def store_project_validations(
         if service is None:
             raise Exception(f"The service '{service_name}' was not found.")
 
-    for schema_request_path in schemas:
-        file_path = schema_request_path.get("file_path")
-        if file_path and not (
-            os.path.exists(file_path)
-            and (os.path.isfile(file_path) or os.path.isdir(file_path))
-        ):
+    if schemas:
+        for schema_request_path in schemas:
+            file_path = schema_request_path.get("file_path")
+            if file_path and not (
+                os.path.exists(file_path)
+                and (os.path.isfile(file_path) or os.path.isdir(file_path))
+            ):
 
-            raise Exception(f"The given schema '{file_path}' was not found")
+                raise Exception(f"The given schema '{file_path}' was not found")
 
     if project_settings["icon_path"]:
         if not os.path.isfile(project_settings["icon_path"]):
             raise Exception("The icon path is not valid.")
+
+
+def auto_detect_project_dependencies(session, service_id):
+    """This function will auto-detect the schemas that this service
+    depends on"""
+    result = []
+
+    for schema in schemas.get_schemas(session, service_id):
+        if schema["schema_type"] == "DATABASE_SCHEMA":
+            result.append({ "name": schema["name"], "file_path": None })
+
+    return result
 
 
 def store_project(
@@ -819,6 +832,15 @@ def store_project(
     for service_data in services:
         service = get_service(session, url_context_root=service_data["name"])
 
+        # This is a special case for when the project dump is triggered by the
+        # frontend. The only thing that is asked from the user will be the
+        # destination path. A single service will be used (the one selected by
+        # the user). In this case, we'll try to auto-detect the project dependencies.
+        # This should be solved when we build a full dialog where the user can choose
+        # what to add to the project.
+        if len(services) == 1 and not schemas == 0:
+            schemas = auto_detect_project_dependencies(session, service["id"])
+
         # create the path by removing the '/' in the service request path
         target_file_name = f"{service_data["name"][1:]}.service.mrs.sql"
         file_path = os.path.join(temp_dir, target_file_name)
@@ -832,6 +854,7 @@ def store_project(
             service_data["include_static_endpoints"],
             service_data["include_dynamic_endpoints"],
         )
+
         config["restServices"].append(
             {
                 "serviceName": service_data["name"],
@@ -976,8 +999,9 @@ class LoadProjectFileContext:
             zip_file.extractall(self.extract_dir.name)
             self.path = self.extract_dir.name
 
-            if self.repo is not None:
-                self.path = os.path.join(self.path, f"{self.repo}-{branch}")
+            sub_items = os.listdir(self.path)
+            if len(sub_items) == 1 and os.path.isdir(os.path.join(self.path, sub_items[0])):
+                self.path = os.path.join(self.path, sub_items[0])
 
 
     def __enter__(self) -> str:
@@ -996,7 +1020,6 @@ class LoadProjectFileContext:
 
 
 def load_project(session, path: str):
-
     with LoadProjectFileContext(path) as base_directory:
 
         project_file = os.path.join(base_directory, "mrs.package.json")
@@ -1007,7 +1030,11 @@ def load_project(session, path: str):
 
         with core.MrsDbTransaction(session):
             for schema in project_config.get("schemas", []):
+                if database.get_schema(session, schema) is not None:
+                    raise ValueError(f"The schema '{schema}' already exists.")
+
                 schema_path = os.path.join(base_directory, schema["path"])
+
                 if schema["format"] == "sqlFile":
                     with open(schema_path) as f:
                         run_sql_script(session, f.read())
@@ -1037,8 +1064,12 @@ def load_project(session, path: str):
                     raise Exception("Invalid schema format.")
 
             for service in project_config.get("restServices", []):
+                if get_service(session, url_context_root=service["serviceName"]) is not None:
+                    raise ValueError(f"The service '{service["serviceName"]}' already exists.")
+
                 with open(os.path.join(base_directory, service["fileName"])) as f:
-                    run_sql_script(session, f.read())
+                    content = f.read()
+                    run_sql_script(session, content)
 
 
 def get_service_sdk_data(session, service_id, binary_formatter=None):

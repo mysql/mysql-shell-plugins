@@ -849,7 +849,7 @@ def get_db_object_create_statement(session, db_object, objects) -> str:
     output = [
         f'CREATE OR REPLACE REST {object_type} {db_object.get("request_path")}',
         f'    ON SERVICE {db_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}',
-        f'    AS {db_object.get("qualified_name")}'
+        f'    AS `{db_object.get("schema_name")}`.`{db_object.get("name")}`'
     ]
 
     if object_type != "PROCEDURE" and object_type != "FUNCTION":

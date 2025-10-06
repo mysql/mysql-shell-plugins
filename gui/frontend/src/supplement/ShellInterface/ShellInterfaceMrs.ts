@@ -1393,4 +1393,45 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
+
+    public async dumpServiceAsProject(service: string, destination: string,
+        name: string, description: string, publisher: string,
+        version: string, iconPath: string, zip: boolean): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpServiceProject,
+            parameters: {
+                kwargs: {
+                    services: [{
+                        name: service,
+                        includeDatabaseEndpoints: true,
+                        includeStaticEndpoints: true,
+                        includeDynamicEndpoints: true,
+                    }],
+                    settings: {
+                        name,
+                        description,
+                        publisher,
+                        version,
+                        iconPath,
+                    },
+                    destination,
+                    zip,
+                    overwrite: true,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async loadProject(source: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsLoadServiceProject,
+            parameters: {
+                kwargs: {
+                    source,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            }
+        });
+    }
 }
