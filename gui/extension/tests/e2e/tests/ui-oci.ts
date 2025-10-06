@@ -40,6 +40,7 @@ import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
+import { E2ERecording } from "../lib/E2ERecording";
 
 let ociConfig: interfaces.IOciProfileConfig | undefined;
 let ociTree: RegExp[];
@@ -49,6 +50,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
     const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
+    let e2eRecording: E2ERecording | undefined = Os.isLinux() ? new E2ERecording() : undefined;
 
     before(async function () {
 
@@ -60,8 +62,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         ociTree = [new RegExp(`E2ETESTS \\(${ociConfig!.region}\\)`),
         new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
+        let hookResult = "passed";
 
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await ociTreeSection.focus();
@@ -70,40 +75,35 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 "config editor was not opened");
             await ociTreeSection.clickToolbarButton(constants.reloadOci);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, e2eRecording, hookResult);
         }
 
     });
 
     after(async function () {
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
+        Misc.removeDatabaseConnections();
     });
 
     describe("Profile", () => {
 
         let existsInQueue = false;
+        const e2eRecording: E2ERecording = new E2ERecording();
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
-
+            await Misc.processResult(this, e2eRecording);
             await Workbench.closeAllEditors();
         });
 
@@ -134,42 +134,39 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let compartmentId = "";
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.closeAllEditors();
         });
 
         after(async function () {
-
-            try {
-                await new EditorView().closeAllEditors();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-
+            await new EditorView().closeAllEditors();
         });
 
         it("View Compartment Information", async function () {
@@ -213,30 +210,34 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("DB System", () => {
 
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, e2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.closeAllEditors();
         });
 
@@ -334,30 +335,34 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let bastionId: string;
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await tasksTreeSection.collapse();
         });
 
@@ -438,31 +443,35 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Compute Instance", () => {
 
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            const localE2eRecording: E2ERecording = new E2ERecording();
+            let hookResult = "passed";
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
                 await ociTreeSection.focus();
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.closeAllEditors();
         });
 

@@ -53,6 +53,7 @@ import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandR
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ELogger } from "../lib/E2ELogger";
 import { CreateLibraryDialog } from "../lib/WebViews/Dialogs/CreateLibraryFrom";
+import { E2ERecording } from "../lib/E2ERecording";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -72,9 +73,11 @@ describe("DATABASE CONNECTIONS", () => {
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
     before(async function () {
-
+        let hookResult = "passed";
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
             const activityBare = new ActivityBar();
@@ -88,33 +91,29 @@ describe("DATABASE CONNECTIONS", () => {
             await new BottomBarPanel().toggle(false);
             await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
 
     });
 
     after(async function () {
-
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-
+        Misc.removeDatabaseConnections();
     });
 
     describe("Toolbar", () => {
 
+        let e2eRecording: E2ERecording = new E2ERecording();
+
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
+            await Misc.processResult(this, e2eRecording);
         });
 
         it("Reload the connection list", async () => {
@@ -209,14 +208,18 @@ describe("DATABASE CONNECTIONS", () => {
         });
     });
 
-    describe("MySQL Administration", () => {
+    describe("MySQL Administration (Server)", () => {
 
         const mysqlAdministration = new E2EMySQLAdministration();
         const toolbar = new E2EToolbar();
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
             await Os.appendToExtensionLog("beforeAll MySQL Administration");
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await Os.deleteCredentials();
                 await Workbench.closeAllEditors();
                 await dbTreeSection.focus();
@@ -226,35 +229,33 @@ describe("DATABASE CONNECTIONS", () => {
                 const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
                 await treeMySQLAdmin.expand();
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
 
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
+            await Misc.processResult(this, e2eRecording);
         });
 
         after(async function () {
-
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.currentTest!.title);
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
                 await treeGlobalConn.collapse();
                 await Workbench.closeAllEditors();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording);
             }
-
         });
 
         it("Server Status", async () => {
@@ -505,190 +506,202 @@ describe("DATABASE CONNECTIONS", () => {
                 .match(/(\d+)/)![1], 10)).to.match(/(\d+)/);
         });
 
-        describe("Lakehouse Navigator", () => {
+    });
 
-            const heatWaveConn: interfaces.IDBConnection = {
-                dbType: "MySQL",
-                caption: "e2eHeatWave Connection",
-                description: "Local connection",
-                basic: {
-                    hostname: String(process.env.HWHOSTNAME),
-                    username: String(process.env.HWUSERNAME),
-                    schema: "e2e_tests",
-                    password: String(process.env.HWPASSWORD),
-                },
-            };
+    describe("MySQL Administration (Lakehouse Navigator)", () => {
 
-            const newTask: interfaces.INewLoadingTask = {
-                name: "qa_cookbook_ext",
-                description: "How do cook properly",
-                targetDatabaseSchema: "e2e_tests",
-                formats: "PDF (Portable Document Format Files)",
-            };
+        const heatWaveConn: interfaces.IDBConnection = {
+            dbType: "MySQL",
+            caption: "e2eHeatWave Connection",
+            description: "Local connection",
+            basic: {
+                hostname: String(process.env.HWHOSTNAME),
+                username: String(process.env.HWUSERNAME),
+                schema: "e2e_tests",
+                password: String(process.env.HWPASSWORD),
+            },
+        };
 
-            const fileToUpload = "qa_cookbook_ext.pdf";
+        const newTask: interfaces.INewLoadingTask = {
+            name: "qa_cookbook_ext",
+            description: "How do cook properly",
+            targetDatabaseSchema: "e2e_tests",
+            formats: "PDF (Portable Document Format Files)",
+        };
 
-            before(async function () {
-                await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
-                try {
-                    await Workbench.closeAllEditors();
-                    await dbTreeSection.clickToolbarButton(constants.collapseAll);
-                    await dbTreeSection.createDatabaseConnection(heatWaveConn);
-                    await dbTreeSection.expandTreeItem(heatWaveConn.caption!, heatWaveConn);
-                    const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
-                    await treeMySQLAdmin.expand();
-                    await dbTreeSection.focus();
-                    await (await dbTreeSection.getTreeItem(constants.lakehouseNavigator)).click();
-                    await driver.wait(mysqlAdministration.untilPageIsOpened(heatWaveConn, constants.lakehouseNavigator),
-                        constants.wait1second * 15);
-                    expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
-                        .to.include(`${constants.lakehouseNavigator} (${heatWaveConn.caption})`);
-                    await dbTreeSection.focus();
-                    await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
-                        .schema!)).expand();
-                    await (await dbTreeSection.getTreeItem("Tables")).expand();
+        const fileToUpload = "qa_cookbook_ext.pdf";
+        const mysqlAdministration = new E2EMySQLAdministration();
+        let e2eRecording: E2ERecording = new E2ERecording();
 
-                    if (await dbTreeSection.treeItemExists(newTask.name!)) {
-                        await dbTreeSection.openContextMenuAndSelect(newTask.name!, constants.dropTable);
-                        await Workbench.pushDialogButton(`Drop ${newTask.name}`);
-                        await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+        before(async function () {
+            let hookResult = "passed";
+            await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
+            const localE2eRecording: E2ERecording = new E2ERecording();
+            try {
+                await localE2eRecording!.start(this.test!.title!);
+                await dbTreeSection.clickToolbarButton(constants.collapseAll);
+                await dbTreeSection.createDatabaseConnection(heatWaveConn);
+                await dbTreeSection.expandTreeItem(heatWaveConn.caption!, heatWaveConn);
+                const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
+                await treeMySQLAdmin.expand();
+                await dbTreeSection.focus();
+                await (await dbTreeSection.getTreeItem(constants.lakehouseNavigator)).click();
+                await driver.wait(mysqlAdministration.untilPageIsOpened(heatWaveConn, constants.lakehouseNavigator),
+                    constants.wait1second * 15);
+                expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
+                    .to.include(`${constants.lakehouseNavigator} (${heatWaveConn.caption})`);
+                await dbTreeSection.focus();
+                await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
+                    .schema!)).expand();
+                await (await dbTreeSection.getTreeItem("Tables")).expand();
 
-                        await driver.wait(async () => {
-                            return !(await dbTreeSection.treeItemExists(newTask.name!));
-                        }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
-                    }
-                    await Workbench.toggleSideBar(false);
-                } catch (e) {
-                    await Misc.processFailure(this);
-                    throw e;
-                }
-
-            });
-
-            beforeEach(async function () {
-                await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            });
-
-            after(async function () {
-                try {
-                    await Workbench.toggleSideBar(true);
-                    await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
-                        .schema!)).expand();
-                    await (await dbTreeSection.getTreeItem("Tables")).expand();
-                    await dbTreeSection.clickTreeItemActionButton(heatWaveConn.caption!,
-                        constants.reloadDataBaseInformation);
-                    await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name!), constants.waitForTreeItem);
-
+                if (await dbTreeSection.treeItemExists(newTask.name!)) {
                     await dbTreeSection.openContextMenuAndSelect(newTask.name!, constants.dropTable);
                     await Workbench.pushDialogButton(`Drop ${newTask.name}`);
                     await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+
                     await driver.wait(async () => {
                         return !(await dbTreeSection.treeItemExists(newTask.name!));
                     }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
-                    await Workbench.closeAllEditors();
-                } catch (e) {
-                    await Misc.processFailure(this);
-                    throw e;
                 }
-            });
+                await Workbench.toggleSideBar(false);
+            } catch (e) {
+                hookResult = "failed";
+                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
+            }
 
-            it("Upload data to object storage", async () => {
+        });
 
-                const uploadToObjectStorage = mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage;
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
+        });
 
-                await driver.wait(mysqlAdministration.lakeHouseNavigator.overview.untilIsOpened(),
-                    constants.wait1second * 3);
-                await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
-                    return (await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
-                        .getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
-                }), constants.wait1second * 3);
+        afterEach(async function () {
+            await Misc.processResult(this, e2eRecording);
+        });
 
-                await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
-                await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
-                await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-                await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait1minute);
+        after(async function () {
+            const localE2eRecording: E2ERecording = new E2ERecording();
+            try {
+                await localE2eRecording!.start(this.currentTest!.title);
+                await Workbench.toggleSideBar(true);
+                await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
+                    .schema!)).expand();
+                await (await dbTreeSection.getTreeItem("Tables")).expand();
+                await dbTreeSection.clickTreeItemActionButton(heatWaveConn.caption!,
+                    constants.reloadDataBaseInformation);
+                await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name!), constants.waitForTreeItem);
 
-                await uploadToObjectStorage.objectStorageBrowser
-                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                await dbTreeSection.openContextMenuAndSelect(newTask.name!, constants.dropTable);
+                await Workbench.pushDialogButton(`Drop ${newTask.name}`);
+                await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(newTask.name!));
+                }, constants.wait1second * 5, `Waiting for ${newTask.name} to not exist`);
+                await Workbench.closeAllEditors();
+            } finally {
+                await Misc.processResult(this, localE2eRecording);
+            }
+        });
 
-                await (await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage
-                    .getFilesForUploadButton(constants.addFiles)).click();
-                await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), "lakehouse_nav_files",
-                    fileToUpload));
-                await driver.wait(uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
-                    constants.wait1second * 10);
-                await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
-                await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
-                await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
-                    constants.wait1second * 20);
-            });
+        it("Upload data to object storage", async () => {
 
-            it("Load into Lakehouse", async () => {
+            const uploadToObjectStorage = mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage;
 
-                const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
-                await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
-                await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait1second * 10);
-                await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
-                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-                expect(await loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
-                    `'${fileToUpload}' was not found`).to.be.true;
-                await loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
-                await driver.wait(loadIntoLakehouse.untilExistsLoadingTask(fileToUpload), constants.wait1second * 5);
-                await loadIntoLakehouse.setNewLoadingTask(newTask);
-                await loadIntoLakehouse.startLoadingTask();
+            await driver.wait(mysqlAdministration.lakeHouseNavigator.overview.untilIsOpened(),
+                constants.wait1second * 3);
+            await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
+                return (await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
+                    .getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
+            }), constants.wait1second * 3);
 
-            });
+            await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
+            await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
+            await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
+            await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                constants.wait1minute);
 
-            it("Lakehouse Tables", async () => {
+            await uploadToObjectStorage.objectStorageBrowser
+                .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
 
-                const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
-                await driver.wait(lakehouseTables.untilIsOpened(), constants.wait1second * 15);
-                expect(await lakehouseTables.getDatabaseSchemas()).to.contain(newTask.targetDatabaseSchema);
-                await driver.wait(lakehouseTables.untilExistsLakeHouseTable(newTask.name!), constants.wait1second * 10);
-                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoading(newTask.name!), constants.wait1minute);
+            await (await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage
+                .getFilesForUploadButton(constants.addFiles)).click();
+            await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), "lakehouse_nav_files",
+                fileToUpload));
+            await driver.wait(uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
+                constants.wait1second * 10);
+            await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
+            await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
+            await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
+                constants.wait1second * 20);
+        });
 
-                let latestTable = await lakehouseTables.getLakehouseTable(newTask.name!);
-                expect(latestTable!.hasProgressBar).to.be.true;
-                expect(latestTable!.loaded).to.match(/(\d+)%/);
-                expect(latestTable!.hasLoadingSpinner).to.be.true;
-                expect(latestTable!.rows).to.equals("-");
-                expect(latestTable!.size).to.equals("-");
-                expect(latestTable!.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                expect(latestTable!.comment).to.equals(newTask.description);
+        it("Load into Lakehouse", async () => {
 
-                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name!), constants.wait1minute * 2);
-                latestTable = await lakehouseTables.getLakehouseTable(newTask.name!);
-                expect(latestTable!.hasProgressBar).to.be.false;
-                expect(latestTable!.loaded).to.equals("Yes");
-                expect(latestTable!.hasLoadingSpinner).to.be.false;
-                expect(latestTable!.rows).to.match(/(\d+)/);
-                expect(latestTable!.size).to.match(/(\d+).(\d+) (KB|MB)/);
-                expect(latestTable!.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                expect(latestTable!.comment).to.equals(newTask.description);
+            const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
+            await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
+            await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
+                constants.wait1second * 10);
+            await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+                .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+            expect(await loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
+                `'${fileToUpload}' was not found`).to.be.true;
+            await loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
+            await driver.wait(loadIntoLakehouse.untilExistsLoadingTask(fileToUpload), constants.wait1second * 5);
+            await loadIntoLakehouse.setNewLoadingTask(newTask);
+            await loadIntoLakehouse.startLoadingTask();
 
-                await driver.wait(lakehouseTables.untilLakeHouseTasksAreCompleted(),
-                    constants.wait1second * 10);
-                const tasks = await lakehouseTables.getLakeHouseTasks();
+        });
 
-                if (tasks.length > 0) {
-                    for (const task of tasks) {
-                        if (task.name === `Loading ${newTask.name}`) {
-                            expect(task.name).to.equals(`Loading ${newTask.name}`);
-                            expect(task.status).to.equals("COMPLETED");
-                            expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                            expect(task.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                            expect(task.message).to.equals("Task completed.");
-                            break;
-                        }
+        it("Lakehouse Tables", async () => {
+
+            const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
+            await driver.wait(lakehouseTables.untilIsOpened(), constants.wait1second * 15);
+            expect(await lakehouseTables.getDatabaseSchemas()).to.contain(newTask.targetDatabaseSchema);
+            await driver.wait(lakehouseTables.untilExistsLakeHouseTable(newTask.name!), constants.wait1second * 10);
+            await driver.wait(lakehouseTables.untilLakeHouseTableIsLoading(newTask.name!), constants.wait1minute);
+
+            let latestTable = await lakehouseTables.getLakehouseTable(newTask.name!);
+            expect(latestTable!.hasProgressBar).to.be.true;
+            expect(latestTable!.loaded).to.match(/(\d+)%/);
+            expect(latestTable!.hasLoadingSpinner).to.be.true;
+            expect(latestTable!.rows).to.equals("-");
+            expect(latestTable!.size).to.equals("-");
+            expect(latestTable!.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+            expect(latestTable!.comment).to.equals(newTask.description);
+
+            await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name!), constants.wait1minute * 2);
+            latestTable = await lakehouseTables.getLakehouseTable(newTask.name!);
+            expect(latestTable!.hasProgressBar).to.be.false;
+            expect(latestTable!.loaded).to.equals("Yes");
+            expect(latestTable!.hasLoadingSpinner).to.be.false;
+            expect(latestTable!.rows).to.match(/(\d+)/);
+            expect(latestTable!.size).to.match(/(\d+).(\d+) (KB|MB)/);
+            expect(latestTable!.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+            expect(latestTable!.comment).to.equals(newTask.description);
+
+            await driver.wait(lakehouseTables.untilLakeHouseTasksAreCompleted(),
+                constants.wait1second * 10);
+            const tasks = await lakehouseTables.getLakeHouseTasks();
+
+            if (tasks.length > 0) {
+                for (const task of tasks) {
+                    if (task.name === `Loading ${newTask.name}`) {
+                        expect(task.name).to.equals(`Loading ${newTask.name}`);
+                        expect(task.status).to.equals("COMPLETED");
+                        expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                        expect(task.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                        expect(task.message).to.equals("Task completed.");
+                        break;
                     }
-                } else {
-                    // disabled verification
-                    //throw new Error(`There are not any new tasks to verify`);
                 }
-            });
-
+            } else {
+                // disabled verification
+                //throw new Error(`There are not any new tasks to verify`);
+            }
         });
 
     });
@@ -713,10 +726,14 @@ describe("DATABASE CONNECTIONS", () => {
         let existsInQueue = false;
         const storedFunction = "storedFunction";
         const storedJSFunction = "storedJSFunction";
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
             await Os.appendToExtensionLog("beforeAll Tree context menu items");
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await Os.deleteCredentials();
                 await dbTreeSection.focus();
                 treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
@@ -725,30 +742,29 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
                 await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
+
+            await Misc.processResult(this, e2eRecording);
         });
 
         after(async () => {
-
             await fs.rm(dumpFolder, { force: true, recursive: true });
-
         });
 
         it("Set this DB Connection as Default", async () => {
@@ -1288,6 +1304,7 @@ describe("DATABASE CONNECTIONS", () => {
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem("Functions");
             await driver.wait(dbTreeSection.untilTreeItemExists(storedFunction), constants.wait1second * 5);
+
         });
 
         it("Create Stored Javascript Function", async () => {
@@ -1453,6 +1470,7 @@ describe("DATABASE CONNECTIONS", () => {
             DELIMITER ;`);
             await (await e2eScript.toolbar.getButton(constants.execFullScript))!.click();
             await dbTreeSection.clickTreeItemActionButton(globalConn.caption!, constants.reloadDataBaseInformation);
+            await dbTreeSection.focus();
             await driver.wait(dbTreeSection.untilTreeItemExists(newLibrary), constants.wait1second * 5);
         });
 

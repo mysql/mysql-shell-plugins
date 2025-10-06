@@ -48,6 +48,7 @@ import { E2EScript } from "../lib/WebViews/E2EScript";
 import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog";
+import { E2ERecording } from "../lib/E2ERecording";
 
 describe("DB Connection Overview", () => {
 
@@ -80,11 +81,14 @@ describe("DB Connection Overview", () => {
     const dbConnectionOverview = new DatabaseConnectionOverview();
     let existsInQueue = false;
     let sslConn: interfaces.IDBConnection;
+    let e2eRecording: E2ERecording = new E2ERecording();
 
     before(async function () {
-
+        let hookResult = "passed";
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
         try {
+            await localE2eRecording!.start(this.currentTest!.title);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
             const activityBare = new ActivityBar();
@@ -104,8 +108,10 @@ describe("DB Connection Overview", () => {
 
             await dbTreeSection.clickToolbarButton(constants.collapseAll);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
 
     });
@@ -113,37 +119,27 @@ describe("DB Connection Overview", () => {
     beforeEach(async function () {
         await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         try {
+            await e2eRecording!.start(this.currentTest!.title);
             await dbConnectionOverview.toolbar.editorSelector
                 .selectEditor(new RegExp(constants.dbConnectionsLabel));
         } catch (e) {
-            await Misc.processFailure(this);
+            await Misc.processResult(this, e2eRecording);
             throw e;
         }
 
     });
 
     afterEach(async function () {
-
-        if (this.currentTest!.state === "failed") {
-            await Misc.processFailure(this);
-        }
-
         if (existsInQueue) {
             await TestQueue.pop(this.currentTest!.title);
             existsInQueue = false;
         }
 
+        await Misc.processResult(this, e2eRecording);
     });
 
     after(async function () {
-
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-
+        Misc.removeDatabaseConnections();
     });
 
 
@@ -686,36 +682,39 @@ describe("DB Connection Overview", () => {
         };
 
         const connectionOverview = new DatabaseConnectionOverview();
-        let testFailed = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.currentTest!.title);
                 const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
                 await openEditorsSection.expand();
                 await (await openEditorsSection.getTreeItem(constants.dbConnectionsLabel)).click();
                 await dbTreeSection.focus();
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             try {
+                e2eRecording!.start(this.currentTest!.title);
                 await dbTreeSection.focus();
                 await (await connectionOverview.getBreadCrumbLinks())[0].click();
             } catch (e) {
-                await Misc.processFailure(this);
+                Misc.processResult(this, e2eRecording);
                 throw e;
             }
         });
 
         afterEach(async function () {
-            if (testFailed) {
-                testFailed = false;
-                await Misc.processFailure(this);
-            }
+            Misc.processResult(this, e2eRecording);
         });
 
         it("Add MySQL connection to new folder", async () => {
@@ -1028,71 +1027,65 @@ describe("DB Connection Overview", () => {
         });
 
         it("Import MySQL Workbench DB Connections", async () => {
-            try {
-                const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
-                const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
-                const username = (importedDBConnection.basic as interfaces.IConnBasicMySQL).username;
-                const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
 
-                const xml = constants.validXMLConnection
-                    .replace(/<HOSTNAME>/g, hostname!)
-                    .replace(/<PORT>/g, String(port))
-                    .replace(/<USERNAME>/g, username!)
-                    .replace(/<SCHEMA>/g, schema!)
-                    .replace(/<CAPTION>/g, importedDBConnection.caption!);
+            const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
+            const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
+            const username = (importedDBConnection.basic as interfaces.IConnBasicMySQL).username;
+            const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
 
-                const xmlFile = join(process.cwd(), "connections.xml");
-                await fs.writeFile(xmlFile, xml);
+            const xml = constants.validXMLConnection
+                .replace(/<HOSTNAME>/g, hostname!)
+                .replace(/<PORT>/g, String(port))
+                .replace(/<USERNAME>/g, username!)
+                .replace(/<SCHEMA>/g, schema!)
+                .replace(/<CAPTION>/g, importedDBConnection.caption!);
 
-                await dbTreeSection.selectMoreActionsItem(constants.importMySQLWorkbenchConnections);
-                await Workbench.setInputPath(xmlFile);
-                await driver.wait(Workbench.untilNotificationExists("Imported 1 connection from MySQL Workbench."),
-                    constants.wait1second * 5);
+            const xmlFile = join(process.cwd(), "connections.xml");
+            await fs.writeFile(xmlFile, xml);
 
-                await driver.wait(dbTreeSection.untilTreeItemExists(constants.importedConnections),
-                    constants.wait1second * 5);
-                await dbTreeSection.expandTreeItem(constants.importedConnections);
-                await dbTreeSection.expandTreeItem(importedDBConnection.caption!, importedDBConnection);
+            await dbTreeSection.selectMoreActionsItem(constants.importMySQLWorkbenchConnections);
+            await Workbench.setInputPath(xmlFile);
+            await driver.wait(Workbench.untilNotificationExists("Imported 1 connection from MySQL Workbench."),
+                constants.wait1second * 5);
 
-                await dbTreeSection.openContextMenuAndSelect(constants.importedConnections,
-                    constants.removeFolder);
-                await Workbench.pushDialogButton("Delete Folder");
-                await driver.wait(Workbench
-                    // eslint-disable-next-line max-len
-                    .untilNotificationExists(`The connection group "${constants.importedConnections}" has been deleted.`,
-                        true, true), constants.wait1second * 5);
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
+            await driver.wait(dbTreeSection.untilTreeItemExists(constants.importedConnections),
+                constants.wait1second * 5);
+            await dbTreeSection.expandTreeItem(constants.importedConnections);
+            await dbTreeSection.expandTreeItem(importedDBConnection.caption!, importedDBConnection);
+
+            await dbTreeSection.openContextMenuAndSelect(constants.importedConnections,
+                constants.removeFolder);
+            await Workbench.pushDialogButton("Delete Folder");
+            await driver.wait(Workbench
+                // eslint-disable-next-line max-len
+                .untilNotificationExists(`The connection group "${constants.importedConnections}" has been deleted.`,
+                    true, true), constants.wait1second * 5);
+
         });
 
         it("Import MySQL Workbench DB Connections from an invalid XML", async () => {
-            try {
-                const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
-                const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
-                const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
 
-                const xml = constants.invalidXMLConnection
-                    .replace(/<HOSTNAME>/g, hostname!)
-                    .replace(/<PORT>/g, String(port))
-                    .replace(/<SCHEMA>/g, schema!);
+            const hostname = (importedDBConnection.basic as interfaces.IConnBasicMySQL).hostname;
+            const port = (importedDBConnection.basic as interfaces.IConnBasicMySQL).port;
+            const schema = (importedDBConnection.basic as interfaces.IConnBasicMySQL).schema;
 
-                const xmlFile = join(process.cwd(), "invalid_connections.xml");
-                await fs.writeFile(xmlFile, xml);
+            const xml = constants.invalidXMLConnection
+                .replace(/<HOSTNAME>/g, hostname!)
+                .replace(/<PORT>/g, String(port))
+                .replace(/<SCHEMA>/g, schema!);
 
-                await dbTreeSection.selectMoreActionsItem(constants.importMySQLWorkbenchConnections);
-                await Workbench.setInputPath(xmlFile);
+            const xmlFile = join(process.cwd(), "invalid_connections.xml");
+            await fs.writeFile(xmlFile, xml);
 
-                await driver.wait(Workbench
-                    .untilNotificationExists("Could not parse XML file: Unclosed tag: value", true, true),
-                    constants.wait1second * 5);
+            await dbTreeSection.selectMoreActionsItem(constants.importMySQLWorkbenchConnections);
+            await Workbench.setInputPath(xmlFile);
 
-                expect(await dbTreeSection.treeItemExists(constants.importedConnections)).to.be.false;
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
+            await driver.wait(Workbench
+                .untilNotificationExists("Could not parse XML file: Unclosed tag: value", true, true),
+                constants.wait1second * 5);
+
+            expect(await dbTreeSection.treeItemExists(constants.importedConnections)).to.be.false;
+
         });
 
     });

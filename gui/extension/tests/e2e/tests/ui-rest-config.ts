@@ -34,6 +34,7 @@ import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { TestQueue } from "../lib/TestQueue";
 import { ConfigRestServiceDialog } from "../lib/WebViews/Dialogs/ConfigRestServiceDialog";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
+import { E2ERecording } from "../lib/E2ERecording";
 
 describe("MySQL REST Service Configuration", () => {
     let existsInQueue = false;
@@ -51,10 +52,14 @@ describe("MySQL REST Service Configuration", () => {
     };
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+    let e2eRecording: E2ERecording = new E2ERecording();
 
     before(async function () {
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
+        let hookResult = "passed";
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Rest Config");
             await Workbench.toggleBottomBar(false);
@@ -69,45 +74,49 @@ describe("MySQL REST Service Configuration", () => {
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
     });
 
     beforeEach(async function () {
         await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         try {
+            await e2eRecording!.start(this.currentTest!.title);
             await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                 `${constants.dbTreeSection} is still loading`);
             await Workbench.dismissNotifications();
         } catch (e) {
-            await Misc.processFailure(this);
+            await Misc.processResult(this, Os.isLinux() ? e2eRecording : undefined);
             throw e;
         }
     });
 
     afterEach(async function () {
-        if (this.currentTest!.state === "failed") {
-            await Misc.processFailure(this);
-        }
         if (existsInQueue) {
             await TestQueue.pop(this.currentTest!.title);
             existsInQueue = false;
         }
-        await Workbench.dismissNotifications();
-        const result = await new E2ENotebook().codeEditor
-            .execute("DROP SCHEMA IF EXISTS mysql_rest_service_metadata;") as E2ECommandResultData;
-        expect(result.text).to.match(/OK/);
-        await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+
+        await Misc.processResult(this, e2eRecording);
+        const localE2eRecording: E2ERecording = new E2ERecording();
+        try {
+            await localE2eRecording!.start(this.currentTest!.title);
+            await Workbench.dismissNotifications();
+            const result = await new E2ENotebook().codeEditor
+                .execute("DROP SCHEMA IF EXISTS mysql_rest_service_metadata;") as E2ECommandResultData;
+            expect(result.text).to.match(/OK/);
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+        } finally {
+            await Misc.processResult(this, localE2eRecording);
+        }
+
     });
 
     after(async function () {
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
+        Misc.removeDatabaseConnections();
     });
 
     it("Add new Configuration with Authentication App", async () => {

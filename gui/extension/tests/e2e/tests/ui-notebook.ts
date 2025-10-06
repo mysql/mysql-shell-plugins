@@ -43,6 +43,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ELogger } from "../lib/E2ELogger";
+import { E2ERecording } from "../lib/E2ERecording";
 
 describe("NOTEBOOKS", () => {
 
@@ -76,8 +77,11 @@ describe("NOTEBOOKS", () => {
     const notebook = new E2ENotebook();
 
     before(async function () {
+        let hookResult = "passed";
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Notebooks");
             await Workbench.toggleBottomBar(false);
@@ -90,47 +94,49 @@ describe("NOTEBOOKS", () => {
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
             await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
     });
 
     after(async function () {
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
+        Misc.removeDatabaseConnections();
     });
 
     describe("Code Editor", () => {
 
         let cleanEditor = false;
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            const localE2eRecording: E2ERecording = new E2ERecording();
+            let hookResult = "passed";
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await Workbench.toggleSideBar(false);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
+
+            await Misc.processResult(this, e2eRecording);
 
             if (cleanEditor) {
                 await notebook.codeEditor.clean();
@@ -368,7 +374,6 @@ describe("NOTEBOOKS", () => {
             await browser.openResources(join(constants.workspace, "gui", "frontend",
                 "src", "tests", "e2e", "sql", filename));
             await driver.wait(Workbench.untilTabIsOpened(filename), constants.wait1second * 5);
-            let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll();
             await Os.keyboardCopy();
             await Workbench.openEditor(globalConn.caption!);
@@ -376,7 +381,6 @@ describe("NOTEBOOKS", () => {
             clipboardText = clipboardText.replace(/`|;/gm, "");
             await clipboard.write(clipboardText);
             await Misc.switchToFrame();
-            textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
 
             const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
             await promptLine.click();
@@ -1994,9 +1998,13 @@ describe("NOTEBOOKS", () => {
 
         const destFile = `${process.cwd()}/a_test`;
         const notebook = new E2ENotebook();
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await Workbench.openMySQLShellForVSCode();
                 await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook));
                 try {
@@ -2008,31 +2016,32 @@ describe("NOTEBOOKS", () => {
 
                 await notebook.codeEditor.clean();
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
+            await Misc.processResult(this, e2eRecording);
         });
 
         after(async function () {
+            const localE2eRecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.currentTest!.title);
                 await Workbench.closeAllEditors();
                 await fs.unlink(`${destFile}.mysql-notebook`);
                 const activityBar = new ActivityBar();
                 await (await activityBar.getViewControl(constants.extensionName))?.openView();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording);
             }
         });
 
@@ -2172,7 +2181,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe.skip("HeatWave Chat", () => {
+    describe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
@@ -2195,10 +2204,13 @@ describe("NOTEBOOKS", () => {
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const notebook = new E2ENotebook();
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
-
+            const localE2eRecording: E2ERecording = new E2ERecording();
+            let hookResult = "passed";
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new DatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
                 await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.waitConnectionOpen);
@@ -2206,19 +2218,20 @@ describe("NOTEBOOKS", () => {
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait1second * 5);
                 result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultData;
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
+            await Misc.processResult(this, e2eRecording);
         });
 
         it("Execute a query", async () => {

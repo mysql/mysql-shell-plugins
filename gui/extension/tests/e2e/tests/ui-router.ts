@@ -38,6 +38,7 @@ import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { RestServiceDialog } from "../lib/WebViews/Dialogs/RestServiceDialog";
 import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";
+import { E2ERecording } from "../lib/E2ERecording";
 
 let actorId: string;
 let response: Response;
@@ -91,11 +92,15 @@ describe("Router", () => {
 
     let routerPort: string | undefined;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+    let e2eRecording: E2ERecording | undefined = new E2ERecording();
 
     before(async function () {
 
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
+        let hookResult = "passed";
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             Misc.removeDatabaseConnections();
@@ -110,30 +115,31 @@ describe("Router", () => {
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
             await Workbench.dismissNotifications();
-
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
     });
 
     beforeEach(async function () {
         await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+        await e2eRecording!.start(this.currentTest!.title);
     });
 
     afterEach(async function () {
-        if (this.currentTest!.state === "failed") {
-            await Misc.processFailure(this);
-        }
+        await Misc.processResult(this, e2eRecording);
     });
 
     after(async function () {
+        const localE2eRecording: E2ERecording = new E2ERecording();
         try {
+            await localE2eRecording!.start(this.currentTest!.title);
             await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.killRouters);
             Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording);
         }
     });
 

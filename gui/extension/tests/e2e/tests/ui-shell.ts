@@ -37,6 +37,7 @@ import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
+import { E2ERecording } from "../lib/E2ERecording";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -64,14 +65,18 @@ describe("MYSQL SHELL CONSOLES", () => {
     before(async function () {
 
         await Misc.loadDriver();
-
+        const localE2eRecording: E2ERecording = new E2ERecording();
+        let hookResult = "passed";
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await new DatabaseConnectionOverview().openNewShellSession();
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
 
     });
@@ -83,15 +88,15 @@ describe("MYSQL SHELL CONSOLES", () => {
         (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBUSERNAME2);
         (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBPASSWORD2);
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
+        const e2eRecording: E2ERecording = new E2ERecording();
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
+            await Misc.processResult(this, e2eRecording);
         });
 
         it("Connect to host", async () => {
@@ -116,7 +121,6 @@ describe("MYSQL SHELL CONSOLES", () => {
                 constants.wait1second * 5, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                 constants.wait1second * 5, `Schema tab does not contain '${schema}'`);
-
         });
 
         it("Change schemas using menu", async () => {
@@ -196,11 +200,15 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     });
 
-    describe("Sessions", () => {
+    describe.only("Sessions", () => {
+
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
-
+                await localE2eRecording!.start(this.test!.title!);
                 await Workbench.closeAllEditors();
                 await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                     constants.openNewShellConsole);
@@ -225,19 +233,20 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                     constants.wait1second * 5, `Schema tab does not contain '${schema}'`);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            await e2eRecording!.start(this.currentTest!.title);
         });
 
         afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
+            await Misc.processResult(this, e2eRecording);
         });
 
         it("Verify help command", async () => {

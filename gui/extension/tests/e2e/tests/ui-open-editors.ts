@@ -37,6 +37,7 @@ import * as errors from "../lib/errors";
 import { E2EScript } from "../lib/WebViews/E2EScript";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
+import { E2ERecording } from "../lib/E2ERecording";
 
 describe("OPEN EDITORS", () => {
 
@@ -55,10 +56,14 @@ describe("OPEN EDITORS", () => {
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+    let e2eRecording: E2ERecording = new E2ERecording();
 
     before(async function () {
         await Misc.loadDriver();
+        const localE2eRecording: E2ERecording = new E2ERecording();
+        let hookResult = "passed";
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Open editors");
             const activityBare = new ActivityBar();
@@ -72,30 +77,25 @@ describe("OPEN EDITORS", () => {
             await new BottomBarPanel().toggle(false);
             await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
     });
 
     beforeEach(async function () {
         await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-    });
-
-    after(async function () {
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
+        await e2eRecording!.start(this.currentTest!.title);
     });
 
     afterEach(async function () {
-        if (this.currentTest!.state === "failed") {
-            await Misc.processFailure(this);
-        }
+        await Misc.processResult(this, e2eRecording);
     });
 
+    after(async function () {
+        Misc.removeDatabaseConnections();
+    });
 
     it("New Shell Notebook", async () => {
 

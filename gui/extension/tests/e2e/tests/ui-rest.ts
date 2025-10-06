@@ -46,6 +46,7 @@ import { AuthenticationAppDialog } from "../lib/WebViews/Dialogs/AuthenticationA
 import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 import { E2ELogger } from "../lib/E2ELogger";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
+import { E2ERecording } from "../lib/E2ERecording";
 
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
@@ -77,7 +78,10 @@ describe("MySQL REST Service", () => {
 
     before(async function () {
         await Misc.loadDriver();
+        let hookResult = "passed";
+        const localE2eRecording: E2ERecording = new E2ERecording();
         try {
+            await localE2eRecording!.start(this.test!.title!);
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Rest");
             await Workbench.toggleBottomBar(false);
@@ -92,18 +96,15 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption!, globalConn);
         } catch (e) {
-            await Misc.processFailure(this);
+            hookResult = "failed";
             throw e;
+        } finally {
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
     });
 
     after(async function () {
-        try {
-            Misc.removeDatabaseConnections();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
+        Misc.removeDatabaseConnections();
     });
 
     describe("Rest Services", () => {
@@ -124,29 +125,28 @@ describe("MySQL REST Service", () => {
 
         let existsInQueue = false;
         const destDumpSdk = join(process.cwd(), "dump.sdk");
+        const e2eRecording: E2ERecording = new E2ERecording();
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
+                await e2eRecording!.start(this.currentTest!.title);
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
-                await Misc.processFailure(this);
+                await Misc.processResult(this, e2eRecording);
                 throw e;
             }
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.dismissNotifications();
         });
 
@@ -447,9 +447,13 @@ describe("MySQL REST Service", () => {
         let existsInQueue = false;
         const schemaToDump = "dummyschema";
         const destDumpSchema = join(process.cwd(), schemaToDump);
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -467,38 +471,40 @@ describe("MySQL REST Service", () => {
                 await dbTreeSection.clickTreeItemActionButton(globalConn.caption!,
                     constants.reloadDataBaseInformation);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
+                await e2eRecording!.start(this.currentTest!.title);
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
-                await Misc.processFailure(this);
+                await Misc.processResult(this, e2eRecording);
                 throw e;
             }
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.dismissNotifications();
         });
 
         after(async function () {
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.currentTest!.title);
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service2.servicePath),
                     constants.deleteRESTService);
 
@@ -511,9 +517,8 @@ describe("MySQL REST Service", () => {
                 await driver.wait(async () => {
                     return !(await dbTreeSection.treeItemExists(service2.servicePath));
                 }, constants.wait1second * 3, `Item ${service2.servicePath} should not exist on the tree`);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording);
             }
         });
 
@@ -753,9 +758,13 @@ describe("MySQL REST Service", () => {
 
         const destDumpTable = join(process.cwd(), tableToDump);
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            const localE2eRecording: E2ERecording = new E2ERecording();
+            let hookResult = "passed";
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -781,37 +790,40 @@ describe("MySQL REST Service", () => {
                     constants.reloadDataBaseInformation);
                 await dbTreeSection.expandTreeItem(service3.servicePath);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
+                await e2eRecording!.start(this.currentTest!.title);
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
-                await Misc.processFailure(this);
+                await Misc.processResult(this, e2eRecording);
+                throw e;
             }
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.dismissNotifications();
         });
 
         after(async function () {
+            const localE2eRecording = new E2ERecording();
             try {
+                await localE2eRecording.start(this.currentTest!.title);
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service3.servicePath),
                     constants.deleteRESTService);
 
@@ -824,9 +836,8 @@ describe("MySQL REST Service", () => {
                 await driver.wait(async () => {
                     return !(await dbTreeSection.treeItemExists(service3.servicePath));
                 }, constants.wait1second * 3, `Item ${service3.servicePath} should not exist on the tree`);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording);
             }
         });
 
@@ -1135,9 +1146,13 @@ describe("MySQL REST Service", () => {
         };
 
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -1158,37 +1173,39 @@ describe("MySQL REST Service", () => {
                     constants.reloadDataBaseInformation);
                 await dbTreeSection.setCurrentRestService(service4.servicePath);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
+                await e2eRecording!.start(this.currentTest!.title);
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
-                await Misc.processFailure(this);
+                await Misc.processResult(this, e2eRecording);
             }
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.dismissNotifications();
         });
 
         after(async function () {
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.currentTest!.title);
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service4.servicePath),
                     constants.deleteRESTService);
 
@@ -1201,9 +1218,8 @@ describe("MySQL REST Service", () => {
                 await driver.wait(async () => {
                     return !(await dbTreeSection.treeItemExists(service4.servicePath));
                 }, constants.wait1second * 3, `Item ${service4.servicePath} should not exist on the tree`);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording);
             }
         });
 
@@ -1423,9 +1439,13 @@ describe("MySQL REST Service", () => {
         };
 
         let existsInQueue = false;
+        let e2eRecording: E2ERecording = new E2ERecording();
 
         before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording();
             try {
+                await localE2eRecording!.start(this.test!.title!);
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -1450,32 +1470,33 @@ describe("MySQL REST Service", () => {
                     constants.reloadDataBaseInformation);
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
             } catch (e) {
-                await Misc.processFailure(this);
+                hookResult = "failed";
                 throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
+                await e2eRecording!.start(this.currentTest!.title);
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
-                await Misc.processFailure(this);
+                await Misc.processResult(this);
+                throw e;
             }
         });
 
         afterEach(async function () {
-            if (this.currentTest!.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
 
+            await Misc.processResult(this, e2eRecording);
             await Workbench.dismissNotifications();
         });
 

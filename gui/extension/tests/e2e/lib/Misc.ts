@@ -24,18 +24,21 @@
  */
 
 import fs from "fs/promises";
+import * as path from "path";
 import { Database } from "sqlite3";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
 import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
-import { existsSync } from "fs";
+import { existsSync, rmSync } from "fs";
 import { Workbench } from "./Workbench";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { E2ELogger } from "./E2ELogger";
+import { E2ERecording } from "./E2ERecording";
 export let driver: WebDriver;
 export let browser: VSBrowser;
+export let screenSize: string;
 
 export class Misc {
 
@@ -49,24 +52,71 @@ export class Misc {
     };
 
     /**
-     * Process a test failure, by expanding existing notifications, taking a screenshot and prepare the
-     * screenshots folder
+     * Process the result: If a recording exists, stops it and links it to the test context, otherwise, 
+     * it takes a screenshots
      * 
-     * @param testContext The context
-     * @returns A promise resolving when the failures is processed
+     * @param testContext The test context
+     * @param recording The recording object
+     * @param testResult The test result
      */
-    public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
+    public static processResult = async (
+        testContext: Mocha.Context,
+        recording?: E2ERecording,
+        testResult?: string,
+    ): Promise<void> => {
 
-        await Workbench.expandNotifications();
-        const img = await driver.takeScreenshot();
-        const testName = testContext.currentTest?.title ?? String(process.env.TEST_SUITE);
-        const ssDir = join(process.cwd(), "screenshots");
-        if (!existsSync(ssDir)) {
-            await fs.mkdir(ssDir);
+        if (recording) {
+            await recording.stop();
+            await driver.wait(() => {
+                return (existsSync(recording.videoPath!));
+            }, constants.wait1second * 10, `${recording.videoPath} was not found`);
         }
-        const imgPath = join(ssDir, `${String(testName)}_screenshot.png`);
-        await fs.writeFile(imgPath, img, "base64");
-        addContext(testContext, { title: "Failure", value: `../screenshots/${String(testName)}_screenshot.png` });
+
+        let result: string | undefined;
+        if (!testResult) {
+            if (testContext.currentTest) {
+                result = testContext.currentTest.state;
+            } else {
+                console.log(testContext);
+                throw new Error(`Could not determine test result`);
+            }
+        } else {
+            result = testResult;
+        }
+
+        const testTitle = testContext.currentTest ? testContext.currentTest.title : testContext.test!.title;
+
+        if (recording) {
+            if (result === "passed") {
+                rmSync(recording.videoPath!);
+            } else {
+                if (process.env.BUILD_URL) {
+                    const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
+                    addContext(testContext, {
+                        title: "FAILURE VIDEO",
+                        value: {
+                            URL: `${process.env.BUILD_URL}artifact/${relativePath}`,
+                        }
+                    });
+                }
+            }
+        }
+
+        if (result === "failed") {
+            await Workbench.expandNotifications();
+            const img = await driver.takeScreenshot();
+            const ssDir = join(process.cwd(), "screenshots");
+            if (!existsSync(ssDir)) {
+                await fs.mkdir(ssDir);
+            }
+
+            const imgPath = join(ssDir, `${String(testTitle)}_screenshot.png`);
+            await fs.writeFile(imgPath, img, "base64");
+            addContext(testContext, {
+                title: "FAILURE SCREENSHOT",
+                value: `../screenshots/${String(testTitle)}_screenshot.png`
+            });
+        }
     };
 
     /**
@@ -163,6 +213,9 @@ export class Misc {
                 await browser.waitForWorkbench();
                 driver = browser.driver;
                 await driver.manage().setTimeouts(timeout);
+                const screenWidth = await driver.executeScript("return window.screen.width");
+                const screenHeight = await driver.executeScript("return window.screen.height");
+                screenSize = `${screenWidth}x${screenHeight}`;
 
                 return;
             } catch (e) {
