@@ -867,7 +867,8 @@ describe("DATABASE CONNECTIONS", () => {
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
 
-            let result = await notebook.codeEditor.execute("SELECT DATABASE();") as E2ECommandResultGrid;
+            await notebook.codeEditor.clean();
+            let result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(await result.resultContext!.getAttribute("innerHTML"))
                 .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema!));
@@ -881,7 +882,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Workbench.openEditor(globalConn.caption!);
             await notebook.codeEditor.clean();
-            result = await notebook.codeEditor.execute("SELECT DATABASE();") as E2ECommandResultGrid;
+            result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(await result.resultContext!.getAttribute("innerHTML")).to.match(/world_x_cst/);
             await Workbench.closeAllEditors();
@@ -1036,6 +1037,7 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchema.expand();
             treeGlobalSchemaTables = await dbTreeSection.getTreeItem("Tables");
             await treeGlobalSchemaTables.expand();
+            await Workbench.closeAllEditors();
             await dbTreeSection.openContextMenuAndSelect("actor", constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
@@ -1098,11 +1100,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Select Rows in DB Notebook", async () => {
 
-            const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-            await openEditorsTreeSection.collapse();
+            await dbTreeSection.focus();
             treeGlobalSchemaViews = await dbTreeSection.getTreeItem("Views");
             await treeGlobalSchemaViews.expand();
-
             await Workbench.closeAllEditors();
             await dbTreeSection.openContextMenuAndSelect(testView, constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
