@@ -5,7 +5,6 @@ exports[`Radiobutton component tests > Test Radiobutton output (snapshot) 1`] = 
   <div
     aria-checked="true"
     class="msg radioButton disabled"
-    htmlfor="rb4"
     id="rb4"
     role="radio"
     tabindex="0"

@@ -67,7 +67,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, id, caption, name, disabled } = this.props;
+        const { children, caption, name, disabled } = this.props;
         const className = this.getEffectiveClassNames([
             "radioButton",
             this.classFromProperty(disabled, "disabled"),
@@ -79,7 +79,6 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
             <div
                 role="radio"
                 aria-checked={this.props.checkState === CheckState.Checked}
-                htmlFor={id}
                 className={className}
                 tabIndex={0}
                 onKeyPress={this.handleKeyPress}

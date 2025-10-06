@@ -619,4 +619,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetAvailableMetadataVersions]: { result: string[]; };
     [ShellAPIMrs.MrsGetConfigurationOptions]: { result: IMrsConfigData; };
     [ShellAPIMrs.MrsDumpServiceSqlScript]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpServiceProject]: { result: boolean; };
+    [ShellAPIMrs.MrsLoadServiceSqlScript]: { result: boolean; };
+    [ShellAPIMrs.MrsLoadServiceProject]: { result: boolean; };
+
 }

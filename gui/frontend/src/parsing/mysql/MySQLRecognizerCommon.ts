@@ -537,5 +537,3 @@ export const contextFromPosition = (root: ParserRuleContext, position: number): 
     // Return the root for that case.
     return root;
 };
-
-console.log("Loading MySQL base recognizer...");

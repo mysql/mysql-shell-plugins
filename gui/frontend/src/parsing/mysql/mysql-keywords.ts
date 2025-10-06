@@ -160,7 +160,6 @@ const addKeywordsForVersion = (version: MySQLVersion, versionString: ValidVersio
     reservedMySQLKeywords.set(version, new Set<string>(reservedKeywords));
 };
 
-console.log("Loading MySQL keywords...");
 void import("./data/keywords.json").then((keywords) => {
     const content: IKeywordInfo[] = keywords.default;
 

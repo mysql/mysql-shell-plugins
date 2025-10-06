@@ -12,6 +12,7 @@
         "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
         "build-win-with-maps": "pwsh scripts/production-build.ps1 true && tsc -p tsconfig.json",
+        "type-check": "tsc -p tsconfig.json",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\" --fix --ignore-pattern 'src/tests/e2e/**'",
         "unit-tests": "vitest run --no-watch --no-coverage",
         "update-snapshots": "vitest run --no-watch --no-coverage -u",

@@ -398,12 +398,12 @@ export class AutoCompletionContext {
 
             MySQLMRSParser.RULE_columnRef, MySQLMRSParser.RULE_columnInternalRef, MySQLMRSParser.RULE_tableWild,
 
-            MySQLMRSParser.RULE_functionRef, MySQLMRSParser.RULE_functionCall, MySQLMRSParser.RULE_runtimeFunctionCall,
-            MySQLMRSParser.RULE_triggerRef, MySQLMRSParser.RULE_viewRef, MySQLMRSParser.RULE_procedureRef,
-            MySQLMRSParser.RULE_logfileGroupRef, MySQLMRSParser.RULE_tablespaceRef, MySQLMRSParser.RULE_engineRef,
-            MySQLMRSParser.RULE_collationName, MySQLMRSParser.RULE_charsetName, MySQLMRSParser.RULE_eventRef,
-            MySQLMRSParser.RULE_serverRef, MySQLMRSParser.RULE_user, MySQLMRSParser.RULE_pluginRef,
-            MySQLMRSParser.RULE_componentRef,
+            MySQLMRSParser.RULE_functionRef, MySQLMRSParser.RULE_functionCallGeneric,
+            MySQLMRSParser.RULE_runtimeFunctionCall, MySQLMRSParser.RULE_triggerRef, MySQLMRSParser.RULE_viewRef,
+            MySQLMRSParser.RULE_procedureRef, MySQLMRSParser.RULE_logfileGroupRef, MySQLMRSParser.RULE_tablespaceRef,
+            MySQLMRSParser.RULE_engineRef, MySQLMRSParser.RULE_collationName, MySQLMRSParser.RULE_charsetName,
+            MySQLMRSParser.RULE_eventRef, MySQLMRSParser.RULE_serverRef, MySQLMRSParser.RULE_user,
+            MySQLMRSParser.RULE_pluginRef, MySQLMRSParser.RULE_componentRef,
 
             MySQLMRSParser.RULE_userVariable, MySQLMRSParser.RULE_labelRef,
             MySQLMRSParser.RULE_setSystemVariable,
@@ -746,7 +746,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
             }
 
             case MySQLMRSParser.RULE_functionRef:
-            case MySQLMRSParser.RULE_functionCall: {
+            case MySQLMRSParser.RULE_functionCallGeneric: {
                 const info = context.getQualifierInfo();
 
                 if (info.qualifier.length === 0) {
