@@ -130,14 +130,30 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
             self.wfile.write(b'not authenticated')
 
     def _read_messages(self):
+        timeout_retry_count = 0
+        max_timeout_retries = 3
+
         while self.connected is True:
             try:
                 self._read_next_message()
+                timeout_retry_count = 0
             except Exception as e:
-                logger.error(f"Error reading from the web socket: {str(e)}")
+                error_msg = str(e)
+                logger.error(f"Error reading from the web socket: {error_msg}")
 
-                if 'Websocket read aborted while listening' in str(e):
+                if 'Websocket read aborted while listening' in error_msg:
                     self._ws_close()
+                    break
+                elif 'timed out' in error_msg.lower():
+                    timeout_retry_count += 1
+                    if timeout_retry_count >= max_timeout_retries:
+                        logger.error("WebSocket connection failed after 3 timeout attempts, closing connection")
+                        self._ws_close()
+                        break
+
+                    logger.warning(f"WebSocket timeout error (attempt {timeout_retry_count}/{max_timeout_retries})")
+
+
 
     def _read_next_message(self):
         frame = WebSocket.FrameReceiver(self.rfile)
