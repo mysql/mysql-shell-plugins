@@ -52,14 +52,14 @@ describe("MySQL REST Service Configuration", () => {
     };
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-    let e2eRecording: E2ERecording = new E2ERecording();
+    let e2eRecording: E2ERecording;
 
     before(async function () {
         await Misc.loadDriver();
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.test!.title!);
         let hookResult = "passed";
         try {
-            await localE2eRecording!.start(this.test!.title!);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Rest Config");
             await Workbench.toggleBottomBar(false);
@@ -84,12 +84,13 @@ describe("MySQL REST Service Configuration", () => {
     beforeEach(async function () {
         await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
         try {
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
             await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                 `${constants.dbTreeSection} is still loading`);
             await Workbench.dismissNotifications();
         } catch (e) {
-            await Misc.processResult(this, Os.isLinux() ? e2eRecording : undefined);
+            await Misc.processResult(this, e2eRecording);
             throw e;
         }
     });
@@ -101,9 +102,9 @@ describe("MySQL REST Service Configuration", () => {
         }
 
         await Misc.processResult(this, e2eRecording);
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.currentTest!.title);
         try {
-            await localE2eRecording!.start(this.currentTest!.title);
+            await localE2eRecording!.start();
             await Workbench.dismissNotifications();
             const result = await new E2ENotebook().codeEditor
                 .execute("DROP SCHEMA IF EXISTS mysql_rest_service_metadata;") as E2ECommandResultData;

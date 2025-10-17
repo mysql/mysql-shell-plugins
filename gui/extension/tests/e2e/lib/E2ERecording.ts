@@ -25,37 +25,70 @@
 
 import { existsSync } from "fs";
 import { ChildProcess, spawn } from "child_process";
-import fs from "fs/promises";
+import fsPromises from "fs/promises";
+import fs from "fs";
 import { join } from "path";
 import { screenSize } from "./Misc";
 import { Os } from "./Os";
+import { wait1second } from "./constants";
+import { driver } from "./Misc";
+
+const log = join(process.cwd(), `recording_${process.env.TEST_SUITE}.log`);
 
 /**
  * This class aggregates the functions that record the tests execution
  */
 export class E2ERecording {
 
+    /** The videos directory storage */
     public videosDir = join(process.cwd(), "videos");
 
+    /** The video path */
     public videoPath: string | undefined;
 
+    /** The ffmpeg process */
     public ffmpegProcess: ChildProcess | undefined;
 
-    public videoName: string | undefined;
+    /** The video name */
+    public videoName: string;
 
-    public start = async (videoName: string): Promise<void> => {
+    public constructor(videoName: string) {
+        this.videoName = videoName;
+    }
+
+    /**
+     * Starts to record a video
+     */
+    public start = async (): Promise<void> => {
 
         if (!existsSync(this.videosDir)) {
-            await fs.mkdir(this.videosDir);
+            await fsPromises.mkdir(this.videosDir);
         }
 
-        this.videoName = videoName.replace(/\s+/g, "_");
+        if (!existsSync(log)) {
+            await fsPromises.writeFile(log, "");
+        }
+
+        await fsPromises.appendFile(log, `------------${this.videoName}----------\r\n`);
+
+        this.videoName = this.videoName.replace(/\s+/g, "_");
         this.videoPath = join(process.cwd(), "videos", `${this.videoName}.mp4`);
         const ffmpeg = join(process.cwd(), "node_modules", "ffmpeg-static", "ffmpeg");
-        const inputFormat = Os.isLinux() ? "x11grab" : "avfoundation";
-        const screen = Os.isLinux() ? process.env.DISPLAY : "0:0";
+        let inputFormat: string;
+        let screen: string;
 
-        return new Promise((resolve) => {
+        if (Os.isLinux()) {
+            inputFormat = "x11grab";
+            screen = String(process.env.DISPLAY);
+        } else if (Os.isMacOs()) {
+            inputFormat = "avfoundation";
+            screen = "2";
+        } else {
+            inputFormat = "gdigrab";
+            screen = "desktop";
+        }
+
+        return new Promise((resolve, reject) => {
             this.ffmpegProcess = spawn(ffmpeg, [
                 "-y",
                 "-f", inputFormat,
@@ -72,30 +105,82 @@ export class E2ERecording {
                 }
             });
 
+            let isRecording = false;
+
             this.ffmpegProcess.stdout!.on("data", (data: string) => {
+                fs.appendFileSync(log, `${data.toString()}\r\n`);
                 if (data.toString().match(/frame=/) !== null) {
-                    console.log(`on: Started recording test '${this.videoName}' with pid ${this.ffmpegProcess!.pid}`);
-                    resolve();
+                    isRecording = true;
                 }
             });
 
             this.ffmpegProcess.stderr!.on("data", (data: string) => {
+                fs.appendFileSync(log, `${data.toString()}\r\n`);
                 if (data.toString().match(/frame=/) !== null) {
-                    console.log(`err: Started recording test '${this.videoName}' with pid ${this.ffmpegProcess!.pid}`);
-                    resolve();
+                    isRecording = true;
                 }
             });
+
+            const timeout = new Promise<void>((_, reject) => {
+                setTimeout(() => {
+                    if (!isRecording) {
+                        reject(new Error(`Failed to start recording after ${wait1second * 10} seconds`));
+                    }
+                }, wait1second * 10);
+            });
+
+            Promise.race([
+                new Promise<void>((resolve) => {
+                    const interval = setInterval(() => {
+                        if (isRecording) {
+                            clearInterval(interval);
+                            fs.appendFileSync(log, `Started recording test '${this.videoName}'\r\n`);
+                            resolve();
+                        }
+                    }, 100);
+                }),
+                timeout
+            ])
+                .then(() => {
+                    resolve();
+                })
+                .catch((err: unknown) => {
+                    this.ffmpegProcess!.kill();
+                    reject(new Error(err!.toString()));
+                });
         });
 
     };
 
+    /**
+     * Stops recording the video and waits until the video file exists
+     * 
+     */
     public stop = async (): Promise<void> => {
-        return new Promise((resolve) => {
-            this.ffmpegProcess!.stdin!.write("q");
-            this.ffmpegProcess!.stdin!.end();
-            console.log(`Finished recording test '${this.videoName}'`);
-            resolve();
-        });
+
+        if (this.ffmpegProcess) {
+            const stopRecording = new Promise((resolve, reject): void => {
+                this.ffmpegProcess!.stdin!.write("q");
+
+                this.ffmpegProcess!.on("close", (code) => {
+                    if (code === 0) {
+                        fs.appendFileSync(log, `Stopped recording test '${this.videoName}'\r\n`);
+                        resolve(true);
+                    } else {
+                        this.ffmpegProcess!.kill();
+                        reject(new Error(`Error closing ffmpeg: ${code}`));
+                    }
+                });
+            });
+
+            await stopRecording;
+
+            await driver.wait(() => {
+                return existsSync(this.videoPath!);
+            }, wait1second * 10, `The video '${this.videoPath}' does not exist`);
+
+            this.ffmpegProcess.kill();
+        }
     };
 }
 

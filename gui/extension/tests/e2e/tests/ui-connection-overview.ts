@@ -50,7 +50,7 @@ import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandR
 import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog";
 import { E2ERecording } from "../lib/E2ERecording";
 
-describe("DB Connection Overview", () => {
+describe("DB CONNECTION OVERVIEW", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
@@ -81,32 +81,18 @@ describe("DB Connection Overview", () => {
     const dbConnectionOverview = new DatabaseConnectionOverview();
     let existsInQueue = false;
     let sslConn: interfaces.IDBConnection;
-    let e2eRecording: E2ERecording = new E2ERecording();
 
     before(async function () {
         let hookResult = "passed";
         await Misc.loadDriver();
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title);
         try {
-            await localE2eRecording!.start(this.currentTest!.title);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
-            await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
-            await dbTreeSection.focus();
-            await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
-            await new BottomBarPanel().toggle(false);
-
-            const closeHeaderButton = await driver.findElements(locator.dbConnectionOverview.closeHeader);
-
-            if (closeHeaderButton.length > 0) {
-                await closeHeaderButton[0].click();
-            }
-
-            await dbTreeSection.clickToolbarButton(constants.collapseAll);
         } catch (e) {
             hookResult = "failed";
             throw e;
@@ -116,529 +102,558 @@ describe("DB Connection Overview", () => {
 
     });
 
-    beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-        try {
-            await e2eRecording!.start(this.currentTest!.title);
-            await dbConnectionOverview.toolbar.editorSelector
-                .selectEditor(new RegExp(constants.dbConnectionsLabel));
-        } catch (e) {
-            await Misc.processResult(this, e2eRecording);
-            throw e;
-        }
-
-    });
-
-    afterEach(async function () {
-        if (existsInQueue) {
-            await TestQueue.pop(this.currentTest!.title);
-            existsInQueue = false;
-        }
-
-        await Misc.processResult(this, e2eRecording);
-    });
-
     after(async function () {
         Misc.removeDatabaseConnections();
     });
 
+    describe("DB Connections", () => {
 
-    it("MySQL Database connection - Verify mandatory fields", async () => {
+        let e2eRecording: E2ERecording | undefined;
 
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait1second * 5, "Connection dialog was not displayed");
+        before(async function () {
+            let hookResult = "passed";
+            const localE2eRecording: E2ERecording = new E2ERecording(this.currentTest!.title);
+            try {
+                await localE2eRecording!.start();
+                await dbTreeSection.focus();
+                await dbTreeSection.createDatabaseConnection(globalConn);
+                await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);
+                await new BottomBarPanel().toggle(false);
+                const closeHeaderButton = await driver.findElements(locator.dbConnectionOverview.closeHeader);
 
-        const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
-        const hostname = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
+                if (closeHeaderButton.length > 0) {
+                    await closeHeaderButton[0].click();
+                }
 
-        await DialogHelper.clearInputField(caption);
-        await DialogHelper.clearInputField(hostname);
+                await dbTreeSection.clickToolbarButton(constants.collapseAll);
+            } catch (e) {
+                hookResult = "failed";
+                throw e;
+            } finally {
+                await Misc.processResult(this, localE2eRecording, hookResult);
+            }
+        });
 
-        await conDialog.findElement(locator.dbConnectionDialog.ok).click();
-        await driver.wait(async () => {
-            return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
-        }, constants.wait1second * 5, "The DB Connection dialog should have errors");
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
+            try {
+                e2eRecording = new E2ERecording(this.currentTest!.title);
+                await e2eRecording!.start();
+                await dbConnectionOverview.toolbar.editorSelector
+                    .selectEditor(new RegExp(constants.dbConnectionsLabel));
+            } catch (e) {
+                await Misc.processResult(this, e2eRecording!);
+                throw e;
+            }
 
-        const dialogErrors = await conDialog.findElements(locator.dbConnectionDialog.errorMessage);
-        const errorMsgs = await Promise.all(
-            dialogErrors.map((item: WebElement) => {
-                return item.getText();
-            }));
-        expect(errorMsgs, `Could not find the error message 'The user name must not be empty' on the dialog`)
-            .to.include("The user name must not be empty");
-        expect(await caption.getAttribute("value"), errors.captionError("New Connection",
-            await caption.getAttribute("value"))).to.include("New Connection");
-        let error = `The hostname should be 'localhost'`;
-        error += ` but found ${await hostname.getAttribute("value")}`;
-        expect(await hostname.getAttribute("value"), error).to.equals("localhost");
-        await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
+        });
 
-    });
+        afterEach(async function () {
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest!.title);
+                existsInQueue = false;
+            }
 
-    it("SQLite Database connection - Verify mandatory fields", async () => {
+            await Misc.processResult(this, e2eRecording!);
+        });
 
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait1second * 5, "Connection dialog was not displayed");
+        it("MySQL Database connection - Verify mandatory fields", async () => {
 
-        await conDialog.findElement(locator.dbConnectionDialog.databaseType).click();
-        const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
-            constants.wait1second * 5, "Database type popup was not found");
-        await popup.findElement(locator.dbConnectionDialog.databaseTypeSqlite).click();
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                constants.wait1second * 5, "Connection dialog was not displayed");
 
-        const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
-        await DialogHelper.clearInputField(caption);
+            const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
+            const hostname = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
 
-        await conDialog.findElement(locator.dbConnectionDialog.ok).click();
-        await driver.wait(async () => {
-            return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
-        }, constants.wait1second * 5, "The DB Connection dialog should have errors");
+            await DialogHelper.clearInputField(caption);
+            await DialogHelper.clearInputField(hostname);
 
-        const dialogErrors = await conDialog.findElements(locator.dbConnectionDialog.errorMessage);
-        const errorMsgs = await Promise.all(
-            dialogErrors.map((item: WebElement) => {
-                return item.getText();
-            }));
-        expect(await caption.getAttribute("value"), errors.captionError("New Connection",
-            await caption.getAttribute("value"))).to.include("New Connection");
-        expect(errorMsgs, "'Specify the path to an existing Sqlite DB file' error was not found on the dialog")
-            .to.include("Specify the path to an existing Sqlite DB file");
-        await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
+            await conDialog.findElement(locator.dbConnectionDialog.ok).click();
+            await driver.wait(async () => {
+                return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
+            }, constants.wait1second * 5, "The DB Connection dialog should have errors");
 
-    });
+            const dialogErrors = await conDialog.findElements(locator.dbConnectionDialog.errorMessage);
+            const errorMsgs = await Promise.all(
+                dialogErrors.map((item: WebElement) => {
+                    return item.getText();
+                }));
+            expect(errorMsgs, `Could not find the error message 'The user name must not be empty' on the dialog`)
+                .to.include("The user name must not be empty");
+            expect(await caption.getAttribute("value"), errors.captionError("New Connection",
+                await caption.getAttribute("value"))).to.include("New Connection");
+            let error = `The hostname should be 'localhost'`;
+            error += ` but found ${await hostname.getAttribute("value")}`;
+            expect(await hostname.getAttribute("value"), error).to.equals("localhost");
+            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
 
-    it("Connect to SQLite database", async () => {
+        });
 
-        const sqliteConn = Object.assign({}, globalConn);
-        sqliteConn.dbType = "Sqlite";
-        sqliteConn.caption = `e2eSqliteConnection`;
+        it("SQLite Database connection - Verify mandatory fields", async () => {
 
-        if (Os.isLinux()) {
-            process.env.USERPROFILE = process.env.HOME;
-        }
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                constants.wait1second * 5, "Connection dialog was not displayed");
 
-        sqliteConn.basic = {
-            dbPath: join(process.cwd(), "e2e_test.sqlite3"),
-            dbName: "SQLite",
-        };
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        await DatabaseConnectionDialog.setConnection(sqliteConn);
-        const sqliteWebConn = dbConnectionOverview.getConnection(sqliteConn.caption);
+            await conDialog.findElement(locator.dbConnectionDialog.databaseType).click();
+            const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
+                constants.wait1second * 5, "Database type popup was not found");
+            await popup.findElement(locator.dbConnectionDialog.databaseTypeSqlite).click();
 
-        await driver.executeScript(
-            "arguments[0].click();",
-            sqliteWebConn,
-        );
+            const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
+            await DialogHelper.clearInputField(caption);
 
-        const notebook = new E2ENotebook();
-        await driver.wait(notebook.untilIsOpened(sqliteConn), constants.waitConnectionOpen);
-        await dbTreeSection.focus();
-        await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-        await driver.wait(new Condition("", async () => {
-            const item = await dbTreeSection.getTreeItem(sqliteConn.caption!);
-            await item.expand();
+            await conDialog.findElement(locator.dbConnectionDialog.ok).click();
+            await driver.wait(async () => {
+                return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
+            }, constants.wait1second * 5, "The DB Connection dialog should have errors");
 
-            return item.isExpanded();
-        }), constants.wait1second * 10, `${sqliteConn.caption} was not expanded`);
+            const dialogErrors = await conDialog.findElements(locator.dbConnectionDialog.errorMessage);
+            const errorMsgs = await Promise.all(
+                dialogErrors.map((item: WebElement) => {
+                    return item.getText();
+                }));
+            expect(await caption.getAttribute("value"), errors.captionError("New Connection",
+                await caption.getAttribute("value"))).to.include("New Connection");
+            expect(errorMsgs, "'Specify the path to an existing Sqlite DB file' error was not found on the dialog")
+                .to.include("Specify the path to an existing Sqlite DB file");
+            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
 
-        await driver.wait(new Condition("", async () => {
-            const item = await dbTreeSection.getTreeItem("main");
-            await item.expand();
+        });
 
-            return item.isExpanded();
-        }), constants.wait1second * 10, `main was not expanded`);
+        it("Connect to SQLite database", async () => {
 
-        await driver.wait(new Condition("", async () => {
-            const item = await dbTreeSection.getTreeItem("Tables");
-            await item.expand();
+            const sqliteConn = Object.assign({}, globalConn);
+            sqliteConn.dbType = "Sqlite";
+            sqliteConn.caption = `e2eSqliteConnection`;
 
-            return item.isExpanded();
-        }), constants.wait1second * 10, `Tables was not expanded`);
+            if (Os.isLinux()) {
+                process.env.USERPROFILE = process.env.HOME;
+            }
 
-        const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
-            constants.execFullBlockSql) as E2ECommandResultGrid;
-        expect(result.status).to.match(/OK/);
-    });
+            sqliteConn.basic = {
+                dbPath: join(process.cwd(), "e2e_test.sqlite3"),
+                dbName: "SQLite",
+            };
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(sqliteConn);
+            const sqliteWebConn = dbConnectionOverview.getConnection(sqliteConn.caption);
 
-    it("Connect to MySQL database using SSL", async () => {
+            await driver.executeScript(
+                "arguments[0].click();",
+                sqliteWebConn,
+            );
 
-        sslConn = Object.assign({}, globalConn);
-        sslConn.caption = `e2eSSLConnection`;
+            const notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.waitConnectionOpen);
+            await dbTreeSection.focus();
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(new Condition("", async () => {
+                const item = await dbTreeSection.getTreeItem(sqliteConn.caption!);
+                await item.expand();
 
-        sslConn.ssl = {
-            mode: "Require and Verify CA",
-            caPath: join(process.env.SSL_CERTIFICATES_PATH!, "ca.pem"),
-            clientCertPath: join(process.env.SSL_CERTIFICATES_PATH!, "client-cert.pem"),
-            clientKeyPath: join(process.env.SSL_CERTIFICATES_PATH!, "client-key.pem"),
-        };
+                return item.isExpanded();
+            }), constants.wait1second * 10, `${sqliteConn.caption} was not expanded`);
 
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        await DatabaseConnectionDialog.setConnection(sslConn);
-        const dbConn = dbConnectionOverview.getConnection(sslConn.caption);
+            await driver.wait(new Condition("", async () => {
+                const item = await dbTreeSection.getTreeItem("main");
+                await item.expand();
 
-        await driver.executeScript("arguments[0].click();", dbConn);
-        const notebook = new E2ENotebook();
-        await driver.wait(notebook.untilIsOpened(sslConn), constants.waitConnectionOpen);
-        const query =
-            `select * from performance_schema.session_status where variable_name in
+                return item.isExpanded();
+            }), constants.wait1second * 10, `main was not expanded`);
+
+            await driver.wait(new Condition("", async () => {
+                const item = await dbTreeSection.getTreeItem("Tables");
+                await item.expand();
+
+                return item.isExpanded();
+            }), constants.wait1second * 10, `Tables was not expanded`);
+
+            const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
+                constants.execFullBlockSql) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+        });
+
+        it("Connect to MySQL database using SSL", async () => {
+
+            sslConn = Object.assign({}, globalConn);
+            sslConn.caption = `e2eSSLConnection`;
+
+            sslConn.ssl = {
+                mode: "Require and Verify CA",
+                caPath: join(process.env.SSL_CERTIFICATES_PATH!, "ca.pem"),
+                clientCertPath: join(process.env.SSL_CERTIFICATES_PATH!, "client-cert.pem"),
+                clientKeyPath: join(process.env.SSL_CERTIFICATES_PATH!, "client-key.pem"),
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(sslConn);
+            const dbConn = dbConnectionOverview.getConnection(sslConn.caption);
+
+            await driver.executeScript("arguments[0].click();", dbConn);
+            const notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(sslConn), constants.waitConnectionOpen);
+            const query =
+                `select * from performance_schema.session_status where variable_name in
                 ("ssl_cipher") and variable_value like "%TLS%";`;
 
-        const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
-        expect(result.status).to.match(/1 record retrieved/);
-    });
+            const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
+            expect(result.status).to.match(/1 record retrieved/);
+        });
 
-    it("Copy paste and cut paste into the DB Connection dialog", async function () {
+        it("Copy paste and cut paste into the DB Connection dialog", async function () {
 
-        await TestQueue.push(this.test!.title);
-        existsInQueue = true;
-        await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
+            await TestQueue.push(this.test!.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait1second * 5, "Connection dialog was not displayed");
-        const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
-        const valueToCopy = await hostNameInput.getAttribute("value");
-        await driver.wait(async () => {
-            await Os.keyboardSelectAll(hostNameInput);
-            await Os.keyboardCopy(hostNameInput);
-            const usernameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
-            await Os.keyboardPaste(usernameInput);
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                constants.wait1second * 5, "Connection dialog was not displayed");
+            const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
+            const valueToCopy = await hostNameInput.getAttribute("value");
+            await driver.wait(async () => {
+                await Os.keyboardSelectAll(hostNameInput);
+                await Os.keyboardCopy(hostNameInput);
+                const usernameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
+                await Os.keyboardPaste(usernameInput);
 
-            return (await usernameInput.getAttribute("value")).includes(valueToCopy);
-        }, constants.wait1second * 15, `Could not copy paste ${valueToCopy} to user name field`);
+                return (await usernameInput.getAttribute("value")).includes(valueToCopy);
+            }, constants.wait1second * 15, `Could not copy paste ${valueToCopy} to user name field`);
 
-        expect(await hostNameInput.getAttribute("value"),
-            "Hostname value should stay the same after copying it to the clipboard").to.equal(valueToCopy);
-        const descriptionInput = await conDialog.findElement(locator.dbConnectionDialog.description);
-        await DialogHelper.clearInputField(descriptionInput);
-        await descriptionInput.sendKeys("testing");
-        const valueToCut = await descriptionInput.getAttribute("value");
-        await Os.keyboardSelectAll(descriptionInput);
-        await Os.keyboardCut(descriptionInput);
-        expect(await descriptionInput.getAttribute("value"), "Description value was not cut").to.equals("");
-        const schemaInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.defaultSchema);
-        await Os.keyboardPaste(schemaInput);
-        expect(await schemaInput.getAttribute("value"),
-            "Hostname value was not pasted to the description field").to.include(valueToCut);
-        await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
+            expect(await hostNameInput.getAttribute("value"),
+                "Hostname value should stay the same after copying it to the clipboard").to.equal(valueToCopy);
+            const descriptionInput = await conDialog.findElement(locator.dbConnectionDialog.description);
+            await DialogHelper.clearInputField(descriptionInput);
+            await descriptionInput.sendKeys("testing");
+            const valueToCut = await descriptionInput.getAttribute("value");
+            await Os.keyboardSelectAll(descriptionInput);
+            await Os.keyboardCut(descriptionInput);
+            expect(await descriptionInput.getAttribute("value"), "Description value was not cut").to.equals("");
+            const schemaInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.defaultSchema);
+            await Os.keyboardPaste(schemaInput);
+            expect(await schemaInput.getAttribute("value"),
+                "Hostname value was not pasted to the description field").to.include(valueToCut);
+            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
 
-    });
+        });
 
-    it("Edit a MySQL connection", async () => {
+        it("Edit a MySQL connection", async () => {
 
-        const editConn: interfaces.IDBConnection = {
-            dbType: "MySQL",
-            caption: `e2eConnectionToEdit`,
-            description: "Local connection",
-            basic: {
-                hostname: "localhost",
-                username: String(process.env.DBUSERNAME1),
-                port: 3308,
-                schema: "sakila",
-                password: String(process.env.DBPASSWORD1),
-            },
-            folderPath: {
-                value: "/",
-            },
-        };
-
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        await DatabaseConnectionDialog.setConnection(editConn);
-        await dbConnectionOverview.moreActions(editConn.caption!, constants.editConnection);
-        editConn.caption = "e2eEditedCaption";
-        editConn.description = "edited description";
-
-        if (interfaces.isMySQLConnection(editConn.basic)) {
-            editConn.basic.hostname = "hostname edited";
-            editConn.basic.username = "username edited";
-            editConn.basic.schema = "edited schema";
-            editConn.basic.ociBastion = false;
-            editConn.basic.protocol = "mysqlx";
-            editConn.basic.port = 3305;
-            editConn.basic.sshTunnel = true;
-            editConn.basic.ociBastion = false;
-            editConn.ssl = {
-                mode: "Require",
-                ciphers: "ciphers, edited",
-                caPath: "ca edited",
-                clientCertPath: "cert edited",
-                clientKeyPath: "key edited",
-            };
-            editConn.ssh = {
-                uri: "edited uri",
-                privateKey: "edited private key",
-                customPath: "edited custom path",
-            };
-            editConn.advanced = {
-                // bug : https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36482559
-                /*mode: {
-                    ansi: true,
-                    traditional: true,
-                    allowInvalidDates: true,
-                    ansiQuotes: true,
-                    errorForDivisionByZero: true,
-                    highNotPrecedence: true,
-                    ignoreSpace: true,
-                    noAutoValueOnZero: true,
-                    noUnsignedSubtraction: true,
-                    noZeroDate: true,
-                    noZeroInDate: true,
-                    onlyFullGroupBy: true,
-                    padCharToFullLength: true,
-                    pipesAsConcat: true,
-                    realAsFloat: true,
-                    strictAllTables: true,
-                    strictTransTables: true,
-                    timeTruncateFractional: true,
+            const editConn: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `e2eConnectionToEdit`,
+                description: "Local connection",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: 3308,
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD1),
                 },
-                timeout: "5",*/
-                mode: {
-                    ansi: false,
-                    traditional: false,
-                    allowInvalidDates: false,
-                    ansiQuotes: false,
-                    errorForDivisionByZero: false,
-                    highNotPrecedence: false,
-                    ignoreSpace: false,
-                    noAutoValueOnZero: false,
-                    noUnsignedSubtraction: false,
-                    noZeroDate: false,
-                    noZeroInDate: false,
-                    onlyFullGroupBy: false,
-                    padCharToFullLength: false,
-                    pipesAsConcat: false,
-                    realAsFloat: false,
-                    strictAllTables: false,
-                    strictTransTables: false,
-                    timeTruncateFractional: false,
+                folderPath: {
+                    value: "/",
                 },
-                timeout: "5",
-                compression: "Required",
-                compressionLevel: "5",
-                disableHeatWave: true,
             };
-        }
-        delete (editConn.basic as interfaces.IConnBasicMySQL).password;
-        const dbConnectionDialog = DatabaseConnectionDialog;
-        await dbConnectionDialog.setConnection(editConn);
-        await dbConnectionOverview.moreActions(editConn.caption, constants.editConnection);
-        const verifyConn = await dbConnectionDialog.getConnectionDetails();
-        expect(verifyConn).to.deep.equal(editConn);
 
-    });
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(editConn);
+            await dbConnectionOverview.moreActions(editConn.caption!, constants.editConnection);
+            editConn.caption = "e2eEditedCaption";
+            editConn.description = "edited description";
 
-    it("Edit an Sqlite connection", async () => {
-
-        const editSqliteConn: interfaces.IDBConnection = {
-            dbType: "Sqlite",
-            caption: `e2eSqliteConnectionToEdit`,
-            description: "Local connection",
-            basic: {
-                dbPath: join(process.env.TEST_RESOURCES_PATH!,
-                    `mysqlsh-${String(process.env.TEST_SUITE)}`,
-                    "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
-                dbName: "SQLite",
-            },
-            advanced: {
-                params: "one parameter",
-            },
-            folderPath: {
-                value: "/",
-            },
-        };
-
-        const dbConnectionDialog = DatabaseConnectionDialog;
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        await dbConnectionDialog.setConnection(editSqliteConn);
-        await dbConnectionOverview.moreActions(editSqliteConn.caption!, constants.editConnection);
-        editSqliteConn.caption = "e2eEditedSqliteCaption";
-        editSqliteConn.description = "edited sqlite description";
-
-        if (interfaces.isSQLiteConnection(editSqliteConn.basic)) {
-            editSqliteConn.basic.dbPath = "edited path";
-            // https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36492230
-            // editConn.basic.dbName = "edited name";
-        }
-
-        if (interfaces.isAdvancedSqlite(editSqliteConn.advanced)) {
-            editSqliteConn.advanced.params = "another param";
-        }
-
-        await dbConnectionDialog.setConnection(editSqliteConn);
-        await dbConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
-        const verifyConn = await dbConnectionDialog.getConnectionDetails();
-        delete (verifyConn.basic as interfaces.IConnBasicSqlite).dbName;
-        delete (editSqliteConn.basic as interfaces.IConnBasicSqlite).dbName;
-        expect(verifyConn).to.deep.equal(editSqliteConn);
-
-    });
-
-    it("Duplicate a MySQL Connection", async () => {
-
-        await dbConnectionOverview.moreActions(globalConn.caption!, constants.dupConnection);
-        await DatabaseConnectionDialog.setConnection(duplicateConnection);
-        await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateConnection.caption!),
-            constants.wait1second * 5);
-
-    });
-
-    it("Duplicate a Sqlite Connection", async () => {
-
-        const sqliteConn: interfaces.IDBConnection = {
-            dbType: "Sqlite",
-            caption: `e2eSqliteConnectionToDuplicate`,
-            description: "Local connection",
-            basic: {
-                dbPath: join(process.env.TEST_RESOURCES_PATH!,
-                    `mysqlsh-${String(process.env.TEST_SUITE)}`,
-                    "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
-                dbName: "SQLite",
-            },
-            advanced: {
-                params: "one parameter",
-            },
-        };
-
-        const dbConnectionDialog = DatabaseConnectionDialog;
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        await dbConnectionDialog.setConnection(sqliteConn);
-        await dbConnectionOverview.moreActions(sqliteConn.caption!, constants.dupConnection);
-        const duplicateSqlite: interfaces.IDBConnection = {
-            dbType: "Sqlite",
-            caption: "e2eDuplicateSqliteFromGlobal",
-        };
-        await dbConnectionDialog.setConnection(duplicateSqlite);
-        await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateSqlite.caption!),
-            constants.wait1second * 5);
-
-    });
-
-    it("Remove a MySQL connection", async () => {
-
-        const connectionToRemove: interfaces.IDBConnection = {
-            dbType: "MySQL",
-            caption: `e2eConnectionToRemove`,
-            description: "Local connection",
-            basic: {
-                hostname: "localhost",
-                username: String(process.env.DBUSERNAME1),
-            },
-        };
-
-        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-        await DatabaseConnectionDialog.setConnection(connectionToRemove);
-        await dbConnectionOverview.moreActions(connectionToRemove.caption!, constants.removeConnection);
-        const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
-            constants.wait1second * 5, "confirm dialog was not found");
-
-        await dialog.findElement(locator.confirmDialog.accept).click();
-        await driver.wait(dbConnectionOverview.untilConnectionDoesNotExist(connectionToRemove.caption!),
-            constants.wait1second * 5);
-
-    });
-
-    it("Remove a Sqlite connection", async () => {
-
-        const sqliteConnectionToRemove = "e2eSqliteConnectionToDuplicate";
-        await dbConnectionOverview.moreActions(sqliteConnectionToRemove, constants.removeConnection);
-        const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
-            constants.wait1second * 5, "confirm dialog was not found");
-        await dialog.findElement(locator.confirmDialog.accept).click();
-        await dbTreeSection.focus();
-        await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
-        expect(await dbConnectionOverview.existsConnection(sqliteConnectionToRemove)).to.be.false;
-
-    });
-
-    it("Create new notebook", async () => {
-
-        const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
-        const newNotebook = await connection.findElement(locator.dbConnectionOverview.dbConnection.newNotebook);
-        await driver.actions().move({ origin: newNotebook }).perform();
-        await driver.wait(until.elementIsVisible(newNotebook), constants.wait1second * 5,
-            "New notebook button was not visible");
-        await newNotebook.click();
-        await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.waitConnectionOpen);
-        const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-        const dbNotebook = await openEditorsSection.getTreeItem(constants.openEditorsDBNotebook);
-        expect(dbNotebook).to.exist;
-
-    });
-
-    it("Create new script", async () => {
-
-        const connection = await dbConnectionOverview.getConnection("e2eDuplicateFromGlobal");
-        const newScript = await connection.findElement(locator.dbConnectionOverview.dbConnection.newScript);
-        await driver.actions().move({ origin: newScript }).perform();
-        await driver.wait(until.elementIsVisible(newScript), constants.wait1second * 5,
-            "New script button was not visible");
-        await driver.executeScript("arguments[0].click()", newScript);
-        await driver.wait(new E2EScript().untilIsOpened(duplicateConnection), constants.wait1second * 5);
-        const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-        await openEditorsSection.focus();
-        const script = await openEditorsSection.getTreeItem("Script");
-        expect(script).to.exist;
-
-    });
-
-    it("Open new shell console", async () => {
-
-        await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
-            constants.wait1second * 10).click();
-        await driver.wait(new E2EShellConsole().untilIsOpened(globalConn),
-            constants.waitShellOpen, "Shell Console was not loaded");
-
-    });
-
-    it("Open 3 notebooks for the same database connection", async () => {
-        const dbConnectionOverview = new DatabaseConnectionOverview();
-        const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
-        await connection.click();
-        const notebook = new E2ENotebook();
-        await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
-        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
-
-        await driver.wait(async () => {
-            if (await PasswordDialog.exists()) {
-                await PasswordDialog.setCredentials(globalConn);
-
-                return true;
+            if (interfaces.isMySQLConnection(editConn.basic)) {
+                editConn.basic.hostname = "hostname edited";
+                editConn.basic.username = "username edited";
+                editConn.basic.schema = "edited schema";
+                editConn.basic.ociBastion = false;
+                editConn.basic.protocol = "mysqlx";
+                editConn.basic.port = 3305;
+                editConn.basic.sshTunnel = true;
+                editConn.basic.ociBastion = false;
+                editConn.ssl = {
+                    mode: "Require",
+                    ciphers: "ciphers, edited",
+                    caPath: "ca edited",
+                    clientCertPath: "cert edited",
+                    clientKeyPath: "key edited",
+                };
+                editConn.ssh = {
+                    uri: "edited uri",
+                    privateKey: "edited private key",
+                    customPath: "edited custom path",
+                };
+                editConn.advanced = {
+                    // bug : https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36482559
+                    /*mode: {
+                        ansi: true,
+                        traditional: true,
+                        allowInvalidDates: true,
+                        ansiQuotes: true,
+                        errorForDivisionByZero: true,
+                        highNotPrecedence: true,
+                        ignoreSpace: true,
+                        noAutoValueOnZero: true,
+                        noUnsignedSubtraction: true,
+                        noZeroDate: true,
+                        noZeroInDate: true,
+                        onlyFullGroupBy: true,
+                        padCharToFullLength: true,
+                        pipesAsConcat: true,
+                        realAsFloat: true,
+                        strictAllTables: true,
+                        strictTransTables: true,
+                        timeTruncateFractional: true,
+                    },
+                    timeout: "5",*/
+                    mode: {
+                        ansi: false,
+                        traditional: false,
+                        allowInvalidDates: false,
+                        ansiQuotes: false,
+                        errorForDivisionByZero: false,
+                        highNotPrecedence: false,
+                        ignoreSpace: false,
+                        noAutoValueOnZero: false,
+                        noUnsignedSubtraction: false,
+                        noZeroDate: false,
+                        noZeroInDate: false,
+                        onlyFullGroupBy: false,
+                        padCharToFullLength: false,
+                        pipesAsConcat: false,
+                        realAsFloat: false,
+                        strictAllTables: false,
+                        strictTransTables: false,
+                        timeTruncateFractional: false,
+                    },
+                    timeout: "5",
+                    compression: "Required",
+                    compressionLevel: "5",
+                    disableHeatWave: true,
+                };
             }
-        }, constants.wait1second * 5, "Could not find the Password Dialog for second connection");
+            delete (editConn.basic as interfaces.IConnBasicMySQL).password;
+            const dbConnectionDialog = DatabaseConnectionDialog;
+            await dbConnectionDialog.setConnection(editConn);
+            await dbConnectionOverview.moreActions(editConn.caption, constants.editConnection);
+            const verifyConn = await dbConnectionDialog.getConnectionDetails();
+            expect(verifyConn).to.deep.equal(editConn);
 
+        });
 
-        await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
-        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
-        await driver.wait(async () => {
-            if (await PasswordDialog.exists()) {
-                await PasswordDialog.setCredentials(globalConn);
+        it("Edit an Sqlite connection", async () => {
 
-                return true;
+            const editSqliteConn: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: `e2eSqliteConnectionToEdit`,
+                description: "Local connection",
+                basic: {
+                    dbPath: join(process.env.TEST_RESOURCES_PATH!,
+                        `mysqlsh-${String(process.env.TEST_SUITE)}`,
+                        "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
+                    dbName: "SQLite",
+                },
+                advanced: {
+                    params: "one parameter",
+                },
+                folderPath: {
+                    value: "/",
+                },
+            };
+
+            const dbConnectionDialog = DatabaseConnectionDialog;
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await dbConnectionDialog.setConnection(editSqliteConn);
+            await dbConnectionOverview.moreActions(editSqliteConn.caption!, constants.editConnection);
+            editSqliteConn.caption = "e2eEditedSqliteCaption";
+            editSqliteConn.description = "edited sqlite description";
+
+            if (interfaces.isSQLiteConnection(editSqliteConn.basic)) {
+                editSqliteConn.basic.dbPath = "edited path";
+                // https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36492230
+                // editConn.basic.dbName = "edited name";
             }
-        }, constants.wait1second * 5, "Could not find the Password Dialog for third connection");
 
-        await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
-        await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
-        await driver.wait(async () => {
-            if (await PasswordDialog.exists()) {
-                await PasswordDialog.setCredentials(globalConn);
-
-                return true;
+            if (interfaces.isAdvancedSqlite(editSqliteConn.advanced)) {
+                editSqliteConn.advanced.params = "another param";
             }
-        }, constants.wait1second * 5, "Could not find the Password Dialog for forth connection");
 
-        const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-        await openEditorsSection.focus();
+            await dbConnectionDialog.setConnection(editSqliteConn);
+            await dbConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
+            const verifyConn = await dbConnectionDialog.getConnectionDetails();
+            delete (verifyConn.basic as interfaces.IConnBasicSqlite).dbName;
+            delete (editSqliteConn.basic as interfaces.IConnBasicSqlite).dbName;
+            expect(verifyConn).to.deep.equal(editSqliteConn);
 
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!}`)).to.equals(true);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (2)`)).to.equals(true);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (3)`)).to.equals(true);
+        });
 
-        await Workbench.closeAllEditors();
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!}`)).to.equals(false);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (2)`)).to.equals(false);
-        expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (3)`)).to.equals(false);
+        it("Duplicate a MySQL Connection", async () => {
+
+            await dbConnectionOverview.moreActions(globalConn.caption!, constants.dupConnection);
+            await DatabaseConnectionDialog.setConnection(duplicateConnection);
+            await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateConnection.caption!),
+                constants.wait1second * 5);
+
+        });
+
+        it("Duplicate a Sqlite Connection", async () => {
+
+            const sqliteConn: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: `e2eSqliteConnectionToDuplicate`,
+                description: "Local connection",
+                basic: {
+                    dbPath: join(process.env.TEST_RESOURCES_PATH!,
+                        `mysqlsh-${String(process.env.TEST_SUITE)}`,
+                        "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
+                    dbName: "SQLite",
+                },
+                advanced: {
+                    params: "one parameter",
+                },
+            };
+
+            const dbConnectionDialog = DatabaseConnectionDialog;
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await dbConnectionDialog.setConnection(sqliteConn);
+            await dbConnectionOverview.moreActions(sqliteConn.caption!, constants.dupConnection);
+            const duplicateSqlite: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: "e2eDuplicateSqliteFromGlobal",
+            };
+            await dbConnectionDialog.setConnection(duplicateSqlite);
+            await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateSqlite.caption!),
+                constants.wait1second * 5);
+
+        });
+
+        it("Remove a MySQL connection", async () => {
+
+            const connectionToRemove: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `e2eConnectionToRemove`,
+                description: "Local connection",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                },
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(connectionToRemove);
+            await dbConnectionOverview.moreActions(connectionToRemove.caption!, constants.removeConnection);
+            const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
+                constants.wait1second * 5, "confirm dialog was not found");
+
+            await dialog.findElement(locator.confirmDialog.accept).click();
+            await driver.wait(dbConnectionOverview.untilConnectionDoesNotExist(connectionToRemove.caption!),
+                constants.wait1second * 5);
+
+        });
+
+        it("Remove a Sqlite connection", async () => {
+
+            const sqliteConnectionToRemove = "e2eSqliteConnectionToDuplicate";
+            await dbConnectionOverview.moreActions(sqliteConnectionToRemove, constants.removeConnection);
+            const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
+                constants.wait1second * 5, "confirm dialog was not found");
+            await dialog.findElement(locator.confirmDialog.accept).click();
+            await dbTreeSection.focus();
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
+            expect(await dbConnectionOverview.existsConnection(sqliteConnectionToRemove)).to.be.false;
+
+        });
+
+        it("Create new notebook", async () => {
+
+            const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
+            const newNotebook = await connection.findElement(locator.dbConnectionOverview.dbConnection.newNotebook);
+            await driver.actions().move({ origin: newNotebook }).perform();
+            await driver.wait(until.elementIsVisible(newNotebook), constants.wait1second * 5,
+                "New notebook button was not visible");
+            await newNotebook.click();
+            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.waitConnectionOpen);
+            const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            const dbNotebook = await openEditorsSection.getTreeItem(constants.openEditorsDBNotebook);
+            expect(dbNotebook).to.exist;
+
+        });
+
+        it("Create new script", async () => {
+
+            const connection = await dbConnectionOverview.getConnection("e2eDuplicateFromGlobal");
+            const newScript = await connection.findElement(locator.dbConnectionOverview.dbConnection.newScript);
+            await driver.actions().move({ origin: newScript }).perform();
+            await driver.wait(until.elementIsVisible(newScript), constants.wait1second * 5,
+                "New script button was not visible");
+            await driver.executeScript("arguments[0].click()", newScript);
+            await driver.wait(new E2EScript().untilIsOpened(duplicateConnection), constants.wait1second * 5);
+            const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            await openEditorsSection.focus();
+            const script = await openEditorsSection.getTreeItem("Script");
+            expect(script).to.exist;
+
+        });
+
+        it("Open new shell console", async () => {
+
+            await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
+                constants.wait1second * 10).click();
+            await driver.wait(new E2EShellConsole().untilIsOpened(globalConn),
+                constants.waitShellOpen, "Shell Console was not loaded");
+
+        });
+
+        it("Open 3 notebooks for the same database connection", async () => {
+            const dbConnectionOverview = new DatabaseConnectionOverview();
+            const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
+            await connection.click();
+            const notebook = new E2ENotebook();
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
+            await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
+
+            await driver.wait(async () => {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(globalConn);
+
+                    return true;
+                }
+            }, constants.wait1second * 5, "Could not find the Password Dialog for second connection");
+
+
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
+            await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
+            await driver.wait(async () => {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(globalConn);
+
+                    return true;
+                }
+            }, constants.wait1second * 5, "Could not find the Password Dialog for third connection");
+
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
+            await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption!);
+            await driver.wait(async () => {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(globalConn);
+
+                    return true;
+                }
+            }, constants.wait1second * 5, "Could not find the Password Dialog for forth connection");
+
+            const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            await openEditorsSection.focus();
+
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption!}`)).to.equals(true);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (2)`)).to.equals(true);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (3)`)).to.equals(true);
+
+            await Workbench.closeAllEditors();
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption!}`)).to.equals(false);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (2)`)).to.equals(false);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption!} (3)`)).to.equals(false);
+        });
     });
 
     describe("DB Connection Groups", () => {
@@ -681,14 +696,15 @@ describe("DB Connection Overview", () => {
             },
         };
 
+        const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const connectionOverview = new DatabaseConnectionOverview();
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording | undefined;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title);
             try {
-                await localE2eRecording!.start(this.currentTest!.title);
+                await localE2eRecording!.start();
                 const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
                 await openEditorsSection.expand();
                 await (await openEditorsSection.getTreeItem(constants.dbConnectionsLabel)).click();
@@ -704,17 +720,18 @@ describe("DB Connection Overview", () => {
 
         beforeEach(async function () {
             try {
-                e2eRecording!.start(this.currentTest!.title);
+                e2eRecording = new E2ERecording(this.test!.title);
+                await e2eRecording!.start();
                 await dbTreeSection.focus();
                 await (await connectionOverview.getBreadCrumbLinks())[0].click();
             } catch (e) {
-                Misc.processResult(this, e2eRecording);
+                Misc.processResult(this, e2eRecording!);
                 throw e;
             }
         });
 
         afterEach(async function () {
-            Misc.processResult(this, e2eRecording);
+            await Misc.processResult(this, e2eRecording!);
         });
 
         it("Add MySQL connection to new folder", async () => {
@@ -1091,5 +1108,7 @@ describe("DB Connection Overview", () => {
     });
 
 });
+
+
 
 

@@ -50,7 +50,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
     const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
-    let e2eRecording: E2ERecording | undefined = Os.isLinux() ? new E2ERecording() : undefined;
 
     before(async function () {
 
@@ -62,11 +61,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         ociTree = [new RegExp(`E2ETESTS \\(${ociConfig!.region}\\)`),
         new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
         await Misc.loadDriver();
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.test!.title!);
         let hookResult = "passed";
 
         try {
-            await localE2eRecording!.start(this.test!.title!);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await ociTreeSection.focus();
@@ -78,7 +77,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             hookResult = "failed";
             throw e;
         } finally {
-            await Misc.processResult(this, e2eRecording, hookResult);
+            await Misc.processResult(this, localE2eRecording, hookResult);
         }
 
     });
@@ -90,11 +89,12 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Profile", () => {
 
         let existsInQueue = false;
-        const e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -134,13 +134,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let compartmentId = "";
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 hookResult = "failed";
@@ -152,7 +152,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -210,25 +211,26 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("DB System", () => {
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 hookResult = "failed";
                 throw e;
             } finally {
-                await Misc.processResult(this, e2eRecording, hookResult);
+                await Misc.processResult(this, localE2eRecording, hookResult);
             }
         });
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -335,13 +337,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let bastionId: string;
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 hookResult = "failed";
@@ -353,7 +355,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -443,13 +446,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Compute Instance", () => {
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
                 await ociTreeSection.focus();
             } catch (e) {
@@ -462,7 +465,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {

@@ -75,9 +75,9 @@ describe("DATABASE CONNECTIONS", () => {
     before(async function () {
         let hookResult = "passed";
         await Misc.loadDriver();
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.test!.title!);
         try {
-            await localE2eRecording!.start(this.test!.title!);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
             const activityBare = new ActivityBar();
@@ -105,11 +105,12 @@ describe("DATABASE CONNECTIONS", () => {
 
     describe("Toolbar", () => {
 
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -212,14 +213,14 @@ describe("DATABASE CONNECTIONS", () => {
 
         const mysqlAdministration = new E2EMySQLAdministration();
         const toolbar = new E2EToolbar();
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
             await Os.appendToExtensionLog("beforeAll MySQL Administration");
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await Os.deleteCredentials();
                 await Workbench.closeAllEditors();
                 await dbTreeSection.focus();
@@ -239,7 +240,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -247,9 +249,9 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         after(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start(this.currentTest!.title);
+                await localE2eRecording!.start();
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
                 await treeGlobalConn.collapse();
                 await Workbench.closeAllEditors();
@@ -531,14 +533,14 @@ describe("DATABASE CONNECTIONS", () => {
 
         const fileToUpload = "qa_cookbook_ext.pdf";
         const mysqlAdministration = new E2EMySQLAdministration();
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
             await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await dbTreeSection.expandTreeItem(heatWaveConn.caption!, heatWaveConn);
@@ -576,7 +578,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -584,9 +587,9 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         after(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start(this.currentTest!.title);
+                await localE2eRecording!.start();
                 await Workbench.toggleSideBar(true);
                 await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
                     .schema!)).expand();
@@ -726,14 +729,14 @@ describe("DATABASE CONNECTIONS", () => {
         let existsInQueue = false;
         const storedFunction = "storedFunction";
         const storedJSFunction = "storedJSFunction";
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
             await Os.appendToExtensionLog("beforeAll Tree context menu items");
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await Os.deleteCredentials();
                 await dbTreeSection.focus();
                 treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
@@ -751,7 +754,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -956,7 +960,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it.skip("Dump Schema to Disk for MySQL Database Service", async function () {
+        it("Dump Schema to Disk for MySQL Database Service", async function () {
 
             await TestQueue.push(this.test!.title);
             existsInQueue = true;
@@ -969,7 +973,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.setInputPath(dumpFolder);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password!);
             await Workbench
-                .waitForOutputText(`Task 'Dump Schema ${schemaForMySQLDbService} to Disk' completed successfully`,
+                .waitForOutputText(`Task 'Dump Schema ${schemaForMySQLDbService} to Disk for MDS' completed successfully`,
                     constants.wait1second * 10);
             const files = await fs.readdir(dumpFolder);
             expect(files.length, `The dump did not exported any files to ${dumpFolder}`).to.be.greaterThan(0);

@@ -79,9 +79,9 @@ describe("NOTEBOOKS", () => {
     before(async function () {
         let hookResult = "passed";
         await Misc.loadDriver();
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.test!.title!);
         try {
-            await localE2eRecording!.start(this.test!.title!);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Notebooks");
             await Workbench.toggleBottomBar(false);
@@ -109,13 +109,13 @@ describe("NOTEBOOKS", () => {
 
         let cleanEditor = false;
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await Workbench.toggleSideBar(false);
             } catch (e) {
                 hookResult = "failed";
@@ -127,7 +127,8 @@ describe("NOTEBOOKS", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -1998,13 +1999,13 @@ describe("NOTEBOOKS", () => {
 
         const destFile = `${process.cwd()}/a_test`;
         const notebook = new E2ENotebook();
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await Workbench.openMySQLShellForVSCode();
                 await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook));
                 try {
@@ -2025,7 +2026,8 @@ describe("NOTEBOOKS", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {
@@ -2033,9 +2035,9 @@ describe("NOTEBOOKS", () => {
         });
 
         after(async function () {
-            const localE2eRecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start(this.currentTest!.title);
+                await localE2eRecording!.start();
                 await Workbench.closeAllEditors();
                 await fs.unlink(`${destFile}.mysql-notebook`);
                 const activityBar = new ActivityBar();
@@ -2204,13 +2206,13 @@ describe("NOTEBOOKS", () => {
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const notebook = new E2ENotebook();
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new DatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
                 await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.waitConnectionOpen);
@@ -2227,7 +2229,8 @@ describe("NOTEBOOKS", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            await e2eRecording!.start(this.currentTest!.title);
+            e2eRecording = new E2ERecording(this.currentTest!.title);
+            await e2eRecording!.start();
         });
 
         afterEach(async function () {

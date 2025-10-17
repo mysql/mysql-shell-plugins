@@ -79,9 +79,9 @@ describe("MySQL REST Service", () => {
     before(async function () {
         await Misc.loadDriver();
         let hookResult = "passed";
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.test!.title!);
         try {
-            await localE2eRecording!.start(this.test!.title!);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Rest");
             await Workbench.toggleBottomBar(false);
@@ -125,12 +125,13 @@ describe("MySQL REST Service", () => {
 
         let existsInQueue = false;
         const destDumpSdk = join(process.cwd(), "dump.sdk");
-        const e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
-                await e2eRecording!.start(this.currentTest!.title);
+                e2eRecording = new E2ERecording(this.currentTest!.title);
+                await e2eRecording!.start();
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
@@ -447,13 +448,13 @@ describe("MySQL REST Service", () => {
         let existsInQueue = false;
         const schemaToDump = "dummyschema";
         const destDumpSchema = join(process.cwd(), schemaToDump);
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -481,7 +482,8 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
-                await e2eRecording!.start(this.currentTest!.title);
+                e2eRecording = new E2ERecording(this.currentTest!.title);
+                await e2eRecording!.start();
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
@@ -502,9 +504,9 @@ describe("MySQL REST Service", () => {
         });
 
         after(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start(this.currentTest!.title);
+                await localE2eRecording!.start();
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service2.servicePath),
                     constants.deleteRESTService);
 
@@ -758,13 +760,13 @@ describe("MySQL REST Service", () => {
 
         const destDumpTable = join(process.cwd(), tableToDump);
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -800,7 +802,8 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
-                await e2eRecording!.start(this.currentTest!.title);
+                e2eRecording = new E2ERecording(this.currentTest!.title);
+                await e2eRecording!.start();
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
@@ -821,9 +824,9 @@ describe("MySQL REST Service", () => {
         });
 
         after(async function () {
-            const localE2eRecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording.start(this.currentTest!.title);
+                await localE2eRecording.start();
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service3.servicePath),
                     constants.deleteRESTService);
 
@@ -1146,13 +1149,13 @@ describe("MySQL REST Service", () => {
         };
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -1183,7 +1186,8 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
-                await e2eRecording!.start(this.currentTest!.title);
+                e2eRecording = new E2ERecording(this.currentTest!.title);
+                await e2eRecording!.start();
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
@@ -1203,9 +1207,9 @@ describe("MySQL REST Service", () => {
         });
 
         after(async function () {
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start(this.currentTest!.title);
+                await localE2eRecording!.start();
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service4.servicePath),
                     constants.deleteRESTService);
 
@@ -1439,13 +1443,13 @@ describe("MySQL REST Service", () => {
         };
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording = new E2ERecording();
+        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
-            const localE2eRecording: E2ERecording = new E2ERecording();
+            const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start(this.test!.title!);
+                await localE2eRecording!.start();
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -1480,12 +1484,13 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
             try {
-                await e2eRecording!.start(this.currentTest!.title);
+                e2eRecording = new E2ERecording(this.currentTest!.title);
+                await e2eRecording!.start();
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
-                await Misc.processResult(this);
+                await Misc.processResult(this, e2eRecording);
                 throw e;
             }
         });

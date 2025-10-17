@@ -61,16 +61,11 @@ export class Misc {
      */
     public static processResult = async (
         testContext: Mocha.Context,
-        recording?: E2ERecording,
+        recording: E2ERecording,
         testResult?: string,
     ): Promise<void> => {
 
-        if (recording) {
-            await recording.stop();
-            await driver.wait(() => {
-                return (existsSync(recording.videoPath!));
-            }, constants.wait1second * 10, `${recording.videoPath} was not found`);
-        }
+        await recording.stop();
 
         let result: string | undefined;
         if (!testResult) {
@@ -86,19 +81,17 @@ export class Misc {
 
         const testTitle = testContext.currentTest ? testContext.currentTest.title : testContext.test!.title;
 
-        if (recording) {
-            if (result === "passed") {
-                rmSync(recording.videoPath!);
-            } else {
-                if (process.env.BUILD_URL) {
-                    const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
-                    addContext(testContext, {
-                        title: "FAILURE VIDEO",
-                        value: {
-                            URL: `${process.env.BUILD_URL}artifact/${relativePath}`,
-                        }
-                    });
-                }
+        if (result === "passed") {
+            rmSync(recording.videoPath!);
+        } else {
+            if (process.env.BUILD_URL) {
+                const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
+                addContext(testContext, {
+                    title: "FAILURE VIDEO",
+                    value: {
+                        URL: `${process.env.BUILD_URL}artifact/${relativePath}`,
+                    }
+                });
             }
         }
 

@@ -92,15 +92,15 @@ describe("Router", () => {
 
     let routerPort: string | undefined;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-    let e2eRecording: E2ERecording | undefined = new E2ERecording();
+    let e2eRecording: E2ERecording;
 
     before(async function () {
 
         await Misc.loadDriver();
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.test!.title!);
         let hookResult = "passed";
         try {
-            await localE2eRecording!.start(this.test!.title!);
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             Misc.removeDatabaseConnections();
@@ -125,7 +125,8 @@ describe("Router", () => {
 
     beforeEach(async function () {
         await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-        await e2eRecording!.start(this.currentTest!.title);
+        e2eRecording = new E2ERecording(this.currentTest!.title);
+        await e2eRecording!.start();
     });
 
     afterEach(async function () {
@@ -133,9 +134,9 @@ describe("Router", () => {
     });
 
     after(async function () {
-        const localE2eRecording: E2ERecording = new E2ERecording();
+        const localE2eRecording = new E2ERecording(this.currentTest!.title);
         try {
-            await localE2eRecording!.start(this.currentTest!.title);
+            await localE2eRecording!.start();
             await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.killRouters);
             Misc.removeDatabaseConnections();
         } finally {
