@@ -49,6 +49,9 @@ from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
 from gui_plugin.users import backend as user_handler
 from gui_plugin.users.backend import get_id_personal_user_group
+from gui_plugin.core.Filtering import LogFilter
+
+from mysqlsh.plugin_manager import registrar
 
 
 class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
@@ -61,6 +64,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
     _thread_context = None
     _active_profile_id = None
     _new_single_server_user_created = False
+    _active_log_filters: dict[str, list[LogFilter]] = {}
 
     def _is_shell_object(self, object):
         return type(object).__name__ in ['Dict', 'List']
@@ -87,17 +91,41 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         self._response_queue = Queue()
         self._response_thread = threading.Thread(target=self.process_responses)
 
+        # Using the registrar registry we can identify the functions that are
+        # available for the web interface.
+        self._web_functions = {}
+        for definition in registrar.get_registry():
+            if definition.web:
+                tokens = definition.fully_qualified_name.split(".")
+                tokens[-1] = re.sub(
+                    r'(?<!^)(?=[A-Z])', '_', tokens[-1]).lower()
+                self._web_functions[".".join(tokens)] = definition
+
     def process_responses(self):
         while self.connected:
             try:
-                json_message = self._response_queue.get(timeout=1)
+                json_message, completion_request_id = self._response_queue.get(
+                    timeout=1)
             except Empty:
                 continue
 
             self.send_message(json.dumps(json_message, default=str))
 
+            # Expire the filters of the completed requests, if any
+            if completion_request_id and completion_request_id in self._active_log_filters:
+                for filter in self._active_log_filters[completion_request_id]:
+                    filter.expire()
+
+                del self._active_log_filters[completion_request_id]
+
     def process_message(self, json_message):
         request = json_message.get('request')
+
+        # Logs any request that is not a plugin function call (backward compatibility)
+        if request != 'execute':
+            logger.debug2(message=json.dumps(json_message),
+                          sensitive=True, prefix="<- ")
+
         if request == 'authenticate':
             if not self.is_authenticated:
                 if self.single_server is not None:
@@ -149,7 +177,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             message = self.packets[self.session_uuid].message
             del self.packets[self.session_uuid]
 
-            logger.debug2(message=message, sensitive=True, prefix="<- ")
             try:
                 json_message = None
                 try:
@@ -179,6 +206,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
                 self.process_message(json_message)
             except Exception as e:
+                # Logs the received message in case of errors
+                logger.debug2(message=message, sensitive=True, prefix="<- ")
+
                 # Add the request id to the response if we have it available
                 args = {}
                 if json_message and 'request_id' in json_message:
@@ -361,15 +391,15 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
         return success
 
-    def send_json_response(self, json_message):
+    def send_json_response(self, json_message, completion_request_id=None):
         # Special handling required for shell objects
         if self._is_shell_object(json_message):
             json_message = json.loads(str(json_message).replace("\n", "\\n"))
 
-        self._response_queue.put(json_message)
+        self._response_queue.put((json_message, completion_request_id))
 
     def send_response_message(self, msg_type, msg, request_id=None,
-                              values=None, api=False):
+                              values=None, api=False, completed=False):
         # get message text which is either a Dict that is converted to JSON or
         # a str
         msg_text = json.dumps(msg) if isinstance(msg, dict) else msg
@@ -396,12 +426,13 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             msg_type, msg_text, {**id_arg, **values_arg})
 
         # send the response message
-        self.send_json_response(full_response)
+        self.send_json_response(
+            full_response, completion_request_id=request_id if completed else None)
 
         if msg_type in ["OK", "ERROR", "CANCELLED"]:
             self.unregister_module_request(request_id)
 
-    def send_command_response(self, request_id, values):
+    def send_command_response(self, request_id, values, completed=False):
         # TODO(rennox): This function has to do weird magic because it
         # is called to send the response from different commands, the
         # PROBLEM is that the commands should NEVER be creating the
@@ -425,16 +456,18 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             values["request_id"] = request_id
 
             # send the response message
-            self.send_json_response(values)
+            self.send_json_response(values, request_id if completed else None)
 
             self.unregister_module_request(request_id)
         else:
             self.send_response_message(
-                "OK", "", request_id=request_id, values=values, api=True)
+                "OK", "", request_id=request_id, values=values, api=True,
+                completed=completed)
 
     def send_command_done(self, request_id):
         self.send_json_response(Response.standard(
-            "OK", "", {"request_id": request_id, "done": True}))
+            "OK", "", {"request_id": request_id, "done": True}),
+            completion_request_id=request_id)
 
         self.unregister_module_request(request_id)
 
@@ -502,7 +535,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         request_id = json_msg.get('request_id')
         username = json_msg.get('username')
         if username.startswith("ssu:"):
-            raise RuntimeError('Single server user authentication not supported')
+            raise RuntimeError(
+                'Single server user authentication not supported')
         try:
             if self.is_local_session:
                 if username != gui.users.backend.LOCAL_USERNAME:  # type: ignore
@@ -529,7 +563,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             db, self._session_user_id)
 
                     # get default profile for the user
-                    default_profile = gui.users.get_default_profile( # type: ignore
+                    default_profile = gui.users.get_default_profile(  # type: ignore
                         row[0], self.db)
                     self.set_active_profile_id(default_profile["id"])
                     values = {"active_profile": default_profile}
@@ -587,6 +621,20 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             if not allowed:
                 raise Exception(f'This user does not have the necessary '
                                 f'privileges to execute the command {cmd}.')
+
+            request_filters: list[LogFilter] = []
+            if cmd in self._web_functions:
+                definition = self._web_functions[cmd]
+                if isinstance(definition.web, dict) and 'logfilters' in definition.web:
+                    for filter in definition.web['logfilters']:
+                        request_filters.append(logger.add_filter(filter))
+
+            # Registry of the active filters for this request
+            if request_filters:
+                self._active_log_filters[request_id] = request_filters
+
+            logger.debug2(message=json.dumps(json_msg),
+                          sensitive=True, prefix="<- ")
 
             # Argument need to be passed in a dict using the argument names as
             # the keys
@@ -705,7 +753,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             del self.get_cache()[
                                 self.session_uuid]
 
-                    kwargs.update({"db_connection_id": self._single_server_conn_id})
+                    kwargs.update(
+                        {"db_connection_id": self._single_server_conn_id})
 
             if "interactive" in f_args:
                 kwargs.update({"interactive": False})
@@ -780,7 +829,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             result = Response.exception(e)
 
         if result is not None:
-            self.send_command_response(request_id, result)
+            self.send_command_response(request_id, result, completed=True)
 
     def get_function_arguments(self, func, mod, mod_cmd):
         get_args_from_help = False
@@ -906,7 +955,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
             with self.db_tx() as db:
                 db.execute('UPDATE session SET user_id=? WHERE uuid=?',
-                            (user_id, self.session_uuid))
+                           (user_id, self.session_uuid))
 
                 self._session_user_id = user_id
                 self._session_user_personal_group_id = get_id_personal_user_group(
@@ -930,7 +979,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         request_id = json_msg.get('request_id')
         username = json_msg.get('username')
         password = json_msg.get('password')
-        hashed_session_id = hashlib.sha256(str(self.session_id).encode()).hexdigest()
+        hashed_session_id = hashlib.sha256(
+            str(self.session_id).encode()).hexdigest()
         single_server_connection_name = f"Single MySQL Server ({hashed_session_id})"
 
         connection = {
@@ -962,16 +1012,17 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     break
 
             if self._single_server_conn_id is None:
-                self._single_server_conn_id = self.add_single_server_connection(connection)
+                self._single_server_conn_id = self.add_single_server_connection(
+                    connection)
 
             default_profile = gui.users.get_default_profile(  # type: ignore
                 self._session_user_id, self.db)
             values = {"active_profile": default_profile}
 
             self.send_response_message('OK',
-                                    f'User {username} was '
-                                    f'successfully authenticated.',
-                                    request_id, values)
+                                       f'User {username} was '
+                                       f'successfully authenticated.',
+                                       request_id, values)
         else:
             if self._new_single_server_user_created:
                 gui.users.delete_user("ssu:" + username)  # type: ignore
@@ -979,8 +1030,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self._session_user_personal_group_id = None
             self._active_profile_id = None
             self.send_response_message('ERROR',
-                                    f'User {username} could not be authenticated.',
-                                    request_id)
+                                       f'User {username} could not be authenticated.',
+                                       request_id)
 
     def get_context(self):
         return self._thread_context

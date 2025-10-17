@@ -147,7 +147,7 @@ class DbMysqlSession(DbSession):
             if options['type'] == 'password':
                 logger.add_filter({
                     "type": "key",
-                    "key": "reply",
+                    "keys": ["reply"],
                     "expire": Filtering.FilterExpire.OnUse
                 })
             # On Bastion Sessions, this prompt is produced in 2 known scenarios:
@@ -821,9 +821,9 @@ class DbMysqlSession(DbSession):
                                    f"The '{schema_name}' does not exist.")
             return {"routines": result}
 
-
     def get_libraries_metadata(self, schema_name):
-        libraries_available = self._column_exists("LIBRARIES", "LIBRARY_CATALOG")
+        libraries_available = self._column_exists(
+            "LIBRARIES", "LIBRARY_CATALOG")
         if not libraries_available:
             return []
 
@@ -838,9 +838,9 @@ class DbMysqlSession(DbSession):
             task_id = context.request_id if context else None
 
             self.add_task(MySQLLibrariesListTask(self,
-                                                task_id=task_id,
-                                                sql=sql,
-                                                params=params))
+                                                 task_id=task_id,
+                                                 sql=sql,
+                                                 params=params))
         else:
             cursor = self.execute(sql, params)
             if cursor:
@@ -849,9 +849,8 @@ class DbMysqlSession(DbSession):
                 result = []
             if not result:
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
-                                    f"The '{schema_name}' does not exist.")
+                                   f"The '{schema_name}' does not exist.")
             return {"libraries": result}
-
 
     def _column_exists(self, table_name, column_name):
         """Check if a column exists in INFORMATION_SCHEMA table."""

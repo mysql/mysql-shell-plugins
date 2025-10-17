@@ -409,7 +409,7 @@ class ShellModuleSession(ModuleSession):
                         if 'type' in reply_json and reply_json['type'] == 'password':
                             logger.add_filter({
                                 "type": "key",
-                                "key": "reply",
+                                "keys": ["reply"],
                                 "expire": Filtering.FilterExpire.OnUse
                             })
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -65,7 +65,7 @@ class LogLevel(IntEnum):
 class BackendLogger:
     __instance = None
     __log_level = None
-    __log_filters = []
+    __log_filters: list[Filtering.LogFilter] = []
 
     @staticmethod
     def get_instance() -> 'BackendLogger':
@@ -83,7 +83,7 @@ class BackendLogger:
             self.set_log_level(LogLevel.from_string(log_level))
             self.add_filter({
                 "type": "key",
-                "key": "password",
+                "keys": ["password"],
                 "expire": Filtering.FilterExpire.Never
             })
 
@@ -103,14 +103,20 @@ class BackendLogger:
                 print(
                     f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}", file=sys.real_stdout, flush=True)
 
-    def add_filter(self, options):
+    def add_filter(self, options) -> Filtering.LogFilter:
         if "type" in options:
             if options["type"] == "key":
-                self.__log_filters.append(Filtering.KeyFilter(options["key"],
-                                                              options["expire"]))
+                self.__log_filters.append(Filtering.KeyFilter(options["keys"],
+                                                              options.get("expire", Filtering.FilterExpire.Never)))
             elif options["type"] == "substring":
                 self.__log_filters.append(Filtering.SubstringFilter(options["start"],
-                                                                    options["end"], options["expire"]))
+                                                                    options["end"], options.get("expire", Filtering.FilterExpire.Never)))
+            else:
+                raise Exception("Invalid filter type")
+        else:
+            raise Exception("Filter type not specified")
+
+        return self.__log_filters[-1]
 
     def set_log_level(self, log_level: LogLevel):
         BackendLogger.__log_level = log_level
@@ -195,7 +201,7 @@ def internal_error(message, tags=[], sensitive=False, prefix=""):
 
 
 def add_filter(options):
-    BackendLogger.get_instance().add_filter(options)
+    return BackendLogger.get_instance().add_filter(options)
 
 
 def track_print(type):

@@ -183,7 +183,8 @@ class RequestHandler(Thread):
         if result is not None:
             if isinstance(result, dict) and "request_state" in result:
                 self._confirm_complete = result["request_state"]["type"] != "ERROR"
-                self.web_handler.send_command_response(self.request_id, result)
+                self.web_handler.send_command_response(
+                    self.request_id, result, completed=True)
             else:
                 self.web_handler.send_command_response(
                     self.request_id, Response.pending(msg="", args={"result": result}))
@@ -192,11 +193,11 @@ class RequestHandler(Thread):
                 self._confirm_complete = False
                 for error in self._thread_context.completion_event.get_errors():
                     self.web_handler.send_command_response(
-                        self.request_id, Response.exception(error))
+                        self.request_id, Response.exception(error), completed=True)
             elif self._thread_context.completion_event.is_cancelled:
                 self._confirm_complete = False
                 self.web_handler.send_command_response(
-                    self.request_id, Response.cancelled(""))
+                    self.request_id, Response.cancelled(""), completed=True)
 
         # This is the case of any plugin function that does not fail but
         # does not return anything, we should return an OK response anyway

@@ -109,6 +109,28 @@
                 "preLaunchTask": "Execute Shell in Python Mode",
                 "postDebugTask": "Disable python debugging",
             },
+            {
+                "name": "Debug Shell Plugins (win)",
+                "type": "debugpy",
+                "request": "attach",
+                "connect": {
+                    "host": "localhost",
+                    "port": 5678,
+                    "timeout": 2000
+                },
+                "preLaunchTask": "Execute Shell in Python Mode (win)",
+                "postDebugTask": "Disable python debugging (win)",
+            },
+            {
+                "name": "Debug Shell Plugins Attach",
+                "type": "debugpy",
+                "request": "attach",
+                "connect": {
+                    "host": "localhost",
+                    "port": 5678,
+                    "timeout": 2000
+                },
+            },            
         ]
     },
     "tasks": {
@@ -121,8 +143,27 @@
                 "args": [
                     "-s",
                     "${workspaceFolder}/../tools/enable_python_debugger",
-                    "~/.mysqlsh/init.d",
+                    "~/.mysqlsh/init.d"
                 ],
+            },
+            {
+                "label": "Enable python debugging (win)",
+                "type": "shell",
+                "command": "wt.exe",
+                "args": [
+                    "cmd",
+                    "/c",
+                    "mklink /j %appdata%\\MySQL\\mysqlsh\\init.d ${workspaceFolder}\\..\\tools\\enable_python_debugger"
+                ],
+                "presentation": {
+                    "echo": true,
+                    "reveal": "never",
+                    "focus": false,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": false
+                },
+                "problemMatcher": []
             },
             {
                 "label": "Execute Shell in Python Mode",
@@ -131,20 +172,64 @@
                 "args": [
                     "--log-file",
                     "${workspaceFolder}/mysqlsh.log",
-                    "--py",
+                    "--py"
                 ],
                 "isBackground": true,
                 "dependsOn": "Enable python debugging",
                 "problemMatcher": {
                     "owner": "shell",
-                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}"
+                    ],
                     "pattern": [
                         {
                             "regexp": "^.*\\[.*\\]:\\s(Error|Warning|Info):\\s(.*)",
                             "location": 0,
                             "file": 0,
                             "severity": 1,
-                            "message": 2,
+                            "message": 2
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Started Debug Server",
+                        "endsPattern": ".*"
+                    }
+                }
+            },
+            {
+                "label": "Execute Shell in Python Mode (win)",
+                "type": "shell",
+                "command": "mysqlsh",
+                "args": [
+                    "--log-file",
+                    "${workspaceFolder}/mysqlsh.log",
+                    "--py"
+                ],
+                "isBackground": true,
+                "dependsOn": "Enable python debugging (win)",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "never",
+                    "focus": false,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": false
+                },
+                "problemMatcher": {
+                    "owner": "shell",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}"
+                    ],
+                    "pattern": [
+                        {
+                            "regexp": "^.*\\[.*\\]:\\s(Error|Warning|Info):\\s(.*)",
+                            "location": 0,
+                            "file": 0,
+                            "severity": 1,
+                            "message": 2
                         }
                     ],
                     "background": {
@@ -159,8 +244,28 @@
                 "type": "shell",
                 "command": "rm",
                 "args": [
-                    "~/.mysqlsh/init.d",
+                    "~/.mysqlsh/init.d"
                 ],
+                "problemMatcher": []
+            },
+            {
+                "label": "Disable python debugging (win)",
+                "type": "shell",
+                "command": "wt.exe",
+                "args": [
+                    "cmd",
+                    "/c",
+                    "rmdir %appdata%\\MySQL\\mysqlsh\\init.d"
+                ],
+                "presentation": {
+                    "echo": true,
+                    "reveal": "never",
+                    "focus": false,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": false
+                },
+                "problemMatcher": []
             }
         ]
     },
