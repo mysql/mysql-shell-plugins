@@ -41,6 +41,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 let ociConfig: interfaces.IOciProfileConfig | undefined;
 let ociTree: RegExp[];
@@ -89,22 +90,12 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Profile", () => {
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
 
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.closeAllEditors();
         });
 
         it("View Config Profile Information", async function () {
@@ -117,7 +108,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.viewConfigProfileInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociConfig!.name} Info.json`), constants.wait1second * 10);
             expect(Misc.isJson(await new TextEditor().getText())).to.be.true;
-
+            await Workbench.closeAllEditors();
         });
 
         it("Set as New Default Config Profile", async () => {
@@ -126,7 +117,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.setDefaultConfigProfile);
             await driver.wait(ociTreeSection.untilTreeItemIsDefault(`${ociConfig!.name} (${ociConfig!.region})`),
                 constants.wait1second * 5, "E2e tests is not the default item");
-
+            await Workbench.closeAllEditors();
         });
     });
 
@@ -134,7 +125,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let compartmentId = "";
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -150,20 +140,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.closeAllEditors();
         });
 
         after(async function () {
@@ -180,7 +161,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait1second * 10);
             await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait1second * 10);
             compartmentId = JSON.parse(await new TextEditor().getText()).id;
-
+            await Workbench.closeAllEditors();
         });
 
         it("Set as Current Compartment", async () => {
@@ -203,7 +184,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const result = await shellConsole.codeEditor
                 .execute("mds.get.currentCompartmentId()") as E2ECommandResultData;
             expect(result.text).to.equal(compartmentId);
-
+            await Workbench.closeAllEditors();
         });
 
     });
@@ -211,7 +192,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("DB System", () => {
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -227,20 +207,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.closeAllEditors();
         });
 
         it("View DB System Information", async function () {
@@ -256,7 +227,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.wait1second * 10);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
                 constants.wait1second * 10);
-
+            await Workbench.closeAllEditors();
         });
 
         it("Start a DB System (and cancel)", async () => {
@@ -273,6 +244,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.waitForTreeItem);
             } finally {
                 await ociTreeSection.focus();
+                await Workbench.closeAllEditors();
             }
 
         });
@@ -291,6 +263,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
+                await Workbench.closeAllEditors();
             }
 
         });
@@ -309,6 +282,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
+                await Workbench.closeAllEditors();
             }
 
         });
@@ -327,6 +301,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
+                await Workbench.closeAllEditors();
             }
 
         });
@@ -337,7 +312,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let bastionId: string;
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -353,20 +327,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await tasksTreeSection.collapse();
         });
 
         it("Get Bastion Information", async function () {
@@ -384,7 +349,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             bastionId = JSON.parse(await new TextEditor().getText()).id;
             await Workbench.closeEditor(new RegExp(`${bastionName} Info.json`));
             await Workbench.pushDialogButton("Don't Save");
-
+            await tasksTreeSection.collapse();
         });
 
         it("Set as Current Bastion", async () => {
@@ -403,7 +368,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const result = await new E2EShellConsole().codeEditor
                 .execute("mds.get.currentBastionId()") as E2ECommandResultData;
             expect(result.text).to.equal(bastionId);
-
+            await tasksTreeSection.collapse();
         });
 
         it("Refresh When Bastion Reaches Active State", async () => {
@@ -417,7 +382,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new OutputView().clearText();
             await driver.wait(tasksTreeSection.untilTreeItemExists("Refresh Bastion (done)"),
                 constants.waitForTreeItem);
-
+            await tasksTreeSection.collapse();
         });
 
         it("Delete Bastion", async () => {
@@ -438,7 +403,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.waitForTreeItem);
             await new OutputView().clearText();
             await new BottomBarPanel().toggle(false);
-
+            await tasksTreeSection.collapse();
         });
 
     });
@@ -446,7 +411,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Compute Instance", () => {
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             const localE2eRecording = new E2ERecording(this.test!.title!);
@@ -463,20 +427,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.closeAllEditors();
         });
 
         it("View Compute Instance Information", async function () {
@@ -492,7 +447,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait1second * 10);
             await Workbench.closeEditor(new RegExp(`${computeName} Info.json`));
             await Workbench.pushDialogButton("Don't Save");
-
+            await Workbench.closeAllEditors();
         });
 
         it("Delete Compute Instance", async () => {
@@ -512,6 +467,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
+                await Workbench.closeAllEditors();
             }
 
         });

@@ -49,6 +49,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 describe("DB CONNECTION OVERVIEW", () => {
 
@@ -108,8 +109,6 @@ describe("DB CONNECTION OVERVIEW", () => {
 
     describe("DB Connections", () => {
 
-        let e2eRecording: E2ERecording | undefined;
-
         before(async function () {
             let hookResult = "passed";
             const localE2eRecording: E2ERecording = new E2ERecording(this.currentTest!.title);
@@ -135,17 +134,8 @@ describe("DB CONNECTION OVERVIEW", () => {
         });
 
         beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            try {
-                e2eRecording = new E2ERecording(this.currentTest!.title);
-                await e2eRecording!.start();
-                await dbConnectionOverview.toolbar.editorSelector
-                    .selectEditor(new RegExp(constants.dbConnectionsLabel));
-            } catch (e) {
-                await Misc.processResult(this, e2eRecording!);
-                throw e;
-            }
-
+            await dbConnectionOverview.toolbar.editorSelector
+                .selectEditor(new RegExp(constants.dbConnectionsLabel));
         });
 
         afterEach(async function () {
@@ -153,8 +143,6 @@ describe("DB CONNECTION OVERVIEW", () => {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording!);
         });
 
         it("MySQL Database connection - Verify mandatory fields", async () => {
@@ -698,7 +686,6 @@ describe("DB CONNECTION OVERVIEW", () => {
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const connectionOverview = new DatabaseConnectionOverview();
-        let e2eRecording: E2ERecording | undefined;
 
         before(async function () {
             let hookResult = "passed";
@@ -719,19 +706,8 @@ describe("DB CONNECTION OVERVIEW", () => {
         });
 
         beforeEach(async function () {
-            try {
-                e2eRecording = new E2ERecording(this.test!.title);
-                await e2eRecording!.start();
-                await dbTreeSection.focus();
-                await (await connectionOverview.getBreadCrumbLinks())[0].click();
-            } catch (e) {
-                Misc.processResult(this, e2eRecording!);
-                throw e;
-            }
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording!);
+            await dbTreeSection.focus();
+            await (await connectionOverview.getBreadCrumbLinks())[0].click();
         });
 
         it("Add MySQL connection to new folder", async () => {

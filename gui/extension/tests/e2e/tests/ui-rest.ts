@@ -47,6 +47,7 @@ import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 import { E2ELogger } from "../lib/E2ELogger";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
@@ -125,30 +126,12 @@ describe("MySQL REST Service", () => {
 
         let existsInQueue = false;
         const destDumpSdk = join(process.cwd(), "dump.sdk");
-        let e2eRecording: E2ERecording;
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            try {
-                e2eRecording = new E2ERecording(this.currentTest!.title);
-                await e2eRecording!.start();
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
-                    `${constants.dbTreeSection} is still loading`);
-                await Workbench.dismissNotifications();
-            } catch (e) {
-                await Misc.processResult(this, e2eRecording);
-                throw e;
-            }
-        });
 
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.dismissNotifications();
         });
 
         after(async () => {
@@ -448,7 +431,6 @@ describe("MySQL REST Service", () => {
         let existsInQueue = false;
         const schemaToDump = "dummyschema";
         const destDumpSchema = join(process.cwd(), schemaToDump);
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -479,28 +461,11 @@ describe("MySQL REST Service", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            try {
-                e2eRecording = new E2ERecording(this.currentTest!.title);
-                await e2eRecording!.start();
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
-                    `${constants.dbTreeSection} is still loading`);
-                await Workbench.dismissNotifications();
-            } catch (e) {
-                await Misc.processResult(this, e2eRecording);
-                throw e;
-            }
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.dismissNotifications();
         });
 
         after(async function () {
@@ -760,7 +725,6 @@ describe("MySQL REST Service", () => {
 
         const destDumpTable = join(process.cwd(), tableToDump);
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             const localE2eRecording = new E2ERecording(this.test!.title!);
@@ -799,28 +763,11 @@ describe("MySQL REST Service", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            try {
-                e2eRecording = new E2ERecording(this.currentTest!.title);
-                await e2eRecording!.start();
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
-                    `${constants.dbTreeSection} is still loading`);
-                await Workbench.dismissNotifications();
-            } catch (e) {
-                await Misc.processResult(this, e2eRecording);
-                throw e;
-            }
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.dismissNotifications();
         });
 
         after(async function () {
@@ -1149,7 +1096,6 @@ describe("MySQL REST Service", () => {
         };
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -1183,27 +1129,11 @@ describe("MySQL REST Service", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            try {
-                e2eRecording = new E2ERecording(this.currentTest!.title);
-                await e2eRecording!.start();
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
-                    `${constants.dbTreeSection} is still loading`);
-                await Workbench.dismissNotifications();
-            } catch (e) {
-                await Misc.processResult(this, e2eRecording);
-            }
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.dismissNotifications();
         });
 
         after(async function () {
@@ -1443,7 +1373,6 @@ describe("MySQL REST Service", () => {
         };
 
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -1481,28 +1410,11 @@ describe("MySQL REST Service", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            try {
-                e2eRecording = new E2ERecording(this.currentTest!.title);
-                await e2eRecording!.start();
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
-                    `${constants.dbTreeSection} is still loading`);
-                await Workbench.dismissNotifications();
-            } catch (e) {
-                await Misc.processResult(this, e2eRecording);
-                throw e;
-            }
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
-            await Workbench.dismissNotifications();
         });
 
         it("Add User", async () => {

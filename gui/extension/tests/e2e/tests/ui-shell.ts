@@ -38,6 +38,7 @@ import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandR
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -60,7 +61,6 @@ describe("MYSQL SHELL CONSOLES", () => {
     const port = String((globalConn.basic as interfaces.IConnBasicMySQL).port);
     const schema = String((globalConn.basic as interfaces.IConnBasicMySQL).schema);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-    let shellConsole = new E2EShellConsole();
 
     before(async function () {
 
@@ -83,22 +83,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     describe("Database connections", () => {
 
+        let shellConsole = new E2EShellConsole();
         const shellConn = Object.assign({}, globalConn);
         shellConn.caption = "shellConn";
         (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBUSERNAME2);
         (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBPASSWORD2);
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
-        let e2eRecording: E2ERecording;
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
-        });
 
         it("Connect to host", async () => {
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
@@ -131,7 +121,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             result = await shellConsole.changeSchema("sakila");
             expect(result.text, errors.queryResultError("Default schema set to`sakila`",
                 result.text!)).to.match(/Default schema set to `sakila`/);
-
         });
 
         it("Connect to host without password", async () => {
@@ -203,7 +192,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     describe("Sessions", () => {
 
-        let e2eRecording: E2ERecording;
+        let shellConsole = new E2EShellConsole();
 
         before(async function () {
             let hookResult = "passed";
@@ -239,16 +228,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             } finally {
                 await Misc.processResult(this, localE2eRecording, hookResult);
             }
-        });
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
         });
 
         it("Verify help command", async () => {
@@ -291,8 +270,6 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Switch session language - javascript python", async () => {
 
-            await driver.wait(until.elementLocated(locator.shellConsole.editor),
-                constants.wait1second * 10, "Console was not loaded");
             let result = await shellConsole.languageSwitch("\\py ");
             expect(result.text).to.match(/Python/);
             result = await shellConsole.languageSwitch("\\js ");

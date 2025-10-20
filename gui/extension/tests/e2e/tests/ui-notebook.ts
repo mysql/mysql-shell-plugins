@@ -44,6 +44,7 @@ import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandR
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ELogger } from "../lib/E2ELogger";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 describe("NOTEBOOKS", () => {
 
@@ -107,9 +108,7 @@ describe("NOTEBOOKS", () => {
 
     describe("Code Editor", () => {
 
-        let cleanEditor = false;
         let existsInQueue = false;
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             const localE2eRecording = new E2ERecording(this.test!.title!);
@@ -125,23 +124,10 @@ describe("NOTEBOOKS", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
-            }
-
-            await Misc.processResult(this, e2eRecording);
-
-            if (cleanEditor) {
-                await notebook.codeEditor.clean();
-                cleanEditor = false;
             }
         });
 
@@ -195,7 +181,7 @@ describe("NOTEBOOKS", () => {
                 expect(items[1], "Second line should include the word 'testing'").to.include("testing");
                 expect(items[2], "Third line should include the word 'testing'").to.include("testing");
             } finally {
-                cleanEditor = true;
+                await notebook.codeEditor.clean();
             }
         });
 
@@ -752,7 +738,7 @@ describe("NOTEBOOKS", () => {
                     .to.deep.equals(["address_id", "address", "address2", "district", "city_id", "postal_code",
                         "phone", "last_update"]);
             } finally {
-                cleanEditor = true;
+                await notebook.codeEditor.clean();
             }
         });
 
@@ -864,7 +850,7 @@ describe("NOTEBOOKS", () => {
                 ).to.include("import from tester testing testing");
                 await widget.close();
             } finally {
-                cleanEditor = true;
+                await notebook.codeEditor.clean();
             }
 
         });
@@ -885,7 +871,7 @@ describe("NOTEBOOKS", () => {
                 const result4 = await notebook.findAndExecute(jsCmd, block2) as E2ECommandResultData;
                 expect(result4.text).to.match(/(\d+).(\d+)/);
             } finally {
-                cleanEditor = true;
+                await notebook.codeEditor.clean();
             }
         });
 
@@ -2024,16 +2010,6 @@ describe("NOTEBOOKS", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
-        });
-
         after(async function () {
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
@@ -2225,16 +2201,6 @@ describe("NOTEBOOKS", () => {
             } finally {
                 await Misc.processResult(this, localE2eRecording, hookResult);
             }
-        });
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
         });
 
         it("Execute a query", async () => {

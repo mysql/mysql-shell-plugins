@@ -54,6 +54,7 @@ import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandR
 import { E2ELogger } from "../lib/E2ELogger";
 import { CreateLibraryDialog } from "../lib/WebViews/Dialogs/CreateLibraryFrom";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -104,18 +105,6 @@ describe("DATABASE CONNECTIONS", () => {
     });
 
     describe("Toolbar", () => {
-
-        let e2eRecording: E2ERecording;
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
-        });
 
         it("Reload the connection list", async () => {
 
@@ -213,7 +202,6 @@ describe("DATABASE CONNECTIONS", () => {
 
         const mysqlAdministration = new E2EMySQLAdministration();
         const toolbar = new E2EToolbar();
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -236,16 +224,6 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processResult(this, localE2eRecording, hookResult);
             }
 
-        });
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
         });
 
         after(async function () {
@@ -533,7 +511,6 @@ describe("DATABASE CONNECTIONS", () => {
 
         const fileToUpload = "qa_cookbook_ext.pdf";
         const mysqlAdministration = new E2EMySQLAdministration();
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -574,16 +551,6 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processResult(this, localE2eRecording, hookResult);
             }
 
-        });
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
-
-        afterEach(async function () {
-            await Misc.processResult(this, e2eRecording);
         });
 
         after(async function () {
@@ -729,7 +696,6 @@ describe("DATABASE CONNECTIONS", () => {
         let existsInQueue = false;
         const storedFunction = "storedFunction";
         const storedJSFunction = "storedJSFunction";
-        let e2eRecording: E2ERecording;
 
         before(async function () {
             let hookResult = "passed";
@@ -752,19 +718,12 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-            e2eRecording = new E2ERecording(this.currentTest!.title);
-            await e2eRecording!.start();
-        });
 
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
                 existsInQueue = false;
             }
-
-            await Misc.processResult(this, e2eRecording);
         });
 
         after(async () => {
@@ -1454,13 +1413,14 @@ describe("DATABASE CONNECTIONS", () => {
 
             const library = "test_js_library";
             const newLibrary = "new_test_js_library";
+            await Workbench.closeAllEditors();
             await dbTreeSection.focus();
             await dbTreeSection.openContextMenuAndSelect(library, constants.editLibrary);
+            const e2eScript = new E2EScript();
+            await driver.wait(e2eScript.untilIsOpened(globalConn), constants.wait1second * 10);
             const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await driver.wait(openEditorsTreeSection.untilTreeItemExists("Edit Library"), constants.wait1second * 5);
             await openEditorsTreeSection.collapse();
-            const e2eScript = new E2EScript();
-            await driver.wait(e2eScript.untilIsOpened(globalConn), constants.wait1second * 10);
             await e2eScript.codeEditor.clean();
             await e2eScript.codeEditor.write(`
             DELIMITER ;

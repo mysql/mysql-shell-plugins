@@ -110,7 +110,11 @@ export class E2EShellConsole {
      * @returns A promise resolving with the command result
      */
     public changeSchema = async (schema: string): Promise<E2ECommandResultData> => {
-        const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
+
+        const tabSchema = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
+            constants.wait1second * 5);
         await tabSchema.click();
         const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
             constants.wait1second * 5, "Schema list was not displayed");

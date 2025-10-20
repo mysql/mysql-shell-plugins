@@ -39,6 +39,7 @@ import { RestServiceDialog } from "../lib/WebViews/Dialogs/RestServiceDialog";
 import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 let actorId: string;
 let response: Response;
@@ -92,7 +93,6 @@ describe("Router", () => {
 
     let routerPort: string | undefined;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-    let e2eRecording: E2ERecording;
 
     before(async function () {
 
@@ -121,16 +121,6 @@ describe("Router", () => {
         } finally {
             await Misc.processResult(this, localE2eRecording, hookResult);
         }
-    });
-
-    beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-        e2eRecording = new E2ERecording(this.currentTest!.title);
-        await e2eRecording!.start();
-    });
-
-    afterEach(async function () {
-        await Misc.processResult(this, e2eRecording);
     });
 
     after(async function () {

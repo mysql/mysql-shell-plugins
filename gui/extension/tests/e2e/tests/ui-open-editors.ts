@@ -38,6 +38,7 @@ import { E2EScript } from "../lib/WebViews/E2EScript";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ERecording } from "../lib/E2ERecording";
+import "../setup/global-hooks";
 
 describe("OPEN EDITORS", () => {
 
@@ -56,7 +57,6 @@ describe("OPEN EDITORS", () => {
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-    let e2eRecording: E2ERecording;
 
     before(async function () {
         await Misc.loadDriver();
@@ -82,16 +82,6 @@ describe("OPEN EDITORS", () => {
         } finally {
             await Misc.processResult(this, localE2eRecording, hookResult);
         }
-    });
-
-    beforeEach(async function () {
-        await Os.appendToExtensionLog(String(this.currentTest!.title) ?? process.env.TEST_SUITE);
-        e2eRecording = new E2ERecording(this.currentTest!.title);
-        await e2eRecording!.start();
-    });
-
-    afterEach(async function () {
-        await Misc.processResult(this, e2eRecording);
     });
 
     after(async function () {
