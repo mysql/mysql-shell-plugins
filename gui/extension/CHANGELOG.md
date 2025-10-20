@@ -10,6 +10,7 @@
 
 - BUG#37697639 FK violation regarding derived role on DROP REST SERVICE
 - BUG#38461981 fixed point decimals losing precision in the python sdk
+- BUG#38558444 Unexpected TS SDK type error in VECTOR field when inserting REST document
 -
 
 ## Changes in 1.19.17+9.4.0

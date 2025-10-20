@@ -96,6 +96,7 @@ def test_get_datatype_mapping():
             ("varchar",): "string",
             ("bigint",): "BigInteger",
             ("numeric", "decimal",): "Decimal",
+            ("VECTOR",): "Vector",
         },
         "python": {
             ("tinyint(1)", "bit(1)"): "bool",

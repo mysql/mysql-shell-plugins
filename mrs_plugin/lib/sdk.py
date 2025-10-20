@@ -865,6 +865,8 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "BigInteger"
         if db_datatype.startswith(("decimal", "numeric")):
             return "Decimal"
+        if db_datatype.startswith("vector"):
+            return "Vector"
         return "string"
     if sdk_language == "python":
         if db_datatype.startswith(("tinyint(1)", "bit(1)")):

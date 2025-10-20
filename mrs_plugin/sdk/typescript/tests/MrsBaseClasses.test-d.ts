@@ -30,8 +30,8 @@ import {
     type MrsDownstreamDocumentListData, type MaybeNull, type Point, type MultiPoint, type LineString,
     type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection,
     type HighOrderFilter, type ComparisonOpExpr, type MrsDownstreamDocumentData, type Cursor, type IDeleteOptions,
-    IMrsProcedureResponse, IMrsProcedureResult, IMrsFunctionResponse, IMrsTaskReport, IMrsRunningTaskReport,
-    IMrsTaskRunOptions, IMrsTaskStartOptions,
+    type IMrsProcedureResponse, type IMrsProcedureResult, type IMrsFunctionResponse, type IMrsTaskReport,
+    type IMrsRunningTaskReport, type IMrsTaskRunOptions, type IMrsTaskStartOptions, type Vector
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -870,25 +870,31 @@ describe("MRS SDK base types", () => {
             expectTypeOf<IMrsTaskReport<unknown, IProcResult>>().extract<{ status: "COMPLETED" }>()
                 .toEqualTypeOf<IStatusUpdateReport>();
         });
+
+        it("includes the details of a task that produced an error", () => {
+            interface IStatusUpdateReport {
+                status: "ERROR",
+                message: string
+            }
+
+            expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "ERROR" }>()
+                .toEqualTypeOf<IStatusUpdateReport>();
+        });
+
+        it("includes the details of a task that timed out", () => {
+            interface IStatusUpdateReport {
+                status: "TIMEOUT",
+                message: string
+            }
+
+            expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "TIMEOUT" }>()
+                .toEqualTypeOf<IStatusUpdateReport>();
+        });
     });
 
-    it("includes the details of a task that produced an error", () => {
-        interface IStatusUpdateReport {
-            status: "ERROR",
-            message: string
-        }
-
-        expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "ERROR" }>()
-            .toEqualTypeOf<IStatusUpdateReport>();
-    });
-
-    it("includes the details of a task that timed out", () => {
-        interface IStatusUpdateReport {
-            status: "TIMEOUT",
-            message: string
-        }
-
-        expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "TIMEOUT" }>()
-            .toEqualTypeOf<IStatusUpdateReport>();
+    describe("Vector", () => {
+        it("allows to specify an array of numbers", () => {
+            expectTypeOf([1.01231, 2.0123123, 3.0123123, 4.01231231]).toEqualTypeOf<Vector>();
+        });
     });
 });

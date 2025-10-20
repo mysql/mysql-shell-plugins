@@ -688,6 +688,7 @@ export type MaybeNull<T> = T | null;
 
 export type BigInteger = bigint | number;
 export type Decimal = string | number;
+export type Vector = number[];
 
 /**
  * A GEOMETRY column can store geometry values of any spatial type.
