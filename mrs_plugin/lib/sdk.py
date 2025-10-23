@@ -1609,6 +1609,7 @@ def generate_interfaces(
                             db_obj
                         ):
                             # RESULT
+                            nested_datatype = None
                             relationship = field.get("object_reference").get("reference_mapping").get("kind")
                             if relationship == "1:n" and sdk_language == "typescript":
                                 nested_datatype = f"{datatype}[]"
@@ -1616,10 +1617,12 @@ def generate_interfaces(
                                 nested_datatype = f"list[{datatype}]"
                             elif relationship == "1:n" and sdk_language == "swift":
                                 nested_datatype = f"[{datatype}]"
-                            interface_fields.update({field.get("name"): nested_datatype})
-                            # Add all table fields that have allow_filtering set and SP params to the
-                            # param_interface_fields
-                            param_interface_fields.update({field.get("name"): nested_datatype})
+
+                            if nested_datatype is not None:
+                                interface_fields.update({field.get("name"): nested_datatype})
+                                # Add all table fields that have allow_filtering set and SP params to the
+                                # param_interface_fields
+                                param_interface_fields.update({field.get("name"): nested_datatype})
 
                     # Call recursive interface generation
                     generate_nested_interfaces(
