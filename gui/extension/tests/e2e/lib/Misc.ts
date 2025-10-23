@@ -36,6 +36,7 @@ import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { E2ELogger } from "./E2ELogger";
 import { E2ERecording } from "./E2ERecording";
+import { Os } from "./Os";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 export let screenSize: string;
@@ -65,7 +66,9 @@ export class Misc {
         testResult?: string,
     ): Promise<void> => {
 
-        await recording.stop();
+        if (!Os.isWindows()) {
+            await recording.stop();
+        }
 
         let result: string | undefined;
         if (!testResult) {
@@ -81,17 +84,19 @@ export class Misc {
 
         const testTitle = testContext.currentTest ? testContext.currentTest.title : testContext.test!.title;
 
-        if (result === "passed") {
-            rmSync(recording.videoPath!);
-        } else {
-            if (process.env.BUILD_URL) {
-                const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
-                addContext(testContext, {
-                    title: "FAILURE VIDEO",
-                    value: {
-                        URL: `${process.env.BUILD_URL}artifact/${relativePath}`,
-                    }
-                });
+        if (!Os.isWindows()) {
+            if (result === "passed") {
+                rmSync(recording.videoPath!);
+            } else {
+                if (process.env.BUILD_URL) {
+                    const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
+                    addContext(testContext, {
+                        title: "FAILURE VIDEO",
+                        value: {
+                            URL: `${process.env.BUILD_URL}artifact/${relativePath}`,
+                        }
+                    });
+                }
             }
         }
 

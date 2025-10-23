@@ -68,7 +68,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         const localE2eRecording = new E2ERecording(this.test!.title!);
         let hookResult = "passed";
         try {
-            await localE2eRecording!.start();
+            if (!Os.isWindows()) {
+                await localE2eRecording!.start();
+            }
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await new DatabaseConnectionOverview().openNewShellSession();
@@ -198,7 +200,9 @@ describe("MYSQL SHELL CONSOLES", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await Workbench.closeAllEditors();
                 await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                     constants.openNewShellConsole);

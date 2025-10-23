@@ -82,7 +82,9 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
         const localE2eRecording = new E2ERecording(this.test!.title!);
         try {
-            await localE2eRecording!.start();
+            if (!Os.isWindows()) {
+                await localE2eRecording!.start();
+            }
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Notebooks");
             await Workbench.toggleBottomBar(false);
@@ -114,7 +116,9 @@ describe("NOTEBOOKS", () => {
             const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await Workbench.toggleSideBar(false);
             } catch (e) {
                 hookResult = "failed";
@@ -1991,7 +1995,9 @@ describe("NOTEBOOKS", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await Workbench.openMySQLShellForVSCode();
                 await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook));
                 try {
@@ -2013,7 +2019,9 @@ describe("NOTEBOOKS", () => {
         after(async function () {
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await Workbench.closeAllEditors();
                 await fs.unlink(`${destFile}.mysql-notebook`);
                 const activityBar = new ActivityBar();
@@ -2188,7 +2196,9 @@ describe("NOTEBOOKS", () => {
             const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new DatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
                 await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.waitConnectionOpen);

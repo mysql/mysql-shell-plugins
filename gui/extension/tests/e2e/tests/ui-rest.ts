@@ -82,7 +82,9 @@ describe("MySQL REST Service", () => {
         let hookResult = "passed";
         const localE2eRecording = new E2ERecording(this.test!.title!);
         try {
-            await localE2eRecording!.start();
+            if (!Os.isWindows()) {
+                await localE2eRecording!.start();
+            }
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll Rest");
             await Workbench.toggleBottomBar(false);
@@ -436,7 +438,9 @@ describe("MySQL REST Service", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -471,7 +475,9 @@ describe("MySQL REST Service", () => {
         after(async function () {
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service2.servicePath),
                     constants.deleteRESTService);
 
@@ -730,7 +736,9 @@ describe("MySQL REST Service", () => {
             const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -1101,7 +1109,9 @@ describe("MySQL REST Service", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -1139,7 +1149,9 @@ describe("MySQL REST Service", () => {
         after(async function () {
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.openContextMenuAndSelect(new RegExp(service4.servicePath),
                     constants.deleteRESTService);
 
@@ -1378,7 +1390,9 @@ describe("MySQL REST Service", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                await localE2eRecording!.start();
+                if (!Os.isWindows()) {
+                    await localE2eRecording!.start();
+                }
                 await dbTreeSection.focus();
                 const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
                 await treeMySQLRestService.expand();
