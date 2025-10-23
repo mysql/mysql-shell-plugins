@@ -74,9 +74,9 @@ const isValidESModule = (code: string): void => {
 export class CreateLibraryDialog extends AwaitableValueEditDialog {
 
     private selectedFile: File | undefined = undefined;
-    private processedContent: string = "";
-    private libraryNameIsSet: boolean = false;
-    private commentIsSet: boolean = false;
+    private processedContent = "";
+    private libraryNameIsSet = false;
+    private commentIsSet = false;
 
     protected override get id(): string {
         return "createLibraryDialog";
@@ -89,7 +89,9 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
         }
         const dialogValues = this.dialogValues(request, showComment);
         const contexts: string[] = ["localFile"];
-        const result = await this.doShow(() => { return dialogValues; }, { title: "Create Library From", contexts });
+        const result = await this.doShow(() => {
+            return dialogValues;
+        }, { title: "Create Library From", contexts });
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values, showComment);
         }
@@ -202,7 +204,6 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
 
     private downloadFromUrl = async (url: string, language: string): Promise<string> => {
         const response = await fetch(url);
-
 
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}: ${response.statusText}`);
@@ -417,7 +418,9 @@ export class CreateLibraryDialog extends AwaitableValueEditDialog {
 
     private processResults = (dialogValues: IDialogValues, showComment: boolean): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
-        if (!mainSection) { return {}; }
+        if (!mainSection) {
+            return {};
+        }
         const lang = mainSection.values.language.value as string;
         const c = mainSection.values.comment.value && showComment ? mainSection.values.comment.value as string : "";
 

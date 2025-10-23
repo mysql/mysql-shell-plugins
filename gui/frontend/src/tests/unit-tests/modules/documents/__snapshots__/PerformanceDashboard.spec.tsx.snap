@@ -27,7 +27,7 @@ exports[`PerformanceDashboard Tests > Test PerformanceDashboard instantiation 1`
       >
         <label
           class="msg label ellipsis"
-          data-tooltip="expand"
+          data-tooltip="inherit"
         >
           Gray Tones
         </label>

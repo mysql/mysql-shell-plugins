@@ -444,6 +444,10 @@ export type DeepMutable<T> = T extends Function
         - readonly [P in keyof T]: DeepMutable<T[P]>
     } : T;
 
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends unknown[] ? T[P] : T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
 /** Utility type to enforce only one member in a type can be used (no two or more). */
 export type MutuallyExclusive<T> = {
     [K in keyof T]: Pick<T, K> & Partial<Record<Exclude<keyof T, K>, never>>;

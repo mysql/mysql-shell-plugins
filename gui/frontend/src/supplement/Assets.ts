@@ -197,6 +197,14 @@ import wordWrapInactiveIcon from "../assets/images/toolbar/toolbar-word_wrap-ina
 import historyBackIcon from "../assets/images/toolbar/toolbar-history-back.svg";
 import historyForwardIcon from "../assets/images/toolbar/toolbar-history-forward.svg";
 
+import toolPointerIcon from "../assets/images/msm/toolbar-tool-pointer.svg";
+import toolHandIcon from "../assets/images/msm/toolbar-tool-hand.svg";
+import toolMagnifyIcon from "../assets/images/msm/toolbar-tool-magnifier.svg";
+import toolViewResetIcon from "../assets/images/msm/toolbar-view-reset.svg";
+import toolViewGridIcon from "../assets/images/msm/toolbar-view-grid.svg";
+import toolViewRulerIcon from "../assets/images/msm/toolbar-view-ruler.svg";
+import toolViewLockIcon from "../assets/images/msm/toolbar-view-lock.svg";
+
 // Overlays.
 import overlayDisabled from "../assets/images/overlays/disabled.svg";
 import overlayDisabledMask from "../assets/images/overlays/disabledMask.svg";
@@ -506,6 +514,16 @@ export class Assets {
         wordWrapInactiveIcon,
         historyBackIcon,
         historyForwardIcon,
+    };
+
+    public static msm = {
+        toolPointerIcon,
+        toolHandIcon,
+        toolMagnifyIcon,
+        toolViewResetIcon,
+        toolViewGridIcon,
+        toolViewRulerIcon,
+        toolViewLockIcon,
     };
 
     public static lakehouse = {

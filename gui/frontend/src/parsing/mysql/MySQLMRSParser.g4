@@ -5970,6 +5970,8 @@ mrsStatement:
     | dumpRestProjectStatement
     | grantRestRoleStatement
     | grantRestPrivilegeStatement
+    | loadRestServiceStatement
+    | loadRestProjectStatement
     | revokeRestPrivilegeStatement
     | revokeRestRoleStatement
     | useStatement
@@ -6139,11 +6141,15 @@ userManagementSchema:
 ;
 
 addAuthApp:
-    ADD_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (IF_SYMBOL EXISTS_SYMBOL)?
+    ADD_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (
+        IF_SYMBOL EXISTS_SYMBOL
+    )?
 ;
 
 removeAuthApp:
-    REMOVE_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (IF_SYMBOL EXISTS_SYMBOL)?
+    REMOVE_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (
+        IF_SYMBOL EXISTS_SYMBOL
+    )?
 ;
 
 // - CREATE REST SCHEMA -----------------------------------------------------
@@ -6775,23 +6781,45 @@ dumpRestServiceStatement:
 ;
 
 dumpRestProjectStatement:
-    DUMP_SYMBOL REST_SYMBOL PROJECT_SYMBOL
-    restProjectName VERSION_SYMBOL restProjectVersion
-    (dumpRestProjectService)+
-    (dumpRestProjectDatabaseSchema)*
-    (dumpRestProjectSettings)?
-    TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
+    DUMP_SYMBOL REST_SYMBOL PROJECT_SYMBOL restProjectName VERSION_SYMBOL restProjectVersion (
+        dumpRestProjectService
+    )+ (dumpRestProjectDatabaseSchema)* (dumpRestProjectSettings)? TO_SYMBOL (
+        ZIP_SYMBOL
+    )? directoryFilePath
+;
+
+loadRestServiceStatement:
+    LOAD_SYMBOL REST_SYMBOL SERVICE_SYMBOL (
+        AS_SYMBOL serviceRequestPath
+    )? FROM_SYMBOL directoryFilePath
+;
+
+loadRestProjectStatement:
+    LOAD_SYMBOL REST_SYMBOL PROJECT_SYMBOL FROM_SYMBOL (
+        ZIP_SYMBOL
+        | URL_SYMBOL
+    )? directoryFilePath
 ;
 
 // Named identifiers ========================================================
 
 dumpRestProjectService:
-    SERVICE_SYMBOL serviceRequestPath
-        INCLUDING_SYMBOL ((DATABASE_SYMBOL (AND_SYMBOL STATIC_SYMBOL (AND_SYMBOL DYNAMIC_SYMBOL)?)?) | ALL_SYMBOL) ENDPOINTS_SYMBOL
+    SERVICE_SYMBOL serviceRequestPath INCLUDING_SYMBOL (
+        (
+            DATABASE_SYMBOL (
+                AND_SYMBOL STATIC_SYMBOL (
+                    AND_SYMBOL DYNAMIC_SYMBOL
+                )?
+            )?
+        )
+        | ALL_SYMBOL
+    ) ENDPOINTS_SYMBOL
 ;
 
 dumpRestProjectDatabaseSchema:
-    DATABASE_SYMBOL schemaName (FROM_SYMBOL restProjectDatabaseSchemaFilePath)?
+    DATABASE_SYMBOL schemaName (
+        FROM_SYMBOL restProjectDatabaseSchemaFilePath
+    )?
 ;
 
 dumpRestProjectSettings: (

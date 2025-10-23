@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-72,-36)">
+        <g id="View">
+        </g>
+        <g id="Info">
+        </g>
+        <g id="Shape-3-copy-2" serif:id="Shape 3 copy 2" transform="matrix(1.00104,0,0,1,-263.296,-161.969)">
+            <g id="Tools">
+                <path id="Shape-3-copy-21" serif:id="Shape 3 copy 2" d="M351.833,217.457C350.089,218.686 347.962,219.407 345.666,219.407C339.746,219.407 334.947,214.608 334.947,208.688C334.947,202.768 339.746,197.969 345.666,197.969C351.586,197.969 356.385,202.768 356.385,208.688C356.385,210.854 355.743,212.869 354.639,214.555L357.311,217.228L358.003,216.536L366.914,225.447L362.676,229.684L353.766,220.774L354.457,220.082L351.833,217.457ZM345.66,200.982C341.405,200.982 337.955,204.432 337.955,208.688C337.955,212.944 341.405,216.394 345.66,216.394C349.916,216.394 353.366,212.944 353.366,208.688C353.366,204.432 349.916,200.982 345.66,200.982Z"/>
+            </g>
+        </g>
+    </g>
+</svg>

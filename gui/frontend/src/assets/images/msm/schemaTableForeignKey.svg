@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="16" height="16" viewBox="0, 0, 16, 16">
+  <g id="FK_classic">
+    <path d="M12.004,7.496 L7.497,12.003 L2.991,7.496 L7.497,2.989 L12.004,7.496 z M4.117,7.496 L7.497,10.876 L7.497,4.116 L4.117,7.496 z" fill="#000000"/>
+    <path d="M0,7 L3,7 L3,8 L0,8 z" fill="#000000"/>
+    <path d="M12,7 L15,7 L15,8 L12,8 z" fill="#000000"/>
+  </g>
+</svg>

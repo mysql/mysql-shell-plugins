@@ -21,6 +21,7 @@
         "e2e-tests-run": "vitest --no-watch --no-coverage -c e2e.vitest.config.ts"
     },
     "dependencies": {
+        "@pixi/layout": "3.1.0",
         "anser": "2.3.2",
         "antlr4-c3": "3.4.4",
         "antlr4ng": "3.0.16",
@@ -30,7 +31,7 @@
         "idb": "8.0.3",
         "monaco-editor": "0.52.2",
         "pixi-viewport": "6.0.3",
-        "pixi.js": "8.11.0",
+        "pixi.js": "8.13.2",
         "preact": "10.26.9",
         "set-interval-async": "3.0.3",
         "tabulator-tables": "6.3.1",

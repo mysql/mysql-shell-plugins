@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-180,-36)">
+        <g id="View">
+            <g id="Ruler" transform="matrix(1,0,0,1,-535.011,-160.983)">
+                <path d="M726.014,206.983L729.983,206.983L729.983,212.967L732.001,212.967L732.001,206.983L736.018,206.983L736.018,209.945L737.978,209.945L737.978,206.983L742.01,206.983L742.01,212.967L743.997,212.967L743.997,206.983L747.011,206.983L747.011,219.985L715.011,219.985L715.011,206.983L718.02,206.983L718.02,212.967L720.006,212.967L720.006,206.983L723.991,206.983L723.991,209.976L726.014,209.976L726.014,206.983Z"/>
+            </g>
+            <g id="Grid">
+            </g>
+            <g id="Reset">
+            </g>
+        </g>
+        <g id="Info">
+        </g>
+        <g id="Tools">
+        </g>
+    </g>
+</svg>

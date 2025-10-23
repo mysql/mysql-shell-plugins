@@ -131,7 +131,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
                   >
                     <label
                       class="msg label ellipsis"
-                      data-tooltip="expand"
+                      data-tooltip="inherit"
                     >
                       All Database Schemas
                     </label>
@@ -345,7 +345,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
                     >
                       <label
                         class="msg label ellipsis"
-                        data-tooltip="expand"
+                        data-tooltip="inherit"
                       >
                         Default
                       </label>
@@ -644,7 +644,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
                     >
                       <label
                         class="msg label ellipsis"
-                        data-tooltip="expand"
+                        data-tooltip="inherit"
                       >
                         No translation
                       </label>
@@ -668,7 +668,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
                     >
                       <label
                         class="msg label ellipsis"
-                        data-tooltip="expand"
+                        data-tooltip="inherit"
                       >
                         Mistral
                       </label>

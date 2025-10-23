@@ -1057,7 +1057,7 @@ exports[`Value Edit Dialog Tests > Updating Dialog Values 1`] = `
           >
             <label
               class="msg label ellipsis"
-              data-tooltip="expand"
+              data-tooltip="inherit"
             >
               One
             </label>

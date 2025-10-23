@@ -70,7 +70,8 @@
 .msg.dbModuleTabview #serverStatusToolbar,
 .msg.dbModuleTabview #clientConnectionToolbar,
 .msg.dbModuleTabview #dashboardToolbar,
-.msg.dbModuleTabview #simpleEditorToolbar {
+.msg.dbModuleTabview #simpleEditorToolbar,
+.msg#schemaDiagramToolbar {
     min-height: 36px;
     flex: 0 0 32px;
     margin: 0;
@@ -90,7 +91,8 @@
 }
 
 .msg.connectionBrowser .toolbar > .label,
-.msg.dbModuleTabview .toolbar > .label {
+.msg.dbModuleTabview .toolbar > .label,
+.msg.schemaDiagramDesigner .toolbar > .label {
     white-space: nowrap;
 }
 
@@ -126,7 +128,8 @@
 }
 
 .msg.connectionBrowser .toolbar .button,
-.msg.dbModuleTabview .toolbar .button {
+.msg.dbModuleTabview .toolbar .button,
+.msg.schemaDiagramDesigner .toolbar .button {
     flex: 0 0 auto;
 
     min-width: 0;
@@ -792,4 +795,41 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
 
 .msg #frontPageHeading #contentTitle {
     padding-right: 14px;
+}
+
+.msg#schemaDiagramToolbar > .button {
+    margin: 0 8px;
+    background-color: inherit;
+    width: 40px;
+}
+
+.msg#schemaDiagramToolbar > .button > .icon {
+    background-color: color-mix(in oklab, var(--button-secondaryBackground) 70%, white);
+    width: 16px;
+    height: 16px;
+}
+
+.msg#schemaDiagramToolbar .diagramViewButton.active {
+    background-color: color-mix(in oklab, var(--button-secondaryBackground) 50%, black);
+}
+
+.msg#schemaDiagramToolbar > .button.active > .icon {
+    background-color: var(--button-secondaryForeground);
+}
+
+.msg#schemaDiagramToolbar .diagramViewButton#resetViewButton:not(:hover) {
+    background: none;
+}
+
+.msg#schemaDiagramToolbar .diagramViewButton:hover {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg#schemaDiagramToolbar #topologyDropdown {
+    width: 180px;
+    margin: 0 8px;
+}
+
+.msg#schemaDiagramToolbar #showActionMenu {
+    margin-left: auto;
 }

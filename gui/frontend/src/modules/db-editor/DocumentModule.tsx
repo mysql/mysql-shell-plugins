@@ -116,7 +116,7 @@ import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
-import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./SchemaDiagramDesigner.js";
+import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./DiagramDesigner/SchemaDiagramDesigner.js";
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -1320,7 +1320,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 }
                 statusBarItem.dispose();
                 await ui.showInformationMessage(
-                    `${language} library ${schemaName}.${libraryName} succesfully created!`, {});
+                    `${language} library ${schemaName}.${libraryName} successfully created!`, {});
                 await tab.connection.refresh?.();
 
                 return true;

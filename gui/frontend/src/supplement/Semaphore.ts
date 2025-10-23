@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,9 @@ type SemaphoreResult<T> = T extends undefined ? boolean : T;
  * @param T The type of the value that is passed to the waiters.
  */
 export class Semaphore<T = void> {
+    // Indicates whether the semaphore is done (no more waiters will be accepted).
+    #done = false;
+
     // The list of waiters (promises) that are waiting for a notification.
     #waiters: Array<IWaiter<T>> = [];
 
@@ -49,6 +52,10 @@ export class Semaphore<T = void> {
      *          If a value was specified in the notification, the promise resolves to that value.
      */
     public wait(timeout?: number): Promise<SemaphoreResult<T>> {
+        if (this.#done) {
+            return Promise.resolve(true as SemaphoreResult<T>);
+        }
+
         const waiter: IWaiter<T> = { timeout: null, resolve: () => { /**/ } };
         this.#waiters.push(waiter);
         const promise = new Promise<SemaphoreResult<T>>((resolve) => {
@@ -97,6 +104,8 @@ export class Semaphore<T = void> {
     public notify(value?: T): void {
         const waiter = this.#waiters.pop();
         waiter?.resolve(true, value);
+
+        this.#done = this.#waiters.length === 0;
     }
 
     /**
@@ -112,5 +121,7 @@ export class Semaphore<T = void> {
         while ((waiter = list.pop()) !== undefined) {
             waiter.resolve(true, value);
         }
+
+        this.#done = true;
     }
 }

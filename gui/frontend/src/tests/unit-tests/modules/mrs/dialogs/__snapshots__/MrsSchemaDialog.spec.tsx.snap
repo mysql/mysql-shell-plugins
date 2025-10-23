@@ -66,7 +66,7 @@ exports[`MRS Schema dialog tests > Show MRS Schema Dialog (snapshot) and escape 
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             
           </label>
@@ -125,7 +125,7 @@ exports[`MRS Schema dialog tests > Show MRS Schema Dialog (snapshot) and escape 
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             Access ENABLED
           </label>

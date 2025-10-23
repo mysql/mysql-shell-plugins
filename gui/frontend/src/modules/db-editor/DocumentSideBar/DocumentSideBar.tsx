@@ -532,32 +532,32 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     actions={[{
                         icon: Codicon.KebabHorizontal,
                         tooltip: "More Actions",
-                        choices: [{
-                        //     icon: Assets.misc.addIcon,
-                        //     command: {
-                        //         command: "msg.newSchemaDiagram",
-                        //         title: "Create New EER Diagram",
-                        //     },
-                        // },{
-                            icon: Assets.toolbar.importIcon,
+                        choices: [/*{
+                            icon: Assets.misc.addIcon,
                             command: {
-                                command: "msg.importWorkbenchConnections",
-                                title: "Import MySQL Workbench Connections",
+                                command: "msg.newSchemaDiagram",
+                                title: "Create New EER Diagram",
                             },
-                        }, {
-                            icon: Codicon.Account,
-                            command: {
-                                command: "msg.logOut",
-                                title: "Log Out",
+                        },*/ {
+                                icon: Assets.toolbar.importIcon,
+                                command: {
+                                    command: "msg.importWorkbenchConnections",
+                                    title: "Import MySQL Workbench Connections",
+                                },
+                            }, {
+                                icon: Codicon.Account,
+                                command: {
+                                    command: "msg.logOut",
+                                    title: "Log Out",
+                                },
                             },
-                        },
-                        {
-                            icon: Codicon.Bug,
-                            command: {
-                                command: "msg.fileBugReport",
-                                title: "File Bug Report",
-                            },
-                        }],
+                            {
+                                icon: Codicon.Bug,
+                                command: {
+                                    command: "msg.fileBugReport",
+                                    title: "File Bug Report",
+                                },
+                            }],
                     }]}
                     sections={accordionSections}
 

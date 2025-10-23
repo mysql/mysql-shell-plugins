@@ -28,8 +28,8 @@ import type { RefObject } from "preact";
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
 import {
-    DialogResponseClosure, DialogType, LibraryDialogType,
-    type IDialogRequest
+    DialogResponseClosure, DialogType, LibraryDialogType, type IDialogRequest
+
 } from "../../app-logic/general-types.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import {
@@ -810,7 +810,10 @@ export class SidebarCommandHandler {
                                         type: LibraryDialogType.CreateLibraryFrom,
                                         id: "createLibraryDialog",
                                         parameters: {},
-                                        values: { schemaName: entry.caption, serverVersion: connection.details.version },
+                                        values: {
+                                            schemaName: entry.caption,
+                                            serverVersion: connection.details.version
+                                        },
                                     };
                                     const element = document.activeElement;
                                     const response = await this.createLibraryDialogRef.current.show(request);

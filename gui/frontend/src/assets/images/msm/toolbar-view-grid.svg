@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-144,-36)">
+        <g id="View">
+            <g id="Shape-1214" serif:id="Shape 1214" transform="matrix(1,0,0,1,-470,-162)">
+                <g id="Grid">
+                    <path id="Shape-12141" serif:id="Shape 1214" d="M620,206L618,206L618,204L620,204L620,202L622,202L622,204L626,204L626,202L628,202L628,204L632,204L632,202L634,202L634,204L638,204L638,202L640,202L640,204L642,204L642,206L640,206L640,210L642,210L642,212L640,212L640,216L642,216L642,218L640,218L640,222L642,222L642,224L640,224L640,226L638,226L638,224L634,224L634,226L632,226L632,224L628,224L628,226L626,226L626,224L622,224L622,226L620,226L620,224L618,224L618,222L620,222L620,218L618,218L618,216L620,216L620,212L618,212L618,210L620,210L620,206ZM622,222L626,222L626,218L622,218L622,222ZM622,216L626,216L626,212L622,212L622,216ZM622,210L626,210L626,206L622,206L622,210ZM634,222L638,222L638,218L634,218L634,222ZM628,216L632,216L632,212L628,212L628,216ZM634,216L638,216L638,212L634,212L634,216ZM628,210L632,210L632,206L628,206L628,210ZM628,222L632,222L632,218L628,218L628,222ZM634,210L638,210L638,206L634,206L634,210Z"/>
+                </g>
+            </g>
+            <g id="Reset">
+            </g>
+        </g>
+        <g id="Info">
+        </g>
+        <g id="Tools">
+        </g>
+    </g>
+</svg>

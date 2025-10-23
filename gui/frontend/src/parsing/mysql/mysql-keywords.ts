@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { Semaphore } from "../../supplement/Semaphore.js";
+
 export enum MySQLVersion {
     Unknown = "Unknown",
     MySQL80 = "MySQL80",
@@ -184,4 +186,8 @@ void import("./data/keywords.json").then((keywords) => {
     for (const keyword of mrsKeywords) {
         set.add(keyword);
     }
+
+    keywordsLoaded.notifyAll();
 });
+
+export const keywordsLoaded = new Semaphore();

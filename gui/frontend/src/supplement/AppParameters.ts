@@ -74,8 +74,9 @@ export const parseAppParameters = (): void => {
     if (typeof process === "undefined") {
         return;
     }
+
     const env = process.env;
-    if (env.VSCODE_PID !== undefined && env.JEST_WORKER_ID === undefined) {
+    if ((env.VSCODE_PID !== undefined || env.TERM_PROGRAM === "vscode") && !appParameters.testsRunning) {
         appParameters.inExtension = true;
     }
 };

@@ -94,7 +94,7 @@ exports[`MRS SDK Export dialog tests > Show MRS SDK Export Dialog (snapshot) and
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             TypeScript
           </label>

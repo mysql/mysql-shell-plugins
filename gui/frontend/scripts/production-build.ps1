@@ -28,11 +28,33 @@ Write-Host "Fixing node module(s)..."
 
 # Fix for pixi-viewport: correct export path in TypeScript definition file
 $pixiPath = "node_modules\pixi-viewport\dist\index.d.ts"
+(Get-Content $pixiPath) -replace "^(export \* from './ease';)$", "export * from './ease.js';" | Set-Content $pixiPath
+(Get-Content $pixiPath) -replace "^(export \* from './InputManager';)$", "export * from './InputManager.js';" | Set-Content $pixiPath
+(Get-Content $pixiPath) -replace "^(export \* from './PluginManager';)$", "export * from './PluginManager.js';" | Set-Content $pixiPath
+(Get-Content $pixiPath) -replace "^(export \* from './plugins';)$", "export * from './plugins/index.js';" | Set-Content $pixiPath
 (Get-Content $pixiPath) -replace "^(export \* from './Viewport';)$", "export * from './Viewport.js';" | Set-Content $pixiPath
+
+$pixiPath = "node_modules\pixi-viewport\dist\Viewport.d.ts"
+(Get-Content $pixiPath) -replace "^(import { InputManager } from './InputManager';)$", "import { InputManager } from './InputManager.js';" | Set-Content $pixiPath
+(Get-Content $pixiPath) -replace "^(import { PluginManager } from './PluginManager';)$", "import { PluginManager } from './PluginManager.js';" | Set-Content $pixiPath
+
+$pixiPluginsPath = "node_modules\pixi-viewport\dist\plugins\index.d.ts"
+(Get-Content $pixiPluginsPath) -replace "^export \* from '(./[^']*[^\.js])';", "export * from '$1.js';" | Set-Content $pixiPluginsPath
+
+$dragPath = "node_modules\pixi-viewport\dist\plugins\Drag.d.ts"
+(Get-Content $dragPath) -replace "^import { Plugin } from './Plugin';", "import { Plugin } from './Plugin.js';" | Set-Content $dragPath
+(Get-Content $dragPath) -replace "^import type { Viewport } from '../Viewport';", "import type { Viewport } from '../Viewport.js';" | Set-Content $dragPath
+
+$pluginPath = "node_modules\pixi-viewport\dist\plugins\Plugin.d.ts"
+(Get-Content $pluginPath) -replace "^import type { Viewport } from '../Viewport';", "import type { Viewport } from '../Viewport.js';" | Set-Content $pluginPath
 
 # Fix for monaco-editor: remove a missing source-map reference.
 $monacoPath = "node_modules\monaco-editor\esm\vs\base\common\marked\marked.js"
 (Get-Content $monacoPath) | Where-Object {$_ -notmatch "sourceMappingURL=marked.umd.js.map"} | Set-Content $monacoPath
+
+# Fix for typescript: remove a missing source-map reference.
+$typescriptPath = "node_modules\typescript\lib\typescript.js"
+(Get-Content $typescriptPath) | Where-Object {$_ -notmatch "sourceMappingURL=typescript.js.map"} | Set-Content $typescriptPath
 
 Write-Host ""
 

@@ -10,7 +10,7 @@ exports[`Dropdown render testing > Standard Rendering 1`] = `
   >
     <label
       class="msg label ellipsis"
-      data-tooltip="expand"
+      data-tooltip="inherit"
     >
       Tesla
     </label>

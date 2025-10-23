@@ -94,7 +94,7 @@ exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog (snapshot) a
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             
           </label>
@@ -125,7 +125,7 @@ exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog (snapshot) a
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             Access ENABLED
           </label>
@@ -420,7 +420,7 @@ exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog and cancel 1
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             
           </label>
@@ -451,7 +451,7 @@ exports[`MRS Content Set dialog tests > Show MRS Content Set Dialog and cancel 1
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             Access ENABLED
           </label>

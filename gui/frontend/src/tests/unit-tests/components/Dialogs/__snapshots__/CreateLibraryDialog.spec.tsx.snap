@@ -104,7 +104,7 @@ exports[`MRS SDK Export dialog tests > Show Create Library Dialog (snapshot) and
           >
             <label
               class="msg label ellipsis"
-              data-tooltip="expand"
+              data-tooltip="inherit"
             >
               JavaScript
             </label>
@@ -129,7 +129,7 @@ exports[`MRS SDK Export dialog tests > Show Create Library Dialog (snapshot) and
           >
             <label
               class="msg label ellipsis"
-              data-tooltip="expand"
+              data-tooltip="inherit"
             >
               File
             </label>
@@ -324,7 +324,7 @@ exports[`MRS SDK Export dialog tests > Show Create Library Dialog and cancel 1`]
           >
             <label
               class="msg label ellipsis"
-              data-tooltip="expand"
+              data-tooltip="inherit"
             >
               JavaScript
             </label>
@@ -349,7 +349,7 @@ exports[`MRS SDK Export dialog tests > Show Create Library Dialog and cancel 1`]
           >
             <label
               class="msg label ellipsis"
-              data-tooltip="expand"
+              data-tooltip="inherit"
             >
               File
             </label>

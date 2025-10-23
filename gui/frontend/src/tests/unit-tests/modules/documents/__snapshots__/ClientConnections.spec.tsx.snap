@@ -29,7 +29,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
       >
         <label
           class="msg label ellipsis"
-          data-tooltip="expand"
+          data-tooltip="inherit"
         >
           5 seconds
         </label>
@@ -256,7 +256,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
       >
         <label
           class="msg label ellipsis"
-          data-tooltip="expand"
+          data-tooltip="inherit"
         >
           5 seconds
         </label>

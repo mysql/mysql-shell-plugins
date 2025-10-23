@@ -56,7 +56,7 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             
           </label>
@@ -88,7 +88,7 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             /mrsSchema1
           </label>
@@ -147,7 +147,7 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
         >
           <label
             class="msg label ellipsis"
-            data-tooltip="expand"
+            data-tooltip="inherit"
           >
             Access ENABLED
           </label>
