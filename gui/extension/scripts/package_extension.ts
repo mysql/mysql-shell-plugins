@@ -44,9 +44,15 @@ class Logger {
 
 }
 
-const executeTask = (cmd: string, args: string[], message: string): void => {
+const executeTask = (cmd: string, message: string): void => {
     Logger.info(message);
-    spawnSync(cmd, args, { stdio: "inherit" });
+    const result = spawnSync(cmd, { shell: true, stdio: "inherit" });
+
+    if (result.status !== 0) {
+        console.log(result.error);
+        throw new Error();
+    }
+
     Logger.done();
 };
 
@@ -98,12 +104,12 @@ rmSync("node_modules", { recursive: true, force: true });
 rmSync("package-lock.json", { force: true });
 Logger.done();
 
-executeTask("npm", ["install"], "Installing node modules...");
+executeTask("npm install", "Installing node modules...");
 
 if (platform() === "win32") {
-    executeTask("npm", ["run", "build-win"], "Building the frontend...");
+    executeTask("npm run build-win", "Building the frontend...");
 } else {
-    executeTask("npm", ["run", "build"], "Building the frontend...");
+    executeTask("npm run build", "Building the frontend...");
 }
 
 Logger.info("Removing shell ...");
@@ -158,6 +164,6 @@ rmSync("node_modules", { force: true, recursive: true });
 rmSync("package-lock.json", { force: true });
 Logger.done();
 
-executeTask("npm", ["install"], "Installing the extension node modules...");
-executeTask("npm", ["run", "build-dev-package"], "Building the extension...");
+executeTask("npm install", "Installing the extension node modules...");
+executeTask("npm run build-dev-package", "Building the extension...");
 
