@@ -71,6 +71,13 @@ def test_get_interface_datatype():
     type = get_interface_datatype(**args)
     assert type == "unknown"
 
+    args["nullable"] = True
+    args["unwrap"] = True
+    args["sdk_language"] = "python"
+
+    type = get_interface_datatype(**args)
+    assert type == "int"
+
 
 def test_get_datatype_mapping():
     datatype_map = {
@@ -600,6 +607,32 @@ public struct IFooCursors {
     assert got == want
 
 
+def test_nested_custom_datatype_import():
+    # test that custom datatypes are imported
+    # using "unnest" reduces the code path and simplifies the test
+    parent_field = {"represents_reference_id": 1, "object_reference": {"unnest": True}}
+    fields = [
+        {
+            "enabled": True,
+            "parent_reference_id": 1,
+            "db_column": {"datatype": "year", "not_null": True},
+        }
+    ]
+    required_datatypes = set()
+    _ = generate_nested_interfaces(
+        obj_interfaces=[],
+        class_name="",
+        reference_class_name_suffix="",
+        fields=fields,
+        reference_obj={},
+        parent_field=parent_field,
+        parent_interface_fields={},
+        required_datatypes=required_datatypes,
+        sdk_language="python",
+    )
+    assert required_datatypes == {"Year"}
+
+
 def test_generate_field_enum():
     field_enum = generate_field_enum("Foo")
     assert field_enum == ""
@@ -1097,4 +1130,3 @@ def test_get_top_level_keywords():
 
     keywords = get_top_level_keywords(resource="object", sdk_language="python")
     assert keywords == ["get_metadata"]
-

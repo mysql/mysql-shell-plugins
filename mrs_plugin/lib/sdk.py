@@ -978,6 +978,7 @@ def get_interface_datatype(
     reference_class_name_suffix="",
     enhanced_fields=False,
     nullable=True,
+    unwrap=False,
 ):
     db_column_info = field.get("db_column")
     if db_column_info:
@@ -990,7 +991,7 @@ def get_interface_datatype(
         else:
             client_datatype = get_enhanced_datatype_mapping(db_datatype, sdk_language)
 
-        if not nullable or db_not_null is True:
+        if not nullable or db_not_null is True or unwrap is True:
             return client_datatype
 
         return maybe_null(client_datatype, sdk_language)
@@ -1640,6 +1641,7 @@ def generate_interfaces(
                         allowed_crud_ops=set(db_object_crud_ops),
                         reference_obj=obj,
                         generated_type_aliases=generated_type_aliases,
+                        required_datatypes=required_datatypes,
                     )
             elif obj.get("kind") == "PARAMETERS":
                 # If this field represents an OUT parameter of a SP, add it to the
@@ -1932,7 +1934,8 @@ def generate_nested_interfaces(
         nested_fields: set[str] = set(),
         nesting_fields: set[str] = set(),
         allowed_crud_ops: set[str] = set(),
-        generated_type_aliases: set[str] = set()):
+        generated_type_aliases: set[str] = set(),
+        required_datatypes: set[str] = set()):
     # Build interface name
     interface_name = f"{class_name}{reference_class_name_suffix}"
 
@@ -1964,12 +1967,25 @@ def generate_nested_interfaces(
 
                     # If not, do recursive call
                     generate_nested_interfaces(
-                        obj_interfaces, interface_fields, field,
-                        reference_class_name_suffix=reference_class_name_suffix + field_interface_name,
-                        fields=fields, class_name=class_name, reference_obj=reference_obj, sdk_language=sdk_language, nested_fields=nested_fields,
-                        fully_qualified_parent_name=f"{parent_field.get("name")}.{field.get("name")}", generated_type_aliases=generated_type_aliases)
+                        obj_interfaces,
+                        interface_fields,
+                        field,
+                        reference_class_name_suffix=reference_class_name_suffix
+                        + field_interface_name,
+                        fields=fields,
+                        class_name=class_name,
+                        reference_obj=reference_obj,
+                        sdk_language=sdk_language,
+                        nested_fields=nested_fields,
+                        fully_qualified_parent_name=f"{parent_field.get("name")}.{field.get("name")}",
+                        generated_type_aliases=generated_type_aliases,
+                        required_datatypes=required_datatypes,
+                    )
             else:
                 datatype = get_interface_datatype(field, sdk_language)
+                unwrapped_datatype = get_interface_datatype(field, sdk_language=sdk_language, unwrap=True)
+                if not datatype_is_primitive(unwrapped_datatype, sdk_language):
+                    required_datatypes.add(unwrapped_datatype)
                 interface_fields.update({ field.get("name"): datatype })
 
     if not parent_obj_ref.get("unnest"):

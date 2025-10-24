@@ -13,6 +13,7 @@
 - BUG#38461981 fixed point decimals losing precision in the python sdk
 - BUG#38558444 Unexpected TS SDK type error in VECTOR field when inserting REST document
 - BUG#38575976 Unexpected error when dumping the SDK files if a REST VIEW contains nested fields
+- BUG#38576481 NameError: name 'Year' is not defined when using REST Service and MySQL Shell for VS code
 -
 
 ## Changes in 1.19.17+9.4.0
