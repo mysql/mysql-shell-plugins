@@ -39,7 +39,7 @@ $pixiPath = "node_modules\pixi-viewport\dist\Viewport.d.ts"
 (Get-Content $pixiPath) -replace "^(import { PluginManager } from './PluginManager';)$", "import { PluginManager } from './PluginManager.js';" | Set-Content $pixiPath
 
 $pixiPluginsPath = "node_modules\pixi-viewport\dist\plugins\index.d.ts"
-(Get-Content $pixiPluginsPath) -replace "^export \* from '(./[^']*[^\.js])';", "export * from '$1.js';" | Set-Content $pixiPluginsPath
+(Get-Content $pixiPluginsPath) -replace "(export \* from '.\/)([^']+)(';)", '$1$2.js$3' | Set-Content $pixiPluginsPath
 
 $dragPath = "node_modules\pixi-viewport\dist\plugins\Drag.d.ts"
 (Get-Content $dragPath) -replace "^import { Plugin } from './Plugin';", "import { Plugin } from './Plugin.js';" | Set-Content $dragPath
