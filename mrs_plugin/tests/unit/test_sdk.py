@@ -875,8 +875,12 @@ def test_generate_data_class():
         ["UPDATE", "DELETE"],
     ]
     name = "Foobar"
+
+    obj_input_prk_fields = [[], [], ["fooId"], ["fooId"], ["fooId1", "fooId2"]]
+    obj_output_prk_fields = [[], [], ["foo_id"], ["foo_id"], ["foo_id1", "foo_id2"]]
+
     for db_object_crud_ops in test_cases_db_object_crud_ops:
-        for obj_prk_fields in [[], [], ["foo_id"], ["foo_id"], ["foo_id1", "foo_id2"]]:
+        for idx, obj_prk_fields in enumerate(obj_input_prk_fields):
             db_object_delete_op = []
             mixins = []
 
@@ -912,7 +916,7 @@ def test_generate_data_class():
                     + f"\n{" "*12}"
                     + "}"
                 ),
-                primary_key_name=f'"{','.join(obj_prk_fields)}"' if len(obj_prk_fields) > 0 else None,
+                primary_key_name=f'"{','.join(obj_output_prk_fields[idx])}"' if len(obj_prk_fields) > 0 else None,
                 mixins="".join(mixins),
             )
 

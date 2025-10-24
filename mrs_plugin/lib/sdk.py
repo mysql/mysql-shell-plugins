@@ -1335,7 +1335,7 @@ def generate_data_class(
             obj_endpoint=obj_endpoint,
             field_profile=join_field_profile,
             primary_key_name=(
-                None if len(primary_key_fields) == 0 else f'"{",".join(primary_key_fields)}"'
+                None if len(primary_key_fields) == 0 else f'"{",".join([lib.core.convert_to_snake_case(pk_field) for pk_field in primary_key_fields])}"'
             ),
             mixins="".join(mixins),
         )
