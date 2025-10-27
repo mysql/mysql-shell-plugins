@@ -182,7 +182,8 @@ class DbSqliteSession(DbSession):
                 for (database_name, db_file) in self._databases.items():
                     if database_name == self._current_schema:
                         continue
-                    self.conn.execute(f"ATTACH '{db_file}' AS '{database_name}';")
+                    self.conn.execute(
+                        f"ATTACH '{db_file}' AS '{database_name}';")
 
                 if self._connected_cb is not None and notify_success:
                     self._connected_cb(self)
@@ -191,7 +192,8 @@ class DbSqliteSession(DbSession):
 
             except sqlite3.OperationalError as e:
                 if "database is locked" in str(e) and attempt < max_retries - 1:
-                    logger.warning(f"Database locked, retrying in {retry_delay} seconds (attempt {attempt + 1}/{max_retries})")
+                    logger.warning(
+                        f"Database locked, retrying in {retry_delay} seconds (attempt {attempt + 1}/{max_retries})")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
                     continue
@@ -220,7 +222,7 @@ class DbSqliteSession(DbSession):
 
     # DbSession overrides
 
-    def do_execute(self, sql, params=None):
+    def do_execute(self, sql, params=None, options=None):
         try:
             self.lock()
             # NOTE: theoretically self.conn.execute(sql, params) should work.

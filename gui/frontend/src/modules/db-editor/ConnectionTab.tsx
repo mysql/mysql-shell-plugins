@@ -1784,7 +1784,8 @@ Execute \\help or \\? for help;`;
         context.executionStarts();
         try {
             try {
-                void await connection.backend.execute(sql, [query], undefined);
+                void await connection.backend.execute(sql, [query], undefined,
+                    undefined, "mysql_ot_msh.vsc.nl2sql");
                 const result = await connection.backend.execute("SELECT @nl_out");
 
                 if (result) {

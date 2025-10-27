@@ -142,6 +142,12 @@ class DbMysqlSession(DbSession):
         """
         return self.session.run_sql(sql, args)
 
+    def set_option_tracker_feature_id(self, feature_id):
+        # The function to report tracking options is only available
+        # in classic protocol sessions
+        if hasattr(self.session, 'set_option_tracker_feature_id'):
+            self.session.set_option_tracker_feature_id(feature_id)
+
     def on_shell_prompt(self, text, options):
         if 'type' in options:
             if options['type'] == 'password':
@@ -292,9 +298,12 @@ class DbMysqlSession(DbSession):
 
         return False
 
-    def do_execute(self, sql, params=None):
+    def do_execute(self, sql, params=None, options=None):
         while True:
             try:
+                if options and 'feature_id' in options:
+                    self.set_option_tracker_feature_id(
+                        options.pop('feature_id'))
                 self.cursor = self.session.run_sql(sql, params)
                 return self.cursor
             except mysqlsh.DBError as e:

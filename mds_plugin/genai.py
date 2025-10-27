@@ -28,6 +28,8 @@ import os
 import json
 
 # cSpell:ignore mockchat
+
+
 def check_dependencies():
     try:
         from . import mockchat
@@ -49,10 +51,10 @@ def get_status(session=None):
     """
     if session.database_type != "MySQL":
         return {
-        "heatwave_support": False,
-        "local_model_support": False,
-        "language_support": False
-    }
+            "heatwave_support": False,
+            "local_model_support": False,
+            "language_support": False
+        }
 
     heatwave_support = False
     local_model_support = False
@@ -224,13 +226,20 @@ def chat(prompt, **kwargs):
         session = globals.session
         if not session:
             raise Exception("No database session specified.")
+    else:
+        # MySQL Shell VSC - HeatWave Chat
+        # Note that when called from the GUI, the session already comes as parameter
+        # so the tracking option reporting is done here, since only a VSCode option
+        # was added
+        session.set_option_tracker_feature_id("mysql_ot_msh.vsc.hw_chat")
 
     if send_gui_message is not None:
         send_gui_message("data", {"info": "Checking chat engine status ..."})
 
     status = get_status(session=session)
     if status.get("heatwave_support") is False and status.get("local_model_support") is False:
-        raise Exception("GenAI support is not available. Please connect to a HeatWave 9.0 instance or higher.")
+        raise Exception(
+            "GenAI support is not available. Please connect to a HeatWave 9.0 instance or higher.")
 
     # Remove language if not supported
     if status.get("language_support") is False and "language" in model_options:
@@ -243,7 +252,7 @@ def chat(prompt, **kwargs):
 
         # If a language has been selected for translation, do the translation
         if language is not None and lang_opts.get("translate_user_prompt") is not False and \
-            language != model_language_name:
+                language != model_language_name:
             send_gui_message(
                 "data", {"info": f"Translating prompt from {language} to {model_language_name} ..."})
 
@@ -289,7 +298,7 @@ def chat(prompt, **kwargs):
             options = json.loads(rows[0][0])
 
             if language is not None and lang_opts.get("translate_response") is not False and \
-                language != model_language_name:
+                    language != model_language_name:
                 send_gui_message(
                     "data", {"info": f"Translating response from {model_language_name} to {language} ..."})
 
@@ -426,7 +435,8 @@ def lakehouse_status(**kwargs):
     #     WHERE task_type='GenAI_Load'
     #     ORDER BY id DESC
     #     LIMIT 20""")
-    res = session.run_sql("SELECT `mysql_tasks`.`task_status_list`('GenAI_Load', 0, 20);")
+    res = session.run_sql(
+        "SELECT `mysql_tasks`.`task_status_list`('GenAI_Load', 0, 20);")
     rows = res.fetch_all()
     tasks = []
     task_hash = 0
@@ -487,13 +497,16 @@ def load_chat_options(file_path):
         try:
             options = json.loads(options_content)
         except:
-            raise Exception("Failed to parse the selected file. Please select a JSON file.")
+            raise Exception(
+                "Failed to parse the selected file. Please select a JSON file.")
 
         version = options.pop("heat_wave_chat_version", None)
         if version is None:
-            raise Exception("The selected file is not a HeatWave Chat options file.")
+            raise Exception(
+                "The selected file is not a HeatWave Chat options file.")
 
         if version != 1:
-            raise Exception("The version of the selected HeatWave Chat options file is not supported.")
+            raise Exception(
+                "The version of the selected HeatWave Chat options file is not supported.")
 
         return options

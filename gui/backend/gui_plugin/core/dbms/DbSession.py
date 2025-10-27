@@ -247,14 +247,14 @@ class DbSession(threading.Thread):
             self._message_callback('ERROR', self.thread_error)
         self._term_complete.set()
 
-    def execute_thread(self, sql, params):
+    def execute_thread(self, sql, params, options=None):
         start_time = time.time()
-        result = self.do_execute(sql, params)
+        result = self.do_execute(sql, params, options=options)
         execution_time = time.time() - start_time
         self.update_stats(execution_time)
         return result
 
-    def do_execute(self, sql, params=None):  # pragma: no cover
+    def do_execute(self, sql, params=None, options=None):  # pragma: no cover
         raise NotImplementedError()
 
     def set_last_error(self, error):
@@ -340,7 +340,7 @@ class DbSession(threading.Thread):
             self.add_task(DbSqlTask(self, task_id=request_id, sql=sql, params=params,
                                     result_queue=result_queue, result_callback=callback, options=options))
         else:
-            return self.execute_thread(sql, params)
+            return self.execute_thread(sql, params, options=options)
 
     def start_transaction(self):  # pragma: no cover
         raise NotImplementedError()

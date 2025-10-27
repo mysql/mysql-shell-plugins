@@ -326,14 +326,14 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
     [ShellAPIGui.GuiDbConnectionsTestConnection]: { args: { connection: IShellDbConnection | number; password?: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveConnection]: { args: { profileId: number; folderId: number; connectionIdToMove: number; connectionIdOffset: number; before?: boolean; }; };
-    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { args: { profileId: number; caption: string; settings: { color: string; }; parentFolderId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { args: { profileId: number; caption: string; settings: { color?: string; }; parentFolderId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: { args: { folderPathId: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveEmptyFolders]: {};
     [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: { args: { folderPathId: number; newCaption: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveFolder]: { args: { folderPathId: number; newParentFolderId: number; }; };
     [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { args: { parentFolderId?: number; recursive?: boolean; }; };
     [ShellAPIGui.GuiDbConnectionsListAll]: { args: { profileId: number; folderId?: number; }; };
-    [ShellAPIGui.GuiDbConnectionsUpdateFolderSettings]: { args: { folderPathId: number; newSettings: { color: string; }; }; };
+    [ShellAPIGui.GuiDbConnectionsUpdateFolderSettings]: { args: { folderPathId: number; newSettings: { color?: string; }; }; };
     [ShellAPIGui.GuiDbConnectionsGetFolder]: { args: { folderPathId: number; }; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
@@ -385,7 +385,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorStartTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorCommitTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorRollbackTransaction]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize: number; }; }; };
+    [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize?: number; featureId?: string; }; }; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: { args: { moduleSessionId: string; schemaName: string; }; };
@@ -408,8 +408,8 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiUsersGetGuiModuleList]: { args: { userId: number; }; };
     [ShellAPIGui.GuiUsersListProfiles]: { args: { userId: number; }; };
     [ShellAPIGui.GuiUsersGetProfile]: { args: { profileId: number; }; };
-    [ShellAPIGui.GuiUsersUpdateProfile]: { args: { profile: { id: number; name: string; description: string; options: IShellDictionary; }; }; };
-    [ShellAPIGui.GuiUsersAddProfile]: { args: { userId: number; profile: { name: string; description: string; options: IShellDictionary; }; }; };
+    [ShellAPIGui.GuiUsersUpdateProfile]: { args: { profile: { id?: number; name?: string; description?: string; options?: IShellDictionary; }; }; };
+    [ShellAPIGui.GuiUsersAddProfile]: { args: { userId: number; profile: { name?: string; description?: string; options?: IShellDictionary; }; }; };
     [ShellAPIGui.GuiUsersDeleteProfile]: { args: { userId: number; profileId: number; }; };
     [ShellAPIGui.GuiUsersGetDefaultProfile]: { args: { userId: number; }; };
     [ShellAPIGui.GuiUsersSetDefaultProfile]: { args: { userId: number; profileId: number; }; };

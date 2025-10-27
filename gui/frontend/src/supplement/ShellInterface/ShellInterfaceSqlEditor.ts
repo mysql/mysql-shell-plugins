@@ -155,10 +155,14 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      * @returns A promise resolving to a list of records or undefined if no session is open.
      */
     public async execute(sql: string, params?: string[], requestId?: string,
-        callback?: DataCallback<ShellAPIGui.GuiSqlEditorExecute>,
+        callback?: DataCallback<ShellAPIGui.GuiSqlEditorExecute>, featureId?: string,
     ): Promise<IDbEditorResultSetData | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
+            let executeOptions: { rowPacketSize: number; featureId?: string } = { rowPacketSize: Settings.get("sql.rowPacketSize", 1000) };
+            if (featureId) {
+                executeOptions.featureId = featureId;
+            }
             const response = await MessageScheduler.get.sendRequest({
                 requestType: ShellAPIGui.GuiSqlEditorExecute,
                 requestId,
@@ -167,7 +171,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                         moduleSessionId,
                         sql,
                         params: params !== undefined && params.length > 0 ? params : undefined,
-                        options: { rowPacketSize: Settings.get("sql.rowPacketSize", 1000) },
+                        options: executeOptions,
                     },
                 },
                 caseConversionIgnores: ["rows"],

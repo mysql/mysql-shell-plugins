@@ -258,7 +258,7 @@ export const activate = (context: ExtensionContext): void => {
                 rootPath: context.extensionPath,
                 inDevelopment: context.extensionMode === ExtensionMode.Development,
                 parameters: [
-                    "--", "gui", "core", "remove-shell-web-certificate",
+                    "--loose-execution-context=.vsc", "--", "gui", "core", "remove-shell-web-certificate",
                 ],
                 logLevel,
                 onStdOutData: (output: string) => {

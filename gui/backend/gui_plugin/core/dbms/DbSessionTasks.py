@@ -150,7 +150,7 @@ class DbQueryTask(DbTask):
                 try:
                     self._start_time = time.time()
                     self.resultset = self.session.execute_thread(
-                        sql, self.params)
+                        sql, self.params, options=self.options)
                     self._execution_time += time.time() - self._start_time
 
                     if self.session.is_killed():

@@ -37,6 +37,7 @@ from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
 
 from . import backend as sql_editor_backend
 
+
 @plugin_function('gui.sqlEditor.isGuiModuleBackend', web=True)
 def is_gui_module_backend():
     """Indicates whether this module is a GUI backend module
@@ -169,6 +170,8 @@ def execute(session, sql, params=None, options=None):
 
     Allowed options for options:
         row_packet_size (int): The pack size for each result segment
+        feature_id (str): The id of an tracked feature to be sent with the
+          executed statement.
 
     Returns:
         dict: the result message
@@ -278,18 +281,21 @@ def add_execution_history_entry(connection_id, code, language_id, profile_id=Non
     with BackendDatabase(be_session) as db:
         context = get_context()
         group_id = context.web_handler.user_personal_group_id if context is not None else None
-        folder_id = sql_editor_backend.get_folder_id(db, connection_id, group_id)
+        folder_id = sql_editor_backend.get_folder_id(
+            db, connection_id, group_id)
 
         history_entries = list_data(folder_id, category_id, be_session)
         history_entries.sort(key=lambda x: x['last_update'], reverse=True)
 
         # Check if the last entry has the same code
         if history_entries and len(history_entries) > 0:
-            previous_entry_code = sql_editor_backend.get_entry(db, history_entries[0]['id'])["code"]
+            previous_entry_code = sql_editor_backend.get_entry(
+                db, history_entries[0]['id'])["code"]
             if previous_entry_code == code:
                 return history_entries[0]['id']
 
-        entry_id = add_data(language_id, code, category_id, tree_identifier, folder_name, profile_id, be_session)
+        entry_id = add_data(language_id, code, category_id,
+                            tree_identifier, folder_name, profile_id, be_session)
 
         if len(history_entries) >= max_entries:
             delete_data(history_entries[0]['id'], folder_id, be_session)
@@ -320,8 +326,10 @@ def get_execution_history_entry(connection_id, index, profile_id=None, be_sessio
         with BackendTransaction(db):
             context = get_context()
             group_id = context.web_handler.user_personal_group_id if context is not None else None
-            category_id = get_data_category_id("DB Notebook Code History", be_session)
-            folder_id = sql_editor_backend.get_folder_id(db, connection_id, group_id, profile_id)
+            category_id = get_data_category_id(
+                "DB Notebook Code History", be_session)
+            folder_id = sql_editor_backend.get_folder_id(
+                db, connection_id, group_id, profile_id)
 
             history_entries = list_data(folder_id, category_id, be_session)
             history_entries.sort(key=lambda x: x['last_update'], reverse=True)
@@ -359,15 +367,19 @@ def get_execution_history_entries(connection_id, language_id="", truncate_code_l
             list_of_history_entries = []
             context = get_context()
             group_id = context.web_handler.user_personal_group_id if context is not None else None
-            category_id = get_data_category_id("DB Notebook Code History", be_session)
-            folder_id = sql_editor_backend.get_folder_id(db, connection_id, group_id, profile_id)
+            category_id = get_data_category_id(
+                "DB Notebook Code History", be_session)
+            folder_id = sql_editor_backend.get_folder_id(
+                db, connection_id, group_id, profile_id)
 
             history_entries = list_data(folder_id, category_id, be_session)
             if language_id != "":
-                history_entries = [entry for entry in history_entries if entry['caption'] == language_id]
+                history_entries = [
+                    entry for entry in history_entries if entry['caption'] == language_id]
             history_entries.sort(key=lambda x: x['last_update'], reverse=True)
             for entry in history_entries:
-                result = db.select("""SELECT content FROM data WHERE id = ?""", (entry['id'],))
+                result = db.select(
+                    """SELECT content FROM data WHERE id = ?""", (entry['id'],))
                 try:
                     content = json.loads(result[0]['content'])
                     if truncate_code_length != -1:
@@ -402,15 +414,17 @@ def remove_execution_history_entry(connection_id, index=-1, profile_id=None, be_
     with BackendDatabase(be_session) as db:
         context = get_context()
         group_id = context.web_handler.user_personal_group_id if context is not None else None
-        category_id = get_data_category_id("DB Notebook Code History", be_session)
-        folder_id = sql_editor_backend.get_folder_id(db, connection_id, group_id, profile_id)
+        category_id = get_data_category_id(
+            "DB Notebook Code History", be_session)
+        folder_id = sql_editor_backend.get_folder_id(
+            db, connection_id, group_id, profile_id)
 
         history_entries = list_data(folder_id, category_id, be_session)
         history_entries.sort(key=lambda x: x['last_update'], reverse=True)
 
         if index >= len(history_entries):
             raise MSGException(Error.CORE_INVALID_PARAMETER,
-                           "Parameter 'index' is out of range.")
+                               "Parameter 'index' is out of range.")
 
         if index == -1:
             for entry in history_entries:

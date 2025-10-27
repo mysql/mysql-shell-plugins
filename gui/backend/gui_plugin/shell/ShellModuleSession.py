@@ -270,7 +270,7 @@ class ShellModuleSession(ModuleSession):
             "mysqlsh") or executable.endswith("mysqlsh.exe") else "mysqlsh"
 
         # Temporarily passing --no-defaults until it is a configurable option in FE and is received as parameter in the BE
-        popen_args = ["--no-defaults", "--interactive=full", "--passwords-from-stdin",
+        popen_args = ["--no-defaults", "--loose-execution-context=.vsc", "--interactive=full", "--passwords-from-stdin",
                       "--py", "--json=raw", "--quiet-start=2", "--column-type-info"]
 
         # Adds the connection data to the call arguments

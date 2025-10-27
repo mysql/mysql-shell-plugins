@@ -2513,7 +2513,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     }
 
                     return Promise.resolve();
-                });
+                }, "mysql_ot_msh.vsc.lh_nav");
 
                 StatusBar.setStatusBarMessage(`Task scheduled successfully. Task Id: ${taskId}`);
 

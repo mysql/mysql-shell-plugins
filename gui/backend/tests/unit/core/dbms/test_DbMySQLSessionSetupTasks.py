@@ -93,7 +93,7 @@ class MockDbSession(DbMySQLSession.DbMysqlSession):
             self._expected_queries), "Not all the queries were executed"
         assert self._on_connected_data == self.data, "Unexpected data after connection"
 
-    def execute_thread(self, sql, params):
+    def execute_thread(self, sql, params, options=None):
         assert self._next_query < len(
             self._expected_queries), f"Unexpected query received, no more expected: {sql}"
 
