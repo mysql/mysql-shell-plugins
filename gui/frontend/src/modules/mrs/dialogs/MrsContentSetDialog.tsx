@@ -511,7 +511,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
         if (mainSection && settingsSection && optionsSection && scriptSection) {
             const value = optionsSection.values.options.value as string | undefined;
-            const options = JSON.parse(value ?? "{}") as IDictionary;
+            const options = JSON.parse(value?.trim() ? value : "{}") as IDictionary;
             options[KnownMrsContentSetFieldNames.ContainsMrsScripts] =
                 settingsSection.values.containsMrsScripts.value as boolean;
             if (options[KnownMrsContentSetFieldNames.ContainsMrsScripts]) {
