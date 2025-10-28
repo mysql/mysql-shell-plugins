@@ -308,6 +308,12 @@ export const deleteRESTUser = "Delete User...";
 export const editAuthenticationApp = "Edit REST Authentication App...";
 export const lockFlag = join(process.cwd(), "locked");
 export const restAuthenticationApps = "REST Authentication Apps";
+export const loadRESTProjectFromDisk = "Load REST Project from Disk ...";
+export const loadRESTProjectFromURL = "Load REST Project from URL ...";
+export const loadRESTProjectFromGithub = "Load REST Project from Github ...";
+export const loadRESTService = "Load REST Service";
+export const dumpToDisk = "Dump to Disk";
+export const dumpRestServiceAsRESTProject = "Dump REST Service as REST Project ...";
 
 // THEMES
 export const darkModern = "Dark Modern";

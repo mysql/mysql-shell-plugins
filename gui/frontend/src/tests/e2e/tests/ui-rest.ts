@@ -23,8 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { basename } from "path";
+import { basename, join, resolve } from "path";
 import { error, Key } from "selenium-webdriver";
+import { rmSync, existsSync } from "fs";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, TestContext } from "vitest";
 import * as constants from "../lib/constants.js";
 import { AuthenticationAppDialog } from "../lib/Dialogs/AuthenticationAppDialog.js";
@@ -500,6 +501,21 @@ describe("MYSQL REST SERVICE", () => {
             },
         };
 
+        let serviceToDump: interfaces.IRestService = {
+            servicePath: `/serviceToDump`,
+            name: "serviceToDump",
+            enabled: true,
+            default: false,
+            settings: {
+                comments: "testing",
+            },
+            authentication: {
+                redirectionUrl: "localhost:8000",
+                redirectionUrlValid: "(.*)",
+                authCompletedChangeCont: "<html>",
+            },
+        };
+
         const authenticationApp = {
             vendor: "MRS",
             name: "test",
@@ -509,6 +525,8 @@ describe("MYSQL REST SERVICE", () => {
                 description: "testing",
             },
         };
+
+        const destDumpProject = resolve(__dirname, "..", "projectDump");
 
         beforeEach(async (context: TestContext) => {
             try {
@@ -536,6 +554,7 @@ describe("MYSQL REST SERVICE", () => {
                 const notification = await new E2EToastNotification().create();
                 expect(notification!.message).toBe("The MRS service has been created.");
                 await notification!.close();
+                await dbTreeSection.expandTreeItem(constants.mysqlRestService);
                 await driver.wait(dbTreeSection.untilTreeItemExists(service1.servicePath),
                     constants.wait5seconds);
             } catch (e) {
@@ -680,6 +699,132 @@ describe("MYSQL REST SERVICE", () => {
                 await dbTreeSection.collapseTreeItem(constants.restAuthenticationApps);
                 await driver.wait(dbTreeSection.untilTreeItemExists(authenticationApp.name),
                     constants.wait3seconds);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Dump REST Service as REST Project", async () => {
+            try {
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+                serviceToDump = await RestServiceDialog.set(serviceToDump);
+                let notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The MRS service has been created.");
+                await notification!.close();
+                await driver.wait(dbTreeSection.untilTreeItemExists(service1.servicePath),
+                    constants.wait5seconds);
+
+                rmSync(destDumpProject, { force: true, recursive: true });
+                await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath,
+                    [constants.dumpToDisk, constants.dumpRestServiceAsRESTProject]);
+
+                const items = [
+                    destDumpProject,
+                    "Test Project Dump",
+                    "This is dummy description",
+                    "Oracle",
+                    "1.0.0",
+                    resolve("..", "..", "mrs_plugin", "examples", "mrs_notes", "public", "favicon.png"),
+                ];
+
+                for (const item of items) {
+                    const dialog = await new GenericDialog().untilExists();
+                    await dialog.setText(item);
+                    await dialog.ok();
+                }
+
+                notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The REST Project was dumped successfully.");
+                await notification!.close();
+
+                expect(existsSync(destDumpProject)).toBe(true);
+                expect(existsSync(join(destDumpProject, "mrs.package.json"))).toBe(true);
+                expect(existsSync(join(destDumpProject,
+                    `${serviceToDump.servicePath.replace("/", "")}.service.mrs.sql`)))
+                    .toBe(true);
+                expect(existsSync(join(destDumpProject, "appIcon.png"))).toBe(true);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Load REST Project from Disk", async () => {
+            try {
+                await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath, constants.deleteRESTService);
+                await (await new ConfirmDialog().untilExists()).accept();
+                let notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The MRS service has been deleted successfully.");
+                await notification!.close();
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                    [constants.loadRESTService, constants.loadRESTProjectFromDisk]);
+                const dialog = await new GenericDialog().untilExists();
+                await dialog.setText(destDumpProject);
+                await dialog.ok();
+
+                notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The REST Project was loaded successfully.");
+                await notification!.close();
+                await driver.wait(dbTreeSection.untilTreeItemExists(serviceToDump.servicePath),
+                    constants.wait1second * 5);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Load REST Project from URL", async () => {
+            try {
+                await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath, constants.deleteRESTService);
+                await (await new ConfirmDialog().untilExists()).accept();
+                let notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The MRS service has been deleted successfully.");
+                await notification!.close();
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                    [constants.loadRESTService, constants.loadRESTProjectFromURL]);
+
+                const dialog = await new GenericDialog().untilExists();
+                await dialog.setText("https://github.com/migueltadeu/tests-mrs-project/archive/refs/heads/main.zip");
+                await dialog.ok();
+
+                notification = await new E2EToastNotification().create(undefined, constants.wait1second * 10);
+                expect(notification!.message).toBe("The REST Project was loaded successfully.");
+                await notification!.close();
+
+                await driver.wait(dbTreeSection.untilTreeItemExists("/myService1"), constants.wait1second * 5);
+                await driver.wait(dbTreeSection.untilTreeItemExists("/myService2"), constants.wait1second * 5);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Load REST Project from Github", async () => {
+            try {
+                for (const refService of ["/myService1", "/myService2"]) {
+                    await dbTreeSection.openContextMenuAndSelect(refService, constants.deleteRESTService);
+                    await (await new ConfirmDialog().untilExists()).accept();
+                    const notification = await new E2EToastNotification().create();
+                    expect(notification!.message).toBe("The MRS service has been deleted successfully.");
+                    await notification!.close();
+                }
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                    [constants.loadRESTService, constants.loadRESTProjectFromGithub]);
+
+                const dialog = await new GenericDialog().untilExists();
+                await dialog.setText("github/migueltadeu/tests-mrs-project");
+                await dialog.ok();
+
+                const notification = await new E2EToastNotification().create(undefined, constants.wait1second * 10);
+                expect(notification!.message).toBe("The REST Project was loaded successfully.");
+                await notification!.close();
+
+                await driver.wait(dbTreeSection.untilTreeItemExists("/myService1"), constants.wait1second * 5);
+                await driver.wait(dbTreeSection.untilTreeItemExists("/myService2"), constants.wait1second * 5);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -1276,6 +1421,12 @@ describe("MYSQL REST SERVICE", () => {
 
         beforeAll(async () => {
             try {
+                await driver.navigate().refresh();
+                await driver.wait(Misc.untilHomePageIsLoaded(url), constants.wait20seconds);
+                await dbTreeSection.focus();
+                await dbTreeSection.expandTreeItem(globalConn);
+                await dbTreeSection.expandTreeItem(constants.mysqlRestService);
+
                 await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
                 service4 = await RestServiceDialog.set(service4);
                 const notification = await new E2EToastNotification().create();

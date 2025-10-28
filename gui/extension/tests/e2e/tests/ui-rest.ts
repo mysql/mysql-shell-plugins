@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { join } from "path";
+import { join, resolve } from "path";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import { ModalDialog, InputBox } from "vscode-extension-tester";
@@ -48,6 +48,7 @@ import { E2ELogger } from "../lib/E2ELogger";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ERecording } from "../lib/E2ERecording";
 import "../setup/global-hooks";
+import { existsSync } from "fs";
 
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
@@ -126,8 +127,23 @@ describe("MySQL REST Service", () => {
             },
         };
 
+        let serviceToDump: interfaces.IRestService = {
+            servicePath: `/serviceToDump`,
+            enabled: true,
+            default: false,
+            settings: {
+                comments: "testing",
+            },
+            authentication: {
+                redirectionUrl: "localhost:8000",
+                redirectionUrlValid: "(.*)",
+                authCompletedChangeCont: "<html>",
+            },
+        };
+
         let existsInQueue = false;
         const destDumpSdk = join(process.cwd(), "dump.sdk");
+        const destDumpProject = join(process.cwd(), "projectDump");
 
         afterEach(async function () {
             if (existsInQueue) {
@@ -338,8 +354,86 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("MRS Service Documentation", async () => {
+        it("Dump REST Service as REST Project", async () => {
 
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+            serviceToDump = await RestServiceDialog.set(serviceToDump);
+            await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
+                constants.wait1second * 20);
+            await driver.wait(dbTreeSection.untilTreeItemExists(serviceToDump.servicePath), constants.waitForTreeItem);
+
+            await fs.rm(destDumpProject, { force: true, recursive: true });
+            await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath,
+                [constants.dumpToDisk, constants.restServiceProject], constants.restServiceCtxMenu);
+            await Workbench.setInputPath(destDumpProject);
+            await Workbench.setInputPath("Test Project Dump");
+            await Workbench.setInputPath("This is dummy description");
+            await Workbench.setInputPath("Oracle");
+            await Workbench.setInputPath("1.0.0");
+            await Workbench.setInputPath(resolve("..", "..", "..", "..", "mrs_plugin", "examples", "mrs_notes", "public", "favicon.png"));
+            await driver.wait(Workbench.untilNotificationExists("The REST Project has been dumped successfully."), constants.wait1second * 5);
+            expect(existsSync(destDumpProject)).to.be.true;
+            expect(existsSync(join(destDumpProject, "mrs.package.json"))).to.be.true;
+            expect(existsSync(join(destDumpProject, `${serviceToDump.servicePath.replace("/", "")}.service.mrs.sql`))).to.be.true;
+            expect(existsSync(join(destDumpProject, "appIcon.png"))).to.be.true;
+        });
+
+        it("Load REST Project from Disk", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath,
+                constants.deleteRESTService);
+            const ntf = await Workbench
+                .getNotification(`Are you sure the MRS service ${serviceToDump.servicePath} should be deleted`, false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+            await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                constants.wait1second * 5);
+
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                [constants.loadFromDisk, constants.loadProjectFromDisk], constants.restMainCtxMenu);
+            await Workbench.setInputPath(destDumpProject);
+            await driver.wait(Workbench.untilNotificationExists("The REST Project has been loaded successfully."), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(serviceToDump.servicePath), constants.waitForTreeItem);
+        });
+
+        it("Load REST Project from URL", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath,
+                constants.deleteRESTService);
+            const ntf = await Workbench
+                .getNotification(`Are you sure the MRS service ${serviceToDump.servicePath} should be deleted`, false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+            await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                constants.wait1second * 5);
+
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                [constants.loadFromDisk, constants.loadProjectFromUrl], constants.restMainCtxMenu);
+            await Workbench.setInputPath("https://github.com/migueltadeu/tests-mrs-project/archive/refs/heads/main.zip");
+            await driver.wait(Workbench.untilNotificationExists("The REST Project has been loaded successfully."), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists("/myService1"), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists("/myService2"), constants.waitForTreeItem);
+        });
+
+        it("Load REST Project from URL (Git Shortcut)", async () => {
+
+            for (const refService of ["/myService1", "/myService2"]) {
+                await dbTreeSection.openContextMenuAndSelect(refService, constants.deleteRESTService);
+                const ntf = await Workbench
+                    .getNotification(`Are you sure the MRS service ${refService} should be deleted`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                    constants.wait1second * 5);
+            }
+
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                [constants.loadFromDisk, constants.loadProjectFromUrl], constants.restMainCtxMenu);
+            await Workbench.setInputPath("github/migueltadeu/tests-mrs-project");
+            await driver.wait(Workbench.untilNotificationExists("The REST Project has been loaded successfully."), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists("/myService1"), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists("/myService2"), constants.waitForTreeItem);
+
+        });
+
+        it("MRS Service Documentation", async () => {
             await dbTreeSection.openContextMenuAndSelect(service1.servicePath, constants.mrsServiceDocs);
             await driver.wait(async () => {
                 await Misc.switchBackToTopFrame();
@@ -385,19 +479,17 @@ describe("MySQL REST Service", () => {
         });
 
         it("Delete REST Service", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(new RegExp(service1.servicePath),
-                constants.deleteRESTService);
-
-            const ntf = await Workbench
-                .getNotification(`Are you sure the MRS service ${service1.servicePath} should be deleted`, false);
-            await Workbench.clickOnNotificationButton(ntf, "Yes");
-            await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
-                constants.wait1second * 5);
-
-            await driver.wait(async () => {
-                return !(await dbTreeSection.treeItemExists(service1.servicePath));
-            }, constants.wait1second * 3, `Item ${service1.servicePath} should not exist on the tree`);
+            for (const refService of [service1.servicePath, "/myService1", "/myService2"]) {
+                await dbTreeSection.openContextMenuAndSelect(refService, constants.deleteRESTService);
+                const ntf = await Workbench
+                    .getNotification(`Are you sure the MRS service ${refService} should be deleted`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                    constants.wait1second * 5);
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(refService));
+                }, constants.wait1second * 3, `Item ${refService} should not exist on the tree`);
+            }
         });
 
     });

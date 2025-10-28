@@ -424,16 +424,21 @@ export const eventsCtxMenu = new Map([
     [dropEvent, 1],
 ]);
 
+export const loadFromDisk = "Load from Disk";
+export const loadProjectFromDisk = "Load REST Project from Disk ...";
+export const loadProjectFromUrl = "Load REST Project from URL ...";
+
 export const restMainCtxMenu = new Map([
     [configureRestService, 1],
     [addRESTService, 2],
-    [enableRESTService, 3],
-    [disableRESTService, 4],
-    [bootstrapRouter, 6],
-    [startRouter, 7],
-    [stopRouter, 8],
-    [killRouters, 9],
-    [browseRESTDocs, 10],
+    [loadFromDisk, 3],
+    [loadProjectFromDisk, 0],
+    [loadProjectFromUrl, 1],
+    [bootstrapRouter, 4],
+    [startRouter, 5],
+    [stopRouter, 6],
+    [killRouters, 7],
+    [browseRESTDocs, 9],
 ]);
 
 export const createJSLibrary = "Create JavaScript Library...";
@@ -458,9 +463,6 @@ export const libraryCtxMenu = new Map([
 ]);
 
 export const dumpRESTSchemaToSQL = "Rest Schema SQL...";
-export const loadFromDisk = "Load from Disk";
-export const loadProjectFromDisk = "Load REST Project from Disk ...";
-export const loadProjectFromUrl = "Load REST Project from URL ...";
 export const restObjectFromJSONFile = "REST Object From JSON File...";
 export const restSchemaFromJSONFile = "Load REST Schema From JSON File...";
 export const restClientSDKFiles = "Dump REST Client SDK Files ...";
@@ -498,8 +500,6 @@ export const restServiceCtxMenu = new Map([
     [setAsCurrentREST, 2],
     [loadFromDisk, 3],
     [restSchemaFromJSONFile, 0],
-    [loadProjectFromDisk, 1],
-    [loadProjectFromUrl, 2],
     [dumpToDisk, 4],
     [restClientSDKFiles, 0],
     [restSQLScript, 1],

@@ -939,6 +939,7 @@ export const genericDialog = {
             },
         },
     },
+    textBox: By.id("input"),
 };
 
 export const toastNotification = {

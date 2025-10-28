@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until } from "selenium-webdriver";
+import { WebElement, until, error } from "selenium-webdriver";
 import { driver } from "../../lib/driver.js";
 import * as locator from "../locators.js";
 import * as constants from "../constants.js";
@@ -65,6 +65,30 @@ export class GenericDialog {
         }, timeout, `Waiting for generic dialog to exist`);
 
         return this;
+    };
+
+    /**
+     * Sets a text on the dialog text box
+     * 
+     * @param text The value to set
+     */
+    public setText = async (text: string): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                const textBox = await this.dialog!.findElement(locator.genericDialog.textBox);
+                await textBox.clear();
+                await textBox.sendKeys(text);
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                } else {
+                    await this.untilExists();
+                }
+            }
+        }, constants.wait1second * 5, `Could not set text on the dialog`);
+
     };
 
     /**
