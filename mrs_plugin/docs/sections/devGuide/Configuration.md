@@ -355,7 +355,7 @@ The following example installs the MRS server component and sets related MRS sys
 ```sql
 INSTALL COMPONENT "file://component_mysql_rest_service"
     SET GLOBAL component_mysql_rest_service.use_ssl = 0,
-    GLOBAL component_mysql_rest_service.user = "miguel";
+    GLOBAL component_mysql_rest_service.mrs_user = "miguel";
 ```
 
 ### Uninstalling the MRS Server Component
@@ -372,7 +372,8 @@ The following MySQL system variables are available to configure the MRS server c
 
 | System Variable | Description
 | --- | --------
-| component_mysql_rest_service.user | Defines the [REST Service User](#granting-users-access-to-the-mysql-rest-service). Automatically generated when component is installed and the SysVar has not been set at install time.
+| component_mysql_rest_service.mrs_user | Defines the [REST Service User](#granting-users-access-to-the-mysql-rest-service). Automatically generated when component is installed and the SysVar has not been set at install time.
+| component_mysql_rest_service.metadata_cache_user | Metadata Cache User. Allows defining the account used by the component to query and access MySQL Database Architectures to handle transparent query routing. The account is automatically generated during installation if the system variable was not set at that time.
 | component_mysql_rest_service.http_port | Rest Service HTTP Port. If the MySQL X Plugin is enabled on the server, the MySQL X Protocol port will be used and the plugin will be disabled. If the X Plugin is disabled, the default port is 8543.
 | component_mysql_rest_service.use_ssl | Enables TLSv1.2 (or later) support. If the server has it enabled/supported, then it's enabled by default.
 | component_mysql_rest_service.ssl_cert | SSL certificate filename. Uses Server default certificate if not specified.
@@ -405,6 +406,8 @@ The following MySQL status variables are available:
 | component_mysql_rest_service.http_port_source | Indicates how the HTTP port was configured. If set to `default` port 8543 is used. If set to `xplugin` the port was taken from the MySQL X Plugin. If set to `user` the port was individually configured by the user.
 | component_mysql_rest_service.ssl_cert_source | Indicates how the SSL-certificate was configured. If set to `mysql` the MySQL Server configuration is used. If set to `user` the source was configured by the user.
 | component_mysql_rest_service.ssl_key_source | Indicates how the SSL-key was configured. If set to `mysql` the MySQL Server configuration is used. If set to `user` the source was configured by the user.
+| component_mysql_rest_service.current_mrs_user | Indicates the [REST Service User](#granting-users-access-to-the-mysql-rest-service) account currently in use. If the account was auto-generated, the name is suffixed with "(auto-generated)".
+| component_mysql_rest_service.current_metadata_cache_user | Indicates the Metadata Cache account currently in use. If the account was auto-generated, the name is suffixed with "(auto-generated)".
 
 : MRS Status Variables Overview
 
@@ -413,6 +416,12 @@ To query a MRS status variable use a SELECT statement like the following.
 ```sql
 SELECT VARIABLE_VALUE FROM performance_schema.global_status
 WHERE VARIABLE_NAME = 'component_mysql_rest_service.http_port_source';
+```
+
+To query all Status Variables use a SELECT statement like the following.
+
+```sql
+SHOW STATUS LIKE 'component_mysql_rest_service%';
 ```
 
 ### MRS Server Component UDFs
@@ -426,3 +435,26 @@ The following UDFs are available to control the MRS server component:
 | `SELECT component_mysql_rest_service_restart();` | Restarts the MRS server component.
 
 : MRS server component UDF Overview
+
+### MySQL Database Architectures Support
+
+Version 15 of the Experimental package, available from [labs.mysql.com](https://labs.mysql.com), adds support for running the component within MySQL Database Architectures, enabling it to operate seamlessly in the following topologies:
+
+  - InnoDB Cluster
+  - InnoDB ReplicaSet
+  - InnoDB ClusterSet
+
+When the component detects that the MySQL instance is part of a managed topology, it automatically starts the metadata-cache plugin and integrates with it.
+
+> Important: In the current release, the component must be installed and run only on the **PRIMARY** member of a managed topology.
+> Attempting to run it on a **SECONDARY** member results in an error, and the component stops gracefully.
+>
+> To install it across all members, perform a **switchover** and repeat the installation on each member until all have it installed.
+>
+> This is a **temporary limitation**, future releases will support installing and running the component on all members of the topology.
+
+For more information on each topology, refer to the documentation:
+
+  - [InnoDB Cluster Documentation](https://dev.mysql.com/doc/mysql-shell/en/mysql-innodb-cluster.html)
+  - [InnoDB ReplicaSet Documentation](https://dev.mysql.com/doc/mysql-shell/en/mysql-innodb-replicaset.html)
+  - [InnoDB ClusterSet Documentation](https://dev.mysql.com/doc/mysql-shell/en/innodb-clusterset.html)
