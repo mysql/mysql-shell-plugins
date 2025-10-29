@@ -23,7 +23,8 @@
 
 import * as pixi from "pixi.js";
 
-import type { ICanvasElement } from "../Canvas.js";
+import type { ICanvasElement, ICanvasTheme } from "../Canvas.js";
+import { getThemeColor } from "../canvas-helpers.js";
 
 export interface IConnectionHolder {
     connections: Connection[];
@@ -55,11 +56,9 @@ export class Connection extends pixi.Graphics {
         if (this.isConnectionHolder(end.element)) {
             end.element.connections.push(this);
         }
-
-        this.update();
     }
 
-    public update(): void {
+    public render(theme?: ICanvasTheme): void {
         this.x = this.start.element.x + this.start.element.width - 2; // removing the outline width
         this.y = this.start.element.y + (this.start.element.height / 2);
 
@@ -90,9 +89,13 @@ export class Connection extends pixi.Graphics {
                 break;
         }
 
-        this.setStrokeStyle({ width: 2, color: 0x474747, alpha: 1 });
-        this.circle(0, 0, 4).fill({ color: 0x1e1e1e, alpha: 1 }).stroke();
-        this.circle(this.end.element.x - this.x, p2, 4).fill({ color: 0x1e1e1e, alpha: 1 }).stroke();
+        const circleBackground = getThemeColor(theme, "editor.background", "#1e1e1e");
+        const foreground = getThemeColor(theme, "editor.foreground", "#1e1e1e");
+
+        this.setStrokeStyle({ width: 2, color: foreground, alpha: 1 });
+
+        this.circle(0, 0, 4).fill({ color: circleBackground, alpha: 1 }).stroke();
+        this.circle(this.end.element.x - this.x, p2, 4).fill({ color: circleBackground, alpha: 1 }).stroke();
     }
 
     private isConnectionHolder(obj: unknown): obj is IConnectionHolder {

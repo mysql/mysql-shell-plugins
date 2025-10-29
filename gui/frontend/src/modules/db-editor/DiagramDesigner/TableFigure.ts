@@ -32,22 +32,17 @@ import columnIconPk from "../../../assets/images/msm/schemaTableColumnPK.svg?raw
 
 import * as pixi from "pixi.js";
 
+import { getThemeColor } from "../../../components/ui/Canvas/canvas-helpers.js";
+import type { ICanvasTheme } from "../../../components/ui/Canvas/Canvas.js";
 import { Figure } from "../../../components/ui/Canvas/Figures/Figure.js";
-import type { IDdmTableEntry } from "./DiagramDataModel.js";
 import { prepareImage } from "./diagram-helpers.js";
+import type { IDdmTableEntry } from "./DiagramDataModel.js";
 import { ScrollableContainer, ScrollBoxOverflow } from "./ScrollableContainer.js";
-
-// TODO: synchronize colors with app theme.
-export const foregroundColor = 0xdddddd;
-const foregroundColorString = "#dddddd";
-
-//const dimmedForegroundColor = 0x888888;
-const dimmedForegroundColorString = "#888888";
 
 export const tableTextStyle = {
     fontFamily: "Helvetica Neue, Arial, sans-serif",
     fontSize: 18,
-    fill: foregroundColor,
+    fill: "#dddddd",
 };
 
 const headerHeight = 30;
@@ -58,8 +53,9 @@ export class TableFigure extends Figure {
      *
      * @param dmEntry The data model entry to represent.
      * @param events Since the Figure needs to handle events (internal viewport), the event system must be passed in.
+     * @param theme The theme to use for colors and fonts.
      */
-    public constructor(private dmEntry: IDdmTableEntry, private events: pixi.EventSystem) {
+    public constructor(private dmEntry: IDdmTableEntry, private events: pixi.EventSystem, theme: ICanvasTheme) {
         dmEntry.diagramValues.collapsedHeight = headerHeight;
         const header = new pixi.Container({
             layout: {
@@ -77,15 +73,16 @@ export class TableFigure extends Figure {
         // No layout, just a background.
         const headerBackground = new pixi.Graphics();
         headerBackground.rect(0, 0, dmEntry.diagramValues.width, headerHeight);
-        headerBackground.fill(0x51A3BD);
+        headerBackground.fill("#51A3BD");
         header.addChild(headerBackground);
 
-        const tableImage = prepareImage(tableIcon, { width: 15, height: 15, alpha: 1 }, foregroundColorString);
+        const titleForeground = "#f8f8f8";
+        const tableImage = prepareImage(tableIcon, { width: 15, height: 15, alpha: 1 }, titleForeground);
         tableImage.layout = true;
 
         const title = new pixi.Text({
             text: dmEntry.caption,
-            style: { ...tableTextStyle, fontSize: 14, fontWeight: "bold", fill: foregroundColor },
+            style: { ...tableTextStyle, fontSize: 14, fontWeight: "bold", fill: titleForeground },
             textureStyle: { scaleMode: "nearest", },
             layout: { flex: 0 },
         });
@@ -94,7 +91,7 @@ export class TableFigure extends Figure {
         triangle.moveTo(0, 0);
         triangle.lineTo(10, 0);
         triangle.lineTo(5, 10);
-        triangle.fill(foregroundColor);
+        triangle.fill(titleForeground);
         triangle.interactive = true;
 
         triangle.on("pointertap", (e) => {
@@ -152,6 +149,7 @@ export class TableFigure extends Figure {
         scrollbox.content.addChild(body);
 
         if (dmEntry.description) {
+            const foregroundColor = getThemeColor(theme, "badge.foreground", "#f8f8f8");
             const description = new pixi.HTMLText({
                 text: dmEntry.description,
                 style: {
@@ -172,9 +170,9 @@ export class TableFigure extends Figure {
             body.addChild(description);
         }
 
-        TableFigure.renderColumnNames(body, dmEntry);
-        TableFigure.renderIndexNames(body, dmEntry);
-        TableFigure.renderForeignKeyNames(body, dmEntry);
+        TableFigure.renderColumnNames(body, dmEntry, theme);
+        TableFigure.renderIndexNames(body, dmEntry, theme);
+        TableFigure.renderForeignKeyNames(body, dmEntry, theme);
         scrollbox.update();
 
         super({
@@ -186,15 +184,17 @@ export class TableFigure extends Figure {
                 selectable: dmEntry.diagramValues.selectable,
                 resizable: dmEntry.diagramValues.resizable,
             },
+            theme,
             children: [header, scrollbox],
         });
     }
 
-    private static renderColumnNames(body: pixi.Container, dmEntry: IDdmTableEntry): void {
+    private static renderColumnNames(body: pixi.Container, dmEntry: IDdmTableEntry, theme: ICanvasTheme): void {
         if (!dmEntry.columns || dmEntry.columns.length === 0) {
             return;
         }
 
+        const foregroundColor = getThemeColor(theme, "foreground", "#dddddd");
         const title = new pixi.Text({
             text: "Columns",
             style: { ...tableTextStyle, fontSize: 12, fontWeight: "bold", fill: foregroundColor },
@@ -220,19 +220,18 @@ export class TableFigure extends Figure {
                 width = 6;
                 height = 12;
             }
-            const image = prepareImage(
-                col.primaryKey ? columnIconPk : (col.nullable ? columnIcon : columnIconNotNull),
-                { width, height },
-                foregroundColorString);
+            const image = prepareImage(col.primaryKey ? columnIconPk : (col.nullable ? columnIcon : columnIconNotNull),
+                { width, height }, foregroundColor);
             image.layout = { flex: 0 };
             row.addChild(image);
 
+            const dimmedColor = getThemeColor(theme, "descriptionForeground", "#888888");
             const colText = new pixi.HTMLText({
                 text: `<span class="name">${col.name}</span> <span class="type">${col.type}</span>`,
                 style: {
                     cssOverrides: [
                         `.name { color: ${foregroundColor}; }`,
-                        `.type { font-style: italic; color: ${dimmedForegroundColorString}; }`,
+                        `.type { font-style: italic; color: ${dimmedColor}; }`,
                         `.name, .type { line-height: 1.1rem;  }`,
                     ],
                     ...tableTextStyle,
@@ -249,11 +248,12 @@ export class TableFigure extends Figure {
         }
     }
 
-    private static renderIndexNames(body: pixi.Container, dmEntry: IDdmTableEntry): void {
+    private static renderIndexNames(body: pixi.Container, dmEntry: IDdmTableEntry, theme: ICanvasTheme): void {
         if (!dmEntry.indexes || dmEntry.indexes.length === 0) {
             return;
         }
 
+        const foregroundColor = getThemeColor(theme, "foreground", "#dddddd");
         const title = new pixi.Text({
             text: "Indexes",
             style: { ...tableTextStyle, fontSize: 12, fontWeight: "bold", fill: foregroundColor },
@@ -282,11 +282,12 @@ export class TableFigure extends Figure {
         }
     }
 
-    private static renderForeignKeyNames(body: pixi.Container, dmEntry: IDdmTableEntry): void {
+    private static renderForeignKeyNames(body: pixi.Container, dmEntry: IDdmTableEntry, theme: ICanvasTheme): void {
         if (!dmEntry.foreignKeys || dmEntry.foreignKeys.length === 0) {
             return;
         }
 
+        const foregroundColor = getThemeColor(theme, "foreground", "#dddddd");
         const title = new pixi.Text({
             text: "Foreign Keys",
             style: { ...tableTextStyle, fontSize: 12, fontWeight: "bold", fill: foregroundColor },

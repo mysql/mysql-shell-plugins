@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import type { Mutable } from "../../../app-logic/general-types.js";
 import type { IDiagramValues } from "../../../components/ui/Canvas/canvas-helpers.js";
 import type { IDataModelEntryState, ProgressCallback } from "../../../data-models/data-model-types.js";
 
@@ -83,6 +84,9 @@ export interface IDdmBaseEntry {
 
 export interface IDdmContainerEntry extends IDdmBaseEntry {
     type: DdmEntityType.Container;
+
+    /** The background color of the container area (default: canvas background). */
+    fillColor?: string;
 
     /** The child entries of this container. */
     children: IDdmBaseEntry[];
@@ -189,6 +193,7 @@ export interface IDiagramState {
     pageBordersVisible: boolean;
     locked: boolean;
     selectedTopology: string;
+    debugLogging?: boolean;
 }
 
 export interface IDiagramDocument {
@@ -208,6 +213,7 @@ export class DiagramDataModel {
         pageBordersVisible: true,
         locked: false,
         selectedTopology: "logical",
+        debugLogging: false,
     };
 
     private diagram: IDiagramDocument = {
@@ -365,6 +371,66 @@ export class DiagramDataModel {
             }
         };
 
-        this.diagram.entries.push(tableEntry1, tableEntry2);
+        const tableEntry3 = JSON.parse(JSON.stringify(tableEntry1)) as Mutable<IDdmTableEntry>;
+        tableEntry3.id = "3";
+        tableEntry3.caption = "Customer";
+        tableEntry3.tableName = "customer";
+        tableEntry3.diagramValues.x = 50;
+        tableEntry3.diagramValues.y = 20;
+
+        const tableEntry4 = JSON.parse(JSON.stringify(tableEntry2)) as Mutable<IDdmTableEntry>;
+        tableEntry4.id = "4";
+        tableEntry4.caption = "Address";
+        tableEntry4.tableName = "address";
+        tableEntry4.diagramValues.x = 230;
+        tableEntry4.diagramValues.y = 40;
+
+        const containerEntry1: IDdmContainerEntry = {
+            id: "container-1",
+            type: DdmEntityType.Container,
+            caption: "User Tables",
+            description: "A container grouping two tables.",
+            fillColor: "#d07070ff",
+            state: {
+                initialized: true,
+                expanded: true,
+                expandedOnce: true,
+                isLeaf: false,
+            },
+            diagramValues: {
+                x: 100,
+                y: 50,
+                width: 650,
+                height: 400,
+                selectable: true,
+                resizable: true,
+            },
+            children: [tableEntry3, tableEntry4],
+        };
+
+        const containerEntry2: IDdmContainerEntry = {
+            id: "container-2",
+            type: DdmEntityType.Container,
+            caption: "Audit Log",
+            description: "A group for audit related tables.",
+            fillColor: "#c1ce8fff",
+            state: {
+                initialized: true,
+                expanded: true,
+                expandedOnce: true,
+                isLeaf: false,
+            },
+            diagramValues: {
+                x: 200,
+                y: 750,
+                width: 800,
+                height: 600,
+                selectable: true,
+                resizable: true,
+            },
+            children: [containerEntry1],
+        };
+
+        this.diagram.entries.push(tableEntry1, tableEntry2, containerEntry2);
     }
 }

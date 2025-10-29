@@ -49,6 +49,7 @@ export enum SchemaDiagramToolbarAction {
     Locked,
     SelectedTopology,
     ResetView,
+    DebugLogging
 }
 
 export type ActiveTool = "pointer" | "hand" | "zoom";
@@ -236,6 +237,15 @@ export class SchemaDiagramToolbar extends ComponentBase<ISchemaDiagramToolbarPro
                     id="diagramShowPageMarginsMenuItem"
                     command={{ title: "Toggle Page Margins", command: "diagramShowPageMargins" }}
                 />
+                <MenuItem
+                    id="schemaDiagramToolbarSeparator"
+                    command={{ title: "-", command: "" }}
+                    disabled
+                />
+                <MenuItem
+                    id="debugMenuItem"
+                    command={{ title: "Toggle Logging", command: "toggleDebugLog" }}
+                />
             </Menu>
 
         </>;
@@ -267,6 +277,12 @@ export class SchemaDiagramToolbar extends ComponentBase<ISchemaDiagramToolbarPro
             case "diagramShowPageMargins": {
                 onAction(SchemaDiagramToolbarAction.MarginsVisible, !state.marginsVisible);
                 this.forceUpdate();
+
+                break;
+            }
+
+            case "toggleDebugLog": {
+                onAction(SchemaDiagramToolbarAction.DebugLogging, !state.debugLogging);
 
                 break;
             }

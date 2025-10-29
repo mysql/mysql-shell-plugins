@@ -23,15 +23,16 @@
 
 import * as pixi from "pixi.js";
 
-import { getModifiers, Modifier, type IDiagramValues } from "../canvas-helpers.js";
+import type { DeepPartial } from "../../../../app-logic/general-types.js";
+import { getModifiers, getThemeColor, Modifier, type IDiagramValues } from "../canvas-helpers.js";
+import type { ICanvasTheme } from "../Canvas.js";
 import { Connection, type IConnectionHolder } from "./Connection.js";
 import { Handle } from "./Handle.js";
-import type { DeepPartial } from "../../../../app-logic/general-types.js";
 
 const selectionBoxSize = 8;
 const selectionBoxOffset = 4;
-const selectionBoxBackgroundColor = "#303030";
-const selectionBoxBorderColor = "#ffffff";
+//const selectionBoxBackgroundColor = "#303030";
+//const selectionBoxBorderColor = "#ffffff";
 
 export interface IFigureProps {
     diagramValues: IDiagramValues;
@@ -41,6 +42,8 @@ export interface IFigureProps {
      * Values >= 1 or undefined disable the hover effect.
      */
     hoverFade?: number;
+
+    theme: ICanvasTheme;
 
     children: pixi.Container[];
 }
@@ -94,9 +97,9 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         this.render();
     }
 
-    public updateConnections(): void {
+    public updateConnections(theme?: ICanvasTheme): void {
         for (const c of this.connections) {
-            c.update();
+            c.render(theme);
         }
     }
 
@@ -128,10 +131,13 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         const width = effectiveProps.diagramValues.width ?? 100;
         const height = effectiveProps.diagramValues.height ?? 200;
 
+        const theme = effectiveProps.theme as ICanvasTheme | undefined;
+
         // First element is a shadow, unclipped.
+        const shadowColor = getThemeColor(theme, "widget.shadow", "#000000");
         this.shadow = new pixi.Graphics();
         this.shadow.roundRect(0, 2, width, height, 8)
-            .fill({ color: 0x000000, alpha: 0.5 });
+            .fill({ color: shadowColor, alpha: 0.5 });
         this.shadow.filters = [new pixi.BlurFilter({ strength: 8, quality: 4, kernelSize: 9 })];
         this.addChild(this.shadow);
 
@@ -162,7 +168,7 @@ export class Figure extends pixi.Container implements IConnectionHolder {
 
         const background = new pixi.Graphics();
         background.roundRect(0, 0, width, height, 8)
-            .fill({ color: 0x1e1e1e });
+            .fill({ color: getThemeColor(theme, "editorPane.background", "#1e1e1e") });
         this.addChild(background);
 
         // Child elements, clipped as well.
@@ -175,7 +181,8 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         // Last regular element is a border.
         const border = new pixi.Graphics();
         border.roundRect(0, 0, width, height, 8);
-        border.setStrokeStyle({ width: 2, color: 0x474747, alpha: 1 }).stroke();
+        border.setStrokeStyle({ width: 2, color: getThemeColor(theme, "editorWidget.border", "#474747"), alpha: 1 })
+            .stroke();
         this.addChild(border);
         this.position.set(effectiveProps.diagramValues.x, effectiveProps.diagramValues.y);
 
@@ -267,6 +274,9 @@ export class Figure extends pixi.Container implements IConnectionHolder {
 
     protected renderSelectionBoxes(diagramValues: IDiagramValues): void {
         const boxes: Handle[] = [];
+
+        const selectionBoxBackgroundColor = getThemeColor(this.props.theme, "profileBadge.background", "#303030");
+        const selectionBoxBorderColor = getThemeColor(this.props.theme, "profileBadge.foreground", "#ffffff");
 
         // Top-left
         let box = new Handle("resize")

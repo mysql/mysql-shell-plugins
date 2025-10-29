@@ -31,7 +31,7 @@ import networkIcon from "../../../assets/images/msm/info-network.svg?raw";
 import * as pixi from "pixi.js";
 import { ComponentChild, createRef } from "preact";
 
-import { Canvas, type ICanvasElement } from "../../../components/ui/Canvas/Canvas.js";
+import { Canvas, type ICanvasElement, type ICanvasTheme } from "../../../components/ui/Canvas/Canvas.js";
 import { Connection, ConnectionType } from "../../../components/ui/Canvas/Figures/Connection.js";
 import { Figure } from "../../../components/ui/Canvas/Figures/Figure.js";
 import { PageSettings } from "../../../components/ui/Canvas/PageSettings.js";
@@ -39,10 +39,14 @@ import {
     ComponentBase, IComponentProperties, IComponentState
 } from "../../../components/ui/Component/ComponentBase.js";
 import { IOdmSchemaDiagramEntry } from "../../../data-models/OpenDocumentDataModel.js";
+import { ContainerFigure } from "./ContainerFigure.js";
 import { prepareImage } from "./diagram-helpers.js";
-import { DdmEntityType, DiagramDataModel } from "./DiagramDataModel.js";
+import { DdmEntityType, DiagramDataModel, type IDdmContainerEntry, type IDdmTableEntry } from "./DiagramDataModel.js";
 import { SchemaDiagramToolbar, SchemaDiagramToolbarAction } from "./SchemaDiagramToolbar.js";
 import { TableFigure } from "./TableFigure.js";
+import { ThemeManager } from "../../../components/Theming/ThemeManager.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { getThemeColor } from "../../../components/ui/Canvas/canvas-helpers.js";
 
 /** TODO: Replace with actual implementation */
 type IDictionary = Record<string, unknown>;
@@ -70,11 +74,13 @@ interface ISchemaDiagramDesignerState extends IComponentState {
     // Used to trigger a re-render when the data model or the toolbar mode changes.
     revision: number;
     elements?: ICanvasElement[];
+
+    debugLogging: boolean;
 }
 
 const defaultLabelStyle: pixi.TextStyleOptions = {
     fontFamily: "Helvetica",
-    fontSize: 16,
+    fontSize: "16px",
     fill: 0xffffff,
     align: "left",
 };
@@ -84,16 +90,38 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
     private canvasRef = createRef<Canvas>();
     private toolbarRef = createRef<SchemaDiagramToolbar>();
 
+    private theme: ICanvasTheme = {
+        fontValues: {},
+    };
+
     public constructor(props: ISchemaDiagramDesignerProps) {
         super(props);
 
         this.state = {
             revision: 1,
+            debugLogging: false,
         };
     }
 
+    public override componentDidMount(): void {
+        requisitions.register("themeChanged", this.themeChanged);
+
+        this.theme = {
+            colors: ThemeManager.get.activeThemeValues?.colors,
+            fontValues: ThemeManager.get.getFontVariables()
+        };
+
+        defaultLabelStyle.fontFamily = this.theme.fontValues["msg-standard-font-family"];
+        defaultLabelStyle.fontSize = this.theme.fontValues["msg-standard-font-size"] ?? "16px";
+        defaultLabelStyle.fill = getThemeColor(this.theme, "tab.activeForeground", "#FFFFFF");
+    }
+
+    public override componentWillUnmount(): void {
+        requisitions.unregister("themeChanged", this.themeChanged);
+    }
+
     public render(): ComponentChild {
-        const { elements } = this.state;
+        const { elements, debugLogging } = this.state;
 
         const pageSettings = new PageSettings("A4", "portrait");
         pageSettings.setMargins(10, 10, 10, 10);
@@ -102,9 +130,7 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
             <SchemaDiagramToolbar
                 ref={this.toolbarRef}
                 state={this.datamodel.document.state}
-                onAction={(action, value) => {
-                    this.handleAction(action, value);
-                }}
+                onAction={this.handleAction}
             />
             <Canvas
                 className={this.getEffectiveClassNames(["schemaDiagramDesigner"])}
@@ -112,8 +138,6 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                 ref={this.canvasRef}
                 elements={elements ?? []}
                 idleFPS={1}
-                insideBackground="#282828"
-                outsideBackground="#202020"
                 pageSettings={pageSettings}
                 pageCount={{ horizontal: 2, vertical: 2 }}
                 gridSettings={{
@@ -121,12 +145,19 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                     verticalDistance: 5,
                     subCellCount: 5,
                 }}
+                // Theme colors and fonts are passed in isolated, to avoid coupling the Canvas too tightly
+                // to the ThemeManager implementation.
+                theme={{
+                    colors: ThemeManager.get.activeThemeValues?.colors,
+                    fontValues: ThemeManager.get.getFontVariables()
+                }}
+                debugLogging={debugLogging}
                 onCanvasReady={this.onCanvasReady}
             />
         </>;
     }
 
-    private handleAction(action: SchemaDiagramToolbarAction, value: string | boolean) {
+    private handleAction = (action: SchemaDiagramToolbarAction, value: string | boolean) => {
         switch (action) {
             case SchemaDiagramToolbarAction.ActiveTool: {
                 const mode = value as "pointer" | "hand" | "zoom";
@@ -185,9 +216,16 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                 break;
             }
 
+            case SchemaDiagramToolbarAction.DebugLogging: {
+                this.datamodel.document.state.debugLogging = value as boolean;
+                this.setState({ debugLogging: value as boolean });
+
+                break;
+            }
+
             default:
         }
-    }
+    };
 
     private generateCanvasElementsFromDataModel(app: pixi.Application): ICanvasElement[] {
         const elements: ICanvasElement[] = [];
@@ -210,8 +248,12 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
         elements.push(element4);
 
         const connection1 = new Connection(element1, element2, ConnectionType.Bezier);
+        connection1.render(this.theme);
         const connection2 = new Connection(element2, element3, ConnectionType.Ellbow);
+        connection2.render(this.theme);
         const connection3 = new Connection(element4, element2, ConnectionType.Straight);
+        connection3.render(this.theme);
+
         elements.push({ element: connection1 });
         elements.push({ element: connection2 });
         elements.push({ element: connection3 });
@@ -220,8 +262,8 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
         for (const entry of diagram.entries) {
             switch (entry.type) {
                 case DdmEntityType.Table: {
-                    const tableCard = new TableFigure(entry, app.renderer.events);
-                    tableCard.onFigureEvent("move", (card, newX, newY) => {
+                    const tableFigure = new TableFigure(entry, app.renderer.events, this.theme);
+                    tableFigure.onFigureEvent("move", (card, newX, newY) => {
                         if (entry.diagramValues.x != newX || entry.diagramValues.y != newY) {
                             entry.diagramValues.x = newX;
                             entry.diagramValues.y = newY;
@@ -229,21 +271,29 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                         }
                     });
 
-                    tableCard.onFigureEvent("select", (card) => {
+                    tableFigure.onFigureEvent("select", (card) => {
                         if (!entry.diagramValues.selected) {
                             entry.diagramValues.selected = true;
                             console.log(`Table ${entry.caption} selected`);
                         }
                     });
 
-                    tableCard.onFigureEvent("unselect", (card) => {
+                    tableFigure.onFigureEvent("unselect", (card) => {
                         if (entry.diagramValues.selected) {
                             entry.diagramValues.selected = false;
                             console.log(`Table ${entry.caption} deselected`);
                         }
                     });
 
-                    elements.push({ element: tableCard, isDraggable: true, layout: true });
+                    elements.push({ element: tableFigure, isDraggable: true, layout: true });
+                    break;
+                }
+
+                case DdmEntityType.Container: {
+                    const containerFigure = new ContainerFigure(entry, this.theme);
+                    elements.push({ element: containerFigure, isDraggable: true, layout: true });
+                    this.addChildElementsToContainer(entry, containerFigure, app.renderer.events);
+
                     break;
                 }
 
@@ -252,6 +302,37 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
         }
 
         return elements;
+    }
+
+    private addChildElementsToContainer(container: IDdmContainerEntry, parentFigure: Figure,
+        eventSystem: pixi.EventSystem): void {
+        container.children.forEach((childEntry) => {
+            switch (childEntry.type) {
+                case DdmEntityType.Table: {
+                    const tableEntry = childEntry as IDdmTableEntry;
+                    const childTableFigure = new TableFigure(tableEntry, eventSystem, this.theme);
+                    childTableFigure.position.set(tableEntry.diagramValues.x, tableEntry.diagramValues.y);
+
+                    parentFigure.addChild(childTableFigure);
+
+                    break;
+                }
+
+                case DdmEntityType.Container: {
+                    // Nested container.
+                    const containerEntry = childEntry as IDdmContainerEntry;
+                    const childContainerFigure = new ContainerFigure(containerEntry, this.theme);
+                    childContainerFigure.position.set(containerEntry.diagramValues.x, containerEntry.diagramValues.y);
+
+                    parentFigure.addChild(childContainerFigure);
+                    this.addChildElementsToContainer(containerEntry, childContainerFigure, eventSystem);
+
+                    break;
+                }
+
+                default:
+            }
+        });
     }
 
     private generateElement(caption: string, subCaption: string): ICanvasElement {
@@ -273,8 +354,11 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
         });
         networkLabel.position.set(45, 36);
 
-        const sakila = prepareImage(mysqlConnectionIcon, { x: 190, y: 20, alpha: 0.1 });
-        const network = prepareImage(networkIcon, { x: 15, y: 38, width: 20, height: 17, alpha: 0.5 });
+        const foregroundColor = getThemeColor(this.theme, "foreground", "#ffffff");
+        const sakila = prepareImage(mysqlConnectionIcon, { x: 190, y: 20, alpha: 0.1 }, foregroundColor);
+        const network = prepareImage(networkIcon, { x: 15, y: 38, width: 20, height: 17, alpha: 0.5 },
+            foregroundColor);
+        const theme = this.theme;
         const tile = new class extends Figure {
             public constructor() {
                 super({
@@ -285,6 +369,7 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                         height: 100,
                     },
                     hoverFade: 0.5,
+                    theme,
                     children: [title, networkLabel, sakila, network],
                 });
             };
@@ -296,4 +381,17 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
     private onCanvasReady = (app: pixi.Application): void => {
         this.setState({ elements: this.generateCanvasElementsFromDataModel(app) });
     };
+
+    private themeChanged = (): Promise<boolean> => {
+        this.theme = {
+            colors: ThemeManager.get.activeThemeValues?.colors,
+            fontValues: ThemeManager.get.getFontVariables()
+        };
+
+        //this.canvasRef.current?.updateUi({ redraw: true });
+        this.forceUpdate();
+
+        return Promise.resolve(true);
+    };
+
 }

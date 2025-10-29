@@ -22,6 +22,7 @@
  */
 
 import * as pixi from "pixi.js";
+import type { ICanvasTheme } from "./Canvas.js";
 
 /** Common types used by the Canvas and its elements. */
 
@@ -92,4 +93,12 @@ export const getModifiers = (event: pixi.FederatedPointerEvent | KeyboardEvent):
     }
 
     return modifiers;
+};
+
+export const getThemeColor = (theme: ICanvasTheme | undefined, name: string, defaultValue: string): string => {
+    if (theme?.colors && name in theme.colors) {
+        return theme.colors[name];
+    }
+
+    return defaultValue;
 };

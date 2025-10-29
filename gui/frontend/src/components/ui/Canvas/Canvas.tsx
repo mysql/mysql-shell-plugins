@@ -26,22 +26,18 @@ import "./Canvas.css";
 // Needed for mixins.
 import "@pixi/layout";
 
-import mysqlFontUrl from "../../../assets/fonts/MySQL.ttf";
-
-import { type IViewportOptions, Viewport, Drag } from "pixi-viewport";
+import { Drag, type IViewportOptions, Viewport } from "pixi-viewport";
 import * as pixi from "pixi.js";
 
 import { ComponentChild, createRef } from "preact";
 
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
-import { getModifiers, Modifier } from "./canvas-helpers.js";
+import { getModifiers, getThemeColor, Modifier } from "./canvas-helpers.js";
 import type { Connection } from "./Figures/Connection.js";
 import { Figure } from "./Figures/Figure.js";
 import { PageSettings } from "./PageSettings.js";
 import { PerformanceOverlay } from "./PerformanceOverlay.js";
-
-const debug = true;
 
 const canvasDefaults = {
     /** Base cell size in millimeters at scale 1.0. */
@@ -59,9 +55,15 @@ const canvasDefaults = {
 
 const rulerTextStyle = {
     fontFamily: "SourceCodePro+Powerline+Awesome+MySQL, Helvetica Neue, Arial, sans-serif",
-    fontSize: 10,
-    fill: 0xFFFFFF,
+    fontSize: "10px",
+    fill: "#FFFFFF",
 };
+
+/** A structure holding colors and font values for specific theme element names. */
+export interface ICanvasTheme {
+    colors?: Record<string, string>;
+    fontValues: Record<string, string>;
+}
 
 /** Describes the layout of the grid on the canvas. */
 export interface IGridSettings {
@@ -106,6 +108,9 @@ export interface ICanvasUiChanges {
 
     /** The number of pages horizontally and vertically. */
     pageCount?: { horizontal: number, vertical: number; };
+
+    /** Redraw everything, the theme changed. */
+    redraw?: boolean;
 }
 
 /** A drawable element on the canvas. */
@@ -118,17 +123,14 @@ export interface ICanvasElement {
 }
 
 export interface ICanvasProperties extends IComponentProperties {
+    /** When true, debug logging information is printed to the console. Default is false. */
+    debugLogging?: boolean;
+
     /**
      * Maximum frames per second to render when the canvas is idle (not mouse or keyboard input and no animation).
      * Default is 60.
      */
     idleFPS?: number;
-
-    /** A CSS color value for the background within pages. Default is "#000000" (black). */
-    insideBackground?: string;
-
-    /** A CSS color value for the background not covered by pages. Default is "#000000" (black). */
-    outsideBackground?: string;
 
     /** Page settings that determine the page format, orientation and zoom level. Default is: no pages are shown. */
     pageSettings?: PageSettings;
@@ -145,6 +147,9 @@ export interface ICanvasProperties extends IComponentProperties {
     /** The elements to draw on the canvas. */
     elements: ICanvasElement[];
 
+    /** The colors to be used in the canvas. */
+    theme?: ICanvasTheme;
+
     onCanvasReady?: (app: pixi.Application) => void;
 }
 
@@ -152,8 +157,6 @@ export interface ICanvasProperties extends IComponentProperties {
 export class Canvas extends ComponentBase<ICanvasProperties> {
     public static override defaultProps: ICanvasProperties = {
         idleFPS: 60,
-        insideBackground: "#000000",
-        outsideBackground: "#000000",
         elements: [],
         gridSettings: {
             horizontalDistance: 10,
@@ -184,6 +187,8 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
     // Record whether the space key is currently pressed.
     private spaceDown = false;
+
+    private unmounted = false;
 
     // Determines what happens when the primary mouse button is pressed.
     // In "normal" mode, a selection rectangle is started (if no figure is clicked).
@@ -230,18 +235,26 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         super(props);
 
         this.addHandledProperties(
-            "maxFps",
-            "lowFPS",
-            "warmFPS",
-            "fullFPS",
-            "disableTickerOnMouseLeave",
-            "background",
+            "debugLogging",
+            "idleFPS",
+            "pageSettings",
+            "pageCount",
+            "gridSettings",
             "elements",
+            "themeColors",
             "onCanvasReady",
         );
     }
 
     public override componentDidMount(): void {
+        const { theme } = this.props;
+
+        if (theme) {
+            rulerTextStyle.fontFamily = theme.fontValues["msg-monospace-font-family"];
+            rulerTextStyle.fontSize = theme.fontValues["msg-monospace-font-size"] ?? "10px";
+            rulerTextStyle.fill = getThemeColor(theme, "tab.activeForeground", "#FFFFFF");
+        }
+
         void this.initPixiApplication().then(() => {
             const { onCanvasReady } = this.props;
 
@@ -255,12 +268,20 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
             return;
         }
 
-        const { elements } = this.props;
+        const { elements, debugLogging, theme } = this.props;
 
         this.viewport.removeChildren();
         const drawables = elements.map((o) => {
             return o.element;
         });
+
+        if (debugLogging) {
+            this.performanceOverlay = new PerformanceOverlay(this.app);
+        } else {
+            this.performanceOverlay?.dispose();
+            this.performanceOverlay = undefined;
+        }
+        this.app.renderer.background.color = getThemeColor(this.props.theme, "list.hoverBackground", "#000000");
 
         const draggables: ICanvasElement[] = [];
         elements.forEach((o) => {
@@ -304,12 +325,16 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         this.viewport.addChild(this.outerArea, this.grid, this.pageMarks);
         this.drawGrid();
         this.drawPageBordersAndMargins();
+        this.drawRulers();
 
         const root = new pixi.Container();
         root.zIndex = 10;
         root.sortableChildren = true;
         this.viewport.addChild(root);
         root.addChild(...drawables);
+        drawables.forEach((d) => {
+            //d.render(theme);
+        });
     }
 
     public override componentWillUnmount(): void {
@@ -323,8 +348,16 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
             this.resizeObserver.unobserve(this.hostRef.current);
         }
 
+        this.pageText?.destroy({ children: true, texture: true });
         this.app.destroy(true, { children: true, texture: true });
+        this.viewport?.destroy({ children: true, texture: true });
+
+        window.removeEventListener("keydown", this.handleKeyDown);
+        window.removeEventListener("keyup", this.handleKeyUp);
+
         this.viewport = undefined;
+        this.unmounted = true;
+        this.pageText = undefined;
     }
 
     public render(): ComponentChild {
@@ -408,6 +441,12 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         if (changes.locked !== undefined) {
             this.locked = changes.locked;
         }
+
+        if (changes.redraw) {
+            this.drawGrid();
+            this.drawPageBordersAndMargins();
+            this.drawRulers();
+        }
     }
 
     private handleResize = (entries: readonly ResizeObserverEntry[]): void => {
@@ -420,9 +459,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
     };
 
     private async initPixiApplication(): Promise<void> {
-        const { insideBackground: background } = this.props;
-
-        await pixi.Assets.load(mysqlFontUrl);
+        const { theme } = this.props;
 
         this.app = new pixi.Application<pixi.Renderer>();
 
@@ -432,7 +469,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
             // "webgl" for debugging in browsers (Pixi DevTools), "webgpu" for performance (if available)
             preference: "webgpu",
             antialias: false,
-            backgroundColor: background,
+            backgroundColor: getThemeColor(theme, "list.hoverBackground", "#000000"),
             sharedTicker: false,
             resizeTo: this.hostRef.current ?? undefined,
             autoDensity: true,
@@ -455,11 +492,6 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         this.app.stage.addChild(this.viewport);
         this.updateDraggingMode("space");
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (debug) {
-            this.performanceOverlay = new PerformanceOverlay(this.app);
-        }
-
         this.viewport.addChild(this.outerArea, this.grid, this.pageMarks);
         this.outerArea.zIndex = 1;
         this.grid.zIndex = 2;
@@ -472,254 +504,22 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
         this.app.stage.eventMode = "static";
 
-        window.addEventListener("keydown", (event) => {
-            this.lastActivity = performance.now();
-
-            // Debounce keys (mostly "space") to avoid multiple events when held down.
-            if (event.repeat) {
-                return;
-            }
-
-            if (event.code === "Escape") {
-                this.returnToCurrentUiPointerMode();
-
-                return;
-            }
-
-            this.currentModifierKeys = getModifiers(event);
-            switch (this.uiPointerMode) {
-                case "move": {
-                    // In move mode, allow zooming temporarily.
-                    if (this.currentModifierKeys.has(Modifier.Alt)
-                        || this.currentModifierKeys.has(Modifier.Meta)) {
-                        this.pointerMode = "move-zoom";
-                        this.updateDraggingMode("disabled");
-                        if (this.currentModifierKeys.has(Modifier.Alt)) {
-                            this.updateActiveCursor("zoom-out");
-                        } else {
-                            this.updateActiveCursor("zoom-in");
-                        }
-                    }
-
-                    break;
-                }
-
-                case "zoom": {
-                    if (event.code === "Space") {
-                        // In zoom mode, allow moving temporarily.
-                        this.spaceDown = true;
-                        this.pointerMode = "zoom-move";
-                        this.updateActiveCursor("grab");
-                        this.updateDraggingMode("space", true);
-                    } else if (!this.spaceDown) {
-                        if (this.currentModifierKeys.has(Modifier.Alt)) {
-                            this.updateActiveCursor("zoom-out");
-                        } else {
-                            this.updateActiveCursor("zoom-in");
-                        }
-                    }
-
-                    break;
-                }
-
-                default: { // Normal mode.
-                    if (!this.isSelecting) {
-                        switch (event.code) {
-                            case "Space": {
-                                // Set the cursor to grabbing, if the use pressed the space key.
-                                if (!this.spaceDown) {
-                                    this.spaceDown = true;
-                                    this.pointerMode = "move";
-                                    this.updateActiveCursor("grab");
-                                } else if (this.currentModifierKeys.has(Modifier.Alt)
-                                    || this.currentModifierKeys.has(Modifier.Meta)) {
-                                    // In normal mode, when the space key is already down,
-                                    // allow zooming temporarily.
-                                    this.pointerMode = "move-zoom";
-                                    if (this.currentModifierKeys.has(Modifier.Alt)) {
-                                        this.updateActiveCursor("zoom-out");
-                                    } else {
-                                        this.updateActiveCursor("zoom-in");
-                                    }
-                                }
-
-                                break;
-                            }
-
-                            default:
-                        }
-                    }
-                }
-            }
-
-        });
+        window.addEventListener("keydown", this.handleKeyDown);
 
         this.idleTimer = setInterval(() => {
             this.checkIdleState();
         }, 500);
 
-        window.addEventListener("keyup", (event) => {
-            this.lastActivity = performance.now();
-            this.currentModifierKeys = getModifiers(event);
+        window.addEventListener("keyup", this.handleKeyUp);
+        this.viewport.on("moved", this.viewportMoved);
+        this.viewport.on("zoomed", this.viewportZoomed);
+        this.viewport.on("drag-start", this.viewportDragStarted);
+        this.viewport.on("drag-end", this.viewportDragEnded);
 
-            if (event.code === "Space") {
-                this.spaceDown = false;
-            }
-
-            if (this.isSelecting) {
-                return;
-            }
-
-            if (!this.spaceDown && this.currentModifierKeys.size === 0) {
-                this.returnToCurrentUiPointerMode();
-
-                return;
-            }
-        });
-
-        this.viewport.on("moved", () => {
-            this.lastActivity = performance.now();
-
-            // Both grid and page marks are children of the viewport and are moved automatically.
-            // However, we need to redraw them as parts of them might have become visible or invisible.
-            this.drawGrid();
-            this.drawPageBordersAndMargins();
-
-            this.drawRulers();
-        });
-
-        this.viewport.on("drag-start", () => {
-            this.lastActivity = performance.now();
-            this.viewportDragging = true;
-            this.updateActiveCursor("grabbing");
-        });
-
-        this.viewport.on("drag-end", () => {
-            this.lastActivity = performance.now();
-            this.viewportDragging = false;
-
-            if (this.pointerMode === "normal") {
-                if (this.spaceDown) {
-                    this.updateActiveCursor("grab");
-                } else {
-                    this.updateActiveCursor("default");
-                }
-            } else {
-                this.updateActiveCursor("grab");
-            }
-        });
-
-        this.app.stage.on("pointerdown", (event: pixi.FederatedPointerEvent) => {
-            if (!this.viewport) {
-                return;
-            }
-
-            this.lastActivity = performance.now();
-            switch (this.pointerMode) {
-                case "zoom-move":
-                case "move": {
-                    // Handled by pixi-viewport.
-                    break;
-                }
-
-                case "move-zoom":
-                case "zoom": {
-                    if (event.buttons === 1) {
-                        const modifiers = getModifiers(event);
-                        const delta = modifiers.has(Modifier.Alt) ? -0.1 : 0.1;
-                        const before = this.viewport.toWorld(event.global.x, event.global.y);
-                        this.viewport.zoomPercent(delta, false);
-                        const after = this.viewport.toWorld(event.global.x, event.global.y);
-
-                        const dx = after.x - before.x;
-                        const dy = after.y - before.y;
-                        this.viewport.moveCorner(this.viewport.corner.x - dx, this.viewport.corner.y - dy);
-
-                        this.drawGrid();
-                        this.drawPageBordersAndMargins();
-                        this.drawRulers();
-                    }
-
-                    break;
-                }
-
-                default: {
-                    if (event.buttons === 1 && !this.elementDagging && !this.spaceDown) {
-                        this.currentModifierKeys = getModifiers(event);
-
-                        if (!(this.currentModifierKeys.has(Modifier.Ctrl) || this.currentModifierKeys.has(Modifier.Meta)
-                            || this.currentModifierKeys.has(Modifier.Shift))) {
-                            this.unselectAll();
-                        }
-
-                        this.isSelecting = true;
-                        this.selectionStart = this.viewport.toWorld(event.global.x, event.global.y);
-
-                        this.selectionGraphic = new pixi.Graphics();
-                        this.selectionGraphic.zIndex = 100;
-                        this.viewport.addChild(this.selectionGraphic);
-
-                        this.overlay = new pixi.Graphics();
-                        this.overlay.rect(0, 0, this.app.screen.width, this.app.screen.height);
-                        this.overlay.fill({ color: 0x0, alpha: 0 });
-                        this.overlay.interactive = true;
-                        this.lastGlobalMousePosition = new pixi.Point(event.global.x, event.global.y);
-
-                        this.app.stage.addChild(this.overlay);
-
-                        this.selectionGraphic.clear();
-                        this.selectionGraphic.rect(this.selectionStart.x, this.selectionStart.y, 1, 1);
-                        this.selectionGraphic
-                            .fill({ color: "#57b8fd", alpha: 0.25 })
-                            .stroke({ width: 1, color: "#0095ff", alpha: 0.5 });
-
-                        this.autoScroll();
-                    }
-
-                    break;
-                }
-            }
-        });
+        this.app.stage.on("pointerdown", this.handleAppPointerDown);
 
         // Note: globalpointermove is called even when the mouse is outside the canvas.
-        this.app.stage.on("globalpointermove", (event) => {
-            // Restart the idle time only, if the mouse is within the application bounds.
-            if (event.global.x >= 0 && event.global.y >= 0 && event.global.x < this.app.renderer.width
-                && event.global.y < this.app.renderer.height) {
-                this.lastActivity = performance.now();
-            }
-
-            this.lastGlobalMousePosition = new pixi.Point(event.global.x, event.global.y);
-            if (this.elementDagging && this.dragTarget) {
-                const element = this.dragTarget.element;
-                const newPosition = event.getLocalPosition(element.parent!);
-                const deltaX = newPosition.x - this.dragOffset.x;
-                const deltaY = newPosition.y - this.dragOffset.y;
-
-                element.x += deltaX;
-                element.y += deltaY;
-                this.dragOffset = newPosition;
-
-                if (element instanceof Figure) {
-                    element.emitFigureEvent("move", this.dragTarget.element.x, this.dragTarget.element.y);
-                    element.updateConnections();
-                }
-
-                // Move also other selected elements.
-                const { elements } = this.props;
-                elements.forEach((o) => {
-                    if (o.element instanceof Figure && o.element.selected && o.element !== element) {
-                        o.element.x += deltaX;
-                        o.element.y += deltaY;
-
-                        o.element.updateConnections();
-                        o.element.emitFigureEvent("move", o.element.x, o.element.y);
-                    }
-                });
-            } else if (this.isSelecting) {
-                this.drawSelectionRectangle();
-            }
-        });
+        this.app.stage.on("globalpointermove", this.handleAppPointerMove);
 
         this.app.stage.on("pointerup", this.stopInteraction);
         this.app.stage.on("pointercancel", this.stopInteraction);
@@ -739,7 +539,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         }
 
         const {
-            pageSettings, pageCount = { horizontal: 1, vertical: 1 }, gridSettings, outsideBackground
+            debugLogging, pageSettings, pageCount = { horizontal: 1, vertical: 1 }, gridSettings, theme
         } = this.props;
 
         this.grid.clear();
@@ -755,6 +555,8 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
         let viewWidth = this.viewport.worldWidth;
         let viewHeight = this.viewport.worldHeight;
+
+        const outsideBackground = getThemeColor(theme, "editorWidget.background", "#202020");
 
         // Restrict the view to the page area, if pages are shown. Also determine grid margins and cell dimensions.
         if (pageSettings && this.pageBorders.visible) {
@@ -820,6 +622,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         const verticalMainCellSize = Math.floor(this.mmToPixels(verticalDistance));
 
         // Draw the subgrid first. But only if the zoom level is high enough (> 0.6).
+        const gridColor = getThemeColor(theme, "foreground", "#FFFFFF");
         if (scale > 0.6) {
             // Horizontal lines.
             for (let y = Math.floor(top / verticalSubCellSize) * verticalSubCellSize; y < bottom;
@@ -841,7 +644,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
                 }
             }
 
-            this.grid.stroke({ width: 1, color: 0xFFFFFF, alpha: 0.1, pixelLine: true });
+            this.grid.stroke({ width: 1, color: gridColor, alpha: 0.1, pixelLine: true });
         }
 
         // Then the main grid (which draws over the subgrid).
@@ -862,16 +665,15 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
             ++lineCount;
         }
 
-        this.grid.stroke({ width: 1, color: 0xFFFFFF, alpha: 0.25, pixelLine: true });
+        this.grid.stroke({ width: 1, color: gridColor, alpha: 0.25, pixelLine: true });
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (debug) {
+        if (debugLogging) {
             console.log(`Grid lines: ${lineCount}, scale: ${this.viewport.scale.x}`);
         }
     }
 
     private drawPageBordersAndMargins() {
-        const { pageSettings, pageCount } = this.props;
+        const { pageSettings, pageCount, theme } = this.props;
         if (!this.viewport || !pageSettings) {
             return;
         }
@@ -904,6 +706,8 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         const { left: marginLeft, top: marginTop, right: marginRight, bottom: marginBottom } =
             pageSettings.getMargins();
 
+        const borderColor = getThemeColor(theme, "dropdown.foreground", "#C0C0C0");
+        const marginColor = getThemeColor(theme, "focusBorder", "#57A0E5");
         for (let i = 0; i < (pageCount?.horizontal ?? 1); ++i) {
             for (let j = 0; j < (pageCount?.vertical ?? 1); ++j) {
                 const x = i * pageWidth;
@@ -914,7 +718,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
                 }
 
                 this.pageBorders.rect(Math.floor(x), Math.floor(y), Math.floor(pageWidth), Math.floor(pageHeight))
-                    .stroke({ width: 1, color: 0xC0C0C0, alpha: 1, pixelLine: true });
+                    .stroke({ width: 1, color: borderColor, alpha: 1, pixelLine: true });
 
                 // Draw margins.
                 if (marginLeft > 0 && + marginRight > 0 && marginTop > 0 && marginBottom > 0) {
@@ -928,15 +732,15 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
                         Math.floor(y + marginTopPx),
                         Math.floor(pageWidth - marginLeftPx - marginRightPx),
                         Math.floor(pageHeight - marginTopPx - marginBottomPx),
-                    ).stroke({ width: 1, color: 0x57A0E5, alpha: 1, pixelLine: true });
+                    ).stroke({ width: 1, color: marginColor, alpha: 1, pixelLine: true });
                 }
             }
         }
 
-        visible = this.pageText?.visible ?? false;
+        visible = this.pageText?.visible ?? true;
         this.pageText = new pixi.Text({
             text: `Page size: ${pageSettings.pageWidth} mm x ${pageSettings.pageHeight} mm (${pageSettings.name})`,
-            style: { ...rulerTextStyle, fill: "#C0C0C0" },
+            style: { ...rulerTextStyle, fill: getThemeColor(theme, "descriptionForeground", "#C0C0C0") },
             textureStyle: { scaleMode: "nearest", },
         });
 
@@ -944,10 +748,12 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         this.pageText.position.set(0, -15);
         this.pageMarks.addChild(this.pageText);
 
-        this.pageBorders.stroke({ width: 1, color: 0xC0C0C0 });
+        this.pageBorders.stroke({ width: 1, color: borderColor });
     }
 
     private drawRulers() {
+        const { theme } = this.props;
+
         if (!this.viewport) {
             return;
         }
@@ -977,16 +783,19 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         mainCellSize = Math.round(mainCellSize * 100) / 100;
         subCellSize = Math.round(mainCellSize / 10);
 
+        const ruleBackgroundColor = getThemeColor(theme, "quickInput.background", "#222222");
+        const textColor = getThemeColor(theme, "foreground", "#FFFFFF");
+
         // Horizontal ruler background.
-        bars.rect(0, 0, this.app.screen.width, 20).fill({ color: 0x222222, alpha: 0.9 });
+        bars.rect(0, 0, this.app.screen.width, 20).fill({ color: ruleBackgroundColor, alpha: 0.9 });
 
         // Vertical ruler background.
         bars.rect(0, canvasDefaults.rulerSize, canvasDefaults.rulerSize,
             this.app.screen.height - canvasDefaults.rulerSize)
-            .fill({ color: 0x222222, alpha: 0.9 });
+            .fill({ color: ruleBackgroundColor, alpha: 0.9 });
 
         // Ruler lines and labels.
-        bars.setStrokeStyle({ width: 1, color: 0xFFFFFF, alpha: 0.5, pixelLine: true });
+        bars.setStrokeStyle({ width: 1, color: textColor, alpha: 0.5, pixelLine: true });
 
         // Horizontal labels and ticks.
         for (let x = Math.floor(left / subCellSize) * subCellSize; x < right; x += subCellSize) {
@@ -1301,6 +1110,258 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
         }
     }
+
+    private handleKeyDown = (event: KeyboardEvent) => {
+        this.lastActivity = performance.now();
+
+        // Debounce keys (mostly "space") to avoid multiple events when held down.
+        if (event.repeat) {
+            return;
+        }
+
+        if (event.code === "Escape") {
+            this.returnToCurrentUiPointerMode();
+
+            return;
+        }
+
+        this.currentModifierKeys = getModifiers(event);
+        switch (this.uiPointerMode) {
+            case "move": {
+                // In move mode, allow zooming temporarily.
+                if (this.currentModifierKeys.has(Modifier.Alt)
+                    || this.currentModifierKeys.has(Modifier.Meta)) {
+                    this.pointerMode = "move-zoom";
+                    this.updateDraggingMode("disabled");
+                    if (this.currentModifierKeys.has(Modifier.Alt)) {
+                        this.updateActiveCursor("zoom-out");
+                    } else {
+                        this.updateActiveCursor("zoom-in");
+                    }
+                }
+
+                break;
+            }
+
+            case "zoom": {
+                if (event.code === "Space") {
+                    // In zoom mode, allow moving temporarily.
+                    this.spaceDown = true;
+                    this.pointerMode = "zoom-move";
+                    this.updateActiveCursor("grab");
+                    this.updateDraggingMode("space", true);
+                } else if (!this.spaceDown) {
+                    if (this.currentModifierKeys.has(Modifier.Alt)) {
+                        this.updateActiveCursor("zoom-out");
+                    } else {
+                        this.updateActiveCursor("zoom-in");
+                    }
+                }
+
+                break;
+            }
+
+            default: { // Normal mode.
+                if (!this.isSelecting) {
+                    switch (event.code) {
+                        case "Space": {
+                            // Set the cursor to grabbing, if the use pressed the space key.
+                            if (!this.spaceDown) {
+                                this.spaceDown = true;
+                                this.pointerMode = "move";
+                                this.updateActiveCursor("grab");
+                            } else if (this.currentModifierKeys.has(Modifier.Alt)
+                                || this.currentModifierKeys.has(Modifier.Meta)) {
+                                // In normal mode, when the space key is already down,
+                                // allow zooming temporarily.
+                                this.pointerMode = "move-zoom";
+                                if (this.currentModifierKeys.has(Modifier.Alt)) {
+                                    this.updateActiveCursor("zoom-out");
+                                } else {
+                                    this.updateActiveCursor("zoom-in");
+                                }
+                            }
+
+                            break;
+                        }
+
+                        default:
+                    }
+                }
+            }
+        }
+    };
+
+    private handleKeyUp = (event: KeyboardEvent) => {
+        this.lastActivity = performance.now();
+        this.currentModifierKeys = getModifiers(event);
+
+        if (event.code === "Space") {
+            this.spaceDown = false;
+        }
+
+        if (this.isSelecting) {
+            return;
+        }
+
+        if (!this.spaceDown && this.currentModifierKeys.size === 0) {
+            this.returnToCurrentUiPointerMode();
+
+            return;
+        }
+    };
+
+    private viewportMoved = () => {
+        this.lastActivity = performance.now();
+
+        // Both grid and page marks are children of the viewport and are moved automatically.
+        // However, we need to redraw them as parts of them might have become visible or invisible.
+        this.drawGrid();
+        this.drawPageBordersAndMargins();
+
+        this.drawRulers();
+    };
+
+    private viewportZoomed = () => {
+        this.lastActivity = performance.now();
+
+    };
+
+    private viewportDragStarted = () => {
+        this.lastActivity = performance.now();
+        this.viewportDragging = true;
+        this.updateActiveCursor("grabbing");
+    };
+
+    private viewportDragEnded = () => {
+        this.lastActivity = performance.now();
+        this.viewportDragging = false;
+
+        if (this.pointerMode === "normal") {
+            if (this.spaceDown) {
+                this.updateActiveCursor("grab");
+            } else {
+                this.updateActiveCursor("default");
+            }
+        } else {
+            this.updateActiveCursor("grab");
+        }
+    };
+
+    private handleAppPointerDown = (event: pixi.FederatedPointerEvent) => {
+        if (!this.viewport) {
+            return;
+        }
+
+        const { theme } = this.props;
+
+        this.lastActivity = performance.now();
+        switch (this.pointerMode) {
+            case "zoom-move":
+            case "move": {
+                // Handled by pixi-viewport.
+                break;
+            }
+
+            case "move-zoom":
+            case "zoom": {
+                if (event.buttons === 1) {
+                    const modifiers = getModifiers(event);
+                    const delta = modifiers.has(Modifier.Alt) ? -0.1 : 0.1;
+                    const before = this.viewport.toWorld(event.global.x, event.global.y);
+                    this.viewport.zoomPercent(delta, false);
+                    const after = this.viewport.toWorld(event.global.x, event.global.y);
+
+                    const dx = after.x - before.x;
+                    const dy = after.y - before.y;
+                    this.viewport.moveCorner(this.viewport.corner.x - dx, this.viewport.corner.y - dy);
+
+                    this.drawGrid();
+                    this.drawPageBordersAndMargins();
+                    this.drawRulers();
+                }
+
+                break;
+            }
+
+            default: {
+                if (event.buttons === 1 && !this.elementDagging && !this.spaceDown) {
+                    this.currentModifierKeys = getModifiers(event);
+
+                    if (!(this.currentModifierKeys.has(Modifier.Ctrl) || this.currentModifierKeys.has(Modifier.Meta)
+                        || this.currentModifierKeys.has(Modifier.Shift))) {
+                        this.unselectAll();
+                    }
+
+                    this.isSelecting = true;
+                    this.selectionStart = this.viewport.toWorld(event.global.x, event.global.y);
+
+                    this.selectionGraphic = new pixi.Graphics();
+                    this.selectionGraphic.zIndex = 100;
+                    this.viewport.addChild(this.selectionGraphic);
+
+                    this.overlay = new pixi.Graphics();
+                    this.overlay.rect(0, 0, this.app.screen.width, this.app.screen.height);
+                    this.overlay.fill({ color: 0x0, alpha: 0 });
+                    this.overlay.interactive = true;
+                    this.lastGlobalMousePosition = new pixi.Point(event.global.x, event.global.y);
+
+                    this.app.stage.addChild(this.overlay);
+
+                    this.selectionGraphic.clear();
+                    this.selectionGraphic.rect(this.selectionStart.x, this.selectionStart.y, 1, 1);
+                    this.selectionGraphic
+                        .fill({ color: getThemeColor(theme, "button.background", "#57b8fd"), alpha: 0.25 })
+                        .stroke({ width: 1, color: getThemeColor(theme, "focusBorder", "#0095ff"), alpha: 0.5 });
+
+                    this.autoScroll();
+                }
+
+                break;
+            }
+        }
+    };
+
+    private handleAppPointerMove = (event: pixi.FederatedPointerEvent) => {
+        const { theme } = this.props;
+
+        // Restart the idle time only, if the mouse is within the application bounds.
+        if (event.global.x >= 0 && event.global.y >= 0 && event.global.x < this.app.renderer.width
+            && event.global.y < this.app.renderer.height) {
+            this.lastActivity = performance.now();
+        }
+
+        this.lastGlobalMousePosition = new pixi.Point(event.global.x, event.global.y);
+        if (this.elementDagging && this.dragTarget) {
+            const element = this.dragTarget.element;
+            const newPosition = event.getLocalPosition(element.parent!);
+            const deltaX = newPosition.x - this.dragOffset.x;
+            const deltaY = newPosition.y - this.dragOffset.y;
+
+            element.x += deltaX;
+            element.y += deltaY;
+            this.dragOffset = newPosition;
+
+            if (element instanceof Figure) {
+                element.emitFigureEvent("move", this.dragTarget.element.x, this.dragTarget.element.y);
+                element.updateConnections(theme);
+            }
+
+            // Move also other selected elements.
+            const { elements } = this.props;
+            elements.forEach((o) => {
+                if (o.element instanceof Figure && o.element.selected && o.element !== element) {
+                    o.element.x += deltaX;
+                    o.element.y += deltaY;
+
+                    o.element.updateConnections(theme);
+                    o.element.emitFigureEvent("move", o.element.x, o.element.y);
+                }
+            });
+        } else if (this.isSelecting) {
+            this.drawSelectionRectangle();
+        }
+    };
 }
 
 /**

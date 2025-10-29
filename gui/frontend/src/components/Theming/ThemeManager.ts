@@ -149,6 +149,7 @@ export class ThemeManager {
             lightSolarized,
             lightVs,
         ];
+
         if (appParameters.embedded) {
             themes = [
                 darkModern,
@@ -188,6 +189,17 @@ export class ThemeManager {
      * @returns The theme values as an object, which corresponds to the entries in `colorDescriptions`.
      */
     public get activeThemeValues(): IThemeObject | undefined {
+        if (this.currentTheme === "Auto") {
+            let actualTheme = "";
+            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                actualTheme = "Light Modern";
+            } else {
+                actualTheme = "Dark Modern";
+            }
+
+            return this.themeDefinitions.get(actualTheme)?.json;
+        }
+
         return this.themeDefinitions.get(this.currentTheme)?.json;
     }
 
@@ -202,18 +214,6 @@ export class ThemeManager {
 
     public get installedThemes(): string[] {
         return Array.from(this.themeDefinitions.keys());
-    }
-
-    /**
-     * @returns the DOM node used for the theme variables.
-     * This can be used to directly manipulate the values. Useful mostly for the theme editor.
-     */
-    public get themeStyleNode(): CSSStyleDeclaration {
-        return (this.themeStyleElement?.sheet?.cssRules[0] as CSSStyleRule).style;
-    }
-
-    public get currentThemeAsText(): string {
-        return JSON.stringify(this.themeDefinitions.get(this.currentTheme)?.json, undefined, 4);
     }
 
     public get activeThemeSafe(): string {
@@ -295,52 +295,6 @@ export class ThemeManager {
     }
 
     /**
-     * Converts the given values object into a CSS theme definition and stores it for later use.
-     *
-     * @param values An object with theme values.
-     *
-     * @returns The id of the loaded theme.
-     */
-    public loadThemeDetails(values: IThemeObject): string {
-        const type = this.guessThemeType(values);
-
-        // Note: the term "active" means a state where the application is the current front most one.
-        //       Don't confuse that with the CSS "active" notation, which is used for elements on which the mouse is
-        //       currently pressed (or a tap on mobile devices). For the latter we use the term "pressed" as in
-        //       "button.hoverBackground".
-        // Note: settings for a tab container are held in "editorGroup.*" and "editorGroupHeader.*" values.
-        //       All "tab.*" values are meant for tab items.
-        // Note: Dialogs + Popups use the "window.*" settings.
-
-        const css = this.generateCssWithDefaults(values, type);
-
-        const definition = this.themeDefinitions.get(values.name);
-        if (definition) {
-            // If we already have a definition for this theme then update only the CSS values.
-            // There's no need to do another sanity check on the values and the type can never change.
-            definition.css = css;
-        } else {
-            // Old themes use the settings member to define colors. Copy member to the tokenColors in such a case.
-            if (!values.tokenColors && values.settings) {
-                values.tokenColors = values.settings;
-                delete values.settings;
-            }
-
-            // Theme files can have file references (e.g. the include member or a string instead of an object for
-            // tokenColors). However, we cannot load local files without user intervention, so we just fail the load
-            // instead.
-            if (values.include || typeof values.tokenColors === "string") {
-                throw new Error("This theme contains references to local files, which cannot be loaded automatically.");
-            }
-
-            values.tokenColors ??= [];
-            this.themeDefinitions.set(values.name, { type, css, json: values });
-        }
-
-        return values.name;
-    }
-
-    /**
      * Converts the name of a theme setting to a form that is usable as CSS variable.
      *
      * @param name The value to convert.
@@ -351,7 +305,51 @@ export class ThemeManager {
         return "--" + name.replace(/\./g, "-");
     }
 
-    public stylesToString(styles: Record<string, string>): string {
+    /**
+     * Handles theme changes in the host (if the app is embedded).
+     *
+     * @param data The new theme data.
+     * @param data.css A set of CSS variables with individual theme data.
+     * @param data.themeClass The name of the main theme type. The exact name depends on the host.
+     *
+     * @returns A promise that always resolve to true.
+     */
+    public hostThemeChange = (data: IHostThemeData): Promise<boolean> => {
+        // From now on we ignore the theme from the profile.
+        this.#useHostTheme = true;
+
+        this.themeDefinitions.delete(data.themeClass);
+
+        const theme = this.parseHostTheme(data);
+        this.loadThemeDetails(theme);
+        this.switchTheme(data.themeClass);
+
+        return Promise.resolve(true);
+    };
+
+    public getFontVariables(font?: IFont): Record<string, string> {
+        font ??= {};
+
+        const fontVariables: Record<string, string> = {};
+
+        fontVariables["msg-standard-font-family"] = font.fontFamily ?? "'Helvetica Neue', Helvetica, Arial, sans-serif";
+        fontVariables["msg-standard-font-weight"] = font.fontWeight ?? "400";
+        fontVariables["msg-monospace-font-family"] = font.editorFontFamily
+            ?? "'SourceCodePro+Powerline+Awesome+MySQL', monospace";
+        fontVariables["msg-standard-font-size"] = font.fontSize ?? "14px";
+
+        if (font.editorFontSize) {
+            (fontVariables["msg-monospace-font-size"] = font.editorFontSize);
+        }
+
+        if (font.editorFontWeight) {
+            (fontVariables["msg-monospace-font-weight"] = font.editorFontWeight);
+        }
+
+        return fontVariables;
+    }
+
+    private stylesToString(styles: Record<string, string>): string {
         return Object.entries(styles)
             .map(([key, value]) => {
                 return `\t${this.themeValueNameToCssVariable(key)}: ${value};\n`;
@@ -359,7 +357,7 @@ export class ThemeManager {
             .join("");
     }
 
-    public parseHostTheme(data: IHostThemeData): IThemeObject {
+    private parseHostTheme(data: IHostThemeData): IThemeObject {
         const name = data.themeClass;
         const type = this.guessThemeType({ name });
         const tokenColors = type === "dark" ? darkModern.tokenColors : lightModern.tokenColors;
@@ -410,29 +408,7 @@ export class ThemeManager {
         return theme;
     }
 
-    public getFontVariables(font?: IFont): Record<string, string> {
-        font ??= {};
-
-        const fontVariables: Record<string, string> = {};
-
-        fontVariables["msg-standard-font-family"] = font.fontFamily ?? "'Helvetica Neue', Helvetica, Arial, sans-serif";
-        fontVariables["msg-standard-font-weight"] = font.fontWeight ?? "400";
-        fontVariables["msg-monospace-font-family"] = font.editorFontFamily
-            ?? "'SourceCodePro+Powerline+Awesome+MySQL', monospace";
-        fontVariables["msg-standard-font-size"] = font.fontSize ?? "14px";
-
-        if (font.editorFontSize) {
-            (fontVariables["msg-monospace-font-size"] = font.editorFontSize);
-        }
-
-        if (font.editorFontWeight) {
-            (fontVariables["msg-monospace-font-weight"] = font.editorFontWeight);
-        }
-
-        return fontVariables;
-    }
-
-    public isValidColor(color: string): boolean {
+    private isValidColor(color: string): boolean {
         try {
             new Color(color);
         } catch {
@@ -442,7 +418,7 @@ export class ThemeManager {
         return true;
     }
 
-    public generateCssWithDefaults(theme: IThemeObject, type: ThemeType): string {
+    private generateCssWithDefaults(theme: IThemeObject, type: ThemeType): string {
         const defaultColors = this.getDefaultColors(type);
         const themeColors = this.getThemeColors(defaultColors, theme.colors, type);
 
@@ -458,26 +434,50 @@ export class ThemeManager {
     }
 
     /**
-     * Handles theme changes in the host (if the app is embedded).
+     * Converts the given values object into a CSS theme definition and stores it for later use.
      *
-     * @param data The new theme data.
-     * @param data.css A set of CSS variables with individual theme data.
-     * @param data.themeClass The name of the main theme type. The exact name depends on the host.
+     * @param values An object with theme values.
      *
-     * @returns A promise that always resolve to true.
+     * @returns The id of the loaded theme.
      */
-    public hostThemeChange = (data: IHostThemeData): Promise<boolean> => {
-        // From now on we ignore the theme from the profile.
-        this.#useHostTheme = true;
+    private loadThemeDetails(values: IThemeObject): string {
+        const type = this.guessThemeType(values);
 
-        this.themeDefinitions.delete(data.themeClass);
+        // Note: the term "active" means a state where the application is the current front most one.
+        //       Don't confuse that with the CSS "active" notation, which is used for elements on which the mouse is
+        //       currently pressed (or a tap on mobile devices). For the latter we use the term "pressed" as in
+        //       "button.hoverBackground".
+        // Note: settings for a tab container are held in "editorGroup.*" and "editorGroupHeader.*" values.
+        //       All "tab.*" values are meant for tab items.
+        // Note: Dialogs + Popups use the "window.*" settings.
 
-        const theme = this.parseHostTheme(data);
-        this.loadThemeDetails(theme);
-        this.switchTheme(data.themeClass);
+        const css = this.generateCssWithDefaults(values, type);
 
-        return Promise.resolve(true);
-    };
+        const definition = this.themeDefinitions.get(values.name);
+        if (definition) {
+            // If we already have a definition for this theme then update only the CSS values.
+            // There's no need to do another sanity check on the values and the type can never change.
+            definition.css = css;
+        } else {
+            // Old themes use the settings member to define colors. Copy member to the tokenColors in such a case.
+            if (!values.tokenColors && values.settings) {
+                values.tokenColors = values.settings;
+                delete values.settings;
+            }
+
+            // Theme files can have file references (e.g. the include member or a string instead of an object for
+            // tokenColors). However, we cannot load local files without user intervention, so we just fail the load
+            // instead.
+            if (values.include || typeof values.tokenColors === "string") {
+                throw new Error("This theme contains references to local files, which cannot be loaded automatically.");
+            }
+
+            values.tokenColors ??= [];
+            this.themeDefinitions.set(values.name, { type, css, json: values });
+        }
+
+        return values.name;
+    }
 
     private setFont(theme: IThemeObject, property: string, value: string): void {
         theme.font ??= {};
