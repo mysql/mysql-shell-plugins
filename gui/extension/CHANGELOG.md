@@ -1,9 +1,9 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.19.18+9.4.0
+## Changes in 1.19.18+9.5.0
 
 ### Additions
-
+- Updating MySQL Shell and Router to version 9.5.0
 - Allow to load MRS projects from a remote URL and GitHub shortcuts
 - Update MRS sample apps (mrs_notes and heatwave_chat)
 

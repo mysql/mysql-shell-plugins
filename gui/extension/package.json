@@ -1185,7 +1185,6 @@
                     "when": "view == msg.connections && (viewItem == mrs || viewItem == mrsService)",
                     "group": "2_msg@2"
                 },
-
                 {
                     "command": "msg.mrs.loadObjectFromJSONFile",
                     "when": "view == msg.connections && viewItem == mrsSchema",
