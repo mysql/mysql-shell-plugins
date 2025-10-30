@@ -59,6 +59,13 @@
             ],
         },
         {
+            "label": "Build Extension",
+            "dependsOn": [
+                "tsc: extension",
+                "esbuild: extension"
+            ]
+        },
+        {
             "label": "tsc: e2e",
             "type": "shell",
             "command": "./node_modules/.bin/tsc",

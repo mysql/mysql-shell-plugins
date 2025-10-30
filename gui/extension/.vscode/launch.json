@@ -15,6 +15,7 @@
             ],
             "trace": false,
             "smartStep": true,
+            "preLaunchTask": "Build Extension"
         },
         {
             "name": "Debug UI Tests",
