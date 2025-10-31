@@ -78,9 +78,7 @@ describe("DATABASE CONNECTIONS", () => {
         await Misc.loadDriver();
         const localE2eRecording = new E2ERecording(this.test!.title!);
         try {
-            if (!Os.isWindows()) {
-                await localE2eRecording!.start();
-            }
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
             const activityBare = new ActivityBar();
@@ -210,9 +208,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Os.appendToExtensionLog("beforeAll MySQL Administration");
             const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await Os.deleteCredentials();
                 await Workbench.closeAllEditors();
                 await dbTreeSection.focus();
@@ -233,9 +229,7 @@ describe("DATABASE CONNECTIONS", () => {
         after(async function () {
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
                 await treeGlobalConn.collapse();
                 await Workbench.closeAllEditors();
@@ -523,9 +517,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
             const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await dbTreeSection.expandTreeItem(heatWaveConn.caption!, heatWaveConn);
@@ -564,9 +556,7 @@ describe("DATABASE CONNECTIONS", () => {
         after(async function () {
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await Workbench.toggleSideBar(true);
                 await (await dbTreeSection.getTreeItem((heatWaveConn.basic as interfaces.IConnBasicMySQL)
                     .schema!)).expand();
@@ -712,9 +702,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Os.appendToExtensionLog("beforeAll Tree context menu items");
             const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await Os.deleteCredentials();
                 await dbTreeSection.focus();
                 treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);

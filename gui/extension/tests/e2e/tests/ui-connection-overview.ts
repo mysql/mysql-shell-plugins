@@ -88,9 +88,7 @@ describe("DB CONNECTION OVERVIEW", () => {
         await Misc.loadDriver();
         const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title);
         try {
-            if (!Os.isWindows()) {
-                await localE2eRecording!.start();
-            }
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
@@ -115,9 +113,7 @@ describe("DB CONNECTION OVERVIEW", () => {
             let hookResult = "passed";
             const localE2eRecording: E2ERecording = new E2ERecording(this.currentTest!.title);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await dbTreeSection.focus();
                 await dbTreeSection.createDatabaseConnection(globalConn);
                 await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.waitForTreeItem);

@@ -61,6 +61,10 @@ export class E2ERecording {
      */
     public start = async (): Promise<void> => {
 
+        if (Os.isWindows()) {
+            return;
+        }
+
         if (!existsSync(this.videosDir)) {
             await fsPromises.mkdir(this.videosDir);
         }

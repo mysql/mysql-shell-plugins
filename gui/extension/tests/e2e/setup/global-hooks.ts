@@ -46,9 +46,7 @@ beforeEach(async function () {
         }
     }
 
-    if (!Os.isWindows()) {
-        await testRecording.start();
-    }
+    await testRecording.start();
 });
 
 afterEach(async function () {

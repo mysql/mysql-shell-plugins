@@ -66,9 +66,7 @@ export class Misc {
         testResult?: string,
     ): Promise<void> => {
 
-        if (!Os.isWindows()) {
-            await recording.stop();
-        }
+        await recording.stop();
 
         let result: string | undefined;
         if (!testResult) {

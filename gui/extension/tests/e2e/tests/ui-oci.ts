@@ -66,9 +66,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         let hookResult = "passed";
 
         try {
-            if (!Os.isWindows()) {
-                await localE2eRecording!.start();
-            }
+            await localE2eRecording!.start();
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await ociTreeSection.focus();
@@ -132,9 +130,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 hookResult = "failed";
@@ -201,9 +197,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 hookResult = "failed";
@@ -323,9 +317,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let hookResult = "passed";
             const localE2eRecording = new E2ERecording(this.test!.title!);
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 hookResult = "failed";
@@ -424,9 +416,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const localE2eRecording = new E2ERecording(this.test!.title!);
             let hookResult = "passed";
             try {
-                if (!Os.isWindows()) {
-                    await localE2eRecording!.start();
-                }
+                await localE2eRecording!.start();
                 await ociTreeSection.expandTree(ociTree, constants.wait1minute);
                 await ociTreeSection.focus();
             } catch (e) {
