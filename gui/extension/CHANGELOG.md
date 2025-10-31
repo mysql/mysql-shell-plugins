@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#38623232 Broken hyperlink for MSG certificate setup
+- BUG#38603422 Unexpected MRS SQL parsing error for field names that match certain keywords
 -
 
 ## Changes in 1.19.19+9.5.0

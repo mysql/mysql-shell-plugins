@@ -210,7 +210,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     (field.parentReferenceId === undefined && parentId === undefined)) {
                     const indent = " ".repeat((level ?? 1) * 4);
                     if (!field.objectReference && (field.enabled || reduceToFieldIds.includes(field.id))) {
-                        s += `${indent}${field.name}: ${String(field.dbColumn?.name)}`;
+                        s += `${indent}\`${field.name}\`: \`${String(field.dbColumn?.name)}\``;
                         if (field.dbColumn?.in && !field.dbColumn.out) {
                             s += ` @IN`;
                         }
