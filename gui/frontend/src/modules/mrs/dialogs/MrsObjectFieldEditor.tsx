@@ -1587,11 +1587,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             });
 
             let fieldName = storedField?.name ?? convertSnakeToCamelCase(column.name);
+
+            if (column.refColumnNames) {
+                fieldName += convertToPascalCase(column.refColumnNames);
+            }
+
             // Check if field name is already taken, if so, append column.relColumnNames or and increasing number
             // at the end
             if (usedFieldNames.includes(fieldName)) {
-                fieldName += convertToPascalCase(column.refColumnNames);
-
                 let i = 1;
                 while (usedFieldNames.includes(fieldName)) {
                     fieldName = fieldName.slice(0, String(i).length * -1) + String(i++);

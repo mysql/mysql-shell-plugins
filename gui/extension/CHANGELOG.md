@@ -4,11 +4,13 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#38593662 Wrong SQL generated for unnested objects
+- BUG#38593678 VS Code returns error after using the generated SQL
+-
 
 ## Changes in 1.19.18+9.5.0
 
