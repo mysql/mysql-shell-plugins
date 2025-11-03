@@ -549,7 +549,6 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                             parameters: [
                                 "--", "gui", "core", "install-shell-web-certificate",
                                 "--replace_existing=true",
-                                "--loose-execution-context=.vsc"
                             ],
                             logLevel,
                             onStdOutData: (output: string) => {

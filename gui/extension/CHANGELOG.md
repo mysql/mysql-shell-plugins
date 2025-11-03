@@ -2,12 +2,9 @@
 
 ## Changes in 1.19.19+9.5.0
 
-### Additions
-
--
-
 ### Fixes
 
+- Fixing regression installing the certificate
 - BUG#38593662 Wrong SQL generated for unnested objects
 - BUG#38593678 VS Code returns error after using the generated SQL
 -
