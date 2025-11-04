@@ -99,7 +99,7 @@ describe("CLIPBOARD", () => {
         await driver.quit();
     });
 
-    describe.skip("OCI CLIPBOARD", () => {
+    describe("OCI CLIPBOARD", () => {
 
         beforeAll(async () => {
             const configs = await Misc.mapOciConfig();
@@ -130,6 +130,8 @@ describe("CLIPBOARD", () => {
         });
 
         afterEach(async (context: TestContext) => {
+            await TestQueue.pop(context.task.name);
+
             if (testFailed) {
                 testFailed = false;
                 await Misc.storeScreenShot(context);
@@ -255,7 +257,6 @@ describe("CLIPBOARD", () => {
     describe("DATABASE CONNECTIONS CLIPBOARD", () => {
 
         beforeAll(async () => {
-
             try {
                 await dbTreeSection.focus();
                 await dbTreeSection.expandTreeItem(globalConn);

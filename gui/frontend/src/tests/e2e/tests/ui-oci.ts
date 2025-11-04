@@ -46,7 +46,7 @@ let e2eProfile: string | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
 
-describe.skip("OCI", () => {
+describe("OCI", () => {
 
     beforeAll(async () => {
         await loadDriver(true);

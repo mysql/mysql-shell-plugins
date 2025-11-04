@@ -114,7 +114,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Set as New Default Config Profile", async () => {
 
             await ociTreeSection.openContextMenuAndSelect(`${ociConfig!.name} (${ociConfig!.region})`,
-                constants.setDefaultConfigProfile);
+                constants.setDefaultConfigProfile, undefined, false);
             await driver.wait(ociTreeSection.untilTreeItemIsDefault(`${ociConfig!.name} (${ociConfig!.region})`),
                 constants.wait1second * 5, "E2e tests is not the default item");
             await Workbench.closeAllEditors();
@@ -166,7 +166,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Set as Current Compartment", async () => {
 
-            await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.setCurrentCompartment);
+            await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.setCurrentCompartment, undefined, false);
             await driver.wait(ociTreeSection.untilTreeItemExists(`${ociTree[2].source} (Default)`),
                 constants.waitForTreeItem);
             await driver.wait(ociTreeSection.untilTreeItemIsDefault(`${ociTree[2].source} (Default)`,
@@ -356,7 +356,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const treeBastion = await ociTreeSection.getTreeItem(undefined, constants.bastionType);
             const bastionName = await treeBastion.getLabel();
-            await ociTreeSection.openContextMenuAndSelect(bastionName, constants.setAsCurrentBastion, undefined);
+            await ociTreeSection.openContextMenuAndSelect(bastionName, constants.setAsCurrentBastion, undefined, false);
             await driver.wait(ociTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
             await driver.wait(ociTreeSection.untilTreeItemIsDefault(bastionName),
                 constants.wait1second * 10, "Bastion is not the default item");
