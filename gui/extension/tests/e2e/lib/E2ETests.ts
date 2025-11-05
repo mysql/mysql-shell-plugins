@@ -282,22 +282,6 @@ export class E2ETests {
      */
     public static setup = (): void => {
 
-        const ociConfigFile = `
-        [E2ETESTS]
-        user=${process.env.OCI_E2E_USER}
-        fingerprint=${process.env.OCI_E2E_FINGERPRINT}
-        tenancy=${process.env.OCI_E2E_TENANCY}
-        region=${process.env.OCI_E2E_REGION}
-        key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
-
-        [HEATWAVE]
-        user=${process.env.OCI_HW_USER}
-        fingerprint=${process.env.OCI_HW_FINGERPRINT}
-        tenancy=${process.env.OCI_HW_TENANCY}
-        region=${process.env.OCI_HW_REGION}
-        key_file=${process.env.OCI_HW_KEY_FILE_PATH}
-        `;
-
         this.checkSetupEnvVars();
         this.checkMySql();
         this.setShellBinary();
@@ -359,8 +343,6 @@ export class E2ETests {
             installMLE(this.mysqlPorts[0]);
             installMRS(this.mysqlPorts[1]);
             installMRS(this.mysqlPorts[2]);
-            writeFileSync(join(process.cwd(), "config"), ociConfigFile);
-            E2ELogger.success("OCI Configuration file created successfully");
         } else if (this.testSuites[0].name === "DB" ||
             this.testSuites[0].name === "NOTEBOOK" ||
             this.testSuites[0].name === "OPEN-EDITORS" ||
@@ -371,8 +353,6 @@ export class E2ETests {
             installSqlData(this.mysqlPorts[2]);
         } else if (this.testSuites[0].name === "CONNECTION-OVERVIEW") {
             installSqlData(this.mysqlPorts[0]);
-            writeFileSync(join(process.cwd(), "config"), ociConfigFile);
-            E2ELogger.success("OCI Configuration file created successfully");
         } else if (this.testSuites[0].name === "REST-CONFIG") {
             installSqlData(this.mysqlPorts[3]);
         } else if (this.testSuites[0].name === "REST") {
@@ -381,9 +361,6 @@ export class E2ETests {
         } else if (this.testSuites[0].name === "ROUTER") {
             installSqlData(this.mysqlPorts[2]);
             installMRS(this.mysqlPorts[2]);
-        } else if (this.testSuites[0].name === "OCI") {
-            writeFileSync(join(process.cwd(), "config"), ociConfigFile);
-            E2ELogger.success("OCI Configuration file created successfully");
         } else {
             throw new Error(`Unknown test suite ${this.testSuites[0].name}`);
         }
@@ -450,6 +427,28 @@ export class E2ETests {
 
         // CLEAN VSCODE CACHE 
         this.cleanVSCodeCache(testSuite);
+
+        // WRITE OCI PROFILE CONFIG FILE
+        const ociConfigFile = `
+        [E2ETESTS]
+        user=${process.env.OCI_E2E_USER}
+        fingerprint=${process.env.OCI_E2E_FINGERPRINT}
+        tenancy=${process.env.OCI_E2E_TENANCY}
+        region=${process.env.OCI_E2E_REGION}
+        key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
+
+        [HEATWAVE]
+        user=${process.env.OCI_HW_USER}
+        fingerprint=${process.env.OCI_HW_FINGERPRINT}
+        tenancy=${process.env.OCI_HW_TENANCY}
+        region=${process.env.OCI_HW_REGION}
+        key_file=${process.env.OCI_HW_KEY_FILE_PATH}
+        `;
+
+        const ociConfigFilePath = join(process.cwd(), "config");
+        if (!existsSync(ociConfigFilePath)) {
+            writeFileSync(ociConfigFilePath, ociConfigFile);
+        }
 
         // RUN THE TESTS
         const result = await this.executeTests(testSuite, log);
