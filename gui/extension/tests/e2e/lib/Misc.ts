@@ -24,7 +24,6 @@
  */
 
 import fs from "fs/promises";
-import * as path from "path";
 import { Database } from "sqlite3";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
@@ -86,15 +85,10 @@ export class Misc {
             if (result === "passed") {
                 rmSync(recording.videoPath!);
             } else {
-                if (process.env.BUILD_URL) {
-                    const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
-                    addContext(testContext, {
-                        title: "FAILURE VIDEO",
-                        value: {
-                            URL: `${process.env.BUILD_URL}artifact/${relativePath}`,
-                        }
-                    });
-                }
+                addContext(testContext, {
+                    title: "TEST FAILURE VIDEO",
+                    value: `../videos/${recording.videoName}`
+                });
             }
         }
 
@@ -109,7 +103,7 @@ export class Misc {
             const imgPath = join(ssDir, `${String(testTitle)}_screenshot.png`);
             await fs.writeFile(imgPath, img, "base64");
             addContext(testContext, {
-                title: "FAILURE SCREENSHOT",
+                title: "TEST FAILURE SCREENSHOT",
                 value: `../screenshots/${String(testTitle)}_screenshot.png`
             });
         }
