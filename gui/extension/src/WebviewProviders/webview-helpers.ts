@@ -159,7 +159,7 @@ export const prepareWebviewContent = (webview: Webview, url: URL): void => {
             showFloatingLabel("Failed to Connect",
                 "Please check if you have the<br>" +
                 "MySQL Shell rootCA.crt certificate<br>" +
-                "<a href='https://dev.mysql.com/doc/mysql-shell-for-vs-code/en/certificate-handling.html'>" +
+                "<a href='https://dev.mysql.com/doc/mysql-shell-gui/en/mysql-shell-vscode-certificates.html'>" +
                 "installed</a> on your local system.", false);
         } else {
             showFloatingLabel("Failed to Connect",

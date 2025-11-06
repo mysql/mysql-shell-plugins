@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#38623232 Broken hyperlink for MSG certificate setup
+-
 
 ## Changes in 1.19.19+9.5.0
 
