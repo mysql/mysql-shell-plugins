@@ -32,6 +32,7 @@ import { screenSize } from "./Misc";
 import { Os } from "./Os";
 import { wait1second } from "./constants";
 import { driver } from "./Misc";
+import { error } from "vscode-extension-tester";
 
 const log = join(process.cwd(), `recording_${process.env.TEST_SUITE}.log`);
 
@@ -179,9 +180,15 @@ export class E2ERecording {
 
             await stopRecording;
 
-            await driver.wait(() => {
-                return existsSync(this.videoPath!);
-            }, wait1second * 10, `The video '${this.videoPath}' does not exist`);
+            try {
+                await driver.wait(() => {
+                    return existsSync(this.videoPath!);
+                }, wait1second * 10, `The video '${this.videoPath}' was not found`);
+            } catch (e) {
+                if (!(e instanceof error.TimeoutError)) {
+                    throw e;
+                }
+            }
 
             this.ffmpegProcess.kill();
         }

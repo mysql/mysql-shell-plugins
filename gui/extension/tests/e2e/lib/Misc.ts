@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import * as path from "path";
 import fs from "fs/promises";
 import { Database } from "sqlite3";
 import addContext from "mochawesome/addContext";
@@ -85,10 +86,13 @@ export class Misc {
             if (result === "passed") {
                 rmSync(recording.videoPath!);
             } else {
-                addContext(testContext, {
-                    title: "TEST FAILURE VIDEO",
-                    value: `../videos/${recording.videoName}`
-                });
+                if (process.env.BUILD_URL) {
+                    const relativePath = path.relative(process.env.WORKSPACE!, recording.videoPath!);
+                    addContext(testContext, {
+                        title: "FAILURE VIDEO",
+                        value: `${process.env.BUILD_URL}artifact/${relativePath}`,
+                    });
+                }
             }
         }
 
