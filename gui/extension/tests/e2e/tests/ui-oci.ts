@@ -463,6 +463,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 const text = `Are you sure you want to delete the instance ${instanceLabel}`;
                 const ntf = await Workbench.getNotification(text, false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
+                await tasksTreeSection.focus();
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Compute Instance (error)"),
                     constants.waitForTreeItem);
             } finally {

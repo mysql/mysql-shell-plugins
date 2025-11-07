@@ -282,7 +282,10 @@ export class E2ETests {
      */
     public static setup = (): void => {
 
-        this.checkSetupEnvVars();
+        if (!process.env.DBROOTPASSWORD) {
+            throw new Error("Please define the env:DBROOTPASSWORD");
+        }
+
         this.checkMySql();
         this.setShellBinary();
 
@@ -378,6 +381,7 @@ export class E2ETests {
     public static run = async (testSuite: IE2ETestSuite, log = false): Promise<number> => {
 
         this.setWebCertificate(testSuite);
+        this.checkOCIEnvVars();
         this.checkTestsEnvVars();
 
         process.env.MOCHAWESOME_REPORTDIR = process.cwd();
@@ -840,58 +844,54 @@ export class E2ETests {
     /**
      * Verifies if all the required environment variables for the setup are defined
      */
-    private static checkSetupEnvVars = (): void => {
+    private static checkOCIEnvVars = (): void => {
 
         const requiredEnvVars = [
             {
-                value: process.env.DBROOTPASSWORD,
-                description: "MySQL Server Root password",
-            },
-            {
                 value: process.env.OCI_E2E_KEY_FILE_PATH,
-                description: "OCI Key file path for 'E2ETESTS' profile",
+                description: "(OCI_E2E_KEY_FILE_PATH) OCI Key file path for 'E2ETESTS' profile",
             },
             {
                 value: process.env.OCI_HW_KEY_FILE_PATH,
-                description: "OCI Key file path for 'HEATWAVE' profile",
+                description: "(OCI_HW_KEY_FILE_PATH) OCI Key file path for 'HEATWAVE' profile",
             },
             {
                 value: process.env.OCI_E2E_USER,
-                description: "OCI user for 'E2ETESTS' profile",
+                description: "(OCI_E2E_USER) OCI user for 'E2ETESTS' profile",
             },
             {
                 value: process.env.OCI_E2E_FINGERPRINT,
-                description: "OCI fingerprint for 'E2ETESTS' profile",
+                description: "(OCI_E2E_FINGERPRINT) OCI fingerprint for 'E2ETESTS' profile",
             },
             {
                 value: process.env.OCI_E2E_TENANCY,
-                description: "OCI tenancy for 'E2ETESTS' profile",
+                description: "(OCI_E2E_TENANCY) OCI tenancy for 'E2ETESTS' profile",
             },
             {
                 value: process.env.OCI_E2E_REGION,
-                description: "OCI region for 'E2ETESTS' profile",
+                description: "(OCI_E2E_REGION) OCI region for 'E2ETESTS' profile",
             },
             {
                 value: process.env.OCI_HW_USER,
-                description: "OCI user for 'HEATWAVE' profile",
+                description: "(OCI_HW_USER) OCI user for 'HEATWAVE' profile",
             },
             {
                 value: process.env.OCI_HW_FINGERPRINT,
-                description: "OCI fingerprint for 'HEATWAVE' profile",
+                description: "(OCI_HW_FINGERPRINT) OCI fingerprint for 'HEATWAVE' profile",
             },
             {
                 value: process.env.OCI_HW_TENANCY,
-                description: "OCI tenancy for 'HEATWAVE' profile",
+                description: "(OCI_HW_TENANCY) OCI tenancy for 'HEATWAVE' profile",
             },
             {
                 value: process.env.OCI_HW_REGION,
-                description: "OCI region for 'HEATWAVE' profile",
+                description: "(OCI_HW_REGION) OCI region for 'HEATWAVE' profile",
             },
         ];
 
         for (const envVar of requiredEnvVars) {
             if (!envVar.value) {
-                throw new Error(`Please define env:${envVar.value} (${envVar.description})`);
+                throw new Error(`Please define the env var ${envVar.description}`);
             }
         }
     };
