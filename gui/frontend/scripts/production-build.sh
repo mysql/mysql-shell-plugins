@@ -52,6 +52,9 @@ sed -i.bak "/sourceMappingURL=marked.umd.js.map/d" node_modules/monaco-editor/es
 # Fix a missing source-map in the typescript package.
 sed -i.bak "/sourceMappingURL=typescript.js.map/d" node_modules/typescript/lib/typescript.js && rm node_modules/typescript/lib/typescript.js.bak
 
+# Fix no longer supported fs.rmdirSync with recursive option in vite-plugin-monaco-editor.
+sed -i.bak "s|fs\.rmdirSync(|fs.rmSync(|g" node_modules/vite-plugin-monaco-editor/dist/workerMiddleware.js && rm node_modules/vite-plugin-monaco-editor/dist/workerMiddleware.js.bak
+
 printf "\n"
 
 # Generate parsers only if something in the source folder changed.

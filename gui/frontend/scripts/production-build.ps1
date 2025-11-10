@@ -56,6 +56,10 @@ $monacoPath = "node_modules\monaco-editor\esm\vs\base\common\marked\marked.js"
 $typescriptPath = "node_modules\typescript\lib\typescript.js"
 (Get-Content $typescriptPath) | Where-Object {$_ -notmatch "sourceMappingURL=typescript.js.map"} | Set-Content $typescriptPath
 
+# Fix for vite-plugin-monaco-editor: replace deprecated fs.rmdirSync with fs.rmSync.
+$monacoVitePath = "node_modules\vite-plugin-monaco-editor\dist\workerMiddleware.js"
+(Get-Content $monacoVitePath) -replace "fs\.rmdirSync\(", "fs.rmSync(" | Set-Content $monacoVitePath
+
 Write-Host ""
 
 antlr-ng -Dlanguage=TypeScript --exact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/MySQLLexer.g4

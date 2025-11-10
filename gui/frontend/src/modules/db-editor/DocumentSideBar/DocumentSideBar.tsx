@@ -533,12 +533,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         icon: Codicon.KebabHorizontal,
                         tooltip: "More Actions",
                         choices: [{
-                            icon: Assets.misc.addIcon,
-                            command: {
-                                command: "msg.newSchemaDiagram",
-                                title: "Create New EER Diagram",
-                            },
-                        }, {
+                            //     icon: Assets.misc.addIcon,
+                            //     command: {
+                            //         command: "msg.newSchemaDiagram",
+                            //         title: "Create New EER Diagram",
+                            //     },
+                            // }, {
                             icon: Assets.toolbar.importIcon,
                             command: {
                                 command: "msg.importWorkbenchConnections",
