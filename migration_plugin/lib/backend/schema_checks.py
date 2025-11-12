@@ -163,7 +163,7 @@ All such roles will not be granted to the migrated user accounts.
         "Unsupported Encryption Option for Schema",
         CheckStatus.OK,
         """
-Schema level <code>ENCRYPTION</code> option removed.
+Schema level <code>ENCRYPTION</code> option will be removed.
 
 The schema level <code>ENCRYPTION</code> option is not supported in the MySQL
 HeatWave Service and was removed from the listed schemas. The MySQL HeatWave
@@ -172,7 +172,7 @@ Service encrypts all database files at the block volume level.
 <a href="https://docs.oracle.com/en-us/iaas/mysql-database/doc/unsupported-features.html">
 Read more</a>
 """,
-        [],
+        [CompatibilityFlags.IGNORE, CompatibilityFlags.EXCLUDE_OBJECT],
     ),
     "view/invalid_reference": (
         "View with Invalid References",
@@ -260,7 +260,7 @@ supported in the MySQL HeatWave Service and were removed from the listed tables.
         "Unsupported Encryption Option for Table",
         CheckStatus.OK,
         """
-Table level <code>ENCRYPTION</code> option removed.
+Table level <code>ENCRYPTION</code> option will be removed.
 
 The table level <code>ENCRYPTION</code> option is
 <a href="https://docs.oracle.com/en-us/iaas/mysql-database/doc/unsupported-features.html">
@@ -268,7 +268,7 @@ not supported</a> in the MySQL
 HeatWave Service and was removed from the listed tables. The MySQL HeatWave
 Service encrypts all database files at the block volume level.
 """,
-        [],
+        [CompatibilityFlags.IGNORE, CompatibilityFlags.EXCLUDE_OBJECT],
     ),
     "table/tablespace": (
         "Unsupported Tablespace Option for Table",
