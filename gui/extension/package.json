@@ -771,6 +771,14 @@
                 "title": "Delete Router..."
             },
             {
+                "command": "msg.mrs.enableDebug",
+                "title": "Enable Service Debug"
+            },
+            {
+                "command": "msg.mrs.disableDebug",
+                "title": "Disable Service Debug"
+            },
+            {
                 "command": "msg.mrs.deleteSchema",
                 "title": "Delete REST Schema..."
             },
@@ -1874,6 +1882,16 @@
                     "command": "msg.mrs.deleteRouter",
                     "when": "viewItem == mrsRouter",
                     "group": "10_msg@1"
+                },
+                {
+                    "command": "msg.mrs.enableDebug",
+                    "when": "viewItem == mrsRouterService",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.disableDebug",
+                    "when": "viewItem == mrsRouterService",
+                    "group": "1_msg@2"
                 },
                 {
                     "command": "msg.mrs.editSchema",

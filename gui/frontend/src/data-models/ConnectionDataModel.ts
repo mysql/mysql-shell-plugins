@@ -43,6 +43,7 @@ import {
     type AdminPageType, type Command, type DataModelSubscriber, type ICdmAccessManager, type IDataModelEntryState,
     type ISubscriberActionType, type ProgressCallback,
 } from "./data-model-types.js";
+import { RouterInterface } from "../../../frontend/src/supplement/Router/RouterInterface.js";
 
 /**
  * This file contains all interfaces which comprise the data model for the connections tree.
@@ -1865,7 +1866,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
                 // check if view is an existing member
                 const existing = viewGroup.members.find((e) => {
-                    return e.caption === view; 
+                    return e.caption === view;
                 });
                 if (existing) {
                     newViewEntries.push(existing as ICdmViewEntry);
@@ -1894,7 +1895,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
             // Now add duality views.
             for (const jdv of jdvNames) {
                 const existing = viewGroup.members.find((e) => {
-                    return e.caption === jdv; 
+                    return e.caption === jdv;
                 });
                 if (existing) {
                     newViewEntries.push(existing as ICdmJdvEntry);
@@ -2937,15 +2938,29 @@ export class ConnectionDataModel implements ICdmAccessManager {
             const routerServices = await backend.mrs.getRouterServices(router.details.id);
 
             router.services.length = 0;
-            routerServices.forEach((service) => {
+
+            for (const service of routerServices) {
                 const urlHostName = !service.serviceUrlHostName ? "" : service.serviceUrlHostName;
                 const caption = urlHostName + service.serviceUrlContextRoot;
+                const routerInterface = new RouterInterface(8443);
+                let inDebugMode = false;
+
+                try {
+                    inDebugMode = await routerInterface.getDebug(service.serviceUrlContextRoot);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                } catch (error) {
+                    /* Error communicating with the router. Leave debug off. */
+                }
 
                 let description: string;
                 if (service.inDevelopment?.developers) {
                     description = `In Development`;
                 } else {
                     description = service.published ? "Published" : "Unpublished";
+                }
+
+                if (inDebugMode) {
+                    description = `${description} Debug`;
                 }
 
                 router.services.push({
@@ -2958,7 +2973,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                     details: service,
                     state: createDataModelEntryState(true, true),
                 });
-            });
+            }
         } catch (error) {
             const message = convertErrorToString(error);
             void ui.showErrorMessage(`An error occurred while retrieving MRS router services. ${message}`, {});

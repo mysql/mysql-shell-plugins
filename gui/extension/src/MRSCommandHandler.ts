@@ -56,7 +56,7 @@ import { MrsScriptBlocks } from "./MrsScriptBlocks.js";
 import type { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { switchVsCodeContext } from "./utilities.js";
 import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui.js";
-
+import { RouterInterface } from "../../frontend/src/supplement/Router/RouterInterface.js";
 export class MRSCommandHandler {
     private docsWebviewPanel?: WebviewPanel;
     private docsCurrentFile?: string;
@@ -170,6 +170,32 @@ export class MRSCommandHandler {
                             void ui.showErrorMessage(`Error deleting the MRS Router: ${message}`, {});
                         }
                     }
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.enableDebug",
+            async (entry: ICdmRestRouterEntry) => {
+                try {
+                    const router = new RouterInterface(getRouterPortForConnection(entry.connection.details.id));
+                    await router.setDebug(entry.caption, true);
+                    await commands.executeCommand("msg.refreshConnections");
+                    void ui.showInformationMessage(`Debug enabled for ${entry.caption} service.`, {});
+                } catch (reason) {
+                    const message = convertErrorToString(reason);
+                    void ui.showErrorMessage(`Error enabling debug: ${message}`, {});
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.disableDebug",
+            async (entry: ICdmRestRouterEntry) => {
+                try {
+                    const router = new RouterInterface(getRouterPortForConnection(entry.connection.details.id));
+                    await router.setDebug(entry.caption, false);
+                    await commands.executeCommand("msg.refreshConnections");
+                    void ui.showInformationMessage(`Debug enabled for ${entry.caption} service.`, {});
+                } catch (reason) {
+                    const message = convertErrorToString(reason);
+                    void ui.showErrorMessage(`Error disabling debug: ${message}`, {});
                 }
             }));
 
