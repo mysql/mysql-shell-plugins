@@ -23,6 +23,7 @@
 
 from mrs_plugin import lib
 import msm_plugin.lib.management as schema_management
+import mysqlsh
 
 # Define plugin version
 VERSION = "1.19.20"
@@ -163,6 +164,17 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                     VIEW mysql_rest_service_metadata.msm_schema_version AS
                     SELECT * FROM mysql_rest_service_metadata.schema_version""")
 
+        # The schema management plugin should execute SQL run in the scope of a different session to avoid unwarranted
+        # changes in the global user session. As an example, "USE x" statements modify the current schema associated to
+        # the underlying connection.
+        management_session = (
+            # On vanilla Shell, we can just duplicate the existing global session.
+            mysqlsh.globals.shell.open_session()
+            if "shell.Object" in str(type(session))
+            # On Shell GUI, there is no global shell session, so we can create one using the same connection options.
+            else mysqlsh.globals.shell.open_session(session.connection_options)
+        )
+
         if edition is None or edition.lower() != "heatwave":
             # For now, let's remove any previous version of the mysql_tasks schema
             session.run_sql("DROP SCHEMA IF EXISTS mysql_tasks")
@@ -171,7 +183,7 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
             # database schema
             if not skip_update:
                 schema_management.deploy_schema(
-                    session=session,
+                    session=management_session,
                     schema_project_path=lib.core.script_path(
                         "db_schema", "mysql_tasks.msm.project"))
 
@@ -179,7 +191,7 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
         # or update an existing schema to the given version
         if not skip_update:
             info_msg = schema_management.deploy_schema(
-                session=session,
+                session=management_session,
                 schema_project_path=lib.core.script_path(
                     "db_schema", "mysql_rest_service_metadata.msm.project"),
                 version=version)
@@ -197,7 +209,7 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                 assert "1.0.0" not in HEATWAVE_DEFAULT_ENDPOINTS_SCRIPT_VERSION
 
                 schema_management.execute_msm_sql_script(
-                    session=session,
+                    session=management_session,
                     script_name="HeatWave Default Endpoints",
                     sql_file_path=lib.core.script_path(
                         "scripts", "default_heatwave_endpoints",

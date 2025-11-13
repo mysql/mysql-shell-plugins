@@ -1077,3 +1077,7 @@ def string_replace(text: str, replacers: dict) -> str:
     for key, value in replacers.items():
         text = text.replace(key, value)
     return text
+
+
+def get_current_schema(session: mysqlsh.globals.session):
+    return session.run_sql("SELECT DATABASE()").fetch_one()[0]

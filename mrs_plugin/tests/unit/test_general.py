@@ -60,12 +60,17 @@ def test_configure(phone_book):
 
     mysqlsh.globals.shell.set_session(session_backup)
 
+    original_schema = helpers.get_current_schema(session_backup)
+
     config_output = configure()
     assert config_output == {
         "info_msg": config_output["info_msg"],
         "mrs_enabled": True,
         "schema_changed": False
     }
+
+    # ensure session data does not change
+    assert original_schema == helpers.get_current_schema(session_backup)
 
     config_output = configure(**config)
     assert config_output == {
