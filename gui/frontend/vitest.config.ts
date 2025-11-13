@@ -56,6 +56,8 @@ export default defineConfig({
         },
         reporters: ["default", new StaticHtmlReporter("MySQL Shell GUI Unit Test Report")],
         outputFile: resolve("./src/tests/unit-tests/test-report/unit-tests/index.html"),
+        include: ["src/tests/unit-tests/**/*.spec.ts"],
+        exclude: ["src/tests/e2e/**/*.ts"]
     },
     resolve: {
         alias: [

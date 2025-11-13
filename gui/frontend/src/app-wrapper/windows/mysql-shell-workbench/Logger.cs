@@ -25,7 +25,7 @@
 
 using System;
 using System.IO;
-using System.Linq;
+using System.Threading;
 
 namespace MySQLShellWorkbench {
   enum LogEvent {
@@ -36,8 +36,14 @@ namespace MySQLShellWorkbench {
   }
 
   internal static class Logger {
-    private static readonly string TimeStamp = DateTime.Now.ToLocalTime().ToString("ddMMyyyy");
-    private static readonly string LogPath = AppDomain.CurrentDomain.BaseDirectory + "logs";
+    private static readonly string LogPath = Path.Combine(Common.GetUserConfigPath(), "mysqlsh-wb.log");
+
+    private static readonly object LogLock = new();
+
+    internal static string GetLogPath()
+    {
+      return LogPath;
+    }
 
     internal static void Write(LogEvent Level, string Message) {
       string Event = string.Empty;
@@ -57,9 +63,12 @@ namespace MySQLShellWorkbench {
           break;
       }
 
-      if (!Directory.Exists(LogPath))
-        Directory.CreateDirectory(LogPath);
-      File.AppendAllText(LogPath + @"\msglog_" + TimeStamp + ".log", string.Format("[{0}] => {1}: {2}\n", DateTime.Now.ToString("HH:mm:ss"), Event, Message));
+      lock (LogLock) {
+        if (!Directory.Exists(Common.GetUserConfigPath()))
+          Directory.CreateDirectory(Common.GetUserConfigPath());
+
+        File.AppendAllText(LogPath, string.Format("[{0}] => {1}: {2}\n", DateTime.Now.ToString("HH:mm:ss"), Event, Message));
+      }
     }
   }
 }

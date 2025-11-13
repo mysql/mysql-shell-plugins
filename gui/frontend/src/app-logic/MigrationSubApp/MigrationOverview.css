@@ -1,0 +1,176 @@
+/*
+ * Copyright (c) 2025, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.overview {
+    margin-bottom: 8px;
+}
+
+.overview {
+    font-size: 16px;
+}
+
+.compartment-header {
+    font-size: 11px;
+    margin-bottom: 5px;
+    color: black;
+}
+
+.overview,
+.compartment-name {
+    font-weight: 500;
+}
+
+.database-diagram .accordion .section .icon {
+    padding-left: 15px;
+}
+
+.database-diagram .accordion .section {
+    padding-top: 5px;
+}
+
+.database-diagram,
+.database-diagram .oci-compartment,
+.on-premises {
+    border-radius: 2px;
+    padding: 5px;
+    padding-top: 1px;
+    font-size: 12px;
+    color: black;
+}
+
+.database-diagram {
+    position: relative;
+    border-radius: 10px;
+    padding-top: 3px;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 15px;
+    width: 360px;
+    background-color: var(--migration-databaseDiagram-background);
+    float: right;
+}
+
+.database-diagram:has(.collapsed) {
+    height: 35px;
+}
+
+.database-diagram .oci-compartment,
+.mysql-replication,
+.on-premises {
+    background-color: var(--migration-location-background);
+    border-color: var(--migration-border);
+    border-style: solid;
+}
+
+.database-diagram .oci-compartment {
+    border-width: 1.5px;
+}
+
+.database-diagram .content.expanded .oci-compartment .location-name,
+.on-premises .section-header {
+    margin: 0;
+    padding: 0;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.production-column {
+    width: 100%;
+    gap: 20px;
+}
+
+.production {
+    margin-right: 0px;
+    gap: 20px;
+}
+
+.on-premises-inner {
+    margin-right: 0px;
+    gap: 15px;
+}
+
+.arrow {
+    position: absolute;
+    z-index: 1;
+}
+
+.database-diagram .content.collapsed .arrow {
+    display: none;
+}
+
+.on-premises {
+    border-width: 1.5px;
+    margin-top: 60px;
+}
+
+.object-storage {}
+
+.production-db-cloud {
+    background-color: var(--migration-productionDbCloud-background);
+    border-color: var(--migration-productionDbCloud-border);
+    border-width: 1px;
+    border-style: solid;
+}
+
+.production-db-local {
+    width: 100%;
+    background-color: var(--migration-productionDbLocal-background);
+    border-color: var(--migration-productionDbLocal-border);
+    border-width: 1px;
+    border-style: solid;
+}
+
+.resource-card-bucket {
+    align-self: end;
+}
+
+.jump-host {
+    background-color: var(--migration-jumpHost-background);
+    border-color: var(--migration-jumpHost-border);
+    border-width: 1px;
+    border-style: solid;
+}
+
+.migration-assistant-node {}
+
+.connectivity-type {
+    position: relative;
+    top: 5px;
+    height: 0;
+}
+
+.connectivity-type .arrow .connectivity-arrow-up,
+.connectivity-type .arrow .connectivity-arrow-down {
+    position: absolute;
+    top: 5px;
+}
+
+.connectivity-type .resource-card {
+    position: relative;
+    top: 8px;
+    height: 0;
+    margin: 0;
+}

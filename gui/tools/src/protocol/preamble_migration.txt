@@ -1,0 +1,3 @@
+import { IDictionary } from "../app-logic/general-types.js";
+
+/* eslint-disable max-len */

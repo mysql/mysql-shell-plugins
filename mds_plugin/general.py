@@ -23,8 +23,13 @@
 
 """Sub-Module for shortcut functions"""
 
+import os
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration
+from mds_plugin.bootstrap import cli_setup_bootstrap, cli_util
+from mds_plugin.bootstrap import interactive
+import oci
+from oci import identity
 
 # Define plugin version
 VERSION = "1.19.20"
@@ -85,9 +90,6 @@ def ls(compartment_path="", compartment_id=None, config=None):
         print(f"ERROR: {str(e)}")
         return
 
-    import oci.identity
-    import oci.util
-    import re
     from mds_plugin import compartment, mysql_database_service, compute
     from mds_plugin import object_store, bastion
 
@@ -240,3 +242,142 @@ def cd(compartment_path=None, compartment_id=None,
     configuration.set_current_compartment(
         compartment_path=compartment_path, compartment_id=compartment_id,
         config=config, profile_name=profile_name, file_location=file_location)
+
+
+@plugin_function('mds.ociBootstrap')
+def oci_bootstrap(**kwargs):
+    """
+    Creates an OCI config file using username / password based login through a browser.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        profile_name (str): Name of the profile to be created.
+        config_location (str): Path to the oci configuration file.
+        region (str): The name of the region for the user.
+        passphrase (str): Passphrase for the key file.
+        connection_timeout (int): Timeout for the client when connecting to OCI (user's account).
+        read_timeout: Timeout for the client when uploading data to OCI (user's account).
+
+    All of the arguments are optional, but needed for the operation, they will
+    be resolved as follows if not specified.
+
+    @li profile_name: it will be prompted, using DEFAULT as the suggested value.
+    @li config_location: it will be prompted, using the standard location as the suggested value.
+    @li region: the user will be prompted to select from the list of regions.
+    @li passphrase: it will be prompted with no default value.
+    @li connection_timeout: if not provided a timeout of 60 seconds will be used.
+    @li read_timeout: if not provided a timeout of 10 seconds will be used.
+
+    Once the user is logged in, new API keys will be generated and uploaded to
+    it's OCI account, if a non empty passphrase is provided, it will be
+    associated to the private key.
+    """
+    # Ensures a valid region is used
+    region = interactive.resolve_region(kwargs.get('region', None))
+
+    config_location, overwrite_config = interactive.resolve_config_location(
+        kwargs.get('config_location', None))
+
+    profile_name = interactive.resolve_profile_name(config_location, overwrite_config,
+                                                    kwargs.get('profile_name', None))
+
+    user_session = cli_setup_bootstrap.create_user_session(region=region)
+
+    public_key = user_session.public_key
+    private_key = user_session.private_key
+    region = user_session.region
+    token = user_session.token
+    tenancy_ocid = user_session.tenancy_ocid
+    user_ocid = user_session.user_ocid
+    fingerprint = user_session.fingerprint
+
+    # create initial SDK client which targets region that user specified
+    signer = oci.auth.signers.SecurityTokenSigner(token, private_key)
+    client = identity.IdentityClient({"region": region}, signer=signer)
+
+    # find home region and create new client targeting home region to use for subsequent identity requests
+    result = client.list_region_subscriptions(tenancy_ocid)
+    for r in result.data:
+        if r.is_home_region:
+            home_region = r.region_name
+            break
+
+    connection_timeout = kwargs.get(
+        'connection_timeout', cli_setup_bootstrap.DEFAULT_CONNECTION_TIMEOUT)
+    read_timeout = kwargs.get(
+        'read_timeout', cli_setup_bootstrap.DEFAULT_READ_TIMEOUT)
+
+    client = identity.IdentityClient(
+        {"region": home_region},
+        signer=signer,
+        timeout=(connection_timeout, read_timeout),
+    )
+
+    create_api_key_details = identity.models.CreateApiKeyDetails()
+    create_api_key_details.key = cli_util.serialize_key(
+        public_key=public_key).decode("UTF-8")
+
+    try:
+        result = client.upload_api_key(user_ocid, create_api_key_details)
+    except oci.exceptions.ServiceError as e:
+        # TODO(rennox): Do we want this logic? probably not in the migration use
+        # case where a new setup is being done.
+
+        # if e.status == 409 and e.code == "ApiKeyLimitExceeded":
+        #     # User cannot upload any more API keys, so ask if they'd like to delete one
+        #     result = client.list_api_keys(user_ocid)
+        #     print("ApiKey limit has been reached for this user account.")
+        #     print("The following API keys are currently enabled for this account:")
+        #     count = 1
+        #     for result in result.data:
+        #         print(
+        #             "\tKey [{index}]: Fingerprint: {fingerprint}, Time Created: {time_created}".format(
+        #                 index=count,
+        #                 fingerprint=result.fingerprint,
+        #                 time_created=result.time_created,
+        #             ),
+        #             sys.stderr,
+        #         )
+        #         count += 1
+
+        #     delete_thumbprint = click.prompt(
+        #         text='Enter the fingerprint of the API key to delete to make space for the new key (leave empty to skip deletion and exit command)', confirmation_prompt=True)
+        #     if not delete_thumbprint:
+        #         raise RuntimeError(
+        #             cli_setup_bootstrap.BOOTSTRAP_PROCESS_CANCELED_MESSAGE)
+
+        #     client.delete_api_key(user_ocid, delete_thumbprint)
+        #     print('Deleted Api key with fingerprint: {}'.format(delete_thumbprint))
+        #     client.upload_api_key(user_ocid, create_api_key_details)
+        #     raise e(
+        #         "Couldn't upload any more API keys. Delete some to make room for more"
+        #     )
+        raise RuntimeError(
+            "Couldn't upload any more API keys. Delete some to make room for more")
+
+    print("Uploaded new API key with fingerprint: {}".format(fingerprint))
+
+    passphrase, persist_passphrase = interactive.resolve_passphrase_usage(
+        kwargs.get('passphrase', None), kwargs.get('persistPassphrase', None))
+
+    # write credentials to filesystem
+    config_loc = os.path.expanduser(
+        config_location) if config_location else None
+
+    profile_name, config_location = cli_setup_bootstrap.persist_user_session(
+        user_session,
+        config_location=config_loc,
+        overwrite_config=overwrite_config,
+        profile_name=profile_name,
+        key_passphrase=passphrase,
+        persist_passphrase=persist_passphrase,
+        persist_token=False,
+        bootstrap=True,
+    )
+
+
+# @plugin_function('mds.ociBootstrapMigration')
+# def oci_bootstrap_migration():
+#     return cli_setup_bootstrap.bootstrap_migration_profile('us-ashburn-1')

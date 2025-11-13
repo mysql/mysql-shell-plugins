@@ -193,7 +193,7 @@ if (!fs.existsSync(targetFolder)) {
         "shape-access-control-service-enabled-platform-options", "shape-virtual-instructions-enabled-platform-options",
         "shape-input-output-memory-management-unit-enabled-platform-options", "percentage-of-cores-enabled-options",
         "preemption-action", "shape-secure-boot-options", "compute-bare-metal-host-placement-constraint-details",
-        "host-group-placement-constraint-details", "placement-constraint-details", "licensing-config",
+        "host-group-placement-constraint-details", "placement-constraint-details", "licensing-config", "vcn", "subnet",
     ]);
 
     processTypings("oci-identity/lib/model", [

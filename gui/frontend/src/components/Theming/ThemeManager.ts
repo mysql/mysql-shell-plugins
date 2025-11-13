@@ -29,6 +29,7 @@ import fixedColors from "./assets/fixed-colors.json";
 import languagesColors from "./assets/languages-colors.json";
 import lightAppColors from "./assets/light-app-colors.json";
 import lightModern from "./assets/light-modern-color-theme.json";
+import migrationAssistantColors from "./assets/migration-assistant-colors.json";
 
 import darkAbyss from "./assets/themes/dark-abyss-color-theme.json";
 import darkHc from "./assets/themes/dark-hc-color-theme.json";
@@ -515,7 +516,9 @@ export class ThemeManager {
     }
 
     private getThemeColors(defaultColors: IColors, themeColors: IColors | undefined, type: ThemeType): IColors {
-        let allColors = { ...languagesColors, ...this.getAppColors(type), ...defaultColors };
+        let allColors = { ...languagesColors, ...this.getAppColors(type), ...defaultColors,
+            ...migrationAssistantColors
+        };
         if (themeColors) {
             allColors = { ...allColors, ...themeColors };
         }

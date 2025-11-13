@@ -35,6 +35,24 @@
             ]
         },
         {
+            "type": "firefox",
+            "request": "launch",
+            "name": "Launch Migration Assistant on FF",
+            "url": "http://localhost:3001?token=1234&subApp=migration",
+            "webRoot": "${workspaceFolder}/src",
+            "clearConsoleOnReload": true,
+            "keepProfileChanges": false,
+            "reAttach": true,
+            "profile": "dev",
+            "enableCRAWorkaround": true,
+            "skipFiles": [
+                "**/node_modules/**"
+            ],
+            "firefoxArgs": [
+                //"-devtools",
+            ]
+        },        
+        {
             "type": "chrome",
             "request": "launch",
             "name": "Launch MSG on Chrome - Single Server",

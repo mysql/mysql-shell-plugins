@@ -26,14 +26,15 @@
 import type { IDictionary } from "../../app-logic/general-types.js";
 import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, IComputeShape, IMySQLDbSystem,
-    IMySQLDbSystemShapeSummary, LoadBalancer, type IBucketListObjects, type IBucketSummary,
+    IMySQLDbSystemShapeSummary, ISubnet, IVcn, LoadBalancer, type IBucketListObjects, type IBucketSummary,
 } from "../../communication/index.js";
 import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
 import type { IShellDictionary } from "../../communication/Protocol.js";
 import {
-    IMdsChatData, IMdsChatResult, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
+    IRegion, IMdsChatData, IMdsChatResult, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
     IShellMdsSetCurrentCompartmentKwargs, ShellAPIMds, type IMdsChatStatus,
 } from "../../communication/ProtocolMds.js";
+import { Shape } from "../../oci-typings/oci-core/lib/model/shape.js";
 
 /** The interface to the MySQL Heatwave Service. */
 export class ShellInterfaceMhs {
@@ -176,20 +177,33 @@ export class ShellInterfaceMhs {
         compartmentId: string): Promise<IMySQLDbSystemShapeSummary[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsListDbSystemShapes,
-            parameters: { kwargs: { configProfile, isSupportedFor, compartmentId } },
+            parameters: { kwargs: { configProfile, isSupportedFor, compartmentId, interactive: false } },
         });
 
-        return response.result;
+        // return response.result;
+        return (response.result as Array<IMySQLDbSystemShapeSummary
+            & { memorySizeInGbs: IMySQLDbSystemShapeSummary["memorySizeInGBs"] }>).map((i) => {
+            return {
+                ...i,
+                memorySizeInGBs: i.memorySizeInGbs,
+            };
+        });
     }
 
     public async listComputeShapes(configProfile: string,
         compartmentId: string): Promise<IComputeShape[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsListComputeShapes,
-            parameters: { kwargs: { configProfile, compartmentId } },
+            parameters: { kwargs: { configProfile, compartmentId, interactive: false } },
         });
 
-        return response.result;
+        // return response.result;
+        return (response.result as Array<Shape & { memoryInGbs: Shape["memoryInGBs"] }>).map((i) => {
+            return {
+                ...i,
+                memoryInGBs: i.memoryInGbs,
+            };
+        });
     }
 
     public async getMdsBuckets(configProfile: string, compartmentId?: string): Promise<IBucketSummary[]> {
@@ -306,6 +320,33 @@ export class ShellInterfaceMhs {
                     filePath,
                 },
             },
+        });
+
+        return response.result;
+    }
+
+    public async getMdsNetworks(configProfile: string, compartmentId?: string): Promise<IVcn[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListNetworks,
+            parameters: { kwargs: { configProfile, compartmentId, returnFormatted: false } },
+        });
+
+        return response.result;
+    }    
+
+    public async getMdsSubnets(configProfile: string, networkId?: string): Promise<ISubnet[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListSubnets,
+            parameters: { kwargs: { configProfile, networkId, returnFormatted: false, interactive: false } },
+        });
+
+        return response.result;
+    }
+
+    public async getRegions(): Promise<IRegion[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGetRegions,
+            parameters: { args: { } },
         });
 
         return response.result;

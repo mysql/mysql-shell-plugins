@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 50 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,-63,-4)">
+        <g id="Info">
+        </g>
+        <g id="Warning" transform="matrix(0.989464,0,0,0.986721,-1007.56,-1458.87)">
+            <g transform="matrix(1.44586,0,0,1.23844,-513.26,-370.323)">
+                <path d="M1120.78,1498.6L1137.55,1532.15L1104,1532.15L1120.78,1498.6Z" style="fill:rgb(255,223,0);stroke:black;stroke-width:1.5px;"/>
+            </g>
+            <g transform="matrix(1,0,0,1,-123.349,36.4407)">
+                <path d="M1232.57,1462.87L1232.11,1479.53L1228.97,1479.53L1228.52,1462.87L1232.57,1462.87ZM1230.58,1487C1229.87,1487 1229.29,1486.78 1228.82,1486.34C1228.36,1485.9 1228.12,1485.34 1228.12,1484.68C1228.12,1484.02 1228.36,1483.46 1228.82,1483.02C1229.29,1482.58 1229.87,1482.36 1230.58,1482.36C1231.28,1482.36 1231.86,1482.58 1232.33,1483.02C1232.79,1483.46 1233.02,1484.02 1233.02,1484.68C1233.02,1485.34 1232.79,1485.9 1232.33,1486.34C1231.86,1486.78 1231.28,1487 1230.58,1487Z" style="fill-rule:nonzero;"/>
+            </g>
+        </g>
+    </g>
+</svg>

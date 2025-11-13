@@ -22,7 +22,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* eslint-disable @typescript-eslint/naming-convention */
 
 import { Component, ComponentChild, ComponentType } from "preact";
 import { lazy, Suspense } from "preact/compat";
@@ -34,6 +33,10 @@ const ApplicationHost = lazy(async () => {
     return import("./ApplicationHost.js");
 });
 
+const MigrationSubApp = lazy(async () => {
+    return import("./MigrationSubApp/MigrationSubApp.js");
+});
+
 export const LoadingIndicator = (
     <ProgressIndicator
         indicatorWidth={100}
@@ -43,6 +46,11 @@ export const LoadingIndicator = (
 
 let Root: ComponentType;
 switch (appParameters.subApp) {
+    case "migration": {
+        Root = MigrationSubApp;
+        break;
+    }
+
     default: {
         Root = ApplicationHost;
         break;

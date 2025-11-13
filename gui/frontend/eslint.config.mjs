@@ -289,6 +289,10 @@ export default tslint.config(
                     },
                 },
                 {
+                    selector: "variable",
+                    format: ["camelCase", "PascalCase"], // allow MyComponent
+                },
+                {
                     selector: "class",
                     format: [
                         "PascalCase",

@@ -28,12 +28,13 @@ import { IProtocolGuiParameters } from "./ProtocolGui.js";
 import { IProtocolMdsParameters } from "./ProtocolMds.js";
 import { IProtocolMrsParameters } from "./ProtocolMrs.js";
 import { IProtocolMsmParameters } from "./ProtocolMsm.js";
+import { IProtocolMigrationParameters } from "./ProtocolMigration.js";
 
 // This file contains all interfaces describing response types for the various shell APIs.
 
 /** The mapping between an API name and the accepted parameters for it. */
 export interface IProtocolParameters extends IProtocolGuiParameters, IProtocolMdsParameters, IProtocolMrsParameters,
-    IProtocolMsmParameters {
+    IProtocolMsmParameters, IProtocolMigrationParameters {
     // For debugging only.
     "native": INativeShellRequest;
 

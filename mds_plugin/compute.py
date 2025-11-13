@@ -26,8 +26,43 @@
 # cSpell:ignore vnics, vnic, Paramiko, pkey, putfo, getfo, EX_CANTCREAT
 
 # from os import EX_CANTCREAT
+from typing import Optional
+from paramiko.sftp_client import SFTPClient
+from paramiko.transport import Transport
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration
+import socket
+
+# Ciphers are listed in order of preference
+ALLOWED_CIPHERS = [
+    "chacha20-poly1305@openssh.com",
+    "aes256-gcm",
+    "aes256-gcm@openssh.com",
+    "aes128-gcm",
+    "aes128-gcm@openssh.com",
+    "aes256-ctr",
+    "aes192-ctr",
+    "aes128-ctr"]
+
+DEPRECATED_CIPHERS = [
+    "aes256-cbc",
+    "aes192-cbc",
+    "aes128-cbc"]
+
+
+def get_preferred_cipher_list():
+    """Returns the valid ciphers to be used in SSH connections"""
+    preferred = Transport._preferred_ciphers
+    ciphers = []
+    for cipher in ALLOWED_CIPHERS:
+        if cipher in preferred:
+            ciphers.append(cipher)
+
+    for cipher in DEPRECATED_CIPHERS:
+        if cipher in preferred:
+            ciphers.append(cipher)
+
+    return ciphers
 
 
 class SshConnection:
@@ -35,7 +70,7 @@ class SshConnection:
 
     def __init__(
             self, username, host, private_key_file_path="~/.ssh/id_rsa",
-            private_key_passphrase=None):
+            private_key_passphrase=None, retry=True):
         """ Opens a ssh connection to the given host
 
         Args:
@@ -55,6 +90,34 @@ class SshConnection:
         # Get private key
         private_key_file_path = os.path.abspath(
             os.path.expanduser(private_key_file_path))
+
+        private_key = self._get_private_key(
+            private_key_file_path, private_key_passphrase)
+
+        self.client.set_missing_host_key_policy(
+            paramiko.AutoAddPolicy())
+        try:
+            self.client._transport = self._connect_transport(
+                host, username, private_key)
+
+        except Exception:
+            if not retry:
+                raise
+            # Wait 5 more seconds
+            time.sleep(5)
+            # Try again
+
+            # Attach the transport to the SSHClient
+            self.client._transport = self._connect_transport(
+                host, username, private_key)
+
+        self.stdin = None
+        self.stdout = None
+        self.stderr = None
+
+    def _get_private_key(self, private_key_file_path, private_key_passphrase):
+        import paramiko
+        private_key = None
 
         # Assume no passphrase
         try:
@@ -81,21 +144,25 @@ class SshConnection:
             private_key = paramiko.RSAKey.from_private_key(keyfile)
             keyfile.close()
 
-        self.client.set_missing_host_key_policy(
-            paramiko.AutoAddPolicy())
-        try:
-            self.client.connect(host, 22, username, pkey=private_key,
-                                passphrase=private_key_passphrase, timeout=10)
-        except Exception:
-            # Wait 5 more seconds
-            time.sleep(5)
-            # Try again
-            self.client.connect(host, 22, username, pkey=private_key,
-                                passphrase=private_key_passphrase, timeout=10)
+        return private_key
 
-        self.stdin = None
-        self.stdout = None
-        self.stderr = None
+    def _connect_transport(self, host, username, private_key):
+        import paramiko
+
+        # Create a socket and transport object manually to set ciphers
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(10)
+        sock.connect((host, 22))
+
+        # Create Transport with preferred ciphers using disabled_algorithms
+        transport = paramiko.Transport(sock)
+        transport.get_security_options().ciphers = get_preferred_cipher_list()
+
+        # Start the client and authenticate
+        transport.start_client()
+        transport.auth_publickey(username, private_key)
+
+        return transport
 
     def __enter__(self):
         return self
@@ -124,10 +191,16 @@ class SshConnection:
 
         return output
 
-    def executeAndSendOnStdin(self, command, stdin_text):
+    def executeAndSendOnStdin(self, command, stdin_text, on_output=None) -> tuple[bool, str]:
+        rc, buffer = self.executeWithStdin(
+            command, stdin_text, on_output=on_output)
+
+        return rc == 0, buffer
+
+    def executeWithStdin(self, command, stdin_text, on_output=None) -> tuple[int, str]:
         import time
 
-        success = False
+        rc = -1
         buffer = ""
 
         # Open channel
@@ -139,7 +212,7 @@ class SshConnection:
             # Execute shell and call import function
             chan.exec_command(command)
 
-            # Send password to stdin
+            # Send input to stdin
             chan.sendall(f"{stdin_text}\n".encode('utf-8'))
             chan.shutdown_write()
 
@@ -150,8 +223,11 @@ class SshConnection:
                 time.sleep(0.1)
 
                 if chan.recv_ready():
-                    buffer += chan.recv(
-                        read_buffer_size).decode('utf-8')
+                    output = chan.recv(read_buffer_size).decode("utf-8")
+                    if on_output:
+                        on_output(output)
+                    else:
+                        buffer += output
 
             # Ensure we gobble up all remaining data
             while True:
@@ -161,16 +237,22 @@ class SshConnection:
                     if not output and not chan.recv_ready():
                         break
                     else:
-                        buffer += output
+                        if on_output:
+                            on_output(output)
+                        else:
+                            buffer += output
 
                 except Exception:
                     continue
 
-            success = chan.recv_exit_status() == 0
+            rc = chan.recv_exit_status()
         finally:
             chan.close()
 
-        return success, buffer
+        return rc, buffer
+
+    def open_sftp(self) -> SFTPClient:
+        return self.client.open_sftp()
 
     def put_local_file(self, local_file_path, remote_file_path):
         sftp = self.client.open_sftp()
@@ -186,12 +268,32 @@ class SshConnection:
         finally:
             sftp.close()
 
-    def get_remote_file(self, remote_file_path, local_file_path):
-        sftp = self.client.open_sftp()
+    def get_remote_file(self, remote_file_path, local_file_path, sftp=None):
+        if not sftp:
+            owns_sftp = True
+            sftp = self.client.open_sftp()
+        else:
+            owns_sftp = False
         try:
             sftp.get(remotepath=remote_file_path, localpath=local_file_path)
         finally:
-            sftp.close()
+            if owns_sftp:
+                sftp.close()
+
+    def get_remote_file_contents(self, remote_file_path, sftp=None) -> bytes:
+        import io
+        if not sftp:
+            owns_sftp = True
+            sftp = self.client.open_sftp()
+        else:
+            owns_sftp = False
+        try:
+            f = io.BytesIO()
+            sftp.getfo(remotepath=remote_file_path, fl=f)
+        finally:
+            if owns_sftp:
+                sftp.close()
+        return f.getvalue()
 
     def get_remote_file_as_file_object(self, remote_file_path, file_object):
         sftp = self.client.open_sftp()
@@ -459,6 +561,8 @@ def get_instance_vcn_security_lists(**kwargs):
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
     return_python_object = kwargs.get("return_python_object", False)
 
+    import oci.exceptions
+
     # Get the active config, compartment and instance
     try:
         config = configuration.get_current_config(config=config)
@@ -466,8 +570,6 @@ def get_instance_vcn_security_lists(**kwargs):
             compartment_id=compartment_id, config=config)
         instance_id = configuration.get_current_instance_id(
             instance_id=instance_id, config=config)
-
-        import oci.exceptions
 
         try:
             instance = get_instance(
@@ -574,8 +676,8 @@ def add_ingress_port_to_security_lists(**kwargs):
         for sec_list in security_lists:
             for rule in sec_list.ingress_security_rules:
                 if rule.tcp_options is not None and \
-                    (rule.tcp_options.destination_port_range is not None and \
-                        port >= rule.tcp_options.destination_port_range.min and \
+                    (rule.tcp_options.destination_port_range is not None and
+                        port >= rule.tcp_options.destination_port_range.min and
                         port <= rule.tcp_options.destination_port_range.max) and \
                         rule.protocol == "6" and \
                         rule.source == "0.0.0.0/0":
@@ -899,7 +1001,7 @@ def get_instance_id(instance_name=None, compartment_id=None, config=None,
 
 
 @plugin_function('mds.get.computeInstancePublicIp')
-def get_instance_public_ip(**kwargs):
+def get_instance_public_ip(**kwargs) -> Optional[str]:
     """Returns the public ip of an instance
 
     If no name is given, it will prompt the user for the name.
@@ -988,6 +1090,98 @@ def get_instance_public_ip(**kwargs):
                             break
 
             return instance_ip
+        except oci.exceptions.ServiceError as e:
+            if raise_exceptions:
+                raise
+            print(f'Could not get the VNIC of {instance.display_name}\n'
+                  f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+    except ValueError as e:
+        if raise_exceptions:
+            raise
+        print(f"ERROR: {str(e)}")
+
+
+def get_instance_ips(**kwargs) -> tuple[str | None, str | None]:
+    """Returns the public and private ips of an instance
+
+    If no name is given, it will prompt the user for the name.
+
+    Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        instance_name (str): The name of the instance.
+        instance_id (str): The OCID of the instance
+        compartment_id (str): OCID of the compartment.
+        config (object): An OCI config object or None.
+        interactive (bool): Indicates whether to execute in interactive mode
+        raise_exceptions (bool): If set to true exceptions are raised
+
+    Returns:
+       The IP as string or None
+    """
+
+    instance_name = kwargs.get("instance_name")
+    instance_id = kwargs.get("instance_id")
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    # Get the active config, compartment and instance
+    try:
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+        instance_id = configuration.get_current_instance_id(
+            instance_id=instance_id, config=config)
+
+        import oci.exceptions
+
+        try:
+            instance = get_instance(
+                instance_name=instance_name, instance_id=instance_id,
+                compartment_id=compartment_id, config=config,
+                return_python_object=True)
+            if instance is None:
+                raise ValueError("No instance given."
+                                 "Operation cancelled.")
+
+            # Initialize the identity client
+            compute = core.get_oci_compute_client(config=config)
+
+            # Get all VNICs of the instance
+            try:
+                attached_vnics = oci.pagination.list_call_get_all_results(
+                    compute.list_vnic_attachments,
+                    instance_id=instance.id,
+                    compartment_id=compartment_id).data
+            except Exception as e:
+                raise Exception(
+                    "Cannot get VNICs of the given instance.\n"
+                    f"{str(e)}")
+
+            public_ip = None
+            private_ip = None
+            if attached_vnics:
+                virtual_network = core.get_oci_virtual_network_client(
+                    config=config)
+
+                for attached_vnic in attached_vnics:
+                    vnic = virtual_network.get_vnic(attached_vnic.vnic_id).data
+                    if vnic.public_ip:
+                        public_ip = vnic.public_ip
+                    if vnic.private_ip:
+                        private_ip = vnic.private_ip
+                    if public_ip and private_ip:
+                        break
+
+            return public_ip, private_ip
         except oci.exceptions.ServiceError as e:
             if raise_exceptions:
                 raise
@@ -2011,6 +2205,7 @@ def update_instance(instance_name=None, **kwargs):
     new_name = kwargs.get("name")
     interactive = kwargs.get("interactive", True)
 
+    import oci.exceptions
     # Get the active config and compartment
     try:
         config = configuration.get_current_config(config=config)
@@ -2018,7 +2213,6 @@ def update_instance(instance_name=None, **kwargs):
             compartment_id=compartment_id, config=config)
 
         import oci.core.models
-        import oci.exceptions
         import mysqlsh
 
         # Initialize the compute client
@@ -2097,6 +2291,7 @@ def execute_ssh_command(command=None, **kwargs):
     config = kwargs.get("config")
     interactive = kwargs.get("interactive", True)
 
+    import oci.exceptions
     # Get the active config, compartment and instance
     try:
         config = configuration.get_current_config(config=config)
@@ -2105,7 +2300,6 @@ def execute_ssh_command(command=None, **kwargs):
         instance_id = configuration.get_current_instance_id(
             instance_id=instance_id, config=config)
 
-        import oci.exceptions
         import mysqlsh
 
         if not interactive and command is None:

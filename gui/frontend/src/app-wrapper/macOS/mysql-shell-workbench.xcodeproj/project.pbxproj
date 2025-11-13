@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		1FCBDA362E2D96F4003381CC /* shell in Resources */ = {isa = PBXBuildFile; fileRef = 1FCBDA352E2D96F4003381CC /* shell */; };
 		1FCBDA382E2D96FE003381CC /* router in Resources */ = {isa = PBXBuildFile; fileRef = 1FCBDA372E2D96FE003381CC /* router */; };
+		1FE5078F2E95A0DA00DCF673 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE5078E2E95A0D200DCF673 /* Logger.swift */; };
+		1FE507932E95A19200DCF673 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE507922E95A18F00DCF673 /* Common.swift */; };
 		278C434725E53F900022840B /* DragTargetWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278C434125E53B9A0022840B /* DragTargetWebView.swift */; };
 		278E732C25615C4500BD5421 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278E732B25615C4500BD5421 /* AppDelegate.swift */; };
 		278E732E25615C4600BD5421 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 278E732D25615C4600BD5421 /* Assets.xcassets */; };
@@ -19,6 +21,8 @@
 /* Begin PBXFileReference section */
 		1FCBDA352E2D96F4003381CC /* shell */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shell; path = "mysql-shell-workbench/shell"; sourceTree = "<group>"; };
 		1FCBDA372E2D96FE003381CC /* router */ = {isa = PBXFileReference; lastKnownFileType = folder; name = router; path = "mysql-shell-workbench/router"; sourceTree = "<group>"; };
+		1FE5078E2E95A0D200DCF673 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		1FE507922E95A18F00DCF673 /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		278C434125E53B9A0022840B /* DragTargetWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragTargetWebView.swift; sourceTree = "<group>"; };
 		278E732825615C4500BD5421 /* MySQL Shell Workbench.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MySQL Shell Workbench.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		278E732B25615C4500BD5421 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -61,6 +65,8 @@
 		278E732A25615C4500BD5421 /* MySQL Shell Workbench */ = {
 			isa = PBXGroup;
 			children = (
+				1FE507922E95A18F00DCF673 /* Common.swift */,
+				1FE5078E2E95A0D200DCF673 /* Logger.swift */,
 				278E732B25615C4500BD5421 /* AppDelegate.swift */,
 				27A986AA25E65FE400B1A3CA /* Extensions.swift */,
 				278C434125E53B9A0022840B /* DragTargetWebView.swift */,
@@ -169,6 +175,8 @@
 				278E732C25615C4500BD5421 /* AppDelegate.swift in Sources */,
 				27A986AE25E6606F00B1A3CA /* Extensions.swift in Sources */,
 				278C434725E53F900022840B /* DragTargetWebView.swift in Sources */,
+				1FE507932E95A19200DCF673 /* Common.swift in Sources */,
+				1FE5078F2E95A0DA00DCF673 /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

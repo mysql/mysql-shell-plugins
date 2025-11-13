@@ -172,7 +172,9 @@ class RequestHandler(Thread):
             # dump stack trace to raw stderr
             import traceback
             import sys
-            sys.real_stderr.write(traceback.format_exc())
+            shell = mysqlsh.globals.shell
+            shell.log("error",
+                      f"Unhandled exception while handling request: {self._func.__name__}(): {traceback.format_exc()}")
             result = Response.exception(e)
         finally:
             if self._lock_session:

@@ -434,6 +434,7 @@ class SetPluginsTask(BaseTask):
         self.link_plugin('mrs_plugin')
         self.link_plugin('msm_plugin')
         self.link_plugin('util_plugin')
+        self.link_plugin('migration_plugin')
 
     def set_custom_config_folders(self) -> None:
         """Sets custom config folders for all servers"""
@@ -456,6 +457,8 @@ class SetPluginsTask(BaseTask):
                 path, "plugins", "msm_plugin"))
             create_symlink(self.get_repo_plugin_path('util_plugin'), os.path.join(
                 path, "plugins", "util_plugin"))
+            create_symlink(self.get_repo_plugin_path('migration_plugin'), os.path.join(
+                path, "plugins", "migration_plugin"))
 
 
 class SetMySQLServerTask(ShellTask):
@@ -592,10 +595,11 @@ class SetMySQLServerTask(ShellTask):
         if self.sandbox_deployed:
             self.shell_command_execute_cli(
                 ["--",
-                "dba", "kill-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
+                 "dba", "kill-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully stopped MySQL instance")
 
-            self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
+            self.shell_command_execute_cli(
+                ["--", "dba", "delete-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully deleted MySQL instance")
 
 

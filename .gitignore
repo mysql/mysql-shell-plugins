@@ -12,3 +12,7 @@
 **/.env.test.json
 **/port_*
 **/test-report
+
+internal/typings/mysqlsh/mysql.pyi
+internal/typings/mysqlsh/plugin_manager
+migration_plugin/pyrightconfig.json

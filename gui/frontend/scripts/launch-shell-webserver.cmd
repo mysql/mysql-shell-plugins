@@ -1,6 +1,6 @@
 rem!/bin/bash
 
-rem Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+rem Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 rem This program is free software; you can redistribute it and/or modify
 rem it under the terms of the GNU General Public License, version 2.0,
@@ -24,4 +24,4 @@ rem along with this program; if not, write to the Free Software Foundation, Inc.
 rem 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 set LOG_LEVEL=DEBUG2
-mysqlsh --py -e "gui.start.web_server(port=8000, single_instance_token='1234')"
+mysqlsh --py -e "gui.start.web_server(port=8000, secure={'tempCerts': True}, single_instance_token='1234')"

@@ -27,7 +27,7 @@
 
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, LoadBalancer, IBastionSummary,
-    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects,
+    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects, IVcn, ISubnet,
 } from "./Oci.js";
 import { IShellDictionary } from "./Protocol.js";
 
@@ -100,6 +100,10 @@ export enum ShellAPIMds {
     MdsUpdateHeatWaveCluster = "mds.update.heat_wave_cluster",
     /** Deletes the DbSystem with the given id */
     MdsDeleteHeatWaveCluster = "mds.delete.heat_wave_cluster",
+    /** Lists all networks of the given compartment */
+    MdsListNetworks = "mds.list.networks",
+    /** Lists all subnets of the given network */
+    MdsListSubnets = "mds.list.subnets",
     /** Lists load balancers */
     MdsListLoadBalancers = "mds.list.load_balancers",
     /** Lists object store buckets */
@@ -226,6 +230,8 @@ export interface IShellMdsGetAvailabilityDomainKwargs {
 export interface IShellMdsListCompartmentsKwargs {
     /** OCID of the parent compartment */
     compartmentId?: string;
+    /** Name of the compartment to list */
+    name?: string;
     /** Whether to include the tenancy as compartment */
     includeTenancy?: boolean;
     /** An OCI config object or None */
@@ -805,6 +811,42 @@ export interface IShellMdsDeleteHeatWaveClusterKwargs {
     raiseExceptions?: boolean;
 }
 
+export interface IShellMdsListNetworksKwargs {
+    /** Whether only public or private subnets should be considered */
+    publicSubnet?: boolean;
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** If set to true, a list object is returned. */
+    returnFormatted?: boolean;
+    /** Checks if the user has privileges for the subnet */
+    checkPrivileges?: boolean;
+}
+
+export interface IShellMdsListSubnetsKwargs {
+    /** The OCID of the parent network_id */
+    networkId?: string;
+    /** Whether only public subnets should be considered */
+    publicSubnet?: boolean;
+    /** The name if the availability_domain */
+    availabilityDomain?: string;
+    /** Whether to ignore the current network */
+    ignoreCurrentNetwork?: boolean;
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** Whether to query the user for input */
+    interactive?: boolean;
+    /** If set to true, a list object is returned. */
+    returnFormatted?: boolean;
+}
+
 export interface IShellMdsListLoadBalancersKwargs {
     /** OCID of the parent compartment */
     compartmentId?: string;
@@ -1161,6 +1203,8 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsCreateHeatWaveCluster]: { kwargs?: IShellMdsCreateHeatWaveClusterKwargs; };
     [ShellAPIMds.MdsUpdateHeatWaveCluster]: { kwargs?: IShellMdsUpdateHeatWaveClusterKwargs; };
     [ShellAPIMds.MdsDeleteHeatWaveCluster]: { kwargs?: IShellMdsDeleteHeatWaveClusterKwargs; };
+    [ShellAPIMds.MdsListNetworks]: { kwargs?: IShellMdsListNetworksKwargs; };
+    [ShellAPIMds.MdsListSubnets]: { kwargs?: IShellMdsListSubnetsKwargs; };
     [ShellAPIMds.MdsListLoadBalancers]: { kwargs?: IShellMdsListLoadBalancersKwargs; };
     [ShellAPIMds.MdsListBuckets]: { kwargs?: IShellMdsListBucketsKwargs; };
     [ShellAPIMds.MdsDeleteBucketObject]: { args: { name?: string; }; kwargs?: IShellMdsDeleteBucketObjectKwargs; };
@@ -1455,8 +1499,15 @@ export interface IMdsLakehouseMemoryStatus {
     memoryTotal: number;
 }
 
+export interface IRegion {
+    id: string,
+    name: string,
+    location: string,
+    regionKey: string
+};
+
 export interface IProtocolMdsResults {
-    [ShellAPIMds.MdsGetRegions]: {};
+    [ShellAPIMds.MdsGetRegions]: { result: IRegion[]; };
     [ShellAPIMds.MdsListConfigProfiles]: { result: IMdsProfileData[]; };
     [ShellAPIMds.MdsSetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsGetDefaultConfigProfile]: {};
@@ -1490,6 +1541,8 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsCreateHeatWaveCluster]: {};
     [ShellAPIMds.MdsUpdateHeatWaveCluster]: {};
     [ShellAPIMds.MdsDeleteHeatWaveCluster]: {};
+    [ShellAPIMds.MdsListNetworks]: { result: IVcn[]; };
+    [ShellAPIMds.MdsListSubnets]: { result: ISubnet[]; };
     [ShellAPIMds.MdsListLoadBalancers]: { result: LoadBalancer[]; };
     [ShellAPIMds.MdsListBastions]: { result: IBastionSummary[]; };
     [ShellAPIMds.MdsGetBastion]: { result: IBastionSummary; };

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2025, Oracle and/or its affiliates.
 
 # This OCI DevOps build specification file [1] generates a Software Bill of Materials (SBOM) of the repository.
 # The file is needed to run checks for third-party vulnerabilities and business approval according to Oracle’s GitHub policies.
@@ -85,6 +85,21 @@ steps:
       # Get the version
       version=$(cat VERSION | cut -d'=' -f2) && \
       ( cd gui/backend && \
+      files=$(find . -type f -regex ".*\(test.*requirements\|requirements.*test\|dev.*requirements\|requirements.*dev\).*\.txt") && \
+      if [ -n "$files" ]; then \
+        cdxgen -t python -o artifactSBOM.json --spec-version 1.4 \
+        --exclude "*{requirements,dev,test}*{requirements,dev,test}*.txt" --project-name $plugin --project-version $id --no-recurse
+      else \
+         cdxgen -t python -o artifactSBOM.json --spec-version 1.4 --project-name $plugin --project-version $id --no-recurse
+      fi ) \
+  - type: Command
+    name: "Generate SBOM for migration_plugin"
+    command: |
+      # Search the test or dev requirements files, so that test and dev py packages can be excluded in the generated SBOM
+      plugin=migration_plugin && \
+      # Get the version
+      version=$(cat VERSION | cut -d'=' -f2) && \
+      ( cd $plugin && \
       files=$(find . -type f -regex ".*\(test.*requirements\|requirements.*test\|dev.*requirements\|requirements.*dev\).*\.txt") && \
       if [ -n "$files" ]; then \
         cdxgen -t python -o artifactSBOM.json --spec-version 1.4 \

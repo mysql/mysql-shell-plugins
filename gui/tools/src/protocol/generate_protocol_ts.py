@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA"""
 
+from mysqlsh.plugin_manager import registrar  # cspell:ignore mysqlsh
 import datetime
 import os
 import re
@@ -28,7 +29,16 @@ from abc import ABC
 from pathlib import Path
 import typing
 
-from mysqlsh.plugin_manager import registrar  # cspell:ignore mysqlsh
+# Python annotations for return values are not considered for these
+# plugins, in general, new plugins will require return value annotations
+# so the interfaces required for TypeScript are automatically generated
+NON_ANNOTATED_PLUGINS = ["Gui", "Mds", "Mrs", "Msm", "Util"]
+
+# fmt: off
+import sys
+sys.path.append(os.path.dirname(__file__))
+import type_mapper
+# fmt: on
 
 BEGINNING_YEAR = 2020
 
@@ -109,6 +119,10 @@ parameter_types_bindings = {}
 #     }
 # }
 parameter_mapper_bindings = {}
+
+
+return_value_interfaces = {}
+return_value_bindings = {}
 
 nullable_bindings = {
     'Gui': {
@@ -296,6 +310,8 @@ class ProtocolBuilder:
             # ts_function.add_return_type(param)
 
         ts_function.add_bindings()
+        if self._plugin_name not in NON_ANNOTATED_PLUGINS:
+            ts_function.handle_return_value()
         self._generate()
 
     def _generate_protocol_bindings(self, bindings: dict) -> None:
@@ -410,12 +426,35 @@ class ProtocolBuilder:
 
         return output
 
+    def _generate_return_value_interfaces(self, function_interfaces: dict) -> None:
+        output = ""
+        for function in function_interfaces:
+            for interfaces in function_interfaces[function]:
+                output += interfaces
+
+        return output
+
+    def _generate_return_value_bindings(self, bindings: dict) -> None:
+        mappings = []
+        for func_name in bindings:
+            name_parts = re.sub(
+                "([a-z])([A-Z])", r"\1 \2", func_name).split(" ")
+            line = f"    [ShellAPI{name_parts[0]}.{func_name}]: "
+            if bindings[func_name] is None:
+                line += "{};"
+            else:
+                line += f"{{ result: {bindings[func_name]}; }};"
+            mappings.append(line)
+        return "\n".join(mappings)
+
     def _generate(self) -> None:
         """Generates the protocol files."""
 
         global protocol_bindings          # pylint: disable=invalid-name, global-variable-not-assigned
         global parameter_mapper_bindings  # pylint: disable=invalid-name, global-variable-not-assigned
         global parameter_types_bindings   # pylint: disable=invalid-name, global-variable-not-assigned
+        global return_value_interfaces    # pylint: disable=invalid-name, global-variable-not-assigned
+        global return_value_bindings      # pylint: disable=invalid-name, global-variable-not-assigned
 
         current_year = datetime.datetime.now().year
         years = f"{current_year}" if current_year == BEGINNING_YEAR else f"{BEGINNING_YEAR}, {current_year}"
@@ -442,6 +481,18 @@ class ProtocolBuilder:
 
         self._protocol_file_content = self._protocol_file_content.replace(
             "{__RESULTS__}", self._load_file_content("results_"))
+
+        if self._plugin_name not in NON_ANNOTATED_PLUGINS:
+            if self._plugin_name in return_value_interfaces:
+                plugin_definitions = return_value_interfaces[self._plugin_name].generate(
+                )
+                self._protocol_file_content += '\n'.join(
+                    plugin_definitions) + "\n"
+
+            value_mapping = self._generate_return_value_bindings(
+                return_value_bindings[self._plugin_name])
+            self._protocol_file_content = self._protocol_file_content + \
+                f"export interface IProtocol{self._plugin_name}Results {{\n{value_mapping}\n}}\n\n"
 
     def _load_file_content(self, prefix: str) -> str:
         """Loads the file content from the file."""
@@ -609,6 +660,8 @@ class TypeScriptFunction:
         self._plugin_name = plugin_name
         self._params: list[TypeScriptParameter] = []
         self._func_doc = definition.docs.brief
+        self._return_value = None
+        self._function = definition.function
 
         full_name = definition.fully_qualified_name
 
@@ -678,7 +731,7 @@ class TypeScriptFunction:
                 default_none,
                 required,
                 param['brief'],
-                param['options'])
+                param['options'] if 'options' in param else [])
         else:
             parameter = TypeScriptSimpleParameter(
                 self._plugin_name,
@@ -690,6 +743,40 @@ class TypeScriptFunction:
                 param['brief'])
 
         self._params.append(parameter)
+
+    def get_return_definitions(self):
+        global return_value_interfaces
+
+        if self._plugin_name not in return_value_interfaces:
+            return_value_interfaces[self._plugin_name] = type_mapper.PluginInterfaceRegistry(
+            )
+
+        return return_value_interfaces[self._plugin_name]
+
+    def add_return_type(self, return_type):
+        global return_value_bindings
+
+        if self._plugin_name not in return_value_bindings:
+            return_value_bindings[self._plugin_name] = {}
+
+        if self._ts_fully_qualified_name not in return_value_bindings[self._plugin_name]:
+            return_value_bindings[self._plugin_name][self._ts_fully_qualified_name] = {
+            }
+
+        return_value_bindings[self._plugin_name][self._ts_fully_qualified_name] = return_type
+
+    def handle_return_value(self) -> None:
+        """Adds the interfaces for the annotated return value"""
+        global return_value_bindings
+        global return_value_interfaces
+        try:
+            return_type = type_mapper.generate_ts_interfaces(
+                self._function, self.get_return_definitions())
+
+            self.add_return_type(return_type)
+        except Exception as e:
+            raise Exception(
+                f"Functions in the {self._plugin_name} require the return value annotated") from e
 
 
 def add_to_protocol_ts(definition: registrar.PluginRegistrar.FunctionData) -> None:

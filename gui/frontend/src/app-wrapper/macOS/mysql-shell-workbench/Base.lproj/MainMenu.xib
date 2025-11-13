@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23727" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24412" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23727"/>
-        <plugIn identifier="com.apple.WebKit2IBPlugin" version="23727"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24412"/>
+        <plugIn identifier="com.apple.WebKit2IBPlugin" version="24412"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -16,9 +16,14 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="MySQL_Shell_Workbench" customModuleProvider="target">
             <connections>
+                <outlet property="aboutMenuItem" destination="5kV-Vb-QxS" id="NVx-Dx-Z4H"/>
+                <outlet property="applicationMenu" destination="1Xt-HY-uBw" id="Qv0-Sw-3SF"/>
                 <outlet property="background" destination="UBA-bC-Bcr" id="QPo-Jd-Gli"/>
                 <outlet property="browser" destination="mrU-4l-7SC" id="tDM-Qx-KJm"/>
+                <outlet property="hideMenuItem" destination="Olw-nP-bQN" id="AWB-HZ-X3V"/>
+                <outlet property="preferencesMenuItem" destination="BOF-NM-1cW" id="D5r-3e-f3l"/>
                 <outlet property="progressIndicator" destination="IdU-tL-MZi" id="w2X-8w-OhK"/>
+                <outlet property="quitMenuItem" destination="4sb-4s-VLi" id="xKa-Ws-ERy"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
         </customObject>
@@ -165,6 +170,29 @@
                         </items>
                     </menu>
                 </menuItem>
+                <menuItem title="View" id="pTc-br-3d7">
+                    <attributedString key="attributedTitle"/>
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="View" id="5yO-fG-hU0">
+                        <items>
+                            <menuItem title="Zoom In" keyEquivalent="+" id="tl5-rO-be9">
+                                <connections>
+                                    <action selector="zoomInSender:" target="Voe-Tx-rLC" id="WEh-7o-Yhn"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Zoom Out" keyEquivalent="-" id="NMv-Nb-EPw">
+                                <connections>
+                                    <action selector="zoomOutWithSender:" target="Voe-Tx-rLC" id="e7w-Z7-ODD"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Actual Size" keyEquivalent="0" id="Tdi-Ob-FbR">
+                                <connections>
+                                    <action selector="actualSizeWithSender:" target="Voe-Tx-rLC" id="RVH-oQ-ruR"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
                 <menuItem title="Window" id="aUF-d1-5bR">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Window" systemMenu="window" id="Td7-aD-5lo">
@@ -209,7 +237,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="812" height="679"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="3840" height="1595"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="3840" height="1589"/>
             <view key="contentView" id="EiT-Mj-1SZ">
                 <rect key="frame" x="0.0" y="0.0" width="812" height="679"/>
                 <autoresizingMask key="autoresizingMask"/>

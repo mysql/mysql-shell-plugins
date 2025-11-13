@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -187,7 +187,7 @@ def format_load_balancer_listing(items, current=None) -> str:
     return out
 
 
-@plugin_function('mds.list.networks')
+@plugin_function('mds.list.networks', shell=True, cli=False, web=True)
 def list_networks(**kwargs):
     """Lists all networks of the given compartment
 
@@ -199,6 +199,7 @@ def list_networks(**kwargs):
             considered
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         return_formatted (bool): If set to true, a list object is returned.
         check_privileges (bool): Checks if the user has privileges for the
             subnet
@@ -209,12 +210,14 @@ def list_networks(**kwargs):
     public_subnet = kwargs.get("public_subnet")
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
     return_formatted = kwargs.get("return_formatted", True)
     check_privileges = kwargs.get("check_privileges", False)
 
     # Get the active config and compartment
     try:
-        config = configuration.get_current_config(config=config)
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
 
@@ -401,7 +404,7 @@ def get_network(**kwargs):
         print(f'ERROR: {e}')
 
 
-@plugin_function('mds.list.subnets')
+@plugin_function('mds.list.subnets', shell=True, cli=False, web=True)
 def list_subnets(**kwargs):
     """Lists all subnets of the given network
 
@@ -415,6 +418,7 @@ def list_subnets(**kwargs):
         ignore_current_network (bool): Whether to ignore the current network
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         interactive (bool): Whether to query the user for input
         return_formatted (bool): If set to true, a list object is returned.
 
@@ -428,12 +432,14 @@ def list_subnets(**kwargs):
     ignore_current_network = kwargs.get("ignore_current_network")
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
     interactive = kwargs.get("interactive", True)
     return_formatted = kwargs.get("return_formatted", True)
 
     # Get the active config and compartment
     try:
-        config = configuration.get_current_config(config=config)
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile)
         # compartment_id = configuration.get_current_compartment_id(
         #     compartment_id=compartment_id, config=config)
         if not ignore_current_network:
@@ -650,7 +656,7 @@ def get_subnet(**kwargs):
         return
 
 
-@plugin_function('mds.list.loadBalancers', shell=True, cli=True, web=True)
+@plugin_function('mds.list.loadBalancers', shell=True, cli=False, web=True)
 def list_load_balancers(**kwargs):
     """Lists load balancers
 

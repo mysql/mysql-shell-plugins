@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -43,9 +43,15 @@ def get_interactive_default():
     return mysqlsh.globals.shell.options.useWizards
 
 
-def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
-                         item_name_property=None, given_value=None,
-                         print_list=False, allow_multi_select=False):
+def prompt_for_list_item(
+    item_list,
+    prompt_caption,
+    prompt_default_value="",
+    item_name_property=None,
+    given_value=None,
+    print_list=False,
+    allow_multi_select=False,
+):
     """Lets the use choose and item from a list
 
     When prompted, the user can either provide the index of the item or the
@@ -111,18 +117,22 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
     # Let the user choose from the list
     while len(selected_items) == 0:
         # Prompt the user for specifying an item
-        prompt = mysqlsh.globals.shell.prompt(
-            prompt_caption, {'defaultValue': prompt_default_value}
-        ).strip().lower()
+        prompt = (
+            mysqlsh.globals.shell.prompt(
+                prompt_caption, {"defaultValue": prompt_default_value}
+            )
+            .strip()
+            .lower()
+        )
 
-        if prompt == '':
+        if prompt == "":
             return None
         # If the user typed '*', return full list
         if allow_multi_select and prompt == "*":
             return item_list
 
         if allow_multi_select:
-            prompt_items = prompt.split(',')
+            prompt_items = prompt.split(",")
         else:
             prompt_items = [prompt]
 
@@ -157,7 +167,7 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
                         selected_items.append(selected_item)
 
         except (ValueError, IndexError):
-            msg = f'The item {prompt} was not found. Please try again'
+            msg = f"The item {prompt} was not found. Please try again"
             if prompt_default_value == "":
                 msg += " or leave empty to cancel the operation.\n"
             else:
@@ -190,176 +200,125 @@ def prompt(message, options=None):
     return mysqlsh.globals.shell.prompt(message, options)
 
 
+def get_oci_retry_strategy(candidate_strategy=None):
+    if candidate_strategy:
+        return candidate_strategy
+
+    import oci.retry
+
+    if oci.retry.GLOBAL_RETRY_STRATEGY and not isinstance(oci.retry.GLOBAL_RETRY_STRATEGY, oci.retry.NoneRetryStrategy):
+        return oci.retry.GLOBAL_RETRY_STRATEGY
+
+    return oci.retry.DEFAULT_RETRY_STRATEGY
+
+
+def get_oci_client(klass, config, retry_strategy=None):
+    client = klass(
+        config=config,
+        retry_strategy=get_oci_retry_strategy(retry_strategy),
+        signer=config.get("signer"),
+    )
+
+    # Set a custom endpoint if given
+    endpoint = config.get("endpoint")
+    if endpoint:
+        client.base_client.endpoint = endpoint
+
+    return client
+
+
 def get_oci_compute_client(config):
     import oci.core
 
-    compute = oci.core.ComputeClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        compute.base_client.endpoint = endpoint
-
-    return compute
+    return get_oci_client(oci.core.ComputeClient, config)
 
 
-def get_oci_identity_client(config):
+def get_oci_identity_client(config, retry_strategy=None):
     import oci.identity
 
-    identity = oci.identity.IdentityClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        identity.base_client.endpoint = endpoint
-
-    return identity
+    return get_oci_client(oci.identity.IdentityClient, config, retry_strategy)
 
 
 def get_oci_object_storage_client(config):
-    import oci.mysql
+    import oci.object_storage
 
-    os_client = oci.object_storage.ObjectStorageClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
+    return get_oci_client(oci.object_storage.ObjectStorageClient, config)
 
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        os_client.base_client.endpoint = endpoint
 
-    return os_client
+def get_oci_block_storage_client(config):
+    import oci.core
+
+    return get_oci_client(oci.core.BlockstorageClient, config)
 
 
 def get_oci_virtual_network_client(config):
     import oci.core
 
-    virtual_network = oci.core.VirtualNetworkClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        virtual_network.base_client.endpoint = endpoint
-
-    return virtual_network
+    return get_oci_client(oci.core.VirtualNetworkClient, config)
 
 
 def get_oci_load_balancer_client(config):
     import oci.load_balancer
 
-    load_balancer_cl = oci.load_balancer.LoadBalancerClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        load_balancer_cl.base_client.endpoint = endpoint
-
-    return load_balancer_cl
+    return get_oci_client(oci.load_balancer.LoadBalancerClient, config)
 
 
 def get_oci_mds_client(config):
     import oci.mysql
 
     # cSpell:ignore Mysqlaas
-    mds_client = oci.mysql.MysqlaasClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        mds_client.base_client.endpoint = endpoint
-
-    return mds_client
+    return get_oci_client(oci.mysql.MysqlaasClient, config)
 
 
 def get_oci_db_system_client(config):
     import oci.mysql
 
-    db_sys = oci.mysql.DbSystemClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        db_sys.base_client.endpoint = endpoint
-
-    return db_sys
+    return get_oci_client(oci.mysql.DbSystemClient, config)
 
 
-def get_oci_work_requests_client(config):
+def get_oci_mysql_channels_client(config):
     import oci.mysql
 
-    req_client = oci.mysql.WorkRequestsClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
+    return get_oci_client(oci.mysql.ChannelsClient, config)
 
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        req_client.base_client.endpoint = endpoint
 
-    return req_client
+def get_oci_db_backups_client(config):
+    import oci.mysql
 
+    return get_oci_client(oci.mysql.DbBackupsClient, config)
+
+
+def get_oci_mysql_work_requests_client(config):
+    import oci.mysql
+
+    return get_oci_client(oci.mysql.WorkRequestsClient, config)
 
 
 def get_oci_bastion_client(config):
     import oci.bastion
 
-    bastion_client = oci.bastion.BastionClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        bastion_client.base_client.endpoint = endpoint
-
-    return bastion_client
+    return get_oci_client(oci.bastion.BastionClient, config)
 
 
 def get_oci_instance_agent_client(config):
     import oci.compute_instance_agent
 
-    instance_agent_client = oci.compute_instance_agent.PluginClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        instance_agent_client.base_client.endpoint = endpoint
-
-    return instance_agent_client
+    return get_oci_client(oci.compute_instance_agent.PluginClient, config)
 
 
-def get_oci_instance_agent_client(config):
-    import oci.compute_instance_agent
+def get_oci_work_requests_client(config):
+    import oci.work_requests
 
-    instance_agent_client = oci.compute_instance_agent.PluginClient(
-        config=config, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY,
-        signer=config.get("signer"))
-
-    # Set a custom endpoint if given
-    endpoint = config.get("endpoint")
-    if endpoint:
-        instance_agent_client.base_client.endpoint = endpoint
-
-    return instance_agent_client
+    return get_oci_client(oci.work_requests.WorkRequestClient, config)
 
 
-def return_oci_object(oci_object, return_formatted=False,
-                      return_python_object=False, format_function=None,
-                      current=None):
+def return_oci_object(
+    oci_object,
+    return_formatted=False,
+    return_python_object=False,
+    format_function=None,
+    current=None,
+):
     """Returns the given OCI object in various formats
 
     Args:
@@ -385,8 +344,7 @@ def return_oci_object(oci_object, return_formatted=False,
         return oci.util.to_dict(oci_object)
 
 
-def oci_object(oci_object, return_type=RETURN_DICT, format_function=None,
-               current=None):
+def oci_object(oci_object, return_type=RETURN_DICT, format_function=None, current=None):
     """Returns the given OCI object in various formats
 
     Args:
@@ -436,15 +394,18 @@ def fixed_len(s, length, append=None, no_linebreaks=False, align_right=False):
     """
 
     if not s:
-        return " " * length + append if append else ''
+        return " " * length + append if append else ""
 
     if no_linebreaks:
-        s = s.replace('\n', ' ').replace('\r', '')
+        s = s.replace("\n", " ").replace("\r", "")
 
-    s = f"{s[:length-2]}.." if len(s) > length else \
-        s.rjust(length, ' ') if align_right else s.ljust(length, ' ')
+    s = (
+        f"{s[:length-2]}.."
+        if len(s) > length
+        else s.rjust(length, " ") if align_right else s.ljust(length, " ")
+    )
 
-    return s + append if append else ''
+    return s + append if append else ""
 
 
 def get_current_session(session=None):
@@ -465,7 +426,8 @@ def get_current_session(session=None):
             raise Exception(
                 "MySQL session not specified. Please either pass a session "
                 "object when calling the function or open a database "
-                "connection in the MySQL Shell first.")
+                "connection in the MySQL Shell first."
+            )
     return session
 
 

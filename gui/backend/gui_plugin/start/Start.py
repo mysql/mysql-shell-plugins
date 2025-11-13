@@ -45,6 +45,7 @@ from mysqlsh.plugin_manager import \
 import gui_plugin.core.Logger as logger
 from gui_plugin.core import Filtering
 from gui_plugin.core.Certificates import is_shell_web_certificate_installed
+from gui_plugin.core.lib import certs
 from gui_plugin.core.lib import SystemUtils
 from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
@@ -75,6 +76,7 @@ def web_server(port=None, secure=None, webrootpath=None,
     Allowed options for secure:
         keyfile (str): The path to the server private key file
         certfile (str): The path to the server certificate file
+        tempCerts (bool): Creates temporary self signed certs and uses them
 
     Returns:
         Nothing
@@ -103,12 +105,14 @@ def web_server(port=None, secure=None, webrootpath=None,
         logger.info('Token read from STDIN')
 
     if platform.system() == 'Darwin':
-        result = subprocess.run(['ulimit', '-a'], stdout=subprocess.PIPE, check=False)
+        result = subprocess.run(
+            ['ulimit', '-a'], stdout=subprocess.PIPE, check=False)
         logger.debug(f"ULIMIT:\n{result.stdout.decode('utf-8')}")
 
     # Start the web server
     logger.info('Starting MySQL Shell GUI web server...')
 
+    tmp_certs_path = None
     server = None
     try:
         core_path = os.path.abspath(os.path.join(
@@ -146,16 +150,24 @@ def web_server(port=None, secure=None, webrootpath=None,
 
             default_cert_used = False
             if type(secure) is dict:
-                if 'keyfile' not in secure or secure['keyfile'] == "default":
-                    default_cert_used = True
-                    secure['keyfile'] = path.join(*[
-                        cert_path,
-                        'server.key'])
-                if 'certfile' not in secure or secure['certfile'] == "default":
-                    default_cert_used = True
-                    secure['certfile'] = path.join(*[
-                        cert_path,
-                        'server.crt'])
+                if secure.get('tempCerts', False):
+                    tmp_certs_path = tempfile.mkdtemp()
+                    if certs.management.create_certificate(tmp_certs_path):
+                        secure = {
+                            'certfile': os.path.join(tmp_certs_path, 'server.crt'),
+                            'keyfile': os.path.join(tmp_certs_path, 'server.key')
+                        }
+                else:
+                    if 'keyfile' not in secure or secure['keyfile'] == "default":
+                        default_cert_used = True
+                        secure['keyfile'] = path.join(*[
+                            cert_path,
+                            'server.key'])
+                    if 'certfile' not in secure or secure['certfile'] == "default":
+                        default_cert_used = True
+                        secure['certfile'] = path.join(*[
+                            cert_path,
+                            'server.crt'])
             else:
                 raise ValueError('If specified, the secure parameter need to '
                                  'be of type dict')
@@ -212,7 +224,8 @@ def web_server(port=None, secure=None, webrootpath=None,
             logger.info(f"\tPort: {port}")
             logger.info(f"\tSecure: {'version' in dir(server.socket)}")
             logger.info(f"\tWebroot: {webrootpath}")
-            logger.info(f"\tAccept remote connections: {accept_remote_connections}")
+            logger.info(
+                f"\tAccept remote connections: {accept_remote_connections}")
             if server.single_instance_token is not None:
                 mode = 'Single user'
             elif server.single_server is not None:
@@ -238,6 +251,9 @@ def web_server(port=None, secure=None, webrootpath=None,
     except KeyboardInterrupt:  # pragma: no cover
         logger.info('^C received, shutting down server')
     finally:
+        if tmp_certs_path:
+            shutil.rmtree(tmp_certs_path)
+
         if server:
             server.socket.close()
 

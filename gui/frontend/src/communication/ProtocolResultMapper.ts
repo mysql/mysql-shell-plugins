@@ -30,10 +30,11 @@ import { IProtocolGuiResults, IShellProfile } from "./ProtocolGui.js";
 import { IProtocolMdsResults } from "./ProtocolMds.js";
 import { IProtocolMrsResults } from "./ProtocolMrs.js";
 import { IProtocolMsmResults } from "./ProtocolMsm.js";
+import { IProtocolMigrationResults } from "./ProtocolMigration.js";
 
 /** The mapping between an API name and the results sent by it (held in the `event.data` member). */
 export interface IProtocolResults extends IProtocolGuiResults, IProtocolMdsResults, IProtocolMrsResults,
-    IProtocolMsmResults {
+    IProtocolMsmResults, IProtocolMigrationResults {
     // For debugging only.
     "native": INativeShellResponse;
 

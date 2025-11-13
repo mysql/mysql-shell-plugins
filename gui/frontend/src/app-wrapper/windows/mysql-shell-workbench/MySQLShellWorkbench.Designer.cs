@@ -60,10 +60,11 @@ namespace MySQLShellWorkbench {
       this.webView.Size = new System.Drawing.Size(1200, 991);
       this.webView.TabIndex = 0;
       this.webView.ZoomFactor = 1D;
+      this.webView.CoreWebView2InitializationCompleted += new System.EventHandler<Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs>(this.WebView2Control_CoreWebView2InitializationCompleted);
+      this.webView.WebMessageReceived += new System.EventHandler<Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs>(this.WebView_WebMessageReceived);
       // 
       // menuStrip1
       // 
-      this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
       this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
       this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.helpToolStripMenuItem});
@@ -106,8 +107,12 @@ namespace MySQLShellWorkbench {
       this.ForeColor = System.Drawing.SystemColors.ControlText;
       this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.MainMenuStrip = this.menuStrip1;
+      this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
       this.Name = "MySQLShellWorkbench";
       this.Text = "MySQL Shell Workbench";
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MySQLShellWorkbench_FormClosing);
+      this.Load += new System.EventHandler(this.MySQLShellWorkbench_Load);
+      this.Shown += new System.EventHandler(this.MySQLShellWorkbench_Shown);
       ((System.ComponentModel.ISupportInitialize)(this.webView)).EndInit();
       this.menuStrip1.ResumeLayout(false);
       this.menuStrip1.PerformLayout();

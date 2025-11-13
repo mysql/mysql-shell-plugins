@@ -59,6 +59,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { convertErrorToString, selectFileInBrowser, uuidBinary16Base64 } from "../../utilities/helpers.js";
 import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
 import { IToolbarItems } from "./index.js";
+import { AnimatedProgressIndicator } from "../../app-logic/MigrationSubApp/AnimatedProgressIndicator.js";
 
 export enum LakehouseNavigatorTab {
     Overview = "overview",
@@ -598,10 +599,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             </Container>
                             {!item.uploadComplete && item.bytesUploadedTotal !== undefined
                                 && item.fileSize !== undefined &&
-                                <Container className="progressBar loadingTaskItem stripesLoader"
-                                    style={{
-                                        backgroundPosition: itemProgress * -1.5,
-                                    }} />
+                                <AnimatedProgressIndicator progress={itemProgress * -1.5} />
                             }
                             {item.error !== undefined &&
                                 <Label id={`loadingTaskItemErrorLbl${index}`} className="error"

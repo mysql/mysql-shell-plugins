@@ -115,6 +115,16 @@ import ociLoadBalancerIcon from "../assets/images/oci/ociLoadBalancer.svg";
 import ociProfileIcon from "../assets/images/oci/ociProfile.svg";
 import ociProfileCurrentIcon from "../assets/images/oci/ociProfileCurrent.svg";
 
+import ociArchSiteToSiteVPNIcon from "../assets/images/oci/siteToSiteVPN.svg";
+import ociArchEncryptionIcon from "../assets/images/oci/encryption.svg";
+import ociArchComputeIcon from "../assets/images/oci/compute.svg";
+import ociArchBucketIcon from "../assets/images/oci/bucket.svg";
+import ociArchObjectStorageIcon from "../assets/images/oci/objectStorage.svg";
+import ociArchDatabaseIcon from "../assets/images/oci/database.svg";
+import ociArchMySQLHeatWaveIcon from "../assets/images/oci/mysqlHeatwave.svg";
+import ociArchMySQLDbSystemIcon from "../assets/images/oci/mysqlDbSystem.svg";
+import ociArchUserIcon from "../assets/images/oci/user.svg";
+
 import routerIcon from "../assets/images/router/router.svg";
 import routersIcon from "../assets/images/router/routers.svg";
 
@@ -134,6 +144,13 @@ import newNotebookIcon from "../assets/images/newNotebook.svg";
 import newScriptIcon from "../assets/images/newScript.svg";
 import scriptIcon from "../assets/images/script.svg";
 import scriptingIcon from "../assets/images/scripting.svg";
+
+import databaseCloudInstance from "../assets/images/database-cloud-instance.svg";
+import databaseInstance from "../assets/images/database-instance.svg";
+import infoBig from "../assets/images/info-big.svg";
+import infoNetwork from "../assets/images/info-network.svg";
+import unavailable from "../assets/images/unavailable.svg";
+import warningBig from "../assets/images/warning-big.svg";
 
 // Toolbars.
 import autoCommitActiveIcon from "../assets/images/toolbar/toolbar-auto_commit-active.svg";
@@ -370,6 +387,18 @@ export class Assets {
         profileCurrentIcon: ociProfileCurrentIcon,
     };
 
+    public static ociArchitecture = {
+        bucketIcon: ociArchBucketIcon,
+        computeIcon: ociArchComputeIcon,
+        databaseIcon: ociArchDatabaseIcon,
+        encryptionIcon: ociArchEncryptionIcon,
+        mysqlDbSystemIcon: ociArchMySQLDbSystemIcon,
+        mysqlHeatWaveIcon: ociArchMySQLHeatWaveIcon,
+        objectStorageIcon: ociArchObjectStorageIcon,
+        siteToSiteVPNIcon: ociArchSiteToSiteVPNIcon,
+        userIcon: ociArchUserIcon
+    };
+
     public static file = {
         defaultIcon,
         javascriptIcon,
@@ -550,5 +579,14 @@ export class Assets {
         nullIcon,
         vectorIcon,
         jsonIcon,
+    };
+
+    public static migration = {
+        databaseCloudInstance,
+        databaseInstance,
+        infoBig,
+        infoNetwork,
+        unavailable,
+        warningBig
     };
 }

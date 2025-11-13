@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="View">
+    </g>
+    <g id="network" transform="matrix(0.999988,0,0,0.999988,-877.99,-963.988)">
+        <g id="Info">
+            <path id="network1" serif:id="network" d="M892,980L882,980L882,976L884,976L884,978L892,978L892,976L894,976L894,978L902,978L902,976L904,976L904,980L894,980L894,982L892,982L892,980ZM890,984L896,984L896,990L890,990L890,984ZM892,986L892,988L894,988L894,986L892,986ZM880,968L886,968L886,974L880,974L880,968ZM882,970L882,972L884,972L884,970L882,970ZM890,968L896,968L896,974L890,974L890,968ZM892,970L892,972L894,972L894,970L892,970ZM900,968L906.001,968L906.001,974L900,974L900,968ZM902,970L902,972L904,972L904,970L902,970Z"/>
+        </g>
+    </g>
+    <g id="Tools">
+    </g>
+</svg>

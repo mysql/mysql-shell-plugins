@@ -1,0 +1,587 @@
+/*
+ * Copyright (c) 2025, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.migration-sub-app {
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    height: 100vh;
+    user-select: text;
+}
+
+.migration-sub-app .msg.input {
+    font-size: 14px;
+}
+
+.migration-sub-app .msg.button {
+    cursor: pointer;
+}
+
+.migration-sub-app .msg.button.disabled {
+    cursor: default;
+}
+
+.msg.popup .dropdownItem.with-min-height {
+    min-height: 25px;
+}
+
+#region-popup .msg.dialog .content p {
+    white-space: normal;
+}
+
+#backend-request-overlay .msg.progressIndicatorHost {
+    background: transparent;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+}
+
+.migration-sub-app h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.migration-sub-app .source-info {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 15px;
+    background: #E9EEF070;
+    border: 1px rgb(200, 200, 200) solid;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: normal;
+    grid-template-columns: 180px auto 200px !important;
+}
+
+.migration-sub-app .source-info .icon {
+    background: var(--icon-foreground);
+}
+
+.migration-sub-app .source {
+    align-self: center;
+    margin-right: 10px;
+}
+
+.migration-sub-app .content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.migration-sub-app .accordion .section {
+    margin-bottom: 20px;
+}
+
+#steps>div>div>div.caption>div {
+    gap: 15px;
+}
+
+.migration-sub-app .footer {
+    padding-top: 15px;
+    flex-shrink: 0;
+    padding-right: 0;
+}
+
+.migration-sub-app .footer-spacer {
+    width: 40px;
+}
+
+.tiles {
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.tile {
+    flex: 1;
+    color: var(--migration-tile-color);
+    padding: 16px;
+    border-radius: 10px;
+    opacity: 0.3;
+}
+
+.tile.active {
+    opacity: 1;
+}
+
+.tiles .tile h3 {
+    font-size: 72px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.tiles .tile h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.tile ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+/* .migration-sub-app .msg.progressIndicatorHost .circleBackground circle:nth-child(2) {
+    color: white;
+} */
+
+.migration-sub-app .accordion .header {
+    font-size: 18px;
+    padding: unset;
+}
+
+.migration-sub-app .accordion .header {
+    margin-bottom: 20px;
+}
+
+.migration-sub-app #steps.accordion .header::after {
+    content: "";
+    display: block;
+    width: 30px;
+    height: 3px;
+    background-color: var(--migration-steps-accordion-hr);
+    margin-top: 7px;
+}
+
+.migration-sub-app .accordion .caption {
+    font-size: 14px;
+    font-weight: unset;
+}
+
+.migration-sub-app .progressIndicatorHost {
+    background-color: transparent;
+    display: inline;
+    max-width: 50%;
+}
+
+.migration-sub-app .form .accordion .content {
+    margin-top: 0px;
+    margin-left: 15px;
+}
+
+.migration-sub-app .form #steps.accordion .content {
+    padding-right: 20px;
+}
+
+.form .accordion .content p {
+    font-size: 12px;
+}
+
+.form .accordion .content .database\.storageSizeGB .msg.button,
+.form .accordion .content .database\.heatWaveClusterSize .msg.button {
+    margin: 0px;
+    margin-top: 3px;
+}
+
+.form .accordion .content .msg.button,
+.form .accordion .content .msg.label,
+form .accordion .content .suffix {
+    font-size: 14px;
+    margin-left: 6px;
+}
+
+.msg.dropdown::after {
+    top: unset;
+}
+
+.platform {
+    max-width: 50%;
+}
+
+.msg.dropdown.database-source {
+    min-width: 300px;
+}
+
+.icon-loading {
+    -webkit-animation: spin 10s linear infinite;
+    -moz-animation: spin 10s linear infinite;
+    animation: spin 10s linear infinite;
+}
+
+@-moz-keyframes spin {
+    100% {
+        -moz-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+.icon-finished {
+    color: #18c32cff;
+}
+
+.icon-failed {
+    color: #c31818;
+}
+
+.icon-aborted {
+    color: #c31818;
+}
+
+.progress-wrapper.static {
+    width: 300px;
+    font-size: 12px;
+}
+
+.progress-wrapper.animated {
+    width: 300px;
+    font-size: 12px;
+}
+
+.progress-line {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.content.expanded .progress-wrapper.animated .animated-progress-indicator.progressBar.loadingTaskItem,
+.content.expanded .progress-wrapper.static .animated-progress-indicator.progressBar.loadingTaskItem {
+    top: unset;
+}
+
+.start-migration {
+    width: 250px;
+    margin-right: 0;
+}
+
+
+.oci-info {
+    /* margin-top: 20px; */
+}
+
+.oci-info-div {
+    /* gap: 30px; */
+}
+
+.form .accordion .content .input,
+.form .accordion .content .dropdown {
+    height: 30px;
+    /*max-width: 500px;*/
+}
+
+
+/* .oci-info .dropdown, */
+/* .heatwave-setup .dropdown, */
+.regions .dropdown {
+    width: 250px;
+}
+
+.form-element-detail {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 12px;
+}
+
+.target-options,
+.config-template,
+.vcn-bottom-row,
+/* .heatwave-setup, */
+.target-shapes,
+.dbsystem-options,
+.database\.shapeName,
+.hosting\.shapeName {
+    margin-top: 20px;
+}
+
+.ssh-ingress-source {
+    width: 50%;
+}
+
+.form-group.hosting\.publicSubnet\.id,
+.form-group.hosting\.vcnId {
+    width: 50%;
+}
+
+.oci-networking {
+    margin-left: 30px;
+    width: 50%;
+}
+
+.vcn-top-row,
+.vcn-bottom-row {
+    gap: 20px;
+}
+
+.new-network-info {
+    width: 50%;
+}
+
+.target-selection .dbsystem-options {
+    gap: 20px;
+}
+
+.database\.storageSizeGB,
+.form-group.database\.heatWaveClusterSize {
+    max-width: 150px;
+    flex-grow: 1;
+}
+
+.form-group.database\.heatWaveShapeName,
+.form-group.database\.enableHA {
+    flex-grow: 2;
+}
+
+.form-group.hosting\.privateSubnet\.id,
+.form-group.hosting\.networkCompartmentId,
+.form-group.hosting\.compartmentId {
+    width: 50%;
+}
+
+.frame-title {
+    font-size: 10px;
+}
+
+.admin-info {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.dbsystem-name,
+.dbsystem-emails {
+    width: 100%;
+}
+
+.admin-credential-item-first {
+    width: 50%;
+    margin-right: 10px;
+}
+
+.admin-credential-item {
+    width: 50%;
+    margin-left: 20px;
+}
+
+.network-options {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 10px 10px 20px 10px;
+    background: #EDF6F970;
+    border: 1px rgb(200, 200, 200) solid;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.admin-credentials {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 5px 10px 10px 10px;
+    background: #EDF6F970;
+    border: 1px rgb(200, 200, 200) solid;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: normal;
+    gap: 20px;
+}
+
+/* .config-template .dropdown, */
+.target-shapes .dropdown {
+    width: 530px;
+}
+
+.migration-sub-app .errors .error {
+    color: darkred;
+}
+
+.migration-sub-app .oci-sign-in .info {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.migration-sub-app .oci-sign-in .copy-url-link {
+    color: var(--textLink-foreground);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.migration-sub-app .issues {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.migration-sub-app .issues .issue,
+.migration-sub-app .issues .issue .description,
+.migration-sub-app .issues .issue .result,
+.migration-sub-app .issues .issue .objects,
+.migration-sub-app .issues .issue .choices {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.migration-sub-app .issues .issue-collapsed {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.migration-sub-app .issues .issue .msg.button,
+.migration-sub-app .issues .issue-collapsed .msg.button {
+    background-color: transparent;
+    border: 0;
+    color: var(--foreground);
+}
+
+.migration-sub-app .issues .issue-collapsed,
+.migration-sub-app .issues .issue {
+    border: 1px rgb(200, 200, 200) solid;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+.migration-sub-app .issues .issue .title .icon,
+.migration-sub-app .issues .issue-collapsed .title .icon {
+    font-size: 12px;
+}
+
+.migration-sub-app .issues .issue-collapsed .issue-collapsed-detail .issue-resolution {
+    color: var(--foreground);
+}
+
+.migration-sub-app .issues .issue-collapsed-detail {
+    margin-top: 5px;
+    margin-left: 15px;
+    color: #888;
+}
+
+
+.migration-sub-app .issues .issue-collapsed .title,
+.migration-sub-app .issues .issue .title {
+    font-weight: bold;
+    display: inline-block;
+}
+
+.migration-sub-app .issues .issue .check-id {
+    font-style: italic;
+}
+
+.migration-sub-app .issues .issue .objects .icon {
+    background: var(--icon-foreground);
+    margin-right: 3px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.migration-sub-app .issues .issue .choices .choice .msg.button {
+    width: 200px;
+}
+
+.input-error {
+    color: darkred;
+    font-size: 12px;
+}
+
+.input-warning {
+    color: rgb(202, 169, 2);
+    font-size: 12px;
+}
+
+.input-notice {
+    font-size: 12px;
+    font-style: bold italic;
+}
+
+.migration-type-radios {
+    gap: 20px;
+}
+
+.accordion .comment {
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.migration-sub-type {
+    margin-top: 20px;
+    margin-left: 10px;
+}
+
+.finalize-info {
+    margin: 10px;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    background-color: #88888805;
+    padding: 15px;
+    font-size: 12px;
+}
+
+.ready-notice {
+    background-color: #D0EAC1;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    border-radius: 10px;
+    color: #34363B;
+}
+
+.explanation {
+    font-size: 14px;
+}
+
+.form .accordion .content .explanation p {
+    font-size: 14px;
+}
+
+
+.migration-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.migration-preview-table td:first-child {
+    width: 100px;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.migration-preview-table td {
+    padding: 10px 0 0 20px;
+}
+
+.link-icon.codicon {
+    font-size: 10px;
+    height: 12px;
+    color: var(--textLink-foreground);
+}
+
+.short-line {
+    border-bottom-style: none;
+    width: 200px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}

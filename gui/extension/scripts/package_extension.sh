@@ -35,6 +35,8 @@
 #   $SHELL_PLUGINS_LOCATION/mds_plugin
 #   $SHELL_PLUGINS_LOCATION/mrs_plugin
 #   $SHELL_PLUGINS_LOCATION/msm_plugin
+#   $SHELL_PLUGINS_LOCATION/util_plugin
+#   $SHELL_PLUGINS_LOCATION/migration_plugin
 #
 # Note that if SHELL_VERSION is set in the environment, this script is
 # assumed to be run from PB2 without prompting the user to input the
@@ -161,6 +163,11 @@ if [ ! -d "$SHELL_PLUGINS_LOCATION/util_plugin" ]; then
     exit 1
 fi
 
+if [ ! -d "$SHELL_PLUGINS_LOCATION/migration_plugin" ]; then
+    echo "ERROR: The migration_plugin is missing from ~/.mysqlsh/plugins/"
+    exit 1
+fi
+
 if [ -z "${SHELL_VERSION}" ] && [ ! -d "packaging" ]; then
     echo "Setting up the packaging resources..."
     mkdir -p packaging/mysql-shell
@@ -246,6 +253,7 @@ for d in packaging/mysql-shell/*; do
         rm -Rf shell/lib/mysqlsh/plugins/mrs_plugin
         rm -Rf shell/lib/mysqlsh/plugins/msm_plugin
         rm -Rf shell/lib/mysqlsh/plugins/util_plugin
+        rm -Rf shell/lib/mysqlsh/plugins/migration_plugin
 
         echo "Copy plugins"
         cp -RL $SHELL_PLUGINS_LOCATION/gui_plugin shell/lib/mysqlsh/plugins/.
@@ -253,6 +261,7 @@ for d in packaging/mysql-shell/*; do
         cp -RL $SHELL_PLUGINS_LOCATION/mrs_plugin shell/lib/mysqlsh/plugins/.
         cp -RL $SHELL_PLUGINS_LOCATION/msm_plugin shell/lib/mysqlsh/plugins/.
         cp -RL $SHELL_PLUGINS_LOCATION/util_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $SHELL_PLUGINS_LOCATION/migration_plugin shell/lib/mysqlsh/plugins/.
 
         # Clean *.py[co] files and __pycache__ directories
         find shell/lib/mysqlsh/plugins -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete

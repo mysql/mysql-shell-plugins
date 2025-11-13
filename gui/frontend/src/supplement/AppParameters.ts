@@ -46,6 +46,10 @@ export const parseAppParameters = (): void => {
         for (const [queryParam, value] of search) {
             appParameters.set(queryParam, value);
 
+            if (queryParam === "subApp" && value === "migration") {
+                appParameters.hideStatusBar = true;
+            }
+
             if (queryParam === "app") {
                 appParameters.embedded = true;
                 appParameters.hideStatusBar = true;
@@ -67,6 +71,7 @@ export const parseAppParameters = (): void => {
     if (globalThis.testConfig) {
         appParameters.testsRunning = true;
     } else if (globalThis.VITE_MODE === "development") { // Will be replaced by Vite, but is not defined in tests.
+
         appParameters.inDevelopment = true;
     }
 

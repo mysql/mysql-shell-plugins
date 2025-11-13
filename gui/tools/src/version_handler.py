@@ -43,6 +43,8 @@ MRS_PLUGIN_GENERAL_PY_PATH = os.path.join(
     ROOT_PATH, 'mrs_plugin', 'lib', 'general.py')
 SCHEMA_PLUGIN_GENERAL_PY_PATH = os.path.join(
     ROOT_PATH, 'msm_plugin', 'lib', 'general.py')
+MIGRATION_PLUGIN_GENERAL_PY_PATH = os.path.join(
+    ROOT_PATH, 'migration_plugin', 'lib', 'general.py')
 REPO_VERSION = os.path.join(ROOT_PATH, 'VERSION')
 DOC_VERSION_PATH = os.path.join(
     ROOT_PATH, 'mrs_plugin', 'docs', 'VERSION')
@@ -171,6 +173,8 @@ update_plugin_version(MDS_PLUGIN_GENERAL_PY_PATH, target_e_version)
 update_plugin_version(MRS_PLUGIN_GENERAL_PY_PATH, target_e_version)
 
 update_plugin_version(SCHEMA_PLUGIN_GENERAL_PY_PATH, target_e_version)
+
+update_plugin_version(MIGRATION_PLUGIN_GENERAL_PY_PATH, target_e_version)
 
 # Adds a new entry on the CHANGE lgo for the new versions if needed
 cl_e_version, cl_s_version = get_current_version(

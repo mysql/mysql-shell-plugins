@@ -38,6 +38,9 @@ import { Button } from "../Button/Button.js";
 
 export interface IUpDownProperties<ValueType extends string | null | number | bigint | undefined>
     extends IComponentProperties {
+    id?: string;
+    disabled?: boolean;
+
     /** The minimal value that can be entered. For numeric values only. The items property is ignored then. */
     min?: number | bigint;
 
@@ -114,7 +117,8 @@ export class UpDown<ValueType extends string | null | number | bigint>
 
         this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
-        this.addHandledProperties("items", "min", "max", "onChange", "initialValue", "textAlignment", "innerRef");
+        this.addHandledProperties("items", "min", "max", "onChange", "initialValue", "textAlignment", "innerRef",
+            "id", "disabled");
     }
 
     public static override getDerivedStateFromProps(props: Readonly<IUpDownProperties<string | null | number | bigint>>,
@@ -147,14 +151,14 @@ export class UpDown<ValueType extends string | null | number | bigint>
     }
 
     public render(): ComponentChild {
-        const { textAlignment, placeholder } = this.props;
+        const { id, disabled, textAlignment, placeholder } = this.props;
         const { currentValue } = this.state;
 
         const className = this.getEffectiveClassNames(["upDown"]);
 
         const content = (
             <Input
-                id="upDownInput"
+                id={id ?? "upDownInput"}
                 autoFocus={true}
                 value={currentValue?.toString()}
                 onChange={this.handleInputChange}
@@ -162,6 +166,8 @@ export class UpDown<ValueType extends string | null | number | bigint>
                 onCancel={this.handleInputCancel}
                 textAlignment={textAlignment}
                 placeholder={placeholder?.toString()}
+                data-tooltip="inherit"
+                disabled={!!disabled}
             />
         );
 
@@ -177,6 +183,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
                     id="content"
                     key="upDownContent"
                     rowSpan={2}
+                    data-tooltip="inherit"
                 >
                     {content}
                 </GridCell>
@@ -207,7 +214,11 @@ export class UpDown<ValueType extends string | null | number | bigint>
     };
 
     private stepValue = (amount: number): void => {
-        const { onChange, placeholder } = this.props;
+        const { onChange, placeholder, disabled } = this.props;
+        if (disabled) {
+            return;
+        }
+
         const { missingInitialValue, currentValue } = this.state;
         let initialStepValue = currentValue;
 

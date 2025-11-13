@@ -39,7 +39,6 @@ interface IProps {
     placeholder?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const Wrapper = ({ initialValue, min, max, placeholder }: IProps) => {
     const [value, setValue] = useState(initialValue);
 

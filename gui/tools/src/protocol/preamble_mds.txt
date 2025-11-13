@@ -2,6 +2,6 @@
 
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, LoadBalancer, IBastionSummary,
-    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects,
+    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects, IVcn, ISubnet,
 } from "./Oci.js";
 import { IShellDictionary } from "./Protocol.js";

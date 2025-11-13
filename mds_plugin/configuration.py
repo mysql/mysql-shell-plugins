@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -35,6 +35,7 @@
 
 # cSpell:ignore saopaulo, Paulo, chuncheon, Vinhedo
 
+import os
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core
 from os import getenv
@@ -90,11 +91,10 @@ OCI_REGION_LIST = [
 
 
 def get_default_config_file_path():
-    import oci.config
-
     config_file_path = getenv("MYSQLSH_OCI_CONFIG_FILE")
     if config_file_path is None:
-        config_file_path = oci.config.DEFAULT_LOCATION
+        config_file_path = os.path.join(
+            os.path.expanduser("~"), ".oci", "config")
     return config_file_path
 
 

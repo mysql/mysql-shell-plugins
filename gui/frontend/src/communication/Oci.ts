@@ -33,6 +33,8 @@ import { type SessionSummary } from "../oci-typings/oci-bastion/lib/model/sessio
 
 import { Instance } from "../oci-typings/oci-core/lib/model/instance.js";
 import { Shape } from "../oci-typings/oci-core/lib/model/shape.js";
+import { Subnet } from "../oci-typings/oci-core/lib/model/subnet.js";
+import { Vcn } from "../oci-typings/oci-core/lib/model/vcn.js";
 
 import { Compartment } from "../oci-typings/oci-identity/lib/model/compartment.js";
 import { DbSystem } from "../oci-typings/oci-mysql/lib/model/db-system.js";
@@ -52,6 +54,8 @@ export type IBastion = Bastion;
 export type IMySQLDbSystemShapeSummary = ShapeSummary;
 export type IPortForwardingSessionTargetResourceDetails = PortForwardingSessionTargetResourceDetails;
 export type IBastionSession = Session;
+export type IVcn = Vcn
+export type ISubnet = Subnet;
 
 export interface ICompartment extends Compartment {
     isCurrent: boolean;

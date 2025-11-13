@@ -1,0 +1,22 @@
+{
+    "migration.databaseDiagram.background": "#e1dfdd",
+    "migration.location.background": "#F5F4F2",
+    "migration.border": "#9b9b9c",
+    "migration.productionDbCloud.background": "#e6d6c5",
+    "migration.productionDbCloud.border": "#b58e70",
+    "migration.export.arrow": "#f0d5c2",
+    "migration.data.arrow": "#f0d5c2",
+    "migration.export.color": "#ffffff",
+    "migration.import.arrow": "#f0d5c2",
+    "migration.import.color": "#ffffff",
+    "migration.mysqlReplication.arrow": "#c6b4bd",
+    "migration.mysqlReplication.color": "#ffffff",
+    "migration.productionDbLocal.background": "#cadfe8",
+    "migration.productionDbLocal.border": "#96cde5",
+    "migration.jumpHost.background": "#d4d2d9",
+    "migration.jumpHost.border": "#aEa6a0",
+    "migration.checkmark.color": "#ffffff",
+    "migration.tile.color": "#ffffff",
+    "migration.steps.accordion.hr": "#e3b950",
+    "migration.steps.noOciAccess.color": "red"
+}

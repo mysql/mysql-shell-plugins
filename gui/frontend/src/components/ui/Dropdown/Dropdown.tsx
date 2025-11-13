@@ -175,17 +175,17 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         let content = null;
         const childArray = collectVNodes<IDropdownItemProperties>(children);
         content = childArray.map((child): ComponentChild => {
-            let itemClassName = "";
             let checked = false;
 
-            const { id: childId, caption: childCaption, picture } = child.props;
+            const { id: childId, caption: childCaption, picture, className } = child.props;
+            let itemClassName = className ?? "";
             if (currentSelection?.has(childId!)) {
                 tags.push({ id: childId ?? "", caption: childCaption, picture });
                 checked = true;
             }
 
             if (defaultId && childId === defaultId) {
-                itemClassName = "default";
+                itemClassName += " default";
             }
 
             return cloneElement(child, {

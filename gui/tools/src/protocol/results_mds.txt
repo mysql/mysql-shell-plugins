@@ -270,8 +270,15 @@ export interface IMdsLakehouseMemoryStatus {
     memoryTotal: number;
 }
 
+export interface IRegion {
+    id: string,
+    name: string,
+    location: string,
+    regionKey: string
+};
+
 export interface IProtocolMdsResults {
-    [ShellAPIMds.MdsGetRegions]: {};
+    [ShellAPIMds.MdsGetRegions]: { result: IRegion[]; };
     [ShellAPIMds.MdsListConfigProfiles]: { result: IMdsProfileData[]; };
     [ShellAPIMds.MdsSetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsGetDefaultConfigProfile]: {};
@@ -305,6 +312,8 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsCreateHeatWaveCluster]: {};
     [ShellAPIMds.MdsUpdateHeatWaveCluster]: {};
     [ShellAPIMds.MdsDeleteHeatWaveCluster]: {};
+    [ShellAPIMds.MdsListNetworks]: { result: IVcn[]; };
+    [ShellAPIMds.MdsListSubnets]: { result: ISubnet[]; };
     [ShellAPIMds.MdsListLoadBalancers]: { result: LoadBalancer[]; };
     [ShellAPIMds.MdsListBastions]: { result: IBastionSummary[]; };
     [ShellAPIMds.MdsGetBastion]: { result: IBastionSummary; };

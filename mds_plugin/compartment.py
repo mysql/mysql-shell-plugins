@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -494,6 +494,7 @@ def list_compartments(**kwargs):
 
     Keyword Args:
         compartment_id (str): OCID of the parent compartment
+        name (str): Name of the compartment to list
         include_tenancy (bool): Whether to include the tenancy as compartment
         config (dict): An OCI config object or None
         config_profile (str): The name of an OCI config profile
@@ -506,6 +507,7 @@ def list_compartments(**kwargs):
     """
 
     compartment_id = kwargs.get("compartment_id")
+    name = kwargs.get("name")
     include_tenancy = kwargs.get("include_tenancy", compartment_id is None)
 
     config = kwargs.get("config")
@@ -514,6 +516,8 @@ def list_compartments(**kwargs):
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
     return_formatted = kwargs.get("return_formatted", interactive)
+
+    import oci.exceptions
 
     try:
         config = configuration.get_current_config(
@@ -537,6 +541,7 @@ def list_compartments(**kwargs):
         # List the compartments
         data = oci.pagination.list_call_get_all_results(
             identity.list_compartments,
+            name=name,
             compartment_id=compartment_id,
             access_level="ANY",
             compartment_id_in_subtree=full_subtree,
@@ -604,6 +609,8 @@ def get_compartment_by_id_func(compartment_id, **kwargs):
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
     return_formatted = kwargs.get("return_formatted", interactive)
+
+    import oci.exceptions
 
     # Get the active config and compartment
     try:
@@ -842,7 +849,9 @@ def create_compartment(**kwargs):
     parent_compartment_id = kwargs.get("parent_compartment_id")
     config = kwargs.get("config")
     return_object = kwargs.get("return_object", False)
-    interactive = kwargs.get("interactive", True)
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+
+    import oci.exceptions
 
     # Get the active config and compartment
     try:
@@ -889,12 +898,12 @@ def create_compartment(**kwargs):
         if return_object:
             return compartment
     except oci.exceptions.ServiceError as e:
-        if interactive:
+        if not interactive:
             raise
         print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
         return
     except (ValueError, oci.exceptions.ClientError) as e:
-        if interactive:
+        if not interactive:
             raise
         print(f'ERROR: {e}')
 
@@ -921,6 +930,8 @@ def delete_compartment(compartment_path=None, **kwargs):
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
     interactive = kwargs.get("interactive")
+
+    import oci.exceptions
 
     # Get the active config and compartment
     try:
@@ -956,12 +967,12 @@ def delete_compartment(compartment_path=None, **kwargs):
 
         return True
     except oci.exceptions.ServiceError as e:
-        if interactive:
+        if not interactive:
             raise
         print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
         return False
     except (ValueError, oci.exceptions.ClientError) as e:
-        if interactive:
+        if not interactive:
             raise
         print(f'ERROR: {e}')
         return False
@@ -992,7 +1003,7 @@ def update_compartment(compartment_path=None, **kwargs):
     description = kwargs.get("description")
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
-    interactive = kwargs.get("interactive", True)
+    interactive = kwargs.get("interactive", core.get_interactive_default())
 
     # Get the active config and compartment
     try:
@@ -1043,12 +1054,12 @@ def update_compartment(compartment_path=None, **kwargs):
 
         print(f"Compartment {compartment.name} is being updated.")
     except oci.exceptions.ServiceError as e:
-        if interactive:
+        if not interactive:
             raise
         print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
         return
     except (ValueError, oci.exceptions.ClientError) as e:
-        if interactive:
+        if not interactive:
             raise
         print(f'ERROR: {e}')
 
@@ -1074,7 +1085,7 @@ def list_availability_domains(**kwargs):
 
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
-    interactive = kwargs.get("interactive", True)
+    interactive = kwargs.get("interactive", core.get_interactive_default())
     return_formatted = kwargs.get("return_formatted", True)
 
     try:

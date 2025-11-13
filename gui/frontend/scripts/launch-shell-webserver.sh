@@ -50,4 +50,4 @@ else
 fi
 
 # Set log level and execute the command
-LOG_LEVEL=DEBUG2 mysqlsh --py -e "gui.start.web_server(port=8000,accept_remote_connections=True$OPTIONAL_PART)"
+LOG_LEVEL=DEBUG2 mysqlsh --log-level=debug --disable-builtin-plugins --py -e "gui.start.web_server(port=8000,accept_remote_connections=True$OPTIONAL_PART)"

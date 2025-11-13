@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild } from "preact";
+import { ComponentChild, createRef } from "preact";
 import { lazy, Suspense } from "preact/compat";
 
 import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
@@ -41,7 +41,6 @@ import { RunMode, webSession } from "../supplement/WebSession.js";
 import { LoadingIndicator } from "./LazyAppRouter.js";
 import { ui } from "./UILayer.js";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const CommunicationDebugger = lazy(async () => {
     return import("../components/CommunicationDebugger/CommunicationDebugger.js");
 });
@@ -64,6 +63,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     private debuggerStatusItem?: IStatusBarItem;
 
     private editorHost = <DocumentModule />;
+    private aboutBoxRef = createRef<AboutBox>();
 
     public constructor(props: IApplicationHostProperties) {
         super(props);
@@ -123,7 +123,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         if (settingsVisible) {
             pages.push(<SettingsEditor key="settingsEditor" />);
         } else if (aboutVisible) {
-            pages.push(<AboutBox />);
+            pages.push(<AboutBox ref={this.aboutBoxRef} onClose={this.handleAboutClose}/>);
         }
 
         let content = pages;
@@ -180,10 +180,15 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     private showAbout = (): Promise<boolean> => {
         return new Promise((resolve) => {
             this.setState({ aboutVisible: true, settingsVisible: false, debuggerVisible: false }, () => {
-                resolve(true);
+                this.aboutBoxRef.current?.show();
             });
         });
     };
+
+    private handleAboutClose = (): void => {
+        this.setState({ debuggerVisible: false, aboutVisible: false, settingsVisible: false });
+    };    
+
 
     private showPreferences = (): Promise<boolean> => {
         return new Promise((resolve) => {

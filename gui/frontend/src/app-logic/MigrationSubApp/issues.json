@@ -1,0 +1,204 @@
+[
+  {
+    "_class": "SubStepInfo",
+    "data": {
+      "serverInfo": {
+        "_class": "ServerInfo",
+        "dataSize": 7839563776,
+        "hostname": "alkojima-mac",
+        "license": "GPL",
+        "serverType": "mysql",
+        "version": "9.3.0",
+        "versionComment": "MySQL Community Server - GPL"
+      }
+    },
+    "errors": [],
+    "id": 1010,
+    "status": "FINISHED",
+    "values": {
+      "password": "",
+      "sourceUri": "root:@localhost"
+    }
+  },
+  {
+    "_class": "SubStepInfo",
+    "data": {},
+    "errors": [],
+    "id": 1020,
+    "status": "READY_TO_COMMIT",
+    "values": {
+      "type": "hot"
+    }
+  },
+  {
+    "_class": "SubStepInfo",
+    "data": {
+      "issues": [
+        {
+          "_class": "CheckResult",
+          "checkId": "user/no_password:USE_SKIP_INVALID_ACCOUNTS",
+          "choices": [
+            "lock_invalid_accounts",
+            "EXCLUDE_OBJECT"
+          ],
+          "description": "The following user accounts have no password and will be locked in the target MySQL.\n\n        The listed accounts have a blank password, which is not allowed in the\n        MySQL HeatWave Service. They will still be migrated, but they will\n        be created LOCKED and their password must be changed before they can\n        connect to MySQL.\n\n        You may also set a password before migrating or exclude the user from\n        being migrated.\n        ",
+          "level": 1,
+          "objects": [
+            "user:'root'@'%'",
+            "user:'root'@'localhost'"
+          ],
+          "result": "<li>User 'root'@'%' does not have a password set (fix this with 'skip_invalid_accounts' compatibility option)\n<li>User 'root'@'localhost' does not have a password set (fix this with 'skip_invalid_accounts' compatibility option)",
+          "title": "User Password Requirements"
+        },
+        {
+          "_class": "CheckResult",
+          "checkId": "user/restricted_grants:USE_STRIP_RESTRICTED_GRANTS",
+          "choices": [
+            "strip_restricted_grants",
+            "EXCLUDE_OBJECT"
+          ],
+          "description": "The following user accounts have GRANTs that are restricted and will be updated.\n\n        MySQL HeatWave Service restricts certain privileges from regular user accounts\n        so they will be removed from the grant list of accounts when created at\n        the target database. All other things will remain the same, including\n        password and remaining grants.\n        ",
+          "level": 1,
+          "objects": [
+            "user:'dev'@'%'"
+          ],
+          "result": "<li>User 'dev'@'%' is granted restricted privileges: ALLOW_NONEXISTENT_DEFINER, AUDIT_ABORT_EXEMPT, AUTHENTICATION_POLICY_ADMIN, BINLOG_ADMIN, BINLOG_ENCRYPTION_ADMIN, CLONE_ADMIN, CREATE TABLESPACE, CREATE_SPATIAL_REFERENCE_SYSTEM, ENCRYPTION_KEY_ADMIN, FILE, FIREWALL_EXEMPT, GROUP_REPLICATION_ADMIN, GROUP_REPLICATION_STREAM, INNODB_REDO_LOG_ARCHIVE, INNODB_REDO_LOG_ENABLE, OPTIMIZE_LOCAL_TABLE, PASSWORDLESS_USER_ADMIN, PERSIST_RO_VARIABLES_ADMIN, RELOAD, REPLICATION_SLAVE_ADMIN, RESOURCE_GROUP_ADMIN, RESOURCE_GROUP_USER, SENSITIVE_VARIABLES_OBSERVER, SERVICE_CONNECTION_ADMIN, SESSION_VARIABLES_ADMIN, SHUTDOWN, SUPER, SYSTEM_USER, SYSTEM_VARIABLES_ADMIN, TABLE_ENCRYPTION_ADMIN, TELEMETRY_LOG_ADMIN (fix this with 'strip_restricted_grants' compatibility option)",
+          "title": "Restricted Grants"
+        },
+        {
+          "_class": "CheckResult",
+          "checkId": "user/validation:WARNING",
+          "choices": [
+            "EXCLUDE_OBJECT"
+          ],
+          "description": "The following user accounts have roles that will not be migrated.\n\n        All such roles will not be granted to the migrated user accounts.\n        ",
+          "level": 2,
+          "objects": [
+            "user:'mysql_router_mrs1_2nmm3lkxx0lz'@'%'",
+            "user:'mysql_router_mrs1_76pb9h5vnqne'@'%'",
+            "user:'mysql_router_mrs1_8p4lnpjw7i5z'@'%'",
+            "user:'mysql_router_mrs1_hrnd8ex6qyk4'@'%'",
+            "user:'mysql_router_mrs1_j0i3panfduft'@'%'",
+            "user:'mysql_router_mrs1_k7zg7jxgdqvi'@'%'"
+          ],
+          "result": "<li>User 'mysql_router_mrs1_2nmm3lkxx0lz'@'%' has a grant statement on a role `mysql_rest_service_data_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_2nmm3lkxx0lz`@`%`)\n<li>User 'mysql_router_mrs1_2nmm3lkxx0lz'@'%' has a grant statement on a role `mysql_rest_service_meta_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_2nmm3lkxx0lz`@`%`)\n<li>User 'mysql_router_mrs1_76pb9h5vnqne'@'%' has a grant statement on a role `mysql_rest_service_data_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_76pb9h5vnqne`@`%`)\n<li>User 'mysql_router_mrs1_76pb9h5vnqne'@'%' has a grant statement on a role `mysql_rest_service_meta_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_76pb9h5vnqne`@`%`)\n<li>User 'mysql_router_mrs1_8p4lnpjw7i5z'@'%' has a grant statement on a role `mysql_rest_service_data_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_8p4lnpjw7i5z`@`%`)\n<li>User 'mysql_router_mrs1_8p4lnpjw7i5z'@'%' has a grant statement on a role `mysql_rest_service_meta_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_8p4lnpjw7i5z`@`%`)\n<li>User 'mysql_router_mrs1_hrnd8ex6qyk4'@'%' has a grant statement on a role `mysql_rest_service_data_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_hrnd8ex6qyk4`@`%`)\n<li>User 'mysql_router_mrs1_hrnd8ex6qyk4'@'%' has a grant statement on a role `mysql_rest_service_meta_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_hrnd8ex6qyk4`@`%`)\n<li>User 'mysql_router_mrs1_j0i3panfduft'@'%' has a grant statement on a role `mysql_rest_service_data_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_j0i3panfduft`@`%`)\n<li>User 'mysql_router_mrs1_j0i3panfduft'@'%' has a grant statement on a role `mysql_rest_service_meta_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_j0i3panfduft`@`%`)\n<li>User 'mysql_router_mrs1_k7zg7jxgdqvi'@'%' has a grant statement on a role `mysql_rest_service_data_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_k7zg7jxgdqvi`@`%`)\n<li>User 'mysql_router_mrs1_k7zg7jxgdqvi'@'%' has a grant statement on a role `mysql_rest_service_meta_provider`@`%` which is not included in the dump (GRANT `mysql_rest_service_data_provider`@`%`,`mysql_rest_service_meta_provider`@`%` TO `mysql_router_mrs1_k7zg7jxgdqvi`@`%`)",
+          "title": "User Grant Validation"
+        },
+        {
+          "_class": "CheckResult",
+          "checkId": "schema/encryption:FIXED",
+          "choices": [],
+          "description": "Schema level ENCRYPTION option removed.\n\n        The schema level ENCRYPTION option is not supported in the MySQL HeatWave\n        Service and was removed from the listed schemas. The MySQL HeatWave Service\n        encrypts all database files at the block volume level.\n        ",
+          "level": 3,
+          "objects": [
+            "schema:`a`",
+            "schema:`test`",
+            "schema:`airportdb`",
+            "schema:`js_shell_test`"
+          ],
+          "result": "<li>Database `a` had unsupported ENCRYPTION option commented out\n<li>Database `test` had unsupported ENCRYPTION option commented out\n<li>Database `airportdb` had unsupported ENCRYPTION option commented out\n<li>Database `js_shell_test` had unsupported ENCRYPTION option commented out",
+          "title": "Unsupported Encryption Option for Schema"
+        },
+        {
+          "_class": "CheckResult",
+          "checkId": "table/missing_pk:USE_CREATE_OR_IGNORE_PKS",
+          "choices": [
+            "create_invisible_pks",
+            "EXCLUDE_OBJECT"
+          ],
+          "description": "The tables below do not have PRIMARY KEYs and wil have one added.\n\n        In order to offer High Availability, the MySQL HeatWave Service requires\n        all tables to have either a PRIMARY KEY or a UNIQUE KEY on a NOT NULL column.\n\n        The MySQL HeatWave Service will automatically and transparently add a\n        Generated Invisible Primary Key (GIPK) to your migrated tables at the\n        destination.\n\n        For more information about GIPKs, please refer to the\n        <a href=\"https://dev.mysql.com/doc/refman/8.4/en/create-table-gipks.html\">documentation</a>.\n\n        You may select specific tables to be Excluded instead, if you prefer to\n        not migrate them.\n        ",
+          "level": 1,
+          "objects": [
+            "table:`test`.`parent`",
+            "table:`test`.`jj`"
+          ],
+          "result": "<li>Table `test`.`parent` does not have a Primary Key, which is required for High Availability in MySQL HeatWave Service\n<li>Table `test`.`jj` does not have a Primary Key, which is required for High Availability in MySQL HeatWave Service",
+          "title": "Table Missing Primary Key or Equivalent"
+        }
+      ]
+    },
+    "errors": [],
+    "id": 1030,
+    "status": "IN_PROGRESS",
+    "values": {
+      "compatibilityFlags": [],
+      "excludeEvents": [],
+      "excludeLibraries": [],
+      "excludeRoutines": [],
+      "excludeSchemas": [],
+      "excludeTables": [],
+      "excludeTriggers": [],
+      "excludeUsers": []
+    }
+  },
+  {
+    "_class": "SubStepInfo",
+    "data": {},
+    "errors": [],
+    "id": 1040,
+    "status": "READY_TO_COMMIT",
+    "values": {
+      "region": "us-ashburn-1"
+    }
+  },
+  {
+    "_class": "SubStepInfo",
+    "data": {},
+    "errors": [],
+    "id": 1050,
+    "status": "NOT_STARTED",
+    "values": {
+      "database": {
+        "adminPassword": "",
+        "adminUsername": "",
+        "autoExpandMaximumSizeGB": 0,
+        "autoExpandStorage": false,
+        "availabilityDomain": "",
+        "configuration": [],
+        "contactEmails": "",
+        "dbSystemId": "",
+        "description": "",
+        "enableHA": false,
+        "enableRestService": true,
+        "estimatedSourceSizeGB": 0,
+        "faultDomain": "",
+        "hostnameLabel": "",
+        "mysqlVersion": "",
+        "name": "",
+        "shapeName": "",
+        "storageSizeGB": 0
+      },
+      "hosting": {
+        "availabilityDomain": "",
+        "bucketName": "migrated-data",
+        "compartmentId": "",
+        "compartmentName": "MySQL",
+        "computeId": "",
+        "computeName": "",
+        "cpuCount": 1,
+        "internetGatewayId": "",
+        "internetGatewayName": "",
+        "memorySizeGB": 16,
+        "networkCompartmentId": "",
+        "networkCompartmentName": "Network",
+        "parentCompartmentId": "",
+        "privateSubnet": {
+          "cidrBlock": "",
+          "dnsLabel": "",
+          "id": "",
+          "name": ""
+        },
+        "publicSubnet": {
+          "cidrBlock": "",
+          "dnsLabel": "",
+          "id": "",
+          "name": ""
+        },
+        "shapeName": "",
+        "vcnCidrBlock": "",
+        "vcnId": "",
+        "vcnName": ""
+      }
+    }
+  }
+]

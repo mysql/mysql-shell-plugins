@@ -66,6 +66,14 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
         }
     }
 
+    public override componentDidUpdate(_prevProps: Readonly<IRadiobuttonProperties>): void {
+        const { checkState } = this.props;
+
+        if (this.inputRef.current && _prevProps.checkState !== checkState) {
+            this.inputRef.current.checked = checkState === CheckState.Checked;
+        }
+    }
+
     public render(): ComponentChild {
         const { children, caption, name, disabled } = this.props;
         const className = this.getEffectiveClassNames([

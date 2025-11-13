@@ -28,6 +28,8 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -58,26 +60,80 @@ namespace MySQLShellWorkbench {
 
   static class Program {
 
+    static Dictionary<string, string> ParseCommandLineArgs(string[] args)
+    {
+      var parsedArgs = new Dictionary<string, string>();
+
+      var migrate = new Dictionary<string, string>();
+
+      for (int i = 0; i < args.Length; i++)
+      {
+        if (args[i].StartsWith("--"))
+        {
+          string[] components = args[i].Split(new[] { '=' }, 2);
+
+          string key = components[0].TrimStart('-');
+          string value = "";
+
+          if (components.Length > 1)
+          {
+            value = components[1];
+          }
+          else if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+          {
+            value = args[i + 1];
+            i++;
+          }
+          else
+          {
+            Console.WriteLine($"Option {key} requres a value.");
+            Environment.Exit(-1);
+          }
+
+#if DEBUG
+          if (key.StartsWith("migrate-"))
+          {
+            migrate[key.Substring(8)] = value;
+          } else
+#endif
+          {
+            parsedArgs[key] = value;
+          }
+        }
+      }
+
+      if (0 != migrate.Count && !parsedArgs.ContainsKey("migrate")) {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(migrate));
+        parsedArgs["migrate"] = System.Convert.ToBase64String(bytes);
+      }
+
+      return parsedArgs;
+    }
+
     [STAThread]
-    static void Main() {
+    static void Main(string[] args) {
       Logger.Write(LogEvent.Info, "Starting MSG ...");
+
       bool installed = CheckWebView2Installed();
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
-      Application.Run(new MySQLShellWorkbench(installed));
+      Application.Run(new MySQLShellWorkbench(installed, ParseCommandLineArgs(args)));
     }
 
     private static string GetWebView2Version() {
       try {
         return CoreWebView2Environment.GetAvailableBrowserVersionString();
-      } catch (Exception) { return ""; }
+      } catch (Exception e) {
+        Logger.Write(LogEvent.Info, "GetAvailableBrowserVersionString() failed: " + e.ToString());
+        return "";
+      }
     }
 
     private static bool CheckWebView2Installed() {
       Logger.Write(LogEvent.Info, @"Checking registry key: SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}");
       var readValue = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}");
       if (readValue != null) {
-        Logger.Write(LogEvent.Info, string.Format(("Registry entry foud: {0}"), readValue.ToString()));
+        Logger.Write(LogEvent.Info, string.Format(("Registry entry found: {0}"), readValue.ToString()));
         var version = GetWebView2Version();
         Logger.Write(LogEvent.Info, string.Format(("WebView2 component version: {0}"), version));
         var info = new InstallInfo(version);

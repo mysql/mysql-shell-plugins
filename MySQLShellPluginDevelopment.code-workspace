@@ -38,6 +38,10 @@
             "path": "msm_plugin"
         },
         {
+            "name": "Migration Plugin",
+            "path": "migration_plugin"
+        },
+        {
             "name": "Shell Plugin Tools",
             "path": "gui/tools"
         },
@@ -52,6 +56,7 @@
         "python.analysis.extraPaths": [
             "/usr/local/mysql-shell/lib/mysqlsh/python-packages/",
             "${workspaceFolder}\\plugins\\rds_plugin",
+            "${workspaceFolder}/..",
             "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.12/site-packages"
         ],
         "python.autoComplete.extraPaths": [
@@ -230,6 +235,44 @@
                             "file": 0,
                             "severity": 1,
                             "message": 2
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Started Debug Server",
+                        "endsPattern": ".*"
+                    }
+                }
+            },
+            {
+                "label": "Execute Shell in Python Mode (win)",
+                "type": "shell",
+                "command": "mysqlsh",
+                "args": [
+                    "--log-file",
+                    "${workspaceFolder}/mysqlsh.log",
+                    "--py",
+                ],
+                "isBackground": true,
+                "dependsOn": "Enable python debugging (win)",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "never",
+                    "focus": false,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": false
+                },
+                "problemMatcher": {
+                    "owner": "shell",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": [
+                        {
+                            "regexp": "^.*\\[.*\\]:\\s(Error|Warning|Info):\\s(.*)",
+                            "location": 0,
+                            "file": 0,
+                            "severity": 1,
+                            "message": 2,
                         }
                     ],
                     "background": {

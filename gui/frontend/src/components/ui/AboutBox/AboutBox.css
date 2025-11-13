@@ -36,10 +36,22 @@
     font-size: 11pt;
 }
 
-.msg.aboutBox .grid .left {
-    justify-content: flex-end;
+.msg.aboutBox .grid .title {
     color: var(--disabledForeground)
 }
+
+.msg.aboutBox .grid .selectable {
+    user-select: text;
+}
+
+.msg.aboutBox .grid .left {
+    justify-content: flex-end;
+}
+
+.msg.aboutBox .grid .small {
+    font-size: 8pt;
+}
+
 
 .msg.aboutBox .grid .right {
     justify-content: flex-start;

@@ -677,4 +677,10 @@ export interface IRequestTypeMap {
     "message": (message: string) => Promise<boolean>;
 
     "debugger": (data: IDebuggerData) => Promise<boolean>;
+
+    "setCommandLineArguments": (message: string) => Promise<boolean>;
+    "getCommandLineArguments": SimpleCallback;
+
+    "setApplicationData": (message: string) => Promise<boolean>;
+    "getApplicationData": SimpleCallback;
 }
