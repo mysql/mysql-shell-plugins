@@ -38,8 +38,6 @@ import { Button } from "../Button/Button.js";
 
 export interface IUpDownProperties<ValueType extends string | null | number | bigint | undefined>
     extends IComponentProperties {
-    id?: string;
-    disabled?: boolean;
 
     /** The minimal value that can be entered. For numeric values only. The items property is ignored then. */
     min?: number | bigint;
@@ -151,7 +149,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
     }
 
     public render(): ComponentChild {
-        const { id, disabled, textAlignment, placeholder } = this.props;
+        const { id, disabled = false, textAlignment, placeholder } = this.props;
         const { currentValue } = this.state;
 
         const className = this.getEffectiveClassNames(["upDown"]);
@@ -167,7 +165,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
                 textAlignment={textAlignment}
                 placeholder={placeholder?.toString()}
                 data-tooltip="inherit"
-                disabled={!!disabled}
+                disabled={disabled}
             />
         );
 

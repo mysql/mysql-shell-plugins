@@ -1144,19 +1144,20 @@ exports[`Value Edit Dialog Tests > Updating Dialog Values 1`] = `
         >
           <div
             class="msg grid upDown valueEditor"
-            id="upDown"
             step="1"
             style="grid-template-columns: auto 16px; --item-height: 0px;"
             value="<filtered>"
           >
             <div
               class="msg container fixedScrollbar gridCell"
+              data-tooltip="inherit"
               id="content"
               style="flex-direction: row; grid-row: span 2;"
             >
               <input
                 class="msg input"
-                id="upDownInput"
+                data-tooltip="inherit"
+                id="upDown"
                 spellcheck="true"
                 style="text-align: end;"
                 type="text"

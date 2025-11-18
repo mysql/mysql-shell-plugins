@@ -31,7 +31,9 @@ import type {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest,
 } from "../app-logic/general-types.js";
 import type { IEmbeddedMessage, IMySQLDbSystem } from "../communication/index.js";
-import type { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ProtocolGui.js";
+import type {
+    IJdvViewInfo, IShellProfile, IShellPromptValues, IWebSessionData,
+} from "../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
 } from "../communication/ProtocolMrs.js";
@@ -350,6 +352,11 @@ export interface IMrsSdkExportRequest extends IDictionary {
     connectionId: number;
     connectionDetails?: IConnectionDetails;
     directory?: string;
+}
+
+export interface IJdvEditRequest extends IDictionary {
+    jdvViewInfo: IJdvViewInfo;
+    createView: boolean;
 }
 
 /**
@@ -677,6 +684,9 @@ export interface IRequestTypeMap {
     "message": (message: string) => Promise<boolean>;
 
     "debugger": (data: IDebuggerData) => Promise<boolean>;
+
+    /** Shows the dialog to create or edit a JDV. */
+    "showJdvObjectDialog": (data: IJdvEditRequest) => Promise<boolean>;
 
     "setCommandLineArguments": (message: string) => Promise<boolean>;
     "getCommandLineArguments": SimpleCallback;

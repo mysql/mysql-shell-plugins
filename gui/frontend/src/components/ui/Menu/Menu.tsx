@@ -165,7 +165,9 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
 
             if (!preventClose) {
                 setTimeout((): void => {
-                    Menu.menuStack[0].close();
+                    if (Menu.menuStack.length > 0) {
+                        Menu.menuStack[0].close();
+                    }
                 }, 0);
             }
         }
@@ -186,7 +188,9 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
             });
 
             if (!preventClose) {
-                Menu.menuStack[0].close();
+                if (Menu.menuStack.length > 0) {
+                    Menu.menuStack[0].close();
+                }
             }
         }
     };

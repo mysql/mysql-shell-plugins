@@ -46,6 +46,7 @@ def test_get_object_types_by_shell(shell_session):
                         {"name": "Character Set", "type": "CATALOG_OBJECT"},
                         {"name": "Table", "type": "SCHEMA_OBJECT"},
                         {"name": "View", "type": "SCHEMA_OBJECT"},
+                        {"name": "Jdv", "type": "SCHEMA_OBJECT"},
                         {"name": "Routine", "type": "SCHEMA_OBJECT"},
                         {"name": "Library", "type": "SCHEMA_OBJECT"},
                         {"name": "Event", "type": "SCHEMA_OBJECT"},

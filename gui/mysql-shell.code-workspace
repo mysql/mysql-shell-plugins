@@ -15,6 +15,6 @@
         "files.exclude": {
             "**/app-wrapper": true
         },
-        "vitest.configSearchPatternExclude": "{**/node_modules/**,**/.*/**,**/*.d.ts,./e2e.vitest.config.ts}"
+        "vitest.configSearchPatternExclude": "{**/node_modules/**,**/.*/**,**/*.d.ts,./e2e.vitest.config.ts}",
     }
 }

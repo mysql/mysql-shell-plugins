@@ -31,7 +31,6 @@ import { useState } from "preact/hooks";
 import { TextAlignment } from "../../../../components/ui/Label/Label.js";
 import { UpDown } from "../../../../components/ui/UpDown/UpDown.js";
 
-
 interface IProps {
     initialValue?: number;
     min?: number;
@@ -44,7 +43,7 @@ const Wrapper = ({ initialValue, min, max, placeholder }: IProps) => {
 
     return (
         <UpDown
-            id="upDownId"
+            id="upDownInput"
             value={value}
             onChange={setValue}
             min={min}

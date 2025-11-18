@@ -1,0 +1,236 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Jdv Object dialog tests > Show Jdv Object Dialog (snapshot) and escape 1`] = `
+<div
+  class="msg portal"
+  id="jdvObjectDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog autoResize"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Json Duality View Builder
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            JSON Duality View Schema Name
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="viewSchema"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The schema where the duality view is created
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            JSON Duality View Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="viewName"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 8;"
+        >
+          <div
+            class="msg container fixedScrollbar jdvObjectFieldEditor"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg container fixedScrollbar settings"
+              style="flex-direction: row; align-items: flex-start;"
+            >
+              <div
+                class="msg container fixedScrollbar settingsMain"
+                style="flex-direction: row; align-items: center;"
+              >
+                <div
+                  class="msg container fixedScrollbar labelWithInput"
+                  style="flex-direction: row; align-items: center;"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Root Table Schema Name:
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar dropdown"
+                    data-tooltip="inherit"
+                    id="rootTableSchema"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <label
+                      class="msg label placeholder"
+                      data-tooltip="inherit"
+                    >
+                      test_schema
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="msg container fixedScrollbar labelWithInput"
+                  style="flex-direction: row; align-items: center;"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Root Table Name:
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar dropdown"
+                    data-tooltip="inherit"
+                    id="rootTableName"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <label
+                      class="msg label placeholder"
+                      data-tooltip="inherit"
+                    >
+                      test_table
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="divider"
+              />
+              <div
+                class="msg container fixedScrollbar settingsRight"
+                style="flex-direction: row-reverse; align-items: center;"
+              >
+                <div
+                  class="msg button imageOnly sqlCopyBtn"
+                  data-tooltip="Copy SQL to Clipboard"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="msg icon codicon codicon-copy"
+                    data-tooltip="inherit"
+                  />
+                </div>
+                <div
+                  class="msg button imageOnly sqlPreviewBtn"
+                  data-tooltip="Toggle SQL Preview"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="msg icon codicon codicon-search"
+                    data-tooltip="inherit"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    SQL Preview
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg treeGrid jdvObjectTreeGrid"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Jdv Object dialog tests > Standard Rendering (snapshot) 1`] = `<div />`;

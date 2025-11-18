@@ -66,6 +66,8 @@ import { MrsTreeItem } from "./MrsTreeItem.js";
 import { MrsUserTreeItem } from "./MrsUserTreeItem.js";
 import { SchemaEventTreeItem } from "./SchemaEventTreeItem.js";
 import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem.js";
+import { SchemaJdvMySQLTreeItem } from "./SchemaJdvMySQLTreeItem.js";
+import { SchemaJdvTreeItem } from "./SchemaJdvTreeItem.js";
 import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem.js";
 import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem.js";
 import { SchemaLibraryMySQLTreeItem } from "./SchemaLibraryMySQLTreeItem.js";
@@ -273,6 +275,15 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 }
 
                 return new SchemaViewSqliteTreeItem(entry);
+            }
+
+            case CdmEntityType.Jdv: {
+                const details = entry.connection.details;
+                if (details.dbType === DBType.MySQL) {
+                    return new SchemaJdvMySQLTreeItem(entry);
+                }
+
+                return new SchemaJdvTreeItem(entry);
             }
 
             case CdmEntityType.StoredProcedure: {

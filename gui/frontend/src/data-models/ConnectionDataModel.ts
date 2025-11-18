@@ -73,6 +73,9 @@ export enum CdmEntityType {
     /** A view in a schema. */
     View,
 
+    /** A json duality view in a schema. */
+    Jdv,
+
     /** A stored function in a schema. */
     StoredFunction,
 
@@ -177,6 +180,7 @@ export enum CdmEntityType {
 export const cdmDbEntityTypes = new Set<CdmEntityType>([
     CdmEntityType.Schema,
     CdmEntityType.Table,
+    CdmEntityType.Jdv,
     CdmEntityType.View,
     CdmEntityType.StoredProcedure,
     CdmEntityType.StoredFunction,
@@ -192,6 +196,7 @@ export const cdmDbEntityTypes = new Set<CdmEntityType>([
 export const cdbDbEntityTypeName = new Map<CdmEntityType, string>([
     [CdmEntityType.Schema, "schema"],
     [CdmEntityType.Table, "table"],
+    [CdmEntityType.Jdv, "view"],
     [CdmEntityType.View, "view"],
     [CdmEntityType.StoredProcedure, "procedure"],
     [CdmEntityType.StoredFunction, "function"],
@@ -366,9 +371,19 @@ export interface ICdmViewEntry extends ICdmBaseEntry {
     readonly columns: ICdmColumnEntry[];
 }
 
+/** An entry for a json duality view. */
+export interface ICdmJdvEntry extends ICdmBaseEntry {
+    readonly parent: ICdmSchemaGroupEntry<CdmEntityType.Jdv>;
+
+    readonly type: CdmEntityType.Jdv;
+    readonly schema: string;
+
+    readonly columns: ICdmColumnEntry[];
+}
+
 /** A type union for all members of a schema group. */
 export type CdmSchemaGroupMemberType = CdmEntityType.StoredProcedure | CdmEntityType.StoredFunction
-    | CdmEntityType.Library | CdmEntityType.Event | CdmEntityType.Table | CdmEntityType.View;
+    | CdmEntityType.Library | CdmEntityType.Event | CdmEntityType.Table | CdmEntityType.View | CdmEntityType.Jdv;
 
 /**
  * A mapping from schema group types to their members. This is used to determine the type of the members in a
@@ -380,6 +395,7 @@ interface ICdmEntityTypeToSchemaMember {
     [CdmEntityType.Library]: ICdmLibraryEntry,
     [CdmEntityType.Event]: ICdmEventEntry,
     [CdmEntityType.Table]: ICdmTableEntry,
+    [CdmEntityType.Jdv]: ICdmJdvEntry;
     [CdmEntityType.View]: ICdmViewEntry;
 }
 
@@ -615,6 +631,7 @@ export type ConnectionDataModelEntry =
     | ICdmSchemaGroupEntry<CdmSchemaGroupMemberType>
     | ICdmTableEntry
     | ICdmViewEntry
+    | ICdmJdvEntry
     | ICdmEventEntry
     | ICdmRoutineEntry
     | ICdmLibraryEntry
@@ -860,6 +877,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         let objectName = "";
         switch (entry.type) {
             case CdmEntityType.Table:
+            case CdmEntityType.Jdv:
             case CdmEntityType.View:
             case CdmEntityType.StoredProcedure:
             case CdmEntityType.StoredFunction:
@@ -946,6 +964,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
             }
 
             case CdmEntityType.Table:
+            case CdmEntityType.Jdv:
             case CdmEntityType.View:
             case CdmEntityType.StoredFunction:
             case CdmEntityType.StoredProcedure:
@@ -1813,13 +1832,18 @@ export class ConnectionDataModel implements ICdmAccessManager {
     }
 
     private async updateViewsSchemaGroup(
-        viewGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.View>>): Promise<boolean> {
+        viewGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.View | CdmEntityType.Jdv>>): Promise<boolean> {
         viewGroup.state.initialized = true;
 
         const actions: ConnectionDMActionList = [];
         try {
             const schema = viewGroup.parent.caption;
             const viewNames = await viewGroup.connection.backend.getSchemaObjectNames(schema, "View");
+
+            let jdvNames: string[] = [];
+            if (viewGroup.connection.details.version && viewGroup.connection.details.version >= 90400) {
+                jdvNames = await viewGroup.connection.backend.getSchemaObjectNames(schema, "Jdv");
+            }
 
             // Remove entries no longer in the view list.
             const removedViews = viewGroup.members.filter((e) => {
@@ -1830,12 +1854,18 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 actions.push({ action: "remove", entry: view as ConnectionDataModelEntry });
             }
 
-            // Create a new view entries list from the view names in their order. Take over existing
-            // view entries.
-            const newViewEntries: ICdmViewEntry[] = [];
+            // Create a new view/jdv entries list from the view/jdv names in their order with normal views first.
+            // Take over existing view entries.
+            const newViewEntries: Array<ICdmViewEntry | ICdmJdvEntry> = [];
             for (const view of viewNames) {
+                // to avoid duplicate menu items
+                if (jdvNames.includes(view)) {
+                    continue;
+                }
+
+                // check if view is an existing member
                 const existing = viewGroup.members.find((e) => {
-                    return e.caption === view;
+                    return e.caption === view; 
                 });
                 if (existing) {
                     newViewEntries.push(existing as ICdmViewEntry);
@@ -1859,6 +1889,35 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 };
 
                 newViewEntries.push(viewEntry);
+            }
+
+            // Now add duality views.
+            for (const jdv of jdvNames) {
+                const existing = viewGroup.members.find((e) => {
+                    return e.caption === jdv; 
+                });
+                if (existing) {
+                    newViewEntries.push(existing as ICdmJdvEntry);
+
+                    continue;
+                }
+
+                const jdvEntry: Mutable<ICdmJdvEntry> = {
+                    parent: viewGroup as ICdmSchemaGroupEntry<CdmEntityType.Jdv>,
+                    type: CdmEntityType.Jdv,
+                    id: uuid(),
+                    state: createDataModelEntryState(true),
+                    caption: jdv,
+                    schema,
+                    connection: viewGroup.connection as ICdmConnectionEntry,
+                    columns: [],
+                };
+
+                jdvEntry.refresh = () => {
+                    return this.updateView(jdvEntry);
+                };
+
+                newViewEntries.push(jdvEntry);
             }
 
             viewGroup.members = newViewEntries;
@@ -2121,7 +2180,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         return true;
     }
 
-    private async updateView(viewEntry: DeepMutable<ICdmViewEntry>): Promise<boolean> {
+    private async updateView(viewEntry: DeepMutable<ICdmViewEntry | ICdmJdvEntry>): Promise<boolean> {
         viewEntry.state.initialized = true;
 
         const actions: ConnectionDMActionList = [];

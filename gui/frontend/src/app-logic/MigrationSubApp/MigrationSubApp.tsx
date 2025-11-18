@@ -175,12 +175,12 @@ interface BadUserInput {
 
 type OciNetworking = "create_new" | "use_existing";
 
-interface NetworkingSetup {
+/*interface NetworkingSetup {
     networkCompartment?: string;
     vcn?: string;
     privateSubnet?: string;
     publicSubnet?: string;
-}
+}*/
 
 interface ISignInInfo {
     message: string;
@@ -216,7 +216,7 @@ export interface IMigrationAppState {
     aborted?: boolean;
     migrationSource?: string;
 
-    databaseSource: { name: string, host: string, port: string, user: string, id: string };
+    databaseSource: { name: string, host: string, port: string, user: string, id: string; };
 
     projects?: ProjectsData;
     project?: IProjectData;
@@ -886,7 +886,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         );
     }
 
-    private navigateInto(stepInfo: { stepId: number, subStepId: number } | undefined, forward: boolean) {
+    private navigateInto(stepInfo: { stepId: number, subStepId: number; } | undefined, forward: boolean) {
         if (stepInfo === undefined) {
             return;
         }
@@ -1127,7 +1127,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         return stepsState;
     }
 
-    private async doPlanUpdate(configs: Array<{ id: SubStepId, values?: object }>) {
+    private async doPlanUpdate(configs: Array<{ id: SubStepId, values?: object; }>) {
         let stepsState: IMigrationPlanState[] | undefined;
 
         this.log(`About to call planUpdate with `, configs);
@@ -2356,7 +2356,7 @@ Migration Assistant.`}
 
         const existingShapes = this.getExistingShapes();
 
-        const { options, shapeExists } = this.sh.getHeatwaveShapesOptions(this.heatWaveShapeName,
+        const { options } = this.sh.getHeatwaveShapesOptions(this.heatWaveShapeName,
             existingShapes, validate);
 
         const isClusterSizeDisabled = options.length === 1 && options[0].id === "0";
@@ -2598,7 +2598,7 @@ Migration Assistant.`}
                             {/* <tr>
                                 <td>Network</td>
                                 <td>
-                                    {targetHostingOptions.vcnId} in compartment 
+                                    {targetHostingOptions.vcnId} in compartment
                                     {targetHostingOptions.networkCompartmentId}
                                 </td>
                             </tr>
@@ -2608,7 +2608,7 @@ Migration Assistant.`}
                             </tr> */}
                         </tbody>
                     </table>
-                    {/* 
+                    {/*
                     {
                         !targetHostingOptions.networkCompartmentId
                             ? (
@@ -2691,8 +2691,8 @@ Migration Assistant.`}
         const bucketConsoleUrl =
             // eslint-disable-next-line max-len
             `https://cloud.oracle.com/object-storage/buckets/${summaryInfo.bucketNamespace}/${summaryInfo.bucketName}?region=${summaryInfo.region}`;
-        const channelConsoleUrl =
-            `https://cloud.oracle.com/mysqlaas/channels/${summaryInfo.channelId}?region=${summaryInfo.region}`;
+        /*const channelConsoleUrl =
+            `https://cloud.oracle.com/mysqlaas/channels/${summaryInfo.channelId}?region=${summaryInfo.region}`;*/
 
         return (
             <div className="explanation">
@@ -2805,7 +2805,7 @@ Migration Assistant.`}
                     )
                 }
 
-                {(summaryInfo.createdJumpHost || summaryInfo.createdBucket) && (<>
+                {(summaryInfo.createdJumpHost ?? summaryInfo.createdBucket) && (<>
                     <hr className="short-line" />
                     <p>Select below whether you want to keep or delete any of the temporary resources created
                         during the migration. You may also delete any of these resources from the OCI console.</p>
@@ -3098,7 +3098,7 @@ Migration Assistant.`}
 
     private ociSignInTimedOut = (): Promise<void> => {
         return this.migration.signIn(false, (r) => {
-            const response = r as { result: { info: string } };
+            const response = r as { result: { info: string; }; };
             this.setState(() => {
                 return {
                     ociSignInInfo: JSON.parse(response.result.info.trim()) as ISignInInfo,
@@ -3500,7 +3500,7 @@ Migration Assistant.`}
         return new Promise((resolve) => {
             if (commandLineArgsJson) {
                 try {
-                    const cmdLineArgs = JSON.parse(commandLineArgsJson) as { migrate?: string };
+                    const cmdLineArgs = JSON.parse(commandLineArgsJson) as { migrate?: string; };
 
                     const migrationSourceBase64 = cmdLineArgs.migrate;
                     if (!migrationSourceBase64) {
@@ -3569,7 +3569,7 @@ Migration Assistant.`}
         }
 
         try {
-            const applicationData = JSON.parse(applicationDataJson) as { logPath?: string, projectsPath?: string };
+            const applicationData = JSON.parse(applicationDataJson) as { logPath?: string, projectsPath?: string; };
 
             this.setState({ logPath: applicationData.logPath, projectsPath: applicationData.projectsPath });
 
@@ -4334,7 +4334,7 @@ Migration Assistant.`}
 
         const { allowedConnectivity } = this.resolveMigrationAllowance();
 
-        const options: Array<{ id: CloudConnectivity, label: string }> = [
+        const options: Array<{ id: CloudConnectivity, label: string; }> = [
             { id: CloudConnectivity.SITE_TO_SITE, label: "Direct (Site-to-Site VPN)" },
             { id: CloudConnectivity.SSH_TUNNEL, label: "SSH Tunnel" },
             { id: CloudConnectivity.LOCAL_SSH_TUNNEL, label: "SSH Tunnel (automatic)" },
@@ -4874,7 +4874,7 @@ Migration Assistant.`}
     private showAbout = async () => {
         await this.updateState({ aboutVisible: true });
 
-        void this.aboutBoxRef.current?.show();
+        this.aboutBoxRef.current?.show();
 
         return true;
     };

@@ -57,6 +57,8 @@ import triggerIcon from "../assets/images/schemaTableTrigger.svg";
 import triggersIcon from "../assets/images/schemaTableTriggers.svg";
 
 import viewIcon from "../assets/images/schemaView.svg";
+import jdvIcon from "../assets/images/schemaViewDuality.svg";
+import jsonObjectIcon from "../assets/images/jsonObject.svg";
 import viewsIcon from "../assets/images/schemaViews.svg";
 
 import indexIcon from "../assets/images/schemaTableIndex.svg";
@@ -330,6 +332,8 @@ export class Assets {
         triggerIcon,
         triggersIcon,
         viewIcon,
+        jdvIcon,
+        jsonObjectIcon,
         viewsIcon,
         indexIcon,
         indexesIcon,

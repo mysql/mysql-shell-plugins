@@ -3266,11 +3266,11 @@ jdvTableTags:
 ;
 
 jdvNameValueList:
-    jdvNameValue (',' jdvNameValue)
+    jdvNameValue (COMMA_SYMBOL jdvNameValue)*
 ;
 
 jdvNameValue:
-    textStringLiteral ':' expr // [ jdv_column_tags ]
+    textStringLiteral COLON_SYMBOL expr // [ jdv_column_tags ]
 ;
 
 // JSON_VALUE's optional JSON returning clause.

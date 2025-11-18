@@ -31,13 +31,15 @@ import {
     DialogResponseClosure, DialogType, LibraryDialogType, type IDialogRequest
 
 } from "../../app-logic/general-types.js";
+import { IJdvViewInfo } from "../../communication/ProtocolGui.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
+import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
 import {
-    CdmEntityType, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry,
-    type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmRestAuthAppEntry,
+    CdmEntityType, ICdmJdvEntry, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry,
+    type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmLibraryEntry, type ICdmRestAuthAppEntry,
     type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry,
-    type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmLibraryEntry, type ICdmSchemaEntry, type ICdmTableEntry,
-    type ICdmViewEntry,
+    type ICdmRestUserEntry, type ICdmRoutineEntry,
+    type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type {
     IOciDmBastion, IOciDmCompartment, IOciDmDbSystem, IOciDmProfile, OciDataModelEntry,
@@ -53,11 +55,11 @@ import type { IShellSessionDetails } from "../../supplement/ShellInterface/index
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, getConnectionInfoFromDetails, sleep, uuid } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber, quote } from "../../utilities/string-helpers.js";
+import { JdvHub } from "../jdv/JdvHub.js";
 import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../mrs/types.js";
 import type { ISideBarCommandResult, QualifiedName } from "./index.js";
-import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
 
 /** Centralized handling of commands send from the DB editor sidebar to the DB editor module. */
 export class SidebarCommandHandler {
@@ -70,7 +72,7 @@ export class SidebarCommandHandler {
     ]);
 
     public constructor(private connectionDataModel: ConnectionDataModel, private mrsHubRef: RefObject<MrsHub>,
-        private createLibraryDialogRef: RefObject<CreateLibraryDialog>) { }
+        private createLibraryDialogRef: RefObject<CreateLibraryDialog>, private jdvHubRef: RefObject<JdvHub>) { }
 
     /**
      * Handles a single connection tree command for the DB editor module. Only commands that are not handled by the
@@ -954,6 +956,11 @@ export class SidebarCommandHandler {
                                     break;
                                 }
 
+                                case CdmEntityType.Jdv: {
+                                    type = "view";
+                                    break;
+                                }
+
                                 case CdmEntityType.StoredFunction: {
                                     index = 2;
                                     type = "function";
@@ -1104,6 +1111,63 @@ export class SidebarCommandHandler {
                                     return { success: false };
                                 }
                             }
+                            break;
+                        }
+
+                        case "msg.createJdv": {
+                            if (entry.type === CdmEntityType.Table) {
+                                try {
+                                    // create a new temporary jdvObject.
+                                    const jdvViewInfo: IJdvViewInfo = {
+                                        id: "",
+                                        name: entry.caption + "_dv",
+                                        schema: entry.schema,
+                                        rootTableName: entry.caption,
+                                        rootTableSchema: entry.schema,
+                                    };
+                                    // call the JdvObjectDialog
+                                    await this.jdvHubRef.current?.showJdvObjectDialog(connection.backend,
+                                        { jdvViewInfo, createView: true });
+
+                                    return { success: true };
+
+                                } catch (error) {
+                                    const message = convertErrorToString(error);
+                                    void ui.showErrorMessage(`Error while creating the duality view: ${message}`, {});
+
+                                    return { success: false };
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "msg.editJdv": {
+                            if (entry.type === CdmEntityType.Jdv) {
+                                try {
+                                    // load the Jdv object from the database.
+                                    const jdvViewInfo = await connection.backend.getJdvViewInfo(
+                                        entry.schema, entry.caption);
+                                    // call the JdvObjectDialog
+                                    await this.jdvHubRef.current?.showJdvObjectDialog(connection.backend,
+                                        { jdvViewInfo, createView: false });
+
+                                    return { success: true };
+                                } catch (error) {
+                                    const message = convertErrorToString(error);
+                                    void ui.showErrorMessage(`Error while creating the duality view: ${message}`, {});
+
+                                    return { success: false };
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "msg.dropJdv": {
+                            await this.dropItem(entry as ICdmJdvEntry);
+                            success = true;
+
                             break;
                         }
 

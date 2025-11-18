@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import json
 import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms.DbSessionTasks import BaseObjectTask, DbQueryTask
 from gui_plugin.core.Error import MSGException
@@ -278,3 +279,108 @@ class MySQLLibrariesListTask(MySQLColumnsMetadataTask):
         }
 
         return result
+    
+
+class MySQLJdvTableColumnsWithReferencesTask(DbQueryTask):
+    def format(self, row):
+        result = {
+            "name": row.get_field("name"),
+            "position": row.get_field("position"),
+            "table": row.get_field("table"),
+            "schema": row.get_field("schema"),
+        }
+
+        if row.get_field("dbColumn"):
+            result["dbColumn"] = json.loads(row.get_field("dbColumn"))
+
+        if row.get_field("reference_mapping"):
+            result["reference_mapping"] = json.loads(row.get_field("reference_mapping"))
+
+        return result
+
+    def process_result(self):
+        buffer_size = self.options.get("row_packet_size", 25)
+        columns_details = []
+        send_empty = True
+        if self.resultset.has_data():
+            row = self.resultset.fetch_one()
+            while row:
+                columns_details.append(self.format(row))
+                row = self.resultset.fetch_one()
+
+                # Return chunks of buffer_size a time, if buffer_size is 0
+                # or -1, do not return chunks but only the full result set
+                if not row or (buffer_size > 0 and len(columns_details) >= buffer_size):
+                    self.dispatch_result("PENDING", data=columns_details)
+                    columns_details = []
+                    send_empty = False
+
+        if send_empty or len(columns_details) > 0:
+            self.dispatch_result("PENDING", data=columns_details)
+
+class MySQLJdvViewInfoTask(DbQueryTask):
+    def format(self, row):
+        result = {
+            "id": "",
+            "name": row.get_field("name"),
+            "schema": row.get_field("schema"),
+            "root_table_name": row.get_field("root_table_name"),
+            "root_table_schema": row.get_field("root_table_schema"),
+        }
+
+        if row.get_field("objects"):
+            result["objects"] = json.loads(row.get_field("objects"))
+
+        return result
+
+    def process_result(self):
+        _err_msg = f"View '{self.params[0]}.{self.params[1]}' does not exist."
+        if self.resultset.has_data():
+            row = self.resultset.fetch_one()
+
+            if not row:
+                self.dispatch_result("ERROR", message=_err_msg)
+            else:
+                self.dispatch_result("PENDING", data=self.format(row))
+        else:
+            self.dispatch_result("ERROR", message=_err_msg)
+
+class MySQLJdvObjectFieldsWithReferencesTask(DbQueryTask):
+    def format(self, row):
+        result = {
+            "field_id": row.get_field("field_id"),
+            "jdv_object_id": row.get_field("jdv_object_id"),
+            "parent_reference_id": row.get_field("parent_reference_id"),
+            "json_keyname": row.get_field("json_keyname"),
+            "db_name": row.get_field("db_name"),
+            "position": row.get_field("position"),
+            "object_reference_id": row.get_field("object_reference_id"),
+            "selected": row.get_field("selected"),
+        }
+
+        if row.get_field("object_reference"):
+            result["object_reference"] = json.loads(row.get_field("object_reference"))
+        if row.get_field("options"):
+            result["options"] = json.loads(row.get_field("options"))
+
+        return result
+
+    def process_result(self):
+        buffer_size = self.options.get("row_packet_size", 25)
+        columns_details = []
+        send_empty = True
+        if self.resultset.has_data():
+            row = self.resultset.fetch_one()
+            while row:
+                columns_details.append(self.format(row))
+                row = self.resultset.fetch_one()
+
+                # Return chunks of buffer_size a time, if buffer_size is 0
+                # or -1, do not return chunks but only the full result set
+                if not row or (buffer_size > 0 and len(columns_details) >= buffer_size):
+                    self.dispatch_result("PENDING", data=columns_details)
+                    columns_details = []
+                    send_empty = False
+
+        if send_empty or len(columns_details) > 0:
+            self.dispatch_result("PENDING", data=columns_details)

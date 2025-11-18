@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -76,6 +76,9 @@ MODULES_SHARING_WITH_HIGHER_PERMISSIONS = 1608
 MODULES_INVALID_DATA_CATEGORY = 1609
 MODULES_CANT_DELETE_MODULE_CATEGORY = 1610
 MODULES_INVALID_MODULE_ID = 1611
+
+# jdv: 1700-1799
+JDV_OBJECT_DOES_NOT_EXISTS = 1700
 
 # sql_editor: 2000-2999
 # mds: 3000-3999

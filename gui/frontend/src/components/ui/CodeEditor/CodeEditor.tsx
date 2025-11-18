@@ -437,7 +437,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             savedState.options = this.options;
         }
 
-        this.disposables.forEach((d: IDisposable) => {
+        this.disposables.reverse().forEach((d: IDisposable) => {
             d.dispose();
         });
         this.disposables = [];

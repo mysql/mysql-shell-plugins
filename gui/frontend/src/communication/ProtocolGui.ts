@@ -141,6 +141,12 @@ export enum ShellAPIGui {
     GuiDbGetRoutinesMetadata = "gui.db.get_routines_metadata",
     /** Returns the schema objects of the given type in the given schema. */
     GuiDbGetLibrariesMetadata = "gui.db.get_libraries_metadata",
+    /** Returns a JSON representation of table columns and its references which are needed to build a JDV */
+    GuiDbGetJdvTableColumnsWithReferences = "gui.db.get_jdv_table_columns_with_references",
+    /** Returns a JSON representation of the metadata of the JDV for a given schema and name. */
+    GuiDbGetJdvViewInfo = "gui.db.get_jdv_view_info",
+    /** Returns a JSON representation of jdv object fields and its references for a given jdv_object_id */
+    GuiDbGetJdvObjectFieldsWithReferences = "gui.db.get_jdv_object_fields_with_references",
     /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
     GuiModulesAddData = "gui.modules.add_data",
     /** Get list of data */
@@ -359,6 +365,9 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
     [ShellAPIGui.GuiDbGetLibrariesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
+    [ShellAPIGui.GuiDbGetJdvTableColumnsWithReferences]: { args: { moduleSessionId: string; schemaName: string; tableName: string; }; };
+    [ShellAPIGui.GuiDbGetJdvViewInfo]: { args: { moduleSessionId: string; jdvSchemaName: string; jdvName: string; }; };
+    [ShellAPIGui.GuiDbGetJdvObjectFieldsWithReferences]: { args: { moduleSessionId: string; jdvSchemaName: string; jdvName: string; jdvObjectId: string; }; };
     [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
     [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
     [ShellAPIGui.GuiModulesGetDataContent]: { args: { id: number; }; };
@@ -745,6 +754,73 @@ export interface IDBTableObjectEntry {
     default: unknown;
 }
 
+export interface IJdvTableColumn {
+    dbName: string;
+    datatype: string;
+    isPrimary: boolean;
+    isGenerated: boolean;
+    notNull: boolean;
+}
+
+export interface IJdvTableReference {
+    kind: string;
+    baseColumn: string;
+    referencedColumn: string;
+    referencedTable: string;
+    referencedSchema: string;
+}
+
+export interface IJdvTableColumnWithReference {
+    name: string;
+    position: number;
+    dbColumn?: IJdvTableColumn;
+    referenceMapping?: IJdvTableReference;
+    table: string;
+    schema: string;
+}
+
+export interface IJdvObjectFieldWithReference {
+    fieldId: string, // item id
+    parentReferenceId?: string, // link to the parent item id
+    jsonKeyname: string,
+    dbName: string,
+    position: number,
+    dbColumn?: IJdvTableColumn,
+    objectReferenceId?: string, // id of current table
+    objectReference?: IJdvTableReference, // jdv link
+    dbReference?: IJdvTableReference, // pk-fk relationship
+    options?: IJdvObjectOptions,
+    lev: number,
+    selected: boolean,
+    aliasName?: string
+}
+
+export interface IJdvObjectOptions {
+    dataMappingViewInsert?: boolean,
+    dataMappingViewUpdate?: boolean,
+    dataMappingViewDelete?: boolean,
+    dataMappingViewNoCheck?: boolean,
+}
+
+export interface IJdvObject {
+    id: string,
+    table: string,
+    schema: string,
+    isRoot: boolean,
+    options?: IJdvObjectOptions,
+    fields?: IJdvObjectFieldWithReference[],
+    storedFields?: IJdvObjectFieldWithReference[],
+}
+
+export interface IJdvViewInfo {
+    id: string;
+    name: string;
+    schema: string;
+    rootTableName: string;
+    rootTableSchema: string;
+    objects?: IJdvObject[];
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -869,6 +945,9 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
     [ShellAPIGui.GuiDbGetLibrariesMetadata]: { result: IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetJdvTableColumnsWithReferences]: { result: IJdvTableColumnWithReference[]; };
+    [ShellAPIGui.GuiDbGetJdvViewInfo]: { result: IJdvViewInfo; };
+    [ShellAPIGui.GuiDbGetJdvObjectFieldsWithReferences]: { result: IJdvObjectFieldWithReference[]; };
 }
 
 /**

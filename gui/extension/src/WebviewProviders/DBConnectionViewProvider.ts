@@ -29,8 +29,8 @@ import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vsc
 
 import { requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import {
-    IConnectionInfo,
-    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
+    IConnectionInfo, IEditorExtendedExecutionOptions, IJdvEditRequest,
+    IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
     IRequestTypeMap, IRequisitionCallbackValues, type IDocumentOpenData, type InitialEditor, type ISaveDialogOptions,
 } from "../../../frontend/src/supplement/RequisitionTypes.js";
 
@@ -327,6 +327,23 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return this.runCommand("job", [
             { requestType: "showPage", parameter: { connectionId: details.id, connectionInfo } },
             { requestType: "showMrsDbObjectDialog", parameter: data },
+        ], "newConnection");
+    }
+
+    /**
+     * Shows the Json Duality View editor dialog.
+     *
+     * @param details The connection details.
+     * @param data Details of the object to edit.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public editJdv(details: IConnectionDetails, data: IJdvEditRequest): Promise<boolean> {
+        const connectionInfo = getConnectionInfoFromDetails(details);
+
+        return this.runCommand("job", [
+            { requestType: "showPage", parameter: { connectionId: details.id, connectionInfo } },
+            { requestType: "showJdvObjectDialog", parameter: data },
         ], "newConnection");
     }
 

@@ -25,7 +25,9 @@
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import {
-    IDBSchemaObjectEntry, IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo, ShellAPIGui,
+    IDBSchemaObjectEntry, IGetColumnsMetadataItem,
+    IJdvObjectFieldWithReference, IJdvTableColumnWithReference, IJdvViewInfo,
+    IShellDbConnection, ITableObjectInfo, ShellAPIGui,
 } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 
@@ -266,6 +268,94 @@ export class ShellInterfaceDb {
             parameters: {
                 args: {
                     names,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Returns a list of table columns with references.
+     *
+     * @param schema The schema for which to retrieve the columns and references.
+     * @param table The table for which to retrieve the columns and references.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public async getJdvTableColumnsWithReferences(schema: string, table: string):
+    Promise<IJdvTableColumnWithReference[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetJdvTableColumnsWithReferences,
+            parameters: {
+                args: {
+                    schemaName: schema,
+                    tableName: table,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Returns a list of table columns with references.
+     *
+     * @param jdvSchema The schema of the jdv to retrieve.
+     * @param jdvName The name of the jdv to retrieve.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public async getJdvViewInfo(jdvSchema: string, jdvName: string): Promise<IJdvViewInfo> {
+        if (!this.moduleSessionId) {
+            return {
+                id: "",
+                name: "",
+                schema: "",
+                rootTableName: "",
+                rootTableSchema: "",
+            };
+        }
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetJdvViewInfo,
+            parameters: {
+                args: {
+                    jdvSchemaName: jdvSchema,
+                    jdvName,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Returns a list of columns and reference that belongs to a given Jdv object (i.e., Jdv table).
+     *
+     * @param jdvSchema The schema of the jdv.
+     * @param jdvName The name of the jdv.
+     * @param jdvObjectId The reference id of the jdv object to retrieve.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public async getJdvObjectFieldsWithReferences(jdvSchema: string, jdvName: string, jdvObjectId: string):
+    Promise<IJdvObjectFieldWithReference[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetJdvObjectFieldsWithReferences,
+            parameters: {
+                args: {
+                    jdvSchemaName: jdvSchema,
+                    jdvName,
+                    jdvObjectId,
                     moduleSessionId: this.moduleSessionId,
                 },
             },

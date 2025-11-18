@@ -314,6 +314,73 @@ export interface IDBTableObjectEntry {
     default: unknown;
 }
 
+export interface IJdvTableColumn {
+    dbName: string;
+    datatype: string;
+    isPrimary: boolean;
+    isGenerated: boolean;
+    notNull: boolean;
+}
+
+export interface IJdvTableReference {
+    kind: string;
+    baseColumn: string;
+    referencedColumn: string;
+    referencedTable: string;
+    referencedSchema: string;
+}
+
+export interface IJdvTableColumnWithReference {
+    name: string;
+    position: number;
+    dbColumn?: IJdvTableColumn;
+    referenceMapping?: IJdvTableReference;
+    table: string;
+    schema: string;
+}
+
+export interface IJdvObjectFieldWithReference {
+    fieldId: string, // item id
+    parentReferenceId?: string, // link to the parent item id
+    jsonKeyname: string,
+    dbName: string,
+    position: number,
+    dbColumn?: IJdvTableColumn,
+    objectReferenceId?: string, // id of current table
+    objectReference?: IJdvTableReference, // jdv link
+    dbReference?: IJdvTableReference, // pk-fk relationship
+    options?: IJdvObjectOptions,
+    lev: number,
+    selected: boolean,
+    aliasName?: string
+}
+
+export interface IJdvObjectOptions {
+    dataMappingViewInsert?: boolean,
+    dataMappingViewUpdate?: boolean,
+    dataMappingViewDelete?: boolean,
+    dataMappingViewNoCheck?: boolean,
+}
+
+export interface IJdvObject {
+    id: string,
+    table: string,
+    schema: string,
+    isRoot: boolean,
+    options?: IJdvObjectOptions,
+    fields?: IJdvObjectFieldWithReference[],
+    storedFields?: IJdvObjectFieldWithReference[],
+}
+
+export interface IJdvViewInfo {
+    id: string;
+    name: string;
+    schema: string;
+    rootTableName: string;
+    rootTableSchema: string;
+    objects?: IJdvObject[];
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -438,6 +505,9 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
     [ShellAPIGui.GuiDbGetLibrariesMetadata]: { result: IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetJdvTableColumnsWithReferences]: { result: IJdvTableColumnWithReference[]; };
+    [ShellAPIGui.GuiDbGetJdvViewInfo]: { result: IJdvViewInfo; };
+    [ShellAPIGui.GuiDbGetJdvObjectFieldsWithReferences]: { result: IJdvObjectFieldWithReference[]; };
 }
 
 /**

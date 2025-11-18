@@ -31,7 +31,8 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import {
-    IConnectionInfo, IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
+    IConnectionInfo, IJdvEditRequest,
+    IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
     IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData,
 } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -109,14 +110,15 @@ import { Assets } from "../../supplement/Assets.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { ConnectionProcessor } from "../common/ConnectionProcessor.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
+import { JdvHub } from "../jdv/JdvHub.js";
 import type { IShellEditorModel } from "../shell/index.js";
 import { ShellTab, type IShellTabPersistentState } from "../shell/ShellTab.js";
 import { ConnectionDataModelListener } from "./ConnectionDataModelListener.js";
+import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./DiagramDesigner/SchemaDiagramDesigner.js";
 import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
-import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./DiagramDesigner/SchemaDiagramDesigner.js";
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -228,6 +230,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private containerRef = createRef<HTMLDivElement>();
     private actionMenuRef = createRef<Menu>();
     private mrsHubRef = createRef<MrsHub>();
+    private jdvHubRef = createRef<JdvHub>();
     private currentTabRef = createRef<ConnectionTab>();
     private createLibraryDialogRef = createRef<CreateLibraryDialog>();
 
@@ -268,7 +271,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
 
         this.sidebarCommandHandler = new SidebarCommandHandler(
-            this.connectionsDataModel, this.mrsHubRef, this.createLibraryDialogRef);
+            this.connectionsDataModel, this.mrsHubRef, this.createLibraryDialogRef, this.jdvHubRef);
 
         this.state = {
             selectedPage: "",
@@ -336,6 +339,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("openSession", this.openSession);
         requisitions.register("socketStateChanged", this.connectionStateChanged);
 
+        requisitions.register("showJdvObjectDialog", this.showJdvObjectDialog);
+
         if (this.containerRef.current && !appParameters.embedded) {
             this.containerRef.current.addEventListener("keydown", this.handleKeyPress);
         }
@@ -393,6 +398,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         requisitions.unregister("openSession", this.openSession);
         requisitions.unregister("socketStateChanged", this.connectionStateChanged);
+
+        requisitions.unregister("showJdvObjectDialog", this.showJdvObjectDialog);
     }
 
     public override render(): ComponentChild {
@@ -794,6 +801,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
             <MrsHub ref={this.mrsHubRef} />
             <CreateLibraryDialog ref={this.createLibraryDialogRef} />
+            <JdvHub ref={this.jdvHubRef} />
         </>;
 
         const selectedTab = connectionTabs.find((entry) => {
@@ -1467,6 +1475,20 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         }
 
         return true;
+    };
+
+    private showJdvObjectDialog = async (request: IJdvEditRequest): Promise<boolean> => {
+        if (this.jdvHubRef.current) {
+            const { selectedPage, connectionTabs } = this.state;
+            const tab = connectionTabs.find((entry) => {
+                return entry.dataModelEntry.id === selectedPage;
+            });
+            if (tab) {
+                return this.jdvHubRef.current.showJdvObjectDialog(tab.connection.backend, request);
+            }
+        }
+
+        return false;
     };
 
     /**

@@ -28,7 +28,8 @@ import type { ILoginCredentials } from "../supplement/WebSession.js";
 import type { ConnectionDataModelEntry } from "./ConnectionDataModel.js";
 
 /** A list of names for schemas we consider being system schemas. */
-export const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", "mysql_rest_service_metadata"]);
+export const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", "mysql_rest_service_metadata",
+    "mysql_tasks"]);
 
 /**
  * This is the same interface as defined by VS Code. By defining a copy here we can use duck typing to

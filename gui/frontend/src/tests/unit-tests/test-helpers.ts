@@ -213,8 +213,8 @@ export const mockClassMethods = <T extends abstract new (...args: never[]) => un
     targetClass: T,
     mocks: {
         [K in keyof InstanceType<T>]?: InstanceType<T>[K] extends (...args: infer P) => infer R
-        ? (...args: P) => R
-        : never;
+            ? (...args: P) => R
+            : never;
     },
 ): void => {
     (Object.keys(mocks) as Array<keyof typeof mocks>).forEach((methodName) => {
@@ -914,7 +914,7 @@ export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
     expect(testConnection.id).toBeGreaterThan(-1);
 
     const backend = new ShellInterfaceSqlEditor();
-    await backend.startSession("mrsHubTests");
+    await backend.startSession("unitTests");
     await backend.openConnection(testConnection.id);
 
     return Promise.resolve(backend);
@@ -1101,6 +1101,25 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
     });
 };
 
+export const createJdvData = async (backend: ShellInterfaceSqlEditor): Promise<Record<string, string[]>> => {
+    const schemasWithTables: Record<string, string[]> = {};
+
+    const schema = "jdv_test";
+    schemasWithTables[schema] = ["customer", "order"];
+
+    await backend.execute(`DROP DATABASE IF EXISTS ${schema}`);
+    await backend.execute(`CREATE DATABASE IF NOT EXISTS ${schema}`);
+    await backend.execute(`CREATE TABLE IF NOT EXISTS ${schema}.customer (` +
+        `id INT AUTO_INCREMENT PRIMARY KEY,` +
+        `username VARCHAR(50) NOT NULL UNIQUE)`);
+    await backend.execute(`CREATE TABLE IF NOT EXISTS ${schema}.order (` +
+        `id INT AUTO_INCREMENT PRIMARY KEY,` +
+        `customer_id INT NOT NULL,` +
+        `FOREIGN KEY (customer_id) REFERENCES ${schema}.customer(id) ON DELETE CASCADE)`);
+
+    return schemasWithTables;
+};
+
 export const ignoreSnapshotUuids = (): void => {
     const uuidRegex = /^[a-f0-9-]{36}$/;
 
@@ -1161,4 +1180,8 @@ export const createResultSet = (resultId: string, rows: IDictionary[] = [],
             currentPage: 1,
         },
     };
+};
+
+export const normalizeWhitespace = (str: string | undefined): string | undefined => {
+    return str?.replace(/\s+/g, " ");
 };

@@ -88,7 +88,7 @@ const cdmTypeToEntryIcon = new Map<CdmEntityType, string | Codicon>([
     [CdmEntityType.Schema, Assets.db.schemaIcon],
     [CdmEntityType.Table, Assets.db.tableIcon],
     [CdmEntityType.View, Assets.db.viewIcon],
-    [CdmEntityType.View, Assets.db.viewIcon],
+    [CdmEntityType.Jdv, Assets.db.jdvIcon],
     [CdmEntityType.StoredFunction, Assets.db.functionIcon],
     [CdmEntityType.StoredProcedure, Assets.db.procedureIcon],
     [CdmEntityType.Library, Assets.db.libraryIcon],
@@ -243,6 +243,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         [CdmEntityType.Table, createRef<Menu>()],
         [CdmEntityType.Column, createRef<Menu>()],
         [CdmEntityType.View, createRef<Menu>()],
+        [CdmEntityType.Jdv, createRef<Menu>()],
         [CdmEntityType.Trigger, createRef<Menu>()],
         [CdmEntityType.Index, createRef<Menu>()],
         [CdmEntityType.ForeignKey, createRef<Menu>()],
@@ -691,6 +692,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Table)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                    isItemDisabled={this.isDocumentMenuItemDisabled}
                 >
                     <MenuItem command={{ title: "Select Rows", command: "msg.selectRows" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
@@ -708,6 +710,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
                     />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Create a JSON Duality View...", command: "msg.createJdv" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Create Table...", command: "msg.createTable" }} disabled />
                     <MenuItem command={{ title: "Alter Table...", command: "msg.alterTable" }} disabled />
@@ -773,6 +777,29 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "Create View ...", command: "msg.createProcedure" }} disabled />
                     <MenuItem command={{ title: "Alter View ...", command: "alterViewMenuItem" }} disabled />
                     <MenuItem command={{ title: "Drop View ...", command: "dropViewMenuItem" }} disabled />
+                </Menu >
+
+                <Menu
+                    id="jdvContextMenu"
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Jdv)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Select Rows", command: "msg.selectRows" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
+                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
+                        <MenuItem
+                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
+                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
+                    </MenuItem >
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Edit JSON Duality View ...", command: "msg.editJdv" }} />
+                    <MenuItem command={{ title: "Drop JSON Duality View ...", command: "msg.dropJdv" }} />
                 </Menu >
 
                 <Menu
@@ -2456,6 +2483,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 if (entry.dataModelEntry.type === OdmEntityType.ConnectionPage) {
                     return entry.dataModelEntry.details.dbType !== DBType.MySQL;
                 }
+            } else if (props.command.command === "msg.createJdv") {
+                const entry = payload as IConnectionTreeItem;
+                if (entry.dataModelEntry.type === CdmEntityType.Table) {
+                    return (!entry.dataModelEntry.connection.details.version)
+                        || (entry.dataModelEntry.connection.details.version < 90400);
+                }
             }
         }
 
@@ -2577,6 +2610,36 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     void onConnectionTreeCommand(command, data.dataModelEntry).then((result) => {
                         if (result.success) {
                             void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true, true);
+                        }
+                    });
+
+                    break;
+                }
+
+                case "msg.createJdv": {
+                    void onConnectionTreeCommand(command, data.dataModelEntry).then((result) => {
+                        if (result.success) {
+                            void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
+                        }
+                    });
+
+                    break;
+                }
+
+                case "msg.editJdv": {
+                    void onConnectionTreeCommand(command, data.dataModelEntry).then((result) => {
+                        if (result.success) {
+                            void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
+                        }
+                    });
+
+                    break;
+                }
+
+                case "msg.dropJdv": {
+                    void onConnectionTreeCommand(command, data.dataModelEntry).then((result) => {
+                        if (result.success) {
+                            void this.refreshConnectionParentEntry(data, true);
                         }
                     });
 

@@ -260,3 +260,55 @@ def get_libraries_metadata(session, schema_name):
     session = backend.get_db_session(session)
 
     return session.get_libraries_metadata(schema_name=schema_name)
+
+
+@plugin_function('gui.db.getJdvTableColumnsWithReferences', shell=True, web=True)
+def get_jdv_table_columns_with_references(session, schema_name, table_name):
+    """Returns a JSON representation of table columns and its references which are needed to build a JDV
+
+    Args:
+        session (object): The session used to execute the operation
+        schema_name (str): schema name
+        table_name (str): table name
+
+    Returns:
+        list: The columns with references of the table
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_jdv_table_columns_with_references(schema_name, table_name)
+
+
+@plugin_function('gui.db.getJdvViewInfo', shell=True, web=True)
+def get_jdv_view_info(session, jdv_schema_name, jdv_name):
+    """Returns a JSON representation of the metadata of the JDV for a given schema and name.
+
+    Args:
+        session (object): The session used to execute the operation
+        jdv_schema_name (str): schema name
+        jdv_name (str): json duality view name
+
+    Returns:
+        dict: The catalog object
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_jdv_view_info(jdv_schema_name, jdv_name)
+
+
+@plugin_function('gui.db.getJdvObjectFieldsWithReferences', shell=True, web=True)
+def get_jdv_object_fields_with_references(session, jdv_schema_name, jdv_name, jdv_object_id):
+    """Returns a JSON representation of jdv object fields and its references for a given jdv_object_id
+
+    Args:
+        session (object): The session used to execute the operation
+        jdv_schema_name (str): schema name
+        jdv_name (str): json duality view name
+        jdv_object_id (str): reference id of the table in jdv_name
+
+    Returns:
+        list: The fields with references of the Jdv object
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_jdv_object_fields_with_references(jdv_schema_name, jdv_name, jdv_object_id)

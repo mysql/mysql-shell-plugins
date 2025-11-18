@@ -40,11 +40,13 @@ import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewPro
 
 import { LibraryDialogType } from "../../frontend/src/app-logic/general-types.js";
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
+import { IJdvViewInfo } from "../../frontend/src/communication/ProtocolGui.js";
 import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.js";
 import {
     cdbDbEntityTypeName, CdmEntityType, ConnectionDataModelEntry, ICdmConnectionEntry, ICdmEventEntry,
     ICdmRestDbObjectEntry, type ConnectionDataModelNoGroupEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
-    type ICdmLibraryEntry, type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
+    type ICdmJdvEntry, type ICdmLibraryEntry, type ICdmRoutineEntry,
+    type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
     type ICdmTriggerEntry, type ICdmViewEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import {
@@ -59,7 +61,7 @@ import {
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
-import { getConnectionInfoFromDetails, uuid } from "../../frontend/src/utilities/helpers.js";
+import { convertErrorToString, getConnectionInfoFromDetails, uuid } from "../../frontend/src/utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber } from "../../frontend/src/utilities/string-helpers.js";
 import { CodeBlocks } from "./CodeBlocks.js";
 import { ExtensionHost } from "./ExtensionHost.js";
@@ -548,6 +550,12 @@ export class DocumentCommandHandler {
             }
         }));
 
+        context.subscriptions.push(commands.registerCommand("msg.dropJdv", (entry?: ICdmJdvEntry) => {
+            if (entry) {
+                this.connectionsProvider.dropItem(entry);
+            }
+        }));
+
         context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (entry?: ICdmRoutineEntry) => {
             if (entry) {
                 this.connectionsProvider.dropItem(entry);
@@ -1004,6 +1012,53 @@ export class DocumentCommandHandler {
                 const connection = entry.parent.parent.parent.parent;
                 void provider?.editMrsDbObject(connection.details,
                     { dbObject: entry.details, createObject: false });
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.createJdv", (entry?: ICdmTableEntry) => {
+            if (entry) {
+                const connection = entry.connection;
+
+                if (connection.details.version && connection.details.version < 90400) {
+                    void ui.showErrorMessage(`
+                        Create Json duality view is not supported for the current version of mysql server`, {});
+                } else {
+                    // Create an empty jdvObject
+                    const jdvViewInfo: IJdvViewInfo = {
+                        id: "",
+                        name: entry.caption + "_dv",
+                        schema: entry.schema,
+                        rootTableName: entry.caption,
+                        rootTableSchema: entry.schema,
+                    };
+
+                    // call the JdvObject dialog
+                    try {
+                        const provider = this.host.currentProvider;
+                        void provider?.editJdv(connection.details,
+                            { jdvViewInfo, createView: true });
+                    } catch (reason) {
+                        void ui.showErrorMessage(convertErrorToString(reason), {});
+                    }
+                }
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.editJdv", (entry?: ICdmJdvEntry) => {
+            if (entry) {
+                const connection = entry.connection;
+
+                // load the Jdv object from the database.
+                void connection.backend.getJdvViewInfo(entry.schema, entry.caption).then((jdvInfo) => {
+                    // call the JdvObject dialog
+                    try {
+                        const provider = this.host.currentProvider;
+                        void provider?.editJdv(connection.details,
+                            { jdvViewInfo: jdvInfo, createView: false });
+                    } catch (reason) {
+                        void ui.showErrorMessage(String(reason), {});
+                    }
+                });
             }
         }));
 

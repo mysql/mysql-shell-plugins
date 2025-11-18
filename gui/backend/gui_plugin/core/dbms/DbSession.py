@@ -431,6 +431,15 @@ class DbSession(threading.Thread):
     def get_libraries_metadata(self, schema_name):  # pragma: no cover
         raise NotImplementedError()
 
+    def get_jdv_table_columns_with_references(self, schema_name, table_name): # pragma: no cover
+        raise NotImplementedError()
+
+    def get_jdv_view_info(self, jdv_schema_name, jdv_name): # pragma: no cover
+        raise NotImplementedError()
+
+    def get_jdv_object_fields_with_references(self, jdv_schema_name, jdv_name, jdv_object_id): # pragma: no cover
+        raise NotImplementedError()
+
     def run(self):
         threading.current_thread().name = f'sql-{self._id}'
 

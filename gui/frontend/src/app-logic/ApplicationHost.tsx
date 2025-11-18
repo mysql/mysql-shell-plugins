@@ -123,7 +123,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         if (settingsVisible) {
             pages.push(<SettingsEditor key="settingsEditor" />);
         } else if (aboutVisible) {
-            pages.push(<AboutBox ref={this.aboutBoxRef} onClose={this.handleAboutClose}/>);
+            pages.push(<AboutBox ref={this.aboutBoxRef} onClose={this.handleAboutClose} />);
         }
 
         let content = pages;
@@ -178,17 +178,16 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     }
 
     private showAbout = (): Promise<boolean> => {
-        return new Promise((resolve) => {
-            this.setState({ aboutVisible: true, settingsVisible: false, debuggerVisible: false }, () => {
-                this.aboutBoxRef.current?.show();
-            });
+        this.setState({ aboutVisible: true, settingsVisible: false, debuggerVisible: false }, () => {
+            this.aboutBoxRef.current?.show();
         });
+
+        return Promise.resolve(true);
     };
 
     private handleAboutClose = (): void => {
         this.setState({ debuggerVisible: false, aboutVisible: false, settingsVisible: false });
-    };    
-
+    };
 
     private showPreferences = (): Promise<boolean> => {
         return new Promise((resolve) => {

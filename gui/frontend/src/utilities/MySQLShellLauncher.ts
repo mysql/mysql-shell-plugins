@@ -111,6 +111,7 @@ export class MySQLShellLauncher {
         let shellUserConfigDir: string;
 
         // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory.
+        // eslint-disable-next-line no-restricted-syntax
         shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR ?? (
             globalThis.testConfig?.MYSQLSH_GUI_CUSTOM_CONFIG_DIR ?? "");
         if (shellUserConfigDir.length === 0) {
@@ -464,10 +465,12 @@ export class MySQLShellLauncher {
             } else {
                 let port = 33336;
 
+                // eslint-disable-next-line no-restricted-syntax
                 if (process.env.MYSQLSH_GUI_CUSTOM_PORT) {
+                    // eslint-disable-next-line no-restricted-syntax
                     port = parseInt(process.env.MYSQLSH_GUI_CUSTOM_PORT, 10);
                 } else if (globalThis.testConfig?.MYSQLSH_GUI_CUSTOM_PORT !== undefined) {
-                    const customPort = parseInt(globalThis.testConfig?.MYSQLSH_GUI_CUSTOM_PORT, 10);
+                    const customPort = parseInt(globalThis.testConfig.MYSQLSH_GUI_CUSTOM_PORT, 10);
                     if (!isNaN(customPort)) {
                         port = customPort;
                     } else {

@@ -43,10 +43,10 @@ describe("Checkbox component tests", (): void => {
 
         const chb = container.getElementsByTagName("label")[0];
         expect(chb.childNodes[1].textContent).toEqual("Off");
-        expect(chb?.classList.contains("unchecked")).toBeTruthy();
+        expect(chb.classList.contains("unchecked")).toBeTruthy();
 
         await act(() => {
-            chb?.click();
+            chb.click();
         });
         expect(onChange).toHaveBeenCalled();
 

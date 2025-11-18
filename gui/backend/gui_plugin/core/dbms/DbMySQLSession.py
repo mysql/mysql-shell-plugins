@@ -42,8 +42,10 @@ from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
                                                       MySQLColumnObjectTask,
                                                       MySQLColumnsListTask,
                                                       MySQLRoutinesListTask,
-                                                      MySQLLibrariesListTask
-                                                      )
+                                                      MySQLLibrariesListTask,
+                                                      MySQLJdvTableColumnsWithReferencesTask,
+                                                      MySQLJdvViewInfoTask,
+                                                      MySQLJdvObjectFieldsWithReferencesTask)
 from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
                                             ReconnectionMode, lock_usage)
 from gui_plugin.core.dbms.DbSessionTasks import (DbExecuteTask,
@@ -65,6 +67,7 @@ class DbMysqlSession(DbSession):
                         {"name": "Character Set", "type": "CATALOG_OBJECT"},
                         {"name": "Table",         "type": "SCHEMA_OBJECT"},
                         {"name": "View",          "type": "SCHEMA_OBJECT"},
+                        {"name": "Jdv",           "type": "SCHEMA_OBJECT"},
                         {"name": "Routine",       "type": "SCHEMA_OBJECT"},
                         {"name": "Library",       "type": "SCHEMA_OBJECT"},
                         {"name": "Event",         "type": "SCHEMA_OBJECT"},
@@ -503,6 +506,13 @@ class DbMysqlSession(DbSession):
                     AND TABLE_NAME like ?
                     ORDER BY TABLE_NAME"""
             params = (schema_name, schema_name, filter)
+        elif type == "Jdv":
+            sql = """SELECT TABLE_NAME
+                    FROM information_schema.views
+                    WHERE table_schema = ? 
+                    AND VIEW_DEFINITION LIKE '%json_duality_object%' 
+                    AND TABLE_NAME like ?
+                    ORDER BY TABLE_NAME"""
         elif type == "Routine":
             sql = """SELECT ROUTINE_NAME
                     FROM information_schema.ROUTINES
@@ -666,6 +676,12 @@ class DbMysqlSession(DbSession):
                 sql = """SELECT TABLE_NAME
                         FROM information_schema.views
                         WHERE table_schema = ? AND TABLE_NAME = ?"""
+            elif type == "Jdv":
+                sql = """SELECT TABLE_NAME
+                        FROM information_schema.views
+                        WHERE table_schema = ? 
+                        AND VIEW_DEFINITION LIKE '%json_duality_object%' 
+                        AND TABLE_NAME = ?"""
             elif type == "Routine":
                 sql = """SELECT ROUTINE_NAME
                         FROM information_schema.ROUTINES
@@ -860,6 +876,192 @@ class DbMysqlSession(DbSession):
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                    f"The '{schema_name}' does not exist.")
             return {"libraries": result}
+
+    def get_jdv_table_columns_with_references(self, schema_name, table_name):
+        # first get base columns
+        params = [schema_name, table_name]
+        sql = """
+            SELECT 
+                COLUMN_NAME as 'name', 
+                ORDINAL_POSITION as 'position',
+                JSON_OBJECT(
+                    'dbName',  COLUMN_NAME,
+                    'datatype', COLUMN_TYPE,
+                    'is_primary', COLUMN_KEY='PRI',
+                    'is_generated', EXTRA='STORED GENERATED',
+                    'not_null', IS_NULLABLE='NO'
+                ) as 'dbColumn',
+                NULL as 'reference_mapping', 
+                TABLE_NAME as 'table',
+                TABLE_SCHEMA as 'schema'
+            FROM information_schema.COLUMNS
+            WHERE (TABLE_SCHEMA = ? AND TABLE_NAME = ?) 
+        """
+
+        # Union with the references that point from the table to other tables (n:1)
+        params.extend([schema_name, table_name])
+        sql += """
+            UNION
+            SELECT 
+                REFERENCED_TABLE_NAME as 'name', 
+                ORDINAL_POSITION+1000 as 'position', 
+                NULL as 'dbColumn',
+                JSON_OBJECT(
+                    'kind', 'n:1',
+                    'base_column', COLUMN_NAME,
+                    'referenced_column', REFERENCED_COLUMN_NAME,
+                    'referenced_schema', REFERENCED_TABLE_SCHEMA,
+                    'referenced_table', REFERENCED_TABLE_NAME
+                ) as 'reference_mapping', 
+                TABLE_NAME as 'table',
+                TABLE_SCHEMA as 'schema' 
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE (TABLE_SCHEMA = ? AND REFERENCED_TABLE_NAME IS NOT NULL AND TABLE_NAME = ?)
+        """
+
+        # Union with the references that point from other tables to the table (1:n)
+        params.extend([schema_name, table_name, table_name])
+        sql += """
+            UNION
+            SELECT 
+                TABLE_NAME as 'name', 
+                ORDINAL_POSITION+2000 as 'position',
+                NULL as 'dbColumn',
+                JSON_OBJECT(
+                    'kind', '1:n',
+                    'base_column', REFERENCED_COLUMN_NAME,
+                    'referenced_column', COLUMN_NAME,
+                    'referenced_table', TABLE_NAME,
+                    'referenced_schema', TABLE_SCHEMA
+                ) as 'reference_mapping', 
+                REFERENCED_TABLE_NAME as 'table',
+                TABLE_SCHEMA as 'schema' 
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE (TABLE_SCHEMA = ? AND REFERENCED_TABLE_NAME = ? AND TABLE_NAME <> ?)
+        """
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLJdvTableColumnsWithReferencesTask(
+                            self, task_id=task_id, sql=sql, params=params))
+        else:
+            result = self.execute(sql, params).fetch_all()
+            if not result:
+                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
+                            f"Table '{schema_name}.{table_name}' does not exist.")
+            return {"result": result}
+        
+    def get_jdv_view_info(self, jdv_schema_name, jdv_name):
+        params = [jdv_schema_name, jdv_name]
+        sql = """
+            SELECT
+                jdv.TABLE_NAME as 'name', 
+                jdv.TABLE_SCHEMA as 'schema', 
+                jdv.ROOT_TABLE_NAME as 'root_table_name', 
+                jdv.ROOT_TABLE_SCHEMA as 'root_table_schema',
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id', jdv_tables.REFERENCED_TABLE_ID,
+                            'table', jdv_tables.REFERENCED_TABLE_NAME,
+                            'schema', jdv_tables.REFERENCED_TABLE_SCHEMA,
+                            'isRoot', jdv_tables.IS_ROOT_TABLE,
+                            'options', JSON_OBJECT(
+                                'data_mapping_view_insert', jdv_tables.ALLOW_INSERT, 
+                                'data_mapping_view_update', jdv_tables.ALLOW_UPDATE, 
+                                'data_mapping_view_delete', jdv_tables.ALLOW_DELETE 
+                            )
+                        )
+                    )
+                    FROM information_schema.JSON_DUALITY_VIEW_TABLES as jdv_tables
+                    WHERE jdv_tables.TABLE_SCHEMA = jdv.TABLE_SCHEMA 
+                        AND jdv_tables.TABLE_NAME = jdv.TABLE_NAME
+                ) as 'objects'
+            FROM information_schema.JSON_DUALITY_VIEWS as jdv
+            WHERE (jdv.TABLE_SCHEMA = ? AND jdv.TABLE_NAME = ?)
+        """
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLJdvViewInfoTask(self, task_id=task_id, sql=sql, params=params))
+        else:
+            result = self.execute(sql, params).fetch_all()
+            if not result:
+                raise MSGException(Error.JDV_OBJECT_DOES_NOT_EXISTS,
+                            f"View '{jdv_schema_name}.{jdv_name}' does not exist.")
+            return {"result": result}
+        
+    def get_jdv_object_fields_with_references(self, jdv_schema_name, jdv_name, jdv_object_id):
+        params = [jdv_object_id, jdv_object_id, jdv_schema_name, jdv_name, jdv_object_id]
+
+        # first, get columns
+        sql = """
+            SELECT 
+                "" as "field_id",
+                ? as "jdv_object_id",
+                ? as "parent_reference_id",
+                JSON_KEY_NAME as "json_keyname",
+                REFERENCED_COLUMN_NAME as "db_name",
+                0 as "position",
+                NULL as "object_reference_id",
+                NULL as "object_reference",
+                NULL as "options",
+                true as "selected"
+            FROM information_schema.JSON_DUALITY_VIEW_COLUMNS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND REFERENCED_TABLE_ID = ?
+        """
+
+        # union the child table references
+        params.extend([jdv_object_id, jdv_object_id, jdv_schema_name, jdv_name, jdv_object_id])
+        sql += """
+            UNION
+            SELECT 
+                "" as "field_id",
+                ? as "jdv_object_id",
+                ? as "parent_reference_id",
+                jdv_link.JSON_KEY_NAME as "json_keyname",
+                CONCAT(jdv_link.CHILD_TABLE_SCHEMA, '.', jdv_link.CHILD_TABLE_NAME) as "db_name",
+                1 as "position",
+                REFERENCED_TABLE_ID as "object_reference_id",
+                JSON_OBJECT(
+                    "kind", IF(REFERENCED_TABLE_PARENT_RELATIONSHIP = "nested", "1:n", "n:1"),
+                    "base_column", jdv_link.PARENT_COLUMN_NAME,
+                    "referenced_column", jdv_link.CHILD_COLUMN_NAME,
+                    "referenced_table", jdv_link.CHILD_TABLE_NAME,
+                    "referenced_schema", jdv_link.CHILD_TABLE_SCHEMA
+                ) as "object_reference",
+                JSON_OBJECT( 
+                    "data_mapping_view_insert", ALLOW_INSERT, 
+                    "data_mapping_view_update", ALLOW_UPDATE, 
+                    "data_mapping_view_delete", ALLOW_DELETE 
+                ) as "options",
+                true as "selected"
+            FROM information_schema.JSON_DUALITY_VIEW_TABLES AS jdv_table
+            LEFT JOIN (
+                    SELECT *, CONCAT(
+                        CHILD_TABLE_SCHEMA, '.', CHILD_TABLE_NAME, '.', CHILD_COLUMN_NAME COLLATE utf8mb4_0900_as_ci, ' = ',
+                        PARENT_TABLE_SCHEMA, '.', PARENT_TABLE_NAME, '.', PARENT_COLUMN_NAME COLLATE utf8mb4_0900_as_ci
+                    ) as WHERE_CLAUSE
+                    FROM information_schema.JSON_DUALITY_VIEW_LINKS
+                ) as jdv_link
+            ON jdv_table.TABLE_SCHEMA = jdv_link.TABLE_SCHEMA 
+                AND jdv_table.TABLE_NAME = jdv_link.TABLE_NAME
+                AND jdv_table.WHERE_CLAUSE = jdv_link.WHERE_CLAUSE
+            WHERE jdv_table.TABLE_SCHEMA = ? AND jdv_table.TABLE_NAME = ? AND jdv_table.REFERENCED_TABLE_PARENT_ID = ?
+        """
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLJdvObjectFieldsWithReferencesTask(self, task_id=task_id, sql=sql, params=params))
+        else:
+            result = self.execute(sql, params).fetch_all()
+            if not result:
+                raise MSGException(Error.JDV_OBJECT_DOES_NOT_EXISTS,
+                            f"View '{jdv_schema_name}.{jdv_name} (REFERENCED_TABLE_ID = {jdv_object_id})' does not exist.")
+            return {"result": result}
 
     def _column_exists(self, table_name, column_name):
         """Check if a column exists in INFORMATION_SCHEMA table."""

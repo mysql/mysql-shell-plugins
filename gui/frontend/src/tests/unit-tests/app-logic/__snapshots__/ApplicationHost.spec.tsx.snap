@@ -408,58 +408,6 @@ exports[`Application host tests > Rendering About 1`] = `
         </div>
       </div>
     </div>
-    <div
-      class="msg container fixedScrollbar aboutBox"
-      style="flex-direction: column; justify-content: center; align-items: center;"
-    >
-      <div
-        class="msg icon"
-        id="sakilaLogo"
-        style="mask-image: url("/src/assets/images/modules/module-shell.svg");"
-      />
-      <div
-        class="msg container fixedScrollbar"
-        id="heading"
-        style="flex-direction: column;"
-      >
-        <label
-          class="msg label"
-          data-tooltip="expand"
-          id="headingLabel"
-        >
-          About MySQL Shell
-        </label>
-      </div>
-      <div
-        class="msg container fixedScrollbar"
-        id="aboutBoxLinks"
-        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
-      >
-        <a
-          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
-          rel="noopener noreferrer"
-          tabindex="0"
-          target="_blank"
-        >
-          Learn More &gt;
-        </a>
-        <a
-          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
-          rel="noopener noreferrer"
-          tabindex="0"
-          target="_blank"
-        >
-          Documentation &gt;
-        </a>
-      </div>
-      <div
-        class="msg grid"
-        style="grid-template-columns: repeat(2, 1fr); row-gap: 12px; column-gap: 12px;"
-      />
-      <div
-        class="copyright"
-      />
-    </div>
   </div>
 </div>
 `;

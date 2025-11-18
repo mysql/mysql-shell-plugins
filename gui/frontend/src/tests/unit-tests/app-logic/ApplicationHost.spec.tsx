@@ -224,9 +224,9 @@ describe("Application host tests", () => {
         debugComponent = container.querySelectorAll(`#${id}`);
         expect(debugComponent.length).toBe(1);
 
-        const [[_, element]] = debugComponent.entries();
-        expect(element.getAttribute("id")).toEqual(id);
-        expect(element.classList.contains("stretch")).toBeTruthy();
+        const [firstEntry] = debugComponent.entries();
+        expect(firstEntry[1].getAttribute("id")).toEqual(id);
+        expect(firstEntry[1].classList.contains("stretch")).toBeTruthy();
 
         unmount();
     });

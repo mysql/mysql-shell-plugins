@@ -871,12 +871,12 @@
                 "title": "Dump REST Client SDK Files ..."
             },
             {
-                "command": "msg.mrs.dumpCreateServiceSql",
-                "title": "Dump REST SERVICE SQL Script..."
-            },
-            {
                 "command": "msg.mrs.dumpServiceAsProject",
                 "title": "Dump REST Service as REST Project ..."
+            },
+            {
+                "command": "msg.mrs.dumpCreateServiceSql",
+                "title": "Dump REST SERVICE SQL Script..."
             },
             {
                 "command": "msg.mrs.dumpCreateSchemaSql",
@@ -1141,6 +1141,18 @@
             {
                 "command": "msg.removeFolder",
                 "title": "Delete Folder"
+            },
+            {
+                "command": "msg.createJdv",
+                "title": "Create JSON Duality View..."
+            },
+            {
+                "command": "msg.editJdv",
+                "title": "Edit JSON Duality View..."
+            },
+            {
+                "command": "msg.dropJdv",
+                "title": "Drop JSON Duality View..."
             }
         ],
         "submenus": [
@@ -1176,6 +1188,11 @@
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.mrs.loadObjectFromJSONFile",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@1"
+                },
+                {
                     "command": "msg.mrs.loadProjectFromDisk",
                     "when": "view == msg.connections && (viewItem == mrs || viewItem == mrsService)",
                     "group": "2_msg@1"
@@ -1184,11 +1201,6 @@
                     "command": "msg.mrs.loadProjectFromUrl",
                     "when": "view == msg.connections && (viewItem == mrs || viewItem == mrsService)",
                     "group": "2_msg@2"
-                },
-                {
-                    "command": "msg.mrs.loadObjectFromJSONFile",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@1"
                 }
             ],
             "msg.dumpToDisk": [
@@ -1276,12 +1288,12 @@
             "msg.copyToClipboard": [
                 {
                     "command": "msg.copyNameToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine|Library)?Item.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Jdv|Routine|Library)?Item.*/",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.copyCreateScriptToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine|Library)?Item.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Jdv|Routine|Library)?Item.*/",
                     "group": "1_msg@2"
                 },
                 {
@@ -1574,17 +1586,17 @@
                 },
                 {
                     "submenu": "msg.loadFromDisk",
-                    "when": "viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/ || viewItem == mrs",
+                    "when": "viewItem =~ /^schema(Table|View|Jdv|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/ || viewItem == mrs",
                     "group": "2_msg@3"
                 },
                 {
                     "submenu": "msg.dumpToDisk",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Jdv|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
                     "group": "2_msg@4"
                 },
                 {
                     "submenu": "msg.copyToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine|Library)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Jdv|Routine|Library)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
                     "group": "2_msg@5"
                 },
                 {
@@ -1684,12 +1696,12 @@
                 },
                 {
                     "command": "msg.selectTableRows",
-                    "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(View|Jdv)Item.*/",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.showTableData",
-                    "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(View|Jdv)Item.*/",
                     "group": "1_msg@2"
                 },
                 {
@@ -2084,6 +2096,21 @@
                     "command": "msg.removeFolder",
                     "when": "view == msg.connections && viewItem == connectionGroup",
                     "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.createJdv",
+                    "when": "view == msg.connections && viewItem == schemaTableItemMySQL",
+                    "group": "5_msg@1"
+                },
+                {
+                    "command": "msg.editJdv",
+                    "when": "view == msg.connections && viewItem =~ /^schemaJdvItem.*/",
+                    "group": "8_msg@1"
+                },
+                {
+                    "command": "msg.dropJdv",
+                    "when": "view == msg.connections && viewItem =~ /^schemaJdvItem.*/",
+                    "group": "8_msg@2"
                 }
             ]
         },

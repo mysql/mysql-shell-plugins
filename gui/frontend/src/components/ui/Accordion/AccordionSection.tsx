@@ -93,7 +93,6 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties,
                 innerRef={this.sectionRef}
                 {...this.unhandledProperties}
             >
-                <hr />
                 <Container
                     orientation={Orientation.LeftToRight}
                     className="title"

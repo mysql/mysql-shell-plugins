@@ -331,6 +331,9 @@ export enum MrsDialogType {
 
     /** A dialog to configure MRS. */
     MrsConfiguration,
+
+    /** A dialog to create or edit an JdvObject. */
+    JdvObject,
 }
 
 /** Types for MySQL Database Service (OCI) dialogs. */
@@ -350,10 +353,17 @@ export enum LibraryDialogType {
     CreateLibraryFrom = 30,
 }
 
+/** Types for JSON Duality View. */
+export enum JdvDialogType {
+
+    /** A dialog to create or edit an JdvObject. */
+    JdvObject = 40,
+}
+
 /** A set of values that describe a single modal dialog request. */
 export interface IDialogRequest extends IDictionary {
     /** The type of the dialog to show. Used mostly to schedule dialog requests. */
-    type: DialogType | MrsDialogType | MdsDialogType | LibraryDialogType;
+    type: DialogType | MrsDialogType | MdsDialogType | LibraryDialogType | JdvDialogType;
 
     /** An id to identify the invocation. */
     id: string;
