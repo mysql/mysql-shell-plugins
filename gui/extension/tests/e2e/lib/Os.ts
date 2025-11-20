@@ -28,10 +28,9 @@ import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
-import { WebElement, Key, Condition } from "vscode-extension-tester";
+import { WebElement, Key, Condition, Workbench as extWorkbench } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import clipboard from "clipboardy";
-import * as constants from "./constants";
 import { driver, Misc } from "./Misc";
 import * as locators from "./locators";
 import { E2ELogger } from "./E2ELogger";
@@ -233,20 +232,27 @@ export class Os {
      * Presses CTRL+A
      * 
      * @param el The element to perform the action on
+     * @param useVscode Use vscode to perform the operation as a command
      * @returns A promise resolving when the command is executed
      */
-    public static keyboardSelectAll = async (el?: WebElement): Promise<void> => {
+    public static keyboardSelectAll = async (el?: WebElement, useVscode = true): Promise<void> => {
         const osKey = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
         if (el) {
             await driver.executeScript("arguments[0].click()", el);
             await el.sendKeys(Key.chord(osKey, "a"));
         } else {
-            await driver.actions()
-                .keyDown(osKey)
-                .sendKeys("a")
-                .pause(1000)
-                .keyUp(osKey)
-                .perform();
+            await Misc.switchBackToTopFrame();
+            if (useVscode) {
+                const workbench = new extWorkbench();
+                await workbench.executeCommand("editor.action.selectAll");
+            } else {
+                await driver.actions()
+                    .keyDown(osKey)
+                    .sendKeys("A")
+                    .keyUp(osKey)
+                    .perform();
+            }
+
         }
     };
 
@@ -258,21 +264,14 @@ export class Os {
      */
     public static keyboardCopy = async (el?: WebElement): Promise<void> => {
         const osKey = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
-        await driver.wait(async () => {
-            if (el) {
-                await driver.executeScript("arguments[0].click()", el);
-                await el.sendKeys(Key.chord(osKey, "c"));
-            } else {
-                await driver.actions()
-                    .keyDown(osKey)
-                    .sendKeys("c")
-                    .pause(1000)
-                    .keyUp(osKey)
-                    .perform();
-            }
-
-            return clipboard.readSync() !== "";
-        }, constants.wait1second * 5, `The clipboard is empty`);
+        if (el) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(osKey, "c"));
+        } else {
+            await Misc.switchBackToTopFrame();
+            const workbench = new extWorkbench();
+            await workbench.executeCommand("editor.action.clipboardCopyAction");
+        }
     };
 
     /**
@@ -287,6 +286,7 @@ export class Os {
             await driver.executeScript("arguments[0].click()", el);
             await el.sendKeys(Key.chord(osKey, "v"));
         } else {
+            await Misc.switchBackToTopFrame();
             await driver.actions()
                 .keyDown(osKey)
                 .sendKeys("v")
@@ -308,6 +308,7 @@ export class Os {
             await driver.executeScript("arguments[0].click()", el);
             await el.sendKeys(Key.chord(osKey, "X"));
         } else {
+            await Misc.switchBackToTopFrame();
             await driver.actions()
                 .keyDown(osKey)
                 .sendKeys("X")

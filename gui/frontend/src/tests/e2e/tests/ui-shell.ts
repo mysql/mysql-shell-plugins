@@ -216,7 +216,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         beforeAll(async () => {
             try {
                 await new E2ETabContainer().closeAllTabs();
-                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                const dbConnectionOverview = new E2EDatabaseConnectionOverview();
+                await dbConnectionOverview.openNewShellConsole();
                 shellConsole = await new E2EShellConsole().untilIsOpened(undefined);
                 let uri = `\\c ${username}:${password}@${hostname}:${port}0/${schema}`;
                 const result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;

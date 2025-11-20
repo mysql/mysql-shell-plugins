@@ -433,24 +433,24 @@ export class E2ETests {
         this.cleanVSCodeCache(testSuite);
 
         // WRITE OCI PROFILE CONFIG FILE
-        const ociConfigFile = `
-        [E2ETESTS]
-        user=${process.env.OCI_E2E_USER}
-        fingerprint=${process.env.OCI_E2E_FINGERPRINT}
-        tenancy=${process.env.OCI_E2E_TENANCY}
-        region=${process.env.OCI_E2E_REGION}
-        key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
+        if (testSuite.name.toUpperCase() === "OCI" || testSuite.name.toUpperCase() === "DB") {
+            const ociConfigFile = `
+                [E2ETESTS]
+                user=${process.env.OCI_E2E_USER}
+                fingerprint=${process.env.OCI_E2E_FINGERPRINT}
+                tenancy=${process.env.OCI_E2E_TENANCY}
+                region=${process.env.OCI_E2E_REGION}
+                key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
 
-        [HEATWAVE]
-        user=${process.env.OCI_HW_USER}
-        fingerprint=${process.env.OCI_HW_FINGERPRINT}
-        tenancy=${process.env.OCI_HW_TENANCY}
-        region=${process.env.OCI_HW_REGION}
-        key_file=${process.env.OCI_HW_KEY_FILE_PATH}
-        `;
+                [HEATWAVE]
+                user=${process.env.OCI_HW_USER}
+                fingerprint=${process.env.OCI_HW_FINGERPRINT}
+                tenancy=${process.env.OCI_HW_TENANCY}
+                region=${process.env.OCI_HW_REGION}
+                key_file=${process.env.OCI_HW_KEY_FILE_PATH}
+                `;
 
-        const ociConfigFilePath = join(process.cwd(), "config");
-        if (!existsSync(ociConfigFilePath)) {
+            const ociConfigFilePath = join(process.cwd(), "config");
             writeFileSync(ociConfigFilePath, ociConfigFile);
         }
 

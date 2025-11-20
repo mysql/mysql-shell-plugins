@@ -730,36 +730,21 @@ describe("DATABASE CONNECTIONS", () => {
                 const connection = await dbConnectionOverview.getConnection(globalConn.caption!);
                 await connection.click();
                 await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait5seconds);
-                await tabContainer.selectTab(constants.connectionOverview);
 
-                await new E2EDatabaseConnectionOverview().openNotebookUsingKeyboard(globalConn.caption!);
-                await driver.wait(async () => {
-                    if (await PasswordDialog.exists()) {
-                        await PasswordDialog.setCredentials(globalConn);
+                for (let i = 2; i <= 4; i++) {
+                    await tabContainer.selectTab(constants.connectionOverview);
+                    await new E2EDatabaseConnectionOverview().openNotebookUsingKeyboard(globalConn.caption!);
 
-                        return true;
-                    }
-                }, constants.wait5seconds, "Could not find the Password Dialog for second connection");
+                    await driver.wait(async () => {
+                        if (await PasswordDialog.exists()) {
+                            await PasswordDialog.setCredentials(globalConn);
+                        }
 
-                await tabContainer.selectTab(constants.connectionOverview);
-                await new E2EDatabaseConnectionOverview().openNotebookUsingKeyboard(globalConn.caption!);
-                await driver.wait(async () => {
-                    if (await PasswordDialog.exists()) {
-                        await PasswordDialog.setCredentials(globalConn);
+                        const tabs = await new E2ETabContainer().getTabs();
 
-                        return true;
-                    }
-                }, constants.wait5seconds, "Could not find the Password Dialog for third connection");
-
-                await tabContainer.selectTab(constants.connectionOverview);
-                await new E2EDatabaseConnectionOverview().openNotebookUsingKeyboard(globalConn.caption!);
-                await driver.wait(async () => {
-                    if (await PasswordDialog.exists()) {
-                        await PasswordDialog.setCredentials(globalConn);
-
-                        return true;
-                    }
-                }, constants.wait5seconds, "Could not find the Password Dialog for forth connection");
+                        return tabs.join(",").includes(`${globalConn.caption!} (${i})`);
+                    }, constants.wait5seconds, "Could not find the Password Dialog for connection");
+                }
 
                 await driver.wait(async () => {
                     return (await tabContainer.getTabs()).length === 5;
@@ -924,7 +909,8 @@ describe("DATABASE CONNECTIONS", () => {
                     };
 
                     await connectionOverview.addNewConnection(dbConnection);
-                    expect(await connectionOverview.existsGroup(dbConnection.folderPath!.value!)).toBe(true);
+                    await driver.wait(connectionOverview.untilGroupExists(dbConnection.folderPath!.value!),
+                        constants.wait5seconds);
                     await connectionOverview.joinGroup(dbConnection.folderPath!.value!);
                     await driver.wait(connectionOverview.untilConnectionExists(dbConnection.caption!),
                         constants.wait3seconds);

@@ -157,7 +157,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
 
-            await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.viewCompartmentInfo);
+            await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.viewCompartmentInfo, undefined, false);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait1second * 10);
             await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait1second * 10);
             compartmentId = JSON.parse(await new TextEditor().getText()).id;
@@ -222,7 +222,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const treeDbSystem = await ociTreeSection.getTreeItem(undefined, constants.dbSystemType);
             await ociTreeSection.openContextMenuAndSelect(await treeDbSystem.getLabel(),
-                constants.viewDBSystemInfo);
+                constants.viewDBSystemInfo, undefined, false);
             await driver.wait(Workbench.untilTabIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
                 constants.wait1second * 10);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
@@ -342,7 +342,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const treeBastion = await ociTreeSection.getTreeItem(undefined, constants.bastionType);
             const bastionName = await treeBastion.getLabel();
-            await ociTreeSection.openContextMenuAndSelect(bastionName, constants.getBastionInfo);
+            await ociTreeSection.openContextMenuAndSelect(bastionName, constants.getBastionInfo, undefined, false);
             await driver.wait(Workbench.untilTabIsOpened(`${bastionName} Info.json`), constants.wait1second * 10);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${bastionName} Info.json`),
                 constants.wait1second * 10);
@@ -442,7 +442,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const treeComputeInstance = await ociTreeSection.getTreeItem(undefined, constants.ociComputeType);
             const computeName = await treeComputeInstance.getLabel();
-            await ociTreeSection.openContextMenuAndSelect(computeName, constants.viewComputeInstanceInfo);
+            await ociTreeSection.openContextMenuAndSelect(computeName, constants.viewComputeInstanceInfo, undefined, false);
             await driver.wait(Workbench.untilTabIsOpened(`${computeName} Info.json`), constants.wait1second * 10);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait1second * 10);
             await Workbench.closeEditor(new RegExp(`${computeName} Info.json`));

@@ -349,74 +349,6 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Copy paste into notebook", async function () {
-
-            await TestQueue.push(this.test!.title);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
-
-            await notebook.codeEditor.clean();
-            await Misc.switchBackToTopFrame();
-            const filename = "1_users.sql";
-            await browser.openResources(join(constants.workspace, "gui", "frontend",
-                "src", "tests", "e2e", "sql", filename));
-            await driver.wait(Workbench.untilTabIsOpened(filename), constants.wait1second * 5);
-            await Os.keyboardSelectAll();
-            await Os.keyboardCopy();
-            await Workbench.openEditor(globalConn.caption!);
-            let clipboardText = await clipboard.read();
-            clipboardText = clipboardText.replace(/`|;/gm, "");
-            await clipboard.write(clipboardText);
-            await Misc.switchToFrame();
-
-            const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
-            await promptLine.click();
-            await Os.keyboardPaste();
-
-            const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
-                "src", "tests", "e2e", "sql", filename));
-            const fileLines = sakilaFile.toString().split("\n");
-
-            const widget = await new E2ECodeEditorWidget(notebook).open();
-            try {
-                for (const line of fileLines) {
-                    if (line.trim() !== "") {
-                        await widget.setTextToFind(line.substring(0, 150).replace(/`|;/gm, ""));
-                        await driver.wait(widget.untilMatchesCount(/1 of (\d+)/), constants.wait1second * 2);
-                    }
-                }
-            } finally {
-                await widget.close();
-                await Workbench.toggleSideBar(false);
-            }
-        });
-
-        it("Cut paste into notebook", async function () {
-
-            await TestQueue.push(this.test!.title);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
-
-            const sentence1 = "select * from sakila.actor";
-            const sentence2 = "select * from sakila.address";
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.write(sentence1, true);
-            await notebook.codeEditor.setNewLine();
-            await notebook.codeEditor.write(sentence2, true);
-            await Os.keyboardSelectAll();
-            await Os.keyboardCut();
-            expect(await notebook.exists(sentence1), `${sentence1} should not exist on the notebook`)
-                .to.be.false;
-            expect(await notebook.exists(sentence2),
-                `${sentence2} should not exist on the notebook`).to.be.false;
-            const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
-            await promptLine.click();
-            await Os.keyboardPaste();
-
-            await driver.wait(notebook.untilExists(sentence1), constants.wait1second * 5);
-            await driver.wait(notebook.untilExists(sentence2), constants.wait1second * 5);
-        });
-
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
 
             await TestQueue.push(this.test!.title);
@@ -683,6 +615,75 @@ describe("NOTEBOOKS", () => {
 
         });
 
+        it("Copy paste into notebook", async function () {
+
+            await TestQueue.push(this.test!.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
+
+            await notebook.codeEditor.clean();
+            await Misc.switchBackToTopFrame();
+            const filename = "1_users.sql";
+            await browser.openResources(join(constants.workspace, "gui", "frontend",
+                "src", "tests", "e2e", "sql", filename));
+            await driver.wait(Workbench.untilTabIsOpened(filename), constants.wait1second * 5);
+            await Os.keyboardSelectAll();
+            await Os.keyboardCopy();
+            await Workbench.openEditor(globalConn.caption!);
+            let clipboardText = await clipboard.read();
+            clipboardText = clipboardText.replace(/`|;/gm, "");
+            await clipboard.write(clipboardText);
+            await Misc.switchToFrame();
+            const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
+            await promptLine.click();
+            await Os.keyboardPaste();
+            await Misc.switchToFrame();
+
+            const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
+                "src", "tests", "e2e", "sql", filename));
+            const fileLines = sakilaFile.toString().split("\n");
+
+            const widget = await new E2ECodeEditorWidget(notebook).open();
+            try {
+                for (const line of fileLines) {
+                    if (line.trim() !== "") {
+                        await widget.setTextToFind(line.substring(0, 150).replace(/`|;/gm, ""));
+                        await driver.wait(widget.untilMatchesCount(/1 of (\d+)/), constants.wait1second * 2);
+                    }
+                }
+            } finally {
+                await widget.close();
+                await Workbench.toggleSideBar(false);
+            }
+        });
+
+        it("Cut paste into notebook", async function () {
+
+            await TestQueue.push(this.test!.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test!.title), constants.queuePollTimeout);
+
+            const sentence1 = "select * from sakila.actor";
+            const sentence2 = "select * from sakila.address";
+            await notebook.codeEditor.clean();
+            await notebook.codeEditor.write(sentence1, true);
+            await notebook.codeEditor.setNewLine();
+            await notebook.codeEditor.write(sentence2, true);
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await Os.keyboardSelectAll(textArea);
+            await Os.keyboardCut(textArea);
+            expect(await notebook.exists(sentence1), `${sentence1} should not exist on the notebook`)
+                .to.be.false;
+            expect(await notebook.exists(sentence2),
+                `${sentence2} should not exist on the notebook`).to.be.false;
+            const promptLine = await driver.findElement(locator.notebook.codeEditor.editor.promptLine);
+            await promptLine.click();
+            await Os.keyboardPaste(textArea);
+
+            await driver.wait(notebook.untilExists(sentence1), constants.wait1second * 5);
+            await driver.wait(notebook.untilExists(sentence2), constants.wait1second * 5);
+        });
+
         it("Using a DELIMITER", async () => {
             const query =
                 `DELIMITER $$
@@ -693,6 +694,7 @@ describe("NOTEBOOKS", () => {
                     select 1 $$`;
 
 
+            await notebook.codeEditor.clean();
             const result = await notebook.executeWithButton(query, constants.execFullBlockSql,
                 true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);

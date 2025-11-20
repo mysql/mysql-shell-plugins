@@ -116,9 +116,8 @@ export class E2ETabContainer {
         const action = async (): Promise<void> => {
             await driver.wait(async () => {
                 await (await this.getTab(name))!.click();
-                const tab = await this.getTab(name);
 
-                return (await tab!.getAttribute("class")).includes("selected");
+                return this.isSelected(name);
             }, constants.wait5seconds, `'${name}' was not selected`);
         };
 
@@ -129,6 +128,19 @@ export class E2ETabContainer {
                 throw e;
             }
         });
+    };
+
+    /**
+     * Verifies if a tab is selected
+     * 
+     * @param name The tab name
+     * @returns A condition resolving to true if the tab is selected, false otherwise
+     */
+    public isSelected = async (name: string | RegExp): Promise<boolean> => {
+        await (await this.getTab(name))!.click();
+        const tab = await this.getTab(name);
+
+        return (await tab!.getAttribute("class")).includes("selected");
     };
 
     /**

@@ -96,7 +96,7 @@ export class Misc {
             }
         }
 
-        if (result === "failed") {
+        if (result === "failed" && Os.isWindows()) {
             await Workbench.expandNotifications();
             const img = await driver.takeScreenshot();
             const ssDir = join(process.cwd(), "screenshots");

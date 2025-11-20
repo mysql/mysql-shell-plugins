@@ -52,7 +52,7 @@ export const dbConnectionDialog = {
             defaultSchema: By.id("defaultSchema"),
             protocol: By.id("scheme"),
             protocolList: By.id("schemePopup"),
-            port: By.css("#port input"),
+            port: By.css("#port"),
         },
         ssl: {
             modeList: By.id("sslModePopup"),
@@ -101,7 +101,7 @@ export const dbConnectionDialog = {
             connectionTimeout: By.css("#content > input"),
             compression: By.id("compression"),
             compressionPopup: By.id("compressionPopup"),
-            compressionLevel: By.css("#compressionLevel input"),
+            compressionLevel: By.id("compressionLevel"),
             compressionAlgorithms: By.id("compressionAlgorithms"),
             disableHeatwaveCheck: By.id("disableHeatwaveCheck"),
             addNewProperty: By.id("buttonAddEntry"),
@@ -570,22 +570,22 @@ export const mrsConfigDialog = {
     authenticationThrottling: {
         tab: By.id("page0"),
         preAccountThrottling: {
-            minTimeRequests: By.css("#perAccountMinimumTimeBetweenRequestsInMs input"),
-            maxAttemptsPerMin: By.css("#perAccountMaximumAttemptsPerMinute input"),
+            minTimeRequests: By.id("perAccountMinimumTimeBetweenRequestsInMs"),
+            maxAttemptsPerMin: By.id("perAccountMaximumAttemptsPerMinute"),
         },
         perHostThrottling: {
-            minTimeRequests: By.css("#perHostMinimumTimeBetweenRequestsInMs input"),
-            maxAttemptsPerMin: By.css("#perHostMaximumAttemptsPerMinute input"),
+            minTimeRequests: By.id("perHostMinimumTimeBetweenRequestsInMs"),
+            maxAttemptsPerMin: By.id("perHostMaximumAttemptsPerMinute"),
         },
-        blockTimeout: By.css("#blockWhenAttemptsExceededInSeconds input"),
+        blockTimeout: By.id("blockWhenAttemptsExceededInSeconds"),
     },
     caches: {
         tab: By.id("page1"),
         endPointResponseCache: By.id("responseCacheMaxCacheSize"),
         staticFileCache: By.id("fileCacheMaxCacheSize"),
         gtidCache: By.id("gtidCacheEnable"),
-        refreshRate: By.css("#gtidCacheRefreshRate input"),
-        refreshWhenIncreased: By.css("#gtidCacheRefreshWhenIncreasesBy input"),
+        refreshRate: By.id("gtidCacheRefreshRate"),
+        refreshWhenIncreased: By.id("gtidCacheRefreshWhenIncreasesBy"),
     },
     redirectsAndStaticContent: {
         tab: By.id("page2"),
