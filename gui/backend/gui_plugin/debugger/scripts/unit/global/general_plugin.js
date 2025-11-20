@@ -42,7 +42,7 @@ await ws.sendAndValidate({
         "request_state":
         {
             "type": "ERROR",
-            "msg": "Something failed\n",
+            "msg": "Error: Shell Error: Something failed\n",
             "source": "MSG",
             "code": 1
         },
