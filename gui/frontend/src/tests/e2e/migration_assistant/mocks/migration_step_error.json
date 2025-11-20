@@ -1,0 +1,298 @@
+{
+  "request_state": {
+    "type": "PENDING",
+    "msg": ""
+  },
+  "result": {
+    "stages": [
+      {
+        "caption": "PROVISION_VCN",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Network MySQLVCN provisioned",
+        "stage": 2010,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_COMPARTMENT",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Compartment MySQLShellTesting verified",
+        "stage": 2020,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_COMPUTE",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Jump host instance mysql-jump-host was launched",
+        "stage": 2030,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_BUCKET",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Bucket local-connection-20251210-145732 provisioned",
+        "stage": 2040,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_HELPER",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Jump host provisioned",
+        "stage": 2050,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_DBSYSTEM",
+        "current": 100.0,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {
+          "stageCurrent": 100.0,
+          "stageTotal": 100.0
+        },
+        "message": "MySQL DB System local connection was launched",
+        "stage": 2060,
+        "status": "finished",
+        "total": 100.0
+      },
+      {
+        "caption": "PROVISION_HEATWAVE_CLUSTER",
+        "current": 100.0,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {
+          "stageCurrent": 100.0,
+          "stageTotal": 100.0
+        },
+        "message": "HeatWave cluster launched",
+        "stage": 2070,
+        "status": "finished",
+        "total": 100.0
+      },
+      {
+        "caption": "DUMP",
+        "current": 6841,
+        "enabled": true,
+        "errors": [],
+        "eta": 0,
+        "info": {
+          "stage": "DUMPING_DATA",
+          "stageCurrent": 6841,
+          "stageEta": 0,
+          "stageTotal": 6785
+        },
+        "message": "Source database was exported",
+        "stage": 3010,
+        "status": "finished",
+        "total": 6785
+      },
+      {
+        "caption": "LOAD",
+        "current": 80.0,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {
+          "stage": "Building indexes",
+          "stageCurrent": 80.0,
+          "stageEta": null,
+          "stageTotal": 100
+        },
+        "message": "Data load to target DB System completed",
+        "stage": 3020,
+        "status": "finished",
+        "total": 100
+      },
+      {
+        "caption": "CONNECT_DBSYSTEM",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "DB System is online and accepting connections",
+        "stage": 3030,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "ENABLE_CRASH_RECOVERY",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Database crash recovery enabled",
+        "stage": 3040,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "ENABLE_HA",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 3050,
+        "status": "not_started",
+        "total": null
+      },
+      {
+        "caption": "CREATE_SSH_TUNNEL",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "SSH tunnel is ready and connectable",
+        "stage": 4010,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CHECK_DIRECT_NETWORK",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 4020,
+        "status": "not_started",
+        "total": null
+      },
+      {
+        "caption": "CREATE_CHANNEL",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 4030,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CONGRATS",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 5010,
+        "status": "in_progress",
+        "total": null
+      },
+      {
+        "caption": "MONITOR_CHANNEL",
+        "current": null,
+        "enabled": true,
+        "errors": [
+          {
+            "_class": "MigrationError",
+            "info": {},
+            "level": "ERROR",
+            "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
+            "title": "",
+            "type": "DBError"
+          },
+          {
+            "_class": "MigrationError",
+            "info": {},
+            "level": "ERROR",
+            "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
+            "title": "",
+            "type": "DBError"
+          }
+        ],
+        "eta": null,
+        "info": {
+          "error": {
+            "_class": "MigrationError",
+            "info": {},
+            "level": "ERROR",
+            "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
+            "title": "",
+            "type": "DBError"
+          }
+        },
+        "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
+        "stage": 5020,
+        "status": "error",
+        "total": null
+      },
+      {
+        "caption": "CLEANUP",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 5090,
+        "status": "not_started",
+        "total": null
+      },
+      {
+        "caption": "FINAL_SUMMARY",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 5100,
+        "status": "not_started",
+        "total": null
+      }
+    ],
+    "status": "finished",
+    "summary": {
+      "adminUser": "root",
+      "bucketName": "local-connection-20251210-145732",
+      "bucketNamespace": "idylsdbcgx0d",
+      "channelId": "ocid1.mysqlchannel.oc1.iad.aaaaaaaa7kh47i3fq6osuuvjrunpzhbnnci6fwo3hlrjwg2zoromzx5tm45q",
+      "cloudConnectivity": "local-ssh-tunnel",
+      "compartmentName": "MySQLShellTesting",
+      "createdBucket": true,
+      "createdJumpHost": false,
+      "dbSystemIP": "10.0.2.71",
+      "dbSystemId": "ocid1.mysqldbsystem.oc1.iad.aaaaaaaaehqzqna7roir6rzeqklv5hqrxkweaernbim46mv2fbjywfqyijta",
+      "dbSystemName": "local connection",
+      "dbSystemVersion": "9.5.1",
+      "fullCompartmentName": "",
+      "jumpHostId": ""
+    }
+  },
+  "request_id": ""
+}

@@ -46,7 +46,7 @@
         "e2e/*.mjs",
         "unit-tests/**/*",
         "loadTestConfiguration.ts",
-        "setupTestEnv.ts",
+        "setupTestEnv.ts", "../../playwright.config.ts",
     ],
     "exclude": [],
 }

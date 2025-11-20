@@ -47,7 +47,7 @@
         // Needed here during build setup in vite.config.js.
         "package.json",
         "vite-env.d.ts"
-    ],
+, "playwright.config.ts"    ],
     "exclude": [
         "build",
         "node_modules",

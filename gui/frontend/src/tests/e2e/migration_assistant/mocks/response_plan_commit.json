@@ -1,0 +1,17 @@
+{
+  "request_state": {
+    "type": "PENDING",
+    "msg": ""
+  },
+  "result": {
+    "data": null,
+    "errors": [],
+    "id": 1040,
+    "status": "FINISHED",
+    "values": {
+      "configFile": "config",
+      "profile": "DEFAULT"
+    }
+  },
+  "request_id": ""
+}

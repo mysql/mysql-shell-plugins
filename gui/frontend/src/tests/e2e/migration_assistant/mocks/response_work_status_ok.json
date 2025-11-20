@@ -1,0 +1,281 @@
+{
+  "request_state": {
+    "type": "PENDING",
+    "msg": ""
+  },
+  "result": {
+    "stages": [
+      {
+        "caption": "PROVISION_VCN",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 2010,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_COMPARTMENT",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 2020,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_COMPUTE",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 2030,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_BUCKET",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 2040,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_HELPER",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 2050,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "PROVISION_DBSYSTEM",
+        "current": 100.0,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {
+          "stageCurrent": 100.0,
+          "stageTotal": 100.0
+        },
+        "message": "Step was successful",
+        "stage": 2060,
+        "status": "finished",
+        "total": 100.0
+      },
+      {
+        "caption": "PROVISION_HEATWAVE_CLUSTER",
+        "current": 100.0,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {
+          "stageCurrent": 100.0,
+          "stageTotal": 100.0
+        },
+        "message": "Step was successful",
+        "stage": 2070,
+        "status": "finished",
+        "total": 100.0
+      },
+      {
+        "caption": "DUMP",
+        "current": 6841,
+        "enabled": true,
+        "errors": [],
+        "eta": 0,
+        "info": {
+          "stage": "DUMPING_DATA",
+          "stageCurrent": 6841,
+          "stageEta": 0,
+          "stageTotal": 6785
+        },
+        "message": "Step was successful",
+        "stage": 3010,
+        "status": "finished",
+        "total": 6785
+      },
+      {
+        "caption": "LOAD",
+        "current": 80.0,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {
+          "stage": "Building indexes",
+          "stageCurrent": 80.0,
+          "stageEta": null,
+          "stageTotal": 100
+        },
+        "message": "Step was successful",
+        "stage": 3020,
+        "status": "finished",
+        "total": 100
+      },
+      {
+        "caption": "CONNECT_DBSYSTEM",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 3030,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "ENABLE_CRASH_RECOVERY",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 3040,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "ENABLE_HA",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 3050,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CREATE_SSH_TUNNEL",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 4010,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CHECK_DIRECT_NETWORK",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 4020,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CREATE_CHANNEL",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 4030,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CONGRATS",
+        "current": true,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "",
+        "stage": 5010,
+        "status": "in_progress",
+        "total": null
+      },
+      {
+        "caption": "MONITOR_CHANNEL",
+        "current": null,
+        "enabled": true,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 5020,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "CLEANUP",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 5090,
+        "status": "finished",
+        "total": null
+      },
+      {
+        "caption": "FINAL_SUMMARY",
+        "current": null,
+        "enabled": false,
+        "errors": [],
+        "eta": null,
+        "info": {},
+        "message": "Step was successful",
+        "stage": 5100,
+        "status": "finished",
+        "total": null
+      }
+    ],
+    "status": "finished",
+    "summary": {
+      "adminUser": "root",
+      "bucketName": "local-connection-20251216-113313",
+      "bucketNamespace": "mocked bucket namespace",
+      "channelId": "mocked channel id",
+      "cloudConnectivity": "local-ssh-tunnel",
+      "compartmentName": "MySQLShellTesting",
+      "createdBucket": true,
+      "createdJumpHost": true,
+      "dbSystemIP": "0.0.0.0",
+      "dbSystemId": "mocked db system id",
+      "dbSystemName": "local connection",
+      "dbSystemVersion": "0.0.0",
+      "fullCompartmentName": "",
+      "jumpHostId": "mocked host id",
+      "jumpHostKeyPath": "mocked key path",
+      "jumpHostName": "mocked jump host name",
+      "jumpHostPrivateIP": "0.0.0.0",
+      "jumpHostPublicIP": "0.0.0.0",
+      "migrationType": "hot",
+      "region": "mocked region",
+      "sourceHost": "localhost",
+      "sourcePort": 3306,
+      "sourceVersion": "9.4.0-commercial"
+    }
+  },
+  "request_id": ""
+}

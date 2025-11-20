@@ -16,3 +16,13 @@
 internal/typings/mysqlsh/mysql.pyi
 internal/typings/mysqlsh/plugin_manager
 migration_plugin/pyrightconfig.json
+
+# Playwright
+
+gui/frontend/test-results/
+gui/frontend/playwright-report/
+gui/frontend/src/tests/e2e/migration_assistant/node_modules/
+gui/frontend/src/tests/e2e/migration_assistant/blob-report/
+gui/frontend/src/tests/e2e/migration_assistant/playwright/.cache/
+gui/frontend/src/tests/e2e/migration_assistant/playwright/.auth/
+**/shell-migration

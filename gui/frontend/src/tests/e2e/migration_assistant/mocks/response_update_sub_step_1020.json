@@ -1,0 +1,19 @@
+{
+  "request_state": { "type": "PENDING", "msg": "" },
+  "result": {
+    "data": {
+      "allowedConnectivity": [
+        "",
+        "site-to-site",
+        "ssh-tunnel",
+        "local-ssh-tunnel"
+      ],
+      "allowedTypes": ["cold", "hot"]
+    },
+    "errors": [],
+    "id": 1020,
+    "status": "FINISHED",
+    "values": { "connectivity": "ssh-tunnel", "type": "hot" }
+  },
+  "request_id": ""
+}
