@@ -106,7 +106,7 @@ pre {
 .copyright::after {
     content: '© 2020, 2025, Oracle Corporation and/or its affiliates.';
     display: inline-block;
-    margin-top: 80px;
+    margin-top: 20px;
     font-size: 10px;
     font-weight: 100;
     color: var(--disabledForeground);

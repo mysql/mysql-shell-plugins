@@ -2687,7 +2687,7 @@ Migration Assistant.`}
 
         const sshCmd =
             `ssh -i"${summaryInfo.jumpHostKeyPath}" -oIdentityAgent=none opc@${summaryInfo.jumpHostPublicIP}`;
-        const mysqlshCmd = `mysqlsh ${summaryInfo.adminUser}@${summaryInfo.dbSystemIP}`;
+        const mysqlshCmd = `mysqlsh -p ${summaryInfo.adminUser}@${summaryInfo.dbSystemIP}`;
         const consoleUrl =
             `https://cloud.oracle.com/mysqlaas/db-systems/${summaryInfo.dbSystemId}?region=${summaryInfo.region}`;
         const jumpHostConsoleUrl =
@@ -4942,8 +4942,8 @@ Migration Assistant.`}
                 showLinks={false}
                 onClose={this.handleAboutClose}
                 additionalInfo={[
-                    ["Projects Path", this.state.projectsPath ?? ""],
-                    ["Log Path", this.state.logPath ?? ""]
+                    ["Projects Path:", this.state.projectsPath ?? ""],
+                    ["Log Path:", this.state.logPath ?? ""]
                 ]}
             />
         );

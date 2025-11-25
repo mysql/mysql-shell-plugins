@@ -37,7 +37,7 @@
 }
 
 .msg.aboutBox .grid .title {
-    color: var(--disabledForeground)
+    color: var(--disabledForeground);
 }
 
 .msg.aboutBox .grid .selectable {
@@ -46,15 +46,18 @@
 
 .msg.aboutBox .grid .left {
     justify-content: flex-end;
+    user-select: text;
 }
 
 .msg.aboutBox .grid .small {
     font-size: 8pt;
+    user-select: text;
 }
 
 
 .msg.aboutBox .grid .right {
     justify-content: flex-start;
+    user-select: text;
 }
 
 .msg.aboutBox .heading {
@@ -76,7 +79,7 @@
 }
 
 .msg.aboutBox #headingLabel {
-    margin-top: 15px;
+    margin-top: 0px;
     font-size: 25pt;
     height: 39px;
     font-weight: 100;
@@ -120,16 +123,7 @@
     font-size: 14px;
 }
 
-.msg.aboutBox #closeButton {
-    width: 20px;
-    height: 20px;
 
-    border: none;
-
-    position: absolute;
-    top: 8px;
-    right: 8px;
-}
 
 .msg.aboutBox .divider {
     width: 60%;
