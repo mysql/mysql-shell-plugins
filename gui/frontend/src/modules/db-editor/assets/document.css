@@ -804,13 +804,13 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
 }
 
 .msg#schemaDiagramToolbar > .button > .icon {
-    background-color: color-mix(in oklab, var(--button-secondaryBackground) 70%, white);
+    background-color: color-mix(in oklab, var(--button-secondaryBackground) 70%, var(--button-foreground));
     width: 16px;
     height: 16px;
 }
 
 .msg#schemaDiagramToolbar .diagramViewButton.active {
-    background-color: color-mix(in oklab, var(--button-secondaryBackground) 50%, black);
+    background-color: color-mix(in oklab, var(--button-secondaryBackground) 50%, var(--editorStickyScroll-shadow));
 }
 
 .msg#schemaDiagramToolbar > .button.active > .icon {

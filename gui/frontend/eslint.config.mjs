@@ -365,11 +365,9 @@ export default tslint.config(
                     // adjacent-overload-signatures.
 
                     default: [
-                        // Index signature
-
                         "signature",
-                        // Fields
 
+                        // Fields
                         "public-static-field",
                         "protected-static-field",
                         "private-static-field",
@@ -386,22 +384,22 @@ export default tslint.config(
                         "abstract-field",
                         "decorated-field",
                         "field",
-                        // Constructors
 
+                        // Constructors
                         "public-constructor",
                         "protected-constructor",
                         "private-constructor",
                         "constructor",
-                        // Methods
 
+                        // Methods
                         "public-static-method",
-                        "protected-static-method",
-                        "private-static-method",
                         "public-method",
-                        "protected-method",
-                        "private-method",
                         "public-abstract-method",
+                        "protected-static-method",
+                        "protected-method",
                         "protected-abstract-method",
+                        "private-method",
+                        "private-static-method",
                     ],
                 },
             ],

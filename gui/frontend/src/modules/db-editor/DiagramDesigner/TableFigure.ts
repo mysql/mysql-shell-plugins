@@ -35,9 +35,9 @@ import * as pixi from "pixi.js";
 import { getThemeColor } from "../../../components/ui/Canvas/canvas-helpers.js";
 import type { ICanvasTheme } from "../../../components/ui/Canvas/Canvas.js";
 import { Figure } from "../../../components/ui/Canvas/Figures/Figure.js";
-import { prepareImage } from "./diagram-helpers.js";
 import type { IDdmTableEntry } from "./DiagramDataModel.js";
 import { ScrollableContainer, ScrollBoxOverflow } from "./ScrollableContainer.js";
+import { ImageFigure } from "../../../components/ui/Canvas/Figures/ImageFigure.js";
 
 export const tableTextStyle = {
     fontFamily: "Helvetica Neue, Arial, sans-serif",
@@ -48,6 +48,8 @@ export const tableTextStyle = {
 const headerHeight = 30;
 
 export class TableFigure extends Figure {
+    private scrollbox: ScrollableContainer;
+
     /**
      * Creates a new Figure for the given data model entry.
      *
@@ -57,6 +59,45 @@ export class TableFigure extends Figure {
      */
     public constructor(private dmEntry: IDdmTableEntry, private events: pixi.EventSystem, theme: ICanvasTheme) {
         dmEntry.diagramValues.collapsedHeight = headerHeight;
+
+        super({
+            diagramValues: {
+                x: dmEntry.diagramValues.x,
+                y: dmEntry.diagramValues.y,
+                width: dmEntry.diagramValues.width,
+                height: dmEntry.state.expanded ? dmEntry.diagramValues.height : dmEntry.diagramValues.collapsedHeight,
+                selectable: dmEntry.diagramValues.selectable,
+                resizable: dmEntry.diagramValues.resizable,
+            },
+            theme,
+        });
+
+        this.scrollbox = new ScrollableContainer({
+            events: this.events,
+            boxWidth: this.dmEntry.diagramValues.width,
+            boxHeight: this.dmEntry.diagramValues.height - 30,
+            overflowX: ScrollBoxOverflow.Auto,
+            overflowY: ScrollBoxOverflow.Auto,
+            fadeScrollbar: false,
+            scrollbarBackgroundAlpha: 0,
+            scrollbarForegroundAlpha: 0.75,
+            scrollbarOffsetHorizontal: -2,
+            scrollbarOffsetVertical: -2,
+            stopPropagation: true,
+            passiveWheel: true,
+        });
+
+        this.scrollbox.layout = {
+            x: 0,
+            y: 30,
+            width: this.dmEntry.diagramValues.width,
+            height: this.dmEntry.diagramValues.width - 30,
+        };
+    }
+
+    public override render(): void {
+        const { theme } = this.props;
+
         const header = new pixi.Container({
             layout: {
                 flexDirection: "row",
@@ -64,7 +105,7 @@ export class TableFigure extends Figure {
                 paddingRight: 10,
                 gap: 5,
                 alignItems: "center",
-                width: dmEntry.diagramValues.width,
+                width: this.dmEntry.diagramValues.width,
                 height: headerHeight,
                 flex: 0,
             },
@@ -72,16 +113,17 @@ export class TableFigure extends Figure {
 
         // No layout, just a background.
         const headerBackground = new pixi.Graphics();
-        headerBackground.rect(0, 0, dmEntry.diagramValues.width, headerHeight);
+        headerBackground.rect(0, 0, this.dmEntry.diagramValues.width, headerHeight);
         headerBackground.fill("#51A3BD");
         header.addChild(headerBackground);
 
         const titleForeground = "#f8f8f8";
-        const tableImage = prepareImage(tableIcon, { width: 15, height: 15, alpha: 1 }, titleForeground);
+        const tableImage = new ImageFigure(tableIcon, theme);
+        tableImage.setSize(15, 15);
         tableImage.layout = true;
 
         const title = new pixi.Text({
-            text: dmEntry.caption,
+            text: this.dmEntry.caption,
             style: { ...tableTextStyle, fontSize: 14, fontWeight: "bold", fill: titleForeground },
             textureStyle: { scaleMode: "nearest", },
             layout: { flex: 0 },
@@ -95,44 +137,26 @@ export class TableFigure extends Figure {
         triangle.interactive = true;
 
         triangle.on("pointertap", (e) => {
-            dmEntry.state.expanded = !dmEntry.state.expanded;
+            this.dmEntry.state.expanded = !this.dmEntry.state.expanded;
             e.stopPropagation();
 
-            this.render({
+            this.scrollbox.visible = this.dmEntry.state.expanded;
+            /*this.render({
                 diagramValues: {
+                    x: this.dmEntry.diagramValues.x,
+                    y: this.dmEntry.diagramValues.y,
                     width: dmEntry.diagramValues.width,
                     height: dmEntry.state.expanded
                         ? dmEntry.diagramValues.height
                         : dmEntry.diagramValues.collapsedHeight ?? dmEntry.diagramValues.height,
                 },
+                theme,
                 children: dmEntry.state.expanded ? [header, scrollbox] : [header],
-            });
-            triangle.rotation = dmEntry.state.expanded ? 0 : -Math.PI / 2;
+            });*/
+            triangle.rotation = this.dmEntry.state.expanded ? 0 : -Math.PI / 2;
         });
 
-        header.addChild(tableImage, title, triangle);
-
-        const scrollbox = new ScrollableContainer({
-            events: events,
-            boxWidth: dmEntry.diagramValues.width,
-            boxHeight: dmEntry.diagramValues.height - 30,
-            overflowX: ScrollBoxOverflow.Auto,
-            overflowY: ScrollBoxOverflow.Auto,
-            fadeScrollbar: false,
-            scrollbarBackgroundAlpha: 0,
-            scrollbarForegroundAlpha: 0.75,
-            scrollbarOffsetHorizontal: -2,
-            scrollbarOffsetVertical: -2,
-            stopPropagation: true,
-            passiveWheel: true,
-        });
-
-        scrollbox.layout = {
-            x: 0,
-            y: 30,
-            width: dmEntry.diagramValues.width,
-            height: dmEntry.diagramValues.width - 30,
-        };
+        header.addChild(tableImage.element, title, triangle);
 
         const body = new pixi.Container({
             layout: {
@@ -146,12 +170,13 @@ export class TableFigure extends Figure {
             },
         });
 
-        scrollbox.content.addChild(body);
+        this.scrollbox.content.removeChildren();
+        this.scrollbox.content.addChild(body);
 
-        if (dmEntry.description) {
+        if (this.dmEntry.description) {
             const foregroundColor = getThemeColor(theme, "badge.foreground", "#f8f8f8");
             const description = new pixi.HTMLText({
-                text: dmEntry.description,
+                text: this.dmEntry.description,
                 style: {
                     ...tableTextStyle,
                     fontSize: 11,
@@ -170,23 +195,13 @@ export class TableFigure extends Figure {
             body.addChild(description);
         }
 
-        TableFigure.renderColumnNames(body, dmEntry, theme);
-        TableFigure.renderIndexNames(body, dmEntry, theme);
-        TableFigure.renderForeignKeyNames(body, dmEntry, theme);
-        scrollbox.update();
+        TableFigure.renderColumnNames(body, this.dmEntry, theme);
+        TableFigure.renderIndexNames(body, this.dmEntry, theme);
+        TableFigure.renderForeignKeyNames(body, this.dmEntry, theme);
+        this.scrollbox.update();
 
-        super({
-            diagramValues: {
-                x: dmEntry.diagramValues.x,
-                y: dmEntry.diagramValues.y,
-                width: dmEntry.diagramValues.width,
-                height: dmEntry.state.expanded ? dmEntry.diagramValues.height : dmEntry.diagramValues.collapsedHeight,
-                selectable: dmEntry.diagramValues.selectable,
-                resizable: dmEntry.diagramValues.resizable,
-            },
-            theme,
-            children: [header, scrollbox],
-        });
+        super.render();
+        this.content.addChild(header, this.scrollbox);
     }
 
     private static renderColumnNames(body: pixi.Container, dmEntry: IDdmTableEntry, theme: ICanvasTheme): void {
@@ -208,6 +223,7 @@ export class TableFigure extends Figure {
                 layout: {
                     flexDirection: "row",
                     alignItems: "center",
+                    justifyContent: "flex-start",
                     gap: 5,
                     flex: 1,
                 }
@@ -220,10 +236,12 @@ export class TableFigure extends Figure {
                 width = 6;
                 height = 12;
             }
-            const image = prepareImage(col.primaryKey ? columnIconPk : (col.nullable ? columnIcon : columnIconNotNull),
-                { width, height }, foregroundColor);
-            image.layout = { flex: 0 };
-            row.addChild(image);
+            const image = new ImageFigure(col.primaryKey
+                ? columnIconPk
+                : (col.nullable ? columnIcon : columnIconNotNull), theme);
+            image.setSize(width, height);
+            image.layout = true;
+            row.addChild(image.element);
 
             const dimmedColor = getThemeColor(theme, "descriptionForeground", "#888888");
             const colText = new pixi.HTMLText({

@@ -31,22 +31,23 @@ import networkIcon from "../../../assets/images/msm/info-network.svg?raw";
 import * as pixi from "pixi.js";
 import { ComponentChild, createRef } from "preact";
 
+import { ThemeManager } from "../../../components/Theming/ThemeManager.js";
+import { getThemeColor } from "../../../components/ui/Canvas/canvas-helpers.js";
 import { Canvas, type ICanvasElement, type ICanvasTheme } from "../../../components/ui/Canvas/Canvas.js";
 import { Connection, ConnectionType } from "../../../components/ui/Canvas/Figures/Connection.js";
 import { Figure } from "../../../components/ui/Canvas/Figures/Figure.js";
+import { ImageFigure } from "../../../components/ui/Canvas/Figures/ImageFigure.js";
+import { TextFigure } from "../../../components/ui/Canvas/Figures/TextFigure.js";
 import { PageSettings } from "../../../components/ui/Canvas/PageSettings.js";
 import {
     ComponentBase, IComponentProperties, IComponentState
 } from "../../../components/ui/Component/ComponentBase.js";
 import { IOdmSchemaDiagramEntry } from "../../../data-models/OpenDocumentDataModel.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import { ContainerFigure } from "./ContainerFigure.js";
-import { prepareImage } from "./diagram-helpers.js";
 import { DdmEntityType, DiagramDataModel, type IDdmContainerEntry, type IDdmTableEntry } from "./DiagramDataModel.js";
 import { SchemaDiagramToolbar, SchemaDiagramToolbarAction } from "./SchemaDiagramToolbar.js";
 import { TableFigure } from "./TableFigure.js";
-import { ThemeManager } from "../../../components/Theming/ThemeManager.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
-import { getThemeColor } from "../../../components/ui/Canvas/canvas-helpers.js";
 
 /** TODO: Replace with actual implementation */
 type IDictionary = Record<string, unknown>;
@@ -230,33 +231,25 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
     private generateCanvasElementsFromDataModel(app: pixi.Application): ICanvasElement[] {
         const elements: ICanvasElement[] = [];
 
-        const element1 = this.generateElement("localhost", "localhost:3306");
-        element1.element.position.set(100, 100);
+        const element1 = this.generateElement("localhost", "localhost:3306", 100, 100);
         elements.push(element1);
 
-        const element2 = this.generateElement("Omega3", "192.168.0.11:3306");
-        element2.element.position.set(500, 250);
-
+        const element2 = this.generateElement("Omega3", "192.168.0.11:3306", 500, 250);
         elements.push(element2);
 
-        const element3 = this.generateElement("woodstock", "192.168.0.13:3306");
-        element3.element.position.set(900, 150);
+        const element3 = this.generateElement("woodstock", "192.168.0.13:3306", 900, 150);
         elements.push(element3);
 
-        const element4 = this.generateElement("AWS", "cloud.example.com:3306");
-        element4.element.position.set(120, 400);
+        const element4 = this.generateElement("AWS", "cloud.example.com:3306", 120, 400);
         elements.push(element4);
 
-        const connection1 = new Connection(element1, element2, ConnectionType.Bezier);
-        connection1.render(this.theme);
-        const connection2 = new Connection(element2, element3, ConnectionType.Ellbow);
-        connection2.render(this.theme);
-        const connection3 = new Connection(element4, element2, ConnectionType.Straight);
-        connection3.render(this.theme);
+        const connection1 = new Connection(element1, element2, ConnectionType.Bezier, this.theme);
+        const connection2 = new Connection(element2, element3, ConnectionType.Ellbow, this.theme);
+        const connection3 = new Connection(element4, element2, ConnectionType.Straight, this.theme);
 
-        elements.push({ element: connection1 });
-        elements.push({ element: connection2 });
-        elements.push({ element: connection3 });
+        elements.push(connection1);
+        elements.push(connection2);
+        elements.push(connection3);
 
         const diagram = this.datamodel.document;
         for (const entry of diagram.entries) {
@@ -285,13 +278,18 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                         }
                     });
 
-                    elements.push({ element: tableFigure, isDraggable: true, layout: true });
+                    tableFigure.isDraggable = true;
+                    tableFigure.layout = true;
+
+                    elements.push(tableFigure);
                     break;
                 }
 
                 case DdmEntityType.Container: {
                     const containerFigure = new ContainerFigure(entry, this.theme);
-                    elements.push({ element: containerFigure, isDraggable: true, layout: true });
+                    containerFigure.isDraggable = true;
+                    containerFigure.layout = true;
+                    elements.push(containerFigure);
                     this.addChildElementsToContainer(entry, containerFigure, app.renderer.events);
 
                     break;
@@ -311,7 +309,8 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                 case DdmEntityType.Table: {
                     const tableEntry = childEntry as IDdmTableEntry;
                     const childTableFigure = new TableFigure(tableEntry, eventSystem, this.theme);
-                    childTableFigure.position.set(tableEntry.diagramValues.x, tableEntry.diagramValues.y);
+                    childTableFigure.move(tableEntry.diagramValues.x, tableEntry.diagramValues.y);
+                    childTableFigure.element.zIndex = 1;
 
                     parentFigure.addChild(childTableFigure);
 
@@ -322,7 +321,9 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
                     // Nested container.
                     const containerEntry = childEntry as IDdmContainerEntry;
                     const childContainerFigure = new ContainerFigure(containerEntry, this.theme);
-                    childContainerFigure.position.set(containerEntry.diagramValues.x, containerEntry.diagramValues.y);
+                    childContainerFigure.move(containerEntry.diagramValues.x,
+                        containerEntry.diagramValues.y);
+                    childContainerFigure.element.zIndex = 1;
 
                     parentFigure.addChild(childContainerFigure);
                     this.addChildElementsToContainer(containerEntry, childContainerFigure, eventSystem);
@@ -335,47 +336,29 @@ export class SchemaDiagramDesigner extends ComponentBase<ISchemaDiagramDesignerP
         });
     }
 
-    private generateElement(caption: string, subCaption: string): ICanvasElement {
-        const title = new pixi.Text({
-            text: caption,
-            style: defaultLabelStyle,
-            textureStyle: {
-                scaleMode: "nearest", // Pixel-perfect scaling
-            }
-        });
-        title.position.set(15, 10);
-
-        const networkLabel = new pixi.Text({
-            text: subCaption,
-            style: defaultLabelStyle,
-            textureStyle: {
-                scaleMode: "nearest",
-            }
-        });
-        networkLabel.position.set(45, 36);
-
-        const foregroundColor = getThemeColor(this.theme, "foreground", "#ffffff");
-        const sakila = prepareImage(mysqlConnectionIcon, { x: 190, y: 20, alpha: 0.1 }, foregroundColor);
-        const network = prepareImage(networkIcon, { x: 15, y: 38, width: 20, height: 17, alpha: 0.5 },
-            foregroundColor);
+    private generateElement(caption: string, subCaption: string, x: number, y: number): ICanvasElement {
         const theme = this.theme;
-        const tile = new class extends Figure {
-            public constructor() {
-                super({
-                    diagramValues: {
-                        x: 200 + (Math.random() * 500),
-                        y: 200 + (Math.random() * 500),
-                        width: 250,
-                        height: 100,
-                    },
-                    hoverFade: 0.5,
-                    theme,
-                    children: [title, networkLabel, sakila, network],
-                });
-            };
-        };
 
-        return { element: tile, isDraggable: true };
+        const title = new TextFigure(caption, defaultLabelStyle, theme);
+        title.move(15, 10);
+
+        const networkLabel = new TextFigure(subCaption, defaultLabelStyle, theme);
+        networkLabel.move(45, 36);
+
+        const sakila = new ImageFigure(mysqlConnectionIcon, theme);
+        sakila.move(190, 20);
+        sakila.alpha = 0.1;
+
+        const network = new ImageFigure(networkIcon, theme);
+        network.move(15, 38);
+        network.setSize(20, 17);
+        network.alpha = 0.5;
+
+        const tile = new Figure({ diagramValues: { x, y, width: 250, height: 100, }, hoverFade: 0.5, theme });
+        tile.isDraggable = true;
+        tile.addChild(title, networkLabel, sakila, network);
+
+        return tile;
     }
 
     private onCanvasReady = (app: pixi.Application): void => {

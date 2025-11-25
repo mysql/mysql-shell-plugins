@@ -34,8 +34,7 @@ import { ComponentChild, createRef } from "preact";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { getModifiers, getThemeColor, Modifier } from "./canvas-helpers.js";
-import type { Connection } from "./Figures/Connection.js";
-import { Figure } from "./Figures/Figure.js";
+import { Figure, type IDrawable } from "./Figures/Figure.js";
 import { PageSettings } from "./PageSettings.js";
 import { PerformanceOverlay } from "./PerformanceOverlay.js";
 
@@ -113,13 +112,22 @@ export interface ICanvasUiChanges {
     redraw?: boolean;
 }
 
-/** A drawable element on the canvas. */
-export interface ICanvasElement {
-    element: Figure | Connection;
+/** A structure holding a drawable element and canvas options for it. */
+export interface ICanvasElement extends IDrawable {
+    element: pixi.ContainerChild;
     isDraggable?: boolean;
 
     /** Use the pixi-layout system. */
     layout?: boolean;
+
+    /** Moves the element to a specific position. */
+    move(newX: number, newY: number): void;
+
+    /** Moves the element by the given delta values. */
+    moveBy(deltaX: number, deltaY: number): void;
+
+    /** Update the theme of the element. This will re-render it with the new colors. */
+    updateTheme(theme?: ICanvasTheme): void;
 }
 
 export interface ICanvasProperties extends IComponentProperties {
@@ -270,9 +278,15 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
         const { elements, debugLogging, theme } = this.props;
 
+        if (theme) {
+            rulerTextStyle.fontFamily = theme.fontValues["msg-monospace-font-family"];
+            rulerTextStyle.fontSize = theme.fontValues["msg-monospace-font-size"] ?? "10px";
+            rulerTextStyle.fill = getThemeColor(theme, "tab.activeForeground", "#FFFFFF");
+        }
+
         this.viewport.removeChildren();
         const drawables = elements.map((o) => {
-            return o.element;
+            return o;
         });
 
         if (debugLogging) {
@@ -281,14 +295,10 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
             this.performanceOverlay?.dispose();
             this.performanceOverlay = undefined;
         }
-        this.app.renderer.background.color = getThemeColor(this.props.theme, "list.hoverBackground", "#000000");
+        this.app.renderer.background.color = getThemeColor(theme, "list.hoverBackground", "#000000");
 
         const draggables: ICanvasElement[] = [];
         elements.forEach((o) => {
-            if (o.layout && !o.element.layout) {
-                o.element.layout = true;
-            }
-
             if (o.isDraggable) {
                 draggables.push(o);
 
@@ -307,8 +317,8 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
                     }
                 });
 
-                if (o.element instanceof Figure) {
-                    o.element.onFigureEvent("select", (figure, modifiers) => {
+                if (o instanceof Figure) {
+                    o.onFigureEvent("select", (figure, modifiers) => {
                         if (!this.locked) {
                             if (modifiers.has(Modifier.Ctrl) || modifiers.has(Modifier.Meta)
                                 || modifiers.has(Modifier.Shift)) {
@@ -330,10 +340,13 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
         const root = new pixi.Container();
         root.zIndex = 10;
         root.sortableChildren = true;
+
+        elements.forEach((o) => {
+            root.addChild(o.element);
+        });
         this.viewport.addChild(root);
-        root.addChild(...drawables);
         drawables.forEach((d) => {
-            //d.render(theme);
+            d.updateTheme(theme);
         });
     }
 
@@ -451,10 +464,17 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
     private handleResize = (entries: readonly ResizeObserverEntry[]): void => {
         if (entries.length > 0) {
-            this.viewport?.resize(
-                entries[0].contentRect.width,
-                entries[0].contentRect.height,
-            );
+            const firstRect = entries[0].contentRect;
+            if (firstRect.width === 0 || firstRect.height === 0) {
+                // Ignore zero-size entries (may happen during UI element switches).
+                return;
+            }
+
+            this.viewport?.resize(firstRect.width, firstRect.height);
+
+            this.drawGrid();
+            this.drawPageBordersAndMargins();
+            this.drawRulers();
         }
     };
 
@@ -855,9 +875,9 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
     private stopInteraction = (): void => {
         this.lastSelectionList = [];
         if (this.elementDagging && this.dragTarget) {
-            const element = this.dragTarget.element;
-            if (element instanceof Figure) {
-                element.emitFigureEvent("move", element.x, element.y);
+            const target = this.dragTarget;
+            if (target instanceof Figure) {
+                target.emitFigureEvent("move", target.element.x, target.element.y);
             }
 
             this.elementDagging = false;
@@ -935,7 +955,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
             const newSelectionList: Figure[] = [];
             elements.forEach((o) => {
-                if (o.element instanceof Figure) {
+                if (o instanceof Figure) {
                     const figureBounds = o.element.getBounds();
                     const viewportPos = this.viewport!.toWorld(figureBounds.x, figureBounds.y);
                     const intersects = x < (viewportPos.x + figureBounds.width)
@@ -944,7 +964,7 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
                         && (y + height) > viewportPos.y;
 
                     if (intersects) {
-                        newSelectionList.push(o.element);
+                        newSelectionList.push(o);
                     }
                 }
             });
@@ -1003,8 +1023,8 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
         const { elements } = this.props;
         elements.forEach((o) => {
-            if ((o.element !== figure) && (o.element instanceof Figure)) {
-                o.element.selected = false;
+            if ((o !== figure) && (o instanceof Figure)) {
+                o.selected = false;
             }
         });
     }
@@ -1323,8 +1343,6 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
     };
 
     private handleAppPointerMove = (event: pixi.FederatedPointerEvent) => {
-        const { theme } = this.props;
-
         // Restart the idle time only, if the mouse is within the application bounds.
         if (event.global.x >= 0 && event.global.y >= 0 && event.global.x < this.app.renderer.width
             && event.global.y < this.app.renderer.height) {
@@ -1333,29 +1351,27 @@ export class Canvas extends ComponentBase<ICanvasProperties> {
 
         this.lastGlobalMousePosition = new pixi.Point(event.global.x, event.global.y);
         if (this.elementDagging && this.dragTarget) {
-            const element = this.dragTarget.element;
-            const newPosition = event.getLocalPosition(element.parent!);
+            const target = this.dragTarget;
+            const newPosition = event.getLocalPosition(target.element.parent!);
             const deltaX = newPosition.x - this.dragOffset.x;
             const deltaY = newPosition.y - this.dragOffset.y;
 
-            element.x += deltaX;
-            element.y += deltaY;
+            target.moveBy(deltaX, deltaY);
             this.dragOffset = newPosition;
 
-            if (element instanceof Figure) {
-                element.emitFigureEvent("move", this.dragTarget.element.x, this.dragTarget.element.y);
-                element.updateConnections(theme);
+            if (target instanceof Figure) {
+                target.emitFigureEvent("move", this.dragTarget.element.x, this.dragTarget.element.y);
+                target.updateConnections();
             }
 
             // Move also other selected elements.
             const { elements } = this.props;
             elements.forEach((o) => {
-                if (o.element instanceof Figure && o.element.selected && o.element !== element) {
-                    o.element.x += deltaX;
-                    o.element.y += deltaY;
+                if (o instanceof Figure && o.selected && o !== target) {
+                    o.moveBy(deltaX, deltaY);
 
-                    o.element.updateConnections(theme);
-                    o.element.emitFigureEvent("move", o.element.x, o.element.y);
+                    o.updateConnections();
+                    o.emitFigureEvent("move", o.element.x, o.element.y);
                 }
             });
         } else if (this.isSelecting) {

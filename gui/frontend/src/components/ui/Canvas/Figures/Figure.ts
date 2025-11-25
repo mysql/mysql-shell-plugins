@@ -23,16 +23,17 @@
 
 import * as pixi from "pixi.js";
 
-import type { DeepPartial } from "../../../../app-logic/general-types.js";
 import { getModifiers, getThemeColor, Modifier, type IDiagramValues } from "../canvas-helpers.js";
-import type { ICanvasTheme } from "../Canvas.js";
+import type { ICanvasElement, ICanvasTheme } from "../Canvas.js";
 import { Connection, type IConnectionHolder } from "./Connection.js";
 import { Handle } from "./Handle.js";
 
 const selectionBoxSize = 8;
 const selectionBoxOffset = 4;
-//const selectionBoxBackgroundColor = "#303030";
-//const selectionBoxBorderColor = "#ffffff";
+
+export interface IDrawable {
+    render(): void;
+}
 
 export interface IFigureProps {
     diagramValues: IDiagramValues;
@@ -44,8 +45,6 @@ export interface IFigureProps {
     hoverFade?: number;
 
     theme: ICanvasTheme;
-
-    children: pixi.Container[];
 }
 
 /** Possible events of the figure you can subscribe to. */
@@ -73,11 +72,27 @@ type ListenerBuckets<M extends { [K in keyof M]: M[K] }> = {
     [K in keyof M]: Array<M[K]>;
 };
 
-export class Figure extends pixi.Container implements IConnectionHolder {
-    /** All connections going out or comming in from other figures. Used to update them when the figure moves. */
+/** The base figure class for the canvas element hierarchy. */
+export class Figure implements ICanvasElement, IConnectionHolder, IDrawable {
+    /**
+     * All connections going out or comming in from other figures. Used to update them when the figure moves.
+     *
+     * TODO: Define a primary connection holder and update only connections of that to avoid duplicates.
+     */
     public connections: Connection[] = [];
 
-    protected root!: pixi.Container;
+    public isDraggable?: boolean;
+
+    /**
+     * The container holding the entire content. It clips everything outside.
+     * Descendants should add background elements here. It's then rendered before the children.
+     */
+    protected content: pixi.Container;
+
+    private children: Figure[] = [];
+
+    /** The root container holding the content and the shadow. */
+    private base = new pixi.Container();
 
     private shadow!: pixi.Graphics;
 
@@ -90,16 +105,45 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         expand: [],
     };
 
-    public constructor(private props: IFigureProps) {
-        super();
-        this.interactive = true;
+    public constructor(public props: IFigureProps) {
+        const width = props.diagramValues.width;
+        const height = props.diagramValues.height;
 
-        this.render();
+        this.content = new pixi.Container({
+            boundsArea: new pixi.Rectangle(0, 0, width, height),
+            layout: {
+                flexDirection: "column",
+            }
+        });
+        this.content.interactive = true;
+        this.content.sortableChildren = true;
+        this.base.addChild(this.content);
     }
 
-    public updateConnections(theme?: ICanvasTheme): void {
+    public get element(): pixi.Container {
+        return this.base;
+    }
+
+    public get alpha(): number {
+        return this.base.alpha;
+    }
+
+    public set alpha(value: number) {
+        this.base.alpha = value;
+    }
+
+    public get layout(): boolean {
+        return this.base.layout != null; // null or undefined means no layout
+    }
+
+    /** Switch on auto layout if not already done. This cannot be switched off. */
+    public set layout(value: boolean) {
+        this.base.layout ??= value;
+    }
+
+    public updateConnections(): void {
         for (const c of this.connections) {
-            c.render(theme);
+            c.render();
         }
     }
 
@@ -108,14 +152,15 @@ export class Figure extends pixi.Container implements IConnectionHolder {
     }
 
     public set selected(value: boolean) {
-        if (this.props.diagramValues.selectable && this.props.diagramValues.selected != value) {
-            this.props.diagramValues.selected = value;
+        const { diagramValues } = this.props;
+        if (diagramValues.selectable && diagramValues.selected != value) {
+            diagramValues.selected = value;
 
             if (value) {
                 for (const listener of this.evenListeners.select) {
                     listener(this, new Set());
                 }
-                this.renderSelectionBoxes(this.props.diagramValues);
+                this.renderSelectionBoxes(diagramValues);
             } else {
                 for (const listener of this.evenListeners.unselect) {
                     listener(this, new Set());
@@ -125,13 +170,23 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         }
     }
 
-    public render(props?: DeepPartial<IFigureProps>): void {
-        this.removeChildren();
-        const effectiveProps = { ...this.props, ...props };
-        const width = effectiveProps.diagramValues.width ?? 100;
-        const height = effectiveProps.diagramValues.height ?? 200;
+    public updateTheme(theme: ICanvasTheme): void {
+        this.props.theme = theme;
+        this.render();
+    }
 
-        const theme = effectiveProps.theme as ICanvasTheme | undefined;
+    public render(): void {
+        const { diagramValues, hoverFade, theme } = this.props;
+
+        this.base.removeChildren();
+        this.content.removeChildren();
+
+        this.base.position.set(diagramValues.x, diagramValues.y);
+
+        const width = diagramValues.width;
+        const height = diagramValues.height;
+
+        this.content.boundsArea = new pixi.Rectangle(0, 0, width, height);
 
         // First element is a shadow, unclipped.
         const shadowColor = getThemeColor(theme, "widget.shadow", "#000000");
@@ -139,29 +194,21 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         this.shadow.roundRect(0, 2, width, height, 8)
             .fill({ color: shadowColor, alpha: 0.5 });
         this.shadow.filters = [new pixi.BlurFilter({ strength: 8, quality: 4, kernelSize: 9 })];
-        this.addChild(this.shadow);
-
-        // Then the content, clipped.
-        this.root = new pixi.Container({
-            boundsArea: new pixi.Rectangle(0, 0, width, height),
-            layout: {
-                flexDirection: "column",
-            }
-        });
+        this.base.addChild(this.shadow);
 
         const clipMask = new pixi.Graphics().roundRect(0, 0, width, height, 8)
             .fill();
-        this.root.mask = clipMask;
-        this.root.addChild(clipMask);
+        this.content.mask = clipMask;
+        this.content.addChild(clipMask);
 
-        if (effectiveProps.hoverFade !== undefined && effectiveProps.hoverFade < 1 && effectiveProps.hoverFade >= 0) {
-            this.on("pointerover", () => {
-                this.alpha = effectiveProps.hoverFade!;
+        if (hoverFade !== undefined && hoverFade < 1 && hoverFade >= 0) {
+            this.content.on("pointerover", () => {
+                this.content.alpha = hoverFade!;
                 this.shadow.alpha = 0;
             });
 
-            this.on("pointerout", () => {
-                this.alpha = 1;
+            this.content.on("pointerout", () => {
+                this.content.alpha = 1;
                 this.shadow.alpha = 0.5;
             });
         }
@@ -169,41 +216,40 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         const background = new pixi.Graphics();
         background.roundRect(0, 0, width, height, 8)
             .fill({ color: getThemeColor(theme, "editorPane.background", "#1e1e1e") });
-        this.addChild(background);
-
-        // Child elements, clipped as well.
-        if (effectiveProps.children.length > 0) {
-            this.root.addChild(...effectiveProps.children);
-        }
-
-        this.addChild(this.root);
+        this.content.addChild(background);
 
         // Last regular element is a border.
         const border = new pixi.Graphics();
         border.roundRect(0, 0, width, height, 8);
         border.setStrokeStyle({ width: 2, color: getThemeColor(theme, "editorWidget.border", "#474747"), alpha: 1 })
             .stroke();
-        this.addChild(border);
-        this.position.set(effectiveProps.diagramValues.x, effectiveProps.diagramValues.y);
+        this.content.addChild(border);
 
-        if (effectiveProps.diagramValues.selectable) {
-            this.on("pointerdown", (event: pixi.FederatedPointerEvent) => {
+        for (const child of this.children) {
+            child.updateTheme(theme);
+            this.content.addChild(child.element);
+        }
+
+        this.base.addChild(this.content);
+
+        if (diagramValues.selectable) {
+            this.base.on("pointerdown", (event: pixi.FederatedPointerEvent) => {
                 event.stopPropagation();
                 const modifiers = getModifiers(event);
 
                 // Toggle selection if command or shift are pressed. Otherwise only select.
                 let newSelected = true;
                 if (modifiers.has(Modifier.Ctrl) || modifiers.has(Modifier.Meta) || modifiers.has(Modifier.Shift)) {
-                    newSelected = !this.props.diagramValues.selected;
+                    newSelected = !diagramValues.selected;
                 }
 
-                if (newSelected != this.props.diagramValues.selected) {
-                    this.props.diagramValues.selected = newSelected;
+                if (newSelected != diagramValues.selected) {
+                    diagramValues.selected = newSelected;
                     if (newSelected) {
                         for (const listener of this.evenListeners.select) {
                             listener(this, modifiers);
                         }
-                        this.renderSelectionBoxes(this.props.diagramValues);
+                        this.renderSelectionBoxes(diagramValues);
                     } else {
                         for (const listener of this.evenListeners.unselect) {
                             listener(this, modifiers);
@@ -213,11 +259,11 @@ export class Figure extends pixi.Container implements IConnectionHolder {
                 }
             });
 
-            if (effectiveProps.diagramValues.selected) {
-                this.renderSelectionBoxes(effectiveProps.diagramValues as IDiagramValues);
+            if (diagramValues.selected) {
+                this.renderSelectionBoxes(diagramValues);
             }
         } else {
-            this.removeAllListeners("pointerdown");
+            this.content.removeAllListeners("pointerdown");
         }
     }
 
@@ -272,11 +318,33 @@ export class Figure extends pixi.Container implements IConnectionHolder {
         return this;
     }
 
+    public addChild(...child: Figure[]): this {
+        this.children.push(...child);
+
+        return this;
+    }
+
+    public move(newX: number, newY: number): void {
+        this.props.diagramValues.x = newX;
+        this.props.diagramValues.y = newY;
+        this.base.position.set(newX, newY);
+        this.updateConnections();
+    }
+
+    public moveBy(deltaX: number, deltaY: number): void {
+        this.props.diagramValues.x += deltaX;
+        this.props.diagramValues.y += deltaY;
+        this.base.position.set(this.props.diagramValues.x, this.props.diagramValues.y);
+        this.updateConnections();
+    }
+
     protected renderSelectionBoxes(diagramValues: IDiagramValues): void {
+        const { theme } = this.props;
+
         const boxes: Handle[] = [];
 
-        const selectionBoxBackgroundColor = getThemeColor(this.props.theme, "profileBadge.background", "#303030");
-        const selectionBoxBorderColor = getThemeColor(this.props.theme, "profileBadge.foreground", "#ffffff");
+        const selectionBoxBackgroundColor = getThemeColor(theme, "profileBadge.background", "#303030");
+        const selectionBoxBorderColor = getThemeColor(theme, "profileBadge.foreground", "#ffffff");
 
         // Top-left
         let box = new Handle("resize")
@@ -401,16 +469,16 @@ export class Figure extends pixi.Container implements IConnectionHolder {
             }*/
 
         }
-        this.addChild(...boxes);
+        this.base.addChild(...boxes);
     }
 
     protected removeSelectionBoxes(): void {
-        const handles = this.children.filter((c) => {
+        const handles = this.base.children.filter((c) => {
             return c instanceof Handle;
         });
 
         for (const handle of handles) {
-            this.removeChild(handle);
+            this.base.removeChild(handle);
             handle.destroy();
         }
     }

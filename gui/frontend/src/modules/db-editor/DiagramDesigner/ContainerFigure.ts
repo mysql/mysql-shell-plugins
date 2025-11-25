@@ -39,14 +39,28 @@ const titleHeight = 24;
 export class ContainerFigure extends Figure {
     // Empty class as a placeholder for recent edits context
     public constructor(private dmEntry: IDdmContainerEntry, theme: ICanvasTheme) {
-        const children: pixi.Container[] = [];
+        super({
+            diagramValues: {
+                x: dmEntry.diagramValues.x,
+                y: dmEntry.diagramValues.y,
+                width: dmEntry.diagramValues.width,
+                height: dmEntry.diagramValues.height,
+                selectable: dmEntry.diagramValues.selectable,
+                resizable: dmEntry.diagramValues.resizable,
+            },
+            theme,
+        });
+    }
 
-        // The main background.
-        if (dmEntry.fillColor) {
-            const headerBackground = new pixi.Graphics();
-            headerBackground.rect(0, 0, dmEntry.diagramValues.width, dmEntry.diagramValues.height);
-            headerBackground.fill(dmEntry.fillColor);
-            children.push(headerBackground);
+    public override render(): void {
+        super.render();
+
+        if (this.dmEntry.fillColor) {
+            const containerBackground = new pixi.Graphics();
+            containerBackground.zIndex = 0;
+            containerBackground.rect(0, 0, this.dmEntry.diagramValues.width, this.dmEntry.diagramValues.height);
+            containerBackground.fill(this.dmEntry.fillColor);
+            this.content.addChild(containerBackground);
         }
 
         // The tile background. It's drawn as a rect with the lower right corener rounded.
@@ -58,30 +72,18 @@ export class ContainerFigure extends Figure {
             .lineTo(0, titleHeight)
             .lineTo(0, 0)
             .fill("#C0C0C0");
-        children.push(titleBackground);
+        this.content.addChild(titleBackground);
 
         const title = new pixi.Text({
-            text: dmEntry.caption,
+            text: this.dmEntry.caption,
             style: tableTextStyle,
             textureStyle: { scaleMode: "nearest", },
             layout: { flex: 0 },
         });
+
         title.x = 8;
         title.y = (titleHeight - title.height) / 2;
         title.style.fill = "#404040";
-        children.push(title);
-
-        super({
-            diagramValues: {
-                x: dmEntry.diagramValues.x,
-                y: dmEntry.diagramValues.y,
-                width: dmEntry.diagramValues.width,
-                height: dmEntry.diagramValues.height,
-                selectable: dmEntry.diagramValues.selectable,
-                resizable: dmEntry.diagramValues.resizable,
-            },
-            theme,
-            children,
-        });
+        this.content.addChild(title);
     }
 }
