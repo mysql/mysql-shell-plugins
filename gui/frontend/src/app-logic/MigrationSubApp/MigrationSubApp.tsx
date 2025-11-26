@@ -268,13 +268,16 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     private dialogRef = createRef<Dialog>();
     private mhs = new ShellInterfaceMhs();
     private migration = new ShellInterfaceMigration();
-    private logger = new MigrationSubAppLogger(new URLSearchParams(window.location.search).has("enableLogger"));
+    private logger = new MigrationSubAppLogger(new URLSearchParams(window.location.search).has("enableLogger")
+        || !!appParameters.inDevelopment);
 
     private sh = new ShapesHelper(shapesByTemplate);
     private beReq = new BackendRequestHelper();
     private aboutBoxRef = createRef<AboutBox>();
 
     private shapesFetched = false;
+
+    private queryParams = new URLSearchParams(window.location.search);
 
     private get watchers(): Watcher[] {
         return [
@@ -519,14 +522,11 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     public constructor(props: IMigrationSubAppProps) {
         super(props);
 
-        const queryString = window.location.search;
-        const queryParams = new URLSearchParams(queryString);
-
         const databaseSource = {
-            name: queryParams.get("connectionName") ?? "local connection",
-            user: queryParams.get("user") ?? "root",
-            host: queryParams.get("host") ?? "localhost",
-            port: queryParams.get("port") ?? "3306",
+            name: this.queryParams.get("connectionName") ?? "local connection",
+            user: this.queryParams.get("user") ?? "root",
+            host: this.queryParams.get("host") ?? "localhost",
+            port: this.queryParams.get("port") ?? "3306",
             id: uuid(),
         };
 
@@ -602,10 +602,10 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
 
             // DEV
             fakeWebMessage: JSON.stringify(databaseSource),
-            renderDevHelpers: !!queryParams.get("renderDevHelpers"),
-            showBackendRequest: !!queryParams.get("showBackendRequest"),
-            showBackendState: !!queryParams.get("showBackendState"),
-            abortMigration: !!queryParams.get("abortMigration"),
+            renderDevHelpers: !!this.queryParams.get("renderDevHelpers"),
+            showBackendRequest: !!this.queryParams.get("showBackendRequest"),
+            showBackendState: !!this.queryParams.get("showBackendState"),
+            abortMigration: !!this.queryParams.get("abortMigration"),
 
             aboutVisible: false,
             logPath: "",
@@ -623,7 +623,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             requisitions.executeRemote("getCommandLineArguments", undefined);
             requisitions.executeRemote("getApplicationData", undefined);
 
-            if (appParameters.inDevelopment) {
+            if (appParameters.inDevelopment || this.queryParams.has("autoSendWebMessage")) {
                 // Emulate receiving from the native Workbench.
                 const { fakeWebMessage } = this.state;
                 this.onSendWebMessageClick(fakeWebMessage, new MouseEvent(""));
