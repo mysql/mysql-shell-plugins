@@ -224,6 +224,17 @@ migrated database.
 """,
         [CompatibilityFlags.EXCLUDE_OBJECT],
     ),
+    "table/cannot_replace_engine": (
+        "Incompatible Table with Unsupported Storage Engine",
+        CheckStatus.ACTION_REQUIRED,
+        """
+The tables below cannot be converted to the InnoDB storage engine.
+
+The following tables are incompatible with the InnoDB storage engine and must be
+excluded or manually repaired.
+""",
+        [CompatibilityFlags.EXCLUDE_OBJECT],
+    ),
     "table/missing_pk": (
         "Table Missing Primary Key or Equivalent",
         CheckStatus.CONFIRMATION_REQUIRED,

@@ -65,6 +65,8 @@ DROP VIEW `invalid_definition_v1`;
 
 CREATE TABLE `unsupported_engine` (id INT PRIMARY KEY, data INT) ENGINE=MyISAM;
 
+CREATE TABLE `incompatible_with_innodb` (a INT, b INT AUTO_INCREMENT, PRIMARY KEY (a, b)) ENGINE=MyISAM;
+
 CREATE TABLE `missing_pk` (data INT);
 
 CREATE TABLESPACE `t_space` ADD DATAFILE 't_s_1.ibd' ENGINE=InnoDB;

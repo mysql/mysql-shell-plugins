@@ -327,7 +327,6 @@ fixed or excluded before continuing.""",
         "table/unsupported_engine",
         MessageLevel.ERROR,
         "Table with Unsupported Storage Engine",
-        "<li>Table `compatibility_issues`.`too_many_columns` uses unsupported storage engine MyISAM\n"
         "<li>Table `compatibility_issues`.`unsupported_engine` uses unsupported storage engine MyISAM\n"
         "<li>Table `compatibility_issues`.`unsupported_row_format` uses unsupported storage engine MyISAM",
         """The tables below will be converted to the InnoDB storage engine.
@@ -336,7 +335,6 @@ Tables are required to use the high-performance, transactional InnoDB storage
 engine. Non-InnoDB tables will be automatically converted to InnoDB in the
 migrated database.""",
         [
-            "table:`compatibility_issues`.`too_many_columns`",
             "table:`compatibility_issues`.`unsupported_engine`",
             "table:`compatibility_issues`.`unsupported_row_format`",
         ],
@@ -345,6 +343,26 @@ migrated database.""",
             CompatibilityFlags.EXCLUDE_OBJECT,
         ],
         CheckStatus.CONFIRMATION_REQUIRED
+    )
+
+    expected_issues._add_check(
+        "table/cannot_replace_engine",
+        MessageLevel.ERROR,
+        "Incompatible Table with Unsupported Storage Engine",
+        "<li>Table `compatibility_issues`.`incompatible_with_innodb` uses unsupported storage engine MyISAM which cannot be changed to InnoDB due to the following error: Incorrect table definition; there can be only one auto column and it must be defined as a key\n"
+        "<li>Table `compatibility_issues`.`too_many_columns` uses unsupported storage engine MyISAM which cannot be changed to InnoDB due to the following error: Table has too many columns",
+        """The tables below cannot be converted to the InnoDB storage engine.
+
+The following tables are incompatible with the InnoDB storage engine and must be
+excluded or manually repaired.""",
+        [
+            "table:`compatibility_issues`.`incompatible_with_innodb`",
+            "table:`compatibility_issues`.`too_many_columns`",
+        ],
+        [
+            CompatibilityFlags.EXCLUDE_OBJECT,
+        ],
+        CheckStatus.ACTION_REQUIRED
     )
 
     expected_issues._add_check(
@@ -647,12 +665,10 @@ def test_check_compatibility_fixed(sandbox_session):
         "table/unsupported_engine",
         MessageLevel.NOTICE,
         None,  # type: ignore
-        "<li>Table `compatibility_issues`.`too_many_columns` had unsupported engine MyISAM changed to InnoDB\n"
         "<li>Table `compatibility_issues`.`unsupported_engine` had unsupported engine MyISAM changed to InnoDB\n"
         "<li>Table `compatibility_issues`.`unsupported_row_format` had unsupported engine MyISAM changed to InnoDB",
         None,  # type: ignore
         [
-            "table:`compatibility_issues`.`too_many_columns`",
             "table:`compatibility_issues`.`unsupported_engine`",
             "table:`compatibility_issues`.`unsupported_row_format`",
         ],
