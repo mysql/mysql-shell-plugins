@@ -369,6 +369,7 @@ excluded or manually repaired.""",
         "table/missing_pk",
         MessageLevel.ERROR,
         "Table Missing Primary Key or Equivalent",
+        "<li>Table `compatibility_issues`.`missing_pk_manual_fix` does not have a Primary Key, which is required for High Availability in MySQL HeatWave Service\n"
         "<li>Table `compatibility_issues`.`missing_pk` does not have a Primary Key, which is required for High Availability in MySQL HeatWave Service",
         """The tables below do not have PRIMARY KEYs and will have one added.
 
@@ -384,7 +385,10 @@ migrate them.
 
 <a href="https://docs.oracle.com/en-us/iaas/mysql-database/doc/prerequisites1.html">
 MySQL HeatWave Service Pre-requisites</a>""",
-        ["table:`compatibility_issues`.`missing_pk`"],
+        [
+            "table:`compatibility_issues`.`missing_pk_manual_fix`",
+            "table:`compatibility_issues`.`missing_pk`",
+        ],
         [
             CompatibilityFlags.create_invisible_pks,
             CompatibilityFlags.ignore_missing_pks,
@@ -685,6 +689,26 @@ def test_check_compatibility_fixed(sandbox_session):
         ["table:`compatibility_issues`.`missing_pk`"],
         [CompatibilityFlags.create_invisible_pks],
         CheckStatus.OK
+    )
+
+    expected_issues._add_check(
+        "table/missing_pk_manual_fix",
+        MessageLevel.ERROR,
+        "Table not Eligible for Automatic Primary Key Creation",
+        "<li>Table `compatibility_issues`.`missing_pk_manual_fix` does not have a Primary Key, this cannot be fixed automatically because the table is partitioned",
+        """The tables below do not have PRIMARY KEYs and cannot have one created automatically.
+
+In order to offer High Availability, the MySQL HeatWave Service requires all
+tables to have either a PRIMARY KEY or a UNIQUE KEY on a NOT NULL column.
+
+The following tables cannot have a PRIMARY KEY created automatically and must be
+either excluded or manually repaired.
+
+<a href="https://docs.oracle.com/en-us/iaas/mysql-database/doc/prerequisites1.html">
+MySQL HeatWave Service Pre-requisites</a>""",
+        ["table:`compatibility_issues`.`missing_pk_manual_fix`"],
+        [CompatibilityFlags.EXCLUDE_OBJECT],
+        CheckStatus.ACTION_REQUIRED,
     )
 
     expected_issues._add_check(

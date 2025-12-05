@@ -256,6 +256,23 @@ MySQL HeatWave Service Pre-requisites</a>
 """,
         [CompatibilityFlags.EXCLUDE_OBJECT],
     ),
+    "table/missing_pk_manual_fix": (
+        "Table not Eligible for Automatic Primary Key Creation",
+        CheckStatus.ACTION_REQUIRED,
+        """
+The tables below do not have PRIMARY KEYs and cannot have one created automatically.
+
+In order to offer High Availability, the MySQL HeatWave Service requires all
+tables to have either a PRIMARY KEY or a UNIQUE KEY on a NOT NULL column.
+
+The following tables cannot have a PRIMARY KEY created automatically and must be
+either excluded or manually repaired.
+
+<a href="https://docs.oracle.com/en-us/iaas/mysql-database/doc/prerequisites1.html">
+MySQL HeatWave Service Pre-requisites</a>
+""",
+        [CompatibilityFlags.EXCLUDE_OBJECT],
+    ),
     "table/data_or_index_directory": (
         "Unsupported Data or Index Directory Option",
         CheckStatus.OK,

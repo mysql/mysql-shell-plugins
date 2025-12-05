@@ -730,6 +730,7 @@ class MigrationChecksSubStep(PlanSubStep):
                     updated_issues.pop(check_id)
                 else:
                     # issue is no longer there, object was excluded, mark it as fixed
+                    current_issue.level = model.MessageLevel.NOTICE
                     current_issue.status = model.CheckStatus.OK
 
             # add any new issues

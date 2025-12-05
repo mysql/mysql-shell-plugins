@@ -69,6 +69,8 @@ CREATE TABLE `incompatible_with_innodb` (a INT, b INT AUTO_INCREMENT, PRIMARY KE
 
 CREATE TABLE `missing_pk` (data INT);
 
+CREATE TABLE `missing_pk_manual_fix` (col1 INT NOT NULL, UNIQUE KEY (col1)) PARTITION BY HASH(col1) PARTITIONS 4;
+
 CREATE TABLESPACE `t_space` ADD DATAFILE 't_s_1.ibd' ENGINE=InnoDB;
 CREATE TABLE `t_space` (id INT PRIMARY KEY, data INT) TABLESPACE `t_space`;
 
