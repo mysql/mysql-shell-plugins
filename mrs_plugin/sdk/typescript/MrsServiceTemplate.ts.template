@@ -329,6 +329,9 @@ export class ${service_class_name} extends MrsBaseService {
     public async authenticate(options?: Partial<Omit<IAuthenticateOptions, "password" | "vendor">>): Promise<IMrsLoginResult>;
     // --- MySQL Shell for VS Code Extension Only --- End
     public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
+        // --- MySQL Shell for VS Code Extension Only --- Begin
+        options = options ?? {}
+        // --- MySQL Shell for VS Code Extension Only --- End
         const { username, password, app, vendor } = options;
         // --- MySQL Shell for VS Code Extension Only --- Begin
         if (typeof ${service_class_name}.authenticate === "function") {

@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#38749096 Unexpected runtime error when triggering the MRS authentication dialog in a notebook
+-
 
 ## Changes in 1.19.20+9.5.0
 
@@ -22,6 +23,7 @@
 - BUG#38603422 Unexpected MRS SQL parsing error for field names that match certain keywords
 - BUG#35420780 mrs.configure() changes global session state
 - Fixed extension initialization in WSL2
+-
 
 ## Changes in 1.19.19+9.5.0
 
