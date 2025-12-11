@@ -34,6 +34,7 @@ import functools
 import threading
 
 import oci.util
+import oci.mysql
 
 from . import logging, ssh_utils, util
 from .backend.api_metadata import k_configuration_variables_metadata
