@@ -145,8 +145,8 @@ class MySQLSourceCheck:
             logging.error(
                 f"source_check: source replication checks failed: error={error}"
             )
-
-        logging.info(f"source_check: source replication checks succeeded")
+        else:
+            logging.info(f"source_check: source replication checks succeeded")
 
         return error
 

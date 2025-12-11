@@ -94,7 +94,11 @@ namespace MySQLShellWorkbench {
           if (key.StartsWith("migrate-"))
           {
             migrate[key.Substring(8)] = value;
-          } else
+          } else if (key.ToUpper().StartsWith("MIGRATION_"))
+          {
+            Environment.SetEnvironmentVariable(key.ToUpper(), value);
+          }
+          else
 #endif
           {
             parsedArgs[key] = value;

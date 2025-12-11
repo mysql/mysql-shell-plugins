@@ -113,6 +113,9 @@ def validate_source(
     errors = check_version_compatibility(session, options)
     errors.extend(check_ssl(session, result.serverInfo))
 
+    if ServerType.RDS == session.server_type:
+        errors.extend(check_rds(session))
+
     return errors, result
 
 
@@ -228,6 +231,14 @@ You may:
         return error
 
     if expiration is not None and expiration < kMinBinlogExpirationHours * 3600:
+        if expiration // 60 < 30:
+            error = model.MigrationError()
+            error.level = model.MessageLevel.ERROR
+            error.title = f"Binary log expiration period is too short"
+            error.message = f"""The source MySQL binary log is configured to automatically
+expire and purge in less than 30 minutes."""
+            return error
+
         hours = expiration//3600
         if hours < 1:
             expire = "less than one hour"
@@ -260,6 +271,27 @@ def check_ssl(session: MigrationSession, info: model.ServerInfo) -> list[model.M
         err.level = model.MessageLevel.ERROR
         err.title = "Session is not using SSL"
         err.message = f"The MySQL instance supports SSL connections, however current session is not encrypted."
+        errors.append(err)
+
+    return errors
+
+
+def check_rds(session: MigrationSession) -> list[model.MigrationError]:
+    errors: list[model.MigrationError] = []
+
+    log_bin = False
+
+    if row := session.run_sql("select @@log_bin").fetch_one():
+        log_bin = int(row[0])
+
+    if not log_bin:
+        err = model.MigrationError()
+        err.level = model.MessageLevel.ERROR
+        err.title = "Binary logging is disabled in the RDS instance"
+        err.message = """Migration from an RDS instance requires binary logging to be enabled.
+
+To enable binary logging, automated backups must be turned on. For more
+information, please consult the AWS documentation."""
         errors.append(err)
 
     return errors

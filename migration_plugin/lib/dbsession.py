@@ -26,6 +26,7 @@ from mysqlsh import DBError  # type: ignore
 from typing import Optional
 from .backend.model import ServerType
 from . import util
+from . import logging
 import re
 
 shell = mysqlsh.globals.shell
@@ -82,8 +83,6 @@ class MigrationSession(Session):
     def __init__(self, connection_options: dict):
         super().__init__(connection_options)
 
-        self.db_type = None
-
         self._init()
 
     def __str__(self):
@@ -105,6 +104,7 @@ class MigrationSession(Session):
     def server_type(self) -> ServerType:
         if not self._server_type:
             self._server_type = detect_server_type(self)
+            logging.info(f"Server type of {self} is '{self._server_type}'")
         return self._server_type
 
     @property
@@ -133,7 +133,7 @@ def detect_server_type(session: MigrationSession) -> ServerType:
         pass
 
     (datadir,) = session.run_sql("select @@basedir").fetch_one()
-    if datadir == "/rdsdbbin/mysql/":
+    if datadir.startswith("/rdsdbbin/mysql"):
         return ServerType.RDS
 
     return ServerType.MySQL

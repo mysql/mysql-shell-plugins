@@ -1473,7 +1473,8 @@ class DBSystem:
                        source_user: str,
                        source_password: str,
                        gtid_off_handling: Optional[dict] = None,
-                       freeform_tags: dict = {}
+                       freeform_tags: dict = {},
+                       replicate_wild_ignore_table: list[str] = [],
                        ) -> Channel:
         if gtid_off_handling:
             uuid_handling = oci.mysql.models.AssignManualUuidHandling(
@@ -1494,11 +1495,19 @@ class DBSystem:
             anonymous_transactions_handling=uuid_handling
         )
 
+        filters = []
+
+        for table in replicate_wild_ignore_table:
+            filters.append(oci.mysql.models.ChannelFilter(
+                type=oci.mysql.models.ChannelFilter.TYPE_REPLICATE_WILD_IGNORE_TABLE,
+                value=table
+            ))
+
         target = oci.mysql.models.CreateChannelTargetFromDbSystemDetails(
             target_type="DBSYSTEM",
             db_system_id=self.id,
             tables_without_primary_key_handling="ALLOW",
-            # filters=[] # TODO replication filters
+            filters=filters or None,
         )
 
         # Create channel details

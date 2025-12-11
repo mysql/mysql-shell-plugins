@@ -38,14 +38,14 @@ def get_binlog_info(
 
     if log_bin:
         if session.nversion >= 56000:
-            gtid_mode = session.run_sql("select @@gtid_mode").fetch_one()
+            gtid_mode = session.run_sql("select @@gtid_mode").fetch_one()[0]
 
-        if session.db_type == ServerType.RDS:
+        if session.server_type == ServerType.RDS:
             # in rds, we need to use a stored procedure to get expire time
             res = session.run_sql("CALL mysql.rds_show_configuration")
             for row in iter(res.fetch_one, None):
                 if row[0] == "binlog retention hours":
-                    expiration = int(row[1]) * 3600
+                    expiration = int(row[1] or 0) * 3600
         elif session.nversion >= 80000:
             row = session.run_sql(
                 "select @@binlog_expire_logs_seconds /*!80029 , @@binlog_expire_logs_auto_purge */"

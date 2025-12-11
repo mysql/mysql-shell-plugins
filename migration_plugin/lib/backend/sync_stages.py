@@ -32,7 +32,7 @@ from ..util import sanitize_connection_dict
 from ..gtid import gtid_contains, gtid_count, gtid_subtract
 from .. import logging, oci_utils
 from . import model
-from .model import MigrationMessage, SubStepId, MigrationError, MigrationType, CloudConnectivity
+from .model import MigrationMessage, SubStepId, MigrationError, MigrationType, CloudConnectivity, ServerType
 from .stage import Stage, WorkStatusEvent, ThreadedStage, OrchestratorInterface
 from .remote_helper import RemoteHelperClient
 from ..ssh_utils import RemoteSSHTunnel
@@ -250,6 +250,8 @@ class CreateChannel(ThreadedStage):
         # binlog_file and position based replication. we assign the UUID that
         # will be assigned to replicated transactions to the server_uuid of the
         # source
+        gtid_off_handling = None
+
         if self._owner.source_info.gtidMode != "ON":
             coords = self._owner.project.replication_coordinates
             assert coords
@@ -261,24 +263,21 @@ class CreateChannel(ThreadedStage):
             logging.info(
                 f"Source has gtid_mode={self._owner.source_info.gtidMode}, channel will use file/pos: {gtid_off_handling}")
 
-            self.channel = self.db_system.create_channel(
-                source_host=source["host"],
-                source_port=source["port"],
-                source_user=source["user"],
-                source_password=source["password"],
-                gtid_off_handling=gtid_off_handling,
-                freeform_tags=oci_utils.make_freeform_tags(
-                    self._owner.migrator_instance_id)
-            )
-        else:
-            self.channel = self.db_system.create_channel(
-                source_host=source["host"],
-                source_port=source["port"],
-                source_user=source["user"],
-                source_password=source["password"],
-                freeform_tags=oci_utils.make_freeform_tags(
-                    self._owner.migrator_instance_id)
-            )
+        replicate_wild_ignore_table = []
+
+        if ServerType.RDS == self._owner.source_info.serverType:
+            replicate_wild_ignore_table.append("mysql.rds%")
+
+        self.channel = self.db_system.create_channel(
+            source_host=source["host"],
+            source_port=source["port"],
+            source_user=source["user"],
+            source_password=source["password"],
+            gtid_off_handling=gtid_off_handling,
+            freeform_tags=oci_utils.make_freeform_tags(
+                self._owner.migrator_instance_id),
+            replicate_wild_ignore_table=replicate_wild_ignore_table,
+        )
 
         self._owner.cloud_resources.channelId = self.channel.id
 
