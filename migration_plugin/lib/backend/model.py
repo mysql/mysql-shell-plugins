@@ -687,6 +687,16 @@ class LoadStatus(MigrationMessage):
     stageEta: Optional[str]
 
 
+class LogInfo(MigrationMessage):
+    def __init__(self, data: str, lastOffset: int) -> None:
+        super().__init__()
+        self.data = data
+        self.lastOffset = lastOffset
+
+    data: str
+    lastOffset: int
+
+
 class MigrationSummaryInfo(MigrationMessage):
     adminUser: str = ""
 
@@ -739,6 +749,7 @@ class WorkStageInfo(MigrationMessage):
     eta: Optional[int] = None
     message: str = ""
     info: dict = {}
+    logItems: int = 0
 
     def _snapshot(self):
         copy = WorkStageInfo()
@@ -752,6 +763,7 @@ class WorkStageInfo(MigrationMessage):
         copy.eta = self.eta
         copy.message = self.message
         copy.info = self.info
+        copy.logItems = self.logItems
         return copy
 
 

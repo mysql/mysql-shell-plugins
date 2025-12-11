@@ -175,3 +175,32 @@ export const flattenObject = (obj: unknown, prefix = ""): FlatObject => {
 
     return result;
 };
+
+/**
+ * Format number of seconds as human readable estimated time for completion.
+ * 
+ * @param seconds approximate number of seconds until completion
+ * @returns Formatted time text
+ */
+export const formatEta = (seconds: number | null): string | undefined => {
+    if (!seconds) {
+        return undefined;
+    }
+    if (seconds <= 60) {
+        return "less than 1 minute left";
+    }
+
+    const totalMinutes = Math.round(seconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    const parts = [];
+    if (hours > 0) {
+        parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+    }
+    if (minutes > 0 || hours === 0) {
+        parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+    }
+
+    return `about ${parts.join(" ")} left`;
+};

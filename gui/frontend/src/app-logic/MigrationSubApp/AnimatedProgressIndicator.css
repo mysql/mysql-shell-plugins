@@ -49,6 +49,20 @@
     margin-bottom: 8px;
 }
 
+.animated-progress-indicator.stripesLoaderStopped {
+    margin: 4px;
+    height: 20px;
+    /*should not be larger than 20px*/
+    position: relative;
+    background: linear-gradient(90deg, #eee 50%, transparent 50%);
+    background-color: var(--connectionTile-border);
+    background-size: 200%;
+    background-position: 1%;
+    border-radius: 5px;
+    transform: scale(-1);
+    transition: 0.3s;
+}
+
 .animated-progress-indicator.stripesLoader {
     margin: 4px;
     height: 20px;

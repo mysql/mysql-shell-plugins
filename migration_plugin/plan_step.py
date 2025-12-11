@@ -1678,7 +1678,7 @@ k_log_filters = {"logfilters": [{"type": "key", "keys": [
 def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
     """
     Update migration plan sub-step with user input.
-
+   
     Args:
         configs (list): list of {"id", "values":[]} sub-steps to update
     """

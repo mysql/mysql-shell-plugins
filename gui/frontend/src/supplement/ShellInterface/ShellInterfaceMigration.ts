@@ -31,7 +31,8 @@ import {
     IProjectData,
     IWorkStatusInfo,
     IMigrationPlanState,
-    SubStepId
+    SubStepId,
+    ILogInfo
     // ISignInInfo
 } from "../../communication/ProtocolMigration.js";
 
@@ -182,6 +183,17 @@ export class ShellInterfaceMigration {
                 args: { options }
             }
         });
+    }
+
+    public async fetchLogs(subStepId?: SubStepId, offset?: number): Promise<ILogInfo> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMigration.MigrationFetchLogs,
+            parameters: {
+                args: { subStepId, offset }
+            }
+        });
+
+        return response.result;
     }
 
     public async openProject(id: string): Promise<IProjectData> {

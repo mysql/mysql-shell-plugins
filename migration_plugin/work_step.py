@@ -26,14 +26,13 @@ from typing import Optional
 
 from .lib.project import Project
 from .lib.backend.stage import WorkStatusEvent
-from .lib.backend import orchestration, model
+from .lib.backend import orchestration
 from . import plan_step
 from .lib import logging
-from .lib.backend.model import SubStepId, WorkStatusInfo, WorkStatus
+from .lib.backend.model import SubStepId, WorkStatusInfo, WorkStatus, LogInfo
 from .lib.backend.orchestration import Orchestrator
 from .lib.logging import plugin_log
 from mysqlsh.plugin_manager import plugin_function  # type: ignore
-
 
 k_stage_info = {
     SubStepId.PROVISION_COMPARTMENT: {
@@ -259,8 +258,14 @@ class MigrationWorkStep(orchestration.MigrationFrontend):
     def on_message(self, source: SubStepId, data: dict):
         logging.debug(f"✉️ message {source.name} {data}")
 
+    def on_output(self, source: SubStepId, message: str):
+        self.project.log_work_output(source, message=message)
+
     def fetch_status(self) -> WorkStatusInfo:
         return self.project.snapshot_status()
+
+    def fetch_logs(self, source: SubStepId, offset: int) -> tuple[str, int]:
+        return self.project.fetch_logs(source, offset)
 
     @property
     def done(self) -> bool:
@@ -400,6 +405,40 @@ def skip_transactions(gtids: str) -> None:
     work = get_step()
 
     work.skip_gtids(gtids)
+
+
+@plugin_function("migration.fetchLogs", shell=True, cli=False, web=True)
+def fetch_logs(sub_step_id: Optional[int] = None, offset: int = 0) -> LogInfo:
+    """
+    Fetch logs for the given step or the log file.
+
+    Args:
+        sub_step_id (int): the step for which to fetch logs or None to fetch mysqlsh.log
+        offset (int): offset for the 1st entry to fetch
+
+    Returns: LogInfo object with the log data and offset to use to fetch later entries
+    """
+    work = get_step()
+
+    import mysqlsh
+
+    def read_logs(offset: int) -> tuple[str, int]:
+        with open(mysqlsh.globals.shell.options.logFile) as f:
+            f.seek(offset)
+            data = f.read()
+            return data, f.tell()
+
+    if sub_step_id is None:
+        try:
+            data, last_offset = read_logs(offset)
+        except:
+            logging.exception(
+                f"Could not read log file {mysqlsh.globals.shell.options.logFile}")
+            data, last_offset = "", 0
+    else:
+        data, last_offset = work.fetch_logs(SubStepId(sub_step_id), offset)
+
+    return LogInfo(data, last_offset)._json(noclass=True)  # type: ignore
 
 
 def analyze_network_paths() -> None:

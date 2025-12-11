@@ -50,7 +50,8 @@ import {
     IServerInfo,
     ITargetOptionsOptions,
     ITargetOptionsData,
-    IMigrationTypeData
+    IMigrationTypeData,
+    ILogInfo
 } from "../../communication/ProtocolMigration.js";
 import { AboutBox } from "../../components/ui/AboutBox/AboutBox.js";
 import { Assets } from "../../supplement/Assets.js";
@@ -97,7 +98,6 @@ import {
     ComputeShapeInfo, ConfigTemplate, configTemplates, customTemplateId, getClusterSizeBoundaries, Shapes,
     shapesByTemplate, standardTemplateId
 } from "./shapes.js";
-import { AnimatedProgressIndicator } from "./AnimatedProgressIndicator.js";
 import { UpDown } from "../../components/ui/UpDown/UpDown.js";
 import { ShapeSummary } from "../../oci-typings/oci-mysql/lib/model/shape-summary.js";
 import { IInputChangeProperties, Input } from "../../components/ui/Input/Input.js";
@@ -108,6 +108,7 @@ import { IPortalOptions, Portal } from "../../components/ui/Portal/Portal.js";
 import { Dialog } from "../../components/ui/Dialog/Dialog.js";
 import { CSSProperties } from "preact/compat";
 import { MigrationSubAppLogger } from "./MigrationSubAppLogger.js";
+import { WorkProgressView } from "./WorkProgressView.js";
 
 interface ISpinnerProps { size?: number; }
 
@@ -146,6 +147,7 @@ interface ISubStep {
     type: string;
     status: MigrationStepStatus;
     workStage?: IWorkStageInfo;
+    output?: ILogInfo;
 }
 
 interface IStepTile {
@@ -174,13 +176,6 @@ interface BadUserInput {
 }
 
 type OciNetworking = "create_new" | "use_existing";
-
-/*interface NetworkingSetup {
-    networkCompartment?: string;
-    vcn?: string;
-    privateSubnet?: string;
-    publicSubnet?: string;
-}*/
 
 interface ISignInInfo {
     message: string;
@@ -675,8 +670,8 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
                 {!tiles.length ? LoadingIndicator : (
                     project ? (
                         <div className="content">
-                            <Grid columns={["180px", "auto", "200px"]} className="source-info"
-                                columnGap={30} rowGap={4}>
+                            <Grid columns={["auto", "auto", "auto"]} className="source-info"
+                                columnGap={30} rowGap={5}>
                                 <GridCell crossAlignment={ContentAlignment.Center}>
                                     {/* TODO replace these icons with proper ones... Assets.stuff isnt working */}
                                     <Icon src={Assets.db.schemaIcon} width={16} height={12}
@@ -1428,14 +1423,15 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
                 const { stepIndex, subStepIndex } = this.findStepIndexes(stepId, stage.stage);
 
                 if (stepIndex >= 0 && subStepIndex >= 0) {
-                    newTiles[stepIndex].steps[subStepIndex].workStage = stage;
+                    const step = newTiles[stepIndex].steps[subStepIndex];
+                    step.workStage = stage;
 
-                    const status = newTiles[stepIndex].steps[subStepIndex].status;
+                    const status = step.status;
 
                     switch (stage.status) {
                         case WorkStatus.IN_PROGRESS:
                             if (status == MigrationStepStatus.NOT_STARTED) {
-                                newTiles[stepIndex].steps[subStepIndex].status = MigrationStepStatus.IN_PROGRESS;
+                                step.status = MigrationStepStatus.IN_PROGRESS;
                                 currentActiveStep ??= newTiles[stepIndex].number;
                             } else if (status == MigrationStepStatus.IN_PROGRESS) {
                                 currentActiveStep ??= newTiles[stepIndex].number;
@@ -1443,17 +1439,30 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
                             break;
                         case WorkStatus.FINISHED:
                             if (status != MigrationStepStatus.FINISHED) {
-                                newTiles[stepIndex].steps[subStepIndex].status = MigrationStepStatus.FINISHED;
+                                step.status = MigrationStepStatus.FINISHED;
                             }
                             break;
                         case WorkStatus.ABORTED:
                             break;
                         case WorkStatus.ERROR:
                             if (status != MigrationStepStatus.ERROR) {
-                                newTiles[stepIndex].steps[subStepIndex].status = MigrationStepStatus.ERROR;
+                                step.status = MigrationStepStatus.ERROR;
                                 currentErrorStep ??= newTiles[stepIndex].number;
                             }
                             break;
+                    }
+
+                    // if there's more output for the subStep, fetch it
+                    if ((!step.output?.lastOffset && stage.logItems > 0) ||
+                        (step.output?.lastOffset && stage.logItems > step.output.lastOffset)) {
+                        void this.migration.fetchLogs(stage.stage, step.output?.lastOffset).then((logs) => {
+                            if (step.output) {
+                                step.output.lastOffset = logs.lastOffset;
+                                step.output.data = step.output.data + "\n" + logs.data;
+                            } else {
+                                step.output = logs;
+                            }
+                        });
                     }
                 }
             });
@@ -1542,9 +1551,10 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
                     total: s.total,
                     eta: s.eta,
                     message: s.message,
-                    info: s.info
+                    info: s.info,
+                    logItems: s.logItems,
                 };
-            }),
+            })
         };
     }
 
@@ -2867,76 +2877,6 @@ Migration Assistant.`}
         return null;
     }
 
-    private renderWorkProgress(subStep: ISubStep) {
-        const { help, type, workStage } = subStep;
-        if (!workStage) {
-            return;
-        }
-
-        const { migrationInProgress } = this.state;
-
-        const formatEta = (seconds: number | null): string | undefined => {
-            if (!seconds) {
-                return undefined;
-            }
-            if (seconds <= 60) {
-                return "less than 1 minute left";
-            }
-
-            const totalMinutes = Math.round(seconds / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-
-            const parts = [];
-            if (hours > 0) {
-                parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-            }
-            if (minutes > 0 || hours === 0) {
-                parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-            }
-
-            return `about ${parts.join(" ")} left`;
-        };
-
-        const decimalPoints = type === "progress-precise" ? 2 : 0;
-        const showErrorLog = type === "progress-precise";
-
-        return (
-            <>
-                <p dangerouslySetInnerHTML={{ __html: help }} className="comment"></p>
-                <div className={`progress-wrapper ${migrationInProgress ? "animated" : "static"}`}>
-                    Progress:
-                    <Container orientation={Orientation.LeftToRight} className="progress-line">
-                        <AnimatedProgressIndicator
-                            progress={
-                                workStage.current !== null && workStage.total !== null
-                                    ? workStage.current * 100 / workStage.total
-                                    : 0
-                            }
-                            width={300} />
-                        <div>
-                            {
-                                workStage.current !== null && workStage.total
-                                    ? (workStage.current * 100 / workStage.total).toFixed(decimalPoints)
-                                    : 0
-                            }%
-                        </div><div>
-                            {formatEta(workStage.eta)}
-                        </div>
-                    </Container>
-                </div>
-                <p>
-                    {workStage.message}
-                </p>
-                {showErrorLog && (<ul>
-                    {workStage.errors.map((err) => {
-                        return (<li>{err}</li>);
-                    })}</ul>)}
-            </>
-        );
-
-    }
-
     private renderMonitorChannel(subStep: ISubStep) {
         const { help, workStage } = subStep;
         if (!workStage) {
@@ -3039,37 +2979,46 @@ Migration Assistant.`}
         const { stepIndex, subStepIndex } = this.findStepIndexes(stepId, subStepId);
         const subStep = this.state.tiles[stepIndex].steps[subStepIndex];
 
-        const { help, type, workStage } = subStep;
+        const { help, type, workStage, output } = subStep;
 
-        if (workStage?.status !== WorkStatus.IN_PROGRESS) {
-            return (
-                <div>
-                    <p dangerouslySetInnerHTML={{ __html: help }} className="comment"></p>
-                    <p>{workStage?.message}</p>
-                </div>
+        if (type === "progress" || type === "progress-precise") {
+            return (<WorkProgressView
+                help={help}
+                type={type}
+                workStage={workStage}
+                output={(subStepId === SubStepId.DUMP || subStepId === SubStepId.LOAD)
+                    ? (output?.data ?? "") : undefined}
+                active={this.state.migrationInProgress} />
             );
         } else {
-            if (type === "progress" || type === "progress-precise") {
-                return this.renderWorkProgress(subStep);
-            } else if (type === "monitor_channel") {
-                return this.renderMonitorChannel(subStep);
-            } else if (type == "ssh-tunnel") {
-                return this.renderSshTunnel(subStep);
-            } else {
+            if (workStage?.status !== WorkStatus.IN_PROGRESS) {
                 return (
-                    <>
+                    <div>
                         <p dangerouslySetInnerHTML={{ __html: help }} className="comment"></p>
-                        <div className="progress-wrapper static">
-                            <ProgressIndicator
-                                backgroundOpacity={0.95}
-                                indicatorWidth={40}
-                                indicatorHeight={7}
-                                linear={true}
-                            ></ProgressIndicator>
-                            {workStage.message}
-                        </div>
-                    </>
+                        <p>{workStage?.message}</p>
+                    </div>
                 );
+            } else {
+                if (type === "monitor_channel") {
+                    return this.renderMonitorChannel(subStep);
+                } else if (type == "ssh-tunnel") {
+                    return this.renderSshTunnel(subStep);
+                } else {
+                    return (
+                        <>
+                            <p dangerouslySetInnerHTML={{ __html: help }} className="comment"></p>
+                            <div className="progress-wrapper static">
+                                <ProgressIndicator
+                                    backgroundOpacity={0.95}
+                                    indicatorWidth={40}
+                                    indicatorHeight={7}
+                                    linear={true}
+                                ></ProgressIndicator>
+                                {workStage.message}
+                            </div>
+                        </>
+                    );
+                }
             }
         }
     }
@@ -3628,7 +3577,7 @@ Migration Assistant.`}
     private onUpdateBackendState = (_e: MouseEvent | KeyboardEvent) => {
         const { mockBackendState, backendState } = this.state;
         const stepsState = JSON.parse(mockBackendState ?? `""`) as IMigrationPlanState[];
-        
+
         const result: IMigrationPlanState[] = stepsState.filter((s) => {
             return s.id;
         }).map((s) => {
@@ -3738,7 +3687,7 @@ Migration Assistant.`}
                         }}
                         style={buttonStyle}
                     />
-                    {this.renderActionTextareaInPopup(buttonStyle, "Send web message", "fakeWebMessage", 
+                    {this.renderActionTextareaInPopup(buttonStyle, "Send web message", "fakeWebMessage",
                         this.onSendWebMessageClick)}
                     {this.renderActionTextareaInPopup(buttonStyle, "Update Work Status", "workStatus",
                         this.onUpdateWorkStatus)}

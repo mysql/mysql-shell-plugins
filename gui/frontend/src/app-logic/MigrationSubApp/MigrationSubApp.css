@@ -75,7 +75,7 @@
     border-radius: 5px;
     font-size: 14px;
     font-weight: normal;
-    grid-template-columns: 180px auto 200px !important;
+    grid-template-columns: auto auto 200px !important;
 }
 
 .migration-sub-app .source-info .icon {

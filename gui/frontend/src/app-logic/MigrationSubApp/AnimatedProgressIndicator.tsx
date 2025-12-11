@@ -32,21 +32,24 @@ import { Container } from "../../components/ui/Container/Container.js";
 interface IAnimatedProgressIndicatorProps {
     progress: number;
     width: number;
+    active: boolean;
 }
 
 export class AnimatedProgressIndicator extends Component<IAnimatedProgressIndicatorProps> {
     public static override defaultProps: Partial<IAnimatedProgressIndicatorProps> = {
         width: 150,
+        active: true
     };
 
     public override render(): VNode {
-        const { progress, width } = this.props;
+        const { progress, width, active } = this.props;
 
         const backgroundPosition = progress * width / -100;
+        const stripesStyle = active ? "stripesLoader" : "stripesLoaderStopped";
 
         return (
             <Container
-                className="animated-progress-indicator progressBar loadingTaskItem stripesLoader"
+                className={`animated-progress-indicator progressBar loadingTaskItem ${stripesStyle}`}
                 style={{
                     backgroundPosition,
                     width: `${width}px`,

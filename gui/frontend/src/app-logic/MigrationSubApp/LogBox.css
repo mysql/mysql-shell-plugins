@@ -1,0 +1,125 @@
+/*
+ * Copyright (c) 2025, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.log-box-container {
+    width: 100%;
+}
+
+
+.log-box-header {
+    display: flex;
+    align-items: center;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom: 0;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.log-box-toggle {
+    background: none;
+    border: none;
+    border-top-left-radius: 8px;
+    cursor: pointer;
+    padding: 5px 10px;
+    text-align: left;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.log-box-toggle:hover {
+    background-color: #e0e0e0;
+}
+
+.log-box-caption {
+    color: #555;
+    margin-left: 8px;
+}
+
+.log-box {
+    width: 100%;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    font-size: 12px;
+    overflow: auto;
+}
+
+.log-box.collapsed {
+    margin: 0px;
+    border-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 35px;
+    font-style: italic;
+    background-color: #f0f0f0;
+    overflow: hidden;
+}
+
+.log-box-copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 0;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    user-select: none;
+    color: #555;
+}
+
+.log-box-copy-btn:hover {
+    border-top-right-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.log-box-container .log-error {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.log-box-container .log-warning {
+    color: #f57c00;
+    font-weight: bold;
+}
+
+.log-box-container .log-note {
+    color: #1976d2;
+    font-weight: bold;
+}
+
+.log-box-container .log-entry {
+    padding-bottom: 2px;
+}

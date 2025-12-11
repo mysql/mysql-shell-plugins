@@ -52,6 +52,8 @@ export enum ShellAPIMigration {
     MigrationWorkRetry = "migration.work_retry",
     /** Skips transactions on the work step */
     MigrationSkipTransactions = "migration.skip_transactions",
+    /** Fetch logs for the given step or the log file. */
+    MigrationFetchLogs = "migration.fetch_logs",
     /** Returns the list of migration steps */
     MigrationGetSteps = "migration.get_steps",
     /** Returns the migration plan status for a new migration project */
@@ -79,6 +81,7 @@ export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationWorkStatus]: {};
     [ShellAPIMigration.MigrationWorkRetry]: {};
     [ShellAPIMigration.MigrationSkipTransactions]: { args: { gtids: string; }; };
+    [ShellAPIMigration.MigrationFetchLogs]: { args: { subStepId?: number; offset?: number; }; };
     [ShellAPIMigration.MigrationGetSteps]: {};
     [ShellAPIMigration.MigrationNewProject]: { args: { name: string; sourceUrl?: string; }; };
     [ShellAPIMigration.MigrationOpenProject]: { args: { id: string; }; };
@@ -381,7 +384,8 @@ export interface IWorkStageInfo {
     total: number | null,
     eta: number | null,
     message: string,
-    info: IDictionary
+    info: IDictionary,
+    logItems: number
 }
 
 export interface IMigrationSummaryInfo {
@@ -414,6 +418,11 @@ export interface IWorkStatusInfo {
     status: WorkStatus,
     stages: IWorkStageInfo[],
     summary: IMigrationSummaryInfo
+}
+
+export interface ILogInfo {
+    data: string,
+    lastOffset: number
 }
 
 export interface IMigrationStep {
@@ -451,6 +460,7 @@ export interface IProtocolMigrationResults {
     [ShellAPIMigration.MigrationWorkStatus]: { result: IWorkStatusInfo; };
     [ShellAPIMigration.MigrationWorkRetry]: {};
     [ShellAPIMigration.MigrationSkipTransactions]: {};
+    [ShellAPIMigration.MigrationFetchLogs]: { result: ILogInfo; };
     [ShellAPIMigration.MigrationGetSteps]: { result: IMigrationSteps; };
     [ShellAPIMigration.MigrationNewProject]: { result: IProjectData; };
     [ShellAPIMigration.MigrationOpenProject]: { result: IProjectData; };

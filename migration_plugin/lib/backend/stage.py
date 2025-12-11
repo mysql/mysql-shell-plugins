@@ -98,6 +98,9 @@ class OrchestratorInterface(Protocol):
     def push_message(self, source: model.SubStepId, data: dict):
         raise NotImplementedError()
 
+    def push_output(self, source: model.SubStepId, message: str):
+        raise NotImplementedError()
+
     def connect_remote_helper(self, wait_ready: bool = False) -> RemoteHelperClient:
         raise NotImplementedError()
 
@@ -178,6 +181,10 @@ class Stage:
 
     def push_message(self, data: dict):
         self._owner.push_message(self._id, data)
+
+    def push_output(self, message: str = ""):
+        if message:
+            self._owner.push_output(self._id, message)
 
     def add_dependency(self, dep: "Stage"):
         assert dep not in self._dependencies, self._name

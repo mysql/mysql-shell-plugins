@@ -119,6 +119,14 @@ class DumpStage(stage.ThreadedStage):
             progress["description"]
             return
 
+        for t in ["status", "info", "note", "warning", "error"]:
+            if t in data:
+                if t not in ("info", "status"):
+                    self.push_output(f"{t.upper()}: {data[t]}")
+                else:
+                    self.push_output(data[t])
+                break
+
         if "exceptionInfo" in data:
             exception = data["exceptionInfo"]["exception"]
             # 52006 code is a generic error reported when an exception in
@@ -486,7 +494,13 @@ class RemoteLoadStage(stage.ThreadedStage):
             self.push_progress(message=status.stage, data=status._json())
             return
 
-        # TODO ensure non-progress msgs get logged to disk somewhere
+        for t in ["status", "info", "note", "warning", "error"]:
+            if t in data:
+                if t not in ("info", "status"):
+                    self.push_output(f"{t.upper()}: {data[t]}")
+                else:
+                    self.push_output(data[t])
+                break
 
         if "exceptionInfo" in data:
             self._last_error = {"error": data["exceptionInfo"]["exception"]}

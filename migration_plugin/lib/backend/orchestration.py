@@ -51,6 +51,9 @@ class MigrationFrontend:
     def on_message(self, source: SubStepId, data: dict):
         pass
 
+    def on_output(self, source: SubStepId, message: str):
+        pass
+
 
 class Root(Stage):
     def __init__(self, owner: OrchestratorInterface) -> None:
@@ -303,6 +306,9 @@ class Orchestrator(OrchestratorInterface):
 
     def push_message(self, source: SubStepId, data: dict):
         self._frontend.on_message(source, data)
+
+    def push_output(self, source: SubStepId, message: str):
+        self._frontend.on_output(source, message)
 
     def _mark_enabled_stages(self):
         seen = set()

@@ -118,6 +118,7 @@ class Project:
 
         self._work_status_mutex = threading.Lock()
         self._work_status = WorkStatusInfo()
+        self._work_output: dict[SubStepId, list] = {}
         self._last_modify_time = ""
 
         self._plan_step_data = {}
@@ -442,15 +443,31 @@ class Project:
 
         self.save_progress()
 
+    def log_work_output(self, stage: SubStepId, message: str):
+        with self._work_status_mutex:
+            l = self._work_output.setdefault(stage, [])
+            l.append(message)
+            info = self._work_status._stage(stage)
+            info.logItems = len(l)
+
     def reset_work_status(self):
+        self._work_output = {}
         for info in self._work_status.stages:
             info.errors = []
+            info.logItems = 0
 
     def snapshot_status(self) -> WorkStatusInfo:
         with self._work_status_mutex:
             copy = self._work_status._snapshot()
             copy.summary = self.summary_info()
             return copy
+
+    def fetch_logs(self, source: SubStepId, offset: int) -> tuple[str, int]:
+        with self._work_status_mutex:
+            output = self._work_output.get(source, None)
+            if output and offset < len(output):
+                return "\n".join(output[offset:]), len(output)
+            return "", 0
 
     def _make_oci_config_error(self, msg, *args):
         if not self._oci_config:
