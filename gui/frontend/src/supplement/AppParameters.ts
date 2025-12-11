@@ -81,7 +81,7 @@ export const parseAppParameters = (): void => {
     }
 
     const env = process.env;
-    if ((env.VSCODE_PID !== undefined || env.TERM_PROGRAM === "vscode") && !appParameters.testsRunning) {
+    if ((env.VSCODE_PID !== undefined || env.TERM_PROGRAM === "vscode" || env.VSCODE_WSL_EXT_LOCATION !== undefined) && !appParameters.testsRunning) {
         appParameters.inExtension = true;
     }
 };
