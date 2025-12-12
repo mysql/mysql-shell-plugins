@@ -29,7 +29,7 @@ from . import model
 from .. import logging, dbsession, ssh_utils, errors
 from ..project import Project
 from ..oci_utils import Compartment
-from .model import MigrationOptions, SubStepId, CloudResources
+from .model import MigrationOptions, MigrationType, SubStepId, CloudResources
 from .stage import Stage, OrchestratorInterface, WorkStatusEvent
 from .oci_stages import (LaunchDBSystem, ProvisionVCN, ProvisionCompartment, ProvisionBucket,
                          ProvisionCompute, ProvisionJumpHost, AddHeatWaveCluster, EnableCrashRecovery, EnableHA)
@@ -68,8 +68,9 @@ class Congratulations(Stage):
         flag = super().start(parents)
         self.push_status(WorkStatusEvent.BEGIN)
 
-        # work done, we dont need cached passwords anymore
-        self._owner.project.clear_passwords()
+        if self._owner.project.options.migrationType == MigrationType.COLD:
+            # work done, we dont need cached passwords anymore (unless we're monitoring inbound replication)
+            self._owner.project.clear_passwords()
 
         return flag
 
@@ -78,8 +79,6 @@ class Orchestrator(OrchestratorInterface):
     _target_connection_options: dict = {}
     _storage_path: str = ""
     _thread = None
-
-    _source_connection_options: dict = {}
 
     def __init__(self, frontend: MigrationFrontend, project: Project) -> None:
         assert project.options.targetMySQLOptions
