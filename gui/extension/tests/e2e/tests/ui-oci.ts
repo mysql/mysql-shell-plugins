@@ -327,6 +327,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
+        beforeEach(async () => {
+            await ociTreeSection.focus();
+        });
+
         afterEach(async function () {
             if (existsInQueue) {
                 await TestQueue.pop(this.currentTest!.title);
@@ -452,6 +456,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Delete Compute Instance", async () => {
 
+            await ociTreeSection.focus();
             const treeComputeInstance = await ociTreeSection.getTreeItem(undefined, constants.ociComputeType);
             const instanceLabel = await treeComputeInstance.getLabel();
             await ociTreeSection.openContextMenuAndSelect(instanceLabel, constants.deleteComputeInstance);
