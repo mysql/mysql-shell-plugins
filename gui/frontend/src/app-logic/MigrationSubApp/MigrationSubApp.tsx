@@ -27,7 +27,7 @@
 import "./MigrationSubApp.css";
 // import issues from "./issues.json";
 
-import { Component, createRef, FunctionalComponent, VNode } from "preact";
+import { Component, createRef, FunctionalComponent, RefObject, VNode } from "preact";
 
 import { IMdsProfileData } from "../../communication/ProtocolMds.js";
 import {
@@ -189,6 +189,8 @@ interface ISignInInfo {
     };
 }
 
+type MockStateText = keyof Pick<IMigrationAppState, "fakeWebMessage" | "workStatus" | "mockBackendState">;
+
 interface IMigrationSubAppProps { }
 
 export interface IMigrationAppState {
@@ -251,6 +253,8 @@ export interface IMigrationAppState {
 
     // DEV
     fakeWebMessage: string;
+    workStatus?: string;
+    mockBackendState?: string;
     renderDevHelpers?: boolean;
     showBackendRequest?: boolean;
     showBackendState?: boolean;
@@ -264,7 +268,7 @@ export interface IMigrationAppState {
 
 export default class MigrationSubApp extends Component<IMigrationSubAppProps, IMigrationAppState> {
     private portalRef = createRef<Portal>();
-    private readonly popupRef = createRef<Popup>();
+    private readonly popups = new Map<MockStateText, RefObject<Popup>>();
     private dialogRef = createRef<Dialog>();
     private mhs = new ShellInterfaceMhs();
     private migration = new ShellInterfaceMigration();
@@ -625,8 +629,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
 
             if (appParameters.inDevelopment || this.queryParams.has("autoSendWebMessage")) {
                 // Emulate receiving from the native Workbench.
-                const { fakeWebMessage } = this.state;
-                this.onSendWebMessageClick(fakeWebMessage, new MouseEvent(""));
+                this.onSendWebMessageClick(new MouseEvent(""));
             }
         });
     }
@@ -733,6 +736,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
                                                         <li
                                                             key={step.id}
                                                             className="sub-step"
+                                                            id={`tile-sub-step-${step.id}`}
                                                         >
                                                             {<MigrationStatus status={status} enabled={enabled}
                                                                 work={tile.number > 1 && step.id !== SubStepId.CONGRATS}
@@ -2694,6 +2698,9 @@ Migration Assistant.`}
         /*const channelConsoleUrl =
             `https://cloud.oracle.com/mysqlaas/channels/${summaryInfo.channelId}?region=${summaryInfo.region}`;*/
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const showDeleteResources = summaryInfo.createdJumpHost || summaryInfo.createdBucket;
+
         return (
             <div className="explanation">
                 <h3>Congratulations! 🎉</h3>
@@ -2805,7 +2812,7 @@ Migration Assistant.`}
                     )
                 }
 
-                {(summaryInfo.createdJumpHost ?? summaryInfo.createdBucket) && (<>
+                {showDeleteResources && (<>
                     <hr className="short-line" />
                     <p>Select below whether you want to keep or delete any of the temporary resources created
                         during the migration. You may also delete any of these resources from the OCI console.</p>
@@ -3584,46 +3591,85 @@ Migration Assistant.`}
         }
     };
 
-    private onSendWebMessageClick = (fakeWebMessage: string, _e: MouseEvent | KeyboardEvent) => {
+    private onSendWebMessageClick = (_e: MouseEvent | KeyboardEvent) => {
+        const { fakeWebMessage } = this.state;
         if (fakeWebMessage) {
             const base64 = btoa(fakeWebMessage);
             const message = `{"migrate": "${base64}"}`;
 
             void requisitions.execute("setCommandLineArguments", message);
-            this.popupRef.current?.close(false);
         }
     };
 
-    private renderSendWebMessageButton(caption = "Send", onClick?: (e: MouseEvent | KeyboardEvent) => void) {
-        const { fakeWebMessage } = this.state;
-        const onSendWebMessageClick = onClick ?? this.onSendWebMessageClick.bind(this, fakeWebMessage);
+    private renderTextareaActionButton(stateKey: MockStateText,
+        onClick: (e: MouseEvent | KeyboardEvent) => void) {
+        const currentValue = this.state[stateKey];
 
         return (
             <Button
-                caption={caption}
+                caption="Execute"
                 isDefault={true}
-                onClick={onSendWebMessageClick}
-                disabled={!fakeWebMessage}
+                onClick={(e: MouseEvent | KeyboardEvent) => {
+                    onClick(e);
+                    this.popups.get(stateKey)?.current?.close(false);
+                }}
+                disabled={!currentValue}
             />
         );
     }
 
-    private renderWebMessageSender(buttonStyle?: CSSProperties) {
-        const { fakeWebMessage } = this.state;
+    private onUpdateWorkStatus = (_e: MouseEvent | KeyboardEvent) => {
+        const { tiles, workStatus } = this.state;
+        const status = JSON.parse(workStatus ?? `""`) as IWorkStatusInfo;
+
+        void this.updateWorkStatus(tiles, status);
+    };
+
+    private onUpdateBackendState = (_e: MouseEvent | KeyboardEvent) => {
+        const { mockBackendState, backendState } = this.state;
+        const stepsState = JSON.parse(mockBackendState ?? `""`) as IMigrationPlanState[];
+        
+        const result: IMigrationPlanState[] = stepsState.filter((s) => {
+            return s.id;
+        }).map((s) => {
+            if (!backendState[s.id]) {
+                return s;
+            }
+
+            return {
+                ...backendState[s.id],
+                ...s,
+            };
+        });
+
+        this.handleSubStepStates(result);
+    };
+
+    private renderActionTextareaInPopup(
+        buttonStyle: CSSProperties, caption: string,
+        stateKey: MockStateText,
+        onClick: (e: MouseEvent | KeyboardEvent) => void,
+    ) {
+        const currentValue = this.state[stateKey];
+
+        if (!this.popups.has(stateKey)) {
+            this.popups.set(stateKey, createRef());
+        }
+        const popupRef = this.popups.get(stateKey);
 
         return (
             <>
                 <Button
-                    caption="Send web message"
+                    caption={caption}
                     isDefault={true}
                     onClick={(e: MouseEvent | KeyboardEvent) => {
                         const element = e.currentTarget as HTMLElement;
-                        this.popupRef.current?.open(element.getBoundingClientRect());
+                        popupRef?.current?.open(element.getBoundingClientRect());
                     }}
                     style={buttonStyle}
                 />
                 <Popup
-                    ref={this.popupRef}
+                    ref={popupRef}
                     id="web-message-popup"
                     showArrow={false}
                     placement={ComponentPlacement.BottomRight}
@@ -3631,9 +3677,9 @@ Migration Assistant.`}
                     <textarea onChange={(e) => {
                         const value = (e.target as HTMLTextAreaElement).value;
 
-                        this.setState({ fakeWebMessage: value });
-                    }} value={fakeWebMessage} />
-                    {this.renderSendWebMessageButton()}
+                        this.setState({ [stateKey]: value });
+                    }} value={currentValue} />
+                    {this.renderTextareaActionButton(stateKey, onClick)}
                 </Popup>
             </>
         );
@@ -3692,7 +3738,12 @@ Migration Assistant.`}
                         }}
                         style={buttonStyle}
                     />
-                    {this.renderWebMessageSender(buttonStyle)}
+                    {this.renderActionTextareaInPopup(buttonStyle, "Send web message", "fakeWebMessage", 
+                        this.onSendWebMessageClick)}
+                    {this.renderActionTextareaInPopup(buttonStyle, "Update Work Status", "workStatus",
+                        this.onUpdateWorkStatus)}
+                    {this.renderActionTextareaInPopup(buttonStyle, "Update BE State", "mockBackendState",
+                        this.onUpdateBackendState)}
                 </Container>
                 <JsonView json={migrationSource ?? `""`} />
             </>
