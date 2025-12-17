@@ -116,6 +116,9 @@ def validate_source(
     if ServerType.RDS == session.server_type:
         errors.extend(check_rds(session))
 
+    if ServerType.Aurora == session.server_type:
+        errors.extend(check_aurora(session))
+
     return errors, result
 
 
@@ -276,15 +279,23 @@ def check_ssl(session: MigrationSession, info: model.ServerInfo) -> list[model.M
     return errors
 
 
+def __check_bool_sysvar(session: MigrationSession, name: str) -> bool:
+    value = False
+
+    if row := session.run_sql(f"select @@{name}").fetch_one():
+        value = bool(row[0])
+
+    return value
+
+
+def check_binlog(session: MigrationSession) -> bool:
+    return __check_bool_sysvar(session, "log_bin")
+
+
 def check_rds(session: MigrationSession) -> list[model.MigrationError]:
     errors: list[model.MigrationError] = []
 
-    log_bin = False
-
-    if row := session.run_sql("select @@log_bin").fetch_one():
-        log_bin = int(row[0])
-
-    if not log_bin:
+    if not check_binlog(session):
         err = model.MigrationError()
         err.level = model.MessageLevel.ERROR
         err.title = "Binary logging is disabled in the RDS instance"
@@ -292,6 +303,39 @@ def check_rds(session: MigrationSession) -> list[model.MigrationError]:
 
 To enable binary logging, automated backups must be turned on. For more
 information, please consult the AWS documentation."""
+        errors.append(err)
+
+    return errors
+
+
+def check_innodb_read_only(session: MigrationSession) -> bool:
+    return __check_bool_sysvar(session, "innodb_read_only")
+
+
+def check_aurora(session: MigrationSession) -> list[model.MigrationError]:
+    errors: list[model.MigrationError] = []
+    read_only = check_innodb_read_only(session)
+
+    if read_only:
+        err = model.MigrationError()
+        err.level = model.MessageLevel.ERROR
+        err.title = "Connected to the reader endpoint of an Aurora cluster"
+        err.message = """Migration from an Aurora cluster requires access to the binary logs.
+
+When binary logging is enabled in an Aurora cluster, only the writer endpoint or
+the writer instance provides access to the binary logs."""
+        errors.append(err)
+
+    # reader endpoints/instances always have the binlog disabled
+    if not read_only and not check_binlog(session):
+        err = model.MigrationError()
+        err.level = model.MessageLevel.ERROR
+        err.title = "Binary logging is disabled in the Aurora cluster"
+        err.message = """Migration from an Aurora cluster requires binary logging to be enabled.
+
+To enable binary logging, edit the DB cluster parameter group and set
+'binlog_format' parameter to 'ROW'. For more information, please consult the AWS
+documentation."""
         errors.append(err)
 
     return errors
@@ -370,10 +414,13 @@ def check_service_compatibility(
         compatibility=compat_flags,
         targetVersion=target_version,
     )
-    result = model.MigrationCheckResults()
 
     logging.devdebug(f"dumpInstanceDryRun output={output}")
 
+    if output["status"] and "MYSQLSH 52004" != output["errorCode"]:
+        raise Exception(output["errors"][-1])
+
+    result = model.MigrationCheckResults()
     schema_checks.process_ocimds_issues(output, result)
 
     return result

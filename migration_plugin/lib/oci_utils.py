@@ -182,6 +182,45 @@ def filter_sql_mode(sql_mode):
     return ",".join(modes)
 
 
+def filter_optimizer_switch(optimizer_switch):
+    """
+    Remove unknown optimizer_switch flags.
+    """
+    flags: list[str] = optimizer_switch.split(",")
+    known_flags = [
+        "batched_key_access",
+        "block_nested_loop",
+        "condition_fanout_filter",
+        "derived_condition_pushdown",  # 8.0
+        "derived_merge",
+        "engine_condition_pushdown",
+        "hash_join",  # 8.0
+        "index_condition_pushdown",
+        "use_index_extensions",
+        "index_merge",
+        "index_merge_intersection",
+        "index_merge_sort_union",
+        "index_merge_union",
+        "use_invisible_indexes",  # 8.0
+        "prefer_ordering_index",
+        "mrr",
+        "mrr_cost_based",
+        "duplicateweedout",
+        "firstmatch",
+        "loosescan",
+        "semijoin",
+        "hash_set_operations",  # 8.4
+        "skip_scan",  # 8.0
+        "materialization",
+        "subquery_materialization_cost_based",
+        "subquery_to_derived",  # 8.0
+    ]
+    flags = [
+        flag for flag in flags if flag and flag.split("=")[0].lower() in known_flags
+    ]
+    return ",".join(flags)
+
+
 def fixup_sysvar_value(name, value):
     """
     Return a Python value for the given sysvar value according to what
@@ -241,6 +280,8 @@ def fixup_sysvar_value(name, value):
         return info["default"]
     elif "sql_mode" == name:
         return filter_sql_mode(value)
+    elif "optimizer_switch" == name:
+        return filter_optimizer_switch(value)
     else:
         return value
 

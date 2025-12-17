@@ -40,7 +40,7 @@ def get_binlog_info(
         if session.nversion >= 56000:
             gtid_mode = session.run_sql("select @@gtid_mode").fetch_one()[0]
 
-        if session.server_type == ServerType.RDS:
+        if session.server_type in [ServerType.RDS, ServerType.Aurora]:
             # in rds, we need to use a stored procedure to get expire time
             res = session.run_sql("CALL mysql.rds_show_configuration")
             for row in iter(res.fetch_one, None):

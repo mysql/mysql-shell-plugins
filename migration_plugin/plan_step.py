@@ -774,6 +774,8 @@ class MigrationChecksSubStep(PlanSubStep):
         self._issue_resolution: dict[str, model.CompatibilityFlags] = data.get(
             "issueResolution", {})
 
+        self.__execution_errors: list[MigrationError] = []
+
     def _get_compatibility_flags(self) -> list[model.CompatibilityFlags]:
         result: list[model.CompatibilityFlags] = []
 
@@ -919,6 +921,9 @@ class MigrationChecksSubStep(PlanSubStep):
                     changed = True
             return changed
 
+        # make sure that fatal errors from previous execution are retained
+        self._errors = self.__execution_errors.copy()
+
         if "values" not in config:
             return False
 
@@ -991,16 +996,19 @@ class MigrationChecksSubStep(PlanSubStep):
             self._start_mutex.release()
 
     def run_checks(self):
-        self._errors = []
+        self.__execution_errors = []
         try:
             # TODO only re-run checks for which options changed
             err = self.check_compatibility()
             if not err:
                 err = self.check_upgrade()
             if err:
-                self._errors.append(err)
+                self.__execution_errors.append(err)
         except Exception as e:
-            self._errors.append(MigrationError._from_exception(e))
+            self.__execution_errors.append(MigrationError._from_exception(e))
+
+        # populate the errors
+        self._errors = self.__execution_errors.copy()
 
     def will_commit(self) -> bool:
         if not self._started:

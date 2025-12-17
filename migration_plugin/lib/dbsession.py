@@ -125,15 +125,11 @@ def detect_server_type(session: MigrationSession) -> ServerType:
     ):
         return ServerType.HeatWave
 
-    # TODO - check whats @@basedir in aurora
-    try:
-        session.run_sql("select aurora_version()").fetch_one()
-        return ServerType.Aurora
-    except:
-        pass
-
     (datadir,) = session.run_sql("select @@basedir").fetch_one()
     if datadir.startswith("/rdsdbbin/mysql"):
         return ServerType.RDS
+
+    if datadir.startswith("/rdsdbbin/oscar"):
+        return ServerType.Aurora
 
     return ServerType.MySQL

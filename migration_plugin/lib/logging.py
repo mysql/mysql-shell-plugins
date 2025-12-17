@@ -123,7 +123,8 @@ def debug2(msg: str):
 
 
 def devdebug(devmsg: str, msg: str = "", iftag: str = "", abort: bool = False):
-    debug = os.getenv("DEBUG_MIGRATION", "")
+    debug = os.getenv("DEBUG_MIGRATION", "") or \
+        os.getenv("MIGRATION_DEBUG_DEVDEBUG", "")
     debug_pattern = ","+debug+","
 
     if debug:

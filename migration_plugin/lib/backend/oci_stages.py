@@ -1026,7 +1026,7 @@ class LaunchDBSystem(DBSystemUpdateStage):
 
         # TODO this check shouldn't be here, if duplicate name is given then it should create a new db with same name
         # (but it's good for testing)
-        if os.getenv("DEBUG_MIGRATION_REUSE_DB"):
+        if os.getenv("DEBUG_MIGRATION_REUSE_DB") or os.getenv("MIGRATION_DEBUG_REUSE_DB"):
             db_systems = compartment.find_db_system_by_name(db_options.name)
             if db_systems:
                 logging.info(

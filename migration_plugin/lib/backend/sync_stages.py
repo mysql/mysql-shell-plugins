@@ -265,8 +265,11 @@ class CreateChannel(ThreadedStage):
 
         replicate_wild_ignore_table = []
 
-        if ServerType.RDS == self._owner.source_info.serverType:
+        if self._owner.source_info.serverType in [ServerType.RDS, ServerType.Aurora]:
             replicate_wild_ignore_table.append("mysql.rds%")
+
+        if ServerType.Aurora == self._owner.source_info.serverType:
+            replicate_wild_ignore_table.append("mysql.aurora%")
 
         self.channel = self.db_system.create_channel(
             source_host=source["host"],
