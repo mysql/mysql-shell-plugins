@@ -1,7 +1,7 @@
 parser grammar MySQLParser;
 
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,19 +26,20 @@ parser grammar MySQLParser;
  */
 
 /*
- * I've merged in all changes up to mysql-trunk git revision [6edc2c5] (tagged mysql-9.4.2)  (4. Sep 2025).
+ * Last updated January 2026.
  *
- * This is a MySQL grammar for ANTLR 4.5+ and antlr-ng with language features from MySQL 8.0 and up.
- * The server version in the generated parser can be switched at runtime, making it so possible
- * to switch the supported feature set dynamically.
+ * This is a MySQL grammar for ANTLR 4.5+ and antlr-ng, incorporating language features from MySQL 8.0 and newer.
+ * The parser’s server version can be switched at runtime, enabling dynamic adjustment of the supported feature set.
  *
- * The coverage of the MySQL language should be 100%, but there might still be some bugs or omissions.
+ * The grammar aims for complete coverage of the MySQL language (up to the latest update).
+ * Nevertheless, bugs or omissions may still exist.
  *
- * To use this grammar you'll need a few support classes (which should be close to where you found this grammar).
- * These classes implement the target-specific action code, so we don't clutter up the grammar with that
- * and make it simpler to adjust it for other targets. See the demo/test project for further details.
+ * To use this grammar, you’ll need a few support classes located near this grammar. These classes implement
+ * the target-specific action code, keeping the grammar clean and easy to adapt for other targets. See the demo/test
+ * project for further details.
  *
- * Written by Mike Lischke. Please email mike.lischke@oracle.com if you spot any bugs or omissions.
+ * Action code in this grammar uses TypeScript/JavaScript syntax. Adapting it to other targets should be
+ * straightforward.
  */
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -51,7 +52,7 @@ options {
     tokenVocab = MySQLLexer;
 }
 
-@header {/* Copyright (c) 2020, 2025, Oracle and/or its affiliates.*/
+@header {/* Copyright (c) 2020, 2026, Oracle and/or its affiliates.*/
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-useless-escape, no-lone-blocks */
@@ -238,7 +239,7 @@ standaloneAlterCommands:
     | {this.serverVersion >= 80014}? (
         SECONDARY_LOAD_SYMBOL (
             {this.serverVersion >= 80200}? usePartition (
-                {this.serverVersion >= 90500}? guided
+                {this.serverVersion >= 90500}? validationOnly? guided
             )?
         )?
         | SECONDARY_UNLOAD_SYMBOL ({this.serverVersion >= 80200}? usePartition)?
@@ -353,6 +354,15 @@ indexLockAndAlgorithm:
 
 withValidation:
     (WITH_SYMBOL | WITHOUT_SYMBOL) VALIDATION_SYMBOL
+;
+
+validationOnly:
+    VALIDATE_SYMBOL validationRowLimit ONLY_SYMBOL
+;
+
+validationRowLimit:
+    int64Literal ROWS_SYMBOL
+    | ALL_SYMBOL ROWS_SYMBOL
 ;
 
 guided:
@@ -1250,8 +1260,11 @@ outfileFileInfoList:
 ;
 
 outfileFileInfoElem:
-    FORMAT_SYMBOL identifier
-    | COMPRESSION_SYMBOL textString
+    FORMAT_SYMBOL (identifier | {this.serverVersion >= 90500}? textStringLiteral)
+    | COMPRESSION_SYMBOL (
+        textStringLiteral
+        | {this.serverVersion >= 90500}? identifier
+    )
     | HEADER_SYMBOL ON_SYMBOL
     | HEADER_SYMBOL OFF_SYMBOL
     | charsetClause
@@ -1353,12 +1366,19 @@ commonTableExpression:
     identifier columnInternalRefList? AS_SYMBOL subquery
 ;
 
+/* group by statement in select */
 groupByClause:
-    GROUP_SYMBOL BY_SYMBOL orderList olapOption?
+    GROUP_SYMBOL BY_SYMBOL simpleGroupingExprList olapOption?
     | {this.serverVersion >= 80032}? GROUP_SYMBOL BY_SYMBOL (
         ROLLUP_SYMBOL
         | CUBE_SYMBOL
-    ) OPEN_PAR_SYMBOL groupList CLOSE_PAR_SYMBOL
+    ) OPEN_PAR_SYMBOL simpleGroupingExprList CLOSE_PAR_SYMBOL
+    | {this.serverVersion >= 90500}? GROUP_SYMBOL BY_SYMBOL GROUPING_SYMBOL SET_SYMBOL OPEN_PAR_SYMBOL groupingSetList
+        CLOSE_PAR_SYMBOL
+;
+
+simpleGroupingExprList:
+    groupList
 ;
 
 olapOption:
@@ -3256,9 +3276,12 @@ jdvWithTableTags:
 ;
 
 jdvTableTag:
-    INSERT_SYMBOL
-    | UPDATE_SYMBOL
-    | DELETE_SYMBOL
+    (INSERT_SYMBOL | UPDATE_SYMBOL | DELETE_SYMBOL)
+    | {this.serverVersion >= 90500}? NO_SYMBOL (
+        INSERT_SYMBOL
+        | UPDATE_SYMBOL
+        | DELETE_SYMBOL
+    )
 ;
 
 jdvTableTags:
@@ -3485,6 +3508,18 @@ groupList:
 
 groupingExpression:
     expr
+;
+
+emptyGroupingSet:
+    OPEN_PAR_SYMBOL CLOSE_PAR_SYMBOL
+;
+
+groupingSetList:
+    | OPEN_PAR_SYMBOL simpleGroupingExprList CLOSE_PAR_SYMBOL
+    | emptyGroupingSet (
+        COMMA_SYMBOL OPEN_PAR_SYMBOL groupList CLOSE_PAR_SYMBOL
+        | COMMA_SYMBOL emptyGroupingSet
+    )*
 ;
 
 channel:
@@ -5391,6 +5426,7 @@ identifierKeywordsUnambiguous:
         | RELATIONAL_SYMBOL
         | STRICT_LOAD_SYMBOL
         | URI_SYMBOL
+        | VALIDATE_SYMBOL
         | VERIFY_KEY_CONSTRAINTS_SYMBOL
     )
     /* INSERT OTHER KEYWORDS HERE */

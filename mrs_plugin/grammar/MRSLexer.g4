@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
@@ -96,6 +96,7 @@ DYNAMIC_SYMBOL:        D Y N A M I C;
 SQL_SYMBOL:            S Q L;
 AND_SYMBOL:            A N D;
 DESCRIPTION_SYMBOL:    D E S C R I P T I O N;
+SETS_SYMBOL:           S E T S;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -129,7 +130,6 @@ MEDIA_SYMBOL:       M E D I A;
 AUTODETECT_SYMBOL:  A U T O D E T E C T;
 FEED_SYMBOL:        F E E D;
 ITEM_SYMBOL:        I T E M;
-SETS_SYMBOL:        S E T S;
 AUTH_SYMBOL:        A U T H;
 APPS_SYMBOL:        A P P S;
 APP_SYMBOL:         A P P;
