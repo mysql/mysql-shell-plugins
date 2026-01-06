@@ -63,7 +63,7 @@ def _get_field_type(obj, field: str) -> tuple[type | None, list[type]]:
     def _get_annotations(c, field: str) -> tuple[type | None, list[type]]:
         ann = get_type_hints(c)
 
-        assert field in ann, f"no annotation for field '{field}' of {obj.__class__}"
+        assert field in ann, f"no annotation for field '{field}' of {obj.__class__} "
 
         t = ann[field]
         if inspect.isclass(t):
@@ -402,17 +402,28 @@ class CompatibilityFlags(StrEnum):
 
 @dataclass
 class MigrationFilters(MigrationMessage):
-    schemas: Optional[IncludeList] = None
-    tables: Optional[IncludeList] = None
-    routines: Optional[IncludeList] = None
-    events: Optional[IncludeList] = None
-    libraries: Optional[IncludeList] = None
-    triggers: Optional[IncludeList] = None
-    users: Optional[IncludeList] = None
+    # Note: All object names must be quoted and fully qualified
+    # additionally, only exclude lists are supported atm
+    users: IncludeList = field(default_factory=IncludeList)
+    schemas: IncludeList= field(default_factory=IncludeList)
+    tables: IncludeList= field(default_factory=IncludeList)
+    views: IncludeList= field(default_factory=IncludeList)
+    routines: IncludeList= field(default_factory=IncludeList)
+    events: IncludeList= field(default_factory=IncludeList)
+    libraries: IncludeList= field(default_factory=IncludeList)
+    triggers: IncludeList= field(default_factory=IncludeList)
 
-    def __str__(self):
-        return f"{{schemas={self.schemas}, tables={self.tables}, routines={self.routines}, events={self.events}, libraries={self.libraries}, triggers={self.triggers}, triggers={self.users}}}"
 
+@dataclass
+class SchemaSelectionOptions(MigrationMessage):
+    filter: MigrationFilters = field(default_factory=MigrationFilters)
+    migrateSchema: bool = True
+    migrateData: bool = True
+    migrateRoutines: bool = True
+    migrateTriggers: bool = True
+    migrateEvents: bool = True
+    migrateLibraries: bool = True
+    migrateUsers: bool = True
 
 @dataclass
 class MigrationOptions(MigrationMessage):
@@ -427,12 +438,8 @@ class MigrationOptions(MigrationMessage):
     cloudConnectivity: CloudConnectivity = CloudConnectivity.NOT_SET
 
     # DB migration options
-    migrateData: bool = True
-    migrateUsers: bool = True
-
     compatibilityFlags: list[CompatibilityFlags] = field(default_factory=list)
-
-    filters: MigrationFilters = field(default_factory=MigrationFilters)
+    schemaSelection: SchemaSelectionOptions = field(default_factory=SchemaSelectionOptions)
 
 
 class CheckStatus(IntEnum):
@@ -566,6 +573,7 @@ class SubStepId(enum.IntEnum):
     OCI_PROFILE = 1040
     SOURCE_SELECTION = 1010
     MIGRATION_TYPE = 1020
+    SCHEMA_SELECTION = 1021
     MIGRATION_CHECKS = 1030
     TARGET_OPTIONS = 1050
     PREVIEW_PLAN = 1100

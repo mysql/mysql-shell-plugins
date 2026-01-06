@@ -169,7 +169,7 @@ def check_version_compatibility(session: MigrationSession, options: model.Migrat
         err.message = f"Source instance is a MariaDB server, migration of user accounts from MariaDB is currently not supported by this tool. Migration of user accounts has been disabled."
         errors.append(err)
 
-        options.migrateUsers = False
+        options.schemaSelection.migrateUsers = False
 
     return errors
 
@@ -373,7 +373,7 @@ def make_default_schema_check_exclude_list():
 
 
 def check_upgrade(
-    session: MigrationSession, filters: model.MigrationFilters, target_version: str
+    session: MigrationSession, schema_selection: model.SchemaSelectionOptions, target_version: str
 ) -> model.MigrationCheckResults:
     if session.nversion >= version_to_nversion(target_version):
         logging.info(
@@ -400,7 +400,7 @@ def check_upgrade(
 
     result = model.MigrationCheckResults()
 
-    schema_checks.process_upgrade_issues(output, result, filters)
+    schema_checks.process_upgrade_issues(output, result, schema_selection)
 
     return result
 
@@ -408,15 +408,14 @@ def check_upgrade(
 def check_service_compatibility(
     session: MigrationSession,
     compatibility_flags: list[model.CompatibilityFlags],
-    filters: model.MigrationFilters,
-    target_version: str,
-    check_users: bool
+    schema_selection: model.SchemaSelectionOptions,
+    target_version: str
 ) -> model.MigrationCheckResults:
-    args = model_utils.build_exclude_list(filters, check_users)
+    args = model_utils.build_dump_exclude_list(schema_selection)
 
     compat_flags = [flag.value for flag in compatibility_flags]
     logging.info(
-        f"running dump checks with compatibilityFlags={compat_flags}, filters={filters}, users={check_users}"
+        f"running dump checks with compatibilityFlags={compat_flags}, selection={schema_selection}"
     )
     output = submysqlsh.dump_instance_dry_run(
         session.connection_options,

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -151,7 +151,7 @@ class MySQLSourceCheck:
         return error
 
     def check_compatibility(
-        self, compatibility_flags: list[model.CompatibilityFlags], filters: model.MigrationFilters
+        self, compatibility_flags: list[model.CompatibilityFlags], schema_selection: model.SchemaSelectionOptions
     ) -> model.MigrationCheckResults:
         assert self.session
         assert self.options.sourceConnectionOptions
@@ -159,9 +159,8 @@ class MySQLSourceCheck:
 
         logging.debug(f"source_check: running compatibility checks")
         check_results = checks.check_service_compatibility(
-            self.session, compatibility_flags, filters,
+            self.session, compatibility_flags, schema_selection,
             self.options.targetMySQLOptions.mysqlVersion,
-            self.options.migrateUsers
         )
         logging.debug(
             f"source_check: compatibility checks done: results={check_results}"
@@ -170,14 +169,14 @@ class MySQLSourceCheck:
         return check_results
 
     def check_upgrade(
-        self, filters: model.MigrationFilters
+        self, schema_selection: model.SchemaSelectionOptions
     ) -> model.MigrationCheckResults:
         assert self.session
         assert self.options.targetMySQLOptions
 
         logging.debug(f"source_check: running schema checks")
         check_results = checks.check_upgrade(
-            self.session, filters,
+            self.session, schema_selection,
             target_version=self.options.targetMySQLOptions.mysqlVersion
         )
         logging.debug(

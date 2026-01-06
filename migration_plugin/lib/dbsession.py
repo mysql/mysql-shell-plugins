@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -47,6 +47,7 @@ def version_to_nversion(v):
 
 class Session:
     _session = None
+    _last_use_schema = None
 
     def __init__(self, connection_options: dict):
         self.connection_options = connection_options.copy()
@@ -62,6 +63,12 @@ class Session:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+    def use(self, schema: str):
+        if schema == self._last_use_schema:
+            return
+        self.run_sql("USE !", [schema])
+        self._last_use_schema = schema
 
     def run_sql(self, query, args=[]):
         assert self._session

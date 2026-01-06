@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 /*
  * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
@@ -24,8 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
+
 import "./MigrationSubApp.css";
-// import issues from "./issues.json";
 
 import { Component, createRef, FunctionalComponent, RefObject, VNode } from "preact";
 
@@ -42,6 +42,8 @@ import {
     MessageLevel,
     IMigrationSummaryInfo,
     IMigrationChecksData,
+    ISchemaSelectionData,
+    ISchemaSelectionOptions,
     IMigrationPlanState,
     MigrationType,
     CloudConnectivity,
@@ -51,7 +53,8 @@ import {
     ITargetOptionsOptions,
     ITargetOptionsData,
     IMigrationTypeData,
-    ILogInfo
+    ILogInfo,
+    IMigrationFilters
 } from "../../communication/ProtocolMigration.js";
 import { AboutBox } from "../../components/ui/AboutBox/AboutBox.js";
 import { Assets } from "../../supplement/Assets.js";
@@ -74,8 +77,7 @@ import { appParameters } from "../../supplement/AppParameters.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { formatBytes } from "../../utilities/string-helpers.js";
 import { ShellInterfaceMhs } from "../../supplement/ShellInterface/ShellInterfaceMhs.js";
-import { ShellInteractiveInterface } from "../../supplement/ShellInterface/ShellInteractiveInterface.js"
-
+import { ShellInteractiveInterface } from "../../supplement/ShellInterface/ShellInteractiveInterface.js";
 import {
     ProjectsData,
     ShellInterfaceMigration
@@ -111,6 +113,10 @@ import { Dialog } from "../../components/ui/Dialog/Dialog.js";
 import { CSSProperties } from "preact/compat";
 import { MigrationSubAppLogger } from "./MigrationSubAppLogger.js";
 import { WorkProgressView } from "./WorkProgressView.js";
+import { SchemaFilterGrid } from "./SchemaFilterGrid.js";
+import { Toggle } from "../../components/ui/Toggle/Toggle.js";
+import { UserFilterGrid } from "./UserFilterGrid.js";
+import { MigrationFilterInfo } from "./MigrationFilterInfo.js";
 
 interface ISpinnerProps { size?: number; }
 
@@ -231,6 +237,8 @@ export interface IMigrationAppState {
     showFormPreview: boolean;
 
     planStepData: Partial<Record<string, string>>;
+
+    filterInfo: MigrationFilterInfo;
 
     backendRequestInProgress: boolean;
     issueResolution: Partial<Record<string, string>>;
@@ -593,6 +601,8 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
 
             planStepData: {},
 
+            filterInfo: new MigrationFilterInfo(this.migration),
+
             issueResolution: {},
             expandedIssues: {},
             shapes: {},
@@ -921,15 +931,17 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         this.navigateInto(this.getPrevSubStep, false);
     };
 
-    private async commitAll() {
-        const { tiles } = this.state;
+    private async commitRest() {
+        const { tiles, currentSubStepId } = this.state;
+
         for (const tile of tiles) {
             if (tile.number > 1) {
                 return;
             }
             for (const subStep of tile.steps) {
-                // await this.submitSubStep(subStep.id, true);
-                await this.onNext(subStep.id);
+                if (!currentSubStepId || subStep.id >= currentSubStepId) {
+                    await this.onNext(subStep.id);
+                }
             }
         }
     }
@@ -1392,7 +1404,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         this.setState({ migrationInProgress: true });
 
         if (!resuming) {
-            await this.commitAll();
+            await this.commitRest();
         }
 
         const { tiles, abortMigration, project } = this.state;
@@ -1597,10 +1609,15 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     }
 
     private renderFormControls(stepId: number, subStepId: SubStepId | number) {
-        const { hasOciAccess } = this.state;
+        const { hasOciAccess, currentStep, currentSubStepId } = this.state;
         const { stepIndex, subStepIndex } = this.findStepIndexes(stepId, subStepId);
 
         if (stepIndex === -1 || subStepIndex === -1) {
+            return null;
+        }
+
+        // don't render collapsed sections
+        if (currentStep === 1 && subStepId !== currentSubStepId) {
             return null;
         }
 
@@ -1616,6 +1633,8 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             //     return this.renderSourceSelection(subStepId, formGroups);
             case SubStepId.MIGRATION_TYPE:
                 return this.renderMigrationType(subStepId);
+            case SubStepId.SCHEMA_SELECTION:
+                return this.renderSchemaSelection(subStepId);
             case SubStepId.MIGRATION_CHECKS:
                 return this.renderMigrationChecks(subStepId);
             // case SubStepId.TARGET_OPTIONS: {
@@ -2520,6 +2539,106 @@ Migration Assistant.`}
         );
     }
 
+    private onMigrateAllObjectsChange = (e: InputEvent, checkState: CheckState) => {
+        const { filterInfo } = this.state;
+
+        filterInfo.migrateAllObjects = !filterInfo.migrateAllObjects;
+
+        this.forceUpdate();
+    };
+
+    private onMigrateAllUsersChange = (e: InputEvent, checkState: CheckState) => {
+        const { filterInfo } = this.state;
+
+        filterInfo.migrateAllUsers = !filterInfo.migrateAllUsers;
+
+        this.forceUpdate();
+    };
+
+    private renderSchemaSelection(subStepId: SubStepId) {
+        const { backendState, filterInfo } = this.state;
+        const data = backendState[subStepId]?.data as ISchemaSelectionData;
+
+        return (
+            <div>
+                <p>
+                    By default, all schemas and their objects will be migrated to the target MySQL HeatWave DB System,
+                    except for system schemas and system user accounts.
+                </p>
+
+                <div className="option-group-vbox">
+                    <div>
+                        <Toggle
+                            id="migrateAllObjectsToggle"
+                            caption="Migrate All Objects"
+                            checkState={filterInfo.migrateAllObjects ? CheckState.Checked : CheckState.Unchecked}
+                            onChange={this.onMigrateAllObjectsChange} />
+
+                        {!filterInfo.migrateAllObjects && <div>
+                            <p className="comment">To exclude schemas from being migrated, uncheck them in the grid
+                                below. You may also exclude all objects of a type or individual objects.</p>
+                            <p>Note: excluding objects that are dependencies of objects being migrated will
+                                result in a failed migration.</p>
+
+                            <SchemaFilterGrid
+                                schemas={data.contents.schemas}
+                                filterInfo={filterInfo}
+                                onObjectTypeToggle={this.onObjectTypeToggle}
+                                onSchemaToggle={this.onSchemaToggle}
+                                onFilterInfoChange={this.onFilterInfoChange} />
+                        </div>}
+                    </div>
+                    <div>
+                        <Toggle
+                            id="migrateAllUsersToggle"
+                            caption="Migrate All User Accounts"
+                            checkState={filterInfo.migrateAllUsers ? CheckState.Checked : CheckState.Unchecked}
+                            onChange={this.onMigrateAllUsersChange} />
+
+                        {!filterInfo.migrateAllUsers && (
+                            <div>
+                                <UserFilterGrid
+                                    accounts={data.contents.accounts.map((account) => {
+                                        const isIncluded = filterInfo.isAccountIncluded(account);
+
+                                        return {
+                                            caption: account,
+                                            isIncluded,
+                                            onToggle: this.onAccountToggle.bind(this, account, isIncluded),
+                                        };
+                                    })}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    private onAccountToggle = (account: string, isIncluded: boolean) => {
+        const { filterInfo } = this.state;
+        filterInfo.setAccountIncluded(account, !isIncluded);
+        this.setState({ filterInfo });
+    };
+
+    private onObjectTypeToggle = (objectType: keyof IMigrationFilters, enable: boolean) => {
+        const { filterInfo } = this.state;
+        filterInfo.setObjectTypeIncluded(objectType, enable);
+        this.setState({ filterInfo });
+    };
+
+    private onSchemaToggle = (schemaName: string, include: boolean) => {
+        const { filterInfo } = this.state;
+        filterInfo.setSchemaIncluded(schemaName, include);
+        this.setState({ filterInfo });
+    };
+
+    private onFilterInfoChange = () => {
+        // Force a re-render when filter info changes
+        this.forceUpdate();
+    };
+
     private renderMigrationChecks(subStepId: SubStepId) {
         return (
             <div>
@@ -2566,6 +2685,11 @@ Migration Assistant.`}
             return;
         }
 
+        const channelInfo = options.channelInfo;
+
+        const replicateIgnoreTables = channelInfo
+            ? channelInfo.replicateIgnoreTable.concat(channelInfo.replicateWildIgnoreTable) : [];
+
         return (
             <div className="explanation migration-plan">
                 <div className="ready-notice">
@@ -2596,9 +2720,13 @@ Migration Assistant.`}
                     The following Oracle Cloud resources will be created in region <b>{region}</b> and
                     compartment <b>{planStepData.compartmentPath}</b>:
 
-                    <h4>DB System</h4>
                     <table className="migration-preview-table">
                         <tbody>
+                            <tr>
+                                <td colSpan={2} className="title-row">
+                                    DB System
+                                </td>
+                            </tr>
                             <tr><td>Name</td><td>{targetMySQLOptions.name}</td></tr>
                             <tr>
                                 <td>Shape</td><td>{targetMySQLOptions.shapeName}</td>
@@ -2644,10 +2772,31 @@ Migration Assistant.`}
                                 <td>Subnet</td>
                                 <td>{targetHostingOptions.privateSubnet.id}</td>
                             </tr> */}
-                        </tbody>
-                    </table>
-                    {/*
-                    {
+                            {
+                                migrationType === MigrationType.HOT && channelInfo ? (<>
+                                    <tr>
+                                        <td colSpan={2} className="title-row">
+                                            Inbound Replication Channel<sup>*</sup>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Replication User</td>
+                                        <td>{channelInfo.sourceUser}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ignored Schemas</td>
+                                        <td><code>{channelInfo.replicateIgnoreDb.length
+                                            ? channelInfo.replicateIgnoreDb.join(", ") : "-"}</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ignored Tables</td>
+                                        <td><code>{replicateIgnoreTables.length
+                                            ? replicateIgnoreTables.join(", ") : "-"}</code></td>
+                                    </tr>
+                                </>) : null
+                            }
+
+                            {/*
                         !targetHostingOptions.networkCompartmentId
                             ? (
                                 <>
@@ -2656,12 +2805,12 @@ Migration Assistant.`}
                                     </table>
                                 </>)
                             : null
-                    } */}
+                        */}
 
-                    <h4>Compute Instance (jump host)<sup>*</sup></h4>
+                            <tr><td colSpan={2} className="title-row">
+                                Compute Instance (jump host)<sup>*</sup>
+                            </td></tr>
 
-                    <table className="migration-preview-table">
-                        <tbody>
                             <tr>
                                 <td>Name</td>
                                 <td>
@@ -2693,13 +2842,10 @@ Migration Assistant.`}
                                 <td>Memory</td>
                                 <td>{targetHostingOptions.memorySizeGB} GB</td>
                             </tr>
-                        </tbody>
-                    </table>
+                            <tr><td colSpan={2} className="title-row">
+                                Object Storage<sup>*</sup>
+                            </td></tr>
 
-                    <h4>Object Storage<sup>*</sup></h4>
-
-                    <table className="migration-preview-table">
-                        <tbody>
                             <tr>
                                 <td>Bucket</td>
                                 <td>{targetHostingOptions.bucketName}</td>
@@ -2707,8 +2853,8 @@ Migration Assistant.`}
                         </tbody>
                     </table>
                     <p>* Temporary resources necessary for the migration. May be deleted afterwards.</p>
-                </div>
-            </div>
+                </div >
+            </div >
         );
     }
 
@@ -3729,7 +3875,7 @@ Migration Assistant.`}
     }
 
     private handleSubStepStates = (stepsState: IMigrationPlanState[]): void => {
-        const { backendState, formGroupValues, planStepData } = this.state;
+        const { backendState, formGroupValues, planStepData, filterInfo } = this.state;
 
         const updatedFormGroupValues = { ...formGroupValues };
         const updatedBackendState = { ...backendState };
@@ -3774,6 +3920,12 @@ Migration Assistant.`}
                         }
                         if (item.values) {
                             processNestedObject("", item.values as unknown as IDictionary);
+                        }
+                        break;
+
+                    case SubStepId.SCHEMA_SELECTION:
+                        if (item.values) {
+                            filterInfo.setOptions((item.values as ISchemaSelectionOptions));
                         }
                         break;
 
@@ -4256,8 +4408,6 @@ Migration Assistant.`}
 
     private watchVcn = async (_changes?: WatcherChanges,
         vcn?: string) => {
-        // const { backendState } = this.state;
-
         if (!this.profile || !vcn) {
             return;
         }
@@ -4395,7 +4545,6 @@ Migration Assistant.`}
             return;
         }
 
-        //const issueResolution: IMigrationAppState["issueResolution"] = {};
         // TODO- workaround for compatflags/issue resolution being lost after checks are re-executed
         const issueResolution: IMigrationAppState["issueResolution"] = this.state.issueResolution;
         data.issues.forEach((i) => {

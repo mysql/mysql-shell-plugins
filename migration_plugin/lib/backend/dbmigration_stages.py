@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,13 +27,12 @@ from . import model, stage
 from ..oci_utils import MIGRATION_RETRY_STRATEGY
 from .. import logging, errors, util
 from .model import SubStepId, WorkStatusEvent
-from .model_utils import build_exclude_list
+from .model_utils import build_dump_exclude_list
 from .submysqlsh import dump_instance
 from .remote_helper import RemoteHelperClient
 import json
 import urllib.request
 import urllib.error
-import queue
 from enum import IntEnum
 import time
 import os
@@ -343,9 +342,8 @@ class DumpStage(stage.ThreadedStage):
     def _launch(self) -> None:
         assert self._owner.options
 
-        extra_args = build_exclude_list(
-            self._owner.options.filters,
-            self._owner.options.migrateUsers
+        extra_args = build_dump_exclude_list(
+            self._owner.options.schemaSelection
         )
 
         ncpu = os.cpu_count()
@@ -374,6 +372,7 @@ class DumpStage(stage.ThreadedStage):
             target_version=self._owner.target_version,
             threads=threads
         )
+        self.push_output(" ".join(util.sanitize_par_uri_in_list(self._process.argv)))
 
     def start(self, parents):
         if self._is_started:
@@ -535,10 +534,7 @@ class RemoteLoadStage(stage.ThreadedStage):
                              message="Data load has already finished before")
             return
 
-        extra_args = build_exclude_list(
-            self._owner.options.filters,
-            self._owner.options.migrateUsers
-        )
+        extra_args = []
         extra_args.append("--createInvisiblePKs=1")
         extra_args.append("--dropExistingObjects=1")
         extra_args.append("--ignoreVersion=1")

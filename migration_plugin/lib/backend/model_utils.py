@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,35 +22,66 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 
+import itertools
+import select
+from termios import ECHOPRT
 from . import model
 
 
-def build_exclude_list(filters: model.MigrationFilters, include_users: bool) -> list:
+def build_dump_exclude_list(selection: model.SchemaSelectionOptions) -> list:
     args = []
 
-    def add(what, filter):
-        if filter:
-            def q(s):
-                return f'"{s.replace('\\', '\\\\').replace('"', '\\"')}"'
+    def add(what: str, filter: list[model.IncludeList] | model.IncludeList):
+        def q(s):
+            return f'"{s.replace('\\', '\\\\').replace('"', '\\"')}"'
 
-            if filter.exclude:
-                args.append(
-                    f"--exclude-{what}={','.join([q(n) for n in filter.exclude])}"
-                )
-            if filter.include:
-                args.append(
-                    f"--include-{what}={','.join([q(n) for n in filter.include])}"
-                )
+        if isinstance(filter, list):
+            filters = filter
+        else:
+            filters = [filter]
 
-    add("schemas", filters.schemas)
-    add("tables", filters.tables)
-    add("routines", filters.routines)
-    add("events", filters.events)
-    add("libraries", filters.libraries)
-    add("triggers", filters.triggers)
+        excludes = ','.join([q(n) for n in itertools.chain(
+            *[f.exclude for f in filters if f.exclude])])
+        includes = ','.join([q(n) for n in itertools.chain(
+            *[f.include for f in filters if f.include])])
 
-    if include_users:
-        add("users", filters.users)
+        if excludes:
+            args.append(f"--exclude-{what}={excludes}")
+        if includes:
+            args.append(f"--include-{what}={includes}")
+
+    filters = selection.filter
+    if filters:
+        add("schemas", filters.schemas)
+        add("tables", [filters.tables, filters.views])
+
+    if selection.migrateRoutines:
+        if filters:
+            add("routines", filters.routines)
+    else:
+        args.append("--routines=false")
+
+    if selection.migrateEvents:
+        if filters:
+            add("events", filters.events)
+    else:
+        args.append("--events=false")
+
+    if selection.migrateLibraries:
+        if filters:
+            add("libraries", filters.libraries)
+    else:
+        args.append("--libraries=false")
+
+    if selection.migrateTriggers:
+        if filters:
+            add("triggers", filters.triggers)
+    else:
+        args.append("--triggers=false")
+
+    if selection.migrateUsers:
+        if filters:
+            add("users", filters.users)
     else:
         args.append("--users=false")
 

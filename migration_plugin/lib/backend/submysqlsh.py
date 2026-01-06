@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -52,8 +52,9 @@ class SubMysqlsh:
             argv.append(mysqlsh.globals.shell.unparse_uri(connection_params))
         logging.info(
             f"Popen {self.name}: {[sanitize_par_uri(s) for s in argv+args]}")
+        self.argv = argv + args
         self.p = subprocess.Popen(
-            argv + args,
+            self.argv,
             stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE,
             stdin=subprocess.PIPE,

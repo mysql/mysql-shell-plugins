@@ -29,8 +29,9 @@ import re
 import os
 import webbrowser
 import threading
-from typing import Optional, TypeAlias, cast
+from typing import Optional, Type, TypeAlias, TypeVar, cast
 
+from .lib.backend.mysql_utils import InstanceCache, InstanceContents, SchemaObjects, SchemaTables, fetch_instance_contents
 from .lib.project import Project
 from .lib import errors, logging, oci_utils
 from .lib.logging import plugin_log
@@ -38,15 +39,18 @@ from .lib.backend import target_config, model
 from .lib.dbsession import MigrationSession
 from .lib.backend.source_check import MySQLSourceCheck
 from .lib.backend.string_utils import unquote_db_object, quote_db_object
-from mds_plugin import compartment as mds_compartment
 import mysqlsh  # type: ignore
 from mysqlsh import mysql  # type: ignore
 from mysqlsh.plugin_manager import plugin_function  # type: ignore
 from .lib.backend.model import (
+    IncludeList,
     MigrationError,
     MessageLevel,
+    MigrationFilters,
     MigrationMessage,
     MigrationOptions,
+    MigrationType,
+    SchemaSelectionOptions,
     SubStepId,
     parse,
 )
@@ -91,6 +95,13 @@ def format_uri(options: dict) -> str:
     return mysqlsh.globals.shell.unparse_uri(opts)
 
 
+class ReplicationChannelInfo(MigrationMessage):
+    sourceUser: str = ""
+    replicateIgnoreDb: list[str]
+    replicateIgnoreTable: list[str]
+    replicateWildIgnoreTable: list[str]
+
+
 class MigrationStepStatus(enum.StrEnum):
     NOT_STARTED = "NOT_STARTED"
     IN_PROGRESS = "IN_PROGRESS"
@@ -101,6 +112,7 @@ class MigrationStepStatus(enum.StrEnum):
 
 class PlanEvent(enum.StrEnum):
     OCI_PROFILE_CHANGED = "OCI_PROFILE_CHANGED"
+    SOURCE_CONNECTED = "SOURCE_CONNECTED"
 
 
 @dataclass
@@ -115,6 +127,10 @@ class MigrationTypeData(MigrationMessage):
 
 
 @dataclass
+class SchemaSelectionData(MigrationMessage):
+    contents: InstanceContents
+
+@dataclass
 class MigrationChecksData(MigrationMessage):
     issues: list[model.CheckResult] = field(default_factory=list)
 
@@ -124,6 +140,7 @@ class PreviewPlanData(MigrationMessage):
     options: model.MigrationOptions = field(
         default_factory=model.MigrationOptions)
     computeResolutionNotice: str = ""
+    channelInfo: Optional[ReplicationChannelInfo] = None
 
 
 @dataclass
@@ -163,8 +180,21 @@ class TargetOptionsOptions(MigrationMessage):
     database: Optional[model.DBSystemOptions] = None
 
 
-SubStepData: TypeAlias = SourceSelectionData | MigrationTypeData | MigrationChecksData | TargetOptionsData | PreviewPlanData
-SubStepValues: TypeAlias = OCIProfileOptions | SourceSelectionOptions | MigrationTypeOptions | MigrationChecksOptions | TargetOptionsOptions
+SubStepData: TypeAlias = SourceSelectionData | MigrationTypeData | SchemaSelectionData | MigrationChecksData | TargetOptionsData | PreviewPlanData
+SubStepValues: TypeAlias = OCIProfileOptions | SourceSelectionOptions | MigrationTypeOptions | SchemaSelectionOptions | MigrationChecksOptions | TargetOptionsOptions
+
+T = TypeVar("T")
+
+
+class PlanDataItemType(enum.StrEnum):
+    SCHEMA_TABLES = "tables"
+    SCHEMA_ROUTINES = "routines"
+    SCHEMA_TRIGGERS = "triggers"
+    SCHEMA_EVENTS = "events"
+    SCHEMA_LIBRARIES = "libraries"
+
+
+PlanDataItem: TypeAlias = SchemaObjects | SchemaTables
 
 
 @dataclass
@@ -252,7 +282,8 @@ class PlanSubStep:
 
     @property
     def _has_fatal_errors(self) -> bool:
-        return len([e for e in self._errors if e.level == MessageLevel.ERROR]) > 0
+        return len(
+            [e for e in self._errors if e.level == MessageLevel.ERROR]) > 0
 
     def info_values(self) -> Optional[SubStepValues]:
         return None
@@ -272,7 +303,7 @@ class PlanSubStep:
             data=data,
         )
 
-    def parse_values(self, config: dict, options_class):
+    def parse_values(self, config: dict, options_class: Type[T]) -> T:
         if "values" not in config:
             raise errors.BadRequest("values field missing")
 
@@ -429,6 +460,8 @@ class SourceSelectionSubStep(PlanSubStep):
             self._replication_issue.info = {"input": "type"}
             self._replication_issue.type = "InvalidParameter"
 
+        self._owner.notify(PlanEvent.SOURCE_CONNECTED)
+
         return err
 
     @property
@@ -455,8 +488,7 @@ class SourceSelectionSubStep(PlanSubStep):
         if "user" not in coptions or "host" not in coptions:
             raise errors.BadUserInput(
                 "Invalid URI format for source database: must be <user>@<host>[:<port>]",
-                input="sourceUri",
-            )
+                input="sourceUri",)
 
         # a cold or hot-local-tunnel migration wouldn't need this check
         # if coptions["host"] in ("localhost", "127.0.0.1", "0"):
@@ -578,23 +610,24 @@ class MigrationTypeSubStep(PlanSubStep):
                 and self._owner.options.targetMySQLOptions.enableHA):
             logging.info(
                 f"GTID_MODE of source is {self._owner.source_info.gtidMode} and MDS does not support creating a channel with HA in this case")
-            self._errors.append(model.MigrationError._from_exception(
-                errors.InvalidParameter(f"""GTID_MODE is disabled or not supported at the source MySQL server.
+            self._errors.append(
+                model.MigrationError._from_exception(
+                    errors.InvalidParameter(
+                        f"""GTID_MODE is disabled or not supported at the source MySQL server.
                                         Replication channels from such MySQL servers to an HA system are not supported
                                         by the service. You must either:
                                         <ul>
                                         <li>enable GTID_MODE at the source and start over;
                                         <li>disable the High Availability option and enable it after migration is over;
                                         or perform a cold migration
-                                        </ul>""",
-                                        input="type")
-            ))
+                                        </ul>""", input="type")))
             return False
 
         # check that the source password complies with the
         # the channel API will refuse to create the channel with status 400
         pwd_issues = target_config.validate_password(
-            self._owner.project.source_password, username=self._owner.options.sourceConnectionOptions["user"])
+            self._owner.project.source_password,
+            username=self._owner.options.sourceConnectionOptions["user"])
         if self._owner.options.migrationType == model.MigrationType.HOT and pwd_issues:
             sourceUri = format_uri(self._owner.options.sourceConnectionOptions)
             logging.info(
@@ -613,11 +646,10 @@ Please change the password for that account or start over using an account with 
         if (self._owner.options.migrationType == model.MigrationType.HOT
                 and self._owner.options.cloudConnectivity == model.CloudConnectivity.SITE_TO_SITE
                 and self._owner.options.sourceConnectionOptions.get("host") in ("localhost", "127.0.0.1")):
-            self._errors.append(model.MigrationError._from_exception(
-                errors.InvalidParameter(f"""The address {self._owner.options.sourceConnectionOptions.get("host")} cannot
+            self._errors.append(model.MigrationError._from_exception(errors.InvalidParameter(
+                f"""The address {self._owner.options.sourceConnectionOptions.get("host")} cannot
                                          be used to perform a hot migration using Site-to-Site VPN. Please start over
-                                        using an address that can be reached through the VPN.""",
-                                        input="type")))
+                                        using an address that can be reached through the VPN.""", input="type")))
             return False
 
         return True
@@ -699,6 +731,106 @@ Please change the password for that account or start over using an account with 
         return data
 
 
+class SchemaSelectionSubStep(PlanSubStep):
+    id = SubStepId.SCHEMA_SELECTION
+    caption = "Object Selection"
+
+    def __init__(self, owner: "MigrationPlanStep"):
+        super().__init__(owner)
+        self._source_data: Optional[SchemaSelectionData] = None
+
+        self._options = SchemaSelectionOptions()
+        self._options.filter = MigrationFilters()
+
+    def on_event(self, event: PlanEvent):
+        if event == PlanEvent.SOURCE_CONNECTED:
+            self._source_data = None
+            self._filter = MigrationFilters()
+            self.fetch_schema_data()
+
+    def fetch_schema_data(self):
+        self._source_data = SchemaSelectionData(
+            contents=fetch_instance_contents(self._owner.source_session))
+
+    def start(self, blocking=True):
+        logging.info(f"{self}.start")
+        if not self._owner.source_session_ready:
+            logging.info(f"{self}.start: session to source DB is not ready")
+            return
+
+        self._started = True
+
+    def apply(self, config: dict) -> bool:
+        if "values" not in config:
+            return False
+
+        options = self.parse_values(config, SchemaSelectionOptions)
+        if options.filter:
+            self._options = options
+            self._done = False
+
+            return True
+
+        return False
+
+    def commit(self) -> MigrationPlanState:
+
+        def flatten_schemas(include_list: IncludeList):
+            assert self._source_data
+
+            # move any items not in include_list to exclude_list
+            if include_list.include:
+                include_set = set(include_list.include)
+                for item_name in self._source_data.contents.schemas:
+                    if item_name not in include_set:
+                        include_list.exclude.append(item_name)
+                include_list.include = []
+
+        def flatten_tables(include_list: IncludeList):
+            assert self._source_data
+
+            # move any items not in include_list to exclude_list
+            if include_list.include:
+                include_dict = {}
+                for item in include_list.include:
+                    schema_name, table_name = unquote_db_object(item)
+                    if schema_name not in include_dict:
+                        include_dict[schema_name] = set()
+                    include_dict[schema_name].add(table_name)
+
+                for schema_name in include_dict.keys():
+                    table_data = self._owner._get_schema_tables(schema_name)
+
+                    table_set = include_dict[schema_name]
+                    for table_name in table_data.tables:
+                        if table_name not in table_set:
+                            include_list.exclude.append(
+                                quote_db_object(schema_name, table_name))
+
+                include_list.include = []
+
+        if not self._done:
+            self._done = True
+
+            assert self._options.filter
+            self._owner.options.schemaSelection = copy.deepcopy(self._options)
+
+            # flatten schema and table lists into exclude only
+            if self._owner.options.schemaSelection.filter:
+                flatten_schemas(self._owner.options.schemaSelection.filter.schemas)
+                flatten_tables(self._owner.options.schemaSelection.filter.tables)
+
+            self._options.filter = self._owner.options.schemaSelection.filter
+
+        return self.info()
+
+    def info_values(self) -> SchemaSelectionOptions:
+        return self._options
+
+    def info_data(self) -> Optional[SchemaSelectionData]:
+        return self._source_data
+
+
 class MigrationChecksSubStep(PlanSubStep):
     id = SubStepId.MIGRATION_CHECKS
     caption = "Schema Compatibility Checks"
@@ -709,9 +841,8 @@ class MigrationChecksSubStep(PlanSubStep):
             self.status: model.CheckStatus = model.CheckStatus.OK
 
         def _merge_results(self, results: model.MigrationCheckResults) -> None:
-            updated_issues = {
-                result.checkId: result for result in results.checks if result.checkId
-            }
+            updated_issues = {result.checkId: result
+                              for result in results.checks if result.checkId}
 
             for check_id, current_issue in self.issues.items():
                 if check_id in updated_issues:
@@ -752,10 +883,12 @@ class MigrationChecksSubStep(PlanSubStep):
                 if issue.status > self.status:
                     self.status = issue.status
 
-        def ignore_issues(self, issue_resolution: dict[str, model.CompatibilityFlags]) -> None:
+        def ignore_issues(self,
+                          issue_resolution:
+                          dict[str, model.CompatibilityFlags]) -> None:
             ignored_checks: list[str] = [
-                check_id for check_id, flag in issue_resolution.items() if model.CompatibilityFlags.IGNORE == flag
-            ]
+                check_id for check_id, flag in issue_resolution.items()
+                if model.CompatibilityFlags.IGNORE == flag]
 
             for check_id in ignored_checks:
                 issue = self.issues.get(check_id)
@@ -764,7 +897,10 @@ class MigrationChecksSubStep(PlanSubStep):
 
             self._update_status()
 
-        def update(self, results: model.MigrationCheckResults, issue_resolution: dict[str, model.CompatibilityFlags]) -> list[model.CheckResult]:
+        def update(
+                self, results: model.MigrationCheckResults,
+                issue_resolution: dict[str, model.CompatibilityFlags]) -> list[
+                model.CheckResult]:
             self._merge_results(results)
             self.ignore_issues(issue_resolution)
 
@@ -772,12 +908,13 @@ class MigrationChecksSubStep(PlanSubStep):
 
     def __init__(self, owner: "MigrationPlanStep"):
         super().__init__(owner)
-        self._source_check: MySQLSourceCheck = cast(SourceSelectionSubStep,
-                                                    owner.steps[SourceSelectionSubStep.id])._source_check
+        self._source_check: MySQLSourceCheck = cast(
+            SourceSelectionSubStep, owner.steps[SourceSelectionSubStep.id])._source_check
         self._compatibility_check_summary: MigrationChecksSubStep.CheckSummary = MigrationChecksSubStep.CheckSummary()
         self._upgrade_check_summary: MigrationChecksSubStep.CheckSummary = MigrationChecksSubStep.CheckSummary()
         self._start_mutex = threading.Lock()
 
+        self._current_selection: Optional[model.SchemaSelectionOptions] = None
         data = self._project.plan_step_data(self.id)
         self._issue_resolution: dict[str, model.CompatibilityFlags] = data.get(
             "issueResolution", {})
@@ -788,18 +925,22 @@ class MigrationChecksSubStep(PlanSubStep):
         result: list[model.CompatibilityFlags] = []
 
         for flag in self._issue_resolution.values():
-            if flag not in (model.CompatibilityFlags.IGNORE, model.CompatibilityFlags.EXCLUDE_OBJECT) \
-                    and flag not in result:
+            if flag not in (
+                    model.CompatibilityFlags.IGNORE, model.CompatibilityFlags.
+                    EXCLUDE_OBJECT) and flag not in result:
                 result.append(flag)
 
         return result
 
-    def _get_filters(self) -> model.MigrationFilters:
-        filters = copy.deepcopy(self._owner.options.filters)
+    def _get_schema_selection(self) -> model.SchemaSelectionOptions:
+        assert self._owner.options.schemaSelection.filter
+
+        selection = copy.deepcopy(self._owner.options.schemaSelection)
+        filters = selection.filter
 
         checks_with_excluded_objects: list[str] = [
-            check_id for check_id, flag in self._issue_resolution.items() if model.CompatibilityFlags.EXCLUDE_OBJECT == flag
-        ]
+            check_id for check_id, flag in self._issue_resolution.items()
+            if model.CompatibilityFlags.EXCLUDE_OBJECT == flag]
 
         for check_id in checks_with_excluded_objects:
             issue = self._compatibility_check_summary.issues.get(check_id)
@@ -824,8 +965,10 @@ class MigrationChecksSubStep(PlanSubStep):
                             where = "users"
                         case "schema":
                             where = "schemas"
-                        case "table" | "view":
+                        case "table":
                             where = "tables"
+                        case "view":
+                            where = "views"
                         case "column" | "foreignkey" | "index":
                             # exclude the table instead
                             where = "tables"
@@ -869,20 +1012,24 @@ class MigrationChecksSubStep(PlanSubStep):
                         )
 
         # make sure excludes we've added above are unique
-        for attr in ["schemas", "tables", "routines", "events", "libraries", "triggers", "users"]:
+        for attr in [
+            "schemas", "tables", "routines", "events", "libraries", "triggers",
+                "users"]:
             il = getattr(filters, attr)
 
             if il is not None:
                 il.exclude = list(set(il.exclude))
 
-        return filters
+        return selection
 
     def check_compatibility(self) -> Optional[MigrationError]:
         # Return value is error with check itself, actual check issues in member var
         try:
+            self._current_selection = self._get_schema_selection()
+
             compatibility_issues = self._source_check.check_compatibility(
                 self._get_compatibility_flags(),
-                self._get_filters()
+                self._current_selection
             )
 
             errors = self._compatibility_check_summary.update(
@@ -904,7 +1051,7 @@ class MigrationChecksSubStep(PlanSubStep):
             logging.debug(f"{self}: 📋 running upgrade checks...")
 
             upgrade_issues = self._source_check.check_upgrade(
-                self._get_filters()
+                self._get_schema_selection()
             )
 
             errors = self._upgrade_check_summary.update(
@@ -932,35 +1079,42 @@ class MigrationChecksSubStep(PlanSubStep):
         # make sure that fatal errors from previous execution are retained
         self._errors = self.__execution_errors.copy()
 
-        if "values" not in config:
-            return False
-
-        options: MigrationChecksOptions = self.parse_values(
-            config, MigrationChecksOptions
-        )
-
         changed = False
+        changed_base_filters = False
+        updated_filters = self._get_schema_selection()
+        options: Optional[MigrationChecksOptions] = None
 
-        current_filters = updated_filters = self._get_filters()
+        if "values" not in config:
+            if updated_filters == self._current_selection:
+                return False
 
-        if merge_issue_resolution(self._issue_resolution, options.issueResolution):
-            logging.debug(
-                f"{self.id}: compatibility fixes changed to {self._issue_resolution}"
-            )
-            self._project.set_plan_step_data(
-                self.id, {"issueResolution": self._issue_resolution})
-            changed = True
-            updated_filters = self._get_filters()
-            self._compatibility_check_summary.ignore_issues(
-                self._issue_resolution
-            )
-            self._upgrade_check_summary.ignore_issues(self._issue_resolution)
+            changed_base_filters = True
+        else:
+            options = self.parse_values(config, MigrationChecksOptions)
 
-        if current_filters != updated_filters:
+            if merge_issue_resolution(
+                    self._issue_resolution, options.issueResolution):
+                logging.debug(
+                    f"{self.id}: compatibility fixes changed to {self._issue_resolution}"
+                )
+                self._project.set_plan_step_data(
+                    self.id, {"issueResolution": self._issue_resolution})
+                changed = True
+                updated_filters = self._get_schema_selection()
+                self._compatibility_check_summary.ignore_issues(
+                    self._issue_resolution
+                )
+                self._upgrade_check_summary.ignore_issues(
+                    self._issue_resolution)
+
+        if self._current_selection != updated_filters:
             logging.debug(
                 f"{self.id}: object filters changed to {updated_filters}"
             )
             changed = True
+            if changed_base_filters:
+                self._compatibility_check_summary = MigrationChecksSubStep.CheckSummary()
+                self._upgrade_check_summary = MigrationChecksSubStep.CheckSummary()
 
         if changed:
             logging.debug("Issue resolution changed")
@@ -990,7 +1144,9 @@ class MigrationChecksSubStep(PlanSubStep):
 
     def start(self, blocking=True):
         logging.info(f"{self}.start")
-        if not self._owner.is_finished(SubStepId.SOURCE_SELECTION) or not self._owner.is_finished(SubStepId.TARGET_OPTIONS):
+        if not self._owner.is_finished(
+                SubStepId.SOURCE_SELECTION) or not self._owner.is_finished(
+                SubStepId.TARGET_OPTIONS):
             logging.info(
                 f"{self}.start: {' '.join([s.name + '=' + str(self._owner.is_finished(s)) for s in [SubStepId.SOURCE_SELECTION, SubStepId.TARGET_OPTIONS]])}")
             return
@@ -1026,7 +1182,7 @@ class MigrationChecksSubStep(PlanSubStep):
 
     def commit(self) -> MigrationPlanState:
         self._owner.options.compatibilityFlags = self._get_compatibility_flags()
-        self._owner.options.filters = self._get_filters()
+        self._owner.options.schemaSelection = self._get_schema_selection()
         self._done = True
         return self.info()
 
@@ -1166,8 +1322,7 @@ class TargetOptionsSubStep(PlanSubStep):
             self._owner.source_session
         )
         self._owner.options.mysqlConfiguration, issues = target_config.adjust_mysql_configuration(
-            self._owner.options.mysqlConfiguration
-        )
+            self._owner.options.mysqlConfiguration)
         # TODO: push the config adjustments to the frontend
         logging.info(
             f"{self}.set_defaults: configuration adjustments/issues: {issues}")
@@ -1237,11 +1392,14 @@ class TargetOptionsSubStep(PlanSubStep):
 
         return True if hosting_changes or database_changes else False
 
-    def _run_checks(self, hosting_changes: list[str] | None = None, database_changes: list[str] | None = None):
+    def _run_checks(
+            self, hosting_changes: list[str] | None = None,
+            database_changes: list[str] | None = None):
         assert self._target_check
 
         option_errors = []
-        if self._owner.options.targetHostingOptions and (hosting_changes or hosting_changes is None):
+        if self._owner.options.targetHostingOptions and (
+                hosting_changes or hosting_changes is None):
             option_errors += self._target_check.validate_target_options(
                 self._owner.options.targetHostingOptions, hosting_changes
             )
@@ -1249,7 +1407,8 @@ class TargetOptionsSubStep(PlanSubStep):
                 self._owner.options.targetHostingOptions)
             self._compute_resolution_notice = self._target_check.compute_resolution_notice
 
-        if self._owner.options.targetMySQLOptions and (database_changes or database_changes is None):
+        if self._owner.options.targetMySQLOptions and (
+                database_changes or database_changes is None):
             option_errors += self._target_check.validate_target_mysql_options(
                 self._owner.options.targetMySQLOptions, database_changes
             )
@@ -1262,12 +1421,15 @@ class TargetOptionsSubStep(PlanSubStep):
             self._update_option_errors(
                 option_errors, hosting_changes + database_changes)
 
-    def _update_option_errors(self, errors: list[MigrationError], changed_options: list[str]):
+    def _update_option_errors(
+            self, errors: list[MigrationError],
+            changed_options: list[str]):
         def clear_error(option: str):
             cleaned = []
             for err in self._option_errors:
                 error_option = err.info.get("input")
-                if error_option != option and not (option.endswith(".") and error_option.startswith(option)):
+                if error_option != option and not (
+                        option.endswith(".") and error_option.startswith(option)):
                     cleaned.append(err)
             self._option_errors = cleaned
 
@@ -1277,7 +1439,9 @@ class TargetOptionsSubStep(PlanSubStep):
 
         # detail options of an option that changed
         if "hosting.createVcn" in changed_options:
-            for option in ["hosting.networkCompartmentId", "hosting.vcnId", "hosting.privateSubnet.", "hosting.publicSubnet."]:
+            for option in [
+                "hosting.networkCompartmentId", "hosting.vcnId",
+                    "hosting.privateSubnet.", "hosting.publicSubnet."]:
                 clear_error(option)
 
         # add new errors
@@ -1375,6 +1539,16 @@ class PreviewPlanSubStep(PlanSubStep):
         target = cast(TargetOptionsSubStep,
                       self._owner.get_step(SubStepId.TARGET_OPTIONS))
         data.computeResolutionNotice = target.compute_resolution_notice
+
+        if self._owner.options.migrationType == MigrationType.HOT:
+            assert self._owner.options and self._owner.options.sourceConnectionOptions
+
+            channel_info = ReplicationChannelInfo()
+            channel_info.sourceUser = self._owner.options.sourceConnectionOptions["user"]
+            channel_info.replicateIgnoreDb, channel_info.replicateIgnoreTable, channel_info.replicateWildIgnoreTable = self._owner.project.compute_replication_filters()
+
+            data.channelInfo = channel_info
+
         return data
 
     def is_ready(self) -> bool:
@@ -1397,6 +1571,7 @@ class MigrationPlanStep:
         OCIProfileSubStep,
         TargetOptionsSubStep,
         MigrationTypeSubStep,
+        SchemaSelectionSubStep,
         MigrationChecksSubStep,
         PreviewPlanSubStep
     ]
@@ -1404,6 +1579,7 @@ class MigrationPlanStep:
     _frontend_classes = [
         OCIProfileSubStep,
         MigrationTypeSubStep,
+        SchemaSelectionSubStep,
         MigrationChecksSubStep,
         PreviewPlanSubStep
     ]
@@ -1415,6 +1591,8 @@ class MigrationPlanStep:
     def __init__(self, project: Project):
         self._mutex = threading.Lock()
         self.project = project
+
+        self._instance_cache = InstanceCache()
 
         self.steps: dict[int, PlanSubStep] = {}
         for step_c in self._impl_classes:
@@ -1478,6 +1656,9 @@ class MigrationPlanStep:
         for step in self.steps.values():
             step.on_event(event)
 
+        if event == PlanEvent.SOURCE_CONNECTED:
+            self._instance_cache = InstanceCache()
+
     def update(self, sub_step_id: int, input: dict, nolock: bool = False) -> MigrationPlanState:
         _name = f"{self._name}.update"
 
@@ -1511,7 +1692,7 @@ class MigrationPlanStep:
             if not nolock:
                 self._mutex.release()
 
-        logging.debug(f"{_name}: result={res}")
+        logging.debug(f"{_name}: result={res} status={step.current_status}")
         return res
 
     def update_all(self, input: list[dict]) -> list[MigrationPlanState]:
@@ -1636,7 +1817,8 @@ class MigrationPlanStep:
         def report_progress(message: str, info: dict = {}):
             print(json.dumps({"message": message} | {"info": info}))
 
-        if not force_bootstrap and os.path.exists(self.project._oci_config_file):
+        if not force_bootstrap and os.path.exists(
+                self.project._oci_config_file):
             self.project.open_oci_profile()
             return
 
@@ -1678,6 +1860,37 @@ class MigrationPlanStep:
         # some time for the OCI to propagate the new API key
         oci_utils.MIGRATION_RETRY_STRATEGY.retry_on_unauthorized_errors()
 
+    def _get_schema_tables(self, schema: str) -> SchemaTables:
+        return self._instance_cache.get_tables(self.source_session, schema)
+
+    def _get_schema_routines(self, schema: str) -> SchemaObjects:
+        return self._instance_cache.get_routines(self.source_session, schema)
+
+    def _get_schema_events(self, schema: str) -> SchemaObjects:
+        return self._instance_cache.get_events(self.source_session, schema)
+
+    def _get_schema_triggers(self, schema: str) -> SchemaObjects:
+        return self._instance_cache.get_triggers(self.source_session, schema)
+
+    def _get_schema_libraries(self, schema: str) -> SchemaObjects:
+        return self._instance_cache.get_libraries(self.source_session, schema)
+
+    _data_item_getter = {
+        PlanDataItemType.SCHEMA_TABLES: _get_schema_tables,
+        PlanDataItemType.SCHEMA_ROUTINES: _get_schema_routines,
+        PlanDataItemType.SCHEMA_EVENTS: _get_schema_events,
+        PlanDataItemType.SCHEMA_TRIGGERS: _get_schema_triggers,
+        PlanDataItemType.SCHEMA_LIBRARIES: _get_schema_libraries,
+    }
+
+    def get_data_item(
+            self, what: PlanDataItemType, detail: str) -> PlanDataItem:
+        fn = self._data_item_getter.get(PlanDataItemType(what))
+        if fn:
+            return fn(self, detail)
+        else:
+            raise errors.BadRequest()
+
 
 def get_plan() -> MigrationPlanStep:
     from migration_plugin.lib.migration import get_project
@@ -1703,10 +1916,27 @@ def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
     return plan.update_all(configs)
 
 
+@plugin_function("migration.planGetDataItem", shell=True, cli=False,
+                 web=k_log_filters)
+@plugin_log
+def plan_get_data_item(what: PlanDataItemType, detail: str) -> PlanDataItem:
+    """
+    Get additional data for frontend use.
+
+    Args:
+        what (str): the piece of info to be retrieved
+        detail (str): additional argument for the piece of info being retrieved
+    """
+    plan = get_plan()
+
+    return plan.get_data_item(what, detail)
+
+
 @plugin_function("migration.planUpdateSubStep", shell=True, cli=False,
                  web=k_log_filters)
 @plugin_log
-def plan_update_sub_step(sub_step_id: int, configs: dict) -> MigrationPlanState:
+def plan_update_sub_step(
+        sub_step_id: int, configs: dict) -> MigrationPlanState:
     """
     Fetch and/or update migration plan sub-step with user input.
 

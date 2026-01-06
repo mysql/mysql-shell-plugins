@@ -264,13 +264,7 @@ class CreateChannel(ThreadedStage):
             logging.info(
                 f"Source has gtid_mode={self._owner.source_info.gtidMode}, channel will use file/pos: {gtid_off_handling}")
 
-        replicate_wild_ignore_table = []
-
-        if self._owner.source_info.serverType in [ServerType.RDS, ServerType.Aurora]:
-            replicate_wild_ignore_table.append("mysql.rds%")
-
-        if ServerType.Aurora == self._owner.source_info.serverType:
-            replicate_wild_ignore_table.append("mysql.aurora%")
+        replicate_ignore_db, replicate_ignore_table, replicate_wild_ignore_table = self._owner.project.compute_replication_filters()
 
         self.channel = self.db_system.create_channel(
             source_host=source["host"],
@@ -280,6 +274,8 @@ class CreateChannel(ThreadedStage):
             gtid_off_handling=gtid_off_handling,
             freeform_tags=oci_utils.make_freeform_tags(
                 self._owner.migrator_instance_id),
+            replicate_ignore_db=replicate_ignore_db,
+            replicate_ignore_table=replicate_ignore_table,
             replicate_wild_ignore_table=replicate_wild_ignore_table,
         )
 

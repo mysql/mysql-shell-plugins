@@ -1497,6 +1497,8 @@ class DBSystem:
                        source_password: str,
                        gtid_off_handling: Optional[dict] = None,
                        freeform_tags: dict = {},
+                       replicate_ignore_db: list[str] = [],
+                       replicate_ignore_table: list[str] = [],
                        replicate_wild_ignore_table: list[str] = [],
                        ) -> Channel:
         if gtid_off_handling:
@@ -1520,6 +1522,18 @@ class DBSystem:
 
         filters = []
 
+        for db in replicate_ignore_db:
+            filters.append(oci.mysql.models.ChannelFilter(
+                type=oci.mysql.models.ChannelFilter.TYPE_REPLICATE_IGNORE_DB,
+                value=db
+            ))
+
+        for table in replicate_ignore_table:
+            filters.append(oci.mysql.models.ChannelFilter(
+                type=oci.mysql.models.ChannelFilter.TYPE_REPLICATE_IGNORE_TABLE,
+                value=table
+            ))
+
         for table in replicate_wild_ignore_table:
             filters.append(oci.mysql.models.ChannelFilter(
                 type=oci.mysql.models.ChannelFilter.TYPE_REPLICATE_WILD_IGNORE_TABLE,
@@ -1541,6 +1555,9 @@ class DBSystem:
             target=target,
             freeform_tags=freeform_tags,
         )
+
+        logging.info(
+            f"CreateChannel: {util.sanitize_dict_any_pass(cast(dict, oci.util.to_dict(channel_details)))}")
 
         # Create the channel
         response = self._channel_client.create_channel(channel_details)

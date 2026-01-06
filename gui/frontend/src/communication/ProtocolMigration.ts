@@ -34,6 +34,8 @@ export enum ShellAPIMigration {
     MigrationVersion = "migration.version",
     /** Update migration plan sub-step with user input. */
     MigrationPlanUpdate = "migration.plan_update",
+    /** Get additional data for frontend use. */
+    MigrationPlanGetDataItem = "migration.plan_get_data_item",
     /** Fetch and/or update migration plan sub-step with user input. */
     MigrationPlanUpdateSubStep = "migration.plan_update_sub_step",
     /** Commit changes to the given sub-step and performs checks. Call before switching from a sub-step to the next one. */
@@ -71,6 +73,7 @@ export enum SubStepId {
     OCI_PROFILE = 1040,
     SOURCE_SELECTION = 1010,
     MIGRATION_TYPE = 1020,
+    SCHEMA_SELECTION = 1021,
     MIGRATION_CHECKS = 1030,
     TARGET_OPTIONS = 1050,
     PREVIEW_PLAN = 1100,
@@ -159,6 +162,14 @@ export enum CloudConnectivity {
     LOCAL_SSH_TUNNEL = 'local-ssh-tunnel'
 }
 
+export enum PlanDataItemType {
+    SCHEMA_TABLES = 'tables',
+    SCHEMA_ROUTINES = 'routines',
+    SCHEMA_TRIGGERS = 'triggers',
+    SCHEMA_EVENTS = 'events',
+    SCHEMA_LIBRARIES = 'libraries'
+}
+
 export enum WorkStatus {
     NOT_STARTED = 'not_started',
     IN_PROGRESS = 'in_progress',
@@ -200,6 +211,15 @@ export interface ISourceSelectionData {
 export interface IMigrationTypeData {
     allowedTypes: string[],
     allowedConnectivity: string[]
+}
+
+export interface IInstanceContents {
+    schemas: string[],
+    accounts: string[]
+}
+
+export interface ISchemaSelectionData {
+    contents: IInstanceContents
 }
 
 export interface ICheckResult {
@@ -288,13 +308,25 @@ export interface IIncludeList {
 }
 
 export interface IMigrationFilters {
-    schemas: IIncludeList | null,
-    tables: IIncludeList | null,
-    routines: IIncludeList | null,
-    events: IIncludeList | null,
-    libraries: IIncludeList | null,
-    triggers: IIncludeList | null,
-    users: IIncludeList | null
+    users: IIncludeList,
+    schemas: IIncludeList,
+    tables: IIncludeList,
+    views: IIncludeList,
+    routines: IIncludeList,
+    events: IIncludeList,
+    libraries: IIncludeList,
+    triggers: IIncludeList
+}
+
+export interface ISchemaSelectionOptions {
+    filter: IMigrationFilters,
+    migrateSchema: boolean,
+    migrateData: boolean,
+    migrateRoutines: boolean,
+    migrateTriggers: boolean,
+    migrateEvents: boolean,
+    migrateLibraries: boolean,
+    migrateUsers: boolean
 }
 
 export interface IMigrationOptions {
@@ -305,15 +337,21 @@ export interface IMigrationOptions {
     mysqlConfiguration: IShellDictionary[],
     migrationType: MigrationType,
     cloudConnectivity: CloudConnectivity,
-    migrateData: boolean,
-    migrateUsers: boolean,
     compatibilityFlags: CompatibilityFlags[],
-    filters: IMigrationFilters
+    schemaSelection: ISchemaSelectionOptions
+}
+
+export interface IReplicationChannelInfo {
+    sourceUser: string,
+    replicateIgnoreDb: string[],
+    replicateIgnoreTable: string[],
+    replicateWildIgnoreTable: string[]
 }
 
 export interface IPreviewPlanData {
     options: IMigrationOptions,
-    computeResolutionNotice: string
+    computeResolutionNotice: string,
+    channelInfo: IReplicationChannelInfo | null
 }
 
 export interface IOCIProfileOptions {
@@ -344,8 +382,19 @@ export interface IMigrationPlanState {
     id: SubStepId,
     status: MigrationStepStatus,
     errors: IMigrationError[],
-    data: ISourceSelectionData | IMigrationTypeData | IMigrationChecksData | ITargetOptionsData | IPreviewPlanData | null,
-    values: IOCIProfileOptions | ISourceSelectionOptions | IMigrationTypeOptions | IMigrationChecksOptions | ITargetOptionsOptions | null
+    data: ISourceSelectionData | IMigrationTypeData | ISchemaSelectionData | IMigrationChecksData | ITargetOptionsData | IPreviewPlanData | null,
+    values: IOCIProfileOptions | ISourceSelectionOptions | IMigrationTypeOptions | ISchemaSelectionOptions | IMigrationChecksOptions | ITargetOptionsOptions | null
+}
+
+export interface ISchemaObjects {
+    schema: string,
+    objects: string[]
+}
+
+export interface ISchemaTables {
+    schema: string,
+    tables: string[],
+    views: string[]
 }
 
 export interface IWorkStageInfo {
@@ -425,6 +474,7 @@ export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationInfo]: {};
     [ShellAPIMigration.MigrationVersion]: {};
     [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: IShellDictionary[]; }; };
+    [ShellAPIMigration.MigrationPlanGetDataItem]: { args: { what: PlanDataItemType; detail: string; }; };
     [ShellAPIMigration.MigrationPlanUpdateSubStep]: { args: { subStepId: number; configs: { }; }; };
     [ShellAPIMigration.MigrationPlanCommit]: { args: { subStepId: SubStepId; }; };
     [ShellAPIMigration.MigrationOciSignIn]: { args: { signUp?: boolean; }; };
@@ -450,6 +500,7 @@ export interface IProtocolMigrationResults {
     [ShellAPIMigration.MigrationInfo]: { result: string; };
     [ShellAPIMigration.MigrationVersion]: { result: string; };
     [ShellAPIMigration.MigrationPlanUpdate]: { result: IMigrationPlanState[]; };
+    [ShellAPIMigration.MigrationPlanGetDataItem]: { result: ISchemaObjects | ISchemaTables; };
     [ShellAPIMigration.MigrationPlanUpdateSubStep]: { result: IMigrationPlanState; };
     [ShellAPIMigration.MigrationPlanCommit]: { result: IMigrationPlanState; };
     [ShellAPIMigration.MigrationOciSignIn]: {};

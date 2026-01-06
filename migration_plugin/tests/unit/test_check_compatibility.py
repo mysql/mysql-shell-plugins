@@ -72,16 +72,16 @@ def setup_migration_options(session) -> MigrationOptions:
         session.uri
     )
 
-    options.filters.schemas = IncludeList()
-    options.filters.schemas.include = ["compatibility_issues"]
+    options.schemaSelection.filter.schemas = IncludeList()
+    options.schemaSelection.filter.schemas.include = ["compatibility_issues"]
 
-    options.filters.users = IncludeList()
-    options.filters.users.exclude = [
+    options.schemaSelection.filter.users = IncludeList()
+    options.schemaSelection.filter.users.exclude = [
         "admin", "root", "skipped_role", "skipped_user",
     ]
 
-    options.filters.routines = IncludeList()
-    options.filters.routines.exclude = [
+    options.schemaSelection.filter.routines = IncludeList()
+    options.schemaSelection.filter.routines.exclude = [
         "`compatibility_issues`.`create_mnp_user`",
     ]
 
@@ -95,7 +95,7 @@ def run_compatibility_checks(options: MigrationOptions) -> MigrationCheckResults
     source_check = MySQLSourceCheck(options)
     assert not source_check.check_connection().connectError
 
-    return source_check.check_compatibility(options.compatibilityFlags, options.filters)
+    return source_check.check_compatibility(options.compatibilityFlags, options.schemaSelection)
 
 
 def validate_checks(expected: MigrationCheckResults, actual: MigrationCheckResults) -> None:
@@ -577,7 +577,7 @@ before continuing.""",
 
 def test_check_compatibility_no_users(sandbox_session):
     options = setup_migration_options(sandbox_session)
-    options.migrateUsers = False
+    options.schemaSelection.migrateUsers = False
 
     acutal_issues = run_compatibility_checks(options)
 

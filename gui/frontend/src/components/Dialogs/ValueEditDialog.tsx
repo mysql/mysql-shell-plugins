@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -698,6 +698,24 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     return;
                 }
 
+                default:
+            }
+        });
+    };
+
+    public updateInputDescription = (text: string, id: string): void => {
+        const { values } = this.state;
+
+        values.sections.forEach((section) => {
+            const entry = section.values[id] as IDialogValue | undefined;
+            switch (entry?.type) {
+                case "checkList":
+                case "choice":
+                case "text": {
+                    entry.description = text;
+
+                    return;
+                }
                 default:
             }
         });

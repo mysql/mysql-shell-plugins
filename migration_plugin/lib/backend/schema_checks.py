@@ -746,8 +746,10 @@ def upgrade_issue_to_check_result(check: UpgradeCheck) -> model.CheckResult:
     return result
 
 
-def process_upgrade_issues(check_output: dict, results: model.MigrationCheckResults, migration_filters: model.MigrationFilters):
-    filters = filtering_utils.DbFilters(migration_filters)
+def process_upgrade_issues(check_output: dict, results: model.MigrationCheckResults, schema_selection: model.SchemaSelectionOptions):
+    assert schema_selection.filter
+
+    filters = filtering_utils.DbFilters(schema_selection.filter)
 
     for account in checks.k_excluded_users:
         filters.users.exclude(account)
@@ -765,15 +767,23 @@ def process_upgrade_issues(check_output: dict, results: model.MigrationCheckResu
                 return filters.tables.is_included(unqouted[0], unqouted[1])
 
             case DbObjectType.ROUTINE:
+                if not schema_selection.migrateRoutines:
+                    return False
                 return filters.routines.is_included(issue.object_name)
 
             case DbObjectType.EVENT:
+                if not schema_selection.migrateEvents:
+                    return False
                 return filters.events.is_included(issue.object_name)
 
             case DbObjectType.TRIGGER:
+                if not schema_selection.migrateTriggers:
+                    return False
                 return filters.triggers.is_included(issue.object_name)
 
             case DbObjectType.USER:
+                if not schema_selection.migrateUsers:
+                    return False
                 return filters.users.is_included(issue.object_name)
 
             case _:

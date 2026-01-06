@@ -35,7 +35,10 @@ import time
 
 
 def sanitize_par_uri(par: str) -> str:
-    return re.sub(r"/p/([^/]*)/", "/p/<redacted>/", par)
+    return re.sub(r"(https://[^/]*)/p/([^/]*)/", r"\1/p/<redacted>/", par)
+
+def sanitize_par_uri_in_list(l: list[str]) -> list[str]:
+    return [sanitize_par_uri(i) for i in l]
 
 
 k_san_dict_par = {"access_uri": sanitize_par_uri,
@@ -188,5 +191,7 @@ def interruptible_sleep(duration, interrupt_callback=None, poll_interval=0.1):
     while time.time() < end_time:
         if interrupt_callback is not None and interrupt_callback():
             return False
-        time.sleep(min(poll_interval, end_time - time.time()))
+        delay = min(poll_interval, end_time - time.time())
+        if delay > 0:
+            time.sleep(delay)
     return True

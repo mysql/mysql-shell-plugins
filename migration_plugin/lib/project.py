@@ -28,6 +28,7 @@ import threading
 from typing import Optional, cast
 import datetime
 
+from .backend.string_utils import unquote_db_object
 import oci.exceptions
 
 from . import core, logging, oci_utils, errors, ssh_utils, util
@@ -377,6 +378,33 @@ class Project:
     def _on_resources_change(self, name: str, value):
         # called whenever self.resources.something is set
         self.save_resources()
+
+    def compute_replication_filters(self) -> tuple[list[str], list[str], list[str]]:
+        replicate_ignore_db = []
+        replicate_ignore_table = []
+        replicate_wild_ignore_table = []
+
+        filters = self.options.schemaSelection.filter
+        assert filters
+
+        assert not filters.schemas.include
+        assert not filters.tables.include
+
+        for db in filters.schemas.exclude:
+            unquoted = unquote_db_object(db)
+            replicate_ignore_db.append(unquoted[0])
+
+        for table in filters.tables.exclude:
+            unquoted = unquote_db_object(table)
+            replicate_ignore_table.append(unquoted[0] + "." + unquoted[1])
+
+        if self.source_info.serverType in [model.ServerType.RDS, model.ServerType.Aurora]:
+            replicate_wild_ignore_table.append("mysql.rds%")
+
+        if model.ServerType.Aurora == self.source_info.serverType:
+            replicate_wild_ignore_table.append("mysql.aurora%")
+
+        return replicate_ignore_db, replicate_ignore_table, replicate_wild_ignore_table
 
     def log_work(self, stage: SubStepId, status: WorkStatusEvent, data: dict, message: str = ""):
         assert isinstance(data, dict), data

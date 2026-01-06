@@ -32,7 +32,10 @@ import {
     IWorkStatusInfo,
     IMigrationPlanState,
     SubStepId,
-    ILogInfo
+    ILogInfo,
+    ISchemaObjects,
+    PlanDataItemType,
+    ISchemaTables
     // ISignInInfo
 } from "../../communication/ProtocolMigration.js";
 
@@ -150,6 +153,17 @@ export class ShellInterfaceMigration {
         });
 
         this.log(response.result);
+
+        return response.result;
+    }
+
+    public async planGetDataItem(what: PlanDataItemType, detail: string): Promise<ISchemaObjects | ISchemaTables> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMigration.MigrationPlanGetDataItem,
+            parameters: {
+                args: { what, detail }
+            }
+        });
 
         return response.result;
     }

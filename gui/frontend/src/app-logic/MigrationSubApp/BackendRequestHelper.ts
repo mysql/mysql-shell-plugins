@@ -135,6 +135,13 @@ export class BackendRequestHelper {
                 break;
             }
 
+            case SubStepId.SCHEMA_SELECTION: {
+                const { filterInfo } = state;
+
+                request = filterInfo?.getOptions();
+                break;
+            }
+
             default: {
                 request = this.generate(subStepId, formGroupValues);
                 break;
