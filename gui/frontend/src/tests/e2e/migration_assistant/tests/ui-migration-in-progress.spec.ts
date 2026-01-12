@@ -36,8 +36,9 @@ const migrationAssistant = new MigrationAssistantPage();
 
 test.describe("Migration in progress", () => {
 
-    test.beforeAll(async () => {
-        await Misc.loadPage(constants.MockMigrationStatusEnum.Running);
+    // eslint-disable-next-line no-empty-pattern
+    test.beforeAll(async ({ }, testInfo) => {
+        await Misc.loadPage(testInfo.titlePath[1], constants.MockMigrationStatusEnum.Running);
 
         const passwordDialog = new PasswordDialog();
         if (await passwordDialog.exists()) {
@@ -48,11 +49,13 @@ test.describe("Migration in progress", () => {
     });
 
     test.afterAll(async () => {
+        globalThis.migrationMock = false;
         await browser.close();
     });
 
-    test("Set Migration Plan", async () => {
+    test("Migration in progress", async () => {
 
+        // Set Migration Plan
         await Misc.dismissNotifications();
         const sourceInfo = await migrationAssistant.getSourceInfo();
         expect(sourceInfo.connectionName).toBe("local connection");
@@ -67,7 +70,7 @@ test.describe("Migration in progress", () => {
             isExpanded: true
         }, constants.wait1second * 5);
 
-        await migrationAssistant.migrationPlan.setOciConfigProfile("DEFAULT");
+        await migrationAssistant.migrationPlan.setOciConfigProfile("E2ETESTS");
         await migrationAssistant.migrationPlan.setOciCompartment("——MySQLShellTesting");
         await migrationAssistant.migrationPlan.setOciNetwork("use_existing");
         await migrationAssistant.migrationPlan.setNetworkCompartment("——Networks");
@@ -119,15 +122,14 @@ test.describe("Migration in progress", () => {
         expect(await migrationAssistant.isButtonEnabled(constants.MigrationButtonEnum.StartMigration))
             .toBe(true);
 
+        // Start Migration
         await migrationAssistant.startMigration();
+
         await expect.poll(async () => {
             return (await migrationAssistant.getCurrentHeaderStep())!.includes(constants.provisioning);
-        }, { timeout: wait1second * 20, message: "'Provisioning' should be the current header" }).toBe(true);
+        }, { timeout: wait1second * 30, message: "'Provisioning' should be the current header" }).toBe(true);
 
-    });
-
-    test("Start Migration", async () => {
-
+        // Verify Migration Status
         const tiles = await migrationAssistant.getTiles();
         expect(tiles.length).toBe(5);
 

@@ -75,9 +75,14 @@ export class MigrationAssistantPage {
     };
 
     public startMigration = async (): Promise<void> => {
-        // eslint-disable-next-line no-restricted-syntax
-        process.env.MOCK = "true";
+        globalThis.migrationMock = true;
         await page.locator(locator.mainPage.startMigration).click();
+        await Misc.waitForLoadingIcon();
+    };
+
+    public abortMigration = async (): Promise<void> => {
+        globalThis.migrationMock = true;
+        await page.locator(locator.mainPage.abortMigration).click();
         await Misc.waitForLoadingIcon();
     };
 

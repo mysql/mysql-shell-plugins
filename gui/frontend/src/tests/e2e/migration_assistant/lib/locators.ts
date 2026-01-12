@@ -59,7 +59,8 @@ export const mainPage = {
     back: `div[caption="Back"]`,
     next: `div[caption="Next"]`,
     startMigration: `div[caption="Start Migration Process"]`,
-    loadingIcon: ".progressIndicatorHost",
+    abortMigration: `div[caption="Abort"]`,
+    loadingIcon: "#backend-request-overlay .progressIndicatorHost, .target-selection .progressIndicatorHost",
     tile: {
         root: ".tile",
         name: "h4",

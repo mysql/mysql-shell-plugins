@@ -36,7 +36,6 @@ export class Provisioning {
 
     public getSteps = async (): Promise<interfaces.IStep[] | undefined> => {
         return Misc.getSteps();
-
     };
 
     public waitForProvisioningSteps = async (): Promise<void> => {

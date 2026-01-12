@@ -56,4 +56,8 @@ symlinkSync(mrsPlugin, join(configDir, "plugins", "mrs_plugin"));
 symlinkSync(mdsPlugin, join(configDir, "plugins", "mds_plugin"));
 symlinkSync(msmPlugin, join(configDir, "plugins", "msm_plugin"));
 symlinkSync(migrationPlugin, join(configDir, "plugins", "migration_plugin"));
-spawnSync(`playwright test --trace on`, { shell: true, stdio: "inherit" });
+const result = spawnSync(`playwright test --trace on`, { shell: true, stdio: "inherit" });
+
+if (result.status !== 0) {
+    process.exit(1);
+}

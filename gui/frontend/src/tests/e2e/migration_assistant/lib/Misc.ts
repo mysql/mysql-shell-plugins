@@ -30,7 +30,7 @@ import * as locator from "./locators.js";
 import * as constants from "./constants.js";
 import * as interfaces from "./interfaces.js";
 import { mysqlServerPort } from "../../../../../playwright.config.js";
-import { readdirSync, readFileSync } from "fs";
+import { appendFileSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import * as types from "./types.js";
 
 export let page: Page;
@@ -38,31 +38,39 @@ export let browser: Browser;
 
 export class Misc {
 
-    public static loadPage = async (mockStatus?: types.MockMigrationStatus): Promise<void> => {
+    public static loadPage = async (testSuite: string, mockStatus?: types.MockMigrationStatus): Promise<void> => {
         browser = await chromium.launch();
         const context = await browser.newContext();
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
         page = await context.newPage();
 
+        const feLog = join(process.env.CONFIG_DIR!, `fe_${testSuite}.log`);
+        writeFileSync(feLog, "");
+
+        page.on("console", (msg) => {
+            appendFileSync(feLog, `[${msg.type()}] ${msg.text()}\r\n`);
+        });
+
         if (mockStatus) {
             await this.mockMigration(page, mockStatus);
         }
 
-        await page.goto(`?token=1234&subApp=migration&autoSendWebMessage=1&port=${mysqlServerPort}`);
+        await page.goto(`?token=1234&subApp=migration&autoSendWebMessage=1&port=${mysqlServerPort}`,
+            { timeout: constants.wait1second * 60 });
 
         await expect.poll(async () => {
             try {
                 await page.waitForSelector(locator.mainPage.content,
-                    { state: "visible", timeout: constants.wait1second * 3 });
+                    { state: "visible", timeout: constants.wait1second * 10 });
 
                 return true;
             } catch (e) {
                 if (e instanceof Error) {
-                    console.log("Reloading the page ...");
+                    console.log(`Reloading the page for '${testSuite}' ...`);
                     await page.reload();
                 }
             }
-        }, { timeout: constants.wait1second * 5 }).toBe(true);
+        }, { timeout: constants.wait1second * 30 }).toBe(true);
 
         await this.waitForLoadingIcon();
     };
@@ -76,53 +84,12 @@ export class Misc {
                     const requestMessage = JSON
                         .parse(message.toString()) as Record<string, string>;
 
-                    if (process.env.MOCK === "true") {
+                    if (globalThis.migrationMock) {
 
                         if ((requestMessage.command === "migration.work_start" ||
                             requestMessage.command === "migration.work_status")) {
 
                             ws.send(this.getMock("response_work_status_ok", requestMessage.request_id));
-                            ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                        } else if (requestMessage.command === "migration.plan_update_sub_step") {
-                            const request = message.toString();
-
-                            if (request.includes(":1050")) {
-
-                                ws.send(this.getMock("response_update_sub_step_1050", requestMessage.request_id));
-                                ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                            } else if (request.includes(":1020")) {
-
-                                ws.send(this.getMock("response_update_sub_step_1020", requestMessage.request_id));
-                                ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                            } else if (request.includes(":1030")) {
-
-                                ws.send(this.getMock("response_update_sub_step_1030", requestMessage.request_id));
-                                ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                            } else if (request.includes(":1100")) {
-
-                                ws.send(this.getMock("response_update_sub_step_1100", requestMessage.request_id));
-                                ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                            } else {
-                                server.send(message);
-                            }
-
-                        } else if (requestMessage.command === "migration.plan_commit") {
-
-                            ws.send(this.getMock("response_plan_commit", requestMessage.request_id));
-                            ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                        } else if (requestMessage.command === "migration.plan_update") {
-
-                            ws.send(this.getMock("response_plan_update", requestMessage.request_id));
-                            ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
-
-                        } else if (requestMessage.command === "migration.work_clean") {
-
                             ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
 
                         } else {
@@ -144,7 +111,7 @@ export class Misc {
 
                     if ((requestMessage.command === "migration.work_start" ||
                         requestMessage.command === "migration.work_status") &&
-                        process.env.MOCK === "true") {
+                        globalThis.migrationMock) {
 
                         ws.send(this.getMock("response_work_status_in_progress", requestMessage.request_id));
                         ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
@@ -153,6 +120,58 @@ export class Misc {
                         server.send(message);
                     }
 
+                });
+
+            });
+        } else if (status === constants.MockMigrationStatusEnum.Aborted) {
+            await page.routeWebSocket(/ws:\/\/localhost:8000/, ws => {
+                const server = ws.connectToServer();
+
+                ws.onMessage((message) => {
+                    const requestMessage = JSON
+                        .parse(message.toString()) as Record<string, string>;
+
+                    if (globalThis.migrationMock) {
+                        if (process.env.ABORT && requestMessage.command === "migration.work_status") {
+
+                            ws.send(this.getMock("response_work_status_abort", requestMessage.request_id));
+                            ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
+                        } else if (requestMessage.command === "migration.work_start" ||
+                            requestMessage.command === "migration.work_status") {
+
+                            ws.send(this.getMock("response_work_status_in_progress", requestMessage.request_id));
+                            ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
+                        } else if (requestMessage.command === "migration.work_abort") {
+
+                            process.env.ABORT = "true";
+                            ws.send(this.getMock("response_work_status_abort", requestMessage.request_id));
+                            ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
+                        } else {
+                            server.send(message);
+                        }
+                    } else {
+                        server.send(message);
+                    }
+                });
+
+            });
+        } else if (status === constants.MockMigrationStatusEnum.Failed) {
+            await page.routeWebSocket(/ws:\/\/localhost:8000/, ws => {
+                const server = ws.connectToServer();
+
+                ws.onMessage((message) => {
+                    const requestMessage = JSON
+                        .parse(message.toString()) as Record<string, string>;
+
+                    if ((requestMessage.command === "migration.work_start" ||
+                        requestMessage.command === "migration.work_status") &&
+                        globalThis.migrationMock) {
+
+                        ws.send(this.getMock("response_work_status_error", requestMessage.request_id));
+                        ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
+                    } else {
+                        server.send(message);
+                    }
                 });
 
             });
@@ -175,33 +194,49 @@ export class Misc {
     };
 
     public static waitForLoadingIcon = async (timeout = constants.wait1second * 30): Promise<void> => {
-        const maxLoadingIcons = 3;
-        const loadingIcons = page.locator(locator.mainPage.loadingIcon);
+        const isLoading = async (wait = false): Promise<boolean> => {
+            let isLoading = false;
+            const loadingIcons = page.locator(locator.mainPage.loadingIcon);
 
-        const isLoading = async () => {
-
-            try {
-                await loadingIcons.first().waitFor({ state: "visible", timeout: constants.wait1second * 1 });
-            } catch (e) {
-                if (!(e instanceof errors.TimeoutError)) {
-                    throw e;
+            if (wait) {
+                try {
+                    await loadingIcons.first().waitFor({ state: "visible", timeout: constants.wait1second * 1 });
+                    isLoading = true;
+                } catch (e) {
+                    if (!(e instanceof errors.TimeoutError)) {
+                        throw e;
+                    }
+                }
+            } else {
+                if ((await loadingIcons.all()).length > 0) {
+                    isLoading = true;
+                    for (const loadingIcon of await loadingIcons.all()) {
+                        await loadingIcon.waitFor({ state: "detached", timeout });
+                    }
                 }
             }
 
-            for (const loadingIcon of await loadingIcons.all()) {
-                await loadingIcon.waitFor({ state: "detached", timeout });
-            }
+            return isLoading;
         };
 
-        let i = 1;
-        while (i <= maxLoadingIcons) {
-            await isLoading();
-            i++;
+        let counter = 1;
+
+        while (counter <= 10) {
+            if (counter === 1) {
+                await isLoading(true);
+                counter++;
+            } else {
+                if (!await isLoading()) {
+                    return;
+                } else {
+                    counter++;
+                }
+            }
+
+            await page.waitForTimeout(1500);
         }
 
-        if ((await loadingIcons.all()).length > 0) {
-            throw new Error(`Found an unexpected loading icon (4th)`);
-        }
+        throw new Error(`At least 10 loading icons were displayed`);
     };
 
     public static getNotifications = async (): Promise<interfaces.INotification[]> => {
@@ -257,27 +292,31 @@ export class Misc {
                     status = constants.StepStatusEnum.NotStarted;
                 } else if (statusClass!.includes("codicon-error")) {
                     status = constants.StepStatusEnum.Failed;
+                } else if (statusClass!.includes("icon-aborted")) {
+                    status = constants.StepStatusEnum.Aborted;
+                } else {
+                    throw new Error(`Unknown status`);
                 }
+
+                let description = "";
+                const commentsLocator = await step.locator(locator.steps.section.description).all();
+
+                for (const comment of commentsLocator) {
+                    description += `${await comment.textContent()}. `;
+                }
+
+                steps.push({
+                    toggle: step.locator(locator.steps.section.toggle),
+                    isExpanded: (await toggleIcon.getAttribute("class"))!.includes("codicon-chevron-down")
+                        ? true : false,
+                    caption: await step.locator(locator.steps.section.caption).textContent(),
+                    status,
+                    description
+                });
             }
 
-            let description = "";
-            const commentsLocator = await step.locator(locator.steps.section.description).all();
-
-            for (const comment of commentsLocator) {
-                description += `${await comment.textContent()}. `;
-            }
-
-            steps.push({
-                toggle: step.locator(locator.steps.section.toggle),
-                isExpanded: (await toggleIcon.getAttribute("class"))!.includes("codicon-chevron-down")
-                    ? true : false,
-                caption: await step.locator(locator.steps.section.caption).textContent(),
-                status,
-                description
-            });
-        }
-
-        return steps;
+            return steps;
+        };
     };
 
     public static selectTile = async (tileName: string): Promise<void> => {

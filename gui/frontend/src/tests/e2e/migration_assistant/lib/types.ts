@@ -39,8 +39,8 @@ export type NetworkConnectivity = NetworkConnectivityEnum.SiteToSite | NetworkCo
 export type CompatibilityIssue = CompatibilityIssueEnum.Error | CompatibilityIssueEnum.Info;
 export type MigrationButton = MigrationButtonEnum.Back | MigrationButtonEnum.Next | MigrationButtonEnum.StartMigration;
 export type StepStatus = StepStatusEnum.Passed | StepStatusEnum.Failed | StepStatusEnum.NotStarted |
-    StepStatusEnum.Running;
+    StepStatusEnum.Running | StepStatusEnum.Aborted;
 export type TileStepStatus = TileStepStatusEnum.Passed | TileStepStatusEnum.Failed | TileStepStatusEnum.NotStarted |
     TileStepStatusEnum.Current | TileStepStatusEnum.Running | TileStepStatusEnum.ToStart;
 export type MockMigrationStatus = MockMigrationStatusEnum.Failed | MockMigrationStatusEnum.NotStarted |
-    MockMigrationStatusEnum.Running | MockMigrationStatusEnum.Success;
+    MockMigrationStatusEnum.Running | MockMigrationStatusEnum.Success | MockMigrationStatusEnum.Aborted;

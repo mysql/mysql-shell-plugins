@@ -42,7 +42,7 @@ export class Finalize {
 
         // Monitor Replication Progress step
         const toggleIcon = genericSteps[0].locator(locator.steps.section.toggle);
-        const statusLocator = genericSteps[0].locator(locator.steps.section.status);
+        let statusLocator = genericSteps[0].locator(locator.steps.section.status);
         let status: types.StepStatus | undefined;
 
         if (await statusLocator.count() > 0) {
@@ -56,6 +56,10 @@ export class Finalize {
                 status = constants.StepStatusEnum.NotStarted;
             } else if (statusClass!.includes("codicon-error")) {
                 status = constants.StepStatusEnum.Failed;
+            } else if (statusClass!.includes("icon-aborted")) {
+                status = constants.StepStatusEnum.Aborted;
+            } else {
+                throw new Error(`Unknown status`);
             }
         }
 
@@ -76,6 +80,25 @@ export class Finalize {
         };
 
         // Database Ready
+        statusLocator = genericSteps[1].locator(locator.steps.section.status);
+        if (await statusLocator.count() > 0) {
+            const statusClass = await statusLocator.getAttribute("class");
+
+            if (statusClass!.includes("codicon-check")) {
+                status = constants.StepStatusEnum.Passed;
+            } else if (statusClass!.includes("codicon-gear")) {
+                status = constants.StepStatusEnum.Running;
+            } else if (statusClass!.includes("codicon-dash")) {
+                status = constants.StepStatusEnum.NotStarted;
+            } else if (statusClass!.includes("codicon-error")) {
+                status = constants.StepStatusEnum.Failed;
+            } else if (statusClass!.includes("icon-aborted")) {
+                status = constants.StepStatusEnum.Aborted;
+            } else {
+                throw new Error(`Unknown status`);
+            }
+        }
+
         const explanationDetailsLocator = await page.locator(locator.steps.databaseReady.explanation.details).all();
         let explanation = "";
 
@@ -145,8 +168,7 @@ export class Finalize {
 
     public deleteSelectedOciResources = async (): Promise<void> => {
         const deleteLocator = page.locator(locator.finalize.deleteOciResources);
-        // eslint-disable-next-line no-restricted-syntax
-        process.env.MOCK = "true";
+        globalThis.migrationMock = true;
         await deleteLocator.click();
         await Misc.waitForLoadingIcon();
     };

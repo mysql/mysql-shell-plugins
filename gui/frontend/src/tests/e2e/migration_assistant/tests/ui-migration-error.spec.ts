@@ -34,11 +34,11 @@ import { wait1second } from "e2e/lib/constants.js";
 
 const migrationAssistant = new MigrationAssistantPage();
 
-test.describe("Successful Migration", () => {
+test.describe("Migration with errors", () => {
 
     // eslint-disable-next-line no-empty-pattern
     test.beforeAll(async ({ }, testInfo) => {
-        await Misc.loadPage(testInfo.titlePath[1], constants.MockMigrationStatusEnum.Success);
+        await Misc.loadPage(testInfo.titlePath[1], constants.MockMigrationStatusEnum.Failed);
 
         const passwordDialog = new PasswordDialog();
         if (await passwordDialog.exists()) {
@@ -53,7 +53,7 @@ test.describe("Successful Migration", () => {
         await browser.close();
     });
 
-    test("Successful Migration", async () => {
+    test("Migration with errors", async () => {
 
         // Set Migration Plan
         await Misc.dismissNotifications();
@@ -125,9 +125,10 @@ test.describe("Successful Migration", () => {
 
         // Start Migration
         await migrationAssistant.startMigration();
+
         await expect.poll(async () => {
-            return (await migrationAssistant.getCurrentHeaderStep())!.includes(constants.finalize);
-        }, { timeout: wait1second * 30, message: "'Finalize' should be the current header" }).toBe(true);
+            return (await migrationAssistant.getCurrentHeaderStep())!.includes(constants.provisioning);
+        }, { timeout: wait1second * 30, message: "'Provisioning' should be the current header" }).toBe(true);
 
         // Verify Migration Status
         await Misc.dismissNotifications();
@@ -140,14 +141,30 @@ test.describe("Successful Migration", () => {
             expect(tile.subSteps!.length).toBeGreaterThan(0);
 
             for (const step of tile.subSteps!) {
-                expect(constants.tiles.get(tile.name!)).toContain(step.name);
-
-                if (step.name === "Database Ready") {
-                    expect(step.status).toBe(constants.TileStepStatusEnum.Current);
-                } else if (step.name === "Enable High Availability" || step.name === "Check Connectivity") {
-                    expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.NotStarted);
-                } else {
+                if (constants.migrationPlanSubSteps.includes(step.name!)) {
                     expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.Passed);
+                } else if (constants.provisioningSubSteps.includes(step.name!)) {
+                    expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.Failed);
+                } else if (constants.databaseMigrationSubSteps.includes(step.name!)) {
+                    if (step.name === "Enable High Availability") {
+                        expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.NotStarted);
+                    } else {
+                        expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.Failed);
+                    }
+                } else if (constants.dataSynchronizationSubSteps.includes(step.name!)) {
+                    if (step.name === "Check Connectivity") {
+                        expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.NotStarted);
+                    } else {
+                        expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.Failed);
+                    }
+                } else if (constants.finalizeSubSteps.includes(step.name!)) {
+                    if (step.name === "Monitor Replication Progress") {
+                        expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.Failed);
+                    } else {
+                        expect(step.status, `Expected ${step.name}`).toBe(constants.TileStepStatusEnum.NotStarted);
+                    }
+                } else {
+                    throw new Error(`Unknown step '${step.name}'`);
                 }
             }
         }
@@ -173,8 +190,8 @@ test.describe("Successful Migration", () => {
             }
 
             expect(constants.provisioningSubSteps).toContain(step.caption);
-            expect(step.status).toBe(constants.StepStatusEnum.Passed);
-            expect(step.description).toContain("Step was successful");
+            expect(step.status).toBe(constants.StepStatusEnum.Failed);
+            expect(step.description).toContain("An error has occurred");
         }
 
         // Verify steps (Database Migration)
@@ -186,15 +203,11 @@ test.describe("Successful Migration", () => {
                 await step.toggle!.click();
             }
             expect(constants.databaseMigrationSubSteps).toContain(step.caption);
-            expect(step.status).toBe(constants.StepStatusEnum.Passed);
-
-            if (step.caption !== "Enable High Availability") {
-                expect(step.description).toContain("Step was successful");
-            }
+            expect(step.status).toBe(constants.StepStatusEnum.Failed);
+            expect(step.description).toContain("An error has occurred");
         }
 
         // Verify steps (Database Synchronization)
-        await Misc.dismissNotifications();
         await migrationAssistant.dataSynchronization.selectTile();
         const databaseSynchronizationSteps = await migrationAssistant.dataSynchronization.getSteps();
         expect(databaseSynchronizationSteps!.length).toBeGreaterThan(0);
@@ -203,8 +216,8 @@ test.describe("Successful Migration", () => {
                 await step.toggle!.click();
             }
             expect(constants.dataSynchronizationSubSteps).toContain(step.caption);
-            expect(step.status).toBe(constants.StepStatusEnum.Passed);
-            expect(step.description).toContain("Step was successful");
+            expect(step.status).toBe(constants.StepStatusEnum.Failed);
+            expect(step.description).toContain("An error has occurred");
         }
 
         // Verify steps (Finalize)
@@ -218,27 +231,13 @@ test.describe("Successful Migration", () => {
                     await step.toggle!.click();
                 }
                 expect(constants.finalizeSubSteps).toContain(step.caption);
-                expect(step.status).toBe(constants.StepStatusEnum.Passed);
-                expect(step.description).toContain("Step was successful");
+                expect(step.status).toBe(constants.StepStatusEnum.Failed);
+                expect(step.description).toContain("An error has occurred");
             } else if (interfaces.isIDatabaseReady(step)) {
-                expect(step.explanation.title).toMatch(/Congratulations/);
-                await step.dbSystem.copyButton.click();
-                expect(await Misc.existsOnClipboard(/(\d+).(\d+).(\d+).(\d+)/)).toBe(true);
-                expect(step.jumpHost.command).toContain("ssh");
-                await step.jumpHost.copyButton.click();
-                expect(await Misc.existsOnClipboard(/ssh/)).toBe(true);
-                expect(step.mysqlShell.command).toMatch(/mysqlsh -p root@(\d+).(\d+).(\d+).(\d+)/);
-                await step.mysqlShell.copyButton.click();
-                expect(await Misc.existsOnClipboard(/mysqlsh -p root@(\d+).(\d+).(\d+).(\d+)/)).toBe(true);
-            } else {
-                throw new Error("Unknown object");
+                expect(step.status).toBe(constants.StepStatusEnum.NotStarted);
             }
         }
 
-        // Delete OCI Resources
-        await migrationAssistant.finalize.toggleDeleteJumpHost(true);
-        await migrationAssistant.finalize.toggleDeleteBucket(true);
-        await migrationAssistant.finalize.deleteSelectedOciResources();
     });
 
 });

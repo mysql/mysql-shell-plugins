@@ -12,9 +12,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was provisioned",
+        "message": "An error has occurred",
         "stage": 2010,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -24,9 +24,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 2020,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -36,9 +36,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 2030,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -48,9 +48,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 2040,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -60,9 +60,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 2050,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -75,9 +75,9 @@
           "stageCurrent": 100.0,
           "stageTotal": 100.0
         },
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 2060,
-        "status": "finished",
+        "status": "error",
         "total": 100.0
       },
       {
@@ -90,9 +90,9 @@
           "stageCurrent": 100.0,
           "stageTotal": 100.0
         },
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 2070,
-        "status": "finished",
+        "status": "error",
         "total": 100.0
       },
       {
@@ -107,9 +107,9 @@
           "stageEta": 0,
           "stageTotal": 6785
         },
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 3010,
-        "status": "finished",
+        "status": "error",
         "total": 6785
       },
       {
@@ -124,9 +124,9 @@
           "stageEta": null,
           "stageTotal": 100
         },
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 3020,
-        "status": "finished",
+        "status": "error",
         "total": 100
       },
       {
@@ -136,9 +136,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 3030,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -148,9 +148,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 3040,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -160,9 +160,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "",
+        "message": "An error has occurred",
         "stage": 3050,
-        "status": "not_started",
+        "status": "error",
         "total": null
       },
       {
@@ -172,9 +172,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 4010,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -184,9 +184,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 4020,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -196,9 +196,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "An error has occurred",
         "stage": 4030,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -210,19 +210,45 @@
         "info": {},
         "message": "",
         "stage": 5010,
-        "status": "finished",
+        "status": "not_started",
         "total": null
       },
       {
         "caption": "MONITOR_CHANNEL",
         "current": null,
         "enabled": true,
-        "errors": [],
+        "errors": [
+          {
+            "_class": "MigrationError",
+            "info": {},
+            "level": "ERROR",
+            "message": "An error has occurred",
+            "title": "",
+            "type": "DBError"
+          },
+          {
+            "_class": "MigrationError",
+            "info": {},
+            "level": "ERROR",
+            "message": "An error has occurred",
+            "title": "",
+            "type": "DBError"
+          }
+        ],
         "eta": null,
-        "info": {},
-        "message": "Step was successful",
+        "info": {
+          "error": {
+            "_class": "MigrationError",
+            "info": {},
+            "level": "ERROR",
+            "message": "An error has occurred",
+            "title": "",
+            "type": "DBError"
+          }
+        },
+        "message": "An error has occurred",
         "stage": 5020,
-        "status": "finished",
+        "status": "error",
         "total": null
       },
       {
@@ -232,9 +258,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "",
         "stage": 5090,
-        "status": "finished",
+        "status": "not_started",
         "total": null
       },
       {
@@ -244,9 +270,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Step was successful",
+        "message": "",
         "stage": 5100,
-        "status": "finished",
+        "status": "not_started",
         "total": null
       }
     ],

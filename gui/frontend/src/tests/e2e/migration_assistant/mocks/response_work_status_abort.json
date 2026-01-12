@@ -12,9 +12,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Network MySQLVCN provisioned",
+        "message": "Operation aborted",
         "stage": 2010,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -24,9 +24,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Compartment MySQLShellTesting verified",
+        "message": "Operation aborted",
         "stage": 2020,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -36,9 +36,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Jump host instance mysql-jump-host was launched",
+        "message": "Operation aborted",
         "stage": 2030,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -48,9 +48,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Bucket local-connection-20251210-145732 provisioned",
+        "message": "Operation aborted",
         "stage": 2040,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -60,9 +60,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Jump host provisioned",
+        "message": "Operation aborted",
         "stage": 2050,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -75,9 +75,9 @@
           "stageCurrent": 100.0,
           "stageTotal": 100.0
         },
-        "message": "MySQL DB System local connection was launched",
+        "message": "Operation aborted",
         "stage": 2060,
-        "status": "finished",
+        "status": "aborted",
         "total": 100.0
       },
       {
@@ -90,9 +90,9 @@
           "stageCurrent": 100.0,
           "stageTotal": 100.0
         },
-        "message": "HeatWave cluster launched",
+        "message": "Operation aborted",
         "stage": 2070,
-        "status": "finished",
+        "status": "aborted",
         "total": 100.0
       },
       {
@@ -107,9 +107,9 @@
           "stageEta": 0,
           "stageTotal": 6785
         },
-        "message": "Source database was exported",
+        "message": "Operation aborted",
         "stage": 3010,
-        "status": "finished",
+        "status": "aborted",
         "total": 6785
       },
       {
@@ -124,9 +124,9 @@
           "stageEta": null,
           "stageTotal": 100
         },
-        "message": "Data load to target DB System completed",
+        "message": "Operation aborted",
         "stage": 3020,
-        "status": "finished",
+        "status": "aborted",
         "total": 100
       },
       {
@@ -136,9 +136,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "DB System is online and accepting connections",
+        "message": "Operation aborted",
         "stage": 3030,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -148,9 +148,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "Database crash recovery enabled",
+        "message": "Operation aborted",
         "stage": 3040,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -160,9 +160,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "",
+        "message": "Operation aborted",
         "stage": 3050,
-        "status": "not_started",
+        "status": "aborted",
         "total": null
       },
       {
@@ -172,9 +172,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "SSH tunnel is ready and connectable",
+        "message": "Operation aborted",
         "stage": 4010,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -184,9 +184,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "",
+        "message": "Operation aborted",
         "stage": 4020,
-        "status": "not_started",
+        "status": "aborted",
         "total": null
       },
       {
@@ -196,9 +196,9 @@
         "errors": [],
         "eta": null,
         "info": {},
-        "message": "",
+        "message": "Operation aborted",
         "stage": 4030,
-        "status": "finished",
+        "status": "aborted",
         "total": null
       },
       {
@@ -210,45 +210,19 @@
         "info": {},
         "message": "",
         "stage": 5010,
-        "status": "in_progress",
+        "status": "not_started",
         "total": null
       },
       {
         "caption": "MONITOR_CHANNEL",
         "current": null,
         "enabled": true,
-        "errors": [
-          {
-            "_class": "MigrationError",
-            "info": {},
-            "level": "ERROR",
-            "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
-            "title": "",
-            "type": "DBError"
-          },
-          {
-            "_class": "MigrationError",
-            "info": {},
-            "level": "ERROR",
-            "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
-            "title": "",
-            "type": "DBError"
-          }
-        ],
+        "errors": [],
         "eta": null,
-        "info": {
-          "error": {
-            "_class": "MigrationError",
-            "info": {},
-            "level": "ERROR",
-            "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
-            "title": "",
-            "type": "DBError"
-          }
-        },
-        "message": "MySQL Error (1045): Access denied for user 'root'@'localhost' (using password: NO)",
+        "info": {},
+        "message": "Operation aborted",
         "stage": 5020,
-        "status": "error",
+        "status": "aborted",
         "total": null
       },
       {

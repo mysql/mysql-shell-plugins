@@ -52,6 +52,7 @@ export enum StepStatusEnum {
     Failed = "Failed",
     Running = "Running",
     NotStarted = "Not Started",
+    Aborted = "Aborted"
 }
 
 export enum TileStepStatusEnum {
@@ -67,7 +68,8 @@ export enum MockMigrationStatusEnum {
     Success = "Success",
     Running = "Running",
     Failed = "Failed",
-    NotStarted = "Not Started"
+    NotStarted = "Not Started",
+    Aborted = "Aborted"
 }
 
 export const migrationPlan = "Migration Plan";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -497,6 +497,9 @@ declare global {
 
     /** Holds the current vite run mode. */
     var VITE_MODE: "development" | "production";
+
+    /** Flag to indicate if mock is needed on the migration */
+    var migrationMock: boolean;
 }
 
 /** This conditional type enforces type widening on generic parameter types. */

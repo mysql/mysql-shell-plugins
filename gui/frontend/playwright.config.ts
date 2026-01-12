@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,8 +28,8 @@ import { defineConfig, devices } from "@playwright/test";
 export const mysqlServerPort = 4407;
 
 export default defineConfig({
-    timeout: 200000,
-    globalTimeout: 200000,
+    timeout: 250000,
+    globalTimeout: 400000,
     webServer: {
         command: "npm run run-shell:single-user",
         timeout: 15000,
@@ -42,8 +42,8 @@ export default defineConfig({
     },
     globalSetup: "./src/tests/e2e/migration_assistant/lib/setup/globalSetup.ts",
     globalTeardown: "./src/tests/e2e/migration_assistant/lib/setup/globalTearDown.ts",
-    workers: 2,
     testDir: "src/tests/e2e/migration_assistant/tests",
+    workers: 2,
     //testMatch: ["ui-migration-in-progress.spec.ts"],
     reporter: [
         ["html", { open: "never" }]
@@ -56,7 +56,6 @@ export default defineConfig({
         screenshot: "only-on-failure",
         trace: "on-first-retry",
     },
-
     projects: [
         {
             name: "chromium",

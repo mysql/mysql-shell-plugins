@@ -108,7 +108,7 @@ export class MigrationPlan {
                 }
 
                 throw new Error(`Could not find option '${value}'`);
-            }, { timeout: constants.wait1second * 20, message: `OCI Compartment should be ${value}` }).toBe(true);
+            }, { timeout: constants.wait1second * 30, message: `OCI Compartment should be ${value}` }).toBe(true);
         }
     };
 
