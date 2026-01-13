@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -308,7 +308,7 @@ class ConfigureTargetDBSystem:
     oci_config = {}
     availability_domains = None
     versions = None
-    shapes = None
+    shapes: dict[str, list[ShapeSummary]] = {}
     _default_vcn = None
     _default_private_subnet = None
     _default_public_subnet = None
@@ -362,10 +362,17 @@ class ConfigureTargetDBSystem:
         if not self.availability_domains:
             self.availability_domains = self.compartment.list_availability_domains()
             assert self.availability_domains
+
         if not self.versions:
             self.versions = self.compartment.list_db_versions()
             assert self.versions
-        # self.shapes = self.compartment.list_db_shapes()
+
+        if not self.shapes:
+            for ad in self.availability_domains:
+                self.shapes[cast(str, ad.name)] = self.compartment.list_db_shapes(
+                    availability_domain=ad.name
+                )
+            assert self.shapes
 
     def select_network_compartment(self, id: str | oci_utils.Compartment):
         if self.network_compartment and self.network_compartment.id == (id if isinstance(id, str) else id.id):
@@ -667,9 +674,20 @@ class ConfigureTargetDBSystem:
                           "database.shapeName")
 
         if self.availability_domains:
-            options.availabilityDomain = self.recommend_availability_domain(
-                self.availability_domains
-            )
+            ads = []
+
+            for ad in self.availability_domains:
+                assert ad.name in self.shapes
+                if any(options.shapeName == s.name for s in self.shapes[ad.name]):
+                    ads.append(ad)
+
+            if ads:
+                options.availabilityDomain = self.recommend_availability_domain(
+                    ads
+                )
+            else:
+                add_error(f"None of the availability domains provides '{options.shapeName}' MySQL shape",
+                          "database.shapeName")
 
         if self.versions:
             if options.mysqlVersion:
@@ -682,9 +700,14 @@ class ConfigureTargetDBSystem:
                         "database.mysqlVersion",
                     )
             else:
-                options.mysqlVersion = self.recommend_version(
-                    self._server_info, self.versions,
-                    has_mysql_native_accounts=self.has_mysql_native_accounts)
+                if "MySQL.Free" == options.shapeName:
+                    # Always Free Tier DB Systems must use the latest active available version
+                    options.mysqlVersion = \
+                        self.versions[-1].versions[-1].version  # type: ignore
+                else:
+                    options.mysqlVersion = self.recommend_version(
+                        self._server_info, self.versions,
+                        has_mysql_native_accounts=self.has_mysql_native_accounts)
         else:
             if not options.mysqlVersion:
                 add_error("Target database version not selected",

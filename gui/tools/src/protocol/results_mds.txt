@@ -286,6 +286,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetCurrentCompartmentId]: { result: string | undefined};
     [ShellAPIMds.MdsSetCurrentBastion]: {};
     [ShellAPIMds.MdsGetAvailabilityDomain]: {};
+    [ShellAPIMds.MdsListAvailabilityDomains]: { result: IAvailabilityDomain[]; };
     [ShellAPIMds.MdsListCompartments]: { result: ICompartment[]; };
     [ShellAPIMds.MdsGetCompartment]: { result: ICompartment; };
     [ShellAPIMds.MdsGetCompartmentById]: { result: ICompartment | undefined; };

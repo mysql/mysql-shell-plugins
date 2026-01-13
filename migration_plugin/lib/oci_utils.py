@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -2048,10 +2048,12 @@ class Compartment:
         domains = [cast(str, d.name) for d in self.list_availability_domains()]
         return random.choice(domains)
 
-    def list_db_shapes(self) -> list[oci.mysql.models.ShapeSummary]:
+    def list_db_shapes(self, availability_domain: Optional[str] = None) -> list[oci.mysql.models.ShapeSummary]:
         """List MySQL DB System shapes"""
         return oci.pagination.list_call_get_all_results(
-            self._mds_client.list_shapes, compartment_id=self.id
+            self._mds_client.list_shapes,
+            compartment_id=self.id,
+            availability_domain=availability_domain,
         ).data
 
     def list_db_configurations(self, default: bool = True, custom: bool = True, shape_name: Optional[str] = None) -> list[oci.mysql.models.ConfigurationSummary]:
@@ -2088,6 +2090,14 @@ class Compartment:
             sort_order="DESC",
         ).data
         return images
+
+    def list_compute_shapes(self, availability_domain: Optional[str] = None) -> list[oci.core.models.Shape]:
+        shapes = oci.pagination.list_call_get_all_results(
+            self._compute_client.list_shapes,
+            compartment_id=self.id,
+            availability_domain=availability_domain,
+        ).data
+        return shapes
 
     def get_vcn(self, vcn_id: str) -> VCN:
         return VCN(self._config, ocid_or_vcn=vcn_id, client=self._net_client)

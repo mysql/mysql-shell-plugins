@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -41,11 +41,13 @@ from mds_plugin.compute import SshConnection
 # version we expect can't be downloaded directly from there
 k_bundled_mysqlsh_rpm = {
     "aarch64": "mysql-shell.aarch64.rpm",
-
     "x86_64": "mysql-shell.x86_64.rpm",
 }
 
-k_repo_mysqlsh_url = "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-9.5.1-1.el8.x86_64.rpm"
+k_repo_mysqlsh_url = {
+    "aarch64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-9.5.2-1.el8.aarch64.rpm",
+    "x86_64": "https://cdn.mysql.com/Downloads/MySQL-Shell/mysql-shell-9.5.2-1.el8.x86_64.rpm",
+}
 
 
 def setup_mysqlsh(ssh, sftp, local_basedir: str, target_basedir: str,
@@ -107,14 +109,18 @@ def setup_mysqlsh(ssh, sftp, local_basedir: str, target_basedir: str,
         if status != 0:
             raise errors.RemoteHelperFailed(
                 f"Could not install {bundled_rpm_name} on jump host")
-    else:
+    elif arch in k_repo_mysqlsh_url:
         progress_fn("Installing mysqlsh")
         # if there's no bundled mysqlsh, install it from repo
         status, data = run_rpm(
-            f"sudo yum -y install {k_repo_mysqlsh_url}")
+            f"sudo yum -y install {k_repo_mysqlsh_url[arch]}")
         if status != 0:
             raise errors.RemoteHelperFailed(
                 "Could not install mysql-shell on jump host")
+    else:
+        raise errors.RemoteHelperFailed(
+            f"Could not find mysql-shell {arch} to install on jump host"
+        )
 
 
 class RemoteHelperClient:

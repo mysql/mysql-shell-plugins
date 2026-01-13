@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -1064,7 +1064,7 @@ def update_compartment(compartment_path=None, **kwargs):
         print(f'ERROR: {e}')
 
 
-@plugin_function('mds.list.availabilityDomains')
+@plugin_function('mds.list.availabilityDomains', shell=True, cli=False, web=True)
 def list_availability_domains(**kwargs):
     """Lists Availability Domains
 
@@ -1076,6 +1076,7 @@ def list_availability_domains(**kwargs):
     Keyword Args:
         compartment_id (str): OCID of the parent compartment.
         config (dict): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         interactive (bool): If set to false exceptions are raised
         return_formatted (bool): If set to true, a list object is returned.
 
@@ -1085,12 +1086,14 @@ def list_availability_domains(**kwargs):
 
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
     interactive = kwargs.get("interactive", core.get_interactive_default())
     return_formatted = kwargs.get("return_formatted", True)
 
     try:
         # Get the active config and compartment
-        config = configuration.get_current_config(config=config)
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
 

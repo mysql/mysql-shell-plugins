@@ -4672,18 +4672,44 @@ Migration Assistant.`}
         this.setState({ isFetchingShapes: true });
 
         try {
-            const fetchDbShapes = !existingShapes?.dbSystemShapes
-                ? this.mhs.listDbSystemShapes("DBSYSTEM, HEATWAVECLUSTER", profile, compartmentOcid)
-                : undefined;
+            const fetchDbShapes = !existingShapes?.dbSystemShapes;
+            const fetchComputeShapes = !existingShapes?.computeShapes;
 
-            const fetchComputeShapes = !existingShapes?.computeShapes
-                ? this.mhs.listComputeShapes(profile, compartmentOcid)
-                : undefined;
+            const ads = fetchDbShapes || fetchComputeShapes
+                ? await this.mhs.listAvailabilityDomains(profile, compartmentOcid)
+                : [];
 
-            const [dbShapes, computeShapes] = await Promise.all([
-                fetchDbShapes,
-                fetchComputeShapes,
+            const dbShapePromises = fetchDbShapes
+                ? ads.map(ad =>
+                    this.mhs.listDbSystemShapes("DBSYSTEM, HEATWAVECLUSTER", profile, compartmentOcid, ad)
+                )
+                : [];
+            const computeShapePromises = fetchComputeShapes
+                ? ads.map(ad =>
+                    this.mhs.listComputeShapes(profile, compartmentOcid, ad)
+                )
+                : [];
+
+            const [allDbShapes, allComputeShapes] = await Promise.all([
+                Promise.all(dbShapePromises),
+                Promise.all(computeShapePromises)
             ]);
+
+            const seen = new Set<string>();
+
+            const dbShapes = allDbShapes.flat().filter(i => {
+                if (seen.has(i.name)) return false;
+                seen.add(i.name);
+                return true;
+            });
+
+            seen.clear();
+
+            const computeShapes = allComputeShapes.flat().filter(i => {
+                if (seen.has(i.shape)) return false;
+                seen.add(i.shape);
+                return true;
+            });
 
             if (dbShapes) {
                 updatedShapes.dbSystemShapes = dbShapes.filter((s) => {

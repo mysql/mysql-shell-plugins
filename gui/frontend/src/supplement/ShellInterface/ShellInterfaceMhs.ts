@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -173,11 +173,22 @@ export class ShellInterfaceMhs {
         });
     }
 
+    public async listAvailabilityDomains(configProfile: string, compartmentId: string): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListAvailabilityDomains,
+            parameters: { kwargs: { configProfile, compartmentId, interactive: false, returnFormatted: false } },
+        });
+
+        return response.result.map((i) => {
+            return i.name!;
+        });
+    }
+
     public async listDbSystemShapes(isSupportedFor: string, configProfile: string,
-        compartmentId: string): Promise<IMySQLDbSystemShapeSummary[]> {
+        compartmentId: string, availabilityDomain?: string): Promise<IMySQLDbSystemShapeSummary[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsListDbSystemShapes,
-            parameters: { kwargs: { configProfile, isSupportedFor, compartmentId, interactive: false } },
+            parameters: { kwargs: { configProfile, isSupportedFor, compartmentId, availabilityDomain, interactive: false } },
         });
 
         // return response.result;
@@ -191,10 +202,10 @@ export class ShellInterfaceMhs {
     }
 
     public async listComputeShapes(configProfile: string,
-        compartmentId: string): Promise<IComputeShape[]> {
+        compartmentId: string, availabilityDomain?: string): Promise<IComputeShape[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsListComputeShapes,
-            parameters: { kwargs: { configProfile, compartmentId, interactive: false } },
+            parameters: { kwargs: { configProfile, compartmentId, availabilityDomain, interactive: false } },
         });
 
         // return response.result;

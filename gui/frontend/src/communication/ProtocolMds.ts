@@ -27,9 +27,10 @@
 
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, LoadBalancer, IBastionSummary,
-    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects, IVcn, ISubnet,
+    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects, IVcn, ISubnet, IAvailabilityDomain
 } from "./Oci.js";
 import { IShellDictionary } from "./Protocol.js";
+
 
 export enum ShellAPIMds {
     /** Returns the list of available OCI regions */
@@ -54,6 +55,8 @@ export enum ShellAPIMds {
     MdsGetCompartmentById = "mds.get.compartment_by_id",
     /** Gets a compartment by path */
     MdsGetCompartment = "mds.get.compartment",
+    /** Lists Availability Domains */
+    MdsListAvailabilityDomains = "mds.list.availability_domains",
     /** Lists instances */
     MdsListComputeInstances = "mds.list.compute_instances",
     /** Returns an instance object based on instance_name or instance_id */
@@ -264,6 +267,19 @@ export interface IShellMdsGetCompartmentKwargs {
     configProfile?: string;
     /** Whether exceptions are raised */
     interactive?: boolean;
+}
+
+export interface IShellMdsListAvailabilityDomainsKwargs {
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: IShellDictionary;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** If set to false exceptions are raised */
+    interactive?: boolean;
+    /** If set to true, a list object is returned. */
+    returnFormatted?: boolean;
 }
 
 export interface IShellMdsListComputeInstancesKwargs {
@@ -1180,6 +1196,7 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsListCompartments]: { kwargs?: IShellMdsListCompartmentsKwargs; };
     [ShellAPIMds.MdsGetCompartmentById]: { args: { compartmentId: string; }; kwargs?: IShellMdsGetCompartmentByIdKwargs; };
     [ShellAPIMds.MdsGetCompartment]: { args: { compartmentPath?: string; }; kwargs?: IShellMdsGetCompartmentKwargs; };
+    [ShellAPIMds.MdsListAvailabilityDomains]: { kwargs?: IShellMdsListAvailabilityDomainsKwargs; };
     [ShellAPIMds.MdsListComputeInstances]: { kwargs?: IShellMdsListComputeInstancesKwargs; };
     [ShellAPIMds.MdsGetComputeInstance]: { kwargs?: IShellMdsGetComputeInstanceKwargs; };
     [ShellAPIMds.MdsListComputeShapes]: { kwargs?: IShellMdsListComputeShapesKwargs; };
@@ -1515,6 +1532,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetCurrentCompartmentId]: { result: string | undefined};
     [ShellAPIMds.MdsSetCurrentBastion]: {};
     [ShellAPIMds.MdsGetAvailabilityDomain]: {};
+    [ShellAPIMds.MdsListAvailabilityDomains]: { result: IAvailabilityDomain[]; };
     [ShellAPIMds.MdsListCompartments]: { result: ICompartment[]; };
     [ShellAPIMds.MdsGetCompartment]: { result: ICompartment; };
     [ShellAPIMds.MdsGetCompartmentById]: { result: ICompartment | undefined; };
@@ -1563,3 +1581,4 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGenaiSaveChatOptions]: {};
     [ShellAPIMds.MdsGenaiLoadChatOptions]: { result: IMdsChatData };
 }
+

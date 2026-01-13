@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
+import random
 import time
 from typing import cast, Optional, Callable
 
@@ -391,17 +392,29 @@ class ProvisionVCN(OCIProvisioner):
         self.push_progress(
             f"Creating service gateway {self.options.serviceGatewayName}"
         )
-        sgw = vcn.create_service_gateway(
-            route_table_id=vcn.default_route_table_id,
-            name=self.options.serviceGatewayName,
-            freeform_tags=self._freeform_tags(),
-        )
-        self.push_progress(
-            f"service gateway {self.options.serviceGatewayName} created for public subnet"
-        )
-        logging.info(
-            f"Created service gateway (and added public routes) name={self.options.serviceGatewayName} id={sgw.id}"
-        )
+        try:
+            sgw = vcn.create_service_gateway(
+                route_table_id=vcn.default_route_table_id,
+                name=self.options.serviceGatewayName,
+                freeform_tags=self._freeform_tags(),
+            )
+            self.push_progress(
+                f"service gateway {self.options.serviceGatewayName} created for public subnet"
+            )
+            logging.info(
+                f"Created service gateway (and added public routes) name={self.options.serviceGatewayName} id={sgw.id}"
+            )
+        except oci.exceptions.ServiceError as e:
+            # Always Free tier does not allow for a Service Gateway
+            if "the maximum limit of 0 for service gateway per vcn has been exceeded" in e.message.lower():
+                self.push_progress(
+                    f"service gateway {self.options.serviceGatewayName} could not be created due to quota limits, will proceed without a service gateway"
+                )
+                logging.warning(
+                    f"Could not create service gateway name={self.options.serviceGatewayName}, will proceed without a service gateway, error={e}"
+                )
+            else:
+                raise
 
     def ensure_public_security_list(self, comp: oci_utils.Compartment, vcn: oci_utils.VCN):
         """
@@ -706,34 +719,68 @@ class ProvisionCompute(OCIProvisioner):
                 f"images for shape={self.options.shapeName} are: {[s.display_name for s in images]}, picking first"
             )
 
-            logging.info(
-                f"Creating compute instance {self.options.computeName} {self.options}"
-            )
+            ads: list[str] = [self.options.availabilityDomain] if self.options.availabilityDomain else [
+                cast(str, d.name) for d in compartment.list_availability_domains()
+            ]
+
+            # find availability domains which support requested shape
+            ads = [
+                ad for ad in ads if any(self.options.shapeName == s.shape for s in compartment.list_compute_shapes(ad))
+            ]
+
+            if not ads:
+                logging.error(
+                    f"could not find any availability domains for shape={self.options.shapeName}"
+                )
+                raise Exception(
+                    f"Could not find any suitable availability domains for shape {self.options.shapeName}"
+                )
+
+            # randomize the order
+            random.shuffle(ads)
 
             instance_tags = {
                 'user_id': self._owner.oci_config.get('user'),
             } | self._freeform_tags()
 
-            self.check_stop()
-
             self._owner.project.create_ssh_key_pair()
             with open(self._owner.project.ssh_key_public) as f:
                 ssh_public_key = f.read()
 
-            # Note: we don't use an init_script because it seems compute can become
-            # ONLINE before it finishes executing, which results in a race
-            instance, self._work_request = compartment.create_instance(
-                instance_name=self.options.computeName,
-                availability_domain=self.options.availabilityDomain
-                or compartment.pick_availability_domain(),
-                shape_name=self.options.shapeName,
-                ocpus=float(self.options.cpuCount),
-                memory_in_gbs=float(self.options.memorySizeGB),
-                subnet_id=self.options.publicSubnet.id,
-                image_id=cast(str, images[0].id),
-                ssh_public_key=ssh_public_key,
-                freeform_tags=instance_tags,
-            )
+            while ads:
+                ad = ads.pop()
+
+                logging.info(
+                    f"Creating compute instance {self.options.computeName} in {ad} options={self.options}"
+                )
+
+                self.check_stop()
+
+                # Note: we don't use an init_script because it seems compute can become
+                # ONLINE before it finishes executing, which results in a race
+                try:
+                    instance, self._work_request = compartment.create_instance(
+                        instance_name=self.options.computeName,
+                        availability_domain=ad,
+                        shape_name=self.options.shapeName,
+                        ocpus=float(self.options.cpuCount),
+                        memory_in_gbs=float(self.options.memorySizeGB),
+                        subnet_id=self.options.publicSubnet.id,
+                        image_id=cast(str, images[0].id),
+                        ssh_public_key=ssh_public_key,
+                        freeform_tags=instance_tags,
+                    )
+                    break
+                except oci.exceptions.ServiceError as e:
+                    # retry if request has failed due to temporary lack of Always Free shapes, use another availability domain
+                    if ads and "out of host capacity" in e.message.lower():
+                        logging.info(
+                            f"Creating compute instance {self.options.computeName} in {ad} failed with error={e}, retrying"
+                        )
+                    else:
+                        raise
+
+            assert instance
 
             self.resources.computeId = instance.id
             self.resources.computeName = instance.display_name

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -134,9 +134,9 @@ export const shapesByTemplate: PreConfiguredShapes = {
             clusterSize: 1,
         },
         computeShapes: {
-            shape: "VM.Standard.E2.1.Micro",
-            ocpus: 1,
-            memoryInGBs: 1,
+            shape: "VM.Standard.A1.Flex",
+            ocpus: 2,
+            memoryInGBs: 12,
         },
     },
     "Small Development Setup - 2 ECPU, 16GB RAM, 1Gbps NET": smallTemplate,
