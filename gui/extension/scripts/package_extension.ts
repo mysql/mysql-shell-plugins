@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -67,6 +67,7 @@ const mdsPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins"
 const msmPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "msm_plugin");
 const guiPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "gui_plugin");
 const utilPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "util_plugin");
+const migrationPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "migration_plugin");
 const webRootPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "gui_plugin", "core", "webroot");
 
 if (!process.env.SHELL_PLUGINS_DEPS) {
@@ -145,6 +146,11 @@ Logger.done();
 Logger.info("Adding UTIL plugin...");
 rmSync(utilPluginPath, { recursive: true, force: true });
 cpSync(join(shellPluginsFolder, "util_plugin"), utilPluginPath, { recursive: true });
+Logger.done();
+
+Logger.info("Adding MIGRATION plugin...");
+rmSync(migrationPluginPath, { recursive: true, force: true });
+cpSync(join(shellPluginsFolder, "migration_plugin"), migrationPluginPath, { recursive: true });
 Logger.done();
 
 Logger.info("Adding GUI plugin (BE)...");

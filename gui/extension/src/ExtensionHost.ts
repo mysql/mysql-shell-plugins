@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -49,6 +49,7 @@ import type {
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
+import { CloudMigrationCommandHandler, OpenEditorsTreeController } from "./CloudMigrationCommandHandler.js";
 import { DocumentCommandHandler } from "./DocumentCommandHandler.js";
 import { MDSCommandHandler } from "./MDSCommandHandler.js";
 import { MRSCommandHandler } from "./MRSCommandHandler.js";
@@ -82,6 +83,7 @@ export class ExtensionHost {
     // Tree data providers for the extension's sidebar. The connection provider is managed in the DB editor
     // command handler.
     private shellTasksTreeDataProvider: ShellTasksTreeDataProvider;
+    private cloudMigrationCommandHandler?: CloudMigrationCommandHandler;
 
     // List of shell tasks
     private shellTasks: ShellTask[] = [];
@@ -151,6 +153,8 @@ export class ExtensionHost {
         this.providers = [];
         this.documentCommandHandler.clear();
         this.lastActiveProvider = undefined;
+
+        this.cloudMigrationCommandHandler?.clear();
     }
 
     public async addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number,
@@ -269,7 +273,13 @@ export class ExtensionHost {
     public broadcastRequest = async <K extends keyof IRequestTypeMap>(sender: IWebviewProvider | undefined,
         requestType: K, parameter: IRequisitionCallbackValues<K>): Promise<void> => {
 
-        await Promise.all(this.providers.map((provider) => {
+        const commandRunners: IWebviewProvider[] = this.providers;
+
+        if (this.cloudMigrationCommandHandler?.providers.length) {
+            commandRunners.push(...this.cloudMigrationCommandHandler.providers);
+        }
+
+        await Promise.all(commandRunners.map((provider) => {
             if (sender === undefined || provider !== sender) {
                 return provider.runCommand(requestType, parameter, "", false); // Skipping reveal.
             }
@@ -319,6 +329,18 @@ export class ExtensionHost {
         return this.connectionsDataModel.isValidConnectionId(connectionId);
     }
 
+    private setupCloudMigration(treeController: OpenEditorsTreeController) {
+        const { openDocumentsModel, refreshTree, revealEntry } = treeController;
+
+        this.cloudMigrationCommandHandler = new CloudMigrationCommandHandler(
+            openDocumentsModel,
+            refreshTree,
+            revealEntry,
+        );
+
+        this.cloudMigrationCommandHandler.setup(this);
+    }
+
     /**
      * Prepares all VS Code providers for first use.
      */
@@ -326,11 +348,13 @@ export class ExtensionHost {
         // Register the extension host as target for broadcasts.
         requisitions.setRemoteTarget(this);
 
-        this.documentCommandHandler.setup(this);
+        const openEditorsTreeController = this.documentCommandHandler.setup(this);
         this.notebookProvider.setup(this);
         this.mrsCommandHandler.setup(this);
         this.mdsCommandHandler.setup(this);
         this.msmCommandHandler.setup(this);
+
+        this.setupCloudMigration(openEditorsTreeController);
 
         const updateLogLevel = (): void => {
             const configuration = workspace.getConfiguration(`msg.debugLog`);

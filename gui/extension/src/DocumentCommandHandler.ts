@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,8 +50,8 @@ import {
     type ICdmTriggerEntry, type ICdmViewEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import {
-    OdmEntityType, OpenDocumentDataModel, type IOdmConnectionPageEntry, type IOdmNotebookEntry, type IOdmScriptEntry,
-    type IOdmShellSessionEntry, type OpenDocumentDataModelEntry,
+    OdmEntityType, OpenDocumentDataModel, type IOdmConnectionPageEntry,
+    type IOdmNotebookEntry, type IOdmScriptEntry, type IOdmShellSessionEntry, type OpenDocumentDataModelEntry,
 } from "../../frontend/src/data-models/OpenDocumentDataModel.js";
 import { ConnectionProcessor } from "../../frontend/src/modules/common/ConnectionProcessor.js";
 import { MrsDbObjectType } from "../../frontend/src/modules/mrs/types.js";
@@ -63,6 +63,7 @@ import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInte
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
 import { convertErrorToString, getConnectionInfoFromDetails, uuid } from "../../frontend/src/utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber } from "../../frontend/src/utilities/string-helpers.js";
+import { OpenEditorsTreeController } from "./CloudMigrationCommandHandler.js";
 import { CodeBlocks } from "./CodeBlocks.js";
 import { ExtensionHost } from "./ExtensionHost.js";
 import {
@@ -129,7 +130,7 @@ export class DocumentCommandHandler {
         this.connectionsProvider = connectionsProvider;
     }
 
-    public setup(host: ExtensionHost): void {
+    public setup(host: ExtensionHost): OpenEditorsTreeController {
         this.host = host;
         const context = host.context;
 
@@ -1094,6 +1095,15 @@ export class DocumentCommandHandler {
             }
         }));
 
+        return {
+            openDocumentsModel: this.openDocumentsModel,
+            refreshTree: () => {
+                this.openEditorsTreeDataProvider.refresh();
+            },
+            revealEntry: (element, options) => {
+                return openEditorsTreeView.reveal(element, options);
+            },
+        };
     }
 
     public async addNewSqlScript(details: IConnectionDetails, command: string, schemaName: string,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -60,6 +60,8 @@ import {
 import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
+import { appParameters } from "../../supplement/AppParameters.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
@@ -277,6 +279,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                         command={{ title: "Duplicate Connection…", command: "duplicate" }}
                         icon={Assets.misc.cloneIcon}
                     />
+                    <MenuItem command={{ title: "-", command: "" }} />
+                    <MenuItem command={{
+                        title: "Start MySQL Cloud Migration Assistant",
+                        command: "msg.startMySQLCloudMigrationAssistant",
+                    }} icon={Codicon.CloudUpload} />
                     <MenuItem command={{ title: "-", command: "" }} />
                     <MenuItem command={{
                         title: "Open New MySQL Shell Console for this Connection",
@@ -644,6 +651,15 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     caption: entry.caption,
                 };
                 void requisitions.execute("openSession", details);
+                break;
+            }
+
+            case "msg.startMySQLCloudMigrationAssistant": {
+                if (appParameters.embedded) {
+                    void requisitions.executeRemote("startMigrationAssistant", entry.details);
+                } else {
+                    ui.showErrorMessage("Not implemented.", {});
+                }
                 break;
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,8 @@
 
 import { Event, EventEmitter, TreeDataProvider, TreeItem, type ProviderResult } from "vscode";
 import {
-    OdmEntityType, OpenDocumentDataModel, type IOdmAdminEntry, type OpenDocumentDataModelEntry,
+    OdmEntityType, OpenDocumentDataModel, type IOdmAdminEntry,
+    type OpenDocumentDataModelEntry,
 } from "../../../../frontend/src/data-models/OpenDocumentDataModel.js";
 
 import type {
@@ -35,6 +36,7 @@ import { requisitions } from "../../../../frontend/src/supplement/Requisitions.j
 import { IShellSessionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
 import { ShellConsoleSessionRootTreeItem } from "../ShellTreeProvider/ShellConsoleSessionRootTreeItem.js";
 import { ShellConsoleSessionTreeItem } from "../ShellTreeProvider/ShellConsoleSessionTreeItem.js";
+import { CloudMigrationTreeItem } from "./CloudMigrationTreeItem.js";
 import { ConnectionOverviewTreeItem } from "./ConnectionOverviewTreeItem.js";
 import { DocumentConnectionPageTreeItem } from "./DocumentConnectionPageTreeItem.js";
 import { DocumentProviderTreeItem } from "./DocumentProviderTreeItem.js";
@@ -157,6 +159,10 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
             case OdmEntityType.ShellSessionRoot: {
                 return new ShellConsoleSessionRootTreeItem(entry);
+            }
+
+            case OdmEntityType.CloudMigration: {
+                return new CloudMigrationTreeItem(entry);
             }
 
             default: {

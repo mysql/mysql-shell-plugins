@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -78,7 +78,7 @@ import {
     ProjectsData,
     ShellInterfaceMigration
 } from "../../supplement/ShellInterface/ShellInterfaceMigration.js";
-import { convertErrorToString, uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, sleep, uuid } from "../../utilities/helpers.js";
 import { LoadingIndicator } from "../LazyAppRouter.js";
 import { ui } from "../UILayer.js";
 import { JsonObject, ValueType } from "../general-types.js";
@@ -93,7 +93,7 @@ import {
 } from "./FormGroup.js";
 import { MigrationOverview } from "./MigrationOverview.js";
 import { MigrationStatus } from "./MigrationStatus.js";
-import { Compartment, convertCompartments, waitForPromise } from "./helpers.js";
+import { Compartment, convertCompartments, IDatabaseSource, generateWbCmdLineArgs, waitForPromise } from "./helpers.js";
 import {
     ComputeShapeInfo, ConfigTemplate, configTemplates, customTemplateId, getClusterSizeBoundaries, Shapes,
     shapesByTemplate, standardTemplateId
@@ -213,7 +213,7 @@ export interface IMigrationAppState {
     aborted?: boolean;
     migrationSource?: string;
 
-    databaseSource: { name: string, host: string, port: string, user: string, id: string; };
+    databaseSource: IDatabaseSource;
 
     projects?: ProjectsData;
     project?: IProjectData;
@@ -266,9 +266,9 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     private readonly popups = new Map<MockStateText, RefObject<Popup>>();
     private dialogRef = createRef<Dialog>();
     private mhs = new ShellInterfaceMhs();
-    private migration = new ShellInterfaceMigration();
-    private logger = new MigrationSubAppLogger(new URLSearchParams(window.location.search).has("enableLogger")
-        || !!appParameters.inDevelopment);
+    private enableLogger = new URLSearchParams(window.location.search).has("enableLogger");
+    private migration = new ShellInterfaceMigration(this.enableLogger);
+    private logger = new MigrationSubAppLogger(this.enableLogger || !!appParameters.inDevelopment);
 
     private sh = new ShapesHelper(shapesByTemplate);
     private beReq = new BackendRequestHelper();
@@ -521,7 +521,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     public constructor(props: IMigrationSubAppProps) {
         super(props);
 
-        const databaseSource = {
+        const databaseSource: IDatabaseSource = {
             name: this.queryParams.get("connectionName") ?? "local connection",
             user: this.queryParams.get("user") ?? "root",
             host: this.queryParams.get("host") ?? "localhost",
@@ -617,6 +617,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         requisitions.register("setCommandLineArguments", this.setCommandLineArguments);
         requisitions.register("setApplicationData", this.setApplicationData);
         requisitions.register("showAbout", this.showAbout);
+        requisitions.executeRemote("migrationAssistantMounted", undefined);
 
         void this.onLoad().then(() => {
             requisitions.executeRemote("getCommandLineArguments", undefined);
@@ -636,6 +637,12 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         this.handleOverlay(prevState);
 
         void watchFormChanges(prevState, formGroupValues, this.watchers);
+    }
+
+    public override componentWillUnmount(): void {
+        requisitions.unregister("setCommandLineArguments", this.setCommandLineArguments);
+        requisitions.unregister("setApplicationData", this.setApplicationData);
+        requisitions.unregister("showAbout", this.showAbout);
     }
 
     public override render() {
@@ -1330,7 +1337,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     }
 
     private async monitorWorkProgress(): Promise<void> {
-        const { tiles } = this.state;
+        const { tiles, project } = this.state;
 
         try {
             const backendWorkState = await this.fetchWorkStatus();
@@ -1340,11 +1347,12 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             if (backendWorkState.status == WorkStatus.IN_PROGRESS
                 || backendWorkState.status == WorkStatus.READY
             ) {
-                await new Promise(resolve => {
-                    return setTimeout(resolve, 2000);
-                });
+                await sleep(2000);
                 await this.monitorWorkProgress();
             } else {
+                if (project) {
+                    requisitions.executeRemote("migrationStopped", project);
+                }
                 this.setState({
                     migrationInProgress: false,
                 });
@@ -1372,7 +1380,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             await this.commitAll();
         }
 
-        const { tiles, abortMigration } = this.state;
+        const { tiles, abortMigration, project } = this.state;
 
         if (abortMigration) {
             this.setState({ migrationInProgress: false });
@@ -1381,6 +1389,9 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             return;
         }
 
+        if (project) {
+            requisitions.executeRemote("migrationStarted", project);
+        }
         this.setState({ backendRequestInProgress: true });
         try {
             const backendWorkState = await this.migration.workStart();
@@ -1393,6 +1404,9 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             const message = convertErrorToString(e);
             ui.showErrorMessage(`Failed to start: ${message}`, {});
         } finally {
+            if (project) {
+                requisitions.executeRemote("migrationStopped", project);
+            }
             this.setState({ backendRequestInProgress: false, migrationInProgress: false });
         }
 
@@ -3464,13 +3478,7 @@ Migration Assistant.`}
                     }
                     const migrationSource = atob(migrationSourceBase64);
 
-                    const migrationData = JSON.parse(migrationSource) as {
-                        name?: string;
-                        host?: string;
-                        port?: string;
-                        user?: string;
-                        id?: string;
-                    };
+                    const migrationData = JSON.parse(migrationSource) as Partial<IDatabaseSource>;
 
                     const state: Pick<IMigrationAppState,
                         "migrationSource" | "databaseSource" | "formGroupValues"> = {
@@ -3543,10 +3551,7 @@ Migration Assistant.`}
     private onSendWebMessageClick = (_e: MouseEvent | KeyboardEvent) => {
         const { fakeWebMessage } = this.state;
         if (fakeWebMessage) {
-            const base64 = btoa(fakeWebMessage);
-            const message = `{"migrate": "${base64}"}`;
-
-            void requisitions.execute("setCommandLineArguments", message);
+            void requisitions.execute("setCommandLineArguments", generateWbCmdLineArgs(fakeWebMessage));
         }
     };
 
@@ -4530,7 +4535,9 @@ Migration Assistant.`}
             const openedProject = await this.migration.openProject("");
             if (openedProject.id !== ""
                 && this.connectionString === openedProject.source
-                && this.uniqueConnectionId === openedProject.name) {
+                && this.uniqueConnectionId === openedProject.name
+                && !this.queryParams.has("forceNewProject")
+            ) {
                 currentProject = openedProject;
             }
 

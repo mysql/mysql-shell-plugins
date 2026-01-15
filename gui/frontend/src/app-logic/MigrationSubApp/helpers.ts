@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,20 @@ export interface Compartment {
     id: string;
     name: string;
 }
+
+export interface IDatabaseSource {
+    name: string;
+    host: string;
+    port: string;
+    user: string;
+    id: string;
+}
+
+export const generateWbCmdLineArgs = (databaseSourceJson: string) => {
+    const base64 = btoa(databaseSourceJson);
+
+    return `{"migrate": "${base64}"}`;
+};
 
 /**
  * Builds a tree structure from a flat array of compartments.

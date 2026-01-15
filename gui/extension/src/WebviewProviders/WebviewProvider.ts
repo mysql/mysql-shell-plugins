@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,6 +37,8 @@ import {
 import { IDialogResponse } from "../../../frontend/src/app-logic/general-types.js";
 import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
 
+import { IProjectData } from "../../../frontend/src/communication/ProtocolMigration.js";
+import { IConnectionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { printChannelOutput } from "../extension.js";
 import { prepareWebviewContent } from "./webview-helpers.js";
 
@@ -218,6 +220,9 @@ export class WebviewProvider implements IWebviewProvider {
 
             this.requisitions.register("closeInstance",
                 this.forwardSimple.bind(this, "closeInstance") as SimpleCallback);
+            this.requisitions.register("startMigrationAssistant", this.startMigrationAssistant);
+            this.requisitions.register("migrationStarted", this.migrationStarted);
+            this.requisitions.register("migrationStopped", this.migrationStopped);
         }
     }
 
@@ -324,5 +329,17 @@ export class WebviewProvider implements IWebviewProvider {
         }
 
         return viewColumn;
+    };
+    
+    private startMigrationAssistant = (details: IConnectionDetails): Promise<boolean> => {
+        return requisitions.execute("startMigrationAssistant", details);
+    };
+    
+    private migrationStarted = (currentProject: IProjectData): Promise<boolean> => {
+        return requisitions.execute("migrationStarted", currentProject);
+    };
+    
+    private migrationStopped = (currentProject: IProjectData): Promise<boolean> => {
+        return requisitions.execute("migrationStopped", currentProject);
     };
 }

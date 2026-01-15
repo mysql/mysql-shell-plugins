@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -77,6 +77,9 @@ export enum OdmEntityType {
 
     /** A EER diagram page */
     SchemaDiagram,
+
+    /** Cloud migration tab */
+    CloudMigration,
 }
 
 /** The base entry for all interfaces here. */
@@ -137,6 +140,12 @@ export interface IOdmConnectionOverviewEntry extends IOdmBaseEntry {
     readonly type: OdmEntityType.Overview;
 
     readonly parent: IOdmAppProviderEntry;
+}
+
+/** The interface for cloud migration root entry. */
+export interface IOdmCloudMigrationEntry extends IOdmBaseEntry {
+    readonly type: OdmEntityType.CloudMigration;
+    readonly provider: IWebviewProvider;
 }
 
 /** The interface for a connection page. */
@@ -224,7 +233,8 @@ export type OpenDocumentDataModelEntry =
     | IOdmSchemaDiagramEntry
     | IOdmAppProviderEntry
     | IOdmShellSessionEntry
-    | IOdmShellSessionRootEntry;
+    | IOdmShellSessionRootEntry
+    | IOdmCloudMigrationEntry;
 
 /** Maps a document type to its associated interface type. */
 export interface IDocumentTypeMap {
@@ -238,6 +248,7 @@ export interface IDocumentTypeMap {
     [OdmEntityType.AppProvider]: IOdmAppProviderEntry;
     [OdmEntityType.ShellSessionRoot]: IOdmShellSessionRootEntry;
     [OdmEntityType.ShellSession]: IOdmShellSessionEntry;
+    [OdmEntityType.CloudMigration]: never;
 }
 
 export interface IBaseDocumentParameters {
@@ -259,6 +270,7 @@ export interface IDocumentOpenParameterMap {
     [OdmEntityType.AppProvider]: never;
     [OdmEntityType.ShellSessionRoot]: never;
     [OdmEntityType.ShellSession]: IShellSessionDetails;
+    [OdmEntityType.CloudMigration]: never;
 }
 
 /** Typed parameters for the document creation call. */
@@ -272,6 +284,8 @@ export interface IDocumentCreateParameters<K extends keyof IDocumentOpenParamete
  * a tree of documents. The tree can be used to represent the open documents in a connection or a provider.
  */
 export class OpenDocumentDataModel {
+    private addedRoots: OpenDocumentDataModelEntry[] = [];
+
     #defaultProvider: IOdmAppDefaultProviderEntry;
 
     #appProviders = new Map<IWebviewProvider, IOdmAppProviderEntry>();
@@ -300,7 +314,7 @@ export class OpenDocumentDataModel {
      */
     public get roots(): OpenDocumentDataModelEntry[] {
         if (this.#appProviders.size > 0) {
-            return [...this.#appProviders.values()];
+            return this.withAddedRoots([...this.#appProviders.values()]);
         }
 
         const roots: OpenDocumentDataModelEntry[] = [];
@@ -318,7 +332,7 @@ export class OpenDocumentDataModel {
             roots.push(this.#defaultProvider.shellSessionRoot);
         }
 
-        return roots;
+        return this.withAddedRoots(roots);
     }
 
     public get overview(): IOdmConnectionOverviewEntry {
@@ -1098,6 +1112,16 @@ export class OpenDocumentDataModel {
         return this.#appProviders.get(provider);
     }
 
+    public addRoot(root: OpenDocumentDataModelEntry) {
+        this.addedRoots.push(root);
+    }
+
+    public removeAddedRoot(root?: OpenDocumentDataModelEntry) {
+        this.addedRoots = this.addedRoots.filter((candidate) => {
+            return candidate !== root;
+        });
+    }
+
     /**
      * @param provider If given only the documents of the given provider are returned.
      *
@@ -1185,5 +1209,9 @@ export class OpenDocumentDataModel {
         for (const subscriber of this.#subscribers) {
             subscriber(list);
         }
+    }
+
+    private withAddedRoots(roots: OpenDocumentDataModelEntry[]): OpenDocumentDataModelEntry[] {
+        return [...roots, ...this.addedRoots];
     }
 }

@@ -424,6 +424,10 @@
                 "title": "Show MySQL System Schemas"
             },
             {
+                "command": "msg.startMySQLCloudMigrationAssistant",
+                "title": "Start MySQL Cloud Migration Assistant"
+            },
+            {
                 "command": "msg.hideSystemSchemasOnConnection",
                 "title": "Hide MySQL System Schemas"
             },
@@ -555,6 +559,10 @@
             {
                 "command": "msg.dropLibrary",
                 "title": "Drop Library..."
+            },
+            {
+                "command": "msg.selectCloudMigration",
+                "title": "Select Cloud Migration"
             },
             {
                 "command": "msg.createTrigger",
@@ -1561,6 +1569,11 @@
                     "alt": "msg.hideSystemSchemasOnConnection",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "4_msg@1"
+                },
+                {
+                    "command": "msg.startMySQLCloudMigrationAssistant",
+                    "when": "view == msg.connections && viewItem == connectionMySQL",
+                    "group": "8_msg@1"
                 },
                 {
                     "command": "msg.loadScriptFromDisk",

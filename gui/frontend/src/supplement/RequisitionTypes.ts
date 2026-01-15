@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,6 +38,7 @@ import type {
     IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
 } from "../communication/ProtocolMrs.js";
 
+import { IProjectData } from "../communication/ProtocolMigration.js";
 import type { IThemeChangeData } from "../components/Theming/ThemeManager.js";
 import type { StatusBarAlignment } from "../components/ui/Statusbar/StatusBarItem.js";
 import type {
@@ -305,6 +306,8 @@ export interface IWebviewProvider {
     close(): void;
     runCommand<K extends keyof IRequestTypeMap>(requestType: K, parameter: IRequisitionCallbackValues<K>,
         caption: string, reveal: boolean): Promise<boolean>;
+
+    reveal(): void;
 }
 
 /**
@@ -693,4 +696,9 @@ export interface IRequestTypeMap {
 
     "setApplicationData": (message: string) => Promise<boolean>;
     "getApplicationData": SimpleCallback;
+    
+    "startMigrationAssistant": (details: IConnectionDetails) => Promise<boolean>;
+    "migrationStarted": (currentProject: IProjectData) => Promise<boolean>;
+    "migrationStopped": (currentProject: IProjectData) => Promise<boolean>;
+    "migrationAssistantMounted": SimpleCallback;
 }
