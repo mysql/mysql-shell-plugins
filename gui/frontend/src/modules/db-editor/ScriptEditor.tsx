@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,6 +50,11 @@ import type { IOpenDocumentState, ISavedEditorState } from "./ConnectionTab.js";
 import { DocumentToolbar } from "./DocumentToolbar.js";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
 import type { IToolbarItems } from "./index.js";
+
+import { appParameters } from "../../supplement/AppParameters.js";
+import { selectFileInBrowser } from "../../utilities/helpers.js";
+
+
 
 interface IScriptEditorProperties extends IComponentProperties {
     /** When true some adjustments are made to the UI to represent the editor in a way needed for pure notebooks. */
@@ -496,7 +501,35 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 language: editorState.model.getLanguageId() as EditorLanguage,
                 content: "",
             };
-            requisitions.executeRemote("editorLoadScript", details);
+            if (appParameters.embedded) {
+                requisitions.executeRemote("editorLoadScript", details);
+                return;
+            }
+
+            const languageToExt: Partial<Record<EditorLanguage, string[]>> = {
+                    mysql:       [".mysql", ".sql"],
+                    sql:         [".sql"],
+                    typescript:  [".ts"],
+                    javascript:  [".js"],
+                    // fallback – any text file
+                    msg:         [".sql", ".mysql", ".ts", ".js"],
+            };
+
+            const extensions = languageToExt[details.language] ?? [];
+
+            void selectFileInBrowser(extensions, false).then((files: File[] | null) => {
+                if (!files?.length) {
+                    return;
+                }
+
+                const file = files[0];
+
+                void file.text().then((content: string) => {
+                    details.content = content
+
+                    requisitions.execute("editorLoadScript", details)
+                });
+            });
         }
     };
 

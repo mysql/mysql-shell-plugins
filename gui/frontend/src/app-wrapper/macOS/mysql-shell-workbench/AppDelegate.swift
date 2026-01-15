@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -425,20 +425,12 @@ class AppDelegate: NSObject, AppProtocol, NSApplicationDelegate, WKNavigationDel
     panel.canChooseFiles = true;
     panel.resolvesAliases = true;
 
-    // For security reasons a browser does not tell a web page the full file name of a selected file.
-    // So we have to tell the app indirectly.
     panel.begin { (result) in
       if result == .OK {
-        var list: [String] = [];
-        for url in panel.urls {
-          if (url.isFileURL) {
-            list.append(url.absoluteString);
-          }
-        }
-        self.sendAppMessage(command: "selectFile", data: list);
+        completionHandler(panel.urls)
+      } else {
+        completionHandler(nil)
       }
-
-      completionHandler(nil)
     }
 
   }
