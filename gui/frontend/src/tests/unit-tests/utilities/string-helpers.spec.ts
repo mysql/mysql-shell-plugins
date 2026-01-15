@@ -26,35 +26,44 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    convertCamelToTitleCase, convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase, convertPropValue,
-    convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, unquote,
+    convertCamelToTitleCase,
+    convertObjectKeysCamelToSnakeCase,
+    convertObjectKeysSnakeToCamelCase,
+    convertPropValue,
+    convertTitleToCamelCase,
+    extractFirstQuotedToken,
+    filterInt,
+    formatTime,
+    formatWithNumber,
+    isWhitespaceOnly,
+    parseQuotedObjectName,
+    quoteIdentifier,
+    quoteObjectName,
+    quoteString,
+    unquote,
+    unquoteIdentifier,
 } from "../../../utilities/string-helpers.js";
 import { loremIpsum } from "../test-helpers.js";
 
 describe("String Helpers Tests", () => {
     it("Quoting and Unquoting", () => {
         // Default quote char.
-        expect(quote("")).toBe("``");
-        expect(quote("'''''''")).toBe("`'''''''`");
+        expect(quoteIdentifier("")).toBe("``");
+        expect(quoteIdentifier("'''''''")).toBe("`'''''''`");
 
-        expect(quote("Need a quote")).toBe("`Need a quote`");
-        expect(quote("`Need a quote`")).toBe("`Need a quote`");
+        expect(quoteIdentifier("Need a quote")).toBe("`Need a quote`");
+        expect(quoteIdentifier("`Need a quote`")).toBe("```Need a quote```");
+
+        expect(unquoteIdentifier("not quoted"), "not quoted");
+        expect(unquoteIdentifier("`quoted`"), "quoted");
+        expect(unquoteIdentifier("`quo``ted`"), "quo`ted");
+        expect(unquoteIdentifier("```quoted```"), "`quoted`");
 
         // Other quote chars.
-        expect(quote("`Need a quote`", "\"")).toBe("\"`Need a quote`\"");
-        expect(quote("\"Need a quote\"", "\"")).toBe("\"Need a quote\"");
-        expect(quote("Need a quote\"", "\"")).toBe("\"Need a quote\"\""); // Erroneous.
-        expect(quote("\"Need a quote", "\"")).toBe("\"\"Need a quote\""); // Erroneous.
-
-        expect(quote("Need a quote", "(")).toBe("(Need a quote)");
-        expect(quote("Need a quote", "{")).toBe("{Need a quote}");
-        expect(quote("Need a quote", "[")).toBe("[Need a quote]");
-
-        expect(quote("(Need a quote)", "(")).toBe("(Need a quote)");
-        expect(quote("{Need a quote}", "{")).toBe("{Need a quote}");
-        expect(quote("[Need a quote]", "[")).toBe("[Need a quote]");
-
-        expect(quote("ooo", "O")).toBe("OoooO");
+        expect(quoteString("`Need a quote`")).toBe("'`Need a quote`'");
+        expect(quoteString("'Need a quote'")).toBe("'\\'Need a quote\\''");
+        expect(quoteString("Need a quote'")).toBe("'Need a quote\\''"); // Erroneous.
+        expect(quoteString("'Need a quote")).toBe("'\\'Need a quote'"); // Erroneous.
 
         expect(unquote("")).toBe("");
         expect(unquote("``")).toBe("");
@@ -68,6 +77,43 @@ describe("String Helpers Tests", () => {
         expect(unquote("[No quotes please]", "[")).toBe("No quotes please");
 
         expect(unquote("[No quotes please[", "[")).toBe("[No quotes please[");
+    });
+
+    it("Quoting and Unquoting objects", () => {
+        expect(quoteObjectName("db")).toBe("`db`");
+        expect(quoteObjectName("d`b")).toBe("`d``b`");
+        expect(quoteObjectName("`db`")).toBe("```db```");
+        expect(quoteObjectName("db", "table")).toBe("`db`.`table`");
+        expect(quoteObjectName("db", "table", "column")).toBe("`db`.`table`.`column`");
+        expect(quoteObjectName("db", "ta`.`ble")).toBe("`db`.`ta``.``ble`");
+
+        expect(parseQuotedObjectName("`db`")).toStrictEqual({ schema: "db" });
+        expect(parseQuotedObjectName("`d``b`")).toStrictEqual({ schema: "d`b" });
+        expect(parseQuotedObjectName("```db```")).toStrictEqual({ schema: "`db`" });
+        expect(parseQuotedObjectName("`db`.`table`")).toStrictEqual({ schema: "db", objectName: "table" });
+        expect(parseQuotedObjectName("`db`.`ta``.``ble`")).toStrictEqual({ schema: "db", objectName: "ta`.`ble" });
+
+        // Test extractFirstQuotedToken integration
+        expect(parseQuotedObjectName("`db`.`table`.`trigger`")).toStrictEqual({
+            schema: "db", objectName: "table", name: "trigger"
+        });
+
+        expect(parseQuotedObjectName("`db`.`table`.`trigger`.`extra`")).toBeNull(); // More than 3 parts
+    });
+
+    it("Extract First Quoted Token", () => {
+        expect(extractFirstQuotedToken("`schema`")).toStrictEqual({ token: "schema", remaining: "" });
+        expect(extractFirstQuotedToken("`schema`.`table`")).toStrictEqual({ token: "schema", remaining: ".`table`" });
+        expect(extractFirstQuotedToken("`a``b`.`c`")).toStrictEqual({ token: "a`b", remaining: ".`c`" });
+        expect(extractFirstQuotedToken("no quotes here")).toBeNull();
+        expect(extractFirstQuotedToken("")).toBeNull();
+        expect(extractFirstQuotedToken("`unclosed")).toStrictEqual({ token: "`unclosed", remaining: "" });
+        expect(extractFirstQuotedToken("prefix `identifier` suffix")).toStrictEqual({
+            token: "identifier", remaining: " suffix"
+        });
+        expect(extractFirstQuotedToken("`empty``backticks`")).toStrictEqual({
+            token: "empty`backticks", remaining: ""
+        });
     });
 
     it("Property Values", () => {

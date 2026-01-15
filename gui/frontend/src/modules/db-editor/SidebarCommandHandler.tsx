@@ -54,7 +54,7 @@ import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/Sh
 import type { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, getConnectionInfoFromDetails, sleep, uuid } from "../../utilities/helpers.js";
-import { convertSnakeToCamelCase, formatWithNumber, quote } from "../../utilities/string-helpers.js";
+import { convertSnakeToCamelCase, formatWithNumber, quoteObjectName } from "../../utilities/string-helpers.js";
 import { JdvHub } from "../jdv/JdvHub.js";
 import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
@@ -877,13 +877,15 @@ export class SidebarCommandHandler {
                                 const from = uppercaseKeywords ? "FROM" : "from";
 
                                 if (entry.type === CdmEntityType.Column) {
-                                    const qualifiedTableName = `${quote(qualifiedName.schema)}.` +
-                                        quote(qualifiedName.table!);
-                                    query = `${select} ${qualifiedTableName}.${quote(qualifiedName.name)} ${from} ` +
+                                    const qualifiedTableName = quoteObjectName(qualifiedName.schema,
+                                        qualifiedName.table);
+                                    const qualifiedColumnName = quoteObjectName(qualifiedName.schema,
+                                        qualifiedName.table, qualifiedName.name);
+                                    query = `${select} ${qualifiedColumnName} ${from} ` +
                                         qualifiedTableName;
                                 } else {
-                                    const qualifiedTableName = `${quote(qualifiedName.schema)}.` +
-                                        quote(qualifiedName.name);
+                                    const qualifiedTableName = quoteObjectName(qualifiedName.schema,
+                                        qualifiedName.name);
                                     query = `${select} * ${from} ${qualifiedTableName}`;
                                 }
 

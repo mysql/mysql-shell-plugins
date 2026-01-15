@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,28 +38,6 @@ const quotePairs = new Map([
 ]);
 
 /**
- * Wraps the given text with quotes derived from the given quote char, if it isn't already quoted with that char.
- *
- * @param text The text to wrap.
- * @param quoteChar The left hand quote char. For mirrored quotes the closing quote char is automatically selected.
- *
- * @returns The quoted string.
- */
-export const quote = (text: string, quoteChar = "`"): string => {
-    const second = quotePairs.get(quoteChar) ?? quoteChar;
-
-    if (text.length > 2) {
-        const first = text[0];
-        const last = text[text.length - 1];
-        if (quoteChar === first && second === last) {
-            return text;
-        }
-    }
-
-    return `${quoteChar}${text}${second}`;
-};
-
-/**
  * Removes single quote characters from the given text.
  *
  * @param text The input to clean up.
@@ -69,6 +47,7 @@ export const quote = (text: string, quoteChar = "`"): string => {
  * @returns The input without outer whitespaces and quotes.
  */
 export const unquote = (text: string, quotes = "\"'`"): string => {
+    // TODO this needs to be reviewed
     let result = text.trim();
     if (result.length > 1) {
         const first = result[0];
@@ -83,6 +62,164 @@ export const unquote = (text: string, quotes = "\"'`"): string => {
     }
 
     return result;
+};
+
+/**
+ * Quotes (and escapes) a string literal following MySQL rules.
+ * Uses single quotes and escapes special characters using backslash.
+ *
+ * @param str The string to quote.
+ * @returns The quoted string literal.
+ */
+export const quoteString = (str: string): string => {
+    return "'" + escapeSqlString(str) + "'";
+};
+
+/**
+ * Quotes an identifier (e.g., table or column name) following MySQL rules.
+ * Uses backticks and doubles any backticks inside the identifier.
+ *
+ * @param identifier The identifier to quote.
+ * @returns The quoted identifier.
+ */
+export const quoteIdentifier = (identifier: string): string => {
+    return "`" + escapeIdentifier(identifier) + "`";
+};
+
+/**
+ * Unquotes and unescapes a single MySQL identifier.
+ *
+ * @param quoted The quoted identifier, e.g., `name` or `schema``name`.
+ * @returns The unquoted and unescaped identifier.
+ */
+export const unquoteIdentifier = (quoted: string): string => {
+    const trimmed = quoted.trim();
+    if (trimmed.length > 2 && trimmed.startsWith("`") && trimmed.endsWith("`")) {
+        const inner = trimmed.substring(1, trimmed.length - 1);
+
+        return unescapeIdentifier(inner);
+    }
+
+    return trimmed;
+};
+
+/**
+ * Quotes a MySQL object name, optionally with schema. Uses backticks for identifiers.
+ *
+ * @param schemaName The schema name.
+ * @param objectName The object name, unless it's just a schema.
+ * @param name Name within the object (e.g. column name if object is a table)
+ *
+ * @returns The quoted identifier, e.g., `schema`.`object`.`name`, `schema`.`object` or just `schema`.
+ */
+export const quoteObjectName = (schemaName: string, objectName?: string, name?: string): string => {
+    if (name && objectName) {
+        return `${quoteIdentifier(schemaName)}.${quoteIdentifier(objectName)}.${quoteIdentifier(name)}`;
+    } else if (name === undefined && objectName) {
+        return `${quoteIdentifier(schemaName)}.${quoteIdentifier(objectName)}`;
+    } else {
+        return quoteIdentifier(schemaName);
+    }
+};
+
+/**
+ * Extracts the first quoted MySQL identifier from a string and returns it along with the remaining part.
+ *
+ * @param input The input string containing quoted identifiers.
+ * @returns An object with the first quoted token (unquoted) and the remaining string,
+ *          or null if no quoted token is found.
+ */
+export const extractFirstQuotedToken = (input: string): { token: string; remaining: string } | null => {
+    let i = 0;
+    while (i < input.length) {
+        if (input[i] === "`") {
+            // Found start of quoted identifier
+            let token = "`";
+            i++;
+            while (i < input.length) {
+                if (input[i] === "`") {
+                    if (i + 1 < input.length && input[i + 1] === "`") {
+                        // Escaped backtick
+                        token += "``";
+                        i += 2;
+                    } else {
+                        // End of quoted identifier
+                        token += "`";
+                        i++;
+                        break;
+                    }
+                } else {
+                    token += input[i];
+                    i++;
+                }
+            }
+
+            // Unquote the token
+            const unquotedToken = unquoteIdentifier(token);
+            const remaining = input.slice(i);
+
+            return { token: unquotedToken, remaining };
+        }
+        i++;
+    }
+
+    return null;
+};
+
+/**
+ * Parses, unquotes and unescapes a quoted and qualified MySQL object name
+ *
+ * For plain schema names, objectName and name are undefined.
+ * Assumes the input is formatted as produced by quoteObjectName or similar.
+ *
+ * @param quoted The quoted identifier, e.g., `schema`.`object`.`name`, `schema`.`object` or `schema`.
+ *
+ * @returns An object with schema and optional objectName and name.
+ */
+export const parseQuotedObjectName = (quoted: string): {
+    schema: string; objectName?: string, name?: string
+} | null => {
+    let remaining = quoted.trim();
+    const schemaResult = extractFirstQuotedToken(remaining);
+    if (!schemaResult) {
+        return null;
+    }
+
+    const schema = schemaResult.token;
+    remaining = schemaResult.remaining.trim();
+
+    if (!remaining.startsWith(".")) {
+        return { schema };
+    }
+
+    remaining = remaining.slice(1).trim();
+    const objectResult = extractFirstQuotedToken(remaining);
+    if (!objectResult) {
+        return { schema };
+    }
+
+    const objectName = objectResult.token;
+    remaining = objectResult.remaining.trim();
+
+    if (!remaining.startsWith(".")) {
+        return { schema, objectName };
+    }
+
+    remaining = remaining.slice(1).trim();
+    const nameResult = extractFirstQuotedToken(remaining);
+    if (!nameResult) {
+        return { schema, objectName };
+    }
+
+    const name = nameResult.token;
+    remaining = nameResult.remaining.trim();
+
+    // If there's more content after the third part, it's invalid
+    if (remaining.length > 0) {
+        return null;
+    }
+
+    return { schema, objectName, name };
 };
 
 /**
@@ -591,4 +728,24 @@ export const escapeSqlString = (str: string): string => {
                 return char;
         }
     });
+};
+
+/**
+ * Escapes a MySQL identifier by replacing single backticks with double backticks.
+ *
+ * @param identifier The identifier to be escaped.
+ * @returns The escaped identifier.
+ */
+export const escapeIdentifier = (identifier: string): string => {
+    return identifier.replace(/`/g, "``");
+};
+
+/**
+ * Unescapes a MySQL identifier by replacing doubled backticks with single backticks.
+ *
+ * @param escaped The escaped identifier content (with doubled backticks).
+ * @returns The unescaped identifier.
+ */
+export const unescapeIdentifier = (escaped: string): string => {
+    return escaped.replace(/``/g, "`");
 };
