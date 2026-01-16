@@ -160,6 +160,7 @@ export enum CompatibilityFlags {
     strip_invalid_grants = 'strip_invalid_grants',
     strip_restricted_grants = 'strip_restricted_grants',
     strip_tablespaces = 'strip_tablespaces',
+    target_has_mysql_native_password = 'target_has_mysql_native_password',
     unescape_wildcard_grants = 'unescape_wildcard_grants',
     IGNORE = 'IGNORE',
     EXCLUDE_OBJECT = 'EXCLUDE_OBJECT'

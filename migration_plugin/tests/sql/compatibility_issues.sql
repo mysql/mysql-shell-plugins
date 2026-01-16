@@ -1,4 +1,4 @@
--- Copyright (c) 2025, Oracle and/or its affiliates.
+-- Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License, version 2.0,
@@ -95,3 +95,18 @@ CREATE USER 'valid_definer'@'localhost' IDENTIFIED WITH caching_sha2_password BY
 /*!90200 CREATE LIBRARY `missing_dependency` LANGUAGE JAVASCRIPT AS $$ export function squared(n) { return n*n; } $$ */;
 /*!90200 CREATE DEFINER='valid_definer'@'localhost' FUNCTION `missing_dependency`(n INTEGER) RETURNS INTEGER DETERMINISTIC LANGUAGE JAVASCRIPT USING (`missing_dependency` AS mylib) AS $$ return mylib.squared(n); $$ */;
 /*!90200 DROP LIBRARY `missing_dependency` */;
+
+DELIMITER //
+
+CREATE PROCEDURE create_mnp_user()
+BEGIN
+  DECLARE available INT DEFAULT 0;
+  SELECT 1 INTO available FROM information_schema.plugins WHERE plugin_name='mysql_native_password' AND plugin_status='ACTIVE';
+  IF available > 0 THEN
+    CREATE USER 'mnp_auth_plugin'@'localhost' IDENTIFIED WITH mysql_native_password BY 'zaq12WSX';
+  END IF;
+END //
+
+DELIMITER ;
+
+CALL create_mnp_user();

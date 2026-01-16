@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,15 @@ import pytest
 from .helpers import execute_script, server_version, shell_version
 
 
+g_server_version = (0, 0, 0)
+g_supports_mnp = False
+
+
+def supports_libraries():
+    global g_server_version
+    return g_server_version >= (9, 2, 0)
+
+
 def load_compatibility_issues(session):
     execute_script(session, pathlib.Path(__file__).parent.parent /
                    "sql" / "compatibility_issues.sql")
@@ -42,6 +51,14 @@ def cleanup_compatibility_issues(session):
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_test(sandbox_session):
+    global g_server_version
+    g_server_version = server_version(sandbox_session)
+
+    global g_supports_mnp
+    g_supports_mnp = True if sandbox_session.run_sql(
+        "SELECT 1 FROM information_schema.plugins WHERE plugin_name='mysql_native_password' AND plugin_status='ACTIVE'"
+    ).fetch_one() else False
+
     cleanup_compatibility_issues(session=sandbox_session)
     load_compatibility_issues(session=sandbox_session)
     yield
@@ -61,6 +78,11 @@ def setup_migration_options(session) -> MigrationOptions:
     options.filters.users = IncludeList()
     options.filters.users.exclude = [
         "admin", "root", "skipped_role", "skipped_user",
+    ]
+
+    options.filters.routines = IncludeList()
+    options.filters.routines.exclude = [
+        "`compatibility_issues`.`create_mnp_user`",
     ]
 
     options.targetMySQLOptions = DBSystemOptions()
@@ -103,6 +125,7 @@ def test_check_compatibility(sandbox_session):
         "user/unsupported_auth_plugin",
         MessageLevel.ERROR,
         "Authentication Plugin Compatibility",
+        f"""{"<li>User 'mnp_auth_plugin'@'localhost' is using an unsupported authentication plugin 'mysql_native_password'\n" if g_supports_mnp else ""}"""
         "<li>User 'unsupported_auth_plugin'@'localhost' is using an unsupported authentication plugin 'mysql_no_login'",
         """The following user accounts use unsupported authentication plugins and will be locked in the target MySQL.
 
@@ -113,7 +136,10 @@ must be changed before they can connect to MySQL.
 You may also manually convert these accounts to
 <a href="https://dev.mysql.com/doc/refman/en/caching-sha2-pluggable-authentication.html">caching_sha2_password</a>
 before migrating and reset their password; or exclude them from being migrated.""",
-        ["user:'unsupported_auth_plugin'@'localhost'"],
+        [
+            *(["user:'mnp_auth_plugin'@'localhost'"] if g_supports_mnp else []),
+            "user:'unsupported_auth_plugin'@'localhost'",
+        ],
         [
             CompatibilityFlags.lock_invalid_accounts,
             CompatibilityFlags.skip_invalid_accounts,
@@ -526,7 +552,7 @@ specified as their definer.""",
 
     # TODO: object/object_collation_replaced - requires MariaDB
 
-    if server_version(sandbox_session) >= (9, 2, 0):
+    if supports_libraries():
         expected_issues._add_check(
             "routine/missing_dependency",
             MessageLevel.WARNING,
@@ -599,9 +625,13 @@ def test_check_compatibility_fixed(sandbox_session):
         "user/unsupported_auth_plugin",
         MessageLevel.NOTICE,
         None,  # type: ignore
+        f"""{"<li>User 'mnp_auth_plugin'@'localhost' is using an unsupported authentication plugin 'mysql_native_password', this account has been updated and locked\n" if g_supports_mnp else ""}"""
         "<li>User 'unsupported_auth_plugin'@'localhost' is using an unsupported authentication plugin 'mysql_no_login', this account has been updated and locked",
         None,  # type: ignore
-        ["user:'unsupported_auth_plugin'@'localhost'"],
+        [
+            *(["user:'mnp_auth_plugin'@'localhost'"] if g_supports_mnp else []),
+            "user:'unsupported_auth_plugin'@'localhost'",
+        ],
         [CompatibilityFlags.lock_invalid_accounts],
         CheckStatus.OK
     )
@@ -739,7 +769,7 @@ MySQL HeatWave Service Pre-requisites</a>""",
         None,  # type: ignore
         "<li>Event `compatibility_issues`.`invalid_definer_missing_user_e` had definer clause removed\n"
         "<li>Function `compatibility_issues`.`invalid_definer_missing_user_f` had definer clause removed\n"
-        "<li>Function `compatibility_issues`.`missing_dependency` had definer clause removed\n"
+        f"{'<li>Function `compatibility_issues`.`missing_dependency` had definer clause removed\n' if supports_libraries() else ''}"
         "<li>Procedure `compatibility_issues`.`invalid_definer_missing_user_p` had definer clause removed\n"
         "<li>Trigger `compatibility_issues`.`invalid_definer_missing_user_t`.`invalid_definer_missing_user_tt` had definer clause removed\n"
         "<li>View `compatibility_issues`.`invalid_definer_missing_user_v` had definer clause removed\n"
@@ -750,7 +780,8 @@ MySQL HeatWave Service Pre-requisites</a>""",
         [
             "event:`compatibility_issues`.`invalid_definer_missing_user_e`",
             "function:`compatibility_issues`.`invalid_definer_missing_user_f`",
-            "function:`compatibility_issues`.`missing_dependency`",
+            *(["function:`compatibility_issues`.`missing_dependency`"]
+              if supports_libraries() else []),
             "procedure:`compatibility_issues`.`invalid_definer_missing_user_p`",
             "trigger:`compatibility_issues`.`invalid_definer_missing_user_t`.`invalid_definer_missing_user_tt`",
             "view:`compatibility_issues`.`invalid_definer_missing_user_v`",
@@ -767,7 +798,7 @@ MySQL HeatWave Service Pre-requisites</a>""",
         MessageLevel.NOTICE,
         None,  # type: ignore
         "<li>Function `compatibility_issues`.`invalid_definer_missing_user_f` had SQL SECURITY characteristic set to INVOKER\n"
-        "<li>Function `compatibility_issues`.`missing_dependency` had SQL SECURITY characteristic set to INVOKER\n"
+        f"{'<li>Function `compatibility_issues`.`missing_dependency` had SQL SECURITY characteristic set to INVOKER\n' if supports_libraries() else ''}"
         "<li>Procedure `compatibility_issues`.`invalid_definer_missing_user_p` had SQL SECURITY characteristic set to INVOKER\n"
         "<li>View `compatibility_issues`.`invalid_definer_missing_user_v` had SQL SECURITY characteristic set to INVOKER\n"
         "<li>View `compatibility_issues`.`invalid_definition_v` had SQL SECURITY characteristic set to INVOKER\n"
@@ -776,7 +807,8 @@ MySQL HeatWave Service Pre-requisites</a>""",
         None,  # type: ignore
         [
             "function:`compatibility_issues`.`invalid_definer_missing_user_f`",
-            "function:`compatibility_issues`.`missing_dependency`",
+            *(["function:`compatibility_issues`.`missing_dependency`"]
+              if supports_libraries() else []),
             "procedure:`compatibility_issues`.`invalid_definer_missing_user_p`",
             "view:`compatibility_issues`.`invalid_definer_missing_user_v`",
             "view:`compatibility_issues`.`invalid_definition_v`",
@@ -784,6 +816,74 @@ MySQL HeatWave Service Pre-requisites</a>""",
             "view:`compatibility_issues`.`restricted_definer_v`",
         ],
         [CompatibilityFlags.strip_definers],
+        CheckStatus.OK
+    )
+
+    validate_checks(expected_issues, acutal_issues)
+
+
+def test_check_compatibility_mysql_native_password_8_4(sandbox_session):
+    if not g_supports_mnp:
+        return
+
+    options = setup_migration_options(sandbox_session)
+    options.targetMySQLOptions.mysqlVersion = "8.4.4"  # type: ignore
+
+    acutal_issues = run_compatibility_checks(options)
+
+    expected_issues = MigrationCheckResults()
+
+    expected_issues._add_check(
+        "user/mysql_native_password_auth_plugin",
+        MessageLevel.ERROR,
+        "Authentication Plugin Availability",
+        "<li>User 'mnp_auth_plugin'@'localhost' is using the 'mysql_native_password' authentication plugin which is disabled by default in MySQL 8.4",
+        """The following user accounts use the mysql_native_password authentication plugin and will be locked in the target MySQL.
+
+The listed accounts use the mysql_native_password authentication plugin which is disabled by default in MySQL 8.4.
+They will still be migrated, but they will be created LOCKED and their password
+must be changed before they can connect to MySQL.
+
+You may also manually convert these accounts to
+<a href="https://dev.mysql.com/doc/refman/en/caching-sha2-pluggable-authentication.html">caching_sha2_password</a>
+before migrating and reset their password; or exclude them from being migrated.""",
+        ["user:'mnp_auth_plugin'@'localhost'"],
+        [
+            CompatibilityFlags.lock_invalid_accounts,
+            CompatibilityFlags.skip_invalid_accounts,
+            CompatibilityFlags.target_has_mysql_native_password,
+            CompatibilityFlags.EXCLUDE_OBJECT,
+        ],
+        CheckStatus.CONFIRMATION_REQUIRED
+    )
+
+    validate_checks(expected_issues, acutal_issues)
+
+
+def test_check_compatibility_mysql_native_password_8_4_fixed(sandbox_session):
+    if not g_supports_mnp:
+        return
+
+    options = setup_migration_options(sandbox_session)
+    options.targetMySQLOptions.mysqlVersion = "8.4.4"  # type: ignore
+    options.compatibilityFlags = [
+        CompatibilityFlags.target_has_mysql_native_password,
+    ]
+
+    acutal_issues = run_compatibility_checks(options)
+
+    expected_issues = MigrationCheckResults()
+
+    expected_issues._add_check(
+        "user/mysql_native_password_auth_plugin",
+        MessageLevel.NOTICE,
+        None,  # type: ignore
+        "<li>User 'mnp_auth_plugin'@'localhost' is using the 'mysql_native_password' authentication plugin which is disabled by default in MySQL 8.4, assuming that plugin has been enabled and dumping this account",
+        None,  # type: ignore
+        ["user:'mnp_auth_plugin'@'localhost'"],
+        [
+            CompatibilityFlags.target_has_mysql_native_password,
+        ],
         CheckStatus.OK
     )
 

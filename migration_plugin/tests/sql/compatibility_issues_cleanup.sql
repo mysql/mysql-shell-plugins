@@ -1,4 +1,4 @@
--- Copyright (c) 2025, Oracle and/or its affiliates.
+-- Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ DROP ROLE IF EXISTS 'skipped_role';
 DROP USER IF EXISTS 'ociadmin'@'localhost';
 DROP USER IF EXISTS 'skipped_user'@'localhost';
 DROP USER IF EXISTS 'valid_definer'@'localhost';
+DROP USER IF EXISTS 'mnp_auth_plugin'@'localhost';
 
 DROP SCHEMA IF EXISTS `compatibility_issues`;
 DROP SCHEMA IF EXISTS `compatibility_issues_skipped`;

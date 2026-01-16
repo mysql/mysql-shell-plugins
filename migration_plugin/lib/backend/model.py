@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -420,6 +420,7 @@ class CompatibilityFlags(StrEnum):
     strip_invalid_grants = "strip_invalid_grants"
     strip_restricted_grants = "strip_restricted_grants"
     strip_tablespaces = "strip_tablespaces"
+    target_has_mysql_native_password = "target_has_mysql_native_password"
     unescape_wildcard_grants = "unescape_wildcard_grants"
 
     IGNORE = "IGNORE"

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -67,6 +67,22 @@ caching_sha2_password</a> before
 migrating and reset their password; or exclude them from being migrated.
 """,
         [CompatibilityFlags.IGNORE, CompatibilityFlags.EXCLUDE_OBJECT],
+    ),
+    "user/mysql_native_password_auth_plugin": (
+        "Authentication Plugin Availability",
+        CheckStatus.CONFIRMATION_REQUIRED,
+        """
+The following user accounts use the mysql_native_password authentication plugin and will be locked in the target MySQL.
+
+The listed accounts use the mysql_native_password authentication plugin which is disabled by default in MySQL 8.4.
+They will still be migrated, but they will be created LOCKED and their password
+must be changed before they can connect to MySQL.
+
+You may also manually convert these accounts to
+<a href="https://dev.mysql.com/doc/refman/en/caching-sha2-pluggable-authentication.html">caching_sha2_password</a>
+before migrating and reset their password; or exclude them from being migrated.
+""",
+        [CompatibilityFlags.EXCLUDE_OBJECT],
     ),
     "user/no_password": (
         "User Password Requirements",
