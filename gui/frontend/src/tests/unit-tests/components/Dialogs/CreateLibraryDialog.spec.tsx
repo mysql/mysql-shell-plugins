@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,7 +47,7 @@ describe("MRS SDK Export dialog tests", () => {
 
     beforeAll(async () => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true, "DEBUG2");
+        launcher = await setupShellForTests(true, true, "DEBUG2", "CreateLibraryDialogTests");
 
         const result = render(<CreateLibraryDialog ref={dialogRef} />);
         unmount = result.unmount;

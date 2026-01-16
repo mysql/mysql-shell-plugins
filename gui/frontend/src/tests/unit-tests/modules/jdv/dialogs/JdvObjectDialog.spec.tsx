@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -46,7 +46,7 @@ describe("Jdv Object dialog tests", () => {
 
     beforeAll(async () => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true, "DEBUG2");
+        launcher = await setupShellForTests(true, true, "DEBUG2", "JdvObjectDialogTests");
 
         dialogHelper = new DialogHelper("jdvObjectDialog", "Json Duality View Builder");
         backend = await createBackend();

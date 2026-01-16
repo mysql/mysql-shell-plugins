@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -393,6 +393,7 @@ export class MySQLShellLauncher {
                 const parameters = [
                     "--no-defaults",
                     "--loose-execution-context=.vsc",
+                    "--log-level=" + logLevel,
                     "--py",
                     "-e",
                     `gui.start.web_server(port=${this.launchDetails.port}, ${secureString}read_token_on_stdin=True)`,

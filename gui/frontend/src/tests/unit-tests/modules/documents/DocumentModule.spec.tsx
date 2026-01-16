@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -93,7 +93,7 @@ describe("Document module tests", (): void => {
         registerUiLayer(uiLayerMock);
         backend = new ShellInterfaceSqlEditor();
 
-        launcher = await setupShellForTests(false, true, "DEBUG3");
+        launcher = await setupShellForTests(true, true, "DEBUG3", "DocumentModuleTests");
         const connectionResult = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
             testMySQLConnection);
         testMySQLConnection.id = Array.isArray(connectionResult) ? connectionResult[0] : -1;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -480,7 +480,7 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
  * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
  */
 export const setupShellForTests = (showOutput: boolean, handleEvents = true,
-    logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
+    logLevel?: LogLevel, context?: string): Promise<MySQLShellLauncher> => {
 
     // Create a test folder name with a random part, in the system's temp folder.
     const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));
@@ -523,7 +523,39 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
                 console.error(`\nError while setting up MySQL Shell connection: ${error.message}\n`);
             },
             () => { // Called on exit of the shell process.
-                fs.rmSync(targetDir, { recursive: true, force: true });
+
+                if (context) {
+                    const logsRoot = path.join(process.cwd(), "logs");
+                    try {
+                        fs.mkdirSync(logsRoot, { recursive: true });
+                    } catch (e) {
+                        // If the folder cannot be created we still want the test to
+                        // clean‑up the temp directory, so we just log the error.
+                        console.error(`⚠️  Could not create logs folder at ${logsRoot}:`, e);
+                    }
+
+                    const shellLogPath = path.join(targetDir, "mysqlsh.log");
+                    if (fs.existsSync(shellLogPath)) {
+                        const destPath = path.join(logsRoot, `${context}-mysqlsh.log`);
+
+                        try {
+                            fs.copyFileSync(shellLogPath, destPath);
+                            console.info(`🔍  MySQL Shell log saved to ${destPath}`);
+                        } catch (e) {
+                            console.error(`⚠️  Failed to copy MySQL Shell log from ${shellLogPath} to ${destPath}:`, e);
+                        }
+                    } else {
+                        console.warn(`⚠️  No MySQL Shell log found at ${shellLogPath}`);
+                    }
+                } else {
+                 console.log("No context provided, skipping MySQL Shell log copy.");   
+                }
+
+                try {
+                    fs.rmSync(targetDir, { recursive: true, force: true });
+                } catch (e) {
+                    console.error(`⚠️  Could not delete temporary dir ${targetDir}:`, e);
+                }                
             },
         );
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -57,7 +57,8 @@ export default defineConfig({
         reporters: ["default", new StaticHtmlReporter("MySQL Shell GUI Unit Test Report")],
         outputFile: resolve("./src/tests/unit-tests/test-report/unit-tests/index.html"),
         include: ["src/tests/unit-tests/**/*.spec.ts", "src/tests/unit-tests/**/*.spec.tsx"],
-        exclude: ["src/tests/e2e/**/*.ts"]
+        exclude: ["src/tests/e2e/**/*.ts"],
+        hookTimeout: 120000,
     },
     resolve: {
         alias: [

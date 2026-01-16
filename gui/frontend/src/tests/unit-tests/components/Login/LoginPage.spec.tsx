@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,7 +41,7 @@ describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG2");
+        launcher = await setupShellForTests(true, true, "DEBUG2", "LoginPageTests");
         expect(MessageScheduler.get.isConnected).toBe(true);
     }, 20000);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -241,7 +241,7 @@ describe("DBConnectionTab tests", (): void => {
 
     beforeAll(async () => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(false, true);
+        launcher = await setupShellForTests(true, true, "DEBUG2", "ConnectionTabTests");
     });
 
     afterAll(async () => {
