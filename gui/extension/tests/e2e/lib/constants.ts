@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -345,11 +345,11 @@ export const allowSorting = "Allow sorting operations using this field";
 export const preventFiltering = "Prevent filtering operations on this field";
 export const preventUpdates = "Prevent updates on this field";
 export const excludeETAG = "Exclude this field from ETAG calculations";
-
 export const lockFlag = join(process.cwd(), "locked");
-
 export const perfDashServerTab = "Server Performance";
 export const perfDashMLETab = "MLE Performance";
+
+export const startMigrationAssistant = "Start MySQL Cloud Migration Assistant";
 
 export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],
@@ -371,6 +371,7 @@ export const dbConnectionCtxMenu = new Map([
     [openShellConnection, 9],
     [browseRESTDocs, 10],
     [configureInstanceForRestService, 11],
+    [startMigrationAssistant, 12]
 ]);
 
 export const dbConnectionSqliteCtxMenu = new Map([

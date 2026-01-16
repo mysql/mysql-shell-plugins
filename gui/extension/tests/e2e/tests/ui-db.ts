@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -55,6 +55,7 @@ import { E2ELogger } from "../lib/E2ELogger";
 import { CreateLibraryDialog } from "../lib/WebViews/Dialogs/CreateLibraryFrom";
 import { E2ERecording } from "../lib/E2ERecording";
 import "../setup/global-hooks";
+import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -1528,6 +1529,17 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return !(await dbTreeSection.treeItemExists(libraryName));
             }, constants.wait1second * 5, `${libraryName} should not exist on the tree`);
+
+        });
+
+        it("Start MySQL Cloud Migration Assistant", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.startMigrationAssistant);
+            await driver.wait(Workbench.untilTabIsOpened(`Cloud Migration (${globalConn.caption})`), constants.wait1second * 5);
+            await driver.wait(PasswordDialog.untilExists(), constants.wait1second * 10);
+            await PasswordDialog.setCredentials(globalConn, undefined, false);
+            await driver.wait(PasswordDialog.untilIsLoading(), constants.wait1second * 20);
+            expect((await driver.findElements(locator.migrationAssistant)).length).to.be.greaterThan(0);
 
         });
 

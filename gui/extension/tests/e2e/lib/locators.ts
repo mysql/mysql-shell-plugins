@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -126,7 +126,10 @@ export const passwordDialog = {
     exists: By.css(".visible.passwordDialog"),
     password: By.css("input"),
     ok: By.id("ok"),
+    loadingIcon: By.css(".progressIndicatorHost"),
 };
+
+export const migrationAssistant = By.css(".migration-sub-app");
 
 export const notebook = {
     exists: By.id("notebookHost"),

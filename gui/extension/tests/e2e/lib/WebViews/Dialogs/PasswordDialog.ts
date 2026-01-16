@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until } from "vscode-extension-tester";
+import { until, Condition } from "vscode-extension-tester";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
@@ -40,7 +40,21 @@ export class PasswordDialog {
      * @returns A promise resolving to true if the dialog is displayed, false otherwise
      */
     public static exists = async (): Promise<boolean> => {
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
+
         return (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+    };
+
+    /**
+     * Verifies if the Open MySQL Connection dialog is displayed
+     * 
+     * @returns A condition resolving to true if the dialog is displayed, false otherwise
+     */
+    public static untilExists = (): Condition<boolean> => {
+        return new Condition("for Password dialog to exist", async () => {
+            return this.exists();
+        });
     };
 
     /**
@@ -48,14 +62,25 @@ export class PasswordDialog {
      * 
      * @param data The credentials
      * @param timeout The max number of time the function should wait until the connection is successful
+     * @param setConfirm Weather to set the confirmation or not 
      * @returns A promise resolving when the credentials are set
      */
-    public static setCredentials = async (data: interfaces.IDBConnection,
-        timeout?: number): Promise<void> => {
+    public static setCredentials = async (
+        data: interfaces.IDBConnection,
+        timeout?: number,
+        setConfirm = true): Promise<void> => {
+
         await this.setPassword(data);
-        if (credentialHelperOk) {
+
+        if (credentialHelperOk && setConfirm) {
             await this.setConfirm("no", timeout);
         }
+    };
+
+    public static untilIsLoading = (): Condition<boolean | undefined> => {
+        return new Condition("for loading icon to disappear", async () => {
+            return (await driver.findElements(locator.passwordDialog.loadingIcon)).length === 0;
+        });
     };
 
     /**
