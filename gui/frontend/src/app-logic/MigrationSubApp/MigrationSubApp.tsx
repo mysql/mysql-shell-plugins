@@ -55,7 +55,7 @@ import {
 } from "../../communication/ProtocolMigration.js";
 import { AboutBox } from "../../components/ui/AboutBox/AboutBox.js";
 import { Assets } from "../../supplement/Assets.js";
-import { ICompartment } from "../../communication/index.js";
+import { ICompartment as IOriginalCompartment } from "../../communication/index.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { Checkbox, CheckState } from "../../components/ui/Checkbox/Checkbox.js";
 import { Codicon } from "../../components/ui/Codicon.js";
@@ -185,6 +185,10 @@ interface ISignInInfo {
 }
 
 type MockStateText = keyof Pick<IMigrationAppState, "fakeWebMessage" | "workStatus" | "mockBackendState">;
+
+type ICompartment = Omit<IOriginalCompartment, "compartmentId"> & {
+    compartmentId: string | null;
+};
 
 interface IMigrationSubAppProps { }
 
@@ -4138,6 +4142,20 @@ Migration Assistant.`}
         });
     };
 
+    private resolveCreateNewMysqlCompartment(actualCompartmentName: string, parentCompartmentId?: string): Compartment {
+        let compartmentId: string | null = null;
+
+        const rootCompartment = this.findRootCompartment();
+        if (rootCompartment) {
+            compartmentId = rootCompartment.id;
+        }
+        if (parentCompartmentId) { // This can be empty string.
+            compartmentId = parentCompartmentId;
+        }
+
+        return { id: "create_new", name: `${actualCompartmentName} (create new)`, compartmentId };
+    }
+
     private addCreateNewMysqlCompartment = async (_changes?: WatcherChanges, parentCompartmentId?: string,
         compartmentId?: string, compartmentName?: string) => {
         const { originalCompartments } = this.state;
@@ -4147,17 +4165,10 @@ Migration Assistant.`}
         const actualCompartmentId = this.resolveCompartmentId(compartmentId, mysqlCompartment);
         const actualCompartmentName = this.resolveCompartmentName(compartmentName, mysqlCompartment);
 
-        // console.log("actualCompartmentId", actualCompartmentId);
-        // console.log("actualCompartmentName", actualCompartmentName);
-
         let allCompartments: Compartment[] = [...originalCompartments];
-        let addedChildCompartment = false;
         if (!mysqlCompartment) {
-            const rootCompartment = this.findRootCompartment();
-            const compartmentId = parentCompartmentId ?? rootCompartment?.id ?? null;
-            const child = { id: "create_new", name: `${actualCompartmentName} (create new)`, compartmentId };
-            allCompartments = [child, ...originalCompartments];
-            addedChildCompartment = true;
+            const createNew = this.resolveCreateNewMysqlCompartment(actualCompartmentName, parentCompartmentId);
+            allCompartments = [createNew, ...originalCompartments];
         }
 
         const updates: FormGroupValues = {
@@ -4173,7 +4184,7 @@ Migration Assistant.`}
                 },
             };
 
-            if (addedChildCompartment) {
+            if (!mysqlCompartment) {
                 state.compartments = convertCompartments(allCompartments);
             }
 
