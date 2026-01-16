@@ -40,6 +40,11 @@ export class MigrationAssistantProvider extends WebviewProvider {
 
     private initialized?: boolean;
     private signal?: Semaphore;
+    private details?: IConnectionDetails;
+
+    public get connectionDetails() {
+        return this.details;
+    }
 
     public static generateUrl(webviewUrl: URL, _details: IConnectionDetails): URL {
         const url = new URL(webviewUrl.toString());
@@ -63,6 +68,8 @@ export class MigrationAssistantProvider extends WebviewProvider {
 
             return true;
         }
+
+        this.details = details;
 
         const options = details.options as IMySQLConnectionOptions;
         const databaseSource: IDatabaseSource = {

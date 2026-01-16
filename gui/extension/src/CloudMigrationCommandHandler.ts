@@ -48,9 +48,10 @@ export interface OpenEditorsTreeController {
 }
 
 export class CloudMigrationCommandHandler {
-    private migration?: ShellInterfaceMigration;
+    private migrationController?: ShellInterfaceMigration;
     private url?: URL;
     private migrations = new Map<number, MigrationAssistantProvider>();
+    private ongoingMigrationsConnectionNames = new Set<string>();
 
     public constructor(
         private openDocumentsModel: OpenDocumentDataModel,
@@ -66,6 +67,7 @@ export class CloudMigrationCommandHandler {
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("startMigrationAssistant", this.startMigrationAssistant);
         requisitions.register("migrationStarted", this.migrationStarted);
+        requisitions.register("migrationStopped", this.migrationStopped);
 
         host.context.subscriptions.push(commands.registerCommand("msg.startMySQLCloudMigrationAssistant",
             (entry?: ICdmConnectionEntry) => {
@@ -81,14 +83,19 @@ export class CloudMigrationCommandHandler {
     }
 
     public clear(): void {
+
         this.migrations.forEach((provider) => {
             this.openDocumentsModel.removeAddedRoot(provider.rootEntry);
             provider.close();
         });
 
-        this.abortMigration();
+        const hasOngoingMigrations = this.ongoingMigrationsConnectionNames.size > 0;
+        if (hasOngoingMigrations) {
+            this.abortMigration();
+        }
 
         this.migrations.clear();
+        this.ongoingMigrationsConnectionNames.clear();
         this.refreshTree();
     }
 
@@ -118,7 +125,10 @@ export class CloudMigrationCommandHandler {
     }
 
     private removeMigration(disposed: MigrationAssistantProvider, connectionId: number): void {
-        this.abortMigration();
+        if (disposed.connectionDetails !== undefined
+            && this.ongoingMigrationsConnectionNames.delete(disposed.connectionDetails.caption)) {
+            this.abortMigration();
+        }
 
         this.migrations.delete(connectionId);
         this.openDocumentsModel.removeAddedRoot(disposed.rootEntry);
@@ -141,7 +151,7 @@ export class CloudMigrationCommandHandler {
 
     private connectedToUrl = (url?: URL): Promise<boolean> => {
         this.url = url;
-        this.migration = new ShellInterfaceMigration();
+        this.migrationController = new ShellInterfaceMigration();
 
         return Promise.resolve(true);
     };
@@ -169,22 +179,50 @@ export class CloudMigrationCommandHandler {
     };
 
     private migrationStarted = (currentProject: IProjectData): Promise<boolean> => {
-        if (!this.migration) {
+        if (!this.migrationController) {
             return Promise.resolve(false);
         }
 
-        void this.migration.openProject(currentProject.id);
+        void this.migrationController.openProject(currentProject.id);
+
+        const details = this.resolveConnectionDetails(currentProject);
+        if (details) {
+            this.ongoingMigrationsConnectionNames.add(details.caption);
+        }
+
+        return Promise.resolve(true);
+    };
+
+    private migrationStopped = (currentProject: IProjectData): Promise<boolean> => {
+        const details = this.resolveConnectionDetails(currentProject);
+
+        if (details) {
+            this.ongoingMigrationsConnectionNames.delete(details.caption);
+        }
 
         return Promise.resolve(true);
     };
 
     private abortMigration() {
-        if (!this.migration) {
+        if (!this.migrationController) {
             return;
         }
 
-        void this.migration.workAbort();
+        void this.migrationController.workAbort();
+
         ui.showWarningMessage("Ongoing migration was aborted. OCI resources created so far " +
             "may have to be manually deleted.", {});
+    }
+
+    private resolveConnectionDetails(currentProject: IProjectData) {
+        let details: IConnectionDetails | undefined;
+
+        this.migrations.forEach((provider) => {
+            if (provider.connectionDetails?.caption === currentProject.name) {
+                details = provider.connectionDetails;
+            }
+        });
+
+        return details;
     }
 }

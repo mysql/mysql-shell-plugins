@@ -1354,7 +1354,12 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
                 await sleep(2000);
                 await this.monitorWorkProgress();
             } else {
-                if (project) {
+                const stopOnStatus = [
+                    WorkStatus.ABORTED,
+                    WorkStatus.ERROR,
+                    WorkStatus.FINISHED,
+                ];
+                if (project && stopOnStatus.includes(backendWorkState.status)) {
                     requisitions.executeRemote("migrationStopped", project);
                 }
                 this.setState({
@@ -1408,9 +1413,6 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             const message = convertErrorToString(e);
             ui.showErrorMessage(`Failed to start: ${message}`, {});
         } finally {
-            if (project) {
-                requisitions.executeRemote("migrationStopped", project);
-            }
             this.setState({ backendRequestInProgress: false, migrationInProgress: false });
         }
 
