@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -651,17 +651,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem
                         command={{ title: "Set As Current Database Schema", command: "setCurrentSchemaMenuItem" }}
                     />
-                    <MenuItem command={{ title: "Filter to this Schema", command: "filterMenuItem" }} disabled />
-                    <MenuItem command={{ title: "Show Schema Inspector", command: "inspectorMenuItem" }} disabled />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Dump Schema To Disk..", command: "msg.dumpSchemaToDisk" }} disabled />
-                    <MenuItem
-                        command={{
-                            title: "Dump Schema to Disk for MySQL Database Service...",
-                            command: "msg.dumpSchemaToDiskForMds",
-                        }}
-                        disabled
-                    />
+                    <MenuItem command={{ title: "Dump to Disk", command: "" }} >
+                        <MenuItem command={{ title: "Database Schema Dump", command: "msg.dumpSchemaToDisk" }} disabled />
+                        <MenuItem
+                            command={{
+                                title: "Database Schema Dump for MySQL Service",
+                                command: "msg.dumpSchemaToDiskForMds",
+                            }}
+                            disabled
+                        />
+                    </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
                         <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
@@ -681,10 +681,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "Add Schema to REST Service...", command: "msg.mrs.addSchema" }} />
                     <MenuItem command={{ title: "Create Library From...", command: "msg.createLibraryFrom" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create Schema...", command: "msg.createSchema" }} disabled />
-                    <MenuItem command={{ title: "Alter Schema...", command: "msg.alterSchema" }} disabled />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Drop Schema...", command: "msg.dropSchema" }} disabled />
+                    <MenuItem command={{ title: "Drop Schema...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -713,11 +710,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Create a JSON Duality View...", command: "msg.createJdv" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create Table...", command: "msg.createTable" }} disabled />
-                    <MenuItem command={{ title: "Alter Table...", command: "msg.alterTable" }} disabled />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Drop Table...", command: "msg.dropTable" }} disabled />
-                    <MenuItem command={{ title: "Truncate Table...", command: "msg.truncateTable" }} disabled />
+                    <MenuItem command={{ title: "Drop Table...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -774,9 +767,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create View ...", command: "msg.createProcedure" }} disabled />
-                    <MenuItem command={{ title: "Alter View ...", command: "alterViewMenuItem" }} disabled />
-                    <MenuItem command={{ title: "Drop View ...", command: "dropViewMenuItem" }} disabled />
+                    <MenuItem command={{ title: "Drop View ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -799,7 +790,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     </MenuItem >
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Edit JSON Duality View ...", command: "msg.editJdv" }} />
-                    <MenuItem command={{ title: "Drop JSON Duality View ...", command: "msg.dropJdv" }} />
+                    <MenuItem command={{ title: "Drop JSON Duality View ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -820,9 +811,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
                     </MenuItem >
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create Event ...", command: "msg.createEvent" }} disabled />
-                    <MenuItem command={{ title: "Alter Event ...", command: "msg.alterEvent" }} disabled />
-                    <MenuItem command={{ title: "Drop Event ...", command: "msg.dropEvent" }} disabled />
+<MenuItem command={{ title: "Drop Event ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -846,9 +835,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create Procedure ...", command: "msg.createProcedure" }} disabled />
-                    <MenuItem command={{ title: "Alter Procedure ...", command: "alterViewMenuItem" }} disabled />
-                    <MenuItem command={{ title: "Drop Procedure ...", command: "msg.dropRoutine" }} disabled />
+                    <MenuItem command={{ title: "Drop Stored Routine ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -872,9 +859,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create Function ...", command: "msg.createFunction" }} disabled />
-                    <MenuItem command={{ title: "Alter Function ...", command: "msg.alterFunction" }} disabled />
-                    <MenuItem command={{ title: "Drop Function ...", command: "msg.dropRoutine" }} disabled />
+                    <MenuItem command={{ title: "Drop Stored Routine ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -894,13 +879,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
                     </MenuItem >
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
-                    />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Create Library ...", command: "msg.createLibraryJs" }} disabled />
-                    <MenuItem command={{ title: "Alter Library ...", command: "msg.alterLibrary" }} disabled />
-                    <MenuItem command={{ title: "Drop Library ...", command: "msg.dropLibrary" }} disabled />
+                    <MenuItem command={{ title: "Drop Library ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -2551,7 +2530,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     break;
                 }
 
-                case "msg.dropSchema": {
+                case "msg.dropDbEntity": {
                     void onConnectionTreeCommand(command, data.dataModelEntry).then((result) => {
                         if (result.success) {
                             void this.refreshConnectionParentEntry(data, true);

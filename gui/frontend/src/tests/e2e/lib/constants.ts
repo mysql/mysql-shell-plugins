@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -207,6 +207,13 @@ export const addSchemaToRestService = "Add Schema to REST Service...";
 export const createLibraryFrom = "Create Library From...";
 export const dropSchema = "Drop Schema...";
 
+export const dumpToDisk = {
+    exists: "Dump to Disk",
+    databaseSchemaDump: "Database Schema Dump",
+    databaseSchemaDumpForMySQLService: "Database Schema Dump for MySQL Service",
+};
+
+
 // TABLE
 export const dropTable = "Drop Table...";
 
@@ -312,7 +319,6 @@ export const loadRESTProjectFromDisk = "Load REST Project from Disk ...";
 export const loadRESTProjectFromURL = "Load REST Project from URL ...";
 export const loadRESTProjectFromGithub = "Load REST Project from Github ...";
 export const loadRESTService = "Load REST Service";
-export const dumpToDisk = "Dump to Disk";
 export const dumpRestServiceAsRESTProject = "Dump REST Service as REST Project ...";
 
 // THEMES

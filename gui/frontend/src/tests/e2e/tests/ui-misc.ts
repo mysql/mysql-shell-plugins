@@ -572,10 +572,12 @@ describe("Single Server Mode", () => {
 
             expect(await dbTreeSection.getContextMenuItems("sakila")).toStrictEqual([
                 constants.setAsCurrentDatabaseSchema,
+                constants.dumpToDisk.exists,
                 constants.copyToClipboard.exists,
                 constants.sendToSQLEditor.exists,
                 constants.addSchemaToRestService,
                 constants.createLibraryFrom,
+                constants .dropSchema
             ]);
 
             expect(await dbTreeSection.getDatabaseConnections()).toStrictEqual([{

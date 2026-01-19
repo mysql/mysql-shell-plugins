@@ -717,7 +717,7 @@ describe("MYSQL REST SERVICE", () => {
 
                 rmSync(destDumpProject, { force: true, recursive: true });
                 await dbTreeSection.openContextMenuAndSelect(serviceToDump.servicePath,
-                    [constants.dumpToDisk, constants.dumpRestServiceAsRESTProject]);
+                    [constants.dumpToDisk.exists, constants.dumpRestServiceAsRESTProject]);
 
                 const items = [
                     destDumpProject,

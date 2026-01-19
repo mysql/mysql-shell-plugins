@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,7 +35,7 @@ import { IJdvViewInfo } from "../../communication/ProtocolGui.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
 import {
-    CdmEntityType, ICdmJdvEntry, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry,
+    CdmEntityType, ICdmJdvEntry, cdmDbEntityTypes, cdbDbEntityTypeName, type ConnectionDataModel, type ConnectionDataModelEntry,
     type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmLibraryEntry, type ICdmRestAuthAppEntry,
     type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry,
     type ICdmRestUserEntry, type ICdmRoutineEntry,
@@ -905,13 +905,6 @@ export class SidebarCommandHandler {
                             break;
                         }
 
-                        case "filterMenuItem": {
-                            break;
-                        }
-
-                        case "inspectorMenuItem": {
-                            break;
-                        }
 
                         case "msg.copyNameToEditor":
                         case "msg.copyNameToClipboard": {
@@ -1021,14 +1014,6 @@ export class SidebarCommandHandler {
                                 }
                             }
 
-                            break;
-                        }
-
-                        case "msg.createSchema": {
-                            break;
-                        }
-
-                        case "msg.alterSchema": {
                             break;
                         }
 
@@ -1164,17 +1149,15 @@ export class SidebarCommandHandler {
                             break;
                         }
 
-                        case "msg.dropJdv": {
-                            await this.dropItem(entry as ICdmJdvEntry);
-                            success = true;
-
-                            break;
-                        }
-
                         case "refreshMenuItem": {
                             break;
                         }
 
+                        case "msg.dropDbEntity": {
+                            await this.dropItem(entry);
+                            success = true;
+                            break;
+                        }
                         default:
                     }
                 }
@@ -1245,14 +1228,6 @@ export class SidebarCommandHandler {
 
                 case "msg.copyNameToClipboard": {
                     requisitions.writeToClipboard(entry!.caption);
-                    success = true;
-
-                    break;
-                }
-
-                case "msg.dropSchema": {
-                    const schema = entry as ICdmSchemaEntry;
-                    await this.dropItem(schema);
                     success = true;
 
                     break;
@@ -1485,12 +1460,14 @@ export class SidebarCommandHandler {
             return;
         }
 
+        const typeName = cdbDbEntityTypeName.get(entry.type)!;
+
         const response = await DialogHost.showDialog({
             id: "dropItem",
             type: DialogType.Confirm,
             parameters: {
                 title: "Confirmation",
-                prompt: `Do you want to drop the ${entry.type} ${entry.caption}?` +
+                prompt: `Do you want to drop the ${typeName} ${entry.caption}?` +
                     "This operation cannot be reverted!",
                 accept: `Drop ${entry.caption}`,
                 refuse: "No",
