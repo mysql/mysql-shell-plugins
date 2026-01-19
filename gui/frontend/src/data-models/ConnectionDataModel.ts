@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -3175,4 +3175,79 @@ export class ConnectionDataModel implements ICdmAccessManager {
         return true;
     }
 
+    /**
+     * Gets the CREATE statement for the given database object.
+     *
+     * @param entry The database object to get the CREATE statement for.
+     * @param withDelimiter If true, the statement will be wrapped in a delimiter block.
+     * @param withDrop If true, the statement will be preceded by a DROP statement.
+     * @param editRoutine If true, the script is created for modifying a routine
+     * @returns The CREATE statement for the given database object.
+     */
+    public async getCreateSqlScript(entry: ConnectionDataModelNoGroupEntry, withDelimiter = false,
+        withDrop = false, editRoutine = false, uppercaseKeywords = false): Promise<string> {
+        let sql = "";
+
+        const procedureKeyword = uppercaseKeywords ? "PROCEDURE" : "procedure";
+        const functionKeyword = uppercaseKeywords ? "FUNCTION" : "function";
+        const libraryKeyword = uppercaseKeywords ? "LIBRARY" : "library";
+        const dropKeyword = uppercaseKeywords ? "DROP" : "drop";
+        const delimiterKeyword = uppercaseKeywords ? "DELIMITER" : "delimiter";
+
+        const typeName = cdbDbEntityTypeName.get(entry.type)!;
+
+        const entryType = uppercaseKeywords ? typeName.toUpperCase() : typeName.toLowerCase();
+
+        const qualifiedName = this.getQualifiedName(entry);
+        const data = await entry.connection.backend.execute(`show create ${entryType} ${qualifiedName}`);
+
+        // Same logic applies for libraries as for the routines.
+        const isRoutine = entry.type === CdmEntityType.StoredProcedure
+            || entry.type === CdmEntityType.StoredFunction
+            || entry.type === CdmEntityType.Library;
+        if (data) {
+            if (data.rows && data.rows.length > 0) {
+                const firstRow = data.rows[0] as string[];
+                const index = entry.type === CdmEntityType.Event ? 3: isRoutine ? 2 : 1;
+
+                if (firstRow.length > index) {
+                    sql = firstRow[index];
+
+                    if (isRoutine) {
+                        // The SHOW CREATE PROCEDURE / FUNCTION / LIBRARY statements do not return the fully qualified
+                        // name including the schema, just the name of the procedure / functions with backticks
+                        sql = sql.replaceAll(/PROCEDURE `(.*?)`/gm, `${procedureKeyword} ${qualifiedName}`);
+                        sql = sql.replaceAll(/FUNCTION `(.*?)`/gm, `${functionKeyword} ${qualifiedName}`);
+                        sql = sql.replaceAll(/LIBRARY `(.*?)`/gm, `${libraryKeyword} ${qualifiedName}`);
+
+                        if (withDelimiter) {
+                            const isExternalLangRoutine = (entry).language === "JAVASCRIPT"
+                                || (entry).language === "WASM";
+                            if (withDrop) {
+                                if ((entry).type === CdmEntityType.StoredProcedure) {
+                                    sql = `${dropKeyword} ${procedureKeyword} ${qualifiedName}`
+                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
+                                } else if ((entry).type === CdmEntityType.StoredFunction) {
+                                    sql = `${dropKeyword} ${functionKeyword} ${qualifiedName}`
+                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
+                                } else {
+                                    sql = `${dropKeyword} ${libraryKeyword} ${qualifiedName}`
+                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
+                                }
+                            }
+                            sql = !isExternalLangRoutine
+                                ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;`
+                                : editRoutine ? `${sql};` : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (sql === "") {
+            throw new Error("Failed to get CREATE statement.");
+        }
+
+        return sql;
+    }
 }

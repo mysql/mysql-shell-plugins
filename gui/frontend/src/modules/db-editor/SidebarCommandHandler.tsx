@@ -39,14 +39,14 @@ import {
     type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmLibraryEntry, type ICdmRestAuthAppEntry,
     type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry,
     type ICdmRestUserEntry, type ICdmRoutineEntry,
-    type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry,
+    type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry, type ConnectionDataModelNoGroupEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type {
     IOciDmBastion, IOciDmCompartment, IOciDmDbSystem, IOciDmProfile, OciDataModelEntry,
 } from "../../data-models/OciDataModel.js";
 import { type OpenDocumentDataModelEntry } from "../../data-models/OpenDocumentDataModel.js";
 import type { Command } from "../../data-models/data-model-types.js";
-import type { IEditorExtendedExecutionOptions } from "../../supplement/RequisitionTypes.js";
+import type { IEditorExtendedExecutionOptions, IConnectionInfo } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
@@ -929,93 +929,25 @@ export class SidebarCommandHandler {
 
                         case "msg.copyCreateStatementToClipboard":
                         case "msg.copyCreateStatementToEditor": {
-                            let type;
-                            let qualifier = qualifiedName ? `\`${qualifiedName.schema}\`.` : "";
-                            let index = 1; // The column index in the result row.
-                            switch (entry.type) {
-                                case CdmEntityType.Schema: {
-                                    type = "schema";
-                                    qualifier = "";
-                                    break;
-                                }
-
-                                case CdmEntityType.Table: {
-                                    type = "table";
-                                    break;
-                                }
-
-                                case CdmEntityType.View: {
-                                    type = "view";
-                                    break;
-                                }
-
-                                case CdmEntityType.Jdv: {
-                                    type = "view";
-                                    break;
-                                }
-
-                                case CdmEntityType.StoredFunction: {
-                                    index = 2;
-                                    type = "function";
-                                    break;
-                                }
-
-                                case CdmEntityType.StoredProcedure: {
-                                    index = 2;
-                                    type = "procedure";
-                                    break;
-                                }
-
-                                case CdmEntityType.Library: {
-                                    index = 2;
-                                    type = "library";
-                                    break;
-                                }
-
-                                case CdmEntityType.Trigger: {
-                                    type = "trigger";
-                                    break;
-                                }
-
-                                case CdmEntityType.Event: {
-                                    index = 3;
-                                    type = "event";
-                                    break;
-                                }
-
-                                default:
-                            }
-
-                            if (type) {
-                                const data = await connection.backend.execute(
-                                    `show create ${type} ${qualifier}\`${entry.caption}\``);
-                                const rows = data?.rows;
-                                if (rows && rows.length > 0) {
-                                    // Returns one row with 2 columns.
-                                    const row = rows[0] as string[];
-                                    if (row.length > index) {
-                                        if (command.command === "msg.copyCreateStatementToClipboard") {
-                                            requisitions.writeToClipboard(row[index]);
-
-                                            void ui.showInformationMessage("The CREATE statement was copied to the " +
-                                                "system clipboard", {});
-                                            success = true;
-                                        } else {
-                                            const connectionId = connection.details.id;
-                                            success = await requisitions.execute("job", [
-                                                {
-                                                    requestType: "showPage",
-                                                    parameter: { connectionId, pageId, connectionInfo },
-                                                },
-                                                { requestType: "editorInsertText", parameter: row[index] },
-                                            ]);
-                                        }
-                                    }
-                                }
-                            }
-
+                            const toClipboard = command.command === "msg.copyCreateStatementToClipboard";
+                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo, toClipboard);
                             break;
                         }
+
+                        case "msg.copyCreateStatementWithDelimitersToClipboard":
+                        case "msg.copyCreateStatementWithDelimitersToEditor": {
+                            const toClipboard = command.command === "msg.copyCreateStatementWithDelimitersToClipboard";
+                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo, toClipboard, true);
+                            break;
+                        }
+
+                        case "msg.copyDropCreateStatementWithDelimitersToClipboard":
+                        case "msg.copyDropCreateStatementWithDelimitersToEditor": {
+                            const toClipboard = command.command === "msg.copyDropCreateStatementWithDelimitersToClipboard";
+                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo, toClipboard, true, true);
+                            break;
+                        }
+
 
                         case "msg.mrs.addSchema": {
                             if (this.mrsHubRef.current) {
@@ -1692,4 +1624,29 @@ export class SidebarCommandHandler {
 
         return true;
     }
+
+    private async handleCopyCreateStatement(entry: ConnectionDataModelNoGroupEntry, pageId: string | undefined, connectionInfo: IConnectionInfo, toClipboard=true, withDelimiter=false, withDrop=false) {
+        const sql = await this.connectionDataModel.getCreateSqlScript(entry, withDelimiter, withDrop, false, true);
+
+        let success = false;
+
+        if (toClipboard) {
+            requisitions.writeToClipboard(sql);
+
+            void ui.showInformationMessage("The CREATE statement was copied to the " +
+                "system clipboard", {});
+            success = true;
+        } else {
+            const connectionId = connectionInfo.connectionId;
+            success = await requisitions.execute("job", [
+                {
+                    requestType: "showPage",
+                    parameter: { connectionId, pageId, connectionInfo },
+                },
+                { requestType: "editorInsertText", parameter: sql },
+            ]);
+        }
+        return success;
+    }
+
 }

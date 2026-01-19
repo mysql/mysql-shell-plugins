@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -456,85 +456,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         });
     }
 
-    /**
-     * Gets the CREATE statement for the given database object.
-     *
-     * @param entry The database object to get the CREATE statement for.
-     * @param entryType The database type name of the database object (e.g. "table", "view" etc.).
-     * @param withDelimiter If true, the statement will be wrapped in a delimiter block.
-     * @param withDrop If true, the statement will be preceded by a DROP statement.
-     * @param editRoutine If true, the script is created for modifying a routine
-     * @returns The CREATE statement for the given database object.
-     */
-    public async getCreateSqlScript(entry: ConnectionDataModelNoGroupEntry, entryType: string, withDelimiter = false,
-        withDrop = false, editRoutine = false): Promise<string> {
-        let sql = "";
 
-        const configuration = workspace.getConfiguration(`msg.dbEditor`);
-        const uppercaseKeywords = configuration.get<boolean>("upperCaseKeywords", true);
-        const procedureKeyword = uppercaseKeywords ? "PROCEDURE" : "procedure";
-        const functionKeyword = uppercaseKeywords ? "FUNCTION" : "function";
-        const libraryKeyword = uppercaseKeywords ? "LIBRARY" : "library";
-        const dropKeyword = uppercaseKeywords ? "DROP" : "drop";
-        const delimiterKeyword = uppercaseKeywords ? "DELIMITER" : "delimiter";
-        entryType = uppercaseKeywords ? entryType.toUpperCase() : entryType.toLowerCase();
-
-        const qualifiedName = this.dataModel.getQualifiedName(entry);
-        const data = await entry.connection.backend.execute(`show create ${entryType} ${qualifiedName}`);
-
-        // Same logic applies for libraries as for the routines.
-        const isRoutine = entry.type === CdmEntityType.StoredProcedure
-            || entry.type === CdmEntityType.StoredFunction
-            || entry.type === CdmEntityType.Library;
-        if (data) {
-            if (data.rows && data.rows.length > 0) {
-                const firstRow = data.rows[0] as string[];
-                const index = isRoutine ? 2 : 1;
-                if (firstRow.length > index) {
-                    sql = firstRow[index];
-
-                    if (isRoutine) {
-                        // The SHOW CREATE PROCEDURE / FUNCTION / LIBRARY statements do not return the fully qualified
-                        // name including the schema, just the name of the procedure / functions with backticks
-                        sql = sql.replaceAll(/PROCEDURE `(.*?)`/gm, `${procedureKeyword} ${qualifiedName}`);
-                        sql = sql.replaceAll(/FUNCTION `(.*?)`/gm, `${functionKeyword} ${qualifiedName}`);
-                        sql = sql.replaceAll(/LIBRARY `(.*?)`/gm, `${libraryKeyword} ${qualifiedName}`);
-
-                        if (withDelimiter) {
-                            const isExternalLangRoutine = (entry).language === "JAVASCRIPT"
-                                || (entry).language === "WASM";
-                            if (withDrop) {
-                                if ((entry).type === CdmEntityType.StoredProcedure) {
-                                    sql = `${dropKeyword} ${procedureKeyword} ${qualifiedName}`
-                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
-                                } else if ((entry).type === CdmEntityType.StoredFunction) {
-                                    sql = `${dropKeyword} ${functionKeyword} ${qualifiedName}`
-                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
-                                } else {
-                                    sql = `${dropKeyword} ${libraryKeyword} ${qualifiedName}`
-                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
-                                }
-                            }
-                            sql = !isExternalLangRoutine
-                                ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;`
-                                : editRoutine ? `${sql};` : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (sql === "") {
-            throw new Error("Failed to get CREATE statement.");
-        }
-
-        return sql;
-    }
-
-    public async copyCreateScriptToClipboard(entry: ConnectionDataModelNoGroupEntry, dbType: string,
+    public async copyCreateScriptToClipboard(entry: ConnectionDataModelNoGroupEntry,
         withDelimiter = false, withDrop = false): Promise<void> {
         try {
-            const sql = await this.getCreateSqlScript(entry, dbType, withDelimiter, withDrop);
+            const configuration = workspace.getConfiguration(`msg.dbEditor`);
+            const uppercaseKeywords = configuration.get<boolean>("upperCaseKeywords", true);
+
+            const sql = await this.dataModel.getCreateSqlScript(entry, withDelimiter, withDrop, false, uppercaseKeywords);
 
             await env.clipboard.writeText(sql);
             void ui.showInformationMessage("The create script was copied to the system clipboard", {});

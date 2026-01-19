@@ -516,8 +516,7 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.editRoutine", async (entry?: ICdmRoutineEntry) => {
             if (entry) {
-                const entryType = entry.type === CdmEntityType.StoredFunction ? "function" : "procedure";
-                const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true, true);
+                const sql = await this.connectionsProvider.dataModel.getCreateSqlScript(entry, true, true, true);
 
                 void this.addNewSqlScript(entry.connection.details, "msg.editRoutine",
                     entry.parent.caption, "Edit Routine", sql, isExternalLangRoutine(entry));
@@ -526,8 +525,7 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.editLibrary", async (entry?: ICdmLibraryEntry) => {
             if (entry) {
-                const entryType = "library";
-                const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true);
+                const sql = await this.connectionsProvider.dataModel.getCreateSqlScript(entry, true, true);
                 void this.addNewSqlScript(entry.connection.details, "msg.editLibrary",
                     entry.parent.caption, "Edit Library", sql, isExternalLangRoutine(entry));
             }
@@ -603,24 +601,21 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
             (entry?: ConnectionDataModelNoGroupEntry) => {
                 if (entry) {
-                    const typeName = cdbDbEntityTypeName.get(entry.type)!;
-                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, typeName);
+                    void this.connectionsProvider.copyCreateScriptToClipboard(entry);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptWithDelimitersToClipboard",
             (entry?: ConnectionDataModelNoGroupEntry) => {
                 if (entry) {
-                    const typeName = cdbDbEntityTypeName.get(entry.type)!;
-                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, typeName, true);
+                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, true);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyDropCreateScriptWithDelimitersToClipboard",
             (entry?: ConnectionDataModelNoGroupEntry) => {
                 if (entry) {
-                    const typeName = cdbDbEntityTypeName.get(entry.type)!;
-                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, typeName, true, true);
+                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, true, true);
                 }
             }));
 

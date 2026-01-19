@@ -181,12 +181,16 @@ export const addDatabaseObjectToRestService = "Add Database Object to REST Servi
 export const copyToClipboard = {
     exists: "Copy to Clipboard",
     name: "Name",
-    createStatement: "Create Statement",
+    createStatement: "CREATE Statement",
+    createStatementWithDelimiter: "CREATE Statement With DELIMITERs",
+    dropAndCreateStatementWithDelimiter: "DROP & CREATE Statement With DELIMITERs",
 };
 export const sendToSQLEditor = {
     exists: "Send to SQL Editor",
     name: "Name",
-    createStatement: "Create Statement",
+    createStatement: "CREATE Statement",
+    createStatementWithDelimiter: "CREATE Statement With DELIMITERs",
+    dropAndCreateStatementWithDelimiter: "DROP & CREATE Statement With DELIMITERs",
 };
 
 // DB CONNECTION

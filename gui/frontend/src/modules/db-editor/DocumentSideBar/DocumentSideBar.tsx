@@ -606,6 +606,38 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             );
         }
 
+        const copyToClipboardMenuItems = () => (
+            <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
+                <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
+                <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
+            </MenuItem>
+        );
+
+        const sendToEditorMenuItems = () => (
+            <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
+                <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
+            </MenuItem >
+        );
+
+        const copyToClipboardRoutineMenuItems = () => (
+            <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
+                <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
+                <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
+                <MenuItem key="copy-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToClipboard" }} />
+                <MenuItem key="copy-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToClipboard" }} />
+            </MenuItem>
+        );
+
+        const sendToEditorRoutineMenuItems = () => (
+            <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
+                <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
+                <MenuItem key="send-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToEditor" }} />
+                <MenuItem key="send-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToEditor" }} />
+            </MenuItem >
+        );
+
         return (
             <>
                 <Menu
@@ -663,16 +695,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         />
                     </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Load Data to HeatWave Cluster...", command: "msg.mds.loadToHeatWave" }}
@@ -693,16 +717,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Select Rows", command: "msg.selectRows" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
@@ -752,16 +768,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Select Rows", command: "msg.selectRows" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
@@ -778,16 +786,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Select Rows", command: "msg.selectRows" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Edit JSON Duality View ...", command: "msg.editJdv" }} />
                     <MenuItem command={{ title: "Drop JSON Duality View ...", command: "msg.dropDbEntity" }} />
@@ -799,19 +799,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-<MenuItem command={{ title: "Drop Event ...", command: "msg.dropDbEntity" }} />
+                    <MenuItem command={{ title: "Drop Event ...", command: "msg.dropDbEntity" }} />
                 </Menu >
 
                 <Menu
@@ -820,16 +811,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} disabled />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardRoutineMenuItems()}
+                    {sendToEditorRoutineMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
@@ -844,16 +827,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} disabled />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardRoutineMenuItems()}
+                    {sendToEditorRoutineMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
@@ -868,16 +843,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} disabled />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardRoutineMenuItems()}
+                    {sendToEditorRoutineMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Drop Library ...", command: "msg.dropDbEntity" }} />
                 </Menu >
@@ -888,16 +855,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                 </Menu >
 
                 <Menu
@@ -906,16 +865,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                 </Menu>
 
                 <Menu
@@ -924,16 +875,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                        <MenuItem
-                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
-                        />
-                    </MenuItem>
-                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
-                    </MenuItem >
+                    {copyToClipboardMenuItems()}
+                    {sendToEditorMenuItems()}
                 </Menu>
             </>
         );
