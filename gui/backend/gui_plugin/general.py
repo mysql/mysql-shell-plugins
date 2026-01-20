@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
 from mysqlsh.plugin_manager import plugin_function
 
 # Define plugin version
-VERSION = "1.19.21"
+VERSION = "1.20.0"
 
 @plugin_function('gui.info', shell=True, cli=True, web=True)
 def info():

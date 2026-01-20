@@ -47,4 +47,4 @@ Include the following settings in your VS Code settings.json file in order to al
 }
 ```
 
-Copyright &copy; 2020, 2024, Oracle and/or its affiliates.
+Copyright &copy; 2020, 2026, Oracle and/or its affiliates.

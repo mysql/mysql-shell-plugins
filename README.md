@@ -50,6 +50,6 @@ This distribution may include materials developed by third parties. For license 
 
 For additional downloads and the source of MySQL Shell (part of MySQL Server), visit: https://dev.mysql.com/downloads
 
-Copyright &copy; 2022, 2025, Oracle and/or its affiliates.
+Copyright &copy; 2022, 2026, Oracle and/or its affiliates.
 
 

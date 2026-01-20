@@ -124,4 +124,4 @@ To debug the backend code in standalone mode, the following command should be is
 ATTACH_DEBUGGER=BACKEND mysqlsh --py -e "import gui_plugin.debug_utils; import gui_plugin.start; gui.start.web_server(port=8000, secure={}, single_instance_token=\"<same token used in the browser URL>\")"
 ```
 
-Copyright &copy; 2020, 2024, Oracle and/or its affiliates.
+Copyright &copy; 2020, 2026, Oracle and/or its affiliates.

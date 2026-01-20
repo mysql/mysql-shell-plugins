@@ -34,4 +34,4 @@ To run a specific test, use the `-k` option.
 mysqlsh --log-level=debug3 --verbose=4 --py -f run_tests.py -k test_plugin_version
 ```
 
-Copyright &copy; 2025, Oracle and/or its affiliates.
+Copyright &copy; 2025, 2026, Oracle and/or its affiliates.

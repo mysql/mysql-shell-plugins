@@ -1,10 +1,11 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.19.21+9.5.1
+## Changes in 1.20.0+9.6.0
 
 ### Additions
 
--
+- Upgrading Shell and Router binaries to 9.6.0
+- Integration of the MySQL Migration Assistant
 
 ### Fixes
 
