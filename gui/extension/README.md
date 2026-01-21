@@ -1,10 +1,14 @@
-# MySQL Shell for VS Code 1.19.21+9.5.1
+# MySQL Shell for VS Code 1.20.0+9.6.0
 
 The MySQL Shell for VS Code extension integrates the powerful feature set of MySQL Shell - an advanced MySQL client for developers and DBAs - directly into VS Code.
 
 It provides a modern notebook interface to interactively work with and execute SQL against MySQL databases and the HeatWave service, as well as a traditional SQL script-based workflow.
 
-![MySQL Shell For VS Code Screenshot](images/screenshots/MySQLShellForVSCodeMain.jpg)
+## What's New
+
+* The new [MySQL HeatWave Migration Assistant](https://blogs.oracle.com/mysql/introducing-mysql-heatwave-migration-assistant-for-easy-mysql-database-migration-to-oci) is now integrated into MySQL Shell for VS Code.
+
+![MySQL Shell For VS Code Screenshot](images/screenshots/MigrationAssistant.png)
 
 ## Tutorials
 
@@ -14,13 +18,17 @@ How to Create a New Database Connection
 
 ## Feature Highlights
 
-### Full OCI HeatWave Integration
+![MySQL Shell For VS Code Screenshot](images/screenshots/MySQLShellForVSCodeMain.jpg)
+
+### Full MySQL HeatWave Integration
 
 Fully supports HeatWave Chat and Lakehouse Navigator to upload documents to HeatWave Lakehouse and query them using natural language queries.
 
-Browse and manage your HeatWave DB Systems on the Oracle Cloud Infrastructure.
+Browse and manage your MySQL HeatWave DB Systems on the Oracle Cloud Infrastructure.
 
 Get immediate and secure access to all your MySQL instances on OCI through tunneled Bastion connections.
+
+Migrate MySQL databases hosted on-premises or on the cloud to MySQL HeatWave on Oracle Cloud with minimal downtime. The Migration Assistant greatly simplifies the process of provisioning, configuring and migrating MySQL databases to the Cloud.
 
 ### Notebook Interface
 
@@ -74,6 +82,8 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
   - Create and manage REST services and REST endpoint
   - Manage authentication, authorization for REST endpoints
   - Upload Progressive Web Apps (PWAs) for a full-stack web app solution running on top of MySQL
+- MySQL HeatWave Migration Assistant
+  - Easily migrate MySQL databases to the managed MySQL HeatWave Service on Oracle Cloud
 
 ## How to report a bug
 
@@ -89,18 +99,4 @@ To file a bug report, select the following menu item or go to [bugs.mysql.com](h
 | Windows | 11 and higher      | x64          |
 | Linux   | glibc 2.28         | arm64, x64   |
 
-### Tested Linux Distributions
-
-| Linux Distribution  | Releases          |
-|---------------------|-------------------|
-| Debian              | 12                |
-| Ubuntu              | 22.04, 24.04      |
-| Ubuntu-WSL2         | 22.04             |
-| Kubuntu             | 22.04, 24.04      |
-| Oracle Linux/RedHat | 8, 9, 10          |
-| Fedora              | 40                |
-| Raspberry Pi OS     | January 28th 2022 |
-
-If you have successfully tested the extension on other Linux distributions, please let us know by filing a [bugs report](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
-
-Copyright &copy; 2022, 2025, Oracle and/or its affiliates.
+Copyright &copy; 2022, 2026, Oracle and/or its affiliates.
