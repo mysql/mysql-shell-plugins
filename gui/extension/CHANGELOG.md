@@ -1,5 +1,15 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.20.1+9.6.0
+
+### Additions
+
+- 
+
+### Fixes
+
+- 
+
 ## Changes in 1.20.0+9.6.0
 
 ### Additions
