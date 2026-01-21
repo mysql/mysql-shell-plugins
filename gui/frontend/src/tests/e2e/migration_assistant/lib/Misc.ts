@@ -25,7 +25,7 @@
 /* eslint-disable no-restricted-syntax */
 
 import { join, parse } from "path";
-import { Page, chromium, errors, Locator, Browser, expect } from "@playwright/test";
+import { Page, chromium, errors, Locator, Browser, expect, BrowserContext } from "@playwright/test";
 import * as locator from "./locators.js";
 import * as constants from "./constants.js";
 import * as interfaces from "./interfaces.js";
@@ -35,16 +35,23 @@ import * as types from "./types.js";
 
 export let page: Page;
 export let browser: Browser;
+export let context: BrowserContext;
 
 export class Misc {
 
     public static loadPage = async (testSuite: string, mockStatus?: types.MockMigrationStatus): Promise<void> => {
         browser = await chromium.launch();
-        const context = await browser.newContext();
+        context = await browser.newContext();
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
         page = await context.newPage();
 
-        const feLog = join(process.env.CONFIG_DIR!, `fe_${testSuite}.log`);
+        let feLog = "";
+        if (testSuite === "Invalid config file") {
+            feLog = join(process.env.CONFIG_DIR_INVALID!, `fe_${testSuite}.log`);
+        } else {
+            feLog = join(process.env.CONFIG_DIR_DEFAULT!, `fe_${testSuite}.log`);
+        }
+
         writeFileSync(feLog, "");
 
         page.on("console", (msg) => {
@@ -55,12 +62,19 @@ export class Misc {
             await this.mockMigration(page, mockStatus);
         }
 
-        await page.goto(`?token=1234&subApp=migration&autoSendWebMessage=1&port=${mysqlServerPort}`,
-            { timeout: constants.wait1second * 60 });
+        if (testSuite === "Invalid config file") {
+            // eslint-disable-next-line max-len
+            await page.goto(`http://localhost:8001/?token=1234test&subApp=migration&autoSendWebMessage=1&port=${mysqlServerPort}`,
+                { timeout: constants.wait1second * 60 });
+        } else {
+            // eslint-disable-next-line max-len
+            await page.goto(`http://localhost:8000/?token=1234&subApp=migration&autoSendWebMessage=1&port=${mysqlServerPort}`,
+                { timeout: constants.wait1second * 60 });
+        }
 
         await expect.poll(async () => {
             try {
-                await page.waitForSelector(locator.mainPage.content,
+                await page.waitForSelector(locator.mainPage.sourceInfoItem,
                     { state: "visible", timeout: constants.wait1second * 10 });
 
                 return true;
@@ -84,7 +98,7 @@ export class Misc {
                     const requestMessage = JSON
                         .parse(message.toString()) as Record<string, string>;
 
-                    if (globalThis.migrationMock) {
+                    if (globalThis.mockMigration) {
 
                         if ((requestMessage.command === "migration.work_start" ||
                             requestMessage.command === "migration.work_status")) {
@@ -111,7 +125,7 @@ export class Misc {
 
                     if ((requestMessage.command === "migration.work_start" ||
                         requestMessage.command === "migration.work_status") &&
-                        globalThis.migrationMock) {
+                        globalThis.mockMigration) {
 
                         ws.send(this.getMock("response_work_status_in_progress", requestMessage.request_id));
                         ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
@@ -131,8 +145,8 @@ export class Misc {
                     const requestMessage = JSON
                         .parse(message.toString()) as Record<string, string>;
 
-                    if (globalThis.migrationMock) {
-                        if (process.env.ABORT && requestMessage.command === "migration.work_status") {
+                    if (globalThis.mockMigration) {
+                        if (globalThis.mockMigrationAbort && requestMessage.command === "migration.work_status") {
 
                             ws.send(this.getMock("response_work_status_abort", requestMessage.request_id));
                             ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
@@ -143,7 +157,7 @@ export class Misc {
                             ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
                         } else if (requestMessage.command === "migration.work_abort") {
 
-                            process.env.ABORT = "true";
+                            globalThis.mockMigrationAbort = true;
                             ws.send(this.getMock("response_work_status_abort", requestMessage.request_id));
                             ws.send(this.getMock("response_generic_ok", requestMessage.request_id));
                         } else {
@@ -165,7 +179,7 @@ export class Misc {
 
                     if ((requestMessage.command === "migration.work_start" ||
                         requestMessage.command === "migration.work_status") &&
-                        globalThis.migrationMock) {
+                        globalThis.mockMigration) {
 
                         ws.send(this.getMock("response_work_status_error", requestMessage.request_id));
                         ws.send(this.getMock("response_generic_ok", requestMessage.request_id));

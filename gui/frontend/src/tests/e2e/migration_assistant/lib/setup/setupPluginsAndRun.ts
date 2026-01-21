@@ -32,30 +32,54 @@ if (!process.env.DBROOTPASSWORD) {
     throw new Error("Please define env:DBROOTPASSWORD for the MySQL Server sandbox instance");
 }
 
-const configDir = join(process.cwd(), "shell-migration");
-process.env.CONFIG_DIR = configDir;
+const configDirs = [join(process.cwd(), "shell-migration-default"), join(process.cwd(), "shell-migration-invalid")];
+process.env.CONFIG_DIR_DEFAULT = configDirs[0];
+process.env.CONFIG_DIR_INVALID = configDirs[1];
 
-rmSync(configDir, { recursive: true, force: true });
+for (const configDir of configDirs) {
+    rmSync(configDir, { recursive: true, force: true });
 
-// Install shell plugins on temp directory
-mkdirSync(configDir, { recursive: true });
-mkdirSync(join(configDir, "plugins"), { recursive: true });
+    // Install shell plugins on temp directory
+    mkdirSync(configDir, { recursive: true });
+    mkdirSync(join(configDir, "plugins"), { recursive: true });
 
-const beGuiPlugin = resolve(process.cwd(), "..", "backend", "gui_plugin");
-const buildFolder = join(process.cwd(), "build");
-const webRootFolder = join(beGuiPlugin, "core", "webroot");
-const mrsPlugin = resolve(process.cwd(), "..", "..", "mrs_plugin");
-const mdsPlugin = resolve(process.cwd(), "..", "..", "mds_plugin");
-const msmPlugin = resolve(process.cwd(), "..", "..", "msm_plugin");
-const migrationPlugin = resolve(process.cwd(), "..", "..", "migration_plugin");
+    const beGuiPlugin = resolve(process.cwd(), "..", "backend", "gui_plugin");
+    const buildFolder = join(process.cwd(), "build");
+    const webRootFolder = join(beGuiPlugin, "core", "webroot");
+    const mrsPlugin = resolve(process.cwd(), "..", "..", "mrs_plugin");
+    const mdsPlugin = resolve(process.cwd(), "..", "..", "mds_plugin");
+    const msmPlugin = resolve(process.cwd(), "..", "..", "msm_plugin");
+    const migrationPlugin = resolve(process.cwd(), "..", "..", "migration_plugin");
 
-symlinkSync(beGuiPlugin, join(configDir, "plugins", "gui_plugin"));
-rmSync(webRootFolder, { force: true });
-symlinkSync(buildFolder, webRootFolder);
-symlinkSync(mrsPlugin, join(configDir, "plugins", "mrs_plugin"));
-symlinkSync(mdsPlugin, join(configDir, "plugins", "mds_plugin"));
-symlinkSync(msmPlugin, join(configDir, "plugins", "msm_plugin"));
-symlinkSync(migrationPlugin, join(configDir, "plugins", "migration_plugin"));
+    symlinkSync(beGuiPlugin, join(configDir, "plugins", "gui_plugin"));
+    rmSync(webRootFolder, { force: true });
+    symlinkSync(buildFolder, webRootFolder);
+    symlinkSync(mrsPlugin, join(configDir, "plugins", "mrs_plugin"));
+    symlinkSync(mdsPlugin, join(configDir, "plugins", "mds_plugin"));
+    symlinkSync(msmPlugin, join(configDir, "plugins", "msm_plugin"));
+    symlinkSync(migrationPlugin, join(configDir, "plugins", "migration_plugin"));
+}
+
+const args = process.argv.toString().split(",");
+const cmd = `playwright test`;
+const path = `src/tests/e2e/migration_assistant/tests/`;
+
+for (const arg of args) {
+    if (arg.includes("--suite")) {
+        const suite = arg.replace("--suite=", "");
+        console.log(`Running suite '${suite}'...`);
+        const result = spawnSync(`${cmd} ${path}ui-${suite}.spec.ts --trace on`,
+            { shell: true, stdio: "inherit" });
+
+        if (result.status !== 0) {
+            process.exit(1);
+        }
+
+        process.exit(0);
+    }
+}
+
+console.log("Running all test suites...");
 const result = spawnSync(`playwright test --trace on`, { shell: true, stdio: "inherit" });
 
 if (result.status !== 0) {

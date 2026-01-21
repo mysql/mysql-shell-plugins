@@ -83,6 +83,9 @@ export const steps = {
         description: ".content p",
     },
     targetSelection: {
+        signUp: `[caption="Sign Up to OCI"]`,
+        signIn: `[caption="OCI Sign In"]`,
+        copySignInLink: ".oci-sign-in span",
         ociProfile: {
             box: "#profile",
             selectList: {

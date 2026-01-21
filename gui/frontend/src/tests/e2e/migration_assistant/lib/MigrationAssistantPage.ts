@@ -75,13 +75,13 @@ export class MigrationAssistantPage {
     };
 
     public startMigration = async (): Promise<void> => {
-        globalThis.migrationMock = true;
+        globalThis.mockMigration = true;
         await page.locator(locator.mainPage.startMigration).click();
         await Misc.waitForLoadingIcon();
     };
 
     public abortMigration = async (): Promise<void> => {
-        globalThis.migrationMock = true;
+        globalThis.mockMigration = true;
         await page.locator(locator.mainPage.abortMigration).click();
         await Misc.waitForLoadingIcon();
     };

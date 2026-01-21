@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /* eslint-disable no-restricted-syntax */
+/* eslint-disable max-len */
+
 import { defineConfig, devices } from "@playwright/test";
 
 export const mysqlServerPort = 4407;
@@ -30,26 +32,40 @@ export const mysqlServerPort = 4407;
 export default defineConfig({
     timeout: 250000,
     globalTimeout: 400000,
-    webServer: {
-        command: "npm run run-shell:single-user",
-        timeout: 15000,
-        port: 8000,
-        name: "SHELL_SERVER",
-        env: {
-            ...process.env,
-            MYSQLSH_USER_CONFIG_HOME: String(process.env.CONFIG_DIR)
+    webServer: [
+        {
+            command: `mysqlsh --log-level=debug --disable-builtin-plugins --py -e "gui.start.web_server(port=8000,accept_remote_connections=True,single_instance_token='1234')"`,
+            timeout: 15000,
+            port: 8000,
+            name: "SHELL_SERVER_INVALID",
+            env: {
+                ...process.env,
+                MYSQLSH_USER_CONFIG_HOME: String(process.env.CONFIG_DIR_DEFAULT),
+                LOG_LEVEL: "DEBUG3"
+            },
         },
-    },
+        {
+            command: `mysqlsh --log-level=debug --disable-builtin-plugins --py -e "gui.start.web_server(port=8001,accept_remote_connections=True,single_instance_token='1234test')"`,
+            timeout: 15000,
+            port: 8001,
+            name: "SHELL_SERVER_INVALID",
+            env: {
+                ...process.env,
+                MYSQLSH_USER_CONFIG_HOME: String(process.env.CONFIG_DIR_INVALID),
+                LOG_LEVEL: "DEBUG3",
+                MYSQLSH_OCI_CONFIG_FILE: "dummy"
+            },
+        },
+    ],
     globalSetup: "./src/tests/e2e/migration_assistant/lib/setup/globalSetup.ts",
     globalTeardown: "./src/tests/e2e/migration_assistant/lib/setup/globalTearDown.ts",
     testDir: "src/tests/e2e/migration_assistant/tests",
     workers: 2,
-    //testMatch: ["ui-migration-in-progress.spec.ts"],
+    //testMatch: ["ui-migration-ok.spec.ts"],
     reporter: [
         ["html", { open: "never" }]
     ],
     use: {
-        baseURL: "http://localhost:8000",
         navigationTimeout: 30000,
         actionTimeout: 5000,
         headless: true,

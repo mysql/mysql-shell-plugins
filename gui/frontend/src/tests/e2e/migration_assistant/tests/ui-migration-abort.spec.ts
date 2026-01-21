@@ -49,7 +49,8 @@ test.describe("Aborted Migration", () => {
     });
 
     test.afterAll(async () => {
-        globalThis.migrationMock = false;
+        globalThis.mockMigration = false;
+        globalThis.mockMigrationAbort = false;
         await browser.close();
     });
 

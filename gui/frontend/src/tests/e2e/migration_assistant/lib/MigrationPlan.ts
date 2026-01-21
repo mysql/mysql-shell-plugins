@@ -66,6 +66,29 @@ export class MigrationPlan {
 
     // Target Selection
 
+    public existsSignUpButton = async (): Promise<boolean> => {
+        const refLocator = page.locator(locator.steps.targetSelection.signUp);
+
+        return (await refLocator.all()).length > 0;
+    };
+
+    public existsSignInButton = async (): Promise<boolean> => {
+        const refLocator = page.locator(locator.steps.targetSelection.signIn);
+
+        return (await refLocator.all()).length > 0;
+    };
+
+    public clickSignIn = async (): Promise<void> => {
+        const refLocator = page.locator(locator.steps.targetSelection.signIn);
+
+        await refLocator.click();
+    };
+
+    public copySignInUrl = async (): Promise<void> => {
+        const refLocator = page.locator(locator.steps.targetSelection.copySignInLink);
+        await refLocator.click({ timeout: constants.wait1second * 10 });
+    };
+
     public getOciConfigProfile = async (): Promise<string | null> => {
         return page.locator(locator.steps.targetSelection.ociProfile.box).textContent();
     };

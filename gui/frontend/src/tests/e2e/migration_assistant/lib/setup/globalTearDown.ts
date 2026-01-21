@@ -24,16 +24,28 @@
  */
 
 import { spawnSync } from "child_process";
-import { mysqlServerPort } from "../../../../../../playwright.config.js";
-import { FullConfig } from "@playwright/test";
 
-const globalTearDown = (config: FullConfig) => {
+const globalTearDown = () => {
 
-    spawnSync(`lsof -t -i tcp:${config.webServer!.port} | xargs kill -9`, { shell: true });
-    console.log(`[OK] MySQL Shell was killed successfully`);
+    const servers = [
+        8000,
+        8001,
+        4407
+    ];
 
-    spawnSync(`lsof -t -i tcp:${mysqlServerPort} | xargs kill -9`, { shell: true });
-    console.log(`[OK] MySQL Server sandbox was killed successfully`);
+    for (const server of servers) {
+        spawnSync(`lsof -t -i tcp:${server} | xargs kill -9`, { shell: true });
+        console.log(`[OK] Process on port ${server} was killed successfully`);
+    }
+
+    spawnSync("mysqlsh", [
+        "--",
+        "dba",
+        "delete-sandbox-instance",
+        `${servers[2]}`,
+        // eslint-disable-next-line no-restricted-syntax
+        `--sandbox-dir=${process.cwd()}`,
+    ], { stdio: "inherit" });
 };
 
 export default globalTearDown;

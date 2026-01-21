@@ -49,7 +49,7 @@ test.describe("Migration in progress", () => {
     });
 
     test.afterAll(async () => {
-        globalThis.migrationMock = false;
+        globalThis.mockMigration = false;
         await browser.close();
     });
 

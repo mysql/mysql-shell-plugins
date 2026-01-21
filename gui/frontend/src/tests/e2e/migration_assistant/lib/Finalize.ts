@@ -168,7 +168,7 @@ export class Finalize {
 
     public deleteSelectedOciResources = async (): Promise<void> => {
         const deleteLocator = page.locator(locator.finalize.deleteOciResources);
-        globalThis.migrationMock = true;
+        globalThis.mockMigration = true;
         await deleteLocator.click();
         await Misc.waitForLoadingIcon();
     };

@@ -499,7 +499,10 @@ declare global {
     var VITE_MODE: "development" | "production";
 
     /** Flag to indicate if mock is needed on the migration */
-    var migrationMock: boolean;
+    var mockMigration: boolean;
+
+    /** Flag to indicate if mock is needed on the migration abort */
+    var mockMigrationAbort: boolean;
 }
 
 /** This conditional type enforces type widening on generic parameter types. */

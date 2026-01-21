@@ -38,7 +38,7 @@ const globalSetup = () => {
         "deploy-sandbox-instance",
         `${mysqlServerPort}`,
         `--password=${process.env.DBROOTPASSWORD}`,
-        `--sandbox-dir=${process.env.CONFIG_DIR}`,
+        `--sandbox-dir=${process.cwd()}`,
     ], { stdio: "inherit" });
 
     // Install SQL data
