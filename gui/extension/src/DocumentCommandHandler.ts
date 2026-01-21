@@ -78,6 +78,7 @@ import {
 import { isExternalLangRoutine, showMessageWithTimeout } from "./utilities.js";
 import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
+import { resolveNewSqlScript } from "../../frontend/src/utilities/mysql-helpers.js"
 
 const homeDir = os.homedir();
 
@@ -1105,126 +1106,19 @@ export class DocumentCommandHandler {
         scriptName: string, placeHolder: string, isExternalLanguage?: boolean): Promise<void> {
 
         let name: string | undefined = "";
-        let sql = "";
-        let is3rdLanguage = false;
+        let sql = placeHolder;
+        let is3rdLanguage = !!isExternalLanguage;
+
         // If the commands is a create command, get the name of the new routine
         if (command.startsWith("msg.create")) {
-            if (command.startsWith("msg.createLibraryJs")) {
-                name = await window.showInputBox({
-                    title: `New Library on Schema \`${schemaName}\``,
-                    placeHolder,
-                    prompt: "Please enter a name for the new library:",
-                    value: "",
-                });
+            is3rdLanguage = command.endsWith("Js");
+            const result = await resolveNewSqlScript(command.substring(10), schemaName, placeHolder);
+            if (result) {
+                name = result.name;
+                sql = result.sql;
             } else {
-                name = await window.showInputBox({
-                    title: `New Routine on Schema \`${schemaName}\``,
-                    placeHolder,
-                    prompt: "Please enter a name for the new routine:",
-                    value: "",
-                });
-            }
-
-            if (name === undefined) {
                 return;
             }
-
-            if (name === "") {
-                name = placeHolder;
-            }
-        }
-
-        switch (command) {
-            case "msg.createProcedure": {
-                sql = `DELIMITER %%\nDROP PROCEDURE IF EXISTS \`${schemaName}\`.\`${name}\`%%\n`
-                    + `/* Add or remove procedure IN/OUT/INOUT parameters as needed. */\n`
-                    + `CREATE PROCEDURE \`${schemaName}\`.\`${name}\`(IN arg1 INTEGER, OUT arg2 INTEGER)\n`
-                    + `SQL SECURITY DEFINER\nNOT DETERMINISTIC\nBEGIN\n`
-                    + `    /* Insert the procedure code here. */\n    SET arg2 = arg1 * 2;\n`
-                    + `END%%\nDELIMITER ;\n\n`
-                    + `CALL \`${schemaName}\`.\`${name}\`(1, @arg2);\nSELECT @arg2;`;
-                break;
-            }
-
-            case "msg.createFunction": {
-                sql = `DELIMITER %%\nDROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`%%\n`
-                    + `/* Add or remove function parameters as needed. */\n`
-                    + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\nRETURNS INTEGER\n`
-                    + `SQL SECURITY DEFINER\nDETERMINISTIC\nBEGIN\n`
-                    + `    /* Insert the function code here. */\n    return arg1;\nEND%%\nDELIMITER ;`
-                    + `\n\nSELECT \`${schemaName}\`.\`${name}\`(1);`;
-                break;
-            }
-
-            case "msg.createFunctionJs": {
-                is3rdLanguage = true;
-                sql = `DROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
-                    + `/* Add or remove function parameters as needed. */\n`
-                    + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\n`
-                    + `RETURNS INTEGER\n`
-                    + `/* USING (\`${schemaName}\`.\`library1\` AS lib1, \`other_schema\`.\`library2\` AS lib2) */\n`
-                    + `SQL SECURITY DEFINER\n`
-                    + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $$\n`
-                    + `    /* Insert the function code here. */\n`
-                    + `    console.log("Hello World!");\n`
-                    + `    console.log('{"info": "This is Javascript"}');\n`
-                    + `    /* console.log("Imported function: ", lib1.f()); */\n`
-                    + `    /* throw("Custom Error"); */\n`
-                    + `    return arg1;\n`
-                    + `$$;\n`
-                    + `SELECT \`${schemaName}\`.\`${name}\`(1);`;
-                break;
-            }
-
-            case "msg.createLibraryJs": {
-                is3rdLanguage = true;
-                sql = `DROP LIBRARY IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
-                    + `CREATE LIBRARY \`${schemaName}\`.\`${name}\`\n`
-                    + `LANGUAGE JAVASCRIPT\nAS $$\n`
-                    + `    /* Insert the library code here. */\n`
-                    + `    export function f(x) {\n`
-                    + `        return x + 1;\n`
-                    + `    }\n`
-                    + `    export class MyRectangle {\n`
-                    + `        /* your class implementation */\n`
-                    + `    }\n`
-                    + `    export const myConst = 7;\n`
-                    + `$$;\n`;
-                break;
-            }
-
-            case "msg.createProcedureJs": {
-                is3rdLanguage = true;
-                sql = `DROP PROCEDURE IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
-                    + `/* Add or remove procedure parameters as needed. */\n`
-                    + `CREATE PROCEDURE \`${schemaName}\`.\`${name}\`(IN arg1 INTEGER, OUT arg2 INTEGER)\n`
-                    + `/* USING (\`${schemaName}\`.\`library1\` AS lib1, \`other_schema\`.\`library2\` AS lib2) */\n`
-                    + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $$\n`
-                    + `    /* Insert the procedure code here. */\n`
-                    + `    console.log("Hello World!");\n`
-                    + `    const sql_query = session.prepare('SELECT ?');\n`
-                    + `    const query_result = sql_query.bind(arg1).execute().fetchOne();\n`
-                    + `    arg2 = query_result[0];\n`
-                    + `    /* console.log("Imported function: ", lib1.f()); */\n`
-                    + `$$;\n`
-                    + `CALL\`${schemaName}\`.\`${name}\`(42, @out);\n`
-                    + `SELECT @out;`;
-                break;
-            }
-
-            case "msg.editRoutine": {
-                is3rdLanguage = !!isExternalLanguage;
-                sql = placeHolder;
-                break;
-            }
-
-            case "msg.editLibrary": {
-                is3rdLanguage = !!isExternalLanguage;
-                sql = placeHolder;
-                break;
-            }
-
-            default:
         }
 
         const provider = this.host.currentProvider ?? this.host.newProvider;

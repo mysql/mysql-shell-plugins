@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -119,6 +119,7 @@ import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
+import { resolveNewSqlScript } from "../../utilities/mysql-helpers.js"
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -2642,6 +2643,23 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     break;
                 }
 
+                case "msg.editRoutine": {
+                    const sql = await this.connectionsDataModel.getCreateSqlScript(entry, true, true, true, true);
+
+                    await this.createAndSelectScriptDocument(connection.details, entry.caption, "mysql", sql, pageId);
+
+                    break;
+                }
+
+                case "msg.createProcedure":
+                case "msg.createProcedureJs":
+                case "msg.createFunction":
+                case "msg.createFunctionJs":
+                case "msg.createLibraryJs": {
+                    await this.addNewSqlScript(connection.details, command.command, qualifiedName?.schema!, "");
+                    break;
+                }
+
                 default: {
                     return this.sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName,
                         pageId);
@@ -2793,6 +2811,36 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 });
             }
         }
+    }
+
+    /**
+     * Creates a new snippet for a script based on the given command, resolving the name 
+     * prompting to the user.
+     *
+     * @param connection The connection to use for the new document. There might already be a connection tab for it.
+     * @param command The command being executed.
+     * @param schemaName The name of the schema where the script will be created.
+     * @param placeHolder An initial name for the script
+     */
+    private async addNewSqlScript(details: IConnectionDetails, command: string, schemaName: string,
+        placeHolder: string): Promise<void> {
+
+        let name: string | undefined = "";
+        let sql = placeHolder;
+
+        // If the commands is a create command, get the name of the new routine
+        if (command.startsWith("msg.create")) {
+            const result = await resolveNewSqlScript(command.substring(10), schemaName, placeHolder);
+
+            if (result) {
+                name = result.name;
+                sql = result.sql;
+            } else {
+                return;
+            }
+        }
+
+        this.createAndSelectScriptDocument(details, name, "mysql", sql);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -135,6 +135,18 @@ export interface IUILayer {
      * @returns The entered password or undefined if the password dialog was cancelled.
      */
     requestPassword(request: IServicePasswordRequest): Promise<string | undefined>;
+
+    /**
+     * Triggers an open prompt to gather data from the user.
+     *
+     * @param title The title for the input box.
+     * @param placeHolder Shown as a hint in the input box to help the user.
+     * @param message The prompt to be displayed to the user.
+     * @param value An optional value to pre-fill in the input box.
+     *
+     * @returns The entered password or undefined if the password dialog was cancelled.
+     */
+    showInputBox(title: string, placeHolder: string, message: string, value?: string): Promise<string | undefined>;
 }
 
 const defaultHandler = (): number => {
@@ -161,6 +173,7 @@ export let ui: IUILayer = {
     setStatusBarMessage: defaultHandler,
     confirm: asyncDefaultHandler,
     requestPassword: asyncDefaultHandler,
+    showInputBox: asyncDefaultHandler,
 };
 
 export const registerUiLayer = (newLayer: IUILayer): void => {

@@ -45,9 +45,9 @@ import { IMenuItemProperties, MenuItem } from "../../../components/ui/Menu/MenuI
 import { ISplitterPaneSizeInfo } from "../../../components/ui/SplitContainer/SplitContainer.js";
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import {
-    CdmEntityType, type ConnectionDMActionList, type ConnectionDataModelEntry, type ConnectionDataModelNoGroupEntry,
+    CdmEntityType, CdmSchemaGroupMemberType, type ConnectionDMActionList, type ConnectionDataModelEntry, type ConnectionDataModelNoGroupEntry,
     type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmRestAuthAppEntry, type ICdmRestRootEntry,
-    type ICdmRestSchemaEntry, type ICdmRestServiceEntry,
+    type ICdmRestSchemaEntry, type ICdmRestServiceEntry, type ICdmSchemaGroupEntry,
 } from "../../../data-models/ConnectionDataModel.js";
 import {
     OciDmEntityType, type IOciDmCompartment, type IOciDmProfile, type OciDataModelEntry,
@@ -261,6 +261,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         [CdmEntityType.MrsRouter, createRef<Menu>()],
         [CdmEntityType.MrsUser, createRef<Menu>()],
         [CdmEntityType.MrsDbObject, createRef<Menu>()],
+    ]);
+
+    private cmdSchemaSubTypeToMenuRefMap = new Map<CdmSchemaGroupMemberType, RefObject<Menu>>([
+        [CdmEntityType.StoredProcedure, createRef<Menu>()],
+        [CdmEntityType.StoredFunction, createRef<Menu>()],
+        [CdmEntityType.Library, createRef<Menu>()],
     ]);
 
     private odmTypeToMenuRefMap = new Map<OdmEntityType, RefObject<Menu>>([
@@ -703,7 +709,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         disabled />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Add Schema to REST Service...", command: "msg.mrs.addSchema" }} />
-                    <MenuItem command={{ title: "Create Library From...", command: "msg.createLibraryFrom" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Drop Schema...", command: "msg.dropDbEntity" }} />
                 </Menu >
@@ -806,11 +811,24 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 </Menu >
 
                 <Menu
+                    id="procedureGroupContextMenu"
+                    ref={this.cmdSchemaSubTypeToMenuRefMap.get(CdmEntityType.StoredProcedure)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Create Stored Procedure...", command: "msg.createProcedure" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Create Stored JavaScript Procedure...", command: "msg.createProcedureJs" }} />
+                </Menu >
+
+                <Menu
                     id="procedureContextMenu"
                     ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.StoredProcedure)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
+                    <MenuItem command={{ title: "Edit Stored Routine...", command: "msg.editRoutine" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
                     {copyToClipboardRoutineMenuItems()}
                     {sendToEditorRoutineMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
@@ -819,6 +837,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Drop Stored Routine ...", command: "msg.dropDbEntity" }} />
+                </Menu >
+
+                <Menu
+                    id="functionGroupContextMenu"
+                    ref={this.cmdSchemaSubTypeToMenuRefMap.get(CdmEntityType.StoredFunction)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Create Stored Function...", command: "msg.createFunction" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Create Stored JavaScript Function...", command: "msg.createFunctionJs" }} />
                 </Menu >
 
                 <Menu
@@ -827,6 +856,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
+                    <MenuItem command={{ title: "Edit Stored Routine...", command: "msg.editRoutine" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
                     {copyToClipboardRoutineMenuItems()}
                     {sendToEditorRoutineMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
@@ -838,11 +869,24 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 </Menu >
 
                 <Menu
+                    id="libraryGroupContextMenu"
+                    ref={this.cmdSchemaSubTypeToMenuRefMap.get(CdmEntityType.Library)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Create JavaScript Library...", command: "msg.createLibraryJs" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Create JavaScript Library From...", command: "msg.createLibraryFrom" }} />
+                </Menu >
+
+                <Menu
                     id="libraryContextMenu"
                     ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Library)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
+                    <MenuItem command={{ title: "Edit Library...", command: "msg.editRoutine" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
                     {copyToClipboardRoutineMenuItems()}
                     {sendToEditorRoutineMenuItems()}
                     <MenuItem command={{ title: "-", command: "" }} disabled />
@@ -1403,7 +1447,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private showConnectionTreeContextMenu = (rowData: IConnectionTreeItem, e: MouseEvent): boolean => {
         const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
 
-        this.cdmTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
+        if (rowData.dataModelEntry.type === CdmEntityType.SchemaGroup) {
+            this.cmdSchemaSubTypeToMenuRefMap.get(rowData.dataModelEntry.subType)?.current?.open(targetRect, false, {}, rowData);
+        } else {
+            this.cdmTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
+        }
 
         return true;
     };

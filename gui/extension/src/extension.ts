@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -186,6 +186,10 @@ const extensionUILayer: IUILayer = {
 
     requestPassword: async (values: IServicePasswordRequest): Promise<string | undefined> => {
         return window.showInputBox({ title: values.caption, password: true, prompt: "Please enter the password" });
+    },
+
+    showInputBox: async (title: string, placeHolder:string, message: string, value?: string): Promise<string | undefined> => {
+        return window.showInputBox({ title, placeHolder, prompt: message, value});
     },
 };
 

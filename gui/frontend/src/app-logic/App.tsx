@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -397,6 +397,24 @@ export class App extends Component<{}, IAppState> {
         }
 
         return Promise.resolve(undefined);
+    };
+
+    public showInputBox = async (title: string, placeHolder:string, message: string, value?: string): Promise<string | undefined> => {
+        const response = await DialogHost.showDialog({
+            id: "msg.general.prompt",
+            type: DialogType.Prompt,
+            title: title,
+            values: {
+                prompt: message,
+                value: placeHolder
+            }
+        });
+
+        if (response.closure === DialogResponseClosure.Accept && response.values) {
+            return response.values.input as string;
+        }
+
+        return undefined;
     };
 
     // End of UILayer interface implementation
