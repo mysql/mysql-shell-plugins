@@ -335,9 +335,6 @@ class ConfigureTargetDBSystem:
 
         self.network_compartment = None
 
-        self.has_mysql_native_accounts = False
-        if self._server_info.numAccountsOnMysqlNativePassword > 0:
-            self.has_mysql_native_accounts = True
         self.compute_resolution_notice: str = ""
 
     @property
@@ -706,8 +703,7 @@ class ConfigureTargetDBSystem:
                         self.versions[-1].versions[-1].version  # type: ignore
                 else:
                     options.mysqlVersion = self.recommend_version(
-                        self._server_info, self.versions,
-                        has_mysql_native_accounts=self.has_mysql_native_accounts)
+                        self._server_info, self.versions)
         else:
             if not options.mysqlVersion:
                 add_error("Target database version not selected",
@@ -1102,7 +1098,6 @@ class ConfigureTargetDBSystem:
         self,
         server_info: model.ServerInfo,
         versions: list[VersionSummary],
-        has_mysql_native_accounts: bool,
     ) -> str:
 
         def get_version_summary(version_prefix: str) -> Optional[VersionSummary]:
@@ -1112,23 +1107,19 @@ class ConfigureTargetDBSystem:
             return None
 
         if server_info.serverType == ServerType.MariaDB:
-            vf = get_version_summary("8.4")
+            version_prefix = "8.4"
         else:
             nversion = dbsession.version_to_nversion(server_info.version)
 
             # for now, recommend the newest supported version of the same series
-            if nversion // 100 <= 800 or has_mysql_native_accounts:
-                # TODO - we're picking 8.0 because 8.4 has mysql_native_password disabled.
-                # if we can enable mysql_native_password in 8.4, then we just
-                # pick 8.4
-                vf = get_version_summary("8.0")
-                if not vf:
-                    vf = get_version_summary("8.4")
-            elif nversion // 100 == 804:
-                vf = get_version_summary("8.4")
-            else:  # 9.x
-                vf = get_version_summary("9")
+            if nversion // 100 <= 804:
+                version_prefix = "8.4"
+            else:
+                version_prefix = server_info.version[
+                    :server_info.version.find(".")
+                ]
 
+        vf = get_version_summary(version_prefix)
         assert vf and vf.versions, server_info.version
 
         version = vf.versions[-1].version

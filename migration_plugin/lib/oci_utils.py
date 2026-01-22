@@ -2072,9 +2072,15 @@ class Compartment:
 
     def list_db_versions(self) -> list[oci.mysql.models.VersionSummary]:
         """List MySQL versions"""
-        return oci.pagination.list_call_get_all_results(
+        response = oci.pagination.list_call_get_all_results(
             self._mds_client.list_versions, compartment_id=self.id
-        ).data
+        )
+        result: list[oci.mysql.models.VersionSummary] = response.data
+        # BUG#38884595 - do not list MySQL 8.0
+        result = [
+            summary for summary in result if not cast(str, summary.version_family).startswith("8.0")
+        ]
+        return result
 
     def list_images(
         self, operating_system: str, operating_system_version: str, shape: str
