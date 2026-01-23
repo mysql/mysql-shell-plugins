@@ -4671,14 +4671,14 @@ Migration Assistant.`}
                 : [];
 
             const dbShapePromises = fetchDbShapes
-                ? ads.map(ad =>
-                    this.mhs.listDbSystemShapes("DBSYSTEM, HEATWAVECLUSTER", profile, compartmentOcid, ad)
-                )
+                ? ads.map(ad => {
+                    return this.mhs.listDbSystemShapes("DBSYSTEM, HEATWAVECLUSTER", profile, compartmentOcid, ad);
+                })
                 : [];
             const computeShapePromises = fetchComputeShapes
-                ? ads.map(ad =>
-                    this.mhs.listComputeShapes(profile, compartmentOcid, ad)
-                )
+                ? ads.map(ad => {
+                    return this.mhs.listComputeShapes(profile, compartmentOcid, ad);
+                })
                 : [];
 
             const [allDbShapes, allComputeShapes] = await Promise.all([
@@ -4689,20 +4689,28 @@ Migration Assistant.`}
             const seen = new Set<string>();
 
             const dbShapes = allDbShapes.flat().filter(i => {
-                if (seen.has(i.name)) return false;
+                if (seen.has(i.name)) {
+                    return false;
+                }
+
                 seen.add(i.name);
+
                 return true;
             });
 
             seen.clear();
 
             const computeShapes = allComputeShapes.flat().filter(i => {
-                if (seen.has(i.shape)) return false;
+                if (seen.has(i.shape)) {
+                    return false;
+                }
+
                 seen.add(i.shape);
+
                 return true;
             });
 
-            if (dbShapes) {
+            if (dbShapes.length) {
                 updatedShapes.dbSystemShapes = dbShapes.filter((s) => {
                     return !s.isSupportedFor?.includes(ShapeSummary.IsSupportedFor.Heatwavecluster);
                 });
@@ -4711,7 +4719,7 @@ Migration Assistant.`}
                 });
             }
 
-            if (computeShapes) {
+            if (computeShapes.length) {
                 updatedShapes.computeShapes = computeShapes;
             }
         } catch (e) {
