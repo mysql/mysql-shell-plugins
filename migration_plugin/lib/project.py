@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -79,11 +79,6 @@ class Project:
 
         project = Project(id=id, path=path, name=name)
         project._create_time = datetime.datetime.now().isoformat()
-        try:
-            project.open_oci_profile()
-        except Exception as e:
-            logging.error(
-                f"Could not open OCI profile {project._oci_profile} from {project._oci_config_file}: {e}")
 
         project.save()
         return project

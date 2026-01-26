@@ -102,49 +102,51 @@ export const convertCompartments = (compartments: Compartment[]) => {
 
 export const waitForPromise = <T>(promise: () => Promise<T>, label: string,
     maxAttempts = 60, intervalMs = 5000): Promise<T> => {
-    let intervalId: ReturnType<typeof setInterval>;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let nextRetryId: ReturnType<typeof setTimeout>;
     let attemptNum = 0;
     let error: Error | undefined;
+    let timedOut = false;
 
     const timeoutMin = maxAttempts * intervalMs / 1000 / 60;
 
     return Promise.race([
         new Promise<T>((_, reject) => {
-            setTimeout(() => {
-                clearInterval(intervalId);
+            timeoutId = setTimeout(() => {
+                clearTimeout(nextRetryId);
+                timedOut = true;
                 reject(new Error(`waitForPromise ${label} timed out after ${timeoutMin} minutes`));
             }, maxAttempts * intervalMs);
         }),
         new Promise<T>((resolve, reject) => {
             const tryPromise = () => {
                 attemptNum++;
-                console.log(`waitForPromise ${label} attempt #${attemptNum}...`);
-                void promise().then((result) => {
-                    console.log(`waitForPromise ${label} attempt #${attemptNum} SUCCEEDED`);
+                const currentAttempt = attemptNum;
+                console.log(`waitForPromise ${label} attempt #${currentAttempt}...`);
+                promise().then((result) => {
+                    clearTimeout(timeoutId);
                     error = undefined;
-                    clearInterval(intervalId);
+                    console.log(`waitForPromise ${label} attempt #${currentAttempt} SUCCEEDED`);
                     resolve(result);
                 }).catch((e: unknown) => {
                     error = e as Error;
-                    console.warn(`waitForPromise ${label} attempt #${attemptNum} FAILED`, e);
+                    console.warn(`waitForPromise ${label} attempt #${currentAttempt} FAILED`, e);
                 }).finally(() => {
-                    if (attemptNum >= maxAttempts) {
-                        clearInterval(intervalId);
-                        let message = `waitForPromise ${label} failed after ${attemptNum} attempts`;
+                    if (timedOut) {
+                        console.debug(`waitForPromise ${label} attempt #${currentAttempt} FINISHED with timeout`);
+                    } else if (currentAttempt >= maxAttempts) {
+                        let message = `waitForPromise ${label} failed after ${currentAttempt} attempts`;
                         if (error) {
                             message += `, last error: ${error.message}`;
                         }
                         reject(new Error(message));
-
-                        return;
+                    } else if (error) {
+                        nextRetryId = setTimeout(tryPromise, intervalMs);
                     }
                 });
             };
 
             tryPromise();
-            if (maxAttempts > 1) {
-                intervalId = setInterval(tryPromise, intervalMs);
-            }
         })
     ]);
 };
@@ -192,7 +194,7 @@ export const flattenObject = (obj: unknown, prefix = ""): FlatObject => {
 
 /**
  * Format number of seconds as human readable estimated time for completion.
- * 
+ *
  * @param seconds approximate number of seconds until completion
  * @returns Formatted time text
  */

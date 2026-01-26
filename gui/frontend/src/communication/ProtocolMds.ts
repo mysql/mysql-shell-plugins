@@ -37,6 +37,8 @@ export enum ShellAPIMds {
     MdsGetRegions = "mds.get.regions",
     /** Lists all available profiles */
     MdsListConfigProfiles = "mds.list.config_profiles",
+    /** Sets the current OCI config Profile */
+    MdsSetCurrentConfigProfile = "mds.set.current_config_profile",
     /** Sets the default profile */
     MdsSetDefaultConfigProfile = "mds.set.default_config_profile",
     /** Gets the default profile if stored in the CLI config file */
@@ -1187,6 +1189,7 @@ export interface IShellMdsGenaiSaveChatOptionsKwargs {
 export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsGetRegions]: {};
     [ShellAPIMds.MdsListConfigProfiles]: { kwargs?: IShellMdsListConfigProfilesKwargs; };
+    [ShellAPIMds.MdsSetCurrentConfigProfile]: { args: { profileName?: string; configFilePath?: string; interactive?: boolean; }; };
     [ShellAPIMds.MdsSetDefaultConfigProfile]: { args: { profileName?: string; configFilePath?: string; cliRcFilePath?: string; }; };
     [ShellAPIMds.MdsGetDefaultConfigProfile]: { args: { cliRcFilePath?: string; }; };
     [ShellAPIMds.MdsSetCurrentCompartment]: { kwargs?: IShellMdsSetCurrentCompartmentKwargs; };
@@ -1526,6 +1529,7 @@ export interface IRegion {
 export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetRegions]: { result: IRegion[]; };
     [ShellAPIMds.MdsListConfigProfiles]: { result: IMdsProfileData[]; };
+    [ShellAPIMds.MdsSetCurrentConfigProfile]: {};
     [ShellAPIMds.MdsSetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsGetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsSetCurrentCompartment]: {};

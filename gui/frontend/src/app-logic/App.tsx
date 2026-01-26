@@ -60,6 +60,7 @@ import {
 } from "./general-types.js";
 import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
 import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
+import { Mutex, lockMutex } from "../supplement/Mutex.js";
 
 CodeEditorSetup.init();
 
@@ -77,6 +78,8 @@ export class App extends Component<{}, IAppState> {
 
     private defaultProfile?: IShellProfile;
     private themeManager = ThemeManager.get;
+
+    private passwordDialogMutex = new Mutex();
 
     #notificationCenterRef = createRef<NotificationCenter>();
 
@@ -392,14 +395,18 @@ export class App extends Component<{}, IAppState> {
     };
 
     public requestPassword = (values: IServicePasswordRequest): Promise<string | undefined> => {
-        if (this.passwordDialogRef.current) {
-            return this.passwordDialogRef.current.show(values);
-        }
+        // TODO: this is a temporary solution, locking should happen in ShellPromptHandler
+        return lockMutex(this.passwordDialogMutex, () => {
+            if (this.passwordDialogRef.current) {
+                return this.passwordDialogRef.current.show(values);
+            }
 
-        return Promise.resolve(undefined);
+            return Promise.resolve(undefined);
+        });
     };
 
-    public showInputBox = async (title: string, placeHolder:string, message: string, value?: string): Promise<string | undefined> => {
+    public showInputBox = async (title: string, placeHolder: string, message: string,
+        value?: string): Promise<string | undefined> => {
         const response = await DialogHost.showDialog({
             id: "msg.general.prompt",
             type: DialogType.Prompt,

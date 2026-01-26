@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -321,13 +321,9 @@ class OCIProfileSubStep(PlanSubStep):
         if not self._start_mutex.acquire(blocking=blocking):
             logging.info(f"{self}.start (busy)")
             return
-        try:
-            # check if there's a profile already
-            self.refresh_oci_config()
 
-            self._started = True
-        finally:
-            self._start_mutex.release()
+        self._started = True
+        self._start_mutex.release()
 
     def apply(self, config: dict) -> bool:
         # always force an update because external changes (oci profile creation)
@@ -338,14 +334,27 @@ class OCIProfileSubStep(PlanSubStep):
         options = self.parse_values(config, OCIProfileOptions)
 
         changed = False
-        if self._config_exists:
-            if self._project.oci_config_file != options.configFile and options.configFile:
+
+        if not self._project.oci_config:
+            if options.configFile:
+                logging.debug(
+                    f"{self}: config file set to {options.configFile}"
+                )
+                self._project.oci_config_file = options.configFile
+                changed = True
+
+            if options.profile:
+                logging.debug(f"{self}: profile set to {options.profile}")
+                self._project.oci_profile = options.profile
+                changed = True
+        else:
+            if options.configFile and self._project.oci_config_file != options.configFile:
                 raise errors.BadRequest(
-                    "changing configFile path not yet supported")
+                    "changing configFile path not yet supported"
+                )
 
-            if self._project.oci_profile != options.profile and options.profile:
+            if options.profile and self._project.oci_profile != options.profile:
                 logging.debug(f"{self}: profile changed to {options.profile}")
-
                 self._project.oci_profile = options.profile
                 changed = True
 
@@ -1686,7 +1695,7 @@ k_log_filters = {"logfilters": [{"type": "key", "keys": [
 def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
     """
     Update migration plan sub-step with user input.
-   
+
     Args:
         configs (list): list of {"id", "values":[]} sub-steps to update
     """

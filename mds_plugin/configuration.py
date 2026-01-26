@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -703,7 +703,7 @@ def create_config(**kwargs):
         return config
 
 
-def get_current_config(config=None, config_profile=None, interactive=None):
+def get_current_config(config=None, config_profile=None, interactive=None, config_file_path=None):
     """Gets the active config dict
 
     If no config dict is given as parameter, the global config dict will be used
@@ -712,6 +712,7 @@ def get_current_config(config=None, config_profile=None, interactive=None):
         config (dict): The config to be used or None
         config_profile (str): The name of a config profile
         interactive (bool): Indicates whether to execute in interactive mode
+        config_file_path (str): The file path of the OCI config file
 
     Returns:
         The active config dict
@@ -734,7 +735,8 @@ def get_current_config(config=None, config_profile=None, interactive=None):
                 load_profile_as_current(
                     profile_name=config_profile,
                     print_current_objects=False,
-                    interactive=interactive)
+                    interactive=interactive,
+                    config_file_path=config_file_path)
 
                 # Check if global object 'mds_config' now has been registered
                 if 'mds_config' in dir(mysqlsh.globals):
@@ -752,7 +754,8 @@ def get_current_config(config=None, config_profile=None, interactive=None):
                 # Load the config profile
                 load_profile_as_current(
                     profile_name=config_profile,
-                    print_current_objects=False)
+                    print_current_objects=False,
+                    config_file_path=config_file_path)
 
                 # Check if global object 'mds_config' now has been registered
                 if 'mds_config' in dir(mysqlsh.globals):
@@ -994,7 +997,7 @@ def list_current_objects(config=None, profile_name=None,
                 f'ERROR: {e.message}.\n(Code: {e.code}; Status: {e.status})')
 
 
-@plugin_function('mds.set.currentConfigProfile', shell=True, cli=False, web=False)
+@plugin_function('mds.set.currentConfigProfile', shell=True, cli=False, web=True)
 def set_current_profile(profile_name=None, config_file_path=None,
                         interactive=True):
     """Sets the current OCI config Profile
@@ -1012,7 +1015,7 @@ def set_current_profile(profile_name=None, config_file_path=None,
         None
     """
 
-    if not profile_name:
+    if interactive and not profile_name:
         import configparser
         import os.path
 
@@ -1033,11 +1036,13 @@ def set_current_profile(profile_name=None, config_file_path=None,
             item_list=config.sections(),
             prompt_caption="Please select a config profile to activate it: ",
             print_list=True)
+
         if not profile_name:
             print("Operation cancelled.")
-        else:
-            load_profile_as_current(profile_name=profile_name,
-                                    config_file_path=config_file_path)
+            return
+
+    load_profile_as_current(profile_name=profile_name,
+                            config_file_path=config_file_path, interactive=interactive)
 
 
 @plugin_function('mds.set.defaultConfigProfile', cli=True, web=True)

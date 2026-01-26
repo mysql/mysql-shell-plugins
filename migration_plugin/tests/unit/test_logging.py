@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,8 @@ def test_log_coalesce():
     path = mysqlsh.globals.shell.options["logFile"]
     print(path)
 
+    logging.flush()
+
     initial_size = os.path.getsize(path)
 
     logging.info("line 1")
@@ -52,10 +54,10 @@ def test_log_coalesce():
 
     logging.info("exit")
 
-    with open(path) as f:
+    with open(path, "rb") as f:
         f.seek(initial_size)
         output = []
         for line in f.readlines():
-            output.append(line.split(":")[-1].strip())
+            output.append(line.decode("utf-8").split(":")[-1].strip())
     assert output == ['line 1', 'line 2', 'line 3', 'line 3', 'line 4',
                       'line 4 (repeated 2 times)', 'line 5', 'line 5 (repeated 4 times)', 'exit']

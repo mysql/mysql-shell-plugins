@@ -442,6 +442,10 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         return this.state.formGroupValues.profile;
     }
 
+    private get configFile(): string | undefined {
+        return this.state.formGroupValues.configFile;
+    }
+
     private get compartments() {
         return this.state.compartments;
     }
@@ -805,8 +809,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         try {
             const tiles = await this.fetchTiles();
             await this.updateState({ tiles, ociLoginInProgress: true });
-            await this.ensureOciAccess(false, tiles, 1);
-
+            await this.ensureOciAccess();
         } catch (e) {
             console.error(e);
             const message = convertErrorToString(e);
@@ -3063,9 +3066,11 @@ Migration Assistant.`}
                 return this.processSubStep(SubStepId.OCI_PROFILE);
             };
             await waitForPromise(promise, "commitOci", 60, 10000);
-            await this.ensureOciAccess(true);
-            await this.refreshFromBackend(); // For some reason sometimes this takes long.
-
+            await this.ensureOciAccess();
+            await this.openProfile(this.profile ?? "DEFAULT", this.configFile, 10);
+            // this sometimes takes long as OCI requests may still fail with 401 until
+            // profile is propagated to all OCI API servers
+            await this.refreshFromBackend();
         } catch (e) {
             console.error(e);
             const message = convertErrorToString(e);
@@ -3247,73 +3252,43 @@ Migration Assistant.`}
         return subnets;
     }
 
-    private ensureOciAccess = async (setCompartments?: boolean, existingTiles?: IStepTile[],
-        maxAttempts = 60, intervalMs = 5000) => {
-        let hasOciAccess = false;
-        let existingProfiles: IMdsProfileData[] | undefined;
-        let compartments: ICompartment[] | undefined;
-        try {
-            ({ profiles: existingProfiles, compartments } = await waitForPromise(this.ensureCompartments,
-                "ensureCompartments", maxAttempts, intervalMs));
-            console.log("API key is valid");
-            hasOciAccess = true;
-        } catch (e) {
-            console.info(e);
-        }
+    private ensureOciAccess = async () => {
+        console.log("getMdsConfigProfiles");
+        const configProfiles = await this.mhs.getMdsConfigProfiles();
+        console.log("profiles", configProfiles);
 
-        try {
-            console.log("getMdsConfigProfiles");
-            const [configProfiles, tiles] = await Promise.all([
-                existingProfiles ? Promise.resolve(existingProfiles) : this.mhs.getMdsConfigProfiles(),
-                existingTiles ? Promise.resolve(existingTiles) : this.fetchTiles(),
-            ]);
+        const hasOciAccess = configProfiles.length !== 0;
+        const state: Partial<IMigrationAppState> = {
+            hasOciAccess,
+            configProfiles,
+        };
 
-            if (!hasOciAccess) {
-                hasOciAccess = configProfiles.length !== 0;
-            }
-
-            const state: Partial<IMigrationAppState> = {
-                hasOciAccess,
-                configProfiles,
-                // tiles: this.getOciFilteredTiles(tiles, hasOciAccess),
-                tiles,
-            };
-
-            if (setCompartments && compartments) {
-                state.originalCompartments = compartments;
-                const converted = convertCompartments(compartments);
-                state.compartments = converted;
-                state.networkCompartments = converted;
-            }
-
-            this.setState(state);
-        } catch {
-            // Nothing to do.
-        }
+        this.setState(state);
     };
 
-    private ensureCompartments = async () => {
-        const profiles = await this.mhs.getMdsConfigProfiles();
-        console.log("profiles", profiles);
-        if (!profiles.length) {
-            throw new Error("Profiles list is empty");
+    private openProfile = async (profile: string, configFile: string | undefined, maxAttempts: number) => {
+        if (!profile) {
+            return;
         }
 
-        const defaultProfile = profiles.find((p) => {
-            return p.profile === "DEFAULT";
+        const { configProfiles } = this.state;
+        const selectedProfile = configProfiles.find((p) => {
+            return p.profile === profile;
         });
 
-        let compartments: ICompartment[] | undefined;
-        if (defaultProfile) {
-            compartments = await this.mhs.getMdsCompartments(defaultProfile.profile);
-            console.log("compartments", compartments);
-
-            if (!compartments.length) {
-                throw new Error("Compartments list is empty");
-            }
+        if (!selectedProfile) {
+            // this happens when a profile is selected, but config file is not present
+            return;
         }
 
-        return { profiles, compartments };
+        await this.mhs.setCurrentConfigProfile(profile, configFile);
+
+        // execute an API call to validate CLI configuration
+        const promise = async () => {
+            return this.mhs.listAvailabilityDomains(profile);
+        };
+
+        await waitForPromise(promise, "openProfile", maxAttempts);
     };
 
     private renderUpdateSubStep(subStepId: SubStepId) {
@@ -4098,6 +4073,14 @@ Migration Assistant.`}
                 vcns: [],
                 subnets: []
             };
+
+            try {
+                await this.openProfile(profile, this.configFile, 1);
+            } catch (e) {
+                console.error(e);
+                const message = convertErrorToString(e);
+                ui.showErrorMessage(`Failed to open profile '${profile}': ${message}`, {});
+            }
         }
 
         await this.updateState({
@@ -4548,13 +4531,16 @@ Migration Assistant.`}
         try {
             // debugger;
             let currentProject: IProjectData | undefined;
-            const openedProject = await this.migration.openProject("");
-            if (openedProject.id !== ""
-                && this.connectionString === openedProject.source
-                && this.uniqueConnectionId === openedProject.name
-                && !this.queryParams.has("forceNewProject")
-            ) {
-                currentProject = openedProject;
+
+            if (!this.queryParams.has("forceNewProject")) {
+                const openedProject = await this.migration.openProject("");
+
+                if (openedProject.id !== ""
+                    && this.connectionString === openedProject.source
+                    && this.uniqueConnectionId === openedProject.name
+                ) {
+                    currentProject = openedProject;
+                }
             }
 
             currentProject ??= await this.migration.newProject(this.uniqueConnectionId, this.fullConnectionString);

@@ -28,26 +28,24 @@ import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, IComputeShape, IMySQLDbSystem,
     IMySQLDbSystemShapeSummary, ISubnet, IVcn, LoadBalancer, type IBucketListObjects, type IBucketSummary,
 } from "../../communication/index.js";
-import { DataCallback, MessageScheduler, ISendRequestParameters, ResponsePromise} from "../../communication/MessageScheduler.js";
-import { type IShellDictionary, type IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
-import type { IProtocolResults } from "../../communication/ProtocolResultMapper.js";
+import {
+    DataCallback, MessageScheduler
+} from "../../communication/MessageScheduler.js";
+import { type IShellDictionary } from "../../communication/Protocol.js";
 import {
     IRegion, IMdsChatData, IMdsChatResult, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
     IShellMdsSetCurrentCompartmentKwargs, ShellAPIMds, type IMdsChatStatus,
 } from "../../communication/ProtocolMds.js";
 import { Shape } from "../../oci-typings/oci-core/lib/model/shape.js";
-import { isShellPromptResult } from "../../utilities/helpers.js"
-import { ShellPromptHandler } from "../../modules/common/ShellPromptHandler.js";
 import { IShellInteractiveBackend } from "./ShellInteractiveBackend.js";
 
 /** The interface to the MySQL Heatwave Service. */
 export class ShellInterfaceMhs {
-    backend: IShellInteractiveBackend;
+    private backend: IShellInteractiveBackend;
 
     public constructor(backend: IShellInteractiveBackend) {
         this.backend = backend;
     }
-
 
     public async getMdsConfigProfiles(configFilePath?: string): Promise<IMdsProfileData[]> {
         const response = await MessageScheduler.get.sendRequest({
@@ -56,6 +54,13 @@ export class ShellInterfaceMhs {
         });
 
         return response.result;
+    }
+
+    public async setCurrentConfigProfile(profile: string, configPath?: string): Promise<void> {
+        await this.backend.sendInteractiveRequest({
+            requestType: ShellAPIMds.MdsSetCurrentConfigProfile,
+            parameters: { args: { profileName: profile, configFilePath: configPath, interactive: false } },
+        });
     }
 
     public async setDefaultConfigProfile(profile: string): Promise<void> {
@@ -183,7 +188,7 @@ export class ShellInterfaceMhs {
         });
     }
 
-    public async listAvailabilityDomains(configProfile: string, compartmentId: string): Promise<string[]> {
+    public async listAvailabilityDomains(configProfile: string, compartmentId?: string): Promise<string[]> {
         const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListAvailabilityDomains,
             parameters: { kwargs: { configProfile, compartmentId, interactive: false, returnFormatted: false } },
@@ -353,7 +358,7 @@ export class ShellInterfaceMhs {
         });
 
         return response.result;
-    }    
+    }
 
     public async getMdsSubnets(configProfile: string, networkId?: string): Promise<ISubnet[]> {
         const response = await this.backend.sendInteractiveRequest({
@@ -367,7 +372,7 @@ export class ShellInterfaceMhs {
     public async getRegions(): Promise<IRegion[]> {
         const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsGetRegions,
-            parameters: { args: { } },
+            parameters: { args: {} },
         });
 
         return response.result;

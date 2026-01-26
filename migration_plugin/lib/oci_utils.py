@@ -88,27 +88,9 @@ def defined_tag(obj: object, namespace: str = k_oracle_tags, tag: str = k_my_id_
 
 
 def get_config(path: Optional[str] = None, profile: Optional[str] = None) -> dict:
-    return configuration.get_config(profile_name=profile,
-                                    config_file_path=path,
-                                    interactive=False,
-                                    raise_exceptions=True)
-
-
-def get_config_raw(path: str, profile: str) -> dict:
-    config = oci.config.from_file(
-        file_location=path, profile_name=profile)
-
-    oci.config.validate_config(config)
-
-    config["signer"] = oci.signer.Signer(
-        tenancy=config.get("tenancy"),
-        user=config.get("user"),
-        fingerprint=config.get("fingerprint"),
-        private_key_file_location=config.get("key_file"),
-        pass_phrase=config.get("pass_phrase"),
-        private_key_content=config.get("key_content"))
-
-    return config
+    return configuration.get_current_config(config_profile=profile,
+                                            config_file_path=path,
+                                            interactive=False)
 
 
 class ComputeAction(Enum):

@@ -280,6 +280,7 @@ export interface IRegion {
 export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetRegions]: { result: IRegion[]; };
     [ShellAPIMds.MdsListConfigProfiles]: { result: IMdsProfileData[]; };
+    [ShellAPIMds.MdsSetCurrentConfigProfile]: {};
     [ShellAPIMds.MdsSetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsGetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsSetCurrentCompartment]: {};

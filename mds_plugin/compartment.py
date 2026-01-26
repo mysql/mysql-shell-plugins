@@ -1090,15 +1090,14 @@ def list_availability_domains(**kwargs):
     interactive = kwargs.get("interactive", core.get_interactive_default())
     return_formatted = kwargs.get("return_formatted", True)
 
+    import oci.exceptions
+
     try:
         # Get the active config and compartment
         config = configuration.get_current_config(
             config=config, config_profile=config_profile)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
-
-        import oci.identity
-        import oci.util
 
         # Initialize the identity client
         identity = core.get_oci_identity_client(config=config)
@@ -1110,6 +1109,7 @@ def list_availability_domains(**kwargs):
         if return_formatted:
             return format_availability_domain_listing(data)
         else:
+            import oci.util
             return oci.util.to_dict(data)
     except oci.exceptions.ServiceError as e:
         if not interactive:
