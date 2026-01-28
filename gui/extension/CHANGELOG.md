@@ -1,10 +1,10 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.20.1+9.6.0
+## Changes in 2026.2.1+9.6.0
 
 ### Additions
 
-- 
+- Changing version scheme to YYYY.M.P, year.month.patch
 
 ### Fixes
 
