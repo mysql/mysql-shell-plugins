@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -263,6 +263,15 @@ unable to catch up to the source before transactions are purged from the binary 
 
 def check_ssl(session: MigrationSession, info: model.ServerInfo) -> list[model.MigrationError]:
     errors: list[model.MigrationError] = []
+
+    # BUG#38879030 - fail early if source instance does not support SSL connections
+    # TODO: allow migration if connection is secure (BUG#38891672)
+    if not info.sslSupported:
+        err = model.MigrationError()
+        err.level = model.MessageLevel.ERROR
+        err.title = "Source does not support SSL"
+        err.message = f"The MySQL instance does not support SSL connections."
+        errors.append(err)
 
     ssl_cipher = ""
 
