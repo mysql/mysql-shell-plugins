@@ -28,16 +28,26 @@ import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, IComputeShape, IMySQLDbSystem,
     IMySQLDbSystemShapeSummary, ISubnet, IVcn, LoadBalancer, type IBucketListObjects, type IBucketSummary,
 } from "../../communication/index.js";
-import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
-import type { IShellDictionary } from "../../communication/Protocol.js";
+import { DataCallback, MessageScheduler, ISendRequestParameters, ResponsePromise} from "../../communication/MessageScheduler.js";
+import { type IShellDictionary, type IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
+import type { IProtocolResults } from "../../communication/ProtocolResultMapper.js";
 import {
     IRegion, IMdsChatData, IMdsChatResult, IMdsLakehouseStatus, IMdsProfileData, IShellMdsSetCurrentBastionKwargs,
     IShellMdsSetCurrentCompartmentKwargs, ShellAPIMds, type IMdsChatStatus,
 } from "../../communication/ProtocolMds.js";
 import { Shape } from "../../oci-typings/oci-core/lib/model/shape.js";
+import { isShellPromptResult } from "../../utilities/helpers.js"
+import { ShellPromptHandler } from "../../modules/common/ShellPromptHandler.js";
+import { IShellInteractiveBackend } from "./ShellInteractiveBackend.js";
 
 /** The interface to the MySQL Heatwave Service. */
 export class ShellInterfaceMhs {
+    backend: IShellInteractiveBackend;
+
+    public constructor(backend: IShellInteractiveBackend) {
+        this.backend = backend;
+    }
+
 
     public async getMdsConfigProfiles(configFilePath?: string): Promise<IMdsProfileData[]> {
         const response = await MessageScheduler.get.sendRequest({
@@ -56,7 +66,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsCompartments(configProfile: string, compartmentId?: string): Promise<ICompartment[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListCompartments,
             parameters: { kwargs: { configProfile, compartmentId } },
         });
@@ -65,7 +75,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getCompartmentById(configProfile: string, compartmentId: string): Promise<ICompartment | undefined> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsGetCompartmentById,
             parameters: { args: { compartmentId }, kwargs: { configProfile } },
         });
@@ -74,7 +84,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getCurrentCompartmentId(configProfile: string): Promise<string | undefined> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsGetCurrentCompartmentId,
             parameters: { kwargs: { profileName: configProfile } },
         });
@@ -83,7 +93,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsMySQLDbSystems(configProfile: string, compartmentId: string): Promise<IMySQLDbSystem[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListDbSystems,
             parameters: { kwargs: { configProfile, compartmentId } },
         });
@@ -92,7 +102,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsMySQLDbSystem(configProfile: string, dbSystemId: string): Promise<IMySQLDbSystem> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsGetDbSystem,
             parameters: { kwargs: { configProfile, dbSystemId } },
         });
@@ -101,7 +111,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsComputeInstances(configProfile: string, compartmentId: string): Promise<IComputeInstance[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListComputeInstances,
             parameters: { kwargs: { configProfile, compartmentId } },
         });
@@ -111,7 +121,7 @@ export class ShellInterfaceMhs {
 
     public async getMdsBastions(configProfile: string, compartmentId: string,
         validForDbSystemId?: string): Promise<IBastionSummary[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListBastions,
             parameters: { kwargs: { configProfile, compartmentId, validForDbSystemId } },
         });
@@ -120,7 +130,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsBastion(configProfile: string, bastionId: string): Promise<IBastionSummary> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsGetBastion,
             parameters: { kwargs: { configProfile, bastionId } },
         });
@@ -130,7 +140,7 @@ export class ShellInterfaceMhs {
 
     public async createBastion(configProfile: string, dbSystemId: string,
         awaitActiveState?: boolean): Promise<IBastionSummary> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsCreateBastion,
             parameters: { kwargs: { configProfile, dbSystemId, awaitActiveState } },
         });
@@ -141,7 +151,7 @@ export class ShellInterfaceMhs {
     public async createBastionSession(configProfile: string, targetId: string, sessionType: string,
         compartmentId: string, awaitCreation: boolean,
         callback: DataCallback<ShellAPIMds.MdsCreateBastionSession>): Promise<IBastionSession> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsCreateBastionSession,
             parameters: { kwargs: { configProfile, targetId, sessionType, compartmentId, awaitCreation } },
             onData: callback,
@@ -151,7 +161,7 @@ export class ShellInterfaceMhs {
     }
 
     public async listLoadBalancers(configProfile: string, compartmentId: string): Promise<LoadBalancer[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListLoadBalancers,
             parameters: { kwargs: { configProfile, compartmentId } },
         });
@@ -160,21 +170,21 @@ export class ShellInterfaceMhs {
     }
 
     public async setCurrentCompartment(parameters?: IShellMdsSetCurrentCompartmentKwargs): Promise<void> {
-        await MessageScheduler.get.sendRequest({
+        await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsSetCurrentCompartment,
             parameters: { kwargs: parameters },
         });
     }
 
     public async setCurrentBastion(parameters?: IShellMdsSetCurrentBastionKwargs): Promise<void> {
-        await MessageScheduler.get.sendRequest({
+        await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsSetCurrentBastion,
             parameters: { kwargs: parameters },
         });
     }
 
     public async listAvailabilityDomains(configProfile: string, compartmentId: string): Promise<string[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListAvailabilityDomains,
             parameters: { kwargs: { configProfile, compartmentId, interactive: false, returnFormatted: false } },
         });
@@ -186,7 +196,7 @@ export class ShellInterfaceMhs {
 
     public async listDbSystemShapes(isSupportedFor: string, configProfile: string,
         compartmentId: string, availabilityDomain?: string): Promise<IMySQLDbSystemShapeSummary[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListDbSystemShapes,
             parameters: { kwargs: { configProfile, isSupportedFor, compartmentId, availabilityDomain, interactive: false } },
         });
@@ -203,7 +213,7 @@ export class ShellInterfaceMhs {
 
     public async listComputeShapes(configProfile: string,
         compartmentId: string, availabilityDomain?: string): Promise<IComputeShape[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListComputeShapes,
             parameters: { kwargs: { configProfile, compartmentId, availabilityDomain, interactive: false } },
         });
@@ -218,7 +228,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsBuckets(configProfile: string, compartmentId?: string): Promise<IBucketSummary[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListBuckets,
             parameters: { kwargs: { configProfile, compartmentId } },
         });
@@ -228,7 +238,7 @@ export class ShellInterfaceMhs {
 
     public async getMdsBucketObjects(configProfile: string, compartmentId?: string, bucketName?: string,
         name?: string, prefix?: string, delimiter?: string): Promise<IBucketListObjects> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListBucketObjects,
             parameters: { kwargs: { configProfile, compartmentId, bucketName, name, prefix, delimiter } },
         });
@@ -239,7 +249,7 @@ export class ShellInterfaceMhs {
     public async createMdsBucketObjects(configProfile: string, filePaths: string[], prefix: string,
         bucketName: string, compartmentId: string, fixExtension?: boolean,
         callback?: DataCallback<ShellAPIMds.MdsCreateBucketObjects>): Promise<void> {
-        await MessageScheduler.get.sendRequest({
+        await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsCreateBucketObjects,
             parameters: {
                 args: { filePaths, prefix },
@@ -251,7 +261,7 @@ export class ShellInterfaceMhs {
 
     public async getMdsDeleteBucketObjects(configProfile: string, compartmentId?: string, bucketName?: string,
         name?: string): Promise<void> {
-        await MessageScheduler.get.sendRequest({
+        await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsDeleteBucketObject,
             parameters: {
                 args: { name },
@@ -337,7 +347,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getMdsNetworks(configProfile: string, compartmentId?: string): Promise<IVcn[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListNetworks,
             parameters: { kwargs: { configProfile, compartmentId, returnFormatted: false } },
         });
@@ -346,7 +356,7 @@ export class ShellInterfaceMhs {
     }    
 
     public async getMdsSubnets(configProfile: string, networkId?: string): Promise<ISubnet[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsListSubnets,
             parameters: { kwargs: { configProfile, networkId, returnFormatted: false, interactive: false } },
         });
@@ -355,7 +365,7 @@ export class ShellInterfaceMhs {
     }
 
     public async getRegions(): Promise<IRegion[]> {
-        const response = await MessageScheduler.get.sendRequest({
+        const response = await this.backend.sendInteractiveRequest({
             requestType: ShellAPIMds.MdsGetRegions,
             parameters: { args: { } },
         });

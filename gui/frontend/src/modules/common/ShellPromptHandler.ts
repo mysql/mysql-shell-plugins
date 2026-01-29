@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,20 +50,18 @@ export class ShellPromptHandler {
      *
      * @returns True, if the result is a prompt request, otherwise false (and the result is not handled).
      */
-    public static handleShellPrompt(result: IShellResultType | undefined, requestId: string,
+    public static handleShellPrompt(result: IShellFeedbackRequest | undefined, requestId: string,
         backend: IPromptReplyBackend, canSavePassword = true, payload?: IDictionary): boolean {
-        if (this.isShellPromptResult(result)) {
+        if (result) {
             switch (result.type) {
                 case "password": {
                     const passwordRequest = ShellPromptHandler.splitAndBuildPasswdRequest(result,
                         requestId, { ...payload, backend }, result.prompt, result.description);
                     void ui.requestPassword(passwordRequest).then((password) => {
                         if (password !== undefined) {
-                            void backend.sendReply(requestId, ShellPromptResponseType.Ok, password,
-                                result.moduleSessionId);
+                            void backend.sendReply(requestId, ShellPromptResponseType.Ok, password);
                         } else {
-                            void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "",
-                                result.moduleSessionId);
+                            void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "");
                         }
                     });
 
@@ -168,9 +166,8 @@ export class ShellPromptHandler {
 
             const requestId = response.data?.requestId as string;
 
-            const moduleSessionId = response.data?.moduleSessionId as string;
             const sendReply = (type: ShellPromptResponseType, reply: string) => {
-                backend.sendReply(requestId, type, reply, moduleSessionId)
+                backend.sendReply(requestId, type, reply)
                     .then(() => {
                         resolve(true);
                     })
@@ -264,14 +261,6 @@ export class ShellPromptHandler {
 
         return passwordRequest;
     };
-
-    private static isShellPromptResult(response?: unknown): response is IShellFeedbackRequest {
-        if (!response || typeof response !== "object") {
-            return false;
-        }
-
-        return "prompt" in response;
-    }
 }
 
 requisitions.register("dialogResponse", ShellPromptHandler.handleDialogResponse);

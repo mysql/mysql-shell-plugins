@@ -74,6 +74,8 @@ import { appParameters } from "../../supplement/AppParameters.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { formatBytes } from "../../utilities/string-helpers.js";
 import { ShellInterfaceMhs } from "../../supplement/ShellInterface/ShellInterfaceMhs.js";
+import { ShellInteractiveInterface } from "../../supplement/ShellInterface/ShellInteractiveInterface.js"
+
 import {
     ProjectsData,
     ShellInterfaceMigration
@@ -269,7 +271,8 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     private portalRef = createRef<Portal>();
     private readonly popups = new Map<MockStateText, RefObject<Popup>>();
     private dialogRef = createRef<Dialog>();
-    private mhs = new ShellInterfaceMhs();
+    private interactive = new ShellInteractiveInterface();
+    private mhs = new ShellInterfaceMhs(this.interactive);
     private enableLogger = new URLSearchParams(window.location.search).has("enableLogger");
     private migration = new ShellInterfaceMigration(this.enableLogger);
     private logger = new MigrationSubAppLogger(this.enableLogger || !!appParameters.inDevelopment);
@@ -3085,7 +3088,7 @@ Migration Assistant.`}
                 ui.showInformationMessage(response.result.info, {});
             }
 
-            return Promise.resolve();
+            return Promise.resolve(true);
         });
     };
 

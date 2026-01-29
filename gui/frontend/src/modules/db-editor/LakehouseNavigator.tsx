@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -2510,7 +2510,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         taskId = String((data.result.rows[0] as string[])[0]);
                     }
 
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 }, "mysql_ot_msh.vsc.lh_nav");
 
                 StatusBar.setStatusBarMessage(`Task scheduled successfully. Task Id: ${taskId}`);
@@ -2705,7 +2705,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         taskId = String((data.result.rows[0] as string[])[0]);
                     }
 
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
 
                 if (taskId !== "") {
@@ -2788,7 +2788,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             taskId = String((data.result.rows[0] as string[])[0]);
                         }
 
-                        return Promise.resolve();
+                        return Promise.resolve(true);
                     });
                 StatusBar.setStatusBarMessage(
                     `${tables.length} Table${tables.length > 1 ? "s are" : " is"} being reloaded. ` +
@@ -3046,7 +3046,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                 }
                             }
 
-                            return Promise.resolve();
+                            return Promise.resolve(true);
                         },
                     );
 
@@ -3266,7 +3266,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                 `MySQL user ${userName}@${hostName}`, {});
                         }
 
-                        return Promise.resolve();
+                        return Promise.resolve(true);
                     });
             } catch (reason) {
                 const message = convertErrorToString(reason);

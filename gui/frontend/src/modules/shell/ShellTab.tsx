@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -60,6 +60,7 @@ import { DocumentToolbar } from "../db-editor/DocumentToolbar.js";
 import type { IToolbarItems } from "../db-editor/index.js";
 import { ShellConsole } from "./ShellConsole.js";
 import { ShellPrompt } from "./ShellPrompt.js";
+import { isShellPromptResult } from "../../utilities/helpers.js"
 
 export interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -367,7 +368,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
             const finalResult = await savedState.backend.execute(command, undefined, (data, requestId) => {
                 if (!data.result) {
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 }
 
                 const result = data.result;
@@ -606,7 +607,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     //      the password.
                     //requisitions.register("acceptPassword", this.acceptPassword);
 
-                    if (!ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend)) {
+                    if (!isShellPromptResult(result) || !ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend.interactive)) {
                         if (this.isShellObjectResult(result)) {
                             let text = "<" + result.class;
                             if (result.name) {
@@ -644,7 +645,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     }
                 }
 
-                return Promise.resolve();
+                return Promise.resolve(true);
             });
 
             // Handling the final response here.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,16 +54,17 @@ type ResponseType<K extends keyof IProtocolResults> = K extends typeof multiResu
     Array<IProtocolResults[K]> : IProtocolResults[K];
 
 /** The type of the promise returned when sending a backend request. */
-type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>>;
+export type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>>;
 
 /**
  * A callback for intermittent results during a request/response process.
  *
  * @param requestId The ID for the request either generated implicitly or specified in the sendRequest call.
  * @param data The data given by the current (intermediate) data response.
+ * @returns A promise that resolves to a boolean indicating whether the data processing is done.
  */
 export type DataCallback<K extends keyof IProtocolResults> =
-    (data: IProtocolResults[K], requestId: string) => Promise<void>;
+    (data: IProtocolResults[K], requestId: string) => Promise<boolean>;
 
 /** Parameters for sending requests to the backend. */
 export interface ISendRequestParameters<K extends keyof IProtocolParameters> {
@@ -298,7 +299,11 @@ export class MessageScheduler {
                         case EventType.DataResponse: {
                             // It's a normal data response.
                             if (ongoing.onData) {
-                                void ongoing.onData(response, response.requestId);
+                                ongoing.onData(response, response.requestId).then((handledData) => {
+                                    if (!handledData) {
+                                        ongoing.result.push(response);
+                                    }
+                                });
                             } else {
                                 ongoing.result.push(response);
                             }

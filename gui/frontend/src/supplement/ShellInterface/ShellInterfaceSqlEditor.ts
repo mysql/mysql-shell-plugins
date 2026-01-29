@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,6 @@
 import { webSession, type ILoginCredentials } from "../WebSession.js";
 import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
-import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
     ISqlEditorHistoryEntry,
@@ -35,10 +34,12 @@ import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
 import { promiseWithTimeout } from "../../utilities/helpers.js";
+import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js"
 
-export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
+export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
 
-    public mhs: ShellInterfaceMhs = new ShellInterfaceMhs();
+    public interactive: ShellInteractiveInterface = new ShellInteractiveInterface();
+    public mhs: ShellInterfaceMhs = new ShellInterfaceMhs(this.interactive);
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();
 
     /**
@@ -347,27 +348,6 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 requestType: ShellAPIGui.GuiSqlEditorSetCurrentSchema,
                 parameters: { args: { moduleSessionId, schemaName } },
             });
-        }
-    }
-
-    /**
-     * Sends a reply from the user back to the backend (e.g. passwords, choices etc.).
-     *
-     * @param requestId The same request ID that was used to request input from the user.
-     * @param type Indicates if the user accepted the request or cancelled it.
-     * @param reply The reply from the user.
-     * @param moduleSessionId Use this to override the module session ID.
-     *
-     * @returns  A promise which resolves when the operation was concluded.
-     */
-    public async sendReply(requestId: string, type: ShellPromptResponseType, reply: string,
-        moduleSessionId?: string): Promise<void> {
-        moduleSessionId = moduleSessionId ?? this.moduleSessionId;
-        if (moduleSessionId) {
-            await MessageScheduler.get.sendRequest({
-                requestType: Protocol.PromptReply,
-                parameters: { moduleSessionId, requestId, type, reply },
-            }, false);
         }
     }
 

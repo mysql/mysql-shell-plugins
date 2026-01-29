@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,7 @@ import { IDictionary } from "../app-logic/general-types.js";
 import { IConnectionInfo } from "../supplement/RequisitionTypes.js";
 import { IConnectionDetails } from "../supplement/ShellInterface/index.js";
 import { convertHexToBase64 } from "./string-helpers.js";
+import { IShellFeedbackRequest } from "../communication/ProtocolGui.js";
 
 /**
  * Checks if the given version is at least the expected version.
@@ -924,4 +925,11 @@ export const getConnectionInfoFromDetails = (details: IConnectionDetails): IConn
         connectionId: details.id,
         folderPath: details.folderPath,
     };
+};
+
+
+export const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
+    const candidate = response as IShellFeedbackRequest;
+
+    return "prompt" in candidate;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,7 +44,7 @@ describe("Application tests", () => {
     beforeAll(async () => {
         expect(MessageScheduler.get.isConnected).toBe(false);
 
-        expect(requisitions.registrations("dialogResponse")).toBe(0);
+        expect(requisitions.registrations("dialogResponse")).toBe(1); // The ShellPromptHandler registers this
 
         const result = render(<App ref={appRef} />);
         unmount = result.unmount;
@@ -53,7 +53,7 @@ describe("Application tests", () => {
         await nextRunLoop();
         expect(appRef.current).toBeDefined();
 
-        expect(requisitions.registrations("dialogResponse")).toBe(1); // The app registers this.
+        expect(requisitions.registrations("dialogResponse")).toBe(2); // The app registers this.
     });
 
     afterAll(() => {

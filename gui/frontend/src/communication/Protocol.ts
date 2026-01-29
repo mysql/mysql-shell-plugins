@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -93,10 +93,6 @@ export interface IPromptReplyBackend {
      * @param requestId The ID of the request to reply to.
      * @param type The type of the reply.
      * @param reply The reply data.
-     * @param moduleSessionId The ID of the module session to send the reply to. Given only if the request is part of
-     *                        a session opening process. Usually the module session id is returned from the start
-     *                        session request.
      */
-    sendReply: (requestId: string, type: ShellPromptResponseType, reply: string,
-        moduleSessionId?: string) => Promise<void>;
+    sendReply: (requestId: string, type: ShellPromptResponseType, reply: string) => Promise<void>;
 }

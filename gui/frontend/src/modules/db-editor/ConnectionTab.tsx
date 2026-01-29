@@ -1303,7 +1303,7 @@ Execute \\help or \\? for help;`;
                                 resultId: chatQueryId,
                             });
 
-                            return Promise.resolve();
+                            return Promise.resolve(true);
                         }
 
                         currentChatOptions = {
@@ -1345,7 +1345,7 @@ Execute \\help or \\? for help;`;
                             this.updateChatOptionsState({ options: currentChatOptions });
                         });
 
-                        return Promise.resolve();
+                        return Promise.resolve(true);
                     });
             } catch (reason) {
                 let content: string;
@@ -1951,6 +1951,8 @@ Execute \\help or \\? for help;`;
                                 }, { resultId },
                                 );
                             }
+
+                            return Promise.resolve(true);
                         });
 
                     const result = await connection?.backend.execute("SELECT @explanation");
@@ -2106,7 +2108,7 @@ Execute \\help or \\? for help;`;
                                 uuid(), (data) => {
                                     handleResult(data.result);
 
-                                    return Promise.resolve();
+                                    return Promise.resolve(true);
                                 });
 
                             if (finalData) {
@@ -2157,7 +2159,7 @@ Execute \\help or \\? for help;`;
                                         final: false,
                                     });
 
-                                    return Promise.resolve();
+                                    return Promise.resolve(true);
                                 });
 
                             workerPool.continueTask(taskId, {

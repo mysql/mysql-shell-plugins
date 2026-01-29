@@ -120,7 +120,7 @@ import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
 import { resolveNewSqlScript } from "../../utilities/mysql-helpers.js"
-
+import { isShellPromptResult } from "../../utilities/helpers.js"
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
  * page details.
@@ -2870,11 +2870,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             try {
                 await backend.startShellSession(sessionId, connectionId, undefined, requestId,
                     (response) => {
-                        if (!ShellPromptHandler.handleShellPrompt(response.result, requestId, backend)) {
+                        if (!isShellPromptResult(response.result) || !ShellPromptHandler.handleShellPrompt(response.result, requestId, backend.interactive)) {
                             this.setProgressMessage("Loading ...");
                         }
 
-                        return Promise.resolve();
+                        return Promise.resolve(true);
                     });
 
                 // TODO: get current schema, if a connection is given.

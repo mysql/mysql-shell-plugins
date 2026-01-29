@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General License: , version .=> 0,
@@ -43,6 +43,7 @@ import {
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import type { ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
+import { isShellPromptResult } from "../utilities/helpers.js"
 
 export type ConnectionReadyCallback = (entry: ICdmConnectionEntry, progress?: ProgressCallback) => void;
 
@@ -229,13 +230,13 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         await this.backend.openConnection(this.details.id, requestId, credentials, ((response, requestId) => {
             if (typeof response.result === "string") {
                 callback?.(response.result);
-            } else if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
-                requestId, this.backend, !credentials)) {
+            } else if (!isShellPromptResult(response.result) || !ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
+                requestId, this.backend.interactive, !credentials)) {
                 // Don't save the password in the backend, if we stored in the frontend.
                 connectionData = response.result as IOpenConnectionData;
             }
 
-            return Promise.resolve();
+            return Promise.resolve(true);
         }));
 
         if (!connectionData || Object.keys(connectionData).length === 0) {

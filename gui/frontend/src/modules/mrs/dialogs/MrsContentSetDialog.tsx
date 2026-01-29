@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -453,7 +453,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                             mrsScriptDefinitions = data.result;
                         }
 
-                        return Promise.resolve();
+                        return Promise.resolve(true);
                     });
 
                 scriptSection.values.buildFolder.value = mrsScriptDefinitions?.buildFolder ?? "";

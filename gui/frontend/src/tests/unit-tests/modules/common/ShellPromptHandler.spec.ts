@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,11 +29,11 @@ import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { DialogResponseClosure, DialogType } from "../../../../app-logic/general-types.js";
 import { ShellPromptResponseType } from "../../../../communication/Protocol.js";
 import { ShellPromptHandler } from "../../../../modules/common/ShellPromptHandler.js";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ShellInteractiveInterface } from "../../../../supplement/ShellInterface/ShellInteractiveInterface.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { mockClassMethods } from "../../test-helpers.js";
 
-mockClassMethods(ShellInterfaceSqlEditor, {
+mockClassMethods(ShellInteractiveInterface, {
     "sendReply": vi.fn().mockImplementation(() => {
         return Promise.resolve();
     }),
@@ -56,7 +56,7 @@ describe("Shell Prompt Handler Tests", (): void => {
     });
 
     it("ShellPrompt 'password' prompt", () => {
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
 
         const result: boolean = ShellPromptHandler.handleShellPrompt({
             prompt: "",
@@ -70,7 +70,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'confirm' prompt", () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
 
         // The handler only implements specific requisition handlers, no properties or similar.
         // Hence there's not much to test in this base test.
@@ -88,7 +88,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'select' prompt", () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
 
         // The handler only implements specific requisition handlers, no properties or similar.
         // Hence there's not much to test in this base test.
@@ -107,7 +107,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'text' prompt", () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
 
         // The handler only implements specific requisition handlers, no properties or similar.
         // Hence there's not much to test in this base test.
@@ -125,7 +125,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'handleDialogResponse' test failures", async () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
 
         // The handler only implements specific requisition handlers, no properties or similar.
         // Hence there's not much to test in this base test.
@@ -167,7 +167,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'handleDialogResponse.confirm' test", async () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
         const expectedReply = {
             type: ShellPromptResponseType.Ok,
             reply: "accept",
@@ -178,7 +178,6 @@ describe("Shell Prompt Handler Tests", (): void => {
             expect(requestId).toEqual("<requestId>");
             expect(type).toEqual(expectedReply.type);
             expect(reply).toEqual(expectedReply.reply);
-            expect(moduleSessionId).toEqual("<moduleSessionId>");
 
             return Promise.resolve();
         };
@@ -252,7 +251,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'handleDialogResponse.select' test", async () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
         const expectedReply = {
             type: ShellPromptResponseType.Cancel,
             reply: "",
@@ -267,7 +266,6 @@ describe("Shell Prompt Handler Tests", (): void => {
             expect(requestId).toEqual("<requestId>");
             expect(type).toEqual(expectedReply.type);
             expect(reply).toEqual(expectedReply.reply);
-            expect(moduleSessionId).toEqual("<moduleSessionId>");
 
             return Promise.resolve();
         };
@@ -308,7 +306,7 @@ describe("Shell Prompt Handler Tests", (): void => {
 
     it("ShellPrompt 'handleDialogResponse.prompt' test", async () => {
         const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
+        const backend = new ShellInteractiveInterface();
         const expectedReply = {
             type: ShellPromptResponseType.Cancel,
             reply: "",
@@ -323,7 +321,6 @@ describe("Shell Prompt Handler Tests", (): void => {
             expect(requestId).toEqual("<requestId>");
             expect(type).toEqual(expectedReply.type);
             expect(reply).toEqual(expectedReply.reply);
-            expect(moduleSessionId).toEqual("<moduleSessionId>");
 
             return Promise.resolve();
         };

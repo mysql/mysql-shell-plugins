@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -82,15 +82,15 @@ export class ShellTask {
             if (this.isShellFeedbackRequest(data) && shellSession) {
                 if (responses && responseIndex < responses.length) {
                     // If a list of responses were given, return them
-                    void shellSession.sendReply(requestId, ShellPromptResponseType.Ok, responses[responseIndex++]);
+                    void shellSession.interactive.sendReply(requestId, ShellPromptResponseType.Ok, responses[responseIndex++]);
                 } else {
                     // Pass the input request to the user
                     void this.promptCallback(data.prompt, data.type === "password").then((value) => {
                         if (shellSession) {
                             if (value) {
-                                void shellSession.sendReply(requestId, ShellPromptResponseType.Ok, value);
+                                void shellSession.interactive.sendReply(requestId, ShellPromptResponseType.Ok, value);
                             } else {
-                                void shellSession.sendReply(requestId, ShellPromptResponseType.Cancel, "");
+                                void shellSession.interactive.sendReply(requestId, ShellPromptResponseType.Cancel, "");
                             }
                         }
                     });
@@ -138,7 +138,7 @@ export class ShellTask {
                         handleData(data.result, false);
                     }
 
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 },
             });
 
