@@ -489,7 +489,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe("MySQL Administration (Lakehouse Navigator)", () => {
+    describe("MySQL Administration (Lakehouse Navigator)", function () {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
@@ -514,6 +514,14 @@ describe("DATABASE CONNECTIONS", () => {
         const mysqlAdministration = new E2EMySQLAdministration();
 
         before(async function () {
+            if (process.env.NO_HEATWAVE ||
+                !process.env.HWHOSTNAME ||
+                !process.env.HWUSERNAME ||
+                !process.env.HWPASSWORD) {
+                console.log("Skipping Lakehouse Navigator test suite...")
+                this.skip();
+            }
+
             let hookResult = "passed";
             await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
             const localE2eRecording: E2ERecording = new E2ERecording(this.test!.title!);
@@ -555,6 +563,13 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         after(async function () {
+            if (process.env.NO_HEATWAVE ||
+                !process.env.HWHOSTNAME ||
+                !process.env.HWUSERNAME ||
+                !process.env.HWPASSWORD) {
+                return;
+            }
+
             const localE2eRecording = new E2ERecording(this.currentTest!.title);
             try {
                 await localE2eRecording!.start();

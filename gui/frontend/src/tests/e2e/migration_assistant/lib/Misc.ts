@@ -207,7 +207,7 @@ export class Misc {
         throw new Error(`Could not find mock '${mockName}'`);
     };
 
-    public static waitForLoadingIcon = async (timeout = constants.wait1second * 30): Promise<void> => {
+    public static waitForLoadingIcon = async (timeout = constants.wait1second * 60): Promise<void> => {
         const isLoading = async (wait = false): Promise<boolean> => {
             let isLoading = false;
             const loadingIcons = page.locator(locator.mainPage.loadingIcon);

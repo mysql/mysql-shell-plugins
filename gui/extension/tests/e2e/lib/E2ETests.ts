@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -364,7 +364,7 @@ export class E2ETests {
         } else if (this.testSuites[0].name === "ROUTER") {
             installSqlData(this.mysqlPorts[2]);
             installMRS(this.mysqlPorts[2]);
-        } else {
+        } else if (this.testSuites[0].name !== "OCI") {
             throw new Error(`Unknown test suite ${this.testSuites[0].name}`);
         }
 
@@ -381,13 +381,25 @@ export class E2ETests {
     public static run = async (testSuite: IE2ETestSuite, log = false): Promise<number> => {
 
         this.setWebCertificate(testSuite);
-        this.checkOCIEnvVars();
-        this.checkTestsEnvVars();
+
+        if (!process.env.TEST_RESOURCES_PATH) {
+            throw new Error("Please define environment variable TEST_RESOURCES_PATH");
+        }
+
+        if (testSuite.name.toUpperCase() === "OCI" || testSuite.name.toUpperCase() === "DB") {
+            if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
+                throw new Error("Please define environment variable MYSQLSH_OCI_CONFIG_FILE");
+            }
+
+            if (!process.env.MYSQLSH_OCI_CONFIG_PROFILE) {
+                throw new Error("Please define environment variable MYSQLSH_OCI_CONFIG_PROFILE");
+            }
+        }
 
         process.env.MOCHAWESOME_REPORTDIR = process.cwd();
         process.env.MOCHAWESOME_REPORTFILENAME = `test-report-${testSuite.name}.json`;
         process.env.TEST_SUITE = testSuite.name;
-        process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`);
+        process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`);
         process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPorts[0], "sandboxdata");
         process.env.MYSQL_1107 = this.mysqlPorts[0];
         process.env.MYSQL_1108 = this.mysqlPorts[1]; // HAS MRS
@@ -398,7 +410,6 @@ export class E2ETests {
         process.env.DBUSERNAME2 = "shell";
         process.env.DBPASSWORD2 = "dummy";
         process.env.OCI_QA_COMPARTMENT_PATH = "QA/MySQLShellTesting";
-        process.env.MYSQLSH_OCI_CONFIG_FILE = join(process.cwd(), "config");
 
         // ASSIGN MYSQL SHELL PORTS
         const minPort = 4000;
@@ -408,7 +419,7 @@ export class E2ETests {
         E2ELogger.success(`MYSQLSH_GUI_CUSTOM_PORT is ${process.env.MYSQLSH_GUI_CUSTOM_PORT}`);
 
         // TRUNCATE THE MYSQL SHELL LOG FILE
-        const mysqlshLog = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`, "mysqlsh.log");
+        const mysqlshLog = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "mysqlsh.log");
 
         if (existsSync(mysqlshLog)) {
             truncateSync(mysqlshLog);
@@ -417,12 +428,12 @@ export class E2ETests {
         }
 
         // REMOVE SHELL INSTANCE HOME (for safety)
-        const shellInstanceHome = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`, "plugin_data",
+        const shellInstanceHome = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "plugin_data",
             "gui_plugin", "shell_instance_home");
         rmSync(shellInstanceHome, { force: true, recursive: true });
 
         // REMOVE ROUTER CONFIGURATIONS
-        const routerConfigsFolder = join(process.env.TEST_RESOURCES_PATH!, `mysqlsh-${testSuite.name}`, "plugin_data",
+        const routerConfigsFolder = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "plugin_data",
             "mrs_plugin", "router_configs");
         rmSync(routerConfigsFolder, { force: true, recursive: true });
 
@@ -431,28 +442,6 @@ export class E2ETests {
 
         // CLEAN VSCODE CACHE 
         this.cleanVSCodeCache(testSuite);
-
-        // WRITE OCI PROFILE CONFIG FILE
-        if (testSuite.name.toUpperCase() === "OCI" || testSuite.name.toUpperCase() === "DB") {
-            const ociConfigFile = `
-                [E2ETESTS]
-                user=${process.env.OCI_E2E_USER}
-                fingerprint=${process.env.OCI_E2E_FINGERPRINT}
-                tenancy=${process.env.OCI_E2E_TENANCY}
-                region=${process.env.OCI_E2E_REGION}
-                key_file=${process.env.OCI_E2E_KEY_FILE_PATH}
-
-                [HEATWAVE]
-                user=${process.env.OCI_HW_USER}
-                fingerprint=${process.env.OCI_HW_FINGERPRINT}
-                tenancy=${process.env.OCI_HW_TENANCY}
-                region=${process.env.OCI_HW_REGION}
-                key_file=${process.env.OCI_HW_KEY_FILE_PATH}
-                `;
-
-            const ociConfigFilePath = join(process.cwd(), "config");
-            writeFileSync(ociConfigFilePath, ociConfigFile);
-        }
 
         // RUN THE TESTS
         const result = await this.executeTests(testSuite, log);
@@ -647,25 +636,6 @@ export class E2ETests {
     };
 
     /**
-     * Copies the extension for a test suite
-     * 
-     * @param testSuiteSource The test suite source that already has the extension installed
-     * @param testSuite The test suite to copy the extension for
-     */
-    public static copyExtension = (testSuiteSource: IE2ETestSuite, testSuite: IE2ETestSuite): void => {
-        if (!existsSync(testSuite.testResources!)) {
-            throw new Error(`${testSuite.testResources} does not exist`);
-        }
-
-        if (existsSync(testSuiteSource.extensionDir!)) {
-            cpSync(testSuiteSource.extensionDir!, testSuite.extensionDir!, { recursive: true });
-            E2ELogger.success(`Copied the extension from ${testSuiteSource.name} suite to ${testSuite.name} suite`);
-        } else {
-            throw new Error(`Please install the extension for ${testSuite.name} test suite`);
-        }
-    };
-
-    /**
      * Installs the extension on a test suite
      * 
      * @param testSuite The test suite
@@ -839,100 +809,6 @@ export class E2ETests {
         }
 
         return result;
-    };
-
-    /**
-     * Verifies if all the required environment variables for the setup are defined
-     */
-    private static checkOCIEnvVars = (): void => {
-
-        const requiredEnvVars = [
-            {
-                value: process.env.OCI_E2E_KEY_FILE_PATH,
-                description: "(OCI_E2E_KEY_FILE_PATH) OCI Key file path for 'E2ETESTS' profile",
-            },
-            {
-                value: process.env.OCI_HW_KEY_FILE_PATH,
-                description: "(OCI_HW_KEY_FILE_PATH) OCI Key file path for 'HEATWAVE' profile",
-            },
-            {
-                value: process.env.OCI_E2E_USER,
-                description: "(OCI_E2E_USER) OCI user for 'E2ETESTS' profile",
-            },
-            {
-                value: process.env.OCI_E2E_FINGERPRINT,
-                description: "(OCI_E2E_FINGERPRINT) OCI fingerprint for 'E2ETESTS' profile",
-            },
-            {
-                value: process.env.OCI_E2E_TENANCY,
-                description: "(OCI_E2E_TENANCY) OCI tenancy for 'E2ETESTS' profile",
-            },
-            {
-                value: process.env.OCI_E2E_REGION,
-                description: "(OCI_E2E_REGION) OCI region for 'E2ETESTS' profile",
-            },
-            {
-                value: process.env.OCI_HW_USER,
-                description: "(OCI_HW_USER) OCI user for 'HEATWAVE' profile",
-            },
-            {
-                value: process.env.OCI_HW_FINGERPRINT,
-                description: "(OCI_HW_FINGERPRINT) OCI fingerprint for 'HEATWAVE' profile",
-            },
-            {
-                value: process.env.OCI_HW_TENANCY,
-                description: "(OCI_HW_TENANCY) OCI tenancy for 'HEATWAVE' profile",
-            },
-            {
-                value: process.env.OCI_HW_REGION,
-                description: "(OCI_HW_REGION) OCI region for 'HEATWAVE' profile",
-            },
-        ];
-
-        for (const envVar of requiredEnvVars) {
-            if (!envVar.value) {
-                throw new Error(`Please define the env var ${envVar.description}`);
-            }
-        }
-    };
-
-    /**
-     * Verifies if all the required environment variables for the tests are defined
-     */
-    private static checkTestsEnvVars = (): void => {
-
-        const requiredEnvVars = [
-            {
-                value: process.env.TEST_RESOURCES_PATH!,
-                description: "Path for VSCode instances and Chromedriver)",
-            },
-            {
-                value: process.env.HWHOSTNAME,
-                description: "HeatWave agent hostname",
-            },
-            {
-                value: process.env.HWUSERNAME,
-                description: "HeatWave agent username",
-            },
-            {
-                value: process.env.HWPASSWORD,
-                description: "HeatWave agent password",
-            },
-            {
-                value: process.env.OCI_BASTION_USERNAME,
-                description: "OCI Bastion username",
-            },
-            {
-                value: process.env.OCI_BASTION_PASSWORD,
-                description: "OCI Bastion password",
-            },
-        ];
-
-        for (const envVar of requiredEnvVars) {
-            if (!envVar.value) {
-                throw new Error(`Please define env:${envVar.value} (${envVar.description})`);
-            }
-        }
     };
 
     /**

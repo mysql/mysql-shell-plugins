@@ -32,6 +32,14 @@ if (!process.env.DBROOTPASSWORD) {
     throw new Error("Please define env:DBROOTPASSWORD for the MySQL Server sandbox instance");
 }
 
+if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
+    throw new Error("Please define environment variable MYSQLSH_OCI_CONFIG_FILE");
+}
+
+if (!process.env.MYSQLSH_OCI_CONFIG_PROFILE) {
+    throw new Error("Please define environment variable MYSQLSH_OCI_CONFIG_PROFILE");
+}
+
 const configDirs = [join(process.cwd(), "shell-migration-default"), join(process.cwd(), "shell-migration-invalid")];
 process.env.CONFIG_DIR_DEFAULT = configDirs[0];
 process.env.CONFIG_DIR_INVALID = configDirs[1];

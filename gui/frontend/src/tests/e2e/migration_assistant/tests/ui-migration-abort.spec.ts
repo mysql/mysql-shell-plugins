@@ -71,7 +71,7 @@ test.describe("Aborted Migration", () => {
             isExpanded: true
         }, constants.wait1second * 5);
 
-        await migrationAssistant.migrationPlan.setOciConfigProfile("E2ETESTS");
+        await migrationAssistant.migrationPlan.setOciConfigProfile(String(process.env.MYSQLSH_OCI_CONFIG_PROFILE));
         await migrationAssistant.migrationPlan.setOciCompartment("——MySQLShellTesting");
         await migrationAssistant.migrationPlan.setOciNetwork("use_existing");
         await migrationAssistant.migrationPlan.setNetworkCompartment("——Networks");

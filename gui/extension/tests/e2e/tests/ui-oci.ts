@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -56,10 +56,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         const configs = await Misc.mapOciConfig();
         ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
-            return item.name = "E2ETESTS";
+            return item.name = String(process.env.MYSQLSH_OCI_CONFIG_PROFILE);
         });
 
-        ociTree = [new RegExp(`E2ETESTS \\(${ociConfig!.region}\\)`),
+        ociTree = [new RegExp(`${process.env.MYSQLSH_OCI_CONFIG_PROFILE} \\(${ociConfig!.region}\\)`),
         new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
         await Misc.loadDriver();
         const localE2eRecording = new E2ERecording(this.test!.title!);
@@ -394,7 +394,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new OutputView().clearText();
             const treeBastion = await ociTreeSection.getTreeItem(undefined, constants.bastionType);
             await ociTreeSection.openContextMenuAndSelect(await treeBastion.getLabel(), constants.deleteBastion);
-            await Workbench.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.wait1second * 25);
+            await Workbench.waitForOutputText(`OCI profile '${process.env.MYSQLSH_OCI_CONFIG_PROFILE}' loaded.`, constants.wait1second * 25);
             await tasksTreeSection.expand();
             await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Bastion (running)"),
                 constants.waitForTreeItem);

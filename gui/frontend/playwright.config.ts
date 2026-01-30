@@ -61,7 +61,6 @@ export default defineConfig({
     globalTeardown: "./src/tests/e2e/migration_assistant/lib/setup/globalTearDown.ts",
     testDir: "src/tests/e2e/migration_assistant/tests",
     workers: 2,
-    //testMatch: ["ui-migration-ok.spec.ts"],
     reporter: [
         ["html", { open: "never" }]
     ],
