@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -43,9 +43,9 @@ def migration():
 def test_new_project(migration):
     project = new_project("Test", "mysql://user@host:3306")
 
-    assert project.name == "Test"
-    assert isinstance(project.id, str)
-    assert hasattr(project.path, "__str__")
+    assert project["name"] == "Test"
+    assert isinstance(project["id"], str)
+    assert hasattr(project["path"], "__str__")
 
 
 def test_get_migration_steps(migration):
@@ -62,9 +62,9 @@ def test_open_project(migration):
 
     result_project = open_project(project_context.project.id)
 
-    assert result_project.id == project_context.project.id
-    assert result_project.name == project_context.project.name
-    assert result_project.path == project_context.project.path
+    assert result_project["id"] == project_context.project.id
+    assert result_project["name"] == project_context.project.name
+    assert result_project["path"] == str(project_context.project.path)
 
 
 def test_close_project(migration):
@@ -72,7 +72,7 @@ def test_close_project(migration):
 
     assert len(migration_lib.g_open_projects) == 1
 
-    close_project(project.id)
+    close_project(project["id"])
 
     assert not migration_lib.g_open_projects
 

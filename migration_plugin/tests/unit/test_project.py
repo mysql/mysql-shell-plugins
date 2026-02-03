@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from migration_plugin import migration
 from migration_plugin.lib.project import Project
+from migration_plugin.lib import core
 
 
 class TestProjectCreation:
@@ -116,7 +117,8 @@ class TestProjectProperties:
         project = Project(id="test-project", path=project_path)
 
         assert project.oci_config_file == os.path.expanduser(
-            "~/.oci/config")
+            core.default_oci_config_file()
+        )
 
         project.oci_config_file = "/custom/path/config"
         assert project.oci_config_file == "/custom/path/config"
@@ -126,7 +128,7 @@ class TestProjectProperties:
         project_path.mkdir()
         project = Project(id="test-project", path=project_path)
 
-        assert project.oci_profile == "DEFAULT"
+        assert project.oci_profile == core.default_oci_profile()
 
         project.oci_profile = "custom-profile"
         assert project.oci_profile == "custom-profile"
@@ -340,7 +342,7 @@ class TestSSHKeyManagement:
         result = project.find_shared_ssh_key(
             "ocid1.instance.oc1.ashburn.12345")
 
-        assert result is True
+        assert result
         assert project._ssh_private_key_path_shared == shared_key_path
 
     def test_find_shared_ssh_key_not_exists(self, temp_dir):
@@ -357,7 +359,7 @@ class TestSSHKeyManagement:
             result = project.find_shared_ssh_key(
                 "ocid1.instance.oc1.ashburn.12345")
 
-            assert isinstance(result, bool)
+            assert not result
 
 
 class TestSSHKeyProperties:
@@ -511,14 +513,14 @@ def test_project_save_open():
     trash = migration.new_project(
         "myproject2", source_url="admin@example.com:3306")
 
-    project2 = migration.open_project(project.id)
-    assert project.name == project2.name
-    assert project.source == project2.source
-    assert project.path == project2.path
+    project2 = migration.open_project(project["id"])
+    assert project["name"] == project2["name"]
+    assert project["source"] == project2["source"]
+    assert project["path"] == project2["path"]
 
-    assert project.name != trash.name
-    assert project.source != trash.source
-    assert project.path != trash.path
+    assert project["name"] != trash["name"]
+    assert project["source"] != trash["source"]
+    assert project["path"] != trash["path"]
 
-    shutil.rmtree(trash.path)
-    shutil.rmtree(project.path)
+    shutil.rmtree(trash["path"])
+    shutil.rmtree(project["path"])

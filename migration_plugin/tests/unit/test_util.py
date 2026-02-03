@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -359,14 +359,16 @@ class TestEdgeCases:
         result = sanitize_par_uri("https://example.com/p/abc123/")
         assert result == "https://example.com/p/<redacted>/"
 
-        result = sanitize_par_uri("https://example.com/p/abc123/n/namespace/p/def456/")
+        result = sanitize_par_uri(
+            "https://example.com/p/abc123/n/namespace/p/def456/")
         expected = "https://example.com/p/<redacted>/n/namespace/p/<redacted>/"
         assert result == expected
 
         result = sanitize_par_uri("just a regular string")
         assert result == "just a regular string"
 
-        result = sanitize_par_uri("https://example.com/p/abc-123_def/n/namespace")
+        result = sanitize_par_uri(
+            "https://example.com/p/abc-123_def/n/namespace")
         expected = "https://example.com/p/<redacted>/n/namespace"
         assert result == expected
 
@@ -375,7 +377,8 @@ class TestEdgeCases:
         assert result == expected
 
         long_par_id = "a" * 100
-        result = sanitize_par_uri(f"https://example.com/p/{long_par_id}/n/namespace")
+        result = sanitize_par_uri(
+            f"https://example.com/p/{long_par_id}/n/namespace")
         expected = "https://example.com/p/<redacted>/n/namespace"
         assert result == expected
 

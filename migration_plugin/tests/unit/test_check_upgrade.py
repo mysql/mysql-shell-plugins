@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -43,6 +43,9 @@ def cleanup_upgrade_issues(session):
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_test(sandbox_session):
+    if server_version(sandbox_session) >= (8, 0, 0):
+        pytest.skip("This test requires 5.7 server")
+
     cleanup_upgrade_issues(session=sandbox_session)
     load_upgrade_issues(session=sandbox_session)
     yield

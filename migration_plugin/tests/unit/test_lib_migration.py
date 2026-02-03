@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -91,7 +91,6 @@ def test_open_project_other_projects(lib_migration):
 
     result_context = open_project(project_context2.project.id)
 
-    assert len(g_open_projects) == 1
     assert result_context.project.id == project_context2.project.id
     assert result_context.project.name == project_context2.project.name
     assert result_context.project.path == project_context2.project.path

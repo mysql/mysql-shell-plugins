@@ -1,4 +1,4 @@
--- Copyright (c) 2025, Oracle and/or its affiliates.
+-- Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License, version 2.0,
@@ -108,6 +108,7 @@ SET @@sql_mode = @old_sql_mode;
 
 -- orphanedObjects
 
+--#ifdef HAS_MYSQL_PROC
 INSERT INTO mysql.proc VALUES (
     'upgrade_issues_ex',
     'orphaned_procedure',
@@ -130,6 +131,7 @@ INSERT INTO mysql.proc VALUES (
     'latin1_swedish_ci',
     _binary 'begin\nselect count(*) from somedb.sometable;\nend'
 );
+--#endif
 
 -- dollarSignName
 

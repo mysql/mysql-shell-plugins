@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -68,7 +68,7 @@ def sanitize_dict_any_pass(d: Optional[dict], delete: bool = False) -> Optional[
 
     out = {}
     for k, v in d.items():
-        if k in k_sensitive_fields:
+        if k in k_sensitive_fields or "password" in k.lower():
             if not delete:
                 out[k] = "****"
         elif isinstance(v, dict):

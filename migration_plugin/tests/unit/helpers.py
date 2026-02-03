@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,6 +24,7 @@
 import os
 import subprocess
 import pathlib
+from typing import Optional
 import mysqlsh  # type: ignore
 from migration_plugin.lib import oci_utils
 
@@ -45,14 +46,98 @@ def create_shell_session(connection_data={}) -> mysqlsh.globals.session:
     return shell.connect(url)
 
 
-def execute_script(session, path):
+class preprocess_script:
+    def __init__(self, path, defines=[]):
+        self.path = path
+        self.defines = defines
+        self.tmp_path = None
+
+    def handle_ifdef(self, line: str, lines: list[str], index: int) -> tuple[Optional[bool], int]:
+        stripped = line.strip()
+        if not stripped.startswith("--#"):
+            return None, index
+
+        parts = stripped[3:].strip().split()
+        directive = parts[0]
+        if directive == "ifdef":
+            define = parts[1]
+            return define in self.defines, index + 1
+        elif directive == "ifndef":
+            define = parts[1]
+            return define not in self.defines, index + 1
+        elif directive == "else":
+            return None, index + 1
+        elif directive == "endif":
+            return None, index + 1
+        else:
+            return None, index
+
+    def handle_ifdefs(self, lines: list[str]) -> str:
+        out_lines = []
+        skip_stack = []
+        index = 0
+        while index < len(lines):
+            line = lines[index]
+            result, new_index = self.handle_ifdef(line, lines, index)
+            if result is not None:
+                if result:
+                    skip_stack.append(False)
+                else:
+                    skip_stack.append(True)
+                index = new_index
+                continue
+            elif line.strip().startswith("--#else"):
+                if skip_stack:
+                    skip_stack[-1] = not skip_stack[-1]
+                index = new_index
+                continue
+            elif line.strip().startswith("--#endif"):
+                if skip_stack:
+                    skip_stack.pop()
+                index = new_index
+                continue
+
+            if not any(skip_stack):
+                out_lines.append(line)
+            index += 1
+
+        return "\n".join(out_lines)
+
+    def __enter__(self):
+        with open(self.path, "r") as f:
+            lines = f.readlines()
+
+        content = self.handle_ifdefs(lines)
+
+        tmp_path = pathlib.Path(self.path).parent / \
+            f".tmp_{pathlib.Path(self.path).name}"
+        with open(tmp_path, "w") as f:
+            f.write(content)
+        self.tmp_path = str(tmp_path)
+        return self.tmp_path
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.tmp_path and os.path.exists(self.tmp_path):
+            os.remove(self.tmp_path)
+
+
+def execute_script(session, path, defines=None):
     connection_data = mysqlsh.globals.shell.parse_uri(session.uri)
     if "password" not in connection_data:
         connection_data["password"] = ""
 
+    if not defines:
+        defines = []
+    version = session.run_sql("SELECT @@VERSION").fetch_one()[0]
+    old_mysql = int(version.split(".")[0]) < 8
+    if old_mysql:
+        defines.append("OLD_MYSQL")
+
     uri = f"{connection_data['user']}:{connection_data['password']}@{connection_data['host']}:{connection_data['port']}"
 
-    subprocess.check_call(["mysqlsh", uri, "--quiet-start=2", "-f", path])
+    with preprocess_script(path, defines) as tmp_path:
+        subprocess.check_call(
+            ["mysqlsh", uri, "--quiet-start=2", "-f", tmp_path])
 
 
 def load_sakila(session):
