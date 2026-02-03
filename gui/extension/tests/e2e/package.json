@@ -28,15 +28,13 @@
     "@types/selenium-webdriver": "4.1.22"
   },
   "scripts": {
-    "e2e-tests-setup-and-run": "mysqlsh --py -f setup_local_env_for_ext_tests_and_run.py",
-    "e2e-tests-setup-and-run-ts": "tsx setup/setup_and_run.ts",
+    "e2e-tests-setup-and-run": "tsx setup/setup_and_run.ts",
     "e2e-tests-install-test-resources": "tsx setup/install_test_resources.ts",
     "e2e-tests-run": "tsx setup/run.ts",
     "e2e-tests-web-certificate": "tsx setup/generate_web_certificate.ts",
     "e2e-tests-setup": "tsx setup/setup.ts",
     "e2e-tests-teardown": "tsx setup/teardown.ts",
     "e2e-tests-install-extension": "tsx setup/install_extension.ts",
-    "e2e-tests-copy-extension": "tsx setup/copy_extension.ts",
     "e2e-tests-merge": "mochawesome-merge",
     "e2e-tests-report": "marge -f test-report"
   },
