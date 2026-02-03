@@ -258,7 +258,23 @@ def dump_instance(
         + compat_args
         + extra_args,
     )
-    sub.on_output = listener
+
+    def on_dump_progress(data: dict) -> dict:
+        return {
+            "progress": {
+                "current": data["current"],
+                "total": data["total"],
+                "eta": data["etaSeconds"],
+            }
+        }
+
+    def on_dump_stdout(j: dict):
+        if "throughputProgressUpdate" in j:
+            listener(on_dump_progress(j["throughputProgressUpdate"]))
+        else:
+            listener(j)
+
+    sub.on_output = on_dump_stdout
 
     return sub
 
@@ -290,7 +306,38 @@ def load_dump(
         + storage_args
         + extra_args,
     )
-    sub.on_output = listener
+
+    def on_load_data_progress(data: dict) -> dict:
+        return {
+            "progress": {
+                "stage": "Data Import",
+                "current": data["rowsLoaded"],
+                "total": data["rowsToLoad"],
+                "eta": data["rowsEtaSeconds"],
+                "totalKnown": None,
+            }
+        }
+
+    def on_load_ddl_progress(data: dict) -> dict:
+        return {
+            "progress": {
+                "stage": data["description"],
+                "current": data["current"],
+                "total": data["total"],
+                "eta": None,
+                "totalKnown": data["totalKnown"],
+            }
+        }
+
+    def on_load_stdout(j: dict):
+        if "loadProgress" in j:
+            listener(on_load_data_progress(j["loadProgress"]))
+        elif "numericProgressUpdate" in j:
+            listener(on_load_ddl_progress(j["numericProgressUpdate"]))
+        else:
+            listener(j)
+
+    sub.on_output = on_load_stdout
 
     return sub
 

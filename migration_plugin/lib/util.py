@@ -32,6 +32,7 @@ import urllib.request
 import ssl
 import certifi
 import time
+from functools import cache
 
 
 def sanitize_par_uri(par: str) -> str:
@@ -171,6 +172,7 @@ def apply_user_only_access_permissions(path):
 g_ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 
+@cache
 def get_my_public_ip() -> str:
     url = "https://api.ipify.org"
     with urllib.request.urlopen(url, context=g_ssl_context, timeout=5) as response:
@@ -188,10 +190,8 @@ def interruptible_sleep(duration, interrupt_callback=None, poll_interval=0.1):
     :param poll_interval: The interval at which the callback is checked.
     """
     end_time = time.time() + duration
-    while time.time() < end_time:
+    while (now := time.time()) < end_time:
         if interrupt_callback is not None and interrupt_callback():
             return False
-        delay = min(poll_interval, end_time - time.time())
-        if delay > 0:
-            time.sleep(delay)
+        time.sleep(min(poll_interval, end_time - now))
     return True

@@ -358,37 +358,60 @@ class RemoteHelperClient:
             return model.ConnectionCheckResult()
         return model.parse(res["result"])
 
+    def dump_instance(self, options: dict):
+        return self._command("dump-instance", options)
+
+    def stop_dump_instance(self):
+        return self._command("stop-dump-instance", {})
+
     def load_dump(self, options: dict):
         return self._command("load-dump", options)
 
-    def load_status(self, callback):
-        logging.debug(f"load_status begin")
-        load_status_buffer = ""
+    def stop_load_dump(self):
+        return self._command("stop-load-dump", {})
+
+    def _monitor_status(self, callback, cmd: str):
+        logging.debug(f"monitor {cmd} begin")
+        status_buffer = ""
 
         # TODO handle aborted remote load because of error
         def on_output(data: str):
-            nonlocal load_status_buffer
+            nonlocal status_buffer
 
-            load_status_buffer += data
+            status_buffer += data
+
             while True:
-                line, nl, rest = load_status_buffer.partition("\n")
+                line, nl, rest = status_buffer.partition("\n")
+
                 if nl:
-                    load_status_buffer = rest
+                    status_buffer = rest
+
                     if not line:
                         continue
-                    logging.devdebug(f"remote helper output: {line}")
+
+                    logging.devdebug(f"monitor {cmd} output: {line}")
+
                     try:
                         d = json.loads(line)
                     except json.decoder.JSONDecodeError as e:
                         logging.error(
-                            f"Unexpected output from remote helper: {e}: {line}")
+                            f"Unexpected output from remote helper: {e}: {line}"
+                        )
                         raise
+
                     callback(d)
                 else:
                     break
 
-        self._command("load-status", input={}, on_output=on_output)
-        logging.debug(f"load_status end")
+        self._command(cmd, input={}, on_output=on_output)
+
+        logging.debug(f"monitor {cmd} end")
+
+    def dump_status(self, callback):
+        self._monitor_status(callback, "dump-status")
+
+    def load_status(self, callback):
+        self._monitor_status(callback, "load-status")
 
     def enable_tunneling(self):
         logging.debug(f"enable_tunneling begin")

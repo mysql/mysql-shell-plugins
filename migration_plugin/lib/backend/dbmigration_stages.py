@@ -22,7 +22,11 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from typing import Optional
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from contextlib import contextmanager
+from threading import RLock
+from typing import Iterator, Optional
 from . import model, stage
 from ..oci_utils import MIGRATION_RETRY_STRATEGY
 from .. import logging, errors, util
@@ -74,20 +78,130 @@ def fetch_par(par_url: str) -> str | None:
         raise
 
 
+def format_seconds(seconds):
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+    return f"{hours:02}:{minutes:02}:{secs:02}"
+
+
+def compute_remote_threads(options: Optional[model.DBSystemOptions]) -> Optional[int]:
+    if options:
+        shape = options.shapeName
+        ecpu_count = shape.split(".")[-1]
+        try:
+            max_threads = int(ecpu_count)
+        except:
+            max_threads = 2  # .Free is 2 ECPU
+
+    else:
+        max_threads = None
+
+    return max_threads
+
+
+class Dumper(ABC):
+    def __init__(self, args: dict) -> None:
+        self._args = args
+
+    @abstractmethod
+    def dump(self, listener: Callable[[dict], None]) -> int:
+        pass
+
+    @abstractmethod
+    def stop(self) -> None:
+        pass
+
+
+class LocalDumper(Dumper):
+    def __init__(self, args: dict) -> None:
+        super().__init__(args)
+
+        self._process = None
+
+    def dump(self, listener: Callable[[dict], None]) -> int:
+        self._process = dump_instance(listener, **self._args)
+        return self._process.process()
+
+    def stop(self) -> None:
+        if self._process:
+            self._process.terminate()
+
+
+class RemoteDumper(Dumper):
+    def __init__(self, args: dict, orchestrator: stage.OrchestratorInterface) -> None:
+        super().__init__(args)
+
+        self._orchestrator = orchestrator
+        self._max_threads = compute_remote_threads(
+            orchestrator.options.targetMySQLOptions
+        )
+
+    def available(self) -> bool:
+        with self._orchestrator.connect_remote_helper() as helper:
+            try:
+                result = helper.connect_mysql(self._args["connection_params"])
+
+                if result.connectError:
+                    logging.info(
+                        f"Could not connect to the source instance from the jump host: {result.connectError}"
+                    )
+                    return False
+                else:
+                    return True
+            except Exception as e:
+                logging.info(
+                    f"Failed to connect to the source instance from the jump host: {e}")
+                return False
+
+    def dump(self, listener: Callable[[dict], None]) -> int:
+        returncode = -1
+
+        def on_output(data: dict):
+            nonlocal returncode
+
+            if data.get("status") == "DONE":
+                returncode = data["returncode"]
+
+            listener(data)
+
+        with self._orchestrator.connect_remote_helper() as helper:
+            logging.info(f"starting remote dump...")
+
+            result = helper.dump_instance(
+                self._args | {"max_threads": self._max_threads}
+            )
+
+            logging.info(
+                f"remote dump started: {result['status']}, tracking status..."
+            )
+
+            helper.dump_status(on_output)
+
+            logging.info(f"remote dump ended")
+
+        return returncode
+
+    def stop(self) -> None:
+        with self._orchestrator.connect_remote_helper() as helper:
+            helper.stop_dump_instance()
+
+
 class DumpStage(stage.ThreadedStage):
     def __init__(self, owner) -> None:
         super().__init__(SubStepId.DUMP, owner, work_fn=self._work_thread)
 
-        self._process = None
+        self._dumper: Optional[Dumper] = None
+        self._remote_dumper = False
         self._status = DumpStatus.READY
-        self.returncode = None
         self._last_progress = None
         self._last_error = None
         self._start_time = None
 
     def stop(self):
-        if self._process:
-            self._process.terminate()
+        if self._dumper:
+            self._dumper.stop()
+
         super().stop()
 
     @property
@@ -99,23 +213,16 @@ class DumpStage(stage.ThreadedStage):
         return int(time.time() - (self._start_time or 0))
 
     def _on_stdout(self, data: dict):
-        if "throughputProgressUpdate" in data:
-            progress = data["throughputProgressUpdate"]
+        if "progress" in data:
+            progress = data["progress"]
 
             status = model.DumpStatus()
             status.stageCurrent = progress["current"]
             status.stageTotal = progress["total"]
-            status.stageEta = progress["etaSeconds"]
+            status.stageEta = progress["eta"]
             status.stage = self._status.name
 
             self.push_progress(data=status._json())
-            return
-        elif "numericProgressUpdate" in data:
-            progress = data["numericProgressUpdate"]
-            progress["current"]
-            if progress["totalKnown"]:
-                progress["total"]
-            progress["description"]
             return
 
         for t in ["status", "info", "note", "warning", "error"]:
@@ -159,6 +266,8 @@ class DumpStage(stage.ThreadedStage):
         self.push_status(WorkStatusEvent.ERROR, message=message)
 
     def _on_shell_exited(self, rc):
+        logging.info(f"Dump finished in {format_seconds(self.time_elapsed)}")
+
         if rc == 0:
             # TODO include info about how long it took, total bytes dumped and total tables
             self._set_done_status("Source database was exported")
@@ -277,6 +386,30 @@ class DumpStage(stage.ThreadedStage):
             self._set_error_status(f"Failed to initialize dump: {e}")
             raise errors.DumpError("Dump initialization failed")
 
+        # setup dumper
+        dumper_args = self._prepare_dumper_args()
+        dumper = RemoteDumper(dumper_args, self._owner)
+
+        self.push_output(
+            f"Checking connectivity from OCI bastion host at {self._owner.cloud_resources.computePublicIP} to {self._owner.source_connection_options['host']}"
+        )
+
+        if dumper.available():
+            self.push_output(
+                f"Source database will be exported from OCI bastion host at {self._owner.cloud_resources.computePublicIP}"
+            )
+            logging.info("Running remote dump from jump host")
+            self._dumper = dumper
+            self._remote_dumper = True
+        else:
+            self.push_output(
+                f"Source database will be exported from local host at {util.get_my_public_ip()}"
+            )
+            logging.info("Running local dump")
+            self._dumper = LocalDumper(dumper_args)
+            self._remote_dumper = False
+
+        # setup retry strategy
         checkers = RetryCheckerContainer(
             checkers=[LimitBasedRetryChecker(max_attempts=10)]
         )
@@ -290,15 +423,11 @@ class DumpStage(stage.ThreadedStage):
 
         attempt = 0
 
+        # run dump
         while True:
-            self.returncode = -1
-            self._process = None
-            self._launch()
-            assert self._process
+            returncode = self._dumper.dump(self._on_stdout)
 
-            self.returncode = self._process.process()
-
-            if 0 != self.returncode and checkers.should_retry(current_attempt=attempt) and self._should_retry():
+            if 0 != returncode and checkers.should_retry(current_attempt=attempt) and self._should_retry():
                 logging.warning("Preparing to retry a failed dump")
 
                 self._status = DumpStatus.STARTING
@@ -313,7 +442,7 @@ class DumpStage(stage.ThreadedStage):
             else:
                 break
 
-        self._on_shell_exited(self.returncode)
+        self._on_shell_exited(returncode)
 
     def _initialize_dump(self) -> bool:
         if self._check_usable_dump():
@@ -339,15 +468,14 @@ class DumpStage(stage.ThreadedStage):
 
         return True
 
-    def _launch(self) -> None:
+    def _prepare_dumper_args(self) -> dict:
         assert self._owner.options
 
         extra_args = build_dump_exclude_list(
             self._owner.options.schemaSelection
         )
 
-        ncpu = os.cpu_count()
-        if ncpu:
+        if ncpu := os.cpu_count():
             # TODO pick a better number of threads (from user?)
             # TODO if doing a hot migration, pick lower number of threads
             threads = ncpu
@@ -355,23 +483,21 @@ class DumpStage(stage.ThreadedStage):
             threads = 1
 
         compatibility_flags = [
-            flag.value for flag in self._owner.options.compatibilityFlags]
+            flag.value for flag in self._owner.options.compatibilityFlags
+        ]
 
         logging.devdebug(
             f"Dumping to {self._owner.full_storage_path}, compat_flags={compatibility_flags} filter={extra_args}")
 
-        # TODO retry if it fails with 404 on bucket
-
-        self._process = dump_instance(
-            self._on_stdout,
-            self._owner.source_connection_options,
-            storage_prefix=self._owner.full_storage_path,
-            storage_args=[],
-            compatibility_args=compatibility_flags,
-            extra_args=extra_args,
-            target_version=self._owner.target_version,
-            threads=threads
-        )
+        return {
+            "connection_params": self._owner.source_connection_options,
+            "storage_prefix": self._owner.full_storage_path,
+            "storage_args": [],
+            "compatibility_args": compatibility_flags,
+            "extra_args": extra_args,
+            "target_version": self._owner.target_version,
+            "threads": threads,
+        }
         self.push_output(" ".join(util.sanitize_par_uri_in_list(self._process.argv)))
 
     def start(self, parents):
@@ -402,7 +528,8 @@ class DumpStage(stage.ThreadedStage):
             stage_info.total = 0
 
             self._status = DumpStatus.READY
-            self._process = None
+            self._dumper = None
+            self._remote_dumper = False
         super().reset()
 
     def update(self) -> bool:
@@ -414,7 +541,6 @@ class RemoteLoadStage(stage.ThreadedStage):
         super().__init__(SubStepId.LOAD, owner, work_fn=self._work_thread)
         self._status = LoadStatus.READY
         self._dumper = dump
-        self.returncode = None
         self._last_error: Optional[dict] = None
 
         # stage and its corresponding weight in the total progress
@@ -435,8 +561,7 @@ class RemoteLoadStage(stage.ThreadedStage):
     def on_output(self, data: dict):
         logging.devdebug(f"loader message: {data}")
 
-        status = data.get("status")
-        if status == "DONE":
+        if (status := data.get("status")) == "DONE":
             if data["returncode"] == 0:
                 self._status = LoadStatus.DONE
                 self.push_status(WorkStatusEvent.END,
@@ -447,6 +572,7 @@ class RemoteLoadStage(stage.ThreadedStage):
                 self.push_status(WorkStatusEvent.ERROR, self._last_error or {})
                 raise errors.LoadError("Load operation failed")
             return
+
         if "Dump_metadata" in data:
             metadata = data["Dump_metadata"]
             self._owner.project.replication_coordinates = metadata
@@ -454,9 +580,11 @@ class RemoteLoadStage(stage.ThreadedStage):
 
         if "progress" in data:
             progress = data["progress"]
+
             # ignore status change if we're already done
             if self._status not in [LoadStatus.DONE, LoadStatus.ERROR]:
                 load_stage = progress["stage"]
+
                 if load_stage == "Executing schema DDL":
                     self._status = LoadStatus.DDL_SCHEMAS
                 elif load_stage == "Executing table DDL":
@@ -466,7 +594,8 @@ class RemoteLoadStage(stage.ThreadedStage):
                 elif load_stage == "Data Import":
                     self._status = LoadStatus.LOADING_DATA
                     progress["totalKnown"] = (
-                        self._dumper._status == DumpStatus.DONE)
+                        self._dumper._status == DumpStatus.DONE
+                    )
                 elif load_stage == "Building indexes":
                     self._status = LoadStatus.DDL_INDEXES
 
@@ -514,8 +643,14 @@ class RemoteLoadStage(stage.ThreadedStage):
     def _work_thread(self):
         assert self._owner.options
 
-        self.push_progress(f"waiting for {self._dumper._name}")
-        while self._dumper._status < DumpStatus.DUMPING_DATA:
+        # when running dump from a jump host we wait for the operation to be
+        # finished, in order to avoid overloading that compute
+        expected_state = DumpStatus.DONE if self._dumper._remote_dumper else DumpStatus.DUMPING_DATA
+
+        self.push_progress(
+            f"waiting for {self._dumper._name} to be in {expected_state.name} state"
+        )
+        while self._dumper._status < expected_state:
             # TODO CHECK for error states, abort
             time.sleep(5)
             self.check_stop()
@@ -540,17 +675,11 @@ class RemoteLoadStage(stage.ThreadedStage):
         extra_args.append("--ignoreVersion=1")
         extra_args.append("--handleGrantErrors=ignore")
 
-        if self._owner.options.targetMySQLOptions:
-            shape = self._owner.options.targetMySQLOptions.shapeName
-            ecpu_count = shape.split(".")[-1]
-            try:
-                max_threads = int(ecpu_count)
-            except:
-                max_threads = 2  # .Free is 2 ECPU
-            logging.info(
-                f"{self}: DB shape={shape}, setting max_threads={max_threads}")
-        else:
-            max_threads = None
+        max_threads = compute_remote_threads(
+            self._owner.options.targetMySQLOptions
+        )
+
+        logging.info(f"{self}: setting loader max_threads={max_threads}")
 
         options = {
             "connection_params": self._owner.target_connection_options,
@@ -601,6 +730,12 @@ class RemoteLoadStage(stage.ThreadedStage):
         self._status = LoadStatus.STARTING
 
         return True
+
+    def stop(self):
+        with self._owner.connect_remote_helper() as helper:
+            helper.stop_load_dump()
+
+        super().stop()
 
     #
     # def reset(self):

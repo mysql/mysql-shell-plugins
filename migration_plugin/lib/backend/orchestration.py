@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -144,6 +144,7 @@ class Orchestrator(OrchestratorInterface):
         # Migration
 
         self._dump.add_dependency(self._provision_bucket)
+        self._dump.add_dependency(self._provision_jumphost)
 
         self._load.add_dependency(self._wait_target)
         # load waits for dump internally, because we dont need dump to be finished, just started

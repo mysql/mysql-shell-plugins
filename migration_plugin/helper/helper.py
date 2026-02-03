@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -29,7 +29,8 @@ import mysqlsh  # type: ignore
 from queue import Empty, Queue
 import urllib.error
 import urllib.request
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
 import subprocess
 import signal
 import traceback
@@ -39,6 +40,7 @@ import json
 import sys
 import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
 import datetime
 import warnings
 
@@ -172,15 +174,57 @@ def get_channel_status(sess) -> dict:
     return flatten(status)
 
 
+class BackgroundThread:
+    def __init__(self) -> None:
+        self._output = Queue()
+
+        self._process: Optional[submysqlsh.SubMysqlsh] = None
+        self._thread = None
+
+    def is_running(self) -> bool:
+        return self._process is not None
+
+    def start(self, create_process: Callable[[Callable[[dict], None]], submysqlsh.SubMysqlsh]):
+        def do_start():
+            self._process = create_process(self._on_stdout)
+            rc = self._process.process()
+            self._on_stdout({"status": "DONE", "returncode": rc})
+            self._process = None
+
+        self._thread = threading.Thread(target=do_start)
+        self._thread.start()
+
+    def terminate(self):
+        if self._process:
+            self._process.terminate()
+
+    def has_output(self) -> bool:
+        return not self._output.empty()
+
+    def read_output(self) -> list[dict]:
+        out = []
+
+        while True:
+            try:
+                item = self._output.get_nowait()
+            except Empty:
+                break
+
+            out.append(item)
+
+        return out
+
+    def _on_stdout(self, data: dict):
+        self._output.put(data)
+
+
 class Helper:
     def __init__(self, instance_token) -> None:
         # arbitrary token to identify the helper process with its owner
         self.instance_token = instance_token
-        self._load_output = Queue()
 
-        self._load_process = None
-        self._load_thread = None
-        self._load_done = False
+        self._dump_thread = BackgroundThread()
+        self._load_thread = BackgroundThread()
 
     def handle_connect_mysql(self, data: dict) -> dict:
         check_result, has_ssl, session = MySQLSourceCheck.try_connect(data)
@@ -277,70 +321,83 @@ class Helper:
         finally:
             sess.close()
 
-    def on_load_data_progress(self, data: dict):
-        progress = {
-            "stage": "Data Import",
-            "current": data["rowsLoaded"],
-            "total": data["rowsToLoad"],
-            "eta": data["rowsEtaSeconds"],
-            "totalKnown": None
-        }
-        self._load_output.put({"progress": progress})
-
-    def on_load_ddl_progress(self, data: dict):
-        progress = {
-            "stage": data["description"],
-            "current": data["current"],
-            "total": data["total"],
-            "eta": None,
-            "totalKnown": data["totalKnown"]
-        }
-        self._load_output.put({"progress": progress})
-
-    def on_load_stdout(self, data: dict):
-        if "loadProgress" in data:
-            self.on_load_data_progress(data["loadProgress"])
-            return
-
-        if "numericProgressUpdate" in data:
-            self.on_load_ddl_progress(data["numericProgressUpdate"])
-            return
-
-        self._load_output.put(data)
-
-    def handle_load_dump(self, data: dict) -> dict:
-        if self._load_process:
-            return {"status": "ALREADY_RUNNING"}
-        shell.log("info", f"loadDump: {json.dumps(data)}")
-
+    def _compute_threads(self, data: dict, context: str) -> int:
         ncpu = os.cpu_count()
+        max_threads = data.get("max_threads")
+
         if ncpu:
             threads = ncpu * 2
         else:
             threads = 1
-        threads = min(threads, data.get("max_threads", 2))
+
+        threads = min(threads, max_threads if max_threads else 2)
+
         shell.log(
-            "info", f"Host has {ncpu} cpus, max_threads={data.get("max_threads")} will load using {threads} threads")
+            "info", f"Host has {ncpu} cpus, max_threads={max_threads} will {context} using {threads} threads"
+        )
 
-        def do_load():
-            self._load_process = submysqlsh.load_dump(
-                self.on_load_stdout,
-                connection_params=data["connection_params"],
-                storage_prefix=data["storage_prefix"],
-                storage_args=data["storage_args"],
-                progress_path=os.path.join(g_basedir, "load_progress.json"),
-                extra_args=data["extra_args"],
-                threads=threads
-            )
-            rc = self._load_process.process()
-            self.on_load_stdout({"status": "DONE", "returncode": rc})
-            self._load_done = True
-            self._load_process = None
+        return threads
 
-        self._load_thread = threading.Thread(target=do_load)
-        self._load_thread.start()
+    def handle_dump_instance(self, data: dict) -> dict:
+        if self.is_dumping():
+            return {"status": "ALREADY_RUNNING"}
+
+        shell.log("info", f"dumpInstance: {json.dumps(data)}")
+
+        threads = self._compute_threads(data, "dump")
+
+        self._dump_thread.start(lambda on_output: submysqlsh.dump_instance(
+            on_output,
+            connection_params=data["connection_params"] | {
+                "ssl-mode": "REQUIRED"
+            },
+            storage_prefix=data["storage_prefix"],
+            storage_args=data["storage_args"],
+            compatibility_args=data["compatibility_args"],
+            extra_args=data["extra_args"],
+            target_version=data["target_version"],
+            threads=threads
+        ))
 
         return {"status": "STARTED"}
+
+    def handle_stop_dump_instance(self, data: dict) -> dict:
+        if not self.is_dumping():
+            return {"status": "NOT_RUNNING"}
+
+        self._dump_thread.terminate()
+
+        return {"status": "ok"}
+
+    def handle_load_dump(self, data: dict) -> dict:
+        if self.is_loading():
+            return {"status": "ALREADY_RUNNING"}
+
+        shell.log("info", f"loadDump: {json.dumps(data)}")
+
+        threads = self._compute_threads(data, "load")
+
+        self._load_thread.start(lambda on_output: submysqlsh.load_dump(
+            on_output,
+            connection_params=data["connection_params"] | {
+                "ssl-mode": "REQUIRED"
+            },
+            storage_prefix=data["storage_prefix"],
+            storage_args=data["storage_args"],
+            progress_path=os.path.join(g_basedir, "load_progress.json"),
+            extra_args=data["extra_args"],
+            threads=threads
+        ))
+
+        return {"status": "STARTED"}
+
+    def handle_stop_load_dump(self, data: dict) -> dict:
+        if not self.is_loading():
+            return {"status": "NOT_RUNNING"}
+
+        self._load_thread.terminate()
+
+        return {"status": "ok"}
 
     def handle_target_run_sql(self, data: dict) -> dict:
         shell.log("info", f"targetRunSql: {data}")
@@ -367,23 +424,25 @@ class Helper:
         finally:
             sess.close()
 
+    def is_dumping(self) -> bool:
+        return self._dump_thread.is_running()
+
+    @property
+    def has_dump_output(self) -> bool:
+        return self._dump_thread.has_output()
+
+    def dump_status(self) -> list[dict]:
+        return self._dump_thread.read_output()
+
     def is_loading(self) -> bool:
-        return self._load_process is not None
+        return self._load_thread.is_running()
 
     @property
     def has_load_output(self) -> bool:
-        return not self._load_output.empty()
+        return self._load_thread.has_output()
 
     def load_status(self) -> list[dict]:
-        out = []
-        while True:
-            try:
-                item = self._load_output.get_nowait()
-            except Empty:
-                break
-            out.append(item)
-
-        return out
+        return self._load_thread.read_output()
 
     def get_self_status(self):
         return {
@@ -393,8 +452,11 @@ class Helper:
 
 
 class HelperCommandHandler(BaseHTTPRequestHandler):
-    def stream_load_status(self):
-        shell.log("info", "HelperCommandHandler: stream_load_status")
+    def _stream_status(self, status: Callable[[], list[dict]]):
+        context = f"HelperCommandHandler.stream_status({status.__name__})"
+
+        shell.log("info", context)
+
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
@@ -403,14 +465,13 @@ class HelperCommandHandler(BaseHTTPRequestHandler):
 
         def send(item: dict):
             data = json.dumps(item)
-            # shell.log("debug", f"> load-status {data}")
             self.wfile.write((data + "\n").encode("utf-8"))
 
         try:
-            shell.log("info", f"HelperCommandHandler: entering load_status loop")
+            shell.log("info", f"{context}: entering loop")
             done = False
             while not done:
-                data = g_helper.load_status()
+                data = status()
                 for item in data:
                     send(item)
                     if item.get("status") in ("DONE", "ERROR"):
@@ -421,10 +482,9 @@ class HelperCommandHandler(BaseHTTPRequestHandler):
 
                 time.sleep(1)
         except (BrokenPipeError, ConnectionResetError):
-            shell.log(
-                "info", f"HelperCommandHandler: load_status client disconnected")
+            shell.log("info", f"{context}: client disconnected")
 
-        shell.log("info", f"HelperCommandHandler: exited load_status loop")
+        shell.log("info", f"{context}: exited loop")
 
     def _respond(self, code: int, result: dict):
         self.send_response(code)
@@ -465,20 +525,32 @@ class HelperCommandHandler(BaseHTTPRequestHandler):
                 data = {}
 
             command = self.path[1:].replace("-", "_")
-            shell.log("info", "start "+command)
-            if command == "load_status":
-                if g_helper.is_loading() or g_helper.has_load_output:
-                    self.stream_load_status()
+            shell.log("info", "start " + command)
+            if command == "dump_status":
+                if g_helper.is_dumping() or g_helper.has_dump_output:
+                    self._stream_status(g_helper.dump_status)
                 else:
                     self._respond(
-                        425, {"status": "error", "error": "load not running"})
+                        425, {"status": "error", "error": "dump not running"}
+                    )
+            elif command == "load_status":
+                if g_helper.is_loading() or g_helper.has_load_output:
+                    self._stream_status(g_helper.load_status)
+                else:
+                    self._respond(
+                        425, {"status": "error", "error": "load not running"}
+                    )
             else:
                 attr = getattr(g_helper, f"handle_{command}")
                 if attr:
                     self._respond(200, attr(data))
                 else:
                     self._respond(
-                        404, {"status": "error", "error": f"unhandled {self.path}"})
+                        404, {
+                            "status": "error",
+                            "error": f"unhandled {self.path}",
+                        }
+                    )
         except Exception:
             shell.log("error", str(traceback.format_exc()))
             self._respond(
@@ -503,8 +575,17 @@ class HelperClient:
         shell.log("debug", f"{status} {response}")
         return json.loads(response)
 
+    def cmd_dump_instance(self, data: dict):
+        return self._post("/dump-instance", data=data)
+
+    def cmd_stop_dump_instance(self, data: dict):
+        return self._post("/stop-dump-instance", data=data)
+
     def cmd_load_dump(self, data: dict):
         return self._post("/load-dump", data=data)
+
+    def cmd_stop_load_dump(self, data: dict):
+        return self._post("/stop-load-dump", data=data)
 
     def cmd_connect_mysql(self, data: dict):
         return self._post("/connect-mysql", data=data)
@@ -523,13 +604,18 @@ class HelperClient:
     def cmd_target_run_sql(self, data: dict):
         return self._post("/target-run-sql", data=data)
 
+    def cmd_dump_status(self, data: dict):
+        return self._cmd_stream_status(data, "dump-status")
+
     def cmd_load_status(self, data: dict):
-        shell.log("debug", f"POST /load-status (stream)")
+        return self._cmd_stream_status(data, "load-status")
+
+    def _cmd_stream_status(self, data: dict, cmd: str):
+        shell.log("debug", f"POST /{cmd} (stream)")
 
         def on_status(line: str):
             try:
                 json.loads(line)  # validate json
-                # shell.log("info", f"incoming status: {line}")
                 print(line)
             except json.JSONDecodeError:
                 shell.log("error", f"Unexpected data from server: {line}")
@@ -538,12 +624,13 @@ class HelperClient:
         while True:
             try:
                 http_post_stream(
-                    on_status, f"{self.url}/load-status", payload=data)
+                    on_status, f"{self.url}/{cmd}", payload=data
+                )
                 break
             except urllib.error.HTTPError as e:
                 timeout -= 1
                 if timeout > 0 and e.status == 425:
-                    shell.log("info", f"load-status not ready, retrying...")
+                    shell.log("info", f"{cmd} not ready, retrying...")
                     time.sleep(3)
                     continue
                 raise
@@ -614,6 +701,10 @@ def daemonize():
     os.dup2(se.fileno(), sys.real_stderr.fileno())  # type: ignore
 
 
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+
+
 def helper(instance_token: str, detach: bool = True):
     global g_helper
 
@@ -631,7 +722,7 @@ def helper(instance_token: str, detach: bool = True):
         with open(pid_file, "w+") as f:
             f.write(f"{os.getpid()}\n")
 
-        httpd = HTTPServer(k_bind_address, HelperCommandHandler)
+        httpd = ThreadedHTTPServer(k_bind_address, HelperCommandHandler)
         shell.log("info", f"starting http server at {k_bind_address}")
         httpd.serve_forever()
         shell.log("info", "http shutdown")
@@ -659,9 +750,11 @@ def client(cmd):
         print(json.dumps(handler(json.loads(data) if data else {})))
     except Exception as e:
         shell.log(
-            "error", f"exception executing {cmd}: {traceback.format_exc()}")
+            "error", f"exception executing {cmd}: {traceback.format_exc()}"
+        )
         print(json.dumps(
-            {"status": "error", "error": f"internal error executing {cmd}: {e}"}))
+            {"status": "error", "error": f"internal error executing {cmd}: {e}"}
+        ))
 
 
 if __name__ == "__main__":
