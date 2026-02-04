@@ -30,6 +30,7 @@ import fs from "fs/promises";
 import {
     readdirSync, existsSync, mkdirSync, writeFileSync, symlinkSync, readFileSync,
     truncateSync, rmSync, createWriteStream, cpSync, appendFileSync,
+    statSync,
 } from "fs";
 import { get } from "https";
 import { ExTester } from "vscode-extension-tester";
@@ -475,13 +476,14 @@ export class E2ETests {
 
         // WEB CERTIFICATES VERIFICATION (USER DATA FOLDER)
         let webCertificatesPath: string;
+        let webCertificatesGuiPath: string;
 
         switch (platform()) {
 
             case "win32": {
                 webCertificatesPath = join(String(process.env.APPDATA), "MySQL", "mysqlsh", "plugin_data",
                     "gui_plugin", "web_certs");
-                const webCertificatesGuiPath = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "plugin_data",
+                webCertificatesGuiPath = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "plugin_data",
                     "gui_plugin", "web_certs");
 
                 let error = `[ERR] web_certs were not found at `;
@@ -500,7 +502,7 @@ export class E2ETests {
             case "linux": {
                 webCertificatesPath = join(String(process.env.HOME),
                     ".mysqlsh", "plugin_data", "gui_plugin", "web_certs");
-                const webCertificatesGuiPath = join(String(process.env.HOME),
+                webCertificatesGuiPath = join(String(process.env.HOME),
                     ".mysqlsh-gui", "plugin_data", "gui_plugin", "web_certs");
 
                 if (!existsSync(webCertificatesPath) && !existsSync(webCertificatesGuiPath)) {
@@ -508,8 +510,12 @@ export class E2ETests {
                     error += ` '${webCertificatesGuiPath}'`;
                     throw new Error(error);
                 } else {
-                    webCertificatesPath = webCertificatesPath || webCertificatesGuiPath;
-                    E2ELogger.success(`[OK] Web certificates found at ${webCertificatesPath}`);
+                    if (existsSync(webCertificatesPath)) {
+                        E2ELogger.success(`[OK] Web certificates found at ${webCertificatesPath}`);
+                    }
+                    if (existsSync(webCertificatesGuiPath)) {
+                        E2ELogger.success(`[OK] Web certificates found at ${webCertificatesGuiPath}`);
+                    }
                 }
                 break;
             }
@@ -537,8 +543,28 @@ export class E2ETests {
                 }
             }
 
-            symlinkSync(webCertificatesPath!, webCerts);
-            E2ELogger.success(`Web Certificates symlink created for ${testSuite.name} test suite`);
+            // Check which certificates to use. The most recent ones will be use for the symlink
+            const defaultCerts = join(webCertificatesPath!, "rootCA.crt");
+            const guiCerts = join(webCertificatesGuiPath!, "rootCA.crt");
+
+            if (existsSync(defaultCerts) && existsSync(guiCerts)) {
+                if (statSync(guiCerts).birthtime > statSync(defaultCerts).birthtime) {
+                    symlinkSync(webCertificatesGuiPath!, webCerts);
+                    E2ELogger
+                        .success(`Web Certificates symlink set for ${testSuite.name} test suite (from .mysqlsh-gui)`);
+                } else {
+                    symlinkSync(webCertificatesPath!, webCerts);
+                    E2ELogger.success(`Web Certificates symlink set for ${testSuite.name} test suite (from .mysqlsh)`);
+                }
+            } else if (!existsSync(defaultCerts) && existsSync(guiCerts)) {
+                symlinkSync(webCertificatesGuiPath!, webCerts);
+                E2ELogger
+                    .success(`Web Certificates symlink set for ${testSuite.name} test suite (from .mysqlsh-gui)`);
+            } else {
+                symlinkSync(webCertificatesPath!, webCerts);
+                E2ELogger.success(`Web Certificates symlink set for ${testSuite.name} test suite (from .mysqlsh)`);
+            }
+
         } else {
             if (!existsSync(webCerts)) {
                 cpSync(webCertificatesPath!, webCerts, { recursive: true });
