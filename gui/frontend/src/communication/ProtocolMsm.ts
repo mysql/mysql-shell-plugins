@@ -241,8 +241,6 @@ export interface IMsmSchemaDiagramReferencedSchema {
 }
 
 export interface IProtocolMsmResults {
-    [ShellAPIMsm.MsmInfo]: { result: string; };
-    [ShellAPIMsm.MsmVersion]: { result: string; };
     [ShellAPIMsm.MsmCreateNewProjectFolder]: { result: string; };
     [ShellAPIMsm.MsmGetProjectSettings]: { result: IMsmProjectSettings; };
     [ShellAPIMsm.MsmGetProjectInformation]: { result: IMsmProjectInfo; };
@@ -252,14 +250,16 @@ export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmGetLastReleasedVersion]: { result: number[]; };
     [ShellAPIMsm.MsmGetLastDeploymentVersion]: { result: number[]; };
     [ShellAPIMsm.MsmPrepareRelease]: { result: string[]; };
-    [ShellAPIMsm.MsmGetSqlContentFromSection]: { result: string; };
-    [ShellAPIMsm.MsmSetSectionSqlContent]: {};
     [ShellAPIMsm.MsmGenerateDeploymentScript]: { result: string; };
-    [ShellAPIMsm.MsmGetAvailableLicenses]: { result: string[]; };
     [ShellAPIMsm.MsmGetSchemaExists]: { result: boolean; };
     [ShellAPIMsm.MsmGetSchemaIsManaged]: { result: boolean; };
     [ShellAPIMsm.MsmGetSchemaVersion]: { result: string | null; };
     [ShellAPIMsm.MsmDeploySchema]: {};
     [ShellAPIMsm.MsmGetSchemaDiagram]: { result: IMsmSchemaDiagram; };
+    [ShellAPIMsm.MsmInfo]: { result: string; };
+    [ShellAPIMsm.MsmVersion]: { result: string; };
+    [ShellAPIMsm.MsmGetSqlContentFromSection]: { result: string; };
+    [ShellAPIMsm.MsmSetSectionSqlContent]: {};
+    [ShellAPIMsm.MsmGetAvailableLicenses]: { result: string[]; };
 }
 

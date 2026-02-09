@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,18 +23,17 @@
 
 import os
 import sqlite3
-import typing
+from typing import Tuple, Optional
 from pathlib import Path, PurePath
 
-import mysqlsh
-from mysqlsh.plugin_manager import \
-    plugin_function  # pylint: disable=no-name-in-module
+import mysqlsh  # type: ignore
+from mysqlsh.plugin_manager import plugin_function  # type: ignore
 
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 
 
-def resolve_path(path: str, _user_id: int) -> typing.Tuple[str, str]:
+def resolve_path(path: str, _user_id: Optional[int]) -> Tuple[str, str]:
     "This function returns a tuple (full path, relative path) with the resolved paths"
     if PurePath(Path(path).name.split(",")[0]).is_reserved():
         raise MSGException(Error.CORE_RESERVED_NOT_ALLOWED,
@@ -64,7 +63,7 @@ def resolve_path(path: str, _user_id: int) -> typing.Tuple[str, str]:
 
 
 @plugin_function('gui.core.listFiles', shell=False, web=True)
-def list_files(path: str = "", _user_id: int = None) -> str:
+def list_files(path: str = "", _user_id: Optional[int] = None) -> list[str]:
     """Returns the contents of a directory.
 
     It gets the contents of the specified directory and returns them.
@@ -107,7 +106,7 @@ def list_files(path: str = "", _user_id: int = None) -> str:
 
 
 @plugin_function('gui.core.createFile', shell=False, web=True)
-def create_file(path: str, _user_id: int = None) -> str:
+def create_file(path: str, _user_id: Optional[int] = None) -> str:
     """Creates a new file specified by the path.
 
     If running in multi-user mode, the directory is relative to the user space and requests
@@ -159,7 +158,7 @@ def create_file(path: str, _user_id: int = None) -> str:
 
 
 @plugin_function('gui.core.validatePath', shell=False, web=True)
-def validate_path(path: str, _user_id: int = None) -> str:
+def validate_path(path: str, _user_id: Optional[int] = None) -> str:
     """Validates the specified path.
 
     If running in multi-user mode, the directory is relative to the user space and requests
@@ -197,7 +196,7 @@ def validate_path(path: str, _user_id: int = None) -> str:
 
 
 @plugin_function('gui.core.deleteFile', shell=False, web=True)
-def delete_file(path: str, _user_id: int = None) -> None:
+def delete_file(path: str, _user_id: Optional[int] = None) -> None:
     """Deletes a file specified by the path.
 
     Args:

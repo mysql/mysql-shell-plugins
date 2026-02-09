@@ -826,10 +826,6 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiCoreSetLogLevel]: void;
     [ShellAPIGui.GuiCoreGetLogLevel]: { result: string; };
-    [ShellAPIGui.GuiCoreListFiles]: {};
-    [ShellAPIGui.GuiCoreCreateFile]: {};
-    [ShellAPIGui.GuiCoreDeleteFile]: {};
-    [ShellAPIGui.GuiCoreValidatePath]: {};
     [ShellAPIGui.GuiCoreGetBackendInformation]: { result: IShellBackendInformation; };
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
@@ -922,8 +918,6 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiUsersRemoveUserGroup]: {};
     [ShellAPIGui.GuiDebuggerIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiDebuggerGetGuiModuleDisplayInfo]: {};
-    [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
-    [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
     [ShellAPIGui.GuiModulesAddData]: { result: number; };
     [ShellAPIGui.GuiModulesListData]: { result: IShellModuleDataEntry[]; };
     [ShellAPIGui.GuiModulesGetDataContent]: { result: string; };
@@ -948,6 +942,12 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbGetJdvTableColumnsWithReferences]: { result: IJdvTableColumnWithReference[]; };
     [ShellAPIGui.GuiDbGetJdvViewInfo]: { result: IJdvViewInfo; };
     [ShellAPIGui.GuiDbGetJdvObjectFieldsWithReferences]: { result: IJdvObjectFieldWithReference[]; };
+    [ShellAPIGui.GuiCoreListFiles]: { result: string[]; };
+    [ShellAPIGui.GuiCoreCreateFile]: { result: string; };
+    [ShellAPIGui.GuiCoreValidatePath]: { result: string; };
+    [ShellAPIGui.GuiCoreDeleteFile]: {};
+    [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
+    [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
 }
 
 /**

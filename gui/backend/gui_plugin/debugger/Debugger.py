@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -48,7 +48,7 @@ def get_gui_module_display_info():
             "icon_path": "/images/icons/modules/gui.wsdebugger.svg"}
 
 
-def list_scripts() -> list:
+def list_scripts() -> list[str]:
     this_file = Path(__file__)
     user_stories = []
     root = Path(os.path.join(this_file.parent, "scripts"))
@@ -63,7 +63,7 @@ def list_scripts() -> list:
 
 
 @plugin_function('gui.debugger.getScripts', shell=False, web=True)
-def get_scripts() -> list:
+def get_scripts() -> list[str]:
     """Returns the list of available scripts
 
     Returns:
