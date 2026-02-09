@@ -38,6 +38,11 @@ import {
 
 export type ProjectsData = IProjectData[];
 
+export type PlanUpdateEntry = {
+  id: string | number; // The required element
+  [key: string]: any;  // Allows any other string keys with any values
+};
+
 export class ShellInterfaceMigration {
 
     /** The key under which the module session is stored in the WebSession instance. */
@@ -107,7 +112,7 @@ export class ShellInterfaceMigration {
         });
     }
 
-    public async planUpdate(configs: object[]): Promise<IMigrationPlanState[]> {
+    public async planUpdate(configs: PlanUpdateEntry[]): Promise<IMigrationPlanState[]> {
         this.log("planUpdate begin:", configs);
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMigration.MigrationPlanUpdate,

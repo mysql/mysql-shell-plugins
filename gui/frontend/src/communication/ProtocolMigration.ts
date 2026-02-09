@@ -66,33 +66,6 @@ export enum ShellAPIMigration {
     MigrationListProjects = "migration.list_projects"
 }
 
-
-
-export interface IProtocolMigrationParameters {
-    [ShellAPIMigration.MigrationInfo]: {};
-    [ShellAPIMigration.MigrationVersion]: {};
-    [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: unknown[]; }; };
-    [ShellAPIMigration.MigrationPlanUpdateSubStep]: { args: { subStepId: number; configs: { }; }; };
-    [ShellAPIMigration.MigrationPlanCommit]: { args: { subStepId: number; }; };
-    [ShellAPIMigration.MigrationOciSignIn]: { args: { signUp?: boolean; }; };
-    [ShellAPIMigration.MigrationWorkStart]: {};
-    [ShellAPIMigration.MigrationWorkAbort]: {};
-    [ShellAPIMigration.MigrationWorkClean]: { args: { options: { }; }; };
-    [ShellAPIMigration.MigrationWorkStatus]: {};
-    [ShellAPIMigration.MigrationWorkRetry]: {};
-    [ShellAPIMigration.MigrationSkipTransactions]: { args: { gtids: string; }; };
-    [ShellAPIMigration.MigrationFetchLogs]: { args: { subStepId?: number; offset?: number; }; };
-    [ShellAPIMigration.MigrationGetSteps]: {};
-    [ShellAPIMigration.MigrationNewProject]: { args: { name: string; sourceUrl?: string; }; };
-    [ShellAPIMigration.MigrationOpenProject]: { args: { id: string; }; };
-    [ShellAPIMigration.MigrationCloseProject]: { args: { id: string; }; };
-    [ShellAPIMigration.MigrationListProjects]: {};
-
-}
-
-// TODO: Define all Interfaces and replace generic IDictionary usage
-export type MigrationVersion = [number, number, number];
-
 export enum SubStepId {
     ORCHESTRATION = 0,
     OCI_PROFILE = 1040,
@@ -447,6 +420,33 @@ export interface IProjectData {
     modifyTime: string,
     dataMigrationDidFinish: boolean
 }
+
+
+
+export interface IProtocolMigrationParameters {
+    [ShellAPIMigration.MigrationInfo]: {};
+    [ShellAPIMigration.MigrationVersion]: {};
+    [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: IDictionary[]; }; };
+    [ShellAPIMigration.MigrationPlanUpdateSubStep]: { args: { subStepId: number; configs: { }; }; };
+    [ShellAPIMigration.MigrationPlanCommit]: { args: { subStepId: number; }; };
+    [ShellAPIMigration.MigrationOciSignIn]: { args: { signUp?: boolean; }; };
+    [ShellAPIMigration.MigrationWorkStart]: {};
+    [ShellAPIMigration.MigrationWorkAbort]: {};
+    [ShellAPIMigration.MigrationWorkClean]: { args: { options: { }; }; };
+    [ShellAPIMigration.MigrationWorkStatus]: {};
+    [ShellAPIMigration.MigrationWorkRetry]: {};
+    [ShellAPIMigration.MigrationSkipTransactions]: { args: { gtids: string; }; };
+    [ShellAPIMigration.MigrationFetchLogs]: { args: { subStepId?: number | null; offset?: number; }; };
+    [ShellAPIMigration.MigrationGetSteps]: {};
+    [ShellAPIMigration.MigrationNewProject]: { args: { name: string; sourceUrl?: string; }; };
+    [ShellAPIMigration.MigrationOpenProject]: { args: { id: string; }; };
+    [ShellAPIMigration.MigrationCloseProject]: { args: { id: string; }; };
+    [ShellAPIMigration.MigrationListProjects]: {};
+
+}
+
+// TODO: Define all Interfaces and replace generic IDictionary usage
+export type MigrationVersion = [number, number, number];
 
 export interface IProtocolMigrationResults {
     [ShellAPIMigration.MigrationInfo]: { result: string; };

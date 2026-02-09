@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
 import inspect
 import os
 from enum import Enum, StrEnum, IntEnum
-from typing import get_type_hints, Union, get_args, get_origin
+from typing import Union, get_args, get_origin
 from types import UnionType
 
 PYTHON_BUILT_IN_TYPES = [object, int, str, float, bool, list, dict,
@@ -102,12 +102,7 @@ def raise_error(func, error):
     raise ValueError(f"{error}: {new_file_name}:{line_number}")
 
 
-def generate_ts_interfaces(func, registry):
-    return_type = get_type_hints(func).get('return')
-    if return_type is None:
-        raise_error(
-            func, f"Function {func.__name__} return type is not annotated")
-
+def generate_ts_interfaces(type_hint, registry):
     def has_annotations(type_):
         return hasattr(type_, '__annotations__') and len(type_.__annotations__) > 0
 
@@ -203,7 +198,4 @@ def generate_ts_interfaces(func, registry):
         else:
             return 'any'  # or some other default type
 
-    return_value = get_ts_type(return_type)
-
-    # The main function should return None instead of null
-    return return_value if return_value != "null" else None
+    return get_ts_type(type_hint)
