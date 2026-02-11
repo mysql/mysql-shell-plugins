@@ -125,6 +125,9 @@ export interface IOpenDocumentState {
 
     /** The version number of the editor model when we last saved it (for entries that are actually saved). */
     currentVersion: number;
+
+    /** The fileName associated to the active editor */
+    fileName?: string;
 }
 
 export interface IAdminPageStates {
@@ -880,21 +883,20 @@ Execute \\help or \\? for help;`;
      * file to load the content from.
      *
      * @param details The details about the notebook to load.
-     * @param details.content The content to load into the notebook. If undefined, the user will be asked to select
-     *                        a file.
+     * @param details.fileName The path to the notebook file name.
+     * @param details.content The content to load into the notebook.
      * @param details.standalone If true, the notebook will be loaded in standalone mode, otherwise like any other
      *                           editor.
      *
      * @returns A promise that resolves to true if the notebook was loaded, false if the request could not be fulfilled.
      */
-    private editorLoadNotebook = async (details?: { content: string; standalone: boolean; }): Promise<boolean> => {
-
+    private editorLoadNotebook = async (details?: { fileName: string, content: string; standalone: boolean; }): Promise<boolean> => {
         /**
          * Helper method to actually create the notebook from the given text.
          *
          * @param text The content to load into the notebook.
          */
-        const createNotebook = async (text: string): Promise<void> => {
+        const createNotebook = async (fileName: string, text: string): Promise<void> => {
             let content: Partial<INotebookFileFormat>;
             if (text.length === 0) {
                 content = {
@@ -934,6 +936,9 @@ Execute \\help or \\? for help;`;
                     const persistentState: IEditorPersistentState | undefined = openState?.state;
                     if (persistentState) {
                         const { id } = this.props;
+
+                        // Stores the file name on the state associated to the active document
+                        openState!.fileName = fileName;
 
                         // Replace the default caption with the one from the notebook file.
                         if (content.caption) {
@@ -997,7 +1002,7 @@ Execute \\help or \\? for help;`;
                 reader.onload = (): void => {
                     if (typeof reader.result === "string") {
                         try {
-                            void createNotebook(reader.result);
+                            void createNotebook(file.name, reader.result);
                         } catch (e) {
                             if (e instanceof Error) {
                                 const message = e.toString() || "";
@@ -1012,7 +1017,7 @@ Execute \\help or \\? for help;`;
                 reader.readAsText(file, "utf-8");
             }
         } else {
-            await createNotebook(details.content);
+            await createNotebook(details.fileName, details.content);
         }
 
         return Promise.resolve(true);
@@ -1056,11 +1061,21 @@ Execute \\help or \\? for help;`;
      * This can either be handled by the browser (not allowing to specify a target path) or by the host application
      * which has more freedom to allow the user to select a target path.
      *
-     * @param source If set to "viaKeyboardShortcut" the requisition was sent from a keyboard shortcut
+     * @param details Name and Content of the Notebook.
      *
      * @returns A promise that resolves to true if the notebook was saved, false if the request could not be fulfilled.
+     * 
+     * NOTE: This handler does not use details.fileName as the name, the fileName is determined from the fileName
+     * associated to the active editor. OTOH if details.fileName is "viaSaveAs" it will be an indicator that not even
+     * stored file name should be used, but that a new file should be created.
+     * 
+     * If no fileName is associated to the active editor, the remote handler will interpret that as the need to
+     * open a fileSave dialog to get the final fileName.
+     * 
+     * The final fileName will be sent back through the selectFile requisition, which will store the fileName on the
+     * state of the active editor.
      */
-    private editorSaveNotebook = async (source?: string): Promise<boolean> => {
+    private editorSaveNotebook = async (details?: {fileName?: string; content?: string}): Promise<boolean> => {
         const openState = this.findActiveEditor();
 
         if (openState) {
@@ -1085,11 +1100,12 @@ Execute \\help or \\? for help;`;
                 }, 4);
 
                 if (appParameters.embedded) {
-                    if (source === undefined) {
-                        requisitions.executeRemote("editorSaveNotebook", text);
-                    } else {
-                        requisitions.executeRemote("editorSaveNotebookInPlace", text);
+                    let targetFileName = undefined;
+                    if (details?.fileName !== "viaSaveAs") {
+                        targetFileName = openState.fileName;
                     }
+
+                    requisitions.executeRemote("editorSaveNotebook", {fileName: targetFileName, content: text});
                 } else {
                     // TODO: make the file name configurable.
                     const { caption } = this.props;
@@ -2551,6 +2567,13 @@ Execute \\help or \\? for help;`;
                     }
                 }
                 break;
+            }
+
+            case "editorSaveNotebook": {
+                if (fileResult.file.length === 1) {
+                    let openState = this.findActiveEditor();
+                    openState!.fileName = fileResult.file[0].path;
+                }
             }
 
             default:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1067,7 +1067,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "10_save",
             keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.KeyS],
             run: () => {
-                void requisitions.execute("editorSaveNotebook", undefined);
+                void requisitions.execute("editorSaveNotebook", {fileName: "viaSaveAs"});
             },
             precondition,
         }));
@@ -1078,7 +1078,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "10_save",
             keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
             run: () => {
-                void requisitions.execute("editorSaveNotebook", "viaKeyboardShortcut");
+                void requisitions.execute("editorSaveNotebook", undefined);
             },
             precondition,
         }));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -49,8 +49,6 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * This is needed to update the UI when the user changes the current provider.
      */
     public readonly currentSchemas = new Map<number, string>();
-
-    #lastNotebookUri?: Uri;
 
     /**
      * Shows the given module page.
@@ -405,7 +403,6 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("newSession", this.createNewSession);
             this.requisitions.register("closeInstance", this.closeInstance);
             this.requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
-            this.requisitions.register("editorSaveNotebookInPlace", this.editorSaveNotebookInPlace);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("showOpenDialogWithRead", this.showOpenDialogWithRead);
@@ -466,63 +463,57 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
      * notebook file here NotebookEditorProvider.triggerSave.
      *
-     * @param content The content to save.
+     * @param details The fileName and content of the Notebook.
      *
      * @returns A promise which resolves to true if the save was successful.
      */
-    private editorSaveNotebook = (content?: string): Promise<boolean> => {
+    private editorSaveNotebook = (details?: {fileName?: string, content?: string; }): Promise<boolean> => {
         return new Promise((resolve) => {
-            if (content) {
-                const dialogOptions: SaveDialogOptions = {
-                    title: "",
-                    filters: {
+            if (details && details.content) {
+                const content = details.content;
+                if (details.fileName === undefined) {
+                    const dialogOptions: SaveDialogOptions = {
+                        title: "",
+                        filters: {
 
-                        "MySQL Notebook": ["mysql-notebook"],
-                    },
-                    saveLabel: "Save Notebook",
-                };
+                            "MySQL Notebook": ["mysql-notebook"],
+                        },
+                        saveLabel: "Save Notebook",
+                    };
 
-                void window.showSaveDialog(dialogOptions).then((uri) => {
-                    if (uri !== undefined) {
-                        this.#lastNotebookUri = uri;
+                    void window.showSaveDialog(dialogOptions).then((uri) => {
+                        if (uri !== undefined) {
+                            const path = uri.fsPath;
+                            writeFile(path, content).then(() => {
+                                window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
 
-                        const path = uri.fsPath;
-                        writeFile(path, content).then(() => {
-                            window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
+                            const result: IOpenFileDialogResult = {
+                                resourceId: "editorSaveNotebook",
+                                file: [{path, content: new TextEncoder().encode(details.content).buffer}],
+                            };
 
-                            resolve(true);
-                        }).catch(() => {
-                            void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
+                            void this.requisitions?.executeRemote("selectFile", result);
 
+
+                                resolve(true);
+                            }).catch(() => {
+                                void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
+
+                                resolve(false);
+                            });
+                        } else {
                             resolve(false);
-                        });
-                    } else {
-                        resolve(false);
 
-                        return;
-                    }
-                });
-            } else {
-                resolve(false);
-
-                return;
-            }
-        });
-    };
-
-    private editorSaveNotebookInPlace = (content?: string): Promise<boolean> => {
-        return new Promise((resolve) => {
-            if (content) {
-                if (this.#lastNotebookUri === undefined) {
-                    void this.editorSaveNotebook(content);
+                            return;
+                        }
+                    });
                 } else {
-                    const path = this.#lastNotebookUri.fsPath;
-                    writeFile(path, content).then(() => {
-                        window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
+                    writeFile(details.fileName, content).then(() => {
+                        window.setStatusBarMessage(`DB Notebook saved to ${details.fileName}`, 5000);
 
                         resolve(true);
                     }).catch(() => {
-                        void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
+                        void ui.showErrorMessage(`Could not save notebook to ${details.fileName}.`, {});
 
                         resolve(false);
                     });
@@ -560,10 +551,9 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
             void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
                 if (paths && paths.length > 0) {
-                    this.#lastNotebookUri = paths[0];
                     const path = paths[0].fsPath;
-                    readFile(path, { encoding: "utf-8" }).then((content) => {
-                        this.requisitions?.executeRemote("editorLoadNotebook", { content, standalone: false });
+                    readFile(path, { encoding: "utf-8" }).then((content: string) => {
+                        this.requisitions?.executeRemote("editorLoadNotebook", { fileName: path, content, standalone: false });
                     }).catch(() => {
                         void ui.showErrorMessage(`Could not load notebook from ${path}.`, {});
                     });

@@ -18,6 +18,30 @@
             "preLaunchTask": "Build Extension"
         },
         {
+            /* This launcher is meant to be used together with FE */
+            /* - run-vite:dev-server */
+            /* - run-shell:single-user */
+            /* To enable running the extension using live updates on FE */
+            /* Remember to reload the extension to have FE changes take effect */
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Launch Extension (No Shell)",
+            "runtimeExecutable": "${execPath}",
+            "env": {
+                "MYSQLSHEXT_OVERRIDE_URL":"http://localhost:3001/?token=1234&amp;app=vscode"
+            },
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "trace": false,
+            "smartStep": true,
+            "preLaunchTask": "Build Extension",
+        },
+        {
             "name": "Debug UI Tests",
             "type": "node",
             "request": "launch",

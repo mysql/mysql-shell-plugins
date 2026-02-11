@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -108,7 +108,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
                     void workspace.openTextDocument(uri).then((document) => {
                         void commands.executeCommand("vscode.openWith", uri, "msg.notebook").then(() => {
                             void host.context.workspaceState.update(document.uri.toString(), connection.details.id);
-                            void this.showNotebookPage(connection.details.id, document.getText(), connection.details);
+                            void this.showNotebookPage(connection.details.id, document.uri.toString(), document.getText(), connection.details);
                         });
                     });
                 }
@@ -137,12 +137,13 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      * Opens a new script editor in the webview tab and loads the given content into it.
      *
      * @param connectionId The id of the connection to use for the notebook.
+     * @param path The path of the script to run.
      * @param content The content of the script to run and other related information.
      * @param details The connection details.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    private showNotebookPage(connectionId: number, content: string, details?: IConnectionDetails): Promise<boolean> {
+    private showNotebookPage(connectionId: number, path: string, content: string, details?: IConnectionDetails): Promise<boolean> {
         let connectionInfo;
         if (details) {
             connectionInfo = getConnectionInfoFromDetails(details);
@@ -153,7 +154,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
                 requestType: "showPage",
                 parameter: { connectionId, suppressAbout: true, noEditor: true, connectionInfo },
             },
-            { requestType: "editorLoadNotebook", parameter: { content, standalone: true } },
+            { requestType: "editorLoadNotebook", parameter: { fileName: path, content, standalone: true } },
         ]) ?? true);
     }
 
@@ -282,7 +283,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             this.#requisitions.register("editorLoadNotebook", this.triggerLoad);
             this.#requisitions.register("applicationDidStart", (): Promise<boolean> => {
                 // Finally show the notebook.
-                return this.showNotebookPage(usedConnectionId, document.getText());
+                return this.showNotebookPage(usedConnectionId, document.uri.toString(), document.getText());
             });
 
             this.#disposables.push(webviewPanel.webview.onDidReceiveMessage((message: IEmbeddedMessage) => {
@@ -352,14 +353,14 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      * Called from the provider requisitions hub to save the notebook file. This event is triggered either by the
      * `saveNotebook()` method or by a save action in the application.
      *
-     * @param content The content of the notebook.
+     * @param details The fileName and content of the Notebook.
      *
      * @returns A promise which resolves always.
      */
-    private triggerSave = async (content?: string): Promise<boolean> => {
-        if (this.#document && content) {
+    private triggerSave = async (details?: {fileName?:string, content?: string; }): Promise<boolean> => {
+        if (this.#document && details && details.content) {
             const edit = new WorkspaceEdit();
-            edit.replace(this.#document.uri, new Range(0, 0, this.#document.lineCount, 0), content);
+            edit.replace(this.#document.uri, new Range(0, 0, this.#document.lineCount, 0), details.content);
             await workspace.applyEdit(edit);
 
             this.#saving = true;
@@ -399,7 +400,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
                 edit.replace(this.#document.uri, new Range(0, 0, this.#document.lineCount, 0), content);
                 await workspace.applyEdit(edit);
 
-                this.#requisitions!.executeRemote("editorLoadNotebook", { content, standalone: true });
+                this.#requisitions!.executeRemote("editorLoadNotebook", { fileName: path, content, standalone: true });
             }
         }
 

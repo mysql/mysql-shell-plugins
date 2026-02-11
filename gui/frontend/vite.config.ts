@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -76,6 +76,24 @@ export default defineConfig(({ mode }) => {
         server: {
             host: "127.0.0.1",
             port: 3001,
+            proxy: {
+                // Forward any request that starts with /ws1.ws (the exact path used by the
+                // MySQL Shell backend) to the real backend running on port 8000.
+                // The `ws: true` flag tells Vite that this is a *WebSocket* proxy.
+                "/ws1.ws": {
+                    target: "http://127.0.0.1:8000",
+                    changeOrigin: true,
+                    ws: true,
+                    // Optional: keep the original path (`/ws1.ws`) when forwarding.
+                    rewrite: (path) => path,
+                    // Optional: log proxy errors so you can see them in the dev console.
+                    configure: (proxy, options) => {
+                        proxy.on("error", (err, req, res) => {
+                            console.error("Vite WS proxy error:", err);
+                        });
+                    },
+                },
+            },
         },
         define: {
             "globalThis.MSG_BUILD_NUMBER": determineBuildNumber(),

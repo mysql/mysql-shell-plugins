@@ -498,7 +498,7 @@ export interface IRequestTypeMap {
 
     /**
      * Triggers saving the content of the current notebook to a file. The actual behavior depends on the context and
-     * the given `content` parameter.
+     * the given `fileName` parameter.
      *
      * In the frontend: The data in the  `content` is ignored. Instead the content of the current notebook will be
      * serialized and either sent to the remote backend (if the app is embedded, using the same requisition type),
@@ -508,8 +508,7 @@ export interface IRequestTypeMap {
      * notebook, which will be saved to a file, using a file picker provided by host (usually the native OS file
      * selector). If `content` is empty, nothing happens.
      */
-    "editorSaveNotebook": (content?: string) => Promise<boolean>;
-    "editorSaveNotebookInPlace": (content?: string) => Promise<boolean>;
+    "editorSaveNotebook": (details ?: {fileName?: string, content?: string; }) => Promise<boolean>;
 
     /**
      * Triggers loading a notebook from a file. The actual behavior depends on the context and the given `details`
@@ -524,7 +523,7 @@ export interface IRequestTypeMap {
      * user to select a file. The file content will replace the current notebook document (the request can only be sent
      * when a notebook is active).
      */
-    "editorLoadNotebook": (details?: { content: string, standalone: boolean; }) => Promise<boolean>;
+    "editorLoadNotebook": (details?: { fileName: string, content: string, standalone: boolean; }) => Promise<boolean>;
 
     /** Sent when a document is to be closed. */
     "closeDocument": (details: { connectionId?: number; documentId: string; pageId?: string; }) => Promise<boolean>;

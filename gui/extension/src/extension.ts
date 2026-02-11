@@ -466,6 +466,13 @@ export const activate = (context: ExtensionContext): void => {
         let externalUrl;
         if (useExternalUrl) {
             externalUrl = workspace.getConfiguration("msg.shell").get<string>("externalUrl");
+        } else if (process) {
+            // The MYSQLSHEXT_OVERRIDE_URL can be used to have the extension to connect to a
+            // running server, skipping the default launch operation.
+            const env = process.env;
+            if (env.MYSQLSHEXT_OVERRIDE_URL) {
+                externalUrl = env.MYSQLSHEXT_OVERRIDE_URL;
+            }
         }
 
         // Check if the extension is running locally or remotely via ssh-remote
