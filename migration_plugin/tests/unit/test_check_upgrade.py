@@ -292,8 +292,6 @@ https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_no_zero_in_date">d
 
     # TODO: engineMixup - requires manipulation of datadir
 
-    # TODO: checkTableCommand - requires server <= 5.7.5
-
     expected_issues._add_check(
         "columnsWhichCannotHaveDefaults",
         MessageLevel.ERROR,

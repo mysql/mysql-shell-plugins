@@ -358,6 +358,7 @@ def make_default_schema_check_exclude_list():
             "authMethodUsage",  # this is also reported by the dumper, though UC's is more thorough
             # this issue only applies to in-place upgrades
             "changedFunctionsInGeneratedColumns",
+            "checkTableCommand",  # checks for issues with in-place upgrade
             "circularDirectory",  # checks tablespaces, these are removed by the dumper
             "deprecatedDefaultAuth",  # checks only sysvars
             "deprecatedRouterAuthMethod",  # similar to authMethodUsage
