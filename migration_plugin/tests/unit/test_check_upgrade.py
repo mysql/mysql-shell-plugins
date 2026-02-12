@@ -196,7 +196,7 @@ For more information, please refer to the <a href="https://dev.mysql.com/doc/ref
         "<li>upgrade_issues.system.maxdb_sql_mode_flags: TRIGGER uses obsolete NO_FIELD_OPTIONS sql_mode\n"
         "<li>upgrade_issues.system.maxdb_sql_mode_flags: TRIGGER uses obsolete NO_KEY_OPTIONS sql_mode\n"
         "<li>upgrade_issues.system.maxdb_sql_mode_flags: TRIGGER uses obsolete NO_TABLE_OPTIONS sql_mode",
-        """Notice: The following DB objects have obsolete options persisted for sql_mode, which will be cleared during the upgrade.
+        """The following DB objects have obsolete options persisted for sql_mode.
 
 For more information, please refer to the <a href="https://dev.mysql.com/doc/refman/8.0/en/mysql-nutshell.html#mysql-nutshell-removals">documentation</a>.""",
         [

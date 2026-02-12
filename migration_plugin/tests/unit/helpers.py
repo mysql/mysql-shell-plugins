@@ -131,7 +131,7 @@ def execute_script(session, path, defines=None):
     version = session.run_sql("SELECT @@VERSION").fetch_one()[0]
     old_mysql = int(version.split(".")[0]) < 8
     if old_mysql:
-        defines.append("OLD_MYSQL")
+        defines.append("HAS_MYSQL_PROC")
 
     uri = f"{connection_data['user']}:{connection_data['password']}@{connection_data['host']}:{connection_data['port']}"
 
