@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ from .model import MigrationMessage, SubStepId, MigrationError, MigrationType, C
 from .stage import Stage, WorkStatusEvent, ThreadedStage, OrchestratorInterface
 from .remote_helper import RemoteHelperClient
 from ..ssh_utils import RemoteSSHTunnel
+from dataclasses import dataclass, field
 
 
 # TODO add a stage to check direct connectivity from jump host to source DB
@@ -285,10 +286,11 @@ class CreateChannel(ThreadedStage):
         self._owner.cloud_resources.channelId = self.channel.id
 
 
+@dataclass
 class ChannelStatus(MigrationMessage):
     status: model.ReplicationStatus = model.ReplicationStatus.STOPPED
     details: str = ""
-    errors: list[str] = []
+    errors: list[str] = field(default_factory=list)
     gtidBacklog: str = ""
     gtidBacklogSize: Optional[int] = None
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -29,7 +29,7 @@ from .lib.backend.stage import WorkStatusEvent
 from .lib.backend import orchestration
 from . import plan_step
 from .lib import logging
-from .lib.backend.model import SubStepId, WorkStatusInfo, WorkStatus, LogInfo
+from .lib.backend.model import SubStepId, WorkStatusInfo, WorkStatus, LogInfo, MigrationStep
 from .lib.backend.orchestration import Orchestrator
 from .lib.logging import plugin_log
 from mysqlsh.plugin_manager import plugin_function  # type: ignore
@@ -177,7 +177,7 @@ class MigrationWorkStep(orchestration.MigrationFrontend):
         self._init_work_status(project._work_status)
 
     @classmethod
-    def get_sub_steps(cls, step_id: int) -> list[dict]:
+    def get_sub_steps(cls, step_id: int) -> list[MigrationStep]:
         if step_id == 2000:
             tasks = k_provision_tasks
         elif step_id == 3000:
@@ -340,9 +340,7 @@ def work_start() -> WorkStatusInfo:
 
     initial_status = work.fetch_status()
     work.start()
-
-    # TODO: fix wrapper
-    return initial_status._json()  # type: ignore
+    return initial_status
 
 
 @plugin_function("migration.workAbort", shell=True, cli=False, web=True)
@@ -378,10 +376,7 @@ def work_status() -> WorkStatusInfo:
     """
     Retrieves the status of the work step
     """
-    work = get_step()
-
-    # TODO: fix wrapper
-    return work.fetch_status()._json(noclass=True)  # type: ignore
+    return get_step().fetch_status()
 
 
 @plugin_function("migration.workRetry", shell=True, cli=False, web=True)
@@ -408,7 +403,7 @@ def skip_transactions(gtids: str) -> None:
 
 
 @plugin_function("migration.fetchLogs", shell=True, cli=False, web=True)
-def fetch_logs(sub_step_id: Optional[int] = None, offset: int = 0) -> LogInfo:
+def fetch_logs(sub_step_id: Optional[SubStepId] = None, offset: int = 0) -> LogInfo:
     """
     Fetch logs for the given step or the log file.
 
@@ -438,7 +433,7 @@ def fetch_logs(sub_step_id: Optional[int] = None, offset: int = 0) -> LogInfo:
     else:
         data, last_offset = work.fetch_logs(SubStepId(sub_step_id), offset)
 
-    return LogInfo(data, last_offset)._json(noclass=True)  # type: ignore
+    return LogInfo(data, last_offset)
 
 
 def analyze_network_paths() -> None:

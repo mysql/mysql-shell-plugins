@@ -50,6 +50,8 @@ from .lib.backend.model import (
     SubStepId,
     parse,
 )
+from copy import deepcopy
+from dataclasses import dataclass, field
 
 k_oci_signup_url = "https://signup.cloud.oracle.com"
 
@@ -101,49 +103,61 @@ class PlanEvent(enum.StrEnum):
     OCI_PROFILE_CHANGED = "OCI_PROFILE_CHANGED"
 
 
+@dataclass
 class SourceSelectionData(MigrationMessage):
     serverInfo: Optional[model.ServerInfo] = None
 
 
+@dataclass
 class MigrationTypeData(MigrationMessage):
-    allowedTypes: list[str]
-    allowedConnectivity: list[str]
+    allowedTypes: list[str] = field(default_factory=list)
+    allowedConnectivity: list[str] = field(default_factory=list)
 
 
+@dataclass
 class MigrationChecksData(MigrationMessage):
-    issues: list[model.CheckResult] = []
+    issues: list[model.CheckResult] = field(default_factory=list)
 
 
+@dataclass
 class PreviewPlanData(MigrationMessage):
-    options: model.MigrationOptions
+    options: model.MigrationOptions = field(
+        default_factory=model.MigrationOptions)
     computeResolutionNotice: str = ""
 
 
+@dataclass
 class TargetOptionsData(MigrationMessage):
     compartmentPath: str = ""
     networkCompartmentPath: str = ""
     allowCreateNewVcn: bool = True
 
 
+@dataclass
 class OCIProfileOptions(MigrationMessage):
     configFile: str = ""
     profile: str = "DEFAULT"
 
 
+@dataclass
 class SourceSelectionOptions(MigrationMessage):
     sourceUri: str = ""
     password: str = ""
 
 
+@dataclass
 class MigrationTypeOptions(MigrationMessage):
     type: model.MigrationType = model.MigrationType.COLD
     connectivity: model.CloudConnectivity = model.CloudConnectivity.NOT_SET
 
 
+@dataclass
 class MigrationChecksOptions(MigrationMessage):
-    issueResolution: dict[str, model.CompatibilityFlags]
+    issueResolution: dict[str, model.CompatibilityFlags] = field(
+        default_factory=dict)
 
 
+@dataclass
 class TargetOptionsOptions(MigrationMessage):
     hosting: Optional[model.OCIHostingOptions] = None
     database: Optional[model.DBSystemOptions] = None
@@ -153,28 +167,13 @@ SubStepData: TypeAlias = SourceSelectionData | MigrationTypeData | MigrationChec
 SubStepValues: TypeAlias = OCIProfileOptions | SourceSelectionOptions | MigrationTypeOptions | MigrationChecksOptions | TargetOptionsOptions
 
 
+@dataclass
 class MigrationPlanState(MigrationMessage):
     id: SubStepId
     status: MigrationStepStatus
     errors: list[MigrationError]
     data: Optional[SubStepData] = None
     values: Optional[SubStepValues] = None
-
-    def __init__(
-        self,
-        id: SubStepId,
-        status: MigrationStepStatus,
-        errors: list[MigrationError],
-        data: Optional[SubStepData] = None,
-        values: Optional[SubStepValues] = None,
-    ) -> None:
-        super().__init__()
-
-        self.id = id
-        self.status = status
-        self.errors = errors
-        self.data = data
-        self.values = values
 
 
 class PlanSubStep:
@@ -1410,8 +1409,8 @@ class MigrationPlanStep:
     ]
 
     @classmethod
-    def get_sub_steps(cls):
-        return [{"id": c.id, "caption": c.caption} for c in cls._frontend_classes]
+    def get_sub_steps(cls) -> list[model.MigrationStep]:
+        return [model.MigrationStep(c.id, c.caption) for c in cls._frontend_classes]
 
     def __init__(self, project: Project):
         self._mutex = threading.Lock()
@@ -1701,8 +1700,7 @@ def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
     """
     plan = get_plan()
 
-    res = plan.update_all(configs)
-    return [i._json() for i in res]  # type: ignore
+    return plan.update_all(configs)
 
 
 @plugin_function("migration.planUpdateSubStep", shell=True, cli=False,
@@ -1718,14 +1716,13 @@ def plan_update_sub_step(sub_step_id: int, configs: dict) -> MigrationPlanState:
     """
     plan = get_plan()
 
-    res = plan.update(sub_step_id, configs)
-    return res._json()  # type: ignore
+    return plan.update(sub_step_id, configs)
 
 
 @plugin_function("migration.planCommit", shell=True, cli=False,
                  web=k_log_filters)
 @plugin_log
-def plan_commit(sub_step_id: int) -> MigrationPlanState:
+def plan_commit(sub_step_id: SubStepId) -> MigrationPlanState:
     """
     Commit changes to the given sub-step and performs checks.
     Call before switching from a sub-step to the next one.
@@ -1735,7 +1732,7 @@ def plan_commit(sub_step_id: int) -> MigrationPlanState:
     """
     plan = get_plan()
 
-    return plan.commit(sub_step_id)._json(noclass=True)  # type: ignore
+    return plan.commit(sub_step_id)
 
 
 @plugin_function("migration.ociSignIn", shell=True, cli=False, web=True)

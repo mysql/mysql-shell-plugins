@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,7 @@
 
 import threading
 from threading import Event, Thread
+from dataclasses import is_dataclass, asdict
 
 import mysqlsh
 
@@ -155,6 +156,12 @@ class RequestHandler(Thread):
 
         self._shell_ctx.finalize()
 
+    def _is_response_serializable(self, response):
+        "A dataclass or a list of dataclasses are considered serializable"
+        if isinstance(response, list):
+            return all(is_dataclass(r) for r in response)
+        return is_dataclass(response)
+
     def _do_execute(self):
         result = None
         try:
@@ -188,6 +195,12 @@ class RequestHandler(Thread):
                 self.web_handler.send_command_response(
                     self.request_id, result, completed=True)
             else:
+                if self._is_response_serializable(result):
+                    if isinstance(result, list):
+                        result = [asdict(obj) for obj in result]
+                    else:
+                        result = asdict(result)
+
                 self.web_handler.send_command_response(
                     self.request_id, Response.pending(msg="", args={"result": result}))
         elif hasattr(self._thread_context, "completion_event"):

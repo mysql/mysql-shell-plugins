@@ -1533,9 +1533,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     }
 
     private async fetchTiles(): Promise<IStepTile[]> {
-        // eslint-disable-next-line max-len
-        // #TODO: remove after protocol files update https://gerrit.mysql.oraclecorp.com/c/shell-plugins/+/40996/1/gui/frontend/src/communication/ProtocolMigration.ts#129
-        const response = (await this.migration.getSteps()) as unknown as IMigrationSteps[];
+        const response = await this.migration.getSteps();
 
         this.setState({ maxStep: response.length });
 

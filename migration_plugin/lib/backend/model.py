@@ -26,6 +26,8 @@ import enum
 from typing import Optional, Any
 import json
 import inspect
+from dataclasses import dataclass, field
+from copy import deepcopy
 
 from ..util import sanitize_dict_any_pass
 from .. import logging, errors
@@ -83,24 +85,6 @@ def _get_field_type(obj, field: str) -> tuple[type | None, list[type]]:
 
 
 class MigrationMessage(object):
-    def __init__(self) -> None:
-        from typing import get_type_hints
-
-        # auto-initialize list and dict members with no value
-        type_hints = get_type_hints(self.__class__)
-        for attr, attr_type in type_hints.items():
-            if not hasattr(self, attr):
-                if type(attr_type) is list or (
-                    hasattr(
-                        attr_type, "__origin__") and attr_type.__origin__ == list
-                ):
-                    setattr(self, attr, [])
-                elif type(attr_type) is dict or (
-                    hasattr(
-                        attr_type, "__origin__") and attr_type.__origin__ == dict
-                ):
-                    setattr(self, attr, {})
-
     def _parse(self, j: dict):
         for k, v in j.items():
             if not k.startswith("_"):
@@ -218,9 +202,6 @@ class MigrationMessage(object):
     def __str__(self) -> str:
         return json.dumps(sanitize_dict_any_pass(self._json()))
 
-    def __repr__(self) -> str:
-        return json.dumps(self._json())
-
 
 class MigrationType(StrEnum):
     COLD = "cold"
@@ -264,29 +245,21 @@ class ServerType(StrEnum):
     OtherMySQL = "other"
 
 
+@dataclass
 class IncludeList(MigrationMessage):
-    include: list[str]
-    exclude: list[str]
-
-    def __init__(self) -> None:
-        self.include = []
-        self.exclude = []
-
-    def __eq__(self, other):
-        if isinstance(other, IncludeList):
-            return self.include == other.include \
-                and self.exclude == other.exclude
-
-        return NotImplemented
+    include: list[str] = field(default_factory=list)
+    exclude: list[str] = field(default_factory=list)
 
     def __str__(self):
         return f"{{include={self.include}, exclude={self.exclude}}}"
 
 
+@dataclass
 class TargetHostingOptions(MigrationMessage):
     pass
 
 
+@dataclass
 class OCISubnetOptions(MigrationMessage):
     id: str = ""
     name: str = ""
@@ -294,6 +267,7 @@ class OCISubnetOptions(MigrationMessage):
     dnsLabel: str = ""
 
 
+@dataclass
 class OCIHostingOptions(TargetHostingOptions):
 
     # main compartment where DBSystem and compute will be located
@@ -311,8 +285,8 @@ class OCIHostingOptions(TargetHostingOptions):
     internetGatewayName: str = ""
     serviceGatewayName: str = ""
 
-    privateSubnet: OCISubnetOptions
-    publicSubnet: OCISubnetOptions
+    privateSubnet: OCISubnetOptions = field(default_factory=OCISubnetOptions)
+    publicSubnet: OCISubnetOptions = field(default_factory=OCISubnetOptions)
 
     # to filter traffic to the jump-host
     onPremisePublicCidrBlock: str = ""
@@ -329,14 +303,10 @@ class OCIHostingOptions(TargetHostingOptions):
 
     bucketName: str = "migrated-data"
 
-    def __init__(self) -> None:
-        super().__init__()
-
-        self.privateSubnet = OCISubnetOptions()
-        self.publicSubnet = OCISubnetOptions()
-
-
 # For created/resolved resources
+
+
+@dataclass
 class CloudResources(MigrationMessage):
     compartmentId: str = ""
     compartmentName: str = ""
@@ -370,6 +340,7 @@ class CloudResources(MigrationMessage):
     haEnabled: bool = False
 
 
+@dataclass
 class TargetMySQLOptions(MigrationMessage):
     adminUsername: str = ""
     adminPassword: str = ""
@@ -377,6 +348,7 @@ class TargetMySQLOptions(MigrationMessage):
     mysqlVersion: str = ""
 
 
+@dataclass
 class DBSystemOptions(TargetMySQLOptions):
     dbSystemId: str = ""
 
@@ -404,6 +376,7 @@ class DBSystemOptions(TargetMySQLOptions):
     autoExpandMaximumSizeGB: int = 0
 
 
+@dataclass
 class TargetSandboxOptions(TargetMySQLOptions):
     port: int = 3306
 
@@ -427,47 +400,28 @@ class CompatibilityFlags(StrEnum):
     EXCLUDE_OBJECT = "EXCLUDE_OBJECT"
 
 
+@dataclass
 class MigrationFilters(MigrationMessage):
-    schemas: Optional[IncludeList]
-    tables: Optional[IncludeList]
-    routines: Optional[IncludeList]
-    events: Optional[IncludeList]
-    libraries: Optional[IncludeList]
-    triggers: Optional[IncludeList]
-    users: Optional[IncludeList]
-
-    def __init__(self) -> None:
-        self.schemas = None
-        self.tables = None
-        self.routines = None
-        self.events = None
-        self.libraries = None
-        self.triggers = None
-        self.users = None
-
-    def __eq__(self, other):
-        if isinstance(other, MigrationFilters):
-            return self.schemas == other.schemas \
-                and self.tables == other.tables \
-                and self.routines == other.routines \
-                and self.events == other.events \
-                and self.libraries == other.libraries \
-                and self.triggers == other.triggers \
-                and self.users == other.users
-
-        return NotImplemented
+    schemas: Optional[IncludeList] = None
+    tables: Optional[IncludeList] = None
+    routines: Optional[IncludeList] = None
+    events: Optional[IncludeList] = None
+    libraries: Optional[IncludeList] = None
+    triggers: Optional[IncludeList] = None
+    users: Optional[IncludeList] = None
 
     def __str__(self):
         return f"{{schemas={self.schemas}, tables={self.tables}, routines={self.routines}, events={self.events}, libraries={self.libraries}, triggers={self.triggers}, triggers={self.users}}}"
 
 
+@dataclass
 class MigrationOptions(MigrationMessage):
     sourceConnectionOptions: Optional[dict] = None
     region: str = ""
     targetHostingOptions: OCIHostingOptions | None = None
     targetMySQLOptions: DBSystemOptions | None = None
     # [{"variable":str, "value":Any, "use_default":bool, etc}]
-    mysqlConfiguration: list[dict]
+    mysqlConfiguration: list[dict] = field(default_factory=list)
 
     migrationType: MigrationType = MigrationType.COLD
     cloudConnectivity: CloudConnectivity = CloudConnectivity.NOT_SET
@@ -476,9 +430,9 @@ class MigrationOptions(MigrationMessage):
     migrateData: bool = True
     migrateUsers: bool = True
 
-    compatibilityFlags: list[CompatibilityFlags]
+    compatibilityFlags: list[CompatibilityFlags] = field(default_factory=list)
 
-    filters: MigrationFilters = MigrationFilters()
+    filters: MigrationFilters = field(default_factory=MigrationFilters)
 
 
 class CheckStatus(IntEnum):
@@ -497,10 +451,11 @@ class MessageLevel(StrEnum):
     VERBOSE = "VERBOSE"
 
 
+@dataclass
 class MigrationError(MigrationMessage):
-    level: MessageLevel
+    level: MessageLevel = MessageLevel.ERROR
     type: Optional[str] = None
-    message: str
+    message: str = ""
     title: Optional[str] = None  # TODO unused, delete?
     info: Optional[dict] = None
 
@@ -513,20 +468,22 @@ class MigrationError(MigrationMessage):
         return err
 
 
+@dataclass
 class CheckResult(MigrationMessage):
     checkId: Optional[str] = None
-    level: MessageLevel
-    title: str
-    result: str
-    description: str
-    objects: list[str]
-    choices: list[CompatibilityFlags]
-    status: CheckStatus
+    level: MessageLevel = MessageLevel.ERROR
+    title: str = ""
+    result: str = ""
+    description: str = ""
+    objects: list[str] = field(default_factory=list)
+    choices: list[CompatibilityFlags] = field(default_factory=list)
+    status: CheckStatus = CheckStatus.OK
 
 
+@dataclass
 class MigrationCheckResults(MigrationMessage):
     status: CheckStatus = CheckStatus.OK
-    checks: list[CheckResult]
+    checks: list[CheckResult] = field(default_factory=list)
     title: str = ""
     message: str = ""
 
@@ -563,14 +520,16 @@ class MigrationCheckResults(MigrationMessage):
         return check
 
 
+@dataclass
 class ValidationIssue(MigrationMessage):
-    level: MessageLevel
-    option: str
-    message: str
+    level: MessageLevel = MessageLevel.ERROR
+    option: str = ""
+    message: str = ""
 
 
+@dataclass
 class ValidationResults(MigrationMessage):
-    issues: list[ValidationIssue]
+    issues: list[ValidationIssue] = field(default_factory=list)
 
     def _add(self, level: MessageLevel, option: str, message: str):
         issue = ValidationIssue()
@@ -580,6 +539,7 @@ class ValidationResults(MigrationMessage):
         self.issues.append(issue)
 
 
+@dataclass
 class ServerInfo(MigrationMessage):
     version: str = ""
     versionComment: str = ""
@@ -594,7 +554,7 @@ class ServerInfo(MigrationMessage):
     numAccountsOnOldPassword: int = 0
 
     sslSupported: bool = False
-    serverType: ServerType
+    serverType: ServerType = ServerType.MySQL
     gtidMode: str = ""
     replicationStatus: str = ""
 
@@ -651,6 +611,7 @@ class ReplicationStatus(enum.StrEnum):
     ERROR = "error"
 
 
+@dataclass
 class ConnectionCheckResult(MigrationMessage):
     connectError: str = ""
     connectErrno: Optional[int] = None
@@ -658,46 +619,47 @@ class ConnectionCheckResult(MigrationMessage):
     reachable: Optional[bool] = None
 
 
+@dataclass
 class SourceCheckResult(MigrationMessage):
     # TODO move suggestions away
     suggestedTargetVersion: str = "8.4"
     suggestedTargetShape: Optional[str] = None
     suggestedTargetVolumeSize: Optional[int] = None
 
-    serverInfo: ServerInfo
+    serverInfo: ServerInfo = field(default_factory=ServerInfo)
 
 
+@dataclass
 class TargetCheckResult(ConnectionCheckResult):
     userSchemaCount: int = 0
     userAccountCount: int = 0
-    targetInfo: ServerInfo
+    targetInfo: ServerInfo = field(default_factory=ServerInfo)
 
 
+@dataclass
 class DumpStatus(MigrationMessage):
-    stage: str
-    stageCurrent: Optional[int]
-    stageTotal: Optional[int]
-    stageEta: Optional[str]
+    stage: str = ""
+    stageCurrent: Optional[int] = None
+    stageTotal: Optional[int] = None
+    stageEta: Optional[str] = None
 
 
+@dataclass
 class LoadStatus(MigrationMessage):
-    stage: str
-    stageCurrent: Optional[int]
-    stageTotal: Optional[int]
-    stageTotalExact: bool
-    stageEta: Optional[str]
+    stage: str = ""
+    stageCurrent: Optional[int] = None
+    stageTotal: Optional[int] = None
+    stageTotalExact: bool = False
+    stageEta: Optional[str] = None
 
 
+@dataclass
 class LogInfo(MigrationMessage):
-    def __init__(self, data: str, lastOffset: int) -> None:
-        super().__init__()
-        self.data = data
-        self.lastOffset = lastOffset
-
-    data: str
-    lastOffset: int
+    data: str = ""
+    lastOffset: int = 0
 
 
+@dataclass
 class MigrationSummaryInfo(MigrationMessage):
     adminUser: str = ""
 
@@ -739,39 +701,29 @@ class WorkStatus(enum.StrEnum):
     ERROR = "error"
 
 
+@dataclass
 class WorkStageInfo(MigrationMessage):
-    stage: SubStepId
+    stage: SubStepId = SubStepId.ORCHESTRATION
     caption: str = ""
     enabled: bool = False
     status: WorkStatus = WorkStatus.NOT_STARTED
-    errors: list[MigrationError] = []
+    errors: list[MigrationError] = field(default_factory=list)
     current: Optional[int] = None
     total: Optional[int] = None
     eta: Optional[int] = None
     message: str = ""
-    info: dict = {}
+    info: dict = field(default_factory=dict)
     logItems: int = 0
 
     def _snapshot(self):
-        copy = WorkStageInfo()
-        copy.stage = self.stage
-        copy.caption = self.caption
-        copy.enabled = self.enabled
-        copy.status = self.status
-        copy.errors = self.errors[:]
-        copy.current = self.current
-        copy.total = self.total
-        copy.eta = self.eta
-        copy.message = self.message
-        copy.info = self.info
-        copy.logItems = self.logItems
-        return copy
+        return deepcopy(self)
 
 
+@dataclass
 class WorkStatusInfo(MigrationMessage):
     status: WorkStatus = WorkStatus.NOT_STARTED
-    stages: list[WorkStageInfo]
-    summary: MigrationSummaryInfo
+    stages: list[WorkStageInfo] = field(default_factory=list)
+    summary: MigrationSummaryInfo = field(default_factory=MigrationSummaryInfo)
 
     def __init__(self) -> None:
         super().__init__()
@@ -792,14 +744,25 @@ class WorkStatusInfo(MigrationMessage):
         raise ValueError(f"Invalid stage {stage}")
 
     def _snapshot(self) -> "WorkStatusInfo":
-        copy = WorkStatusInfo()
-        copy.status = self.status
-        copy.summary = self.summary
-        copy.stages = [s._snapshot() for s in self.stages]
-
-        return copy
+        return deepcopy(self)
 
 
+@dataclass
+class MigrationStep(object):
+    id: int
+    caption: str
+    help: str = ""
+    type: str = ""
+
+
+@dataclass
+class MigrationSteps(object):
+    id: int = 0
+    caption: str = ""
+    items: list[MigrationStep] = field(default_factory=list)
+
+
+@dataclass
 class ProjectData(MigrationMessage):
     name: str = ""
     path: str = ""

@@ -72,7 +72,7 @@ export class ShellInterfaceMigration {
         return response.result;
     }
 
-    public async getSteps(): Promise<IMigrationSteps> {
+    public async getSteps(): Promise<IMigrationSteps[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMigration.MigrationGetSteps,
             parameters: {}

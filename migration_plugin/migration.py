@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,61 +27,43 @@
 
 from mysqlsh.plugin_manager import plugin_function
 from .lib.logging import plugin_log
-from .lib.backend.model import ProjectData
-
-
-class MigrationStep(object):
-    id: int
-    caption: str
-    help: str
-    type: str
-
-
-class MigrationSteps(object):
-    id: int
-    caption: str
-    items: list[MigrationStep]
+from .lib.backend.model import ProjectData, MigrationSteps
+from .plan_step import MigrationPlanStep
 
 
 @plugin_log
 @plugin_function('migration.getSteps', shell=True, cli=False, web=True)
-def get_migration_steps() -> MigrationSteps:
+def get_migration_steps() -> list[MigrationSteps]:
     """Returns the list of migration steps
     Returns:
         dict
     """
-    from .plan_step import MigrationPlanStep
     from .work_step import MigrationWorkStep
 
     MIGRATION_STEPS = [
-        {
-            "id": 1000,
-            "caption": "Migration Plan",
-            "items": MigrationPlanStep.get_sub_steps(),
-        },
-        {
-            "id": 2000,
-            "caption": "Provisioning",
-            "items": MigrationWorkStep.get_sub_steps(2000),
-        },
-        {
-            "id": 3000,
-            "caption": "Database Migration",
-            "items": MigrationWorkStep.get_sub_steps(3000),
-        },
-        {
-            "id": 4000,
-            "caption": "Data Synchronization",
-            "items": MigrationWorkStep.get_sub_steps(4000),
-        },
-        {
-            "id": 5000,
-            "caption": "Finalize",
-            "items": MigrationWorkStep.get_sub_steps(5000),
-        },
+        MigrationSteps(
+            1000,
+            "Migration Plan",
+            MigrationPlanStep.get_sub_steps()),
+        MigrationSteps(
+            2000,
+            "Provisioning",
+            MigrationWorkStep.get_sub_steps(2000)),
+        MigrationSteps(
+            3000,
+            "Database Migration",
+            MigrationWorkStep.get_sub_steps(3000)),
+        MigrationSteps(
+            4000,
+            "Data Synchronization",
+            MigrationWorkStep.get_sub_steps(4000)),
+        MigrationSteps(
+            5000,
+            "Finalize",
+            MigrationWorkStep.get_sub_steps(5000)),
     ]
 
-    return MIGRATION_STEPS  # type: ignore
+    return MIGRATION_STEPS
 
 
 @plugin_function('migration.newProject', shell=True, cli=False, web=True)
@@ -102,7 +84,7 @@ def new_project(name: str, source_url: str = "") -> ProjectData:
         name=name,
         source_url=source_url
     )
-    return project.data()._json()  # type: ignore
+    return project.data()
 
 
 @plugin_function("migration.openProject", shell=True, cli=False, web=True)
@@ -116,7 +98,7 @@ def open_project(id: str) -> ProjectData:
     """
     import migration_plugin.lib as lib
 
-    return lib.migration.open_project(id).data()._json()  # type: ignore
+    return lib.migration.open_project(id).data()
 
 
 @plugin_function("migration.closeProject", shell=True, cli=False, web=True)
@@ -136,4 +118,4 @@ def list_projects() -> list[ProjectData]:
     """Returns the existing migration projects"""
     import migration_plugin.lib as lib
 
-    return lib.migration.list_projects()  # type: ignore
+    return lib.migration.list_projects()

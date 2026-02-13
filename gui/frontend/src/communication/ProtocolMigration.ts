@@ -428,7 +428,7 @@ export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationVersion]: {};
     [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: IDictionary[]; }; };
     [ShellAPIMigration.MigrationPlanUpdateSubStep]: { args: { subStepId: number; configs: { }; }; };
-    [ShellAPIMigration.MigrationPlanCommit]: { args: { subStepId: number; }; };
+    [ShellAPIMigration.MigrationPlanCommit]: { args: { subStepId: SubStepId; }; };
     [ShellAPIMigration.MigrationOciSignIn]: { args: { signUp?: boolean; }; };
     [ShellAPIMigration.MigrationWorkStart]: {};
     [ShellAPIMigration.MigrationWorkAbort]: {};
@@ -436,7 +436,7 @@ export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationWorkStatus]: {};
     [ShellAPIMigration.MigrationWorkRetry]: {};
     [ShellAPIMigration.MigrationSkipTransactions]: { args: { gtids: string; }; };
-    [ShellAPIMigration.MigrationFetchLogs]: { args: { subStepId?: number | null; offset?: number; }; };
+    [ShellAPIMigration.MigrationFetchLogs]: { args: { subStepId?: SubStepId | null; offset?: number; }; };
     [ShellAPIMigration.MigrationGetSteps]: {};
     [ShellAPIMigration.MigrationNewProject]: { args: { name: string; sourceUrl?: string; }; };
     [ShellAPIMigration.MigrationOpenProject]: { args: { id: string; }; };
@@ -462,7 +462,7 @@ export interface IProtocolMigrationResults {
     [ShellAPIMigration.MigrationWorkRetry]: {};
     [ShellAPIMigration.MigrationSkipTransactions]: {};
     [ShellAPIMigration.MigrationFetchLogs]: { result: ILogInfo; };
-    [ShellAPIMigration.MigrationGetSteps]: { result: IMigrationSteps; };
+    [ShellAPIMigration.MigrationGetSteps]: { result: IMigrationSteps[]; };
     [ShellAPIMigration.MigrationNewProject]: { result: IProjectData; };
     [ShellAPIMigration.MigrationOpenProject]: { result: IProjectData; };
     [ShellAPIMigration.MigrationCloseProject]: {};

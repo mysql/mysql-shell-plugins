@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -44,7 +44,7 @@ class ProjectContext:
         if self.project:
             self.project.close()
 
-    def data(self):
+    def data(self) -> model.ProjectData:
         project_data = model.ProjectData()
         if not self.project:
             return project_data
@@ -174,7 +174,7 @@ def delete_project(id: str):
     pass
 
 
-def list_projects() -> list[dict]:
+def list_projects() -> list[model.ProjectData]:
     proj_dir = lib.core.default_projects_directory(create=False)
     if not os.path.exists(proj_dir):
         return []
@@ -187,12 +187,11 @@ def list_projects() -> list[dict]:
                 try:
                     with open(path) as f:
                         data = json.load(f)
-                    p = {
-                        "id": data["id"],
-                        "name": data["name"],
-                        "path": os.path.join(proj_dir, proj),
-                        "modifyTime": data["modifyTime"]
-                    }
+                    p = model.ProjectData()
+                    p.id = data["id"]
+                    p.name = data["name"]
+                    p.path = os.path.join(proj_dir, proj)
+                    p.modifyTime = data["modifyTime"]
                     projects.append(p)
                 except Exception as e:
                     logging.warning(
