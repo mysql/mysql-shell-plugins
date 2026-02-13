@@ -422,7 +422,6 @@ export interface IProjectData {
 }
 
 
-
 export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationInfo]: {};
     [ShellAPIMigration.MigrationVersion]: {};
@@ -468,4 +467,3 @@ export interface IProtocolMigrationResults {
     [ShellAPIMigration.MigrationCloseProject]: {};
     [ShellAPIMigration.MigrationListProjects]: { result: IProjectData[]; };
 }
-

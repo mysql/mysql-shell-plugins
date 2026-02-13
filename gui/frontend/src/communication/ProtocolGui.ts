@@ -966,4 +966,3 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiDbGetCatalogObjectNames,
     ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;
-

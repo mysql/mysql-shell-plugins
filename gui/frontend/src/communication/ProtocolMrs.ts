@@ -2304,4 +2304,3 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsLoadServiceProject]: { result: boolean; };
 
 }
-

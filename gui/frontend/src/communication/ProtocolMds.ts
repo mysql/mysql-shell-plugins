@@ -1585,4 +1585,3 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGenaiSaveChatOptions]: {};
     [ShellAPIMds.MdsGenaiLoadChatOptions]: { result: IMdsChatData };
 }
-

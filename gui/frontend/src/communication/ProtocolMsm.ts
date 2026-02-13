@@ -262,4 +262,3 @@ export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmSetSectionSqlContent]: {};
     [ShellAPIMsm.MsmGetAvailableLicenses]: { result: string[]; };
 }
-
