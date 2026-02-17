@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../app-logic/general-types.js";
+import { IShellDictionary } from "./Protocol.js";
 
 /* eslint-disable max-len */
 
@@ -173,7 +173,7 @@ export interface IMigrationError {
     type: string | null,
     message: string,
     title: string | null,
-    info: IDictionary | null
+    info: IShellDictionary | null
 }
 
 export interface IServerInfo {
@@ -298,11 +298,11 @@ export interface IMigrationFilters {
 }
 
 export interface IMigrationOptions {
-    sourceConnectionOptions: IDictionary | null,
+    sourceConnectionOptions: IShellDictionary | null,
     region: string,
     targetHostingOptions: IOCIHostingOptions | null,
     targetMySQLOptions: IDBSystemOptions | null,
-    mysqlConfiguration: IDictionary[],
+    mysqlConfiguration: IShellDictionary[],
     migrationType: MigrationType,
     cloudConnectivity: CloudConnectivity,
     migrateData: boolean,
@@ -358,7 +358,7 @@ export interface IWorkStageInfo {
     total: number | null,
     eta: number | null,
     message: string,
-    info: IDictionary,
+    info: IShellDictionary,
     logItems: number
 }
 
@@ -421,11 +421,10 @@ export interface IProjectData {
     dataMigrationDidFinish: boolean
 }
 
-
 export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationInfo]: {};
     [ShellAPIMigration.MigrationVersion]: {};
-    [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: IDictionary[]; }; };
+    [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: IShellDictionary[]; }; };
     [ShellAPIMigration.MigrationPlanUpdateSubStep]: { args: { subStepId: number; configs: { }; }; };
     [ShellAPIMigration.MigrationPlanCommit]: { args: { subStepId: SubStepId; }; };
     [ShellAPIMigration.MigrationOciSignIn]: { args: { signUp?: boolean; }; };

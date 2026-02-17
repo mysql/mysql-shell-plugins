@@ -51,11 +51,11 @@ class PluginInterfaceRegistry(object):
                 enum_definition = f'export enum {enum_type.__name__} {{\n'
                 enum_definition += f'    {",\n    ".join([f"{e.name} = {v}" for e, v in zip(
                     enum_type, enum_values)])}\n'
-                enum_definition += '}\n'
+                enum_definition += '}'
             else:
                 enum_definition = f'export enum {enum_type.__name__} {{\n'
                 enum_definition += f'    {",\n    ".join([f"{e.name} = {e.value}" for e in enum_type])}\n'
-                enum_definition += '}\n'
+                enum_definition += '}'
 
             if enum_definition not in self.ts_enums:
                 self.ts_enums.append(enum_definition)
@@ -136,7 +136,7 @@ def generate_ts_interfaces(type_hint, registry):
                     ts_interface = f'export interface {interface_name} {{\n'
                 if properties:
                     ts_interface += f'    {",\n    ".join(properties)}\n'
-                ts_interface += '}\n'
+                ts_interface += '}'
                 registry.ts_interfaces.append(ts_interface)
                 interface_name = interface_name
         else:
@@ -174,10 +174,10 @@ def generate_ts_interfaces(type_hint, registry):
             # Use {[key: string]: ValueType} for TypeScript
             return f'Record<{key_ts}, {value_ts}>'
         elif type_ == dict:
-            return 'IDictionary'  # or '{}' for an empty object, depending on your needs
+            return 'IShellDictionary'  # or '{}' for an empty object, depending on your needs
         elif type_ == type(None):
             return 'null'  # or '{}' for an empty object, depending on your needs
-        elif inspect.isclass(type_):
+        elif inspect.isclass(type_) and type_ != object:
             subclasses = [subclass for subclass in type_.__subclasses__(
             ) if has_annotations(subclass)]
             if subclasses:
@@ -187,12 +187,12 @@ def generate_ts_interfaces(type_hint, registry):
                 registry.union_types[type_.__name__] = union_name
                 for subclass in subclasses:
                     generate_interface(subclass.__name__, subclass)
-                ts_union = f'export type {union_name} = {union_type};\n\n'
+                ts_union = f'export type {union_name} = {union_type};'
                 registry.ts_interfaces.append(ts_union)
                 return union_name
             else:
                 interface_name = f'I{type_.__name__}'
-                ts_interface = f'export interface {interface_name} {{}}\n\n'
+                ts_interface = f'export interface {interface_name} {{}}'
                 registry.ts_interfaces.append(ts_interface)
                 return interface_name
         else:
