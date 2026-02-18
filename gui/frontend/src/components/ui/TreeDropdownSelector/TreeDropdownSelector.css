@@ -1,0 +1,162 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.tds-container:not(.tds-expanded) {
+    min-width: 120px;
+
+    background-color: var(--dropdown-background);
+    border: 1px solid var(--dropdown-border);
+    border-radius: 4px;
+
+    font-size: 14px;
+    user-select: none;
+}
+
+.tds-collapsed {
+    padding: 5px;
+    cursor: pointer;
+
+    /* Anchor for the dropdown caret pseudo element. */
+    position: relative;
+    padding-right: 22px;
+
+    /* Ellipsis at the start: RTL direction makes text-overflow clip from the left. */
+    direction: rtl;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Reuse dropdown caret styling (see src/components/ui/Dropdown/Dropdown.css)
+ * for TreeDropdownSelector when it is collapsed.
+ */
+.tds-container.tds-collapsed::after {
+    display: inline-block;
+    content: "";
+    width: 5px;
+    height: 5px;
+
+    position: absolute;
+    right: 6px;
+    top: 11px;
+
+    border-right: 1px solid var(--dropdown-foreground);
+    border-bottom: 1px solid var(--dropdown-foreground);
+
+    transform: translateY(-2px) rotate(45deg);
+    pointer-events: none;
+}
+
+.tds-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.tds-filter {
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    padding: 4px;
+    border: 1px solid var(--dropdown-border);
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.tds-filter.tds-filter-row {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.tds-close {
+    color: var(--dropdown-foreground);
+    cursor: pointer;
+    user-select: none;
+}
+
+.tds-list {
+    max-height: 250px;
+    overflow-y: scroll;
+}
+
+.tds-tree {
+    list-style: none;
+    margin: 0;
+}
+
+.tds-arrow,
+.tds-arrow-placeholder {
+    width: 16px;
+    display: inline-block;
+    text-align: center;
+    font-size: 12px;
+    margin-right: 4px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--dropdown-foreground);
+    transition: color 0.2s;
+}
+
+.tds-arrow:hover {
+    color: var(--button-background);
+}
+
+.tds-selected-label {
+    cursor: pointer;
+
+    /* Restore LTR text rendering inside the RTL container so characters
+     * keep their natural order while the ellipsis still appears on the left. */
+    direction: ltr;
+    unicode-bidi: bidi-override;
+}
+
+.tds-arrow-placeholder {
+    cursor: default;
+}
+
+.tds-item {
+    border-radius: 4px;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    line-height: 1.7;
+}
+
+.tds-item:hover {
+    background: var(--list-activeSelectionBackground);
+    color: var(--list-activeSelectionForeground);
+}
+
+.tds-item-selected {
+    background: var(--button-defaultBackground);
+    color: var(--button-defaultForeground);
+}
+
+.tds-close:hover {
+    color: var(--button-defaultBackground);
+}

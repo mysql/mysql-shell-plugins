@@ -28,65 +28,74 @@
 import "./MigrationSubApp.css";
 
 import { Component, createRef, FunctionalComponent, RefObject, VNode } from "preact";
+import { CSSProperties } from "preact/compat";
 
 import { IMdsProfileData } from "../../communication/ProtocolMds.js";
 import {
-    IMigrationSteps,
-    IMigrationError,
-    IProjectData,
-    MigrationStepStatus,
-    SubStepId,
-    IWorkStageInfo,
-    IWorkStatusInfo,
-    WorkStatus,
-    MessageLevel,
-    IMigrationSummaryInfo,
+    CloudConnectivity,
+    ICheckResult,
+    ILogInfo,
     IMigrationChecksData,
+    IMigrationError,
+    IMigrationFilters,
+    IMigrationPlanState,
+    IMigrationSummaryInfo,
+    IMigrationTypeData,
+    IPreviewPlanData,
+    IProjectData,
     ISchemaSelectionData,
     ISchemaSelectionOptions,
-    IMigrationPlanState,
-    MigrationType,
-    CloudConnectivity,
-    IPreviewPlanData,
-    ICheckResult,
     IServerInfo,
-    ITargetOptionsOptions,
     ITargetOptionsData,
-    IMigrationTypeData,
-    ILogInfo,
-    IMigrationFilters
+    ITargetOptionsOptions,
+    IWorkStageInfo,
+    IWorkStatusInfo,
+    MessageLevel,
+    MigrationStepStatus,
+    MigrationType,
+    SubStepId,
+    WorkStatus
 } from "../../communication/ProtocolMigration.js";
-import { AboutBox } from "../../components/ui/AboutBox/AboutBox.js";
-import { Assets } from "../../supplement/Assets.js";
 import { ICompartment as IOriginalCompartment } from "../../communication/index.js";
+import { AboutBox } from "../../components/ui/AboutBox/AboutBox.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { Checkbox, CheckState } from "../../components/ui/Checkbox/Checkbox.js";
 import { Codicon } from "../../components/ui/Codicon.js";
 import { ClickEventCallback, ComponentPlacement } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { Dialog } from "../../components/ui/Dialog/Dialog.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
+import { Grid } from "../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
+import { IInputChangeProperties, Input } from "../../components/ui/Input/Input.js";
 import { JsonView } from "../../components/ui/JsonView/JsonView.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Popup } from "../../components/ui/Popup/Popup.js";
+import { IPortalOptions, Portal } from "../../components/ui/Portal/Portal.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
-import { Grid } from "../../components/ui/Grid/Grid.js";
-import { GridCell } from "../../components/ui/Grid/GridCell.js";
+import { IRadiobuttonProperties, Radiobutton } from "../../components/ui/Radiobutton/Radiobutton.js";
+import { Toggle } from "../../components/ui/Toggle/Toggle.js";
+import { TreeDropdownSelector } from "../../components/ui/TreeDropdownSelector/TreeDropdownSelector.js";
+import { UpDown } from "../../components/ui/UpDown/UpDown.js";
+import { ShapeSummary } from "../../oci-typings/oci-mysql/lib/model/shape-summary.js";
 import { appParameters } from "../../supplement/AppParameters.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { formatBytes } from "../../utilities/string-helpers.js";
-import { ShellInterfaceMhs } from "../../supplement/ShellInterface/ShellInterfaceMhs.js";
 import { ShellInteractiveInterface } from "../../supplement/ShellInterface/ShellInteractiveInterface.js";
+import { ShellInterfaceMhs } from "../../supplement/ShellInterface/ShellInterfaceMhs.js";
 import {
     ProjectsData,
     ShellInterfaceMigration
 } from "../../supplement/ShellInterface/ShellInterfaceMigration.js";
 import { convertErrorToString, sleep, uuid } from "../../utilities/helpers.js";
+import { formatBytes } from "../../utilities/string-helpers.js";
 import { LoadingIndicator } from "../LazyAppRouter.js";
 import { ui } from "../UILayer.js";
 import { JsonObject, ValueType } from "../general-types.js";
 import { Accordion, ISection } from "./Accordion.js";
+import { BackendRequestHelper, toBoolean, toFloat, toNumber } from "./BackendRequestHelper.js";
 import {
     FormGroupValues,
     ISelectOption,
@@ -95,28 +104,19 @@ import {
     WatcherChanges,
     watchFormChanges
 } from "./FormGroup.js";
+import { MigrationFilterInfo } from "./MigrationFilterInfo.js";
 import { MigrationOverview } from "./MigrationOverview.js";
 import { MigrationStatus } from "./MigrationStatus.js";
-import { Compartment, convertCompartments, IDatabaseSource, generateWbCmdLineArgs, waitForPromise } from "./helpers.js";
+import { MigrationSubAppLogger } from "./MigrationSubAppLogger.js";
+import { SchemaFilterGrid } from "./SchemaFilterGrid.js";
+import { NotFoundShapesFor, ShapesHelper } from "./ShapesHelper.js";
+import { UserFilterGrid } from "./UserFilterGrid.js";
+import { WorkProgressView } from "./WorkProgressView.js";
+import { Compartment, generateWbCmdLineArgs, IDatabaseSource, waitForPromise } from "./helpers.js";
 import {
     ComputeShapeInfo, ConfigTemplate, configTemplates, customTemplateId, getClusterSizeBoundaries, Shapes,
     shapesByTemplate, standardTemplateId
 } from "./shapes.js";
-import { UpDown } from "../../components/ui/UpDown/UpDown.js";
-import { ShapeSummary } from "../../oci-typings/oci-mysql/lib/model/shape-summary.js";
-import { IInputChangeProperties, Input } from "../../components/ui/Input/Input.js";
-import { NotFoundShapesFor, ShapesHelper } from "./ShapesHelper.js";
-import { BackendRequestHelper, toNumber, toBoolean, toFloat } from "./BackendRequestHelper.js";
-import { IRadiobuttonProperties, Radiobutton } from "../../components/ui/Radiobutton/Radiobutton.js";
-import { IPortalOptions, Portal } from "../../components/ui/Portal/Portal.js";
-import { Dialog } from "../../components/ui/Dialog/Dialog.js";
-import { CSSProperties } from "preact/compat";
-import { MigrationSubAppLogger } from "./MigrationSubAppLogger.js";
-import { WorkProgressView } from "./WorkProgressView.js";
-import { SchemaFilterGrid } from "./SchemaFilterGrid.js";
-import { Toggle } from "../../components/ui/Toggle/Toggle.js";
-import { UserFilterGrid } from "./UserFilterGrid.js";
-import { MigrationFilterInfo } from "./MigrationFilterInfo.js";
 
 interface ISpinnerProps { size?: number; }
 
@@ -200,6 +200,8 @@ type ICompartment = Omit<IOriginalCompartment, "compartmentId"> & {
 
 interface IMigrationSubAppProps { }
 
+type CompartmentWithParent = Pick<ICompartment, "id" | "name"> & { compartmentId: string | null };
+
 export interface IMigrationAppState {
     tiles: IStepTile[];
     maxStep: number;
@@ -247,9 +249,7 @@ export interface IMigrationAppState {
     // complaints from backend about frontend user input
     targetOptionErrors: BadUserInput[];
 
-    originalCompartments: ICompartment[],
-    compartments: ISelectOption[],
-    networkCompartments: ISelectOption[],
+    compartments: CompartmentWithParent[],
     vcns: ISelectOption[],
     subnets: ISelectOption[],
 
@@ -454,14 +454,6 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         return this.state.formGroupValues.configFile;
     }
 
-    private get compartments() {
-        return this.state.compartments;
-    }
-
-    private get networkCompartments() {
-        return this.state.networkCompartments;
-    }
-
     private get vcns() {
         return this.state.vcns;
     }
@@ -609,9 +601,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
 
             targetOptionErrors: [],
 
-            originalCompartments: [],
             compartments: [],
-            networkCompartments: [],
             vcns: [],
             subnets: [],
 
@@ -1953,10 +1943,9 @@ Migration Assistant.`}
         void this.watchConfigTemplate({ changedValues: {}, prevValues: {} }, payload as ConfigTemplate);
     };
 
-    private onCompartmentChange = async (_accept: boolean, _selection: Set<string>,
-        payload: unknown) => {
+    private onCompartmentChange = async (value: string | null) => {
         try {
-            const compartmentId = payload as string | undefined;
+            const compartmentId = value ?? undefined;
 
             await this.updateState({
                 formGroupValues: {
@@ -1972,8 +1961,7 @@ Migration Assistant.`}
         }
     };
 
-    private onNetworkCompartmentChange = async (_accept: boolean, _selection: Set<string>,
-        payload: unknown) => {
+    private onNetworkCompartmentChange = async (value: string | null) => {
         try {
             await this.updateState({
                 vcns: [],
@@ -1982,7 +1970,7 @@ Migration Assistant.`}
                     "hosting.vcnId": "",
                     "hosting.privateSubnet.id": "",
                     "hosting.publicSubnet.id": "",
-                    "hosting.networkCompartmentId": payload as string,
+                    "hosting.networkCompartmentId": value ?? undefined,
                 }
             });
 
@@ -1999,23 +1987,36 @@ Migration Assistant.`}
             return null;
         }
 
-        const { migrationInProgress, isFetchingCompartments, isFetchingVcns, isFetchingSubnets,
-            isFetchingShapes, formGroupValues } = this.state;
+        const { isFetchingVcns, isFetchingSubnets,
+            isFetchingShapes, formGroupValues, compartments } = this.state;
+
+        const searchableItems = compartments.map(({ id, compartmentId, name }) => {
+            return {
+                id,
+                parent: compartmentId,
+                label: name,
+            };
+        });
 
         return (
             <div className="target-options">
                 <Container className="compartment-pick" orientation={Orientation.LeftToRight}
                     mainAlignment={ContentAlignment.Start}>
-
-                    {/* TODO show the full compartment path under the dropdown, like in OCI console */}
-                    {this.renderFormGroupDropdown(this.compartments, "hosting.compartmentId", "OCI Compartment",
-                        isFetchingCompartments, migrationInProgress, undefined,
-                        "Choose the compartment within your tenancy where the DB System and other resources required " +
-                        "for the migration will be created. Select \"Create New\" if you'd like " +
-                        "a new Compartment named \"MySQL\" to be created for that purpose.",
-                        this.onCompartmentChange,
-                        this.resolveCompartmentId(),
-                    )}
+                    <div className="form-group hosting.compartmentId">
+                        <Label caption="OCI Compartment" />
+                        <TreeDropdownSelector
+                            items={searchableItems}
+                            onSelect={(value) => {
+                                void this.onCompartmentChange(value);
+                            }}
+                            selected={this.resolveCompartmentId()}
+                            tooltip={"Choose the compartment within your tenancy where the DB System and other " +
+                            "resources required for the migration will be created. Select \"Create New\" " +
+                            "if you'd like a new Compartment named \"MySQL\" to be created for that purpose."}
+                            placeholder=""
+                        />
+                        {this.renderBadUserInputErrorsFor("hosting.compartmentId")}
+                    </div>
                     {this.renderOciNetworking()}
 
                 </Container>
@@ -2025,12 +2026,21 @@ Migration Assistant.`}
                         <Container className="vcn-top-row" orientation={Orientation.LeftToRight}
                             mainAlignment={ContentAlignment.Start}>
 
-                            {this.renderFormGroupDropdown(this.networkCompartments, "hosting.networkCompartmentId",
-                                "Network Compartment", undefined, undefined, undefined,
-                                "Choose the compartment where the Virtual Cloud Network (VCN) " +
-                                "you would like to use is located.",
-                                this.onNetworkCompartmentChange,
-                            )}
+                            <div className="form-group hosting.networkCompartmentId">
+                                <Label caption="Network Compartment" />
+                                <TreeDropdownSelector
+                                    items={searchableItems}
+                                    onSelect={(value) => {
+                                        void this.onNetworkCompartmentChange(value);
+                                    }}
+                                    selected={this.networkCompartment}
+                                    tooltip={"Choose the compartment where the Virtual Cloud Network (VCN) " +
+                                        "you would like to use is located."}
+                                    placeholder=""
+                                />
+                                {this.renderBadUserInputErrorsFor("hosting.networkCompartmentId")}
+                            </div>
+
                             {this.renderFormGroupDropdown(this.vcns, "hosting.vcnId",
                                 "Virtual Cloud Network", isFetchingVcns, undefined, undefined,
                                 // eslint-disable-next-line max-len
@@ -4189,9 +4199,7 @@ Migration Assistant.`}
 
             this.setState(({ formGroupValues }) => {
                 return {
-                    originalCompartments: [],
                     compartments: [],
-                    networkCompartments: [],
                     formGroupValues: {
                         ...formGroupValues,
                         profile,
@@ -4217,9 +4225,7 @@ Migration Assistant.`}
         if (isProfileChanged) {
             // OCI profile changed, reset cached values
             state = {
-                originalCompartments: [],
                 compartments: [],
-                networkCompartments: [],
                 vcns: [],
                 subnets: []
             };
@@ -4246,12 +4252,9 @@ Migration Assistant.`}
         await this.watchConfigTemplate(changes, this.configTemplate);
 
         const compartments = await this.fetchCompartments(profile);
-        const converted = convertCompartments(compartments);
 
         state = {
-            originalCompartments: compartments,
-            compartments: converted,
-            networkCompartments: converted,
+            compartments,
         };
 
         const targetOptions = stepsState.find((s) => {
@@ -4296,18 +4299,12 @@ Migration Assistant.`}
 
     private addCreateNewMysqlCompartment = async (_changes?: WatcherChanges, parentCompartmentId?: string,
         compartmentId?: string, compartmentName?: string) => {
-        const { originalCompartments } = this.state;
+        const { compartments } = this.state;
 
         const mysqlCompartment = this.findMySqlCompartment(compartmentId, parentCompartmentId);
 
         const actualCompartmentId = this.resolveCompartmentId(compartmentId, mysqlCompartment);
         const actualCompartmentName = this.resolveCompartmentName(compartmentName, mysqlCompartment);
-
-        let allCompartments: Compartment[] = [...originalCompartments];
-        if (!mysqlCompartment) {
-            const createNew = this.resolveCreateNewMysqlCompartment(actualCompartmentName, parentCompartmentId);
-            allCompartments = [createNew, ...originalCompartments];
-        }
 
         const updates: FormGroupValues = {
             "hosting.compartmentId": actualCompartmentId,
@@ -4323,7 +4320,8 @@ Migration Assistant.`}
             };
 
             if (!mysqlCompartment) {
-                state.compartments = convertCompartments(allCompartments);
+                const createNew = this.resolveCreateNewMysqlCompartment(actualCompartmentName, parentCompartmentId);
+                state.compartments = [createNew, ...compartments];
             }
 
             return state;
@@ -4333,7 +4331,7 @@ Migration Assistant.`}
     };
 
     private resolveCompartmentId(compartmentId?: string,
-        mysqlCompartment?: ICompartment) {
+        mysqlCompartment?: CompartmentWithParent) {
         if (compartmentId) {
             return compartmentId;
         }
@@ -4350,7 +4348,7 @@ Migration Assistant.`}
     }
 
     private resolveCompartmentName(compartmentName?: string,
-        mysqlCompartment?: ICompartment) {
+        mysqlCompartment?: CompartmentWithParent) {
         if (compartmentName) {
             return compartmentName;
         }
@@ -4994,20 +4992,21 @@ Migration Assistant.`}
     }
 
     private findRootCompartment() {
-        const { originalCompartments } = this.state;
+        const { compartments } = this.state;
 
-        return originalCompartments.find((c) => {
+        return compartments.find((c) => {
             return !c.compartmentId;
         });
     }
 
-    private findMySqlCompartment(compartmentId?: string, parentCompartmentId?: string): ICompartment | undefined {
-        const { originalCompartments } = this.state;
+    private findMySqlCompartment(compartmentId?: string,
+        parentCompartmentId?: string): CompartmentWithParent | undefined {
+        const { compartments } = this.state;
 
-        let mysqlCompartment = originalCompartments.find((c) => {
+        let mysqlCompartment = compartments.find((c) => {
             return compartmentId && compartmentId !== "create_new" && c.id === compartmentId;
         });
-        mysqlCompartment ??= originalCompartments.find((c) => {
+        mysqlCompartment ??= compartments.find((c) => {
             return parentCompartmentId && c.compartmentId === parentCompartmentId && c.name === "MySQL";
         });
 
@@ -5089,7 +5088,7 @@ Migration Assistant.`}
     }
 
     private shouldValidateShapes(): boolean {
-        return !!this.profile && this.state.originalCompartments.length > 0 && !!this.resolveCompartmentIdForShapes();
+        return !!this.profile && this.state.compartments.length > 0 && !!this.resolveCompartmentIdForShapes();
     }
 
     private log(...args: unknown[]): void {

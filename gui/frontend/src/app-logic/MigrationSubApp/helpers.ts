@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ISelectOption } from "./FormGroup.js";
-
 export interface Compartment {
     compartmentId: string | null;
     id: string;
@@ -43,61 +41,6 @@ export const generateWbCmdLineArgs = (databaseSourceJson: string) => {
     const base64 = btoa(databaseSourceJson);
 
     return `{"migrate": "${base64}"}`;
-};
-
-/**
- * Builds a tree structure from a flat array of compartments.
- *
- * @param flat - The flat array of compartments.
- * @returns A tree structure with nested children.
- */
-const buildTree = (flat: Compartment[]): Array<Compartment & { children?: Compartment[] }> => {
-    const nodes: Record<string, Compartment & { children?: Compartment[] }> = {};
-    flat.forEach(item => {
-        nodes[item.id] = { ...item, children: [] };
-    });
-
-    const tree: Array<Compartment & { children?: Compartment[] }> = [];
-    flat.forEach(item => {
-        if (item.compartmentId && nodes[item.compartmentId]) {
-            nodes[item.compartmentId].children!.push(nodes[item.id]);
-        } else {
-            tree.push(nodes[item.id]);
-        }
-    });
-
-    return tree;
-};
-
-/**
- * Converts a tree structure into a flat array of options with hierarchical labels.
- *
- * @param nodes - The tree structure of compartments.
- * @param level - The current depth level in the tree (default is 0).
- * @returns A flat array of options with value and label properties.
- */
-const treeToOptions = (
-    nodes: Array<Compartment & { children?: Compartment[] }>,
-    level = 0
-) => {
-    let options: ISelectOption[] = [];
-    nodes.forEach(node => {
-        options.push({
-            id: node.id,
-            label: `${"—".repeat(level)}${node.name}`,
-        });
-        if (node.children?.length) {
-            options = options.concat(treeToOptions(node.children, level + 1));
-        }
-    });
-
-    return options;
-};
-
-export const convertCompartments = (compartments: Compartment[]) => {
-    const tree = buildTree(compartments);
-
-    return treeToOptions(tree);
 };
 
 export const waitForPromise = <T>(promise: () => Promise<T>, label: string,
