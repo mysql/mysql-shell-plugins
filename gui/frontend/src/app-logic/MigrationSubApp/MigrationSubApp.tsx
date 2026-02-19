@@ -37,7 +37,6 @@ import {
     ILogInfo,
     IMigrationChecksData,
     IMigrationError,
-    IMigrationFilters,
     IMigrationPlanState,
     IMigrationSummaryInfo,
     IMigrationTypeData,
@@ -76,7 +75,6 @@ import { Popup } from "../../components/ui/Popup/Popup.js";
 import { IPortalOptions, Portal } from "../../components/ui/Portal/Portal.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { IRadiobuttonProperties, Radiobutton } from "../../components/ui/Radiobutton/Radiobutton.js";
-import { Toggle } from "../../components/ui/Toggle/Toggle.js";
 import { TreeDropdownSelector } from "../../components/ui/TreeDropdownSelector/TreeDropdownSelector.js";
 import { UpDown } from "../../components/ui/UpDown/UpDown.js";
 import { ShapeSummary } from "../../oci-typings/oci-mysql/lib/model/shape-summary.js";
@@ -108,9 +106,8 @@ import { MigrationFilterInfo } from "./MigrationFilterInfo.js";
 import { MigrationOverview } from "./MigrationOverview.js";
 import { MigrationStatus } from "./MigrationStatus.js";
 import { MigrationSubAppLogger } from "./MigrationSubAppLogger.js";
-import { SchemaFilterGrid } from "./SchemaFilterGrid.js";
+import { SchemaSelection } from "./SchemaSelection.js";
 import { NotFoundShapesFor, ShapesHelper } from "./ShapesHelper.js";
-import { UserFilterGrid } from "./UserFilterGrid.js";
 import { WorkProgressView } from "./WorkProgressView.js";
 import { Compartment, generateWbCmdLineArgs, IDatabaseSource, waitForPromise } from "./helpers.js";
 import {
@@ -1599,7 +1596,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     }
 
     private renderFormControls(stepId: number, subStepId: SubStepId | number) {
-        const { hasOciAccess, currentStep, currentSubStepId } = this.state;
+        const { hasOciAccess, currentStep, currentSubStepId, backendState, filterInfo } = this.state;
         const { stepIndex, subStepIndex } = this.findStepIndexes(stepId, subStepId);
 
         if (stepIndex === -1 || subStepIndex === -1) {
@@ -1624,7 +1621,12 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             case SubStepId.MIGRATION_TYPE:
                 return this.renderMigrationType(subStepId);
             case SubStepId.SCHEMA_SELECTION:
-                return this.renderSchemaSelection(subStepId);
+                return (
+                    <SchemaSelection
+                        data={backendState[subStepId]?.data as ISchemaSelectionData}
+                        filterInfo={filterInfo}
+                    />
+                );
             case SubStepId.MIGRATION_CHECKS:
                 return this.renderMigrationChecks(subStepId);
             // case SubStepId.TARGET_OPTIONS: {
@@ -2548,106 +2550,6 @@ Migration Assistant.`}
             </div>
         );
     }
-
-    private onMigrateAllObjectsChange = (e: InputEvent, checkState: CheckState) => {
-        const { filterInfo } = this.state;
-
-        filterInfo.migrateAllObjects = !filterInfo.migrateAllObjects;
-
-        this.forceUpdate();
-    };
-
-    private onMigrateAllUsersChange = (e: InputEvent, checkState: CheckState) => {
-        const { filterInfo } = this.state;
-
-        filterInfo.migrateAllUsers = !filterInfo.migrateAllUsers;
-
-        this.forceUpdate();
-    };
-
-    private renderSchemaSelection(subStepId: SubStepId) {
-        const { backendState, filterInfo } = this.state;
-        const data = backendState[subStepId]?.data as ISchemaSelectionData;
-
-        return (
-            <div>
-                <p>
-                    By default, all schemas and their objects will be migrated to the target MySQL HeatWave DB System,
-                    except for system schemas and system user accounts.
-                </p>
-
-                <div className="option-group-vbox">
-                    <div>
-                        <Toggle
-                            id="migrateAllObjectsToggle"
-                            caption="Migrate All Objects"
-                            checkState={filterInfo.migrateAllObjects ? CheckState.Checked : CheckState.Unchecked}
-                            onChange={this.onMigrateAllObjectsChange} />
-
-                        {!filterInfo.migrateAllObjects && <div>
-                            <p className="comment">To exclude schemas from being migrated, uncheck them in the grid
-                                below. You may also exclude all objects of a type or individual objects.</p>
-                            <p>Note: excluding objects that are dependencies of objects being migrated will
-                                result in a failed migration.</p>
-
-                            <SchemaFilterGrid
-                                schemas={data.contents.schemas}
-                                filterInfo={filterInfo}
-                                onObjectTypeToggle={this.onObjectTypeToggle}
-                                onSchemaToggle={this.onSchemaToggle}
-                                onFilterInfoChange={this.onFilterInfoChange} />
-                        </div>}
-                    </div>
-                    <div>
-                        <Toggle
-                            id="migrateAllUsersToggle"
-                            caption="Migrate All User Accounts"
-                            checkState={filterInfo.migrateAllUsers ? CheckState.Checked : CheckState.Unchecked}
-                            onChange={this.onMigrateAllUsersChange} />
-
-                        {!filterInfo.migrateAllUsers && (
-                            <div>
-                                <UserFilterGrid
-                                    accounts={data.contents.accounts.map((account) => {
-                                        const isIncluded = filterInfo.isAccountIncluded(account);
-
-                                        return {
-                                            caption: account,
-                                            isIncluded,
-                                            onToggle: this.onAccountToggle.bind(this, account, isIncluded),
-                                        };
-                                    })}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    private onAccountToggle = (account: string, isIncluded: boolean) => {
-        const { filterInfo } = this.state;
-        filterInfo.setAccountIncluded(account, !isIncluded);
-        this.setState({ filterInfo });
-    };
-
-    private onObjectTypeToggle = (objectType: keyof IMigrationFilters, enable: boolean) => {
-        const { filterInfo } = this.state;
-        filterInfo.setObjectTypeIncluded(objectType, enable);
-        this.setState({ filterInfo });
-    };
-
-    private onSchemaToggle = (schemaName: string, include: boolean) => {
-        const { filterInfo } = this.state;
-        filterInfo.setSchemaIncluded(schemaName, include);
-        this.setState({ filterInfo });
-    };
-
-    private onFilterInfoChange = () => {
-        // Force a re-render when filter info changes
-        this.forceUpdate();
-    };
 
     private renderMigrationChecks(subStepId: SubStepId) {
         return (
