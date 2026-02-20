@@ -23,7 +23,7 @@
 
 from typing import Optional
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from . import checks
 from .. import logging
@@ -34,8 +34,8 @@ from ..core import quote_ident, unquote_str
 
 @dataclass
 class InstanceContents(MigrationMessage):
-    schemas: list[str]
-    accounts: list[str]
+    schemas: list[str] = field(default_factory=list)
+    accounts: list[str] = field(default_factory=list)
 
 
 def _fetch(session: Session, sql: str, args=[], *, field_fn=None) -> list[str]:
@@ -68,21 +68,18 @@ def fetch_instance_contents(session: Session) -> InstanceContents:
                   if user not in checks.k_excluded_users + checks.k_mhs_excluded_users]
     )
 
-@dataclass
-class SchemaObjects(MigrationMessage):
-    schema: str
-    objects: list[str]
 
 @dataclass
-class SchemaTriggers(MigrationMessage):
-    schema: str
-    objects: list[tuple[str,str]]  # (table_name, trigger_name)
+class SchemaObjects(MigrationMessage):
+    schema: str = ""
+    objects: list[str] = field(default_factory=list)
+
 
 @dataclass
 class SchemaTables(MigrationMessage):
-    schema: str
-    tables: list[str]
-    views: list[str]
+    schema: str = ""
+    tables: list[str] = field(default_factory=list)
+    views: list[str] = field(default_factory=list)
 
 
 class InstanceCache:
@@ -122,7 +119,7 @@ class InstanceCache:
 
     def get_events(self, session: Session, schema: str) -> SchemaObjects:
         return self._do_fetch(
-            lambda:  _fetch(session, "SHOW EVENTS FROM !", [schema], 
+            lambda:  _fetch(session, "SHOW EVENTS FROM !", [schema],
                             field_fn=lambda row: quote_ident(row[1])),
             schema, "events")
 

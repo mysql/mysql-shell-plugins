@@ -95,11 +95,12 @@ def format_uri(options: dict) -> str:
     return mysqlsh.globals.shell.unparse_uri(opts)
 
 
+@dataclass
 class ReplicationChannelInfo(MigrationMessage):
     sourceUser: str = ""
-    replicateIgnoreDb: list[str]
-    replicateIgnoreTable: list[str]
-    replicateWildIgnoreTable: list[str]
+    replicateIgnoreDb: list[str] = field(default_factory=list)
+    replicateIgnoreTable: list[str] = field(default_factory=list)
+    replicateWildIgnoreTable: list[str] = field(default_factory=list)
 
 
 class MigrationStepStatus(enum.StrEnum):
@@ -128,7 +129,8 @@ class MigrationTypeData(MigrationMessage):
 
 @dataclass
 class SchemaSelectionData(MigrationMessage):
-    contents: InstanceContents
+    contents: InstanceContents = field(default_factory=InstanceContents)
+
 
 @dataclass
 class MigrationChecksData(MigrationMessage):
@@ -199,9 +201,9 @@ PlanDataItem: TypeAlias = SchemaObjects | SchemaTables
 
 @dataclass
 class MigrationPlanState(MigrationMessage):
-    id: SubStepId
-    status: MigrationStepStatus
-    errors: list[MigrationError]
+    id: SubStepId = SubStepId.ORCHESTRATION
+    status: MigrationStepStatus = MigrationStepStatus.NOT_STARTED
+    errors: list[MigrationError] = field(default_factory=list)
     data: Optional[SubStepData] = None
     values: Optional[SubStepValues] = None
 
