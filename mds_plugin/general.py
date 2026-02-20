@@ -32,7 +32,7 @@ import oci
 from oci import identity
 
 # Define plugin version
-VERSION = "2026.2.1"
+VERSION = "2026.2.0"
 
 
 @plugin_function('mds.info')

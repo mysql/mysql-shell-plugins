@@ -23,8 +23,6 @@
 
 
 import itertools
-import select
-from termios import ECHOPRT
 from . import model
 
 

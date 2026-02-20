@@ -1,14 +1,32 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 2026.2.1+9.6.0
+## Changes in 2026.2.0+9.6.1
 
 ### Additions
 
-- Changing version scheme to YYYY.M.P, year.month.patch
+- Changing version scheme to YYYY.M.P, year.month.patch, where patch is 0 based
+- Migration Assistant can now export data from the source database from the
+  bastion host in OCI (as opposed to the host where the Migration Assistant
+  executes), leveraging better network bandwidth for cloud to cloud migrations.
+  This migration path will be automatically selected if a MySQL connection can
+  be opened from the bastion to the source database.
+- Support for partial migrations, through selection of individual schemas,
+  tables, user accounts and other objects to be migrated.
+- Migration assistant is now using a new component for compartments, supporting
+  root expansion/collapse, filtering, and result highlighting.
+- Upgraded MySQL Shell to 9.6.1, which includes enhancements for the Migration
+  Assistant.
 
 ### Fixes
 
-- 
+- BUG#38899222 Identify users using mysql_native_password during the migration compatibility checks
+- BUG#38884595 Remove MySQL 8.0 as a target version
+- BUG#38883806 Cannot complete Target Options sub step - Invalid CIDR block for jump host
+- BUG#38874451 Api key with passphrase doesn't work
+- BUG#38879030 Fail early if source server does not support SSL connections
+- BUG#38950056 Notebook save operation via shortcut overwrites the wrong file
+- BUG#38952989 Exclude 'checkTableCommand' upgrade check during a migration
+
 
 ## Changes in 1.20.0+9.6.0
 
@@ -21,7 +39,6 @@
 
 - BUG#38749096 Unexpected runtime error when triggering the MRS authentication dialog in a notebook
 - BUG#37755849 Python SDK: fails to generate valid code for view using generated invisible primary key
--
 
 ## Changes in 1.19.20+9.5.0
 
@@ -35,7 +52,6 @@
 - BUG#38603422 Unexpected MRS SQL parsing error for field names that match certain keywords
 - BUG#35420780 mrs.configure() changes global session state
 - Fixed extension initialization in WSL2
--
 
 ## Changes in 1.19.19+9.5.0
 
@@ -44,7 +60,6 @@
 - Fixing regression installing the certificate
 - BUG#38593662 Wrong SQL generated for unnested objects
 - BUG#38593678 VS Code returns error after using the generated SQL
--
 
 ## Changes in 1.19.18+9.5.0
 
@@ -61,7 +76,6 @@
 - BUG#38575976 Unexpected error when dumping the SDK files if a REST VIEW contains nested fields
 - BUG#38576481 NameError: name 'Year' is not defined when using REST Service and MySQL Shell for VS code
 - BUG#38576785 AttributeError mix between fields and attribute mapping
--
 
 ## Changes in 1.19.17+9.4.0
 
@@ -84,7 +98,6 @@
 - BUG#37767208 Python SDK: access pattern changes for nested results
 - BUG#38418232 INSERT, UPDATE, DELETE buttons do not work for REST Service Objects
 - BUG#38463211 Unexpected compiler errors for updatable Views in the TypeScript SDK
--
 
 
 ## Changes in 1.19.16+9.4.0
@@ -146,7 +159,6 @@
 
 - BUG#38037847 Type-check errors in generated Python SDK file with Async Procedure
 - BUG#38005572 Python SDK: cannot call procedure which has no parameters
--
 
 ## Changes in 1.19.12+9.3.1
 
@@ -339,7 +351,6 @@
 
 - BUG#37081659 SDK save() gives Bad Request - camel2snake and reverse
 - BUG#37263610 find_first() is not the /first/...
--
 
 ## Changes in 1.18.0+9.1.0
 
@@ -435,7 +446,6 @@
 - BUG#36886308 MRS SDK "delete" command generated for database objects without unique fields
 - BUG#36353086 The MRS SDK "delete()" command can delete multiple items
 - BUG#36595270 Extraneous "cursor" option for database objects without potential cursor fields
--
 
 ## Changes in 1.15.2+9.0.0
 

@@ -22,4 +22,4 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 # Define plugin version
-VERSION = "2026.2.1"
+VERSION = "2026.2.0"
