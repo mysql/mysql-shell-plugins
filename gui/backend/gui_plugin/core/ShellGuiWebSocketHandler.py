@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -49,7 +49,7 @@ from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
 from gui_plugin.users import backend as user_handler
 from gui_plugin.users.backend import get_id_personal_user_group
-from gui_plugin.core.Filtering import LogFilter
+from gui_plugin.core.Filtering import LogFilter, FilterExpire
 
 from mysqlsh.plugin_manager import registrar
 
@@ -912,6 +912,13 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
     def send_prompt_response(self, request_id, prompt, handler):
         self._prompt_handlers[request_id] = handler
+
+        if prompt['type'] == 'password':
+            logger.add_filter({
+                "type": "key",
+                "keys": ["reply"],
+                "expire": FilterExpire.OnUse
+            })
 
         self.send_response_message("PENDING",
                                    'Executing...',

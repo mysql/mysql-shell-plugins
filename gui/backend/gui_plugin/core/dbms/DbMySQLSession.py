@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -153,19 +153,13 @@ class DbMysqlSession(DbSession):
 
     def on_shell_prompt(self, text, options):
         if 'type' in options:
-            if options['type'] == 'password':
-                logger.add_filter({
-                    "type": "key",
-                    "keys": ["reply"],
-                    "expire": Filtering.FilterExpire.OnUse
-                })
             # On Bastion Sessions, this prompt is produced in 2 known scenarios:
             # - On a new connection through Bastion Session if the session is
             #   new, sometimes fails with "Access Denied" error and Shell
             #   triggers prompt to retry.
             # - When the reconnection logic is triggered with data for an
             #   expired Bastion Session
-            elif self.bastion_session is not None and options['type'] == 'confirm' and text == "Access denied":
+            if self.bastion_session is not None and options['type'] == 'confirm' and text == "Access denied":
                 # If this is a new Bastion Session, a retry logic is successfully enough
                 # to make the connection succeed
                 if self.bastion_session.is_new:
@@ -944,14 +938,14 @@ class DbMysqlSession(DbSession):
             context = get_context()
             task_id = context.request_id if context else None
             self.add_task(MySQLJdvTableColumnsWithReferencesTask(
-                            self, task_id=task_id, sql=sql, params=params))
+                self, task_id=task_id, sql=sql, params=params))
         else:
             result = self.execute(sql, params).fetch_all()
             if not result:
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
-                            f"Table '{schema_name}.{table_name}' does not exist.")
+                                   f"Table '{schema_name}.{table_name}' does not exist.")
             return {"result": result}
-        
+
     def get_jdv_view_info(self, jdv_schema_name, jdv_name):
         params = [jdv_schema_name, jdv_name]
         sql = """
@@ -985,16 +979,18 @@ class DbMysqlSession(DbSession):
         if self.threaded:
             context = get_context()
             task_id = context.request_id if context else None
-            self.add_task(MySQLJdvViewInfoTask(self, task_id=task_id, sql=sql, params=params))
+            self.add_task(MySQLJdvViewInfoTask(
+                self, task_id=task_id, sql=sql, params=params))
         else:
             result = self.execute(sql, params).fetch_all()
             if not result:
                 raise MSGException(Error.JDV_OBJECT_DOES_NOT_EXISTS,
-                            f"View '{jdv_schema_name}.{jdv_name}' does not exist.")
+                                   f"View '{jdv_schema_name}.{jdv_name}' does not exist.")
             return {"result": result}
-        
+
     def get_jdv_object_fields_with_references(self, jdv_schema_name, jdv_name, jdv_object_id):
-        params = [jdv_object_id, jdv_object_id, jdv_schema_name, jdv_name, jdv_object_id]
+        params = [jdv_object_id, jdv_object_id,
+                  jdv_schema_name, jdv_name, jdv_object_id]
 
         # first, get columns
         sql = """
@@ -1014,7 +1010,8 @@ class DbMysqlSession(DbSession):
         """
 
         # union the child table references
-        params.extend([jdv_object_id, jdv_object_id, jdv_schema_name, jdv_name, jdv_object_id])
+        params.extend([jdv_object_id, jdv_object_id,
+                      jdv_schema_name, jdv_name, jdv_object_id])
         sql += """
             UNION
             SELECT 
@@ -1055,12 +1052,13 @@ class DbMysqlSession(DbSession):
         if self.threaded:
             context = get_context()
             task_id = context.request_id if context else None
-            self.add_task(MySQLJdvObjectFieldsWithReferencesTask(self, task_id=task_id, sql=sql, params=params))
+            self.add_task(MySQLJdvObjectFieldsWithReferencesTask(
+                self, task_id=task_id, sql=sql, params=params))
         else:
             result = self.execute(sql, params).fetch_all()
             if not result:
                 raise MSGException(Error.JDV_OBJECT_DOES_NOT_EXISTS,
-                            f"View '{jdv_schema_name}.{jdv_name} (REFERENCED_TABLE_ID = {jdv_object_id})' does not exist.")
+                                   f"View '{jdv_schema_name}.{jdv_name} (REFERENCED_TABLE_ID = {jdv_object_id})' does not exist.")
             return {"result": result}
 
     def _column_exists(self, table_name, column_name):
