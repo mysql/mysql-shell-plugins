@@ -509,17 +509,19 @@ class ProtocolBuilder:
             contains_args = False
             contains_kwargs = False
             for argument in bindings[func_name]["args"]:
-                if isinstance(bindings[func_name]["args"][argument], list):
-                    line_args += f"{argument}: {{ "
-                    for option in bindings[func_name]["args"][argument]:
+                binding = bindings[func_name]["args"][argument]
+                if isinstance(binding, tuple) and isinstance(binding[0], list):
+                    options, required, _, default_none = binding
+                    line_args += (
+                        f"{argument}{'?' if default_none or not required else ''}: {{ "
+                    )
+                    for option in options:
                         line_args += (
                             f"{option[0]}{'' if option[3] else '?'}: {option[1]}; "
                         )
                     line_args = line_args[:-1] + " }; "
                 else:
-                    param_type, required, _, default_none = bindings[func_name]["args"][
-                        argument
-                    ]
+                    param_type, required, _, default_none = binding
                     line_args += f"{argument}{'?' if default_none or not required else ''}: {param_type}; "
                 contains_args = True
 
@@ -866,15 +868,20 @@ class TypeScriptDictionaryParameter(TypeScriptParameter):
             else:
                 parameter_mapper_bindings[self._plugin_name][self._func_name]["args"][
                     TypeScriptHelper.convert_name_to_ts(self._name)
-                ] = [
-                    (
-                        TypeScriptHelper.convert_name_to_ts(option["name"]),
-                        TypeScriptHelper.convert_python_type_to_ts(option["type"]),
-                        option["brief"],
-                        option["required"] if "required" in option else False,
-                    )
-                    for option in self._options
-                ]
+                ] = (
+                    [
+                        (
+                            TypeScriptHelper.convert_name_to_ts(option["name"]),
+                            TypeScriptHelper.convert_python_type_to_ts(option["type"]),
+                            option["brief"],
+                            option["required"] if "required" in option else False,
+                        )
+                        for option in self._options
+                    ],
+                    self._required,
+                    self._param_doc,
+                    self._default_none,
+                )
 
 
 class TypeScriptKwargsParameter(TypeScriptParameter):

@@ -219,6 +219,8 @@ export enum ShellAPIGui {
     GuiSqlEditorExecute = "gui.sqlEditor.execute",
     /** Generates an SVG visual explain plan for the given SQL statement. */
     GuiSqlEditorVisualExplain = "gui.sqlEditor.visual_explain",
+    /** Reformats a SQL statement or script. */
+    GuiSqlEditorReformat = "gui.sqlEditor.reformat",
     /** Stops the query that is currently executing. */
     GuiSqlEditorKillQuery = "gui.sqlEditor.kill_query",
     /** Kills the database session that is currently executing. */
@@ -365,7 +367,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
     [ShellAPIGui.GuiDbConnectionsTestConnection]: { args: { connection: IShellDbConnection | number; password?: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveConnection]: { args: { profileId: number; folderId: number; connectionIdToMove: number; connectionIdOffset: number; before?: boolean; }; };
-    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { args: { profileId: number; caption: string; settings: { color?: string; }; parentFolderId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { args: { profileId: number; caption: string; settings?: { color?: string; }; parentFolderId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: { args: { folderPathId: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveEmptyFolders]: {};
     [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: { args: { folderPathId: number; newCaption: string; }; };
@@ -386,7 +388,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiShellComplete]: { args: { data: string; offset: number; moduleSessionId: string; }; };
     [ShellAPIGui.GuiShellKillTask]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbGetObjectsTypes]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiDbExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { }; }; };
+    [ShellAPIGui.GuiDbExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options?: { }; }; };
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { args: { moduleSessionId: string; type: string; filter?: string; }; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { args: { moduleSessionId: string; type: string; schemaName: string; filter?: string; routineType?: string; }; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; filter?: string; }; };
@@ -428,8 +430,9 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorStartTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorCommitTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorRollbackTransaction]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize?: number; featureId?: string; }; }; };
-    [ShellAPIGui.GuiSqlEditorVisualExplain]: { args: { moduleSessionId: string; sql: string; options: { analyze?: boolean; compact?: boolean; darkMode?: boolean; layout?: string; plan?: string; showDescription?: boolean; showQuery?: boolean; }; }; };
+    [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options?: { rowPacketSize?: number; featureId?: string; }; }; };
+    [ShellAPIGui.GuiSqlEditorVisualExplain]: { args: { moduleSessionId: string; sql: string; options?: { analyze?: boolean; compact?: boolean; darkMode?: boolean; layout?: string; plan?: string; showDescription?: boolean; showQuery?: boolean; }; }; };
+    [ShellAPIGui.GuiSqlEditorReformat]: { args: { sql: string; options?: { indentWidth?: number; keywordCase?: string; quoteIdentifiers?: boolean; maxInlineLength?: number; breakSelectItems?: boolean; breakFunctionArgs?: boolean; tableOptionsPerLine?: boolean; ansiQuotes?: boolean; noBackslashEscapes?: boolean; }; }; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorKillSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { args: { moduleSessionId: string; }; };
@@ -1001,6 +1004,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreClearPluginCommandMocks]: { result: boolean; };
     [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: {};
     [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { result: Record<string, IAny> | null; };
+    [ShellAPIGui.GuiSqlEditorReformat]: { result: string; };
     [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
     [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
 }

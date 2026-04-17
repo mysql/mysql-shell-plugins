@@ -3048,6 +3048,10 @@ describe("Document module desktop commands", () => {
         expect(initialState.find((entry) => entry.id === "file.close")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "edit.previousCommand")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "edit.nextCommand")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "edit.reformat")).toEqual(expect.objectContaining({
+            enabled: false,
+            accelerator: "Shift+Alt+F",
+        }));
         expect(initialState.find((entry) => entry.id === "view.find")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "view.toggleSidebar")).toEqual(expect.objectContaining({
             enabled: true,
@@ -3153,6 +3157,7 @@ describe("Document module desktop commands", () => {
         const requisitionSpy = vi.spyOn(requisitions, "execute").mockImplementation(async (requestType: string) => {
             return [
                 "editorFind",
+                "editorFormat",
                 "editorExecuteSelectedOrAll",
                 "editorExecute",
                 "editorVisualExplain",
@@ -3170,6 +3175,10 @@ describe("Document module desktop commands", () => {
         expect(desktopFileState.find((entry) => entry.id === "file.close")?.enabled).toBe(true);
         expect(desktopFileState.find((entry) => entry.id === "edit.previousCommand")?.enabled).toBe(false);
         expect(desktopFileState.find((entry) => entry.id === "edit.nextCommand")?.enabled).toBe(false);
+        expect(desktopFileState.find((entry) => entry.id === "edit.reformat")).toEqual(expect.objectContaining({
+            enabled: true,
+            accelerator: "Shift+Alt+F",
+        }));
         expect(desktopFileState.find((entry) => entry.id === "view.find")?.enabled).toBe(true);
         expect(desktopFileState.find((entry) => entry.id === "view.showHiddenCharacters")?.checked).toBe(false);
         expect(desktopFileState.find((entry) => entry.id === "view.softWrap")?.checked).toBe(false);
@@ -3197,6 +3206,11 @@ describe("Document module desktop commands", () => {
                     expect.objectContaining({ id: "edit.nextCommand", enabled: false }),
                     expect.objectContaining({ id: "desktop.newScriptTab", enabled: true }),
                     expect.objectContaining({ id: "desktop.newNotebookTab", enabled: true }),
+                    expect.objectContaining({
+                        id: "edit.reformat",
+                        enabled: true,
+                        accelerator: "Shift+Alt+F",
+                    }),
                     expect.objectContaining({ id: "view.find", enabled: true }),
                     expect.objectContaining({ id: "view.toggleSidebar", enabled: true }),
                     expect.objectContaining({ id: "view.showHiddenCharacters", enabled: true, checked: false }),
@@ -3248,6 +3262,9 @@ describe("Document module desktop commands", () => {
 
         expect(await desktopCommandRegistry.execute("view.find")).toBe(true);
         expect(requisitionSpy).toHaveBeenCalledWith("editorFind", undefined);
+
+        expect(await desktopCommandRegistry.execute("edit.reformat")).toBe(true);
+        expect(requisitionSpy).toHaveBeenCalledWith("editorFormat", undefined);
 
         expect(await desktopCommandRegistry.execute("view.showHiddenCharacters")).toBe(true);
         expect(Settings.get("editor.showHidden", false)).toBe(true);

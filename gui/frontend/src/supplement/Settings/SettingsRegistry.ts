@@ -483,6 +483,76 @@ export const registerSettings = (): void => {
         1000,
         true,
     );
+    registerSettingCategory(
+        "editor.reformatter",
+        "SQL Reformatter",
+        "Settings related to SQL code reformatting.",
+    );
+    registerSetting(
+        "editor.reformatter.indentWidth",
+        "Indent Width",
+        "The number of spaces to use for each indentation level.",
+        "number",
+        4,
+        false,
+        { range: [1, 16] },
+    );
+    registerSetting(
+        "editor.reformatter.keywordCase",
+        "Keyword Case",
+        "Select how SQL keywords are written when formatting.",
+        "choice",
+        "upper",
+        false,
+        {
+            choices: [
+                ["Uppercase", "upper", "Write SQL keywords in uppercase"],
+                ["Lowercase", "lower", "Write SQL keywords in lowercase"],
+                ["Preserve", "preserve", "Keep existing SQL keyword casing"],
+            ],
+        },
+    );
+    registerSetting(
+        "editor.reformatter.quoteIdentifiers",
+        "Quote Identifiers",
+        "Quote bare identifiers with backticks when formatting.",
+        "boolean",
+        false,
+        false,
+    );
+    registerSetting(
+        "editor.reformatter.maxInlineLength",
+        "Maximum Inline Length",
+        "The inline length threshold before the formatter wraps expressions.",
+        "number",
+        80,
+        false,
+        { range: [1, 1000] },
+    );
+    registerSetting(
+        "editor.reformatter.breakSelectItems",
+        "Break SELECT Items",
+        "Always place SELECT item lists on separate lines.",
+        "boolean",
+        false,
+        false,
+    );
+    registerSetting(
+        "editor.reformatter.breakFunctionArgs",
+        "Break Function Arguments",
+        "Always place function arguments on separate lines.",
+        "boolean",
+        false,
+        false,
+    );
+    registerSetting(
+        "editor.reformatter.tableOptionsPerLine",
+        "Table Options Per Line",
+        "Keep CREATE TABLE options on separate lines.",
+        "boolean",
+        false,
+        false,
+    );
 
     registerSettingCategory("shellSession", "Shell Session", "Settings related to a shell session");
     registerSetting(

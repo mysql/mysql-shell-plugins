@@ -22,6 +22,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import json
+import sys
+from pathlib import Path
+from typing import Callable, Optional
 
 import mysqlsh  # pylint: disable=import-error
 
@@ -106,6 +109,25 @@ def _should_ignore_history_entry(code):
             return True
 
     return False
+
+
+def _import_reformat_sql() -> Callable[..., str]:
+    try:
+        from util_plugin.sql.exported import reformat_sql
+    except ModuleNotFoundError as exc:
+        if exc.name != "util_plugin" and not str(exc.name).startswith("util_plugin."):
+            raise
+
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "util_plugin" / "sql" / "exported.py").is_file():
+                plugins_root = str(parent)
+                if plugins_root not in sys.path:
+                    sys.path.insert(0, plugins_root)
+                break
+
+        from util_plugin.sql.exported import reformat_sql
+
+    return reformat_sql
 
 
 @plugin_function("gui.sqlEditor.isGuiModuleBackend", web=True)
@@ -277,6 +299,36 @@ def visual_explain(session, sql, options=None):
     session = db_backend.get_db_session(session)
 
     return session.visual_explain(sql=sql, options=options or {})
+
+@plugin_function("gui.sqlEditor.reformat", shell=False, web=True)
+def reformat(sql: str, options: Optional[dict] = None) -> str:
+    """Reformats a SQL statement or script.
+
+    Args:
+        sql (str): The sql command/script to reformat.
+        options (dict): Optional formatter style arguments.
+
+    Allowed options for options:
+        indentWidth (int): The indentation width in spaces.
+        keywordCase (str): The keyword style: upper, lower, or preserve.
+        quoteIdentifiers (bool): Whether to quote bare identifiers.
+        maxInlineLength (int): The inline length threshold before wrapping.
+        breakSelectItems (bool): Whether to break SELECT item lists.
+        breakFunctionArgs (bool): Whether to break function argument lists.
+        tableOptionsPerLine (bool): Whether to break CREATE TABLE options.
+        ansiQuotes (bool): Whether ANSI_QUOTES parser rules are enabled.
+        noBackslashEscapes (bool): Whether backslash escapes are disabled.
+
+    Returns:
+        str: The reformatted SQL.
+    """
+    if options is None:
+        options = {}
+    elif not isinstance(options, dict):
+        raise ValueError("options must be a dictionary")
+
+    reformat_sql = _import_reformat_sql()
+    return reformat_sql(sql, **options)
 
 
 @plugin_function("gui.sqlEditor.killQuery", shell=False, web=True)

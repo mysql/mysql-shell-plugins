@@ -6060,6 +6060,11 @@ EXAMPLES
             enabled: canRecallNextCommand,
             accelerator: isMac ? "Cmd+Down" : undefined,
         }, {
+            id: "edit.reformat",
+            label: "Reformat",
+            enabled: canUseEditorViewCommands,
+            accelerator: "Shift+Alt+F",
+        }, {
             id: "view.find",
             label: "Find",
             enabled: canUseEditorViewCommands,
@@ -6214,6 +6219,14 @@ EXAMPLES
 
             case "edit.nextCommand": {
                 return this.currentConnectionWorkspaceRef.current?.navigateHistory?.(false) ?? false;
+            }
+
+            case "edit.reformat": {
+                if (!this.getActiveDesktopExecutionContext()) {
+                    return false;
+                }
+
+                return requisitions.execute("editorFormat", undefined);
             }
 
             case "view.find": {

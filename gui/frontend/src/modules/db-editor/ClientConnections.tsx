@@ -56,6 +56,7 @@ import { TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { ITreeGridOptions, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
 import { IResultSet } from "../../script-execution/index.js";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -719,13 +720,25 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleOpenSqlTextInEditor = (content: string, caption: string) => {
         return (): void => {
-            void requisitions.execute("editorEditScript", {
-                id: uuid(),
-                caption,
-                content,
-                language: "mysql",
-            });
+            void this.openSqlTextInEditor(content, caption);
         };
+    };
+
+    private openSqlTextInEditor = async (content: string, caption: string): Promise<void> => {
+        let editorContent = content;
+
+        try {
+            editorContent = await ScriptingLanguageServices.instance.reformatSQL(content);
+        } catch {
+            editorContent = content;
+        }
+
+        await requisitions.execute("editorEditScript", {
+            id: uuid(),
+            caption,
+            content: editorContent,
+            language: "mysql",
+        });
     };
 
     private detailIdType = (key: string): ClientConnectionIdType | undefined => {

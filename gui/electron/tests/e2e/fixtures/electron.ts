@@ -28,7 +28,7 @@ import { _electron as electron, type ElectronApplication } from "playwright";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { lstat, mkdir, readlink, rm, symlink } from "node:fs/promises";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, delimiter, dirname, join, resolve } from "node:path";
 
 import { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
 
@@ -284,11 +284,18 @@ const createLaunchEnvironment = (
     }
 
     const mysqlshGuiExtraArgs = process.env.MYSQLSH_GUI_EXTRA_ARGS ?? "";
+    const mysqlshPluginPath = mysqlshRuntimeDir
+        ? join(mysqlshRuntimeDir, "lib", "mysqlsh", "plugins")
+        : undefined;
+    const pythonPath = [mysqlshPluginPath, process.env.PYTHONPATH]
+        .filter((value): value is string => value !== undefined && value.length > 0)
+        .join(delimiter);
 
     return applyEnvironmentOverrides({
         ...launchEnv,
         ELECTRON_RENDERER_URL: rendererUrl,
         ELECTRON_MYSQLSH_RUNTIME_DIR: mysqlshRuntimeDir,
+        ...(pythonPath.length > 0 ? { PYTHONPATH: pythonPath } : {}),
         ...(mysqlshGuiExtraArgs.length > 0 ? { MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs } : {}),
     }, environmentOverrides);
 };

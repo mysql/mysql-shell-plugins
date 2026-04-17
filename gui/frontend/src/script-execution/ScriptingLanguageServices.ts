@@ -41,6 +41,8 @@ import {
     ILanguageWorkerResultData, ILanguageWorkerSplitData, ILanguageWorkerTokenizeData, ILanguageWorkerValidateData,
     IParserErrorInfo, IPreprocessResult, IStatementSpan, QueryType, ServiceLanguage, StatementFinishState,
 } from "../parsing/parser-common.js";
+import { MessageScheduler } from "../communication/MessageScheduler.js";
+import { ShellAPIGui } from "../communication/ProtocolGui.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
 
@@ -53,6 +55,7 @@ import { isWhitespaceOnly } from "../utilities/string-helpers.js";
 import { IDictionary } from "../app-logic/general-types.js";
 import { IShellEditorModel } from "../modules/shell/index.js";
 import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool.js";
+import { Settings } from "../supplement/Settings/Settings.js";
 import { IExecutionContext } from "../supplement/index.js";
 import { ITextToken } from "./index.js";
 
@@ -100,10 +103,11 @@ export class ScriptingLanguageServices {
         // Promote to full execution context.
         const context = block as ExecutionContext;
         const localPosition = context.toLocal(position);
-        const model = context.model as ICodeEditorModel;
-        if (!model) {
+        const textModel = context.model;
+        if (!textModel) {
             return undefined;
         }
+        const model = textModel as ICodeEditorModel;
 
         switch (context.language) {
             case "javascript":
@@ -847,6 +851,18 @@ export class ScriptingLanguageServices {
             return;
         }
 
+        switch (context.language) {
+            case "sql": {
+                return;
+            }
+
+            case "mysql": {
+                return this.formatSQL(context as SQLExecutionContext, range);
+            }
+
+            default:
+        }
+
         const initialIndentLevel = this.computeInitialIndent(model, range, formatParams);
         const formatSettings = this.convertOptions(formatParams, formatterSettings, initialIndentLevel);
         const start = model.getOffsetAt({ lineNumber: range.startLineNumber, column: range.startColumn });
@@ -1066,6 +1082,50 @@ export class ScriptingLanguageServices {
         });
     };
 
+    public async reformatSQL(sql: string, sqlMode = ""): Promise<string> {
+        const sqlModes = new Set(sqlMode.split(",").map((mode) => {
+            return mode.trim().toUpperCase();
+        }).filter(Boolean));
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiSqlEditorReformat,
+            parameters: {
+                args: {
+                    sql,
+                    options: {
+                        indentWidth: Settings.get("editor.reformatter.indentWidth", 4),
+                        keywordCase: Settings.get("editor.reformatter.keywordCase", "upper"),
+                        quoteIdentifiers: Settings.get("editor.reformatter.quoteIdentifiers", false),
+                        maxInlineLength: Settings.get("editor.reformatter.maxInlineLength", 80),
+                        breakSelectItems: Settings.get("editor.reformatter.breakSelectItems", false),
+                        breakFunctionArgs: Settings.get("editor.reformatter.breakFunctionArgs", false),
+                        tableOptionsPerLine: Settings.get("editor.reformatter.tableOptionsPerLine", false),
+                        ansiQuotes: sqlModes.has("ANSI") || sqlModes.has("ANSI_QUOTES"),
+                        noBackslashEscapes: sqlModes.has("NO_BACKSLASH_ESCAPES"),
+                    },
+                },
+            },
+            caseConversionIgnores: ["options"],
+        });
+
+        return response.result;
+    }
+
+    private async formatSQL(context: SQLExecutionContext, range: IRange): Promise<TextEdit[] | undefined> {
+        const sql = context.code;
+        const formattedSql = await this.reformatSQL(sql, context.sqlMode);
+
+        if (formattedSql === sql) {
+            return [];
+        }
+
+        return [{
+            range: context.fromLocal(range),
+            text: formattedSql,
+            eol: Monaco.EndOfLineSequence.LF,
+        }];
+    }
+
     /**
      * Converts the symbol kind returned from the TS language server to the Monaco completion item kind.
      *
@@ -1192,22 +1252,23 @@ export class ScriptingLanguageServices {
     }
 
     private async workerForLanguage(language: string): Promise<(...uris: Uri[]) => Promise<TypeScriptWorker>> {
-        if (!languages.typescript) {
-            return async () => {
-                return {
-                    getCompletionsAtPosition: async () => {
-                        return undefined;
+        const availableLanguages = languages as Partial<typeof languages>;
+        if (!availableLanguages.typescript) {
+            return () => {
+                return Promise.resolve({
+                    getCompletionsAtPosition: () => {
+                        return Promise.resolve(undefined);
                     },
-                    getCompletionEntryDetails: async () => {
-                        return undefined;
+                    getCompletionEntryDetails: () => {
+                        return Promise.resolve(undefined);
                     },
-                } as unknown as TypeScriptWorker;
+                } as unknown as TypeScriptWorker);
             };
         }
 
         return (language === "javascript")
-            ? languages.typescript.getJavaScriptWorker()
-            : languages.typescript.getTypeScriptWorker();
+            ? availableLanguages.typescript.getJavaScriptWorker()
+            : availableLanguages.typescript.getTypeScriptWorker();
 
     }
 }

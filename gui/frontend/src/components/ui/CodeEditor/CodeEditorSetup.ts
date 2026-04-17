@@ -98,7 +98,7 @@ export class CodeEditorSetup {
             });
         });
 
-        const editorLanguages = ["msg", "javascript", "typescript", "mysql", "python"];
+        const editorLanguages = ["msg", "javascript", "typescript", "mysql", "sql", "python"];
         languages.registerDocumentSemanticTokensProvider(editorLanguages, new MsgSemanticTokensProvider());
         languages.registerCompletionItemProvider(editorLanguages, new CodeCompletionProvider());
         languages.registerHoverProvider(editorLanguages, new HoverProvider());

@@ -34,6 +34,7 @@ export type DesktopCommandId =
     "dev.toggleDebugger" |
     "edit.previousCommand" |
     "edit.nextCommand" |
+    "edit.reformat" |
     "file.open" |
     "file.save" |
     "file.saveAs" |

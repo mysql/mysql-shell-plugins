@@ -115,6 +115,41 @@ def params():
 
 class Test_sql_editor:
 
+    @pytest.mark.parametrize("options", [[], "keywordCase=upper", 1])
+    def test_reformat_rejects_non_dictionary_options(
+        self, options: object
+    ) -> None:
+        with pytest.raises(ValueError, match="options must be a dictionary"):
+            sql_editor_module.reformat("select 1", options)
+
+    def test_reformat_passes_camel_case_options_unchanged(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        received_options: dict[str, object] | None = None
+
+        def fake_reformat_sql(sql: str, **options: object) -> str:
+            nonlocal received_options
+            received_options = options
+            return sql
+
+        monkeypatch.setattr(
+            sql_editor_module,
+            "_import_reformat_sql",
+            lambda: fake_reformat_sql,
+        )
+
+        assert sql_editor_module.reformat(
+            "select 1",
+            {
+                "indentWidth": 2,
+                "keywordCase": "lower",
+            },
+        ) == "select 1"
+        assert received_options == {
+            "indentWidth": 2,
+            "keywordCase": "lower",
+        }
+
     def test_open_connection_returns_cached_connection_ids(self, params):
         assert isinstance(params._open_connection_info["connection_id"], int)
         assert isinstance(params._open_connection_info["service_connection_id"], int)

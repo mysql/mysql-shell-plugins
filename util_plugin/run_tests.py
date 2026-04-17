@@ -35,6 +35,7 @@ import shutil
 import os
 import tempfile
 import subprocess
+import shlex
 from pathlib import Path
 import argparse
 from contextlib import contextmanager
@@ -61,6 +62,11 @@ def pushd(new_path):
 
 
 def create_symlink(target: Path, link_name: Path, is_dir):
+    if link_name.is_symlink():
+        link_name.unlink()
+    elif link_name.exists():
+        raise FileExistsError(f"Refusing to replace existing path: {link_name}")
+
     if os.name == "nt":
         p = subprocess.run(f'mklink /J "{link_name}" "{target}"', shell=True)
         print(p.stdout)
@@ -108,7 +114,7 @@ arg_parser.add_argument(
     required=False,
     type=str,
     default=None,
-    help="Run only the tests that apply to the pattern",
+    help="Pass a pytest -k expression to filter collected tests",
 )
 arg_parser.add_argument(
     "-P",
@@ -227,7 +233,6 @@ if not paths.runtime.plugins.root.is_dir():
 create_symlink(paths.source.code, paths.runtime.plugins.util_plugin, is_dir=True)
 
 LOGS = ""
-PATTERN = ""
 MYSQLSH_FLAGS = args.mysqlsh or ""
 EXTRA_OPTIONS = ""
 # Enables verbose execution
@@ -235,21 +240,58 @@ if args.verbose is not None or args.debug is not None:
     LOGS = "-sv"
     MYSQLSH_FLAGS += " --verbose"
 
-if args.only is not None:
-    PATTERN = f"-k {args.only}"
-
 with pushd(paths.source.plugin):
     env = os.environ.copy()
     env["MYSQLSH_USER_CONFIG_HOME"] = paths.runtime.root.as_posix()
     env["MYSQLSH_TERM_COLOR_MODE"] = "nocolor"
     env["COV_CORE_DATAFILE"] = ".coverage.eager"
+    env["PYTHONPATH"] = os.pathsep.join(
+        filter(
+            None,
+            [paths.source.root.as_posix(), env.get("PYTHONPATH")],
+        )
+    )
 
     if args.debug is not None:
         env["ATTACH_DEBUGGER"] = args.debug
 
-    command = f"{paths.shell} {MYSQLSH_FLAGS} --pym pytest {args.pytest or ''} --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN} {" ".join(other_arguments)}"
-    print(f"Test run command: {command}")
-    shell = subprocess.run(command, shell=True, env=env)
+    pytest_targets = list(other_arguments)
+    only_target = None
+    only_pattern = args.only
+    if args.only is not None and (
+        args.only.endswith('.py')
+        or '::' in args.only
+        or os.sep in args.only
+    ):
+        only_target = args.only
+        only_pattern = None
+
+    if only_target is not None:
+        pytest_targets.append(only_target)
+
+    if not pytest_targets:
+        pytest_targets = [paths.source.plugin.as_posix()]
+
+    command = [
+        paths.shell.as_posix(),
+        *shlex.split(MYSQLSH_FLAGS),
+        "--pym",
+        "pytest",
+        *shlex.split(args.pytest or ""),
+        f"--cov={paths.source.code}",
+        "--cov-append",
+        "-vv",
+        "-c",
+        paths.source.pytest_config.as_posix(),
+        *shlex.split(LOGS),
+        *pytest_targets,
+    ]
+
+    if only_pattern is not None:
+        command.extend(["-k", only_pattern])
+
+    print(f"Test run command: {shlex.join(command)}")
+    shell = subprocess.run(command, env=env)
 
 if not shell.returncode == 0:
     print("----------------------------------------")

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -96,7 +96,7 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
 
                 if (selectedId.length > 0) {
                     const row = table.getRow(selectedId);
-                    void row.scrollTo();
+                    void table.scrollToRow(selectedId, "top");
                     row.select();
                 }
             });
@@ -144,10 +144,12 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
     }
 
     public scrollToId(id: string): void {
-        void this.gridRef.current?.table.then((table) => {
-            if (!this.isMounted && table) {
-                void table.scrollToRow(id, "top");
-            }
+        this.setState({ selectedId: id }, () => {
+            void this.gridRef.current?.table.then((table) => {
+                if (this.isMounted && table) {
+                    void table.scrollToRow(id, "top");
+                }
+            });
         });
     }
 

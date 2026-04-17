@@ -143,7 +143,6 @@
 
 .msg.settingsEditor #settingsTreeHost .tabulator:focus-within .tabulator-row.tabulator-selected .tabulator-cell {
     color: var(--foreground);
-    border: 1px solid var(--settings-focusedRowBorder);
 }
 
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selectable:hover .tabulator-cell {

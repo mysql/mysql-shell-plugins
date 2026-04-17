@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -150,7 +150,7 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
         };
 
         // Load existing Jdv Objects and their fields or create a new one if there is not one yet
-        void this.initJdvObjects();
+        void this.initJdvObjects().catch(this.handleBackendError);
     }
 
     public static validateJdvObjectFields = (data: IJdvObjectFieldEditorData): string[] => {
@@ -488,6 +488,11 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
         requisitions.writeToClipboard(text);
     };
 
+    private handleBackendError = (reason: unknown): void => {
+        const message = convertErrorToString(reason);
+        void ui.showErrorMessage(`Backend Error: ${message}`, {});
+    };
+
     /**
      * -----------------------------------------------------------------------------------------------------------------
      * TreeGrid Row / Column Formatter
@@ -626,7 +631,7 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
                             childTreeItem, [JdvObjectFieldValidatorType.ObjectReference]
                         ).then(() => {
                             this.updateStateData(data);
-                        });
+                        }).catch(this.handleBackendError);
                     }
                 };
 
@@ -1050,7 +1055,7 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
                 parentTreeItem, [JdvObjectFieldValidatorType.ObjectReference]
             ).then(() => {
                 this.updateStateData(data);
-            });
+            }).catch(this.handleBackendError);
         }
 
         // check if there is any referredTreeItems to load
@@ -1532,7 +1537,7 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
                     treeItem, [JdvObjectFieldValidatorType.JsonKeyName]
                 ).then(() => {
                     this.updateStateData(data);
-                });
+                }).catch(this.handleBackendError);
             }
         }
     };
@@ -1657,7 +1662,8 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
                     const result = await this.jdvAddTableDialogRef.current.show();
                     const { tableSchema: tableSchemaName, tableName } = result!;
 
-                    void this.addTableAsFieldToJdvObject(tableSchemaName, tableName, treeItem);
+                    void this.addTableAsFieldToJdvObject(tableSchemaName, tableName, treeItem)
+                        .catch(this.handleBackendError);
                 }
 
                 break;
@@ -1735,7 +1741,7 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
                 treeItem.expandedOnce = true;
                 // Trigger re-render
                 this.updateStateData(data);
-            }).catch();
+            }).catch(this.handleBackendError);
         }
     };
 
@@ -1787,7 +1793,7 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
         data.createView = true;
         data.currentTreeItems = [];
 
-        void this.initJdvObjects();
+        void this.initJdvObjects().catch(this.handleBackendError);
     };
 
     /**

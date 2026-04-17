@@ -34,6 +34,7 @@ import { DialogHost } from "../../../../app-logic/DialogHost.js";
 import { DBDataType, DialogResponseClosure, DialogType, IColumnInfo } from "../../../../app-logic/general-types.js";
 import { IDbEditorResultSetData } from "../../../../communication/ProtocolGui.js";
 import { ClientConnections } from "../../../../modules/db-editor/ClientConnections.js";
+import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { CellComponentMock } from "../../__mocks__/CellComponentMock.js";
@@ -697,8 +698,9 @@ describe("Client connections module tests", (): void => {
         unmount();
     });
 
-    it("does not show a separator between statement SQL Text label and value", ({ expect }) => {
+    it("does not show a separator between statement SQL Text label and value", async ({ expect }) => {
         const execute = vi.spyOn(requisitions, "execute").mockResolvedValue(undefined);
+        vi.spyOn(ScriptingLanguageServices.instance, "reformatSQL").mockResolvedValue("select sleep(10)");
         const backend = new ShellInterfaceSqlEditor();
         const props = {
             backend,
@@ -747,11 +749,63 @@ describe("Client connections module tests", (): void => {
 
         fireEvent.click(openButton!);
 
-        expect(execute).toHaveBeenCalledWith("editorEditScript", expect.objectContaining({
-            caption: "Current Statement",
-            content: "select sleep(10)",
-            language: "mysql",
-        }));
+        await waitFor(() => {
+            expect(execute).toHaveBeenCalledWith("editorEditScript", expect.objectContaining({
+                caption: "Current Statement",
+                content: "select sleep(10)",
+                language: "mysql",
+            }));
+        });
+
+        unmount();
+    });
+
+    it("formats SQL text before opening it in an editor", async ({ expect }) => {
+        const execute = vi.spyOn(requisitions, "execute").mockResolvedValue(undefined);
+        const reformat = vi.spyOn(ScriptingLanguageServices.instance, "reformatSQL").mockResolvedValue("SELECT\n    1");
+        const backend = new ShellInterfaceSqlEditor();
+        const props = {
+            backend,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        };
+        const instance = new TestClientConnections(props);
+        (instance as unknown as { columns: IColumnInfo[] }).columns = [
+            { title: "PROCESSLIST_ID", field: "processlistId" },
+        ] as IColumnInfo[];
+        instance.testHandleClientConnectionTreeRowSelected(new RowComponentMock({
+            processlistId: "17",
+        } as never));
+        (instance as unknown as { state: { currentStatement: unknown } }).state.currentStatement = {
+            type: "resultSet",
+            resultId: "currentStatement",
+            sql: "",
+            columns: [
+                { title: "isActive", field: "isActive" },
+                { title: "sqlText", field: "sqlText" },
+            ],
+            data: {
+                currentPage: 1,
+                rows: [{ isActive: "1", sqlText: "select 1" }],
+            },
+            updatable: false,
+            fullTableName: "",
+        };
+
+        const { container, unmount } = render(
+            <div>{instance.testGetClientConnectionCurrentStatement()}</div>,
+        );
+        const openButton = container.querySelector<HTMLElement>(".connectionSqlOpenButton");
+
+        fireEvent.click(openButton!);
+
+        await waitFor(() => {
+            expect(reformat).toHaveBeenCalledWith("select 1");
+            expect(execute).toHaveBeenCalledWith("editorEditScript", expect.objectContaining({
+                caption: "Current Statement",
+                content: "SELECT\n    1",
+                language: "mysql",
+            }));
+        });
 
         unmount();
     });

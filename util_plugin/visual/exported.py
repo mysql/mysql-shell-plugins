@@ -25,7 +25,7 @@ from typing import Union
 from mysqlsh import globals
 from mysqlsh import Error
 import json
-from util_plugin.visual import explain
+from . import explain
 
 
 def render_explain_plan(plan: Union[str, dict], path: str, **options):
