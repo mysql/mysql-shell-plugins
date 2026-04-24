@@ -59,6 +59,11 @@ export class ShellPromptHandler {
                         requestId, { ...payload, backend }, result.prompt, result.description);
                     void ui.requestPassword(passwordRequest).then((password) => {
                         if (password !== undefined) {
+                            const onPasswordAccepted = payload?.onPasswordAccepted;
+                            if (typeof onPasswordAccepted === "function") {
+                                onPasswordAccepted(password, passwordRequest);
+                            }
+
                             void backend.sendReply(requestId, ShellPromptResponseType.Ok, password);
                         } else {
                             void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "");

@@ -24,16 +24,21 @@
  */
 
 import { Component, ComponentChild, createRef } from "preact";
+import { lazy, Suspense } from "preact/compat";
 
 import { ICodeEditorModel, type IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import { appParameters } from "../../supplement/AppParameters.js";
+import {
+    type DesktopCommandId, desktopCommandRegistry, type IDesktopCommandDescriptor, type IDesktopCommandProvider,
+} from "../../supplement/DesktopCommandRegistry.js";
+import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import {
     IConnectionInfo, IJdvEditRequest,
     IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
-    IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData,
+    IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData, type IOpenFileDialogResult,
 } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import {
@@ -43,6 +48,7 @@ import { ConnectionBrowser } from "./ConnectionBrowser.js";
 import {
     ConnectionTab, IOpenDocumentState, ISelectItemDetails, type IConnectionPresentationState,
 } from "./ConnectionTab.js";
+import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import {
     DocumentContext, ISavedGraphData, IToolbarItems, type ISideBarCommandResult, type QualifiedName,
 } from "./index.js";
@@ -55,41 +61,48 @@ import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { ComponentPlacement } from "../../components/ui/Component/ComponentBase.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
-import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
+import { Dropdown, DropdownVariant } from "../../components/ui/Dropdown/Dropdown.js";
+import { Codicon } from "../../components/ui/Codicon.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
-import { Image } from "../../components/ui/Image/Image.js";
 import { defaultEditorOptions } from "../../components/ui/index.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
+import { SplitButton } from "../../components/ui/SplitButton/SplitButton.js";
 import { ITabviewPage, TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
+import type { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
+import { LoadingState } from "../../script-execution/index.js";
 import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
-    convertErrorToString, getConnectionInfoFromDetails, loadFileAsText, selectFileInBrowser, uuid,
+    convertErrorToString, getConnectionInfoFromDetails, isShellPromptResult, loadFileAsText, selectFileInBrowser, uuid,
 } from "../../utilities/helpers.js";
+import { formatTime } from "../../utilities/string-helpers.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
 import {
     DialogResponseClosure, IDialogRequest, type ISqlUpdateResult, type Mutable,
 } from "../../app-logic/general-types.js";
-import { Container, Orientation } from "../../components/ui/Container/Container.js";
-import { SplitContainer, type ISplitterPane } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import {
+    SplitContainer, type ISplitterPane, type ISplitterPaneSizeInfo,
+} from "../../components/ui/SplitContainer/SplitContainer.js";
 import scriptingRuntime from "../../typings/scripting-runtime.d.ts?raw";
 import {
-    DocumentSideBar, documentTypeToFileIcon, pageTypeToDocumentIcon, type IDocumentSideBarSectionState,
+    DocumentSideBar, type DocumentSideBarMode, type IDocumentSideBarSectionState,
 } from "./DocumentSideBar/DocumentSideBar.js";
 
 import { ui } from "../../app-logic/UILayer.js";
 import {
     CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
+    type ICdmConnectionGroupEntry,
 } from "../../data-models/ConnectionDataModel.js";
-import type { Command } from "../../data-models/data-model-types.js";
+import type { AdminPageType, Command } from "../../data-models/data-model-types.js";
 import {
     OciDataModel, type IOciDmBastion, type IOciDmCompartment, type IOciDmComputeInstance, type IOciDmDbSystem,
     type IOciDmProfile, type OciDataModelEntry,
@@ -114,13 +127,18 @@ import { JdvHub } from "../jdv/JdvHub.js";
 import type { IShellEditorModel } from "../shell/index.js";
 import { ShellTab, type IShellTabPersistentState } from "../shell/ShellTab.js";
 import { ConnectionDataModelListener } from "./ConnectionDataModelListener.js";
+import type { IDesktopRunState } from "./DocumentToolbar.js";
 import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./DiagramDesigner/SchemaDiagramDesigner.js";
 import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
-import { resolveNewSqlScript } from "../../utilities/mysql-helpers.js"
-import { isShellPromptResult } from "../../utilities/helpers.js"
+import { resolveNewSqlScript } from "../../utilities/mysql-helpers.js";
+
+const CommunicationDebugger = lazy(async () => {
+    return import("../../components/CommunicationDebugger/CommunicationDebugger.js");
+});
+
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
  * page details.
@@ -152,6 +170,9 @@ export interface IDocumentTab {
 
     /** The editor state. */
     savedState: IEditorPersistentState;
+
+    /** The editor model version that was current when the document was last saved. */
+    currentVersion: number;
 }
 
 /**
@@ -175,6 +196,77 @@ export interface ISchemaDiagramTab {
     savedState: ISchemaDiagramPersistentState;
 }
 
+type WorkspaceKind = "home" | "general" | "connection" | "debugger";
+type WorkspacePageKind = "overview" | "connection" | "connectionDocument" | "document" | "diagram" | "shell"
+    | "debugger";
+
+interface IWorkspaceBase {
+    id: string;
+    kind: WorkspaceKind;
+    caption: string;
+    pageIds: string[];
+}
+
+interface IHomeWorkspace extends IWorkspaceBase {
+    kind: "home";
+}
+
+interface IGeneralWorkspace extends IWorkspaceBase {
+    kind: "general";
+}
+
+interface IConnectionWorkspace extends IWorkspaceBase {
+    kind: "connection";
+    connectionId: number;
+    connectionTab?: IConnectionTab;
+    connectionDetails?: IConnectionDetails;
+}
+
+interface IDebuggerWorkspace extends IWorkspaceBase {
+    kind: "debugger";
+}
+
+type Workspace = IHomeWorkspace | IGeneralWorkspace | IConnectionWorkspace | IDebuggerWorkspace;
+
+interface IWorkspaceTabPage extends ITabviewPage {
+    workspaceId: string;
+    pageKind: WorkspacePageKind;
+    connectionId?: number;
+}
+
+interface IConnectionDocumentLocation {
+    tab: IConnectionTab;
+    connectionState: IConnectionPresentationState;
+    documentState: IOpenDocumentState;
+}
+
+const homeWorkspaceId = "__workspace_home__";
+const generalWorkspaceId = "__workspace_general__";
+const debuggerWorkspaceId = "__workspace_debugger__";
+const debuggerWorkspacePageId = "__workspace_debugger_page__";
+
+const databaseAdministrationCommands: Array<{
+    pageType: AdminPageType;
+    id: DesktopCommandId;
+    label: string;
+}> = [{
+    pageType: "serverStatus",
+    id: "database.admin.serverStatus",
+    label: "Server Status",
+}, {
+    pageType: "clientConnections",
+    id: "database.admin.clientConnections",
+    label: "Client Connections",
+}, {
+    pageType: "performanceDashboard",
+    id: "database.admin.performanceDashboard",
+    label: "Performance Dashboard",
+}, {
+    pageType: "lakehouseNavigator",
+    id: "database.admin.lakehouseNavigator",
+    label: "Lakehouse Navigator",
+}];
+
 export interface IDocumentModuleState {
     /** All currently open connection tabs. */
     connectionTabs: IConnectionTab[];
@@ -196,6 +288,12 @@ export interface IDocumentModuleState {
     /** The unique id of the active page. */
     selectedPage: string;
 
+    /** The id of the selected top-level workspace in Electron desktop mode. */
+    selectedWorkspace: string;
+
+    /** True while the Communication Debugger workspace is visible in Electron desktop mode. */
+    debuggerWorkspaceVisible?: boolean;
+
     /** Set when we need to restore a page selection that was temporarily disabled. */
     lastSelectedPage?: string;
 
@@ -204,6 +302,8 @@ export interface IDocumentModuleState {
 
     /** Progress indicator support. */
     loading: boolean;
+
+    desktopStoppingWorkspaces: string[];
 
     progressMessage: string;
 
@@ -218,6 +318,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private connectionsDataModel: ConnectionDataModel;
 
     private latestPagesByConnection = new Map<number, string>();
+    private latestAdministrationPagesByConnection = new Map<number, string>();
+    private serviceOnlyConnectionPages = new Set<string>();
+    private latestPagesByWorkspace = new Map<string, string>();
     private maxConnectionDocumentSuffix = new Map<number, number>();
 
     // For unique naming of editors.
@@ -230,10 +333,18 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private containerRef = createRef<HTMLDivElement>();
     private actionMenuRef = createRef<Menu>();
+    private desktopTitlebarAddMenuRef = createRef<Menu>();
+    private workspaceSelectorRef = createRef<Dropdown>();
     private mrsHubRef = createRef<MrsHub>();
     private jdvHubRef = createRef<JdvHub>();
     private currentTabRef = createRef<ConnectionTab>();
+    private sideBarRef = createRef<DocumentSideBar>();
+    private connectionTabRefs = new Map<string, ConnectionTab>();
     private createLibraryDialogRef = createRef<CreateLibraryDialog>();
+    private sidebarWidth = 250;
+    private desktopStatusTimer?: ReturnType<typeof setInterval>;
+    private desktopWorkspaceRunStartTimes = new Map<string, number>();
+    private pendingVersionCommentLookups = new WeakSet<ICdmConnectionEntry>();
 
     private documentDataModel: OpenDocumentDataModel;
     private ociDataModel: OciDataModel;
@@ -242,6 +353,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private dataModelListener: ConnectionDataModelListener;
 
     private sidebarCommandHandler: SidebarCommandHandler;
+    private desktopCommandProvider: IDesktopCommandProvider;
 
     private autoLogoutTimer?: ReturnType<typeof setTimeout>;
 
@@ -273,9 +385,15 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         this.sidebarCommandHandler = new SidebarCommandHandler(
             this.connectionsDataModel, this.mrsHubRef, this.createLibraryDialogRef, this.jdvHubRef);
+        this.desktopCommandProvider = {
+            getCommands: this.getDesktopCommandState,
+            execute: this.executeDesktopCommand,
+        };
 
         this.state = {
             selectedPage: "",
+            selectedWorkspace: homeWorkspaceId,
+            debuggerWorkspaceVisible: false,
             connectionTabs: [],
             documentTabs: [],
             schemaDiagramTabs: [],
@@ -284,6 +402,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             showSidebar: !appParameters.inExtension,
             showTabs: !appParameters.inExtension,
             loading: true,
+            desktopStoppingWorkspaces: [],
             progressMessage: "",
             overviewId: this.documentDataModel.overview.id,
         };
@@ -309,6 +428,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     }
 
     public override componentDidMount(): void {
+        desktopCommandRegistry.registerProvider(this.desktopCommandProvider);
         requisitions.register("showPage", this.showPage);
         requisitions.register("openDocument", this.handleOpenDocument);
         requisitions.register("openConnectionTab", this.openConnectionTab);
@@ -320,6 +440,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("createNewEditor", this.createNewEditor);
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
+        requisitions.register("desktopWindowCloseRequested", this.handleDesktopWindowCloseRequested);
+        requisitions.register("selectFile", this.selectFile);
 
         requisitions.register("connectionAdded", this.dataModelListener.handleConnectionAdded);
         requisitions.register("connectionUpdated", this.dataModelListener.handleConnectionUpdated);
@@ -353,11 +475,19 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 window.addEventListener(evt, this.restartAutoLogoutTimer, true);
             });
         }
+
+        this.syncDesktopStatusTimer();
+        this.syncDesktopDirtyState();
+        void this.ensureActiveWorkspaceVersionComment();
     }
 
     public override componentWillUnmount(): void {
         clearTimeout(this.autoLogoutTimer);
         this.autoLogoutTimer = undefined;
+        this.stopDesktopStatusTimer();
+        this.desktopWorkspaceRunStartTimes.clear();
+
+        desktopCommandRegistry.unregisterProvider(this.desktopCommandProvider);
 
         if (webSession.runMode === RunMode.SingleServer) {
             ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
@@ -380,6 +510,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("createNewEditor", this.createNewEditor);
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
+        requisitions.unregister("desktopWindowCloseRequested", this.handleDesktopWindowCloseRequested);
+        requisitions.unregister("selectFile", this.selectFile);
 
         requisitions.unregister("connectionAdded", this.dataModelListener.handleConnectionAdded);
         requisitions.unregister("connectionUpdated", this.dataModelListener.handleConnectionUpdated);
@@ -403,29 +535,847 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("showJdvObjectDialog", this.showJdvObjectDialog);
     }
 
+    public override componentDidUpdate(_previousProps: {}, previousState: IDocumentModuleState): void {
+        if (previousState.selectedPage !== this.state.selectedPage) {
+            this.rememberWorkspaceSelection(this.state.selectedPage);
+        }
+
+        if (previousState.selectedPage !== this.state.selectedPage
+            || previousState.selectedWorkspace !== this.state.selectedWorkspace
+            || previousState.connectionTabs !== this.state.connectionTabs
+            || previousState.desktopStoppingWorkspaces !== this.state.desktopStoppingWorkspaces
+            || previousState.debuggerWorkspaceVisible !== this.state.debuggerWorkspaceVisible
+            || previousState.loading !== this.state.loading) {
+            desktopCommandRegistry.notifyHostStateChanged();
+        }
+
+        this.syncDesktopWorkspaceStoppingState();
+        this.syncDesktopStatusTimer();
+
+        if (previousState.selectedPage !== this.state.selectedPage
+            || previousState.selectedWorkspace !== this.state.selectedWorkspace
+            || previousState.connectionTabs !== this.state.connectionTabs
+            || previousState.loading !== this.state.loading) {
+            void this.ensureActiveWorkspaceVersionComment();
+        }
+
+        this.syncDesktopDirtyState();
+    }
+
+    private isElectronWorkspaceLayout = (): boolean => {
+        return hasElectronHostBridge() && !appParameters.inExtension;
+    };
+
+    private stopDesktopStatusTimer = (): void => {
+        if (this.desktopStatusTimer) {
+            clearInterval(this.desktopStatusTimer);
+            this.desktopStatusTimer = undefined;
+        }
+    };
+
+    private syncDesktopDirtyState = (): void => {
+        if (!hasElectronHostBridge()) {
+            return;
+        }
+
+        window.electronHost?.postMessage({
+            source: "app",
+            command: "desktopWindowDirtyStateChanged",
+            data: {
+                dirty: this.hasUnsavedDocuments(),
+            },
+        });
+    };
+
+    private isDesktopWorkspaceBusy = (
+        workspaceId = this.getResolvedSelectedWorkspaceId(),
+        executionContext = this.getActiveDesktopExecutionContext(),
+    ): boolean => {
+        return this.isDesktopWorkspaceStopping(workspaceId) || executionContext?.desktopRunState?.canStop === true;
+    };
+
+    private syncDesktopStatusTimer = (): void => {
+        if (!this.isElectronWorkspaceLayout() || !this.isDesktopWorkspaceBusy()) {
+            this.stopDesktopStatusTimer();
+
+            return;
+        }
+
+        if (!this.desktopStatusTimer) {
+            this.desktopStatusTimer = setInterval(() => {
+                if (!this.isDesktopWorkspaceBusy()) {
+                    this.stopDesktopStatusTimer();
+
+                    return;
+                }
+
+                this.forceUpdate();
+            }, 1000);
+        }
+    };
+
+    private getDesktopStatusTimerCaption = (workspaceId: string, isBusy: boolean): string | undefined => {
+        if (!isBusy) {
+            this.desktopWorkspaceRunStartTimes.delete(workspaceId);
+
+            return undefined;
+        }
+
+        let startTime = this.desktopWorkspaceRunStartTimes.get(workspaceId);
+        if (startTime === undefined) {
+            startTime = Date.now();
+            this.desktopWorkspaceRunStartTimes.set(workspaceId, startTime);
+        }
+
+        return formatTime(Math.round((Date.now() - startTime) / 1000));
+    };
+
+    private getConnectionWorkspaceId = (connectionId: number): string => {
+        return `connection:${connectionId}`;
+    };
+
+    private isDesktopWorkspaceStopping = (workspaceId?: string): boolean => {
+        return workspaceId !== undefined && this.state.desktopStoppingWorkspaces.includes(workspaceId);
+    };
+
+    private setDesktopWorkspaceStopping = (workspaceId: string | undefined, stopping: boolean): void => {
+        if (!workspaceId || !this.isElectronWorkspaceLayout()) {
+            return;
+        }
+
+        const isStopping = this.state.desktopStoppingWorkspaces.includes(workspaceId);
+        if (isStopping === stopping) {
+            return;
+        }
+
+        this.setState((previousState) => {
+            const desktopStoppingWorkspaces = stopping
+                ? [...previousState.desktopStoppingWorkspaces, workspaceId]
+                : previousState.desktopStoppingWorkspaces.filter((entry) => {
+                    return entry !== workspaceId;
+                });
+
+            return { desktopStoppingWorkspaces };
+        });
+    };
+
+    private syncDesktopWorkspaceStoppingState = (
+        workspaceId = this.getResolvedSelectedWorkspaceId(),
+        executionContext = this.getActiveDesktopExecutionContext(),
+    ): void => {
+        if (!workspaceId || !this.isDesktopWorkspaceStopping(workspaceId)) {
+            return;
+        }
+
+        if (executionContext?.desktopRunState?.canStop === true) {
+            return;
+        }
+
+        this.setDesktopWorkspaceStopping(workspaceId, false);
+    };
+
+    private getActiveEditorExecutionContext = (activeDocumentState?: IOpenDocumentState): ExecutionContext | undefined => {
+        const executionContexts = activeDocumentState?.state?.model.executionContexts;
+        if (!executionContexts) {
+            return undefined;
+        }
+
+        return executionContexts.contextFromPosition(executionContexts.cursorPosition);
+    };
+
+    private getDesktopFlag = (value: unknown, fallback = false): boolean => {
+        return value === undefined ? fallback : value === true || value === 1;
+    };
+
+    private canCurrentTabClose = async (): Promise<boolean> => {
+        return typeof this.currentTabRef.current?.canClose === "function"
+            ? await this.currentTabRef.current.canClose()
+            : true;
+    };
+
+    private getEffectiveDesktopRunState = (
+        activeDocumentState?: IOpenDocumentState,
+        fallbackRunState?: IDesktopRunState,
+        workspaceId = this.getResolvedSelectedWorkspaceId(),
+    ): IDesktopRunState | undefined => {
+        const activeEditorExecutionContext = this.getActiveEditorExecutionContext(activeDocumentState);
+        const desktopRunState = activeEditorExecutionContext
+            ? {
+                canExecute: activeEditorExecutionContext.loadingState === LoadingState.Idle,
+                canExecuteSubparts: activeEditorExecutionContext.isSQLLike,
+                canStop: activeEditorExecutionContext.loadingState !== LoadingState.Idle,
+                autoCommit: fallbackRunState?.autoCommit ?? true,
+                transactionOpen: fallbackRunState?.transactionOpen ?? false,
+                stopOnErrors: fallbackRunState?.stopOnErrors ?? Settings.get("editor.stopOnErrors", true),
+            }
+            : fallbackRunState;
+
+        if (!desktopRunState) {
+            return undefined;
+        }
+
+        const normalizedRunState = {
+            ...desktopRunState,
+            autoCommit: this.getDesktopFlag(desktopRunState.autoCommit, true),
+            transactionOpen: this.getDesktopFlag(desktopRunState.transactionOpen),
+        };
+
+        if (this.isDesktopWorkspaceStopping(workspaceId)) {
+            return {
+                ...normalizedRunState,
+                canExecute: false,
+                canStop: false,
+            };
+        }
+
+        return normalizedRunState;
+    };
+
+    private rememberWorkspaceSelection = (pageId: string | undefined, state: IDocumentModuleState = this.state): void => {
+        const workspaceId = this.getWorkspaceIdForPageId(pageId, state);
+        if (pageId && workspaceId) {
+            this.latestPagesByWorkspace.set(workspaceId, pageId);
+        }
+    };
+
+    private getWorkspaces = (state: IDocumentModuleState = this.state): Workspace[] => {
+        const workspaces: Workspace[] = [
+            {
+                id: homeWorkspaceId,
+                kind: "home",
+                caption: "Home",
+                pageIds: [this.documentDataModel.overview.id],
+            },
+        ];
+
+        const generalPageIds = state.documentTabs.map((info) => {
+            return info.dataModelEntry.id;
+        });
+        state.schemaDiagramTabs.forEach((info) => {
+            if (!info.dataModelEntry.connection?.id) {
+                generalPageIds.push(info.dataModelEntry.id);
+            }
+        });
+        state.shellSessionTabs.forEach((info) => {
+            if (!info.dataModelEntry.details.dbConnectionId) {
+                generalPageIds.push(info.dataModelEntry.id);
+            }
+        });
+
+        if (generalPageIds.length > 0) {
+            workspaces.push({
+                id: generalWorkspaceId,
+                kind: "general",
+                caption: "General",
+                pageIds: generalPageIds,
+            });
+        }
+
+        if (state.debuggerWorkspaceVisible === true) {
+            workspaces.push({
+                id: debuggerWorkspaceId,
+                kind: "debugger",
+                caption: "Communication Debugger",
+                pageIds: [debuggerWorkspacePageId],
+            });
+        }
+
+        const connectionWorkspaces = new Map<number, IConnectionWorkspace>();
+        const addConnectionWorkspace = (connectionId: number, pageId: string, caption: string,
+            connectionDetails?: IConnectionDetails, connectionTab?: IConnectionTab): void => {
+            let workspace = connectionWorkspaces.get(connectionId);
+            if (!workspace) {
+                workspace = {
+                    id: this.getConnectionWorkspaceId(connectionId),
+                    kind: "connection",
+                    caption,
+                    connectionId,
+                    connectionTab,
+                    connectionDetails,
+                    pageIds: [],
+                };
+                connectionWorkspaces.set(connectionId, workspace);
+                workspaces.push(workspace);
+            } else {
+                const shouldRefreshCaption = (workspace.connectionTab === undefined && connectionTab !== undefined)
+                    || (workspace.connectionDetails === undefined && connectionDetails !== undefined)
+                    || workspace.caption.startsWith("Connection ");
+                workspace.connectionTab ??= connectionTab;
+                workspace.connectionDetails ??= connectionDetails;
+                if (shouldRefreshCaption && caption.length > 0) {
+                    workspace.caption = caption;
+                }
+            }
+
+            if (!workspace.pageIds.includes(pageId)) {
+                workspace.pageIds.push(pageId);
+            }
+        };
+
+        state.connectionTabs.forEach((info) => {
+            addConnectionWorkspace(
+                info.connection.details.id,
+                info.dataModelEntry.id,
+                info.connection.details.caption,
+                info.connection.details,
+                info,
+            );
+        });
+
+        state.schemaDiagramTabs.forEach((info) => {
+            const connectionDetails = info.dataModelEntry.connection;
+            if (connectionDetails) {
+                addConnectionWorkspace(
+                    connectionDetails.id,
+                    info.dataModelEntry.id,
+                    connectionDetails.caption,
+                    connectionDetails,
+                );
+            }
+        });
+
+        state.shellSessionTabs.forEach((info) => {
+            const connectionId = info.dataModelEntry.details.dbConnectionId;
+            if (!connectionId) {
+                return;
+            }
+
+            const caption = info.dataModelEntry.caption.replace(/^Session to /, "") || `Connection ${connectionId}`;
+            addConnectionWorkspace(connectionId, info.dataModelEntry.id, caption);
+        });
+
+        return workspaces;
+    };
+
+    private getWorkspaceById = (
+        workspaceId: string | undefined,
+        state: IDocumentModuleState = this.state,
+        workspaces: Workspace[] = this.getWorkspaces(state),
+    ): Workspace | undefined => {
+        if (!workspaceId) {
+            return undefined;
+        }
+
+        return workspaces.find((workspace) => {
+            return workspace.id === workspaceId;
+        });
+    };
+
+    private getWorkspaceForPageId = (
+        pageId: string | undefined,
+        state: IDocumentModuleState = this.state,
+        workspaces: Workspace[] = this.getWorkspaces(state),
+    ): Workspace | undefined => {
+        if (!pageId) {
+            return undefined;
+        }
+
+        return workspaces.find((workspace) => {
+            return workspace.pageIds.includes(pageId);
+        });
+    };
+
+    private getWorkspaceIdForPageId = (pageId: string | undefined, state: IDocumentModuleState = this.state):
+        string | undefined => {
+        return this.getWorkspaceForPageId(pageId, state)?.id;
+    };
+
+    private getWorkspacePageIds = (
+        workspaceId: string,
+        state: IDocumentModuleState = this.state,
+        workspaces: Workspace[] = this.getWorkspaces(state),
+    ): string[] => {
+        return this.getWorkspaceById(workspaceId, state, workspaces)?.pageIds ?? [];
+    };
+
+    private getResolvedSelectedWorkspace = (
+        state: IDocumentModuleState = this.state,
+        workspaces: Workspace[] = this.getWorkspaces(state),
+    ): Workspace => {
+        const pageWorkspace = this.getWorkspaceForPageId(state.selectedPage, state, workspaces);
+        if (!this.isElectronWorkspaceLayout()) {
+            return pageWorkspace ?? workspaces[0]!;
+        }
+
+        if (pageWorkspace && pageWorkspace.kind !== "home" && pageWorkspace.id !== state.selectedWorkspace) {
+            return pageWorkspace;
+        }
+
+        return this.getWorkspaceById(state.selectedWorkspace, state, workspaces) ?? pageWorkspace ?? workspaces[0]!;
+    };
+
+    private getResolvedSelectedWorkspaceId = (
+        state: IDocumentModuleState = this.state,
+        workspaces: Workspace[] = this.getWorkspaces(state),
+    ): string => {
+        return this.getResolvedSelectedWorkspace(state, workspaces).id;
+    };
+
+    private getVisiblePageIdForWorkspace = (workspaceId: string, state: IDocumentModuleState = this.state):
+        string | undefined => {
+        const workspace = this.getWorkspaceById(workspaceId, state);
+        if (!workspace) {
+            return undefined;
+        }
+
+        if (workspace.kind === "home") {
+            return this.documentDataModel.overview.id;
+        }
+
+        const { pageIds } = workspace;
+        if (pageIds.length === 0) {
+            return undefined;
+        }
+
+        if (pageIds.includes(state.selectedPage)) {
+            return state.selectedPage;
+        }
+
+        const rememberedPageId = this.latestPagesByWorkspace.get(workspaceId);
+        if (rememberedPageId && pageIds.includes(rememberedPageId)) {
+            return rememberedPageId;
+        }
+
+        if (workspace.kind === "connection") {
+            const latestConnectionPageId = this.latestPagesByConnection.get(workspace.connectionId);
+            if (latestConnectionPageId && pageIds.includes(latestConnectionPageId)) {
+                return latestConnectionPageId;
+            }
+
+            if (workspace.connectionTab) {
+                return workspace.connectionTab.dataModelEntry.id;
+            }
+        }
+
+        return pageIds[pageIds.length - 1];
+    };
+
+    private getVisiblePageId = (state: IDocumentModuleState = this.state): string | undefined => {
+        if (!this.isElectronWorkspaceLayout()) {
+            return state.selectedPage || undefined;
+        }
+
+        const workspaceId = this.getResolvedSelectedWorkspaceId(state);
+
+        return this.getVisiblePageIdForWorkspace(workspaceId, state);
+    };
+
+    private getWorkspaceConnectionDetails = (workspace?: Workspace): IConnectionDetails | undefined => {
+        return workspace?.kind === "connection"
+            ? workspace.connectionTab?.connection.details ?? workspace.connectionDetails
+            : undefined;
+    };
+
+    private getDocumentSidebarMode = (workspace?: Workspace): DocumentSideBarMode => {
+        if (!this.isElectronWorkspaceLayout() || !workspace) {
+            return "classic";
+        }
+
+        switch (workspace.kind) {
+            case "home": {
+                return "electronHome";
+            }
+
+            case "general": {
+                return "electronGeneral";
+            }
+
+            case "debugger": {
+                return "electronGeneral";
+            }
+
+            case "connection": {
+                return "electronConnection";
+            }
+        }
+    };
+
+    private getClosablePageId = (state: IDocumentModuleState = this.state): string | undefined => {
+        const pageId = this.getVisiblePageId(state);
+
+        return pageId && pageId !== this.documentDataModel.overview.id ? pageId : undefined;
+    };
+
+    private getClosableDocumentId = (state: IDocumentModuleState = this.state): string | undefined => {
+        const pageId = this.getVisiblePageId(state);
+        if (!pageId || pageId === this.documentDataModel.overview.id) {
+            return undefined;
+        }
+
+        const connectionTab = state.connectionTabs.find((candidate) => {
+            return candidate.dataModelEntry.id === pageId;
+        });
+        if (!connectionTab) {
+            return pageId;
+        }
+
+        const connectionState = this.connectionPresentation.get(connectionTab.dataModelEntry);
+
+        return connectionState?.activeEntry ?? connectionState?.documentStates[0]?.document.id;
+    };
+
+    private openConsoleForCurrentWorkspace = async (): Promise<void> => {
+        const workspace = this.getResolvedSelectedWorkspace();
+        const connectionId = workspace.kind === "connection" ? workspace.connectionId : undefined;
+        const caption = workspace.caption;
+
+        await this.activateShellTab(uuid(), connectionId, connectionId !== undefined ? caption : undefined);
+    };
+
+    private getActiveConnectionTab = (state: IDocumentModuleState = this.state): IConnectionTab | undefined => {
+        const visiblePageId = this.getVisiblePageId(state);
+        const selectedConnectionTab = state.connectionTabs.find((candidate) => {
+            return candidate.dataModelEntry.id === visiblePageId;
+        });
+        if (selectedConnectionTab) {
+            return selectedConnectionTab;
+        }
+
+        const workspace = this.getResolvedSelectedWorkspace(state);
+        if (workspace.kind !== "connection") {
+            return undefined;
+        }
+
+        const latestConnectionPageId = this.latestPagesByConnection.get(workspace.connectionId);
+
+        return state.connectionTabs.find((candidate) => {
+            return candidate.dataModelEntry.id === latestConnectionPageId
+                && candidate.connection.details.id === workspace.connectionId;
+        }) ?? state.connectionTabs.find((candidate) => {
+            return candidate.connection.details.id === workspace.connectionId;
+        });
+    };
+
+    private getActiveWorkspaceConnectionEntry = (
+        state: IDocumentModuleState = this.state,
+    ): ICdmConnectionEntry | undefined => {
+        const activeConnectionTab = this.getActiveConnectionTab(state);
+        if (activeConnectionTab) {
+            return activeConnectionTab.connection;
+        }
+
+        const workspace = this.getResolvedSelectedWorkspace(state);
+        if (workspace.kind !== "connection") {
+            return undefined;
+        }
+
+        const findConnection = (
+            entries: ReadonlyArray<ICdmConnectionEntry | ICdmConnectionGroupEntry>,
+        ): ICdmConnectionEntry | undefined => {
+            for (const entry of entries) {
+                if (entry.type === CdmEntityType.ConnectionGroup) {
+                    const match = findConnection(entry.entries);
+                    if (match) {
+                        return match;
+                    }
+                } else if (entry.details.id === workspace.connectionId) {
+                    return entry;
+                }
+            }
+
+            return undefined;
+        };
+
+        return findConnection(this.connectionsDataModel.roots);
+    };
+
+    private handleConnectionTabRef = (pageId: string, tab: ConnectionTab | null): void => {
+        if (tab) {
+            this.connectionTabRefs.set(pageId, tab);
+        } else {
+            this.connectionTabRefs.delete(pageId);
+        }
+
+        if (this.state.selectedPage === pageId) {
+            this.currentTabRef.current = tab;
+        } else if (!tab && this.currentTabRef.current?.props?.id === pageId) {
+            this.currentTabRef.current = null;
+        }
+    };
+
+    private getSelectedConnectionTabRef = (state: IDocumentModuleState = this.state): ConnectionTab | null => {
+        const selectedConnectionTab = state.connectionTabs.find((candidate) => {
+            return candidate.dataModelEntry.id === state.selectedPage;
+        });
+
+        if (!selectedConnectionTab) {
+            return null;
+        }
+
+        const selectedPageId = selectedConnectionTab.dataModelEntry.id;
+        const currentTab = this.currentTabRef.current;
+
+        return this.connectionTabRefs.get(selectedPageId)
+            ?? (currentTab && (!currentTab.props || currentTab.props.id === selectedPageId) ? currentTab : null);
+    };
+
+    private findConnectionDocumentLocation = (
+        documentId: string,
+        state: IDocumentModuleState = this.state,
+    ): IConnectionDocumentLocation | undefined => {
+        for (const tab of state.connectionTabs) {
+            const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
+            if (!connectionState) {
+                continue;
+            }
+
+            const documentState = connectionState.documentStates.find((entry) => {
+                return entry.document.id === documentId;
+            });
+            if (documentState) {
+                return {
+                    tab,
+                    connectionState,
+                    documentState,
+                };
+            }
+        }
+
+        return undefined;
+    };
+
+    private buildConnectionWorkspacePages = (
+        page: IWorkspaceTabPage,
+        info: IConnectionTab,
+        connectionState: IConnectionPresentationState,
+    ): IWorkspaceTabPage[] => {
+        if (connectionState.documentStates.length === 0) {
+            return [page];
+        }
+
+        return connectionState.documentStates.map((documentState) => {
+            const pageCaption = this.getWorkspaceDocumentPageCaption(info, connectionState, documentState);
+            const tooltip = `${getOpenDocumentDisplayCaption(documentState, {
+                connectionCaption: info.connection.details.caption,
+                pageCaption,
+            })} - ${info.connection.details.caption}`;
+
+            return {
+                ...page,
+                id: documentState.document.id,
+                icon: this.getConnectionTabIcon(documentState),
+                caption: this.getConnectionTabCaption(
+                    documentState,
+                    info.connection.details.caption,
+                    pageCaption,
+                ),
+                tooltip,
+                auxiliary: (
+                    <Button
+                        id={documentState.document.id}
+                        className={this.getTabCloseButtonClassName(documentState)}
+                        round={true}
+                        onClick={this.handleCloseTab}
+                    >
+                        {this.renderTabCloseButtonContent(documentState)}
+                    </Button>
+                ),
+                pageKind: "connectionDocument",
+            };
+        });
+    };
+
+    private getWorkspaceDocumentPageCaption = (
+        info: IConnectionTab,
+        connectionState: IConnectionPresentationState,
+        documentState: IOpenDocumentState,
+    ): string => {
+        const connectionCaption = info.connection.details.caption;
+        const pageOffset = getUntitledFileIndex(connectionCaption, info.dataModelEntry.caption);
+        const documentIndex = connectionState.documentStates.findIndex((entry) => {
+            return entry.document.id === documentState.document.id;
+        });
+        const captionIndex = Math.max(pageOffset + Math.max(documentIndex, 0), 0);
+
+        return captionIndex === 0
+            ? connectionCaption
+            : `${connectionCaption} (${captionIndex + 1})`;
+    };
+
+    private formatConnectionWorkspaceTarget = (details: IConnectionDetails): string | undefined => {
+        if (details.dbType === DBType.MySQL) {
+            const options = details.options as IMySQLConnectionOptions;
+            const host = options.host;
+            const user = options.user;
+            const port = options.socket ? undefined : options.port;
+            const hostAndPort = host && Number.isFinite(port) ? `${host}:${port}` : host;
+
+            if (user && hostAndPort) {
+                return `${user}@${hostAndPort}`;
+            }
+
+            return user ?? hostAndPort;
+        }
+
+        return details.caption;
+    };
+
+    private formatConnectionWorkspaceVersion = (details: IConnectionDetails): string | undefined => {
+        const versionComment = details.versionComment?.trim();
+        if (details.version === undefined || !Number.isFinite(details.version)) {
+            if (details.dbType === DBType.MySQL && versionComment) {
+                return versionComment;
+            }
+
+            return undefined;
+        }
+
+        const major = Math.floor(details.version / 10000);
+        const minor = Math.floor(details.version / 100) % 100;
+        const patch = details.version % 100;
+        const version = `${major}.${minor}.${patch}`;
+
+        if (details.dbType === DBType.MySQL && versionComment) {
+            return versionComment === "MySQL"
+                ? `${versionComment} ${version}`
+                : `${versionComment} (${version})`;
+        }
+
+        const prefix = details.dbType === DBType.Sqlite ? "SQLite" : "MySQL";
+
+        return `${prefix} ${version}`;
+    };
+
+    private formatConnectionWorkspaceStatus = (connectionTab?: IConnectionTab, isExecuting = false): string | undefined => {
+        if (!connectionTab) {
+            return undefined;
+        }
+
+        if (connectionTab.connection.isOpen === false) {
+            return "Disconnected";
+        }
+
+        if (isExecuting) {
+            return "Executing SQL";
+        }
+
+        return "Connected";
+    };
+
+    private ensureActiveWorkspaceVersionComment = async (): Promise<void> => {
+        if (!this.isElectronWorkspaceLayout() || this.state.loading) {
+            return;
+        }
+
+        const connection = this.getActiveConnectionTab()?.connection;
+        const details = connection?.details;
+        if (!connection || !details || details.dbType !== DBType.MySQL || !connection.isOpen
+            || details.versionComment?.trim()) {
+            return;
+        }
+
+        if (this.pendingVersionCommentLookups.has(connection)
+            || typeof connection.backend?.executeService !== "function") {
+            return;
+        }
+
+        this.pendingVersionCommentLookups.add(connection);
+
+        try {
+            const result = await connection.backend.executeService("SELECT @@version_comment");
+            const firstRow = result?.rows?.[0];
+            const versionCommentValue = Array.isArray(firstRow) ? firstRow[0] : undefined;
+            const versionComment = String(versionCommentValue ?? "").trim();
+
+            if (!versionComment) {
+                return;
+            }
+
+            connection.details.versionComment = versionComment;
+
+            const stillOpen = this.state.connectionTabs.some((tab) => {
+                return tab.connection === connection;
+            });
+            if (stillOpen) {
+                this.forceUpdate();
+            }
+        } catch {
+            // Ignore missing version_comment fallback failures and keep the numeric version label.
+        } finally {
+            this.pendingVersionCommentLookups.delete(connection);
+        }
+    };
+
+    private activateWorkspace = async (workspaceId: string): Promise<void> => {
+        const canClose = await this.canCurrentTabClose();
+        if (!canClose) {
+            return;
+        }
+
+        if (workspaceId === homeWorkspaceId) {
+            this.setState({ selectedWorkspace: homeWorkspaceId }, this.showOverview);
+
+            return;
+        }
+
+        const visiblePageId = this.getVisiblePageIdForWorkspace(workspaceId);
+
+        if (visiblePageId) {
+            if (visiblePageId === this.state.selectedPage) {
+                this.setState({ selectedWorkspace: workspaceId });
+            } else {
+                this.setState({ selectedWorkspace: workspaceId }, () => {
+                    this.doSwitchTab(visiblePageId);
+                });
+            }
+        } else {
+            this.setState({
+                selectedWorkspace: workspaceId,
+                selectedPage: this.documentDataModel.overview.id,
+            });
+        }
+    };
+
+    private handleWorkspaceSelection = async (_accept: boolean, ids: Set<string>): Promise<void> => {
+        const workspaceId = ids.values().next().value as string | undefined;
+        if (!workspaceId) {
+            return;
+        }
+
+        await this.activateWorkspace(workspaceId);
+    };
+
+    private toggleCommunicationDebuggerWorkspace = async (): Promise<boolean> => {
+        if (!this.isElectronWorkspaceLayout() || webSession.runMode !== RunMode.LocalUser) {
+            return false;
+        }
+
+        if (this.state.debuggerWorkspaceVisible === true) {
+            const leavingDebuggerWorkspace = this.getResolvedSelectedWorkspaceId() === debuggerWorkspaceId;
+            this.setState({
+                debuggerWorkspaceVisible: false,
+                selectedWorkspace: leavingDebuggerWorkspace ? homeWorkspaceId : this.state.selectedWorkspace,
+                selectedPage: leavingDebuggerWorkspace ? this.documentDataModel.overview.id : this.state.selectedPage,
+            });
+
+            return true;
+        }
+
+        if (!await this.canCurrentTabClose()) {
+            return true;
+        }
+
+        this.setState({
+            debuggerWorkspaceVisible: true,
+            selectedWorkspace: debuggerWorkspaceId,
+            selectedPage: debuggerWorkspacePageId,
+        });
+
+        return true;
+    };
+
     public override render(): ComponentChild {
         const {
             selectedPage, connectionTabs, documentTabs, schemaDiagramTabs, shellSessionTabs, sidebarState, showSidebar,
             showTabs, loading, progressMessage,
         } = this.state;
+        const electronWorkspaceLayout = this.isElectronWorkspaceLayout();
 
         let sqlIcon = Assets.file.mysqlIcon;
         const isEmbedded = appParameters.embedded;
 
         // Generate the main toolbar items based on the current display mode.
         const toolbarItems: IToolbarItems = { navigation: [], execution: [], editor: [], auxiliary: [] };
-        const dropDownItems = [];
-
-        if (webSession.runMode !== RunMode.SingleServer) {
-            dropDownItems.push(<DropdownItem
-                id={this.documentDataModel.overview.id}
-                key={this.documentDataModel.overview.id}
-                caption="DB Connection Overview"
-                picture={<Icon src={Assets.documents.overviewPageIcon} />}
-            />);
-        }
-
-        let selectedEntry: string | undefined;
         connectionTabs.forEach((info: IConnectionTab) => {
             const page = info.dataModelEntry;
             const connectionState = this.connectionPresentation.get(page)!;
@@ -435,127 +1385,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             if (!connectionState) {
                 return;
             }
-
-            // Add one entry per connection.
-            const iconName = page.details.dbType === DBType.MySQL
-                ? Assets.db.mysqlConnectionIcon
-                : Assets.db.sqliteConnectionIcon;
-
-            dropDownItems.push(
-                <DropdownItem
-                    key={page.id}
-                    caption={info.dataModelEntry.caption}
-                    picture={<Icon src={iconName} />}
-                    payload={info.dataModelEntry}
-                />,
-            );
-
-            // After that add an entry for each open document (indented).
             connectionState.documentStates.forEach((entry) => {
-                let picture;
-                if (entry.state) {
-                    const language = entry.state.model.getLanguageId() as EditorLanguage;
-                    const iconName = documentTypeToFileIcon.get(language);
-                    if (language === "msg") {
-                        picture = <Icon src={iconName ?? Assets.file.defaultIcon} />;
-                    } else if (typeof iconName === "string" || iconName === undefined) {
-                        picture = <Image src={iconName ?? Assets.file.defaultIcon} />;
-                    }
-                } else if (entry.document.type === OdmEntityType.AdminPage) {
-                    const name = pageTypeToDocumentIcon.get((entry.document).pageType) ?? Assets.file.defaultIcon;
-                    picture = <Icon src={name} />;
-                }
-
-                dropDownItems.push((
-                    <DropdownItem
-                        page={page.id}
-                        document={entry.document}
-                        id={entry.document.id}
-                        key={entry.document.id}
-                        caption={entry.document.caption}
-                        picture={picture}
-                        style={{ marginLeft: 16 }}
-                        payload={entry.document}
-                    />
-                ));
-
                 if (selectedPage === page.id && entry.document.id === connectionState.activeEntry) {
-                    selectedEntry = entry.document.id;
-
                     if (page.details.dbType === DBType.Sqlite) {
                         sqlIcon = Assets.file.sqliteIcon;
                     }
                 }
             });
         });
-
-        documentTabs.forEach((info) => {
-            const document = info.dataModelEntry;
-            const iconName = documentTypeToFileIcon.get(document.language!) ?? Assets.file.defaultIcon;
-
-            dropDownItems.push(
-                <DropdownItem
-                    key={document.id}
-                    id={document.id}
-                    caption={info.dataModelEntry.caption}
-                    picture={<Icon src={iconName} />}
-                    payload={info.dataModelEntry}
-                />,
-            );
-        });
-
-        schemaDiagramTabs.forEach((info) => {
-            const document = info.dataModelEntry;
-            const iconName = Assets.file.defaultIcon;
-
-            dropDownItems.push(
-                <DropdownItem
-                    key={document.id}
-                    id={document.id}
-                    caption={info.dataModelEntry.caption}
-                    picture={<Icon src={iconName} />}
-                    payload={info.dataModelEntry}
-                />,
-            );
-        });
-
-        if (shellSessionTabs.length > 0) {
-            const root = shellSessionTabs[0].dataModelEntry.parent;
-            dropDownItems.push(
-                <DropdownItem
-                    key={root.id}
-                    id={root.id}
-                    caption={root.caption}
-                    picture={<Icon src={Assets.documents.sessionIcon} />}
-                />,
-            );
-
-            shellSessionTabs.forEach((info) => {
-                const document = info.dataModelEntry;
-                dropDownItems.push(
-                    <DropdownItem
-                        key={document.id}
-                        id={document.id}
-                        caption={info.dataModelEntry.caption}
-                        picture={<Icon src={Assets.documents.sessionIcon} />}
-                        style={{ marginLeft: 16 }}
-                        payload={info.dataModelEntry}
-                    />,
-                );
-            });
-        }
-
-        toolbarItems.navigation.push(
-            <Label key="mainLabel" style={{ marginRight: "8px" }}>Editor:</Label>,
-            <Dropdown
-                id="documentSelector"
-                key="selector"
-                selection={selectedEntry ?? selectedPage}
-                onSelect={this.handleDropdownSelection}
-            >
-                {dropDownItems}
-            </Dropdown>,
-        );
 
         if (selectedPage === this.documentDataModel.overview.id) {
             toolbarItems.navigation.push(
@@ -568,35 +1405,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 >
                     <Icon key="newIcon" src={Assets.toolbar.newShellConsoleIcon} data-tooltip="inherit" />
                 </Button>,
-                <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
             );
         }
 
-        const pages: ITabviewPage[] = [];
+        const pages: IWorkspaceTabPage[] = [];
+        const connectionWorkspacePages = new Map<string, IWorkspaceTabPage[]>();
 
         let actualSelection = selectedPage;
-        if (loading) {
-            const content = <>
-                <ProgressIndicator
-                    id="loadingProgressIndicator"
-                    backgroundOpacity={0.95}
-                    linear={false}
-                />
-                <Label
-                    id="progressMessageId"
-                    caption={progressMessage}
-                />
-            </>;
-
-            pages.push({
-                icon: Assets.documents.overviewPageIcon,
-                caption: "Open Connection",
-                id: "progress",
-                content,
-            });
-            actualSelection = "progress";
-
-        } else if (webSession.runMode !== RunMode.SingleServer) {
+        if (webSession.runMode !== RunMode.SingleServer) {
             // Don't render the overview, if we can only have a single connection.
             const overview = (
                 <Container
@@ -605,6 +1421,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 >
                     <ConnectionBrowser
                         toolbarItems={toolbarItems}
+                        showToolbar={!electronWorkspaceLayout}
                         onAddConnection={this.handleAddConnection}
                         onUpdateConnection={this.handleUpdateConnection}
                         onRemoveConnection={this.handleRemoveConnection}
@@ -613,14 +1430,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             );
 
             pages.push({
-                icon: Assets.documents.overviewPageIcon,
-                caption: "Connection Overview",
+                icon: Codicon.Home,
+                caption: "Connections",
                 id: this.documentDataModel.overview.id,
                 content: overview,
+                workspaceId: homeWorkspaceId,
+                pageKind: "overview",
             });
         }
-
-        let selectedDocument = this.documentDataModel.overview.id;
         connectionTabs.forEach((info: IConnectionTab) => {
             const page = info.dataModelEntry;
             const connectionState = this.connectionPresentation.get(page)!;
@@ -633,7 +1450,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             const content = (<ConnectionTab
                 id={page.id}
-                ref={page.id === actualSelection ? this.currentTabRef : undefined}
+                ref={(tab) => {
+                    this.handleConnectionTabRef(page.id, tab);
+                }}
                 caption={page.caption}
                 showAbout={!info.suppressAbout}
                 workerPool={this.workerPool}
@@ -646,30 +1465,49 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 onLoadScript={this.handleLoadScript}
                 onSelectItem={this.handleSelectItem}
                 onEditorRename={this.handleEditorRename}
+                onEditorChange={this.handleEditorChange}
                 onGraphDataChange={this.handleGraphDataChange}
                 onChatOptionsChange={this.onChatOptionsChange}
+                onDesktopRunStateChanged={this.handleDesktopRunStateChanged}
             />);
 
-            if (page.id === selectedPage) {
-                selectedDocument = connectionState.activeEntry;
-            }
+            const activeDocumentState = connectionState.documentStates.find((entry) => {
+                return entry.document.id === connectionState.activeEntry;
+            });
+            const pageCaption = activeDocumentState
+                ? this.getConnectionTabCaption(activeDocumentState, info.connection.details.caption, page.caption)
+                : page.caption;
+            const tooltip = activeDocumentState
+                ? `${getOpenDocumentDisplayCaption(activeDocumentState, {
+                    connectionCaption: info.connection.details.caption,
+                    pageCaption: page.caption,
+                })} - `
+                + info.connection.details.caption
+                : page.caption;
 
-            pages.push({
-                icon: Assets.misc.scriptingIcon,
-                caption: page.caption,
+            const pageEntry: IWorkspaceTabPage = {
+                icon: this.getConnectionTabIcon(activeDocumentState),
+                caption: pageCaption,
+                tooltip,
                 id: page.id,
                 content,
                 auxiliary: (
                     <Button
                         id={page.id}
-                        className="closeButton"
+                        className={this.getTabCloseButtonClassName(activeDocumentState)}
                         round={true}
                         onClick={this.handleCloseTab}>
-                        <Icon src={Assets.misc.close2Icon} />
+                        {this.renderTabCloseButtonContent(activeDocumentState)}
                     </Button>
                 ),
                 canClose: !appParameters.embedded,
-            });
+                workspaceId: this.getConnectionWorkspaceId(info.connection.details.id),
+                pageKind: "connection",
+                connectionId: info.connection.details.id,
+            };
+
+            pages.push(pageEntry);
+            connectionWorkspacePages.set(page.id, this.buildConnectionWorkspacePages(pageEntry, info, connectionState));
         });
 
         documentTabs.forEach((info: IDocumentTab) => {
@@ -679,12 +1517,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 id={document.id}
                 savedState={info.savedState}
                 fileName={document.caption}
+                onSave={() => {
+                    this.handleStandaloneDocumentSaved(document.id);
+                }}
                 toolbarItemsTemplate={toolbarItems}
             />);
-
-            if (document.id === selectedPage) {
-                selectedDocument = selectedPage;
-            }
 
             pages.push({
                 icon: Assets.misc.scriptingIcon,
@@ -701,6 +1538,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     </Button>
                 ),
                 canClose: !appParameters.embedded,
+                workspaceId: generalWorkspaceId,
+                pageKind: "document",
             });
         });
 
@@ -712,10 +1551,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 savedState={info.savedState}
                 dataModelEntry={info.dataModelEntry}
             />);
-
-            if (document.id === selectedPage) {
-                selectedDocument = selectedPage;
-            }
+            const connectionId = document.connection?.id;
 
             pages.push({
                 icon: Assets.file.defaultIcon,
@@ -732,6 +1568,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     </Button>
                 ),
                 canClose: !appParameters.embedded,
+                workspaceId: connectionId ? this.getConnectionWorkspaceId(connectionId) : generalWorkspaceId,
+                pageKind: "diagram",
+                connectionId,
             });
         });
 
@@ -746,10 +1585,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     void this.removeShellTab(id);
                 }}
             />);
-
-            if (document.id === selectedPage) {
-                selectedDocument = selectedPage;
-            }
+            const connectionId = document.details.dbConnectionId;
 
             pages.push({
                 icon: Assets.misc.scriptingIcon,
@@ -766,23 +1602,88 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     </Button>
                 ),
                 canClose: !appParameters.embedded,
+                workspaceId: connectionId ? this.getConnectionWorkspaceId(connectionId) : generalWorkspaceId,
+                pageKind: "shell",
+                connectionId,
             });
         });
 
+        if (electronWorkspaceLayout && this.state.debuggerWorkspaceVisible === true) {
+            pages.push({
+                icon: Codicon.Debug,
+                caption: "Communication Debugger",
+                id: debuggerWorkspacePageId,
+                content: (
+                    <Container
+                        id="communicationDebuggerWorkspacePage"
+                        orientation={Orientation.TopDown}
+                        style={{ position: "relative", flex: "1 1 auto" }}
+                    >
+                        <Container
+                            id="communicationDebuggerContentHost"
+                            orientation={Orientation.TopDown}
+                            style={{ position: "relative", flex: "1 1 auto" }}
+                        />
+                    </Container>
+                ),
+                workspaceId: debuggerWorkspaceId,
+                pageKind: "debugger",
+                canClose: false,
+            });
+        }
+
+        if (!actualSelection && pages.length > 0) {
+            actualSelection = pages[0].id;
+        }
+
+        const visiblePageId = this.getVisiblePageId();
+        const activeConnectionTab = this.getActiveConnectionTab();
+        const activeConnectionState = activeConnectionTab
+            ? this.connectionPresentation.get(activeConnectionTab.dataModelEntry)
+            : undefined;
+        const activeConnectionDocumentState = activeConnectionState?.documentStates.find((entry) => {
+            return entry.document.id === activeConnectionState.activeEntry;
+        }) ?? activeConnectionState?.documentStates[0];
+        const selectedDocument = visiblePageId === this.documentDataModel.overview.id
+            ? this.documentDataModel.overview.id
+            : activeConnectionTab && activeConnectionTab.dataModelEntry.id === visiblePageId
+                ? activeConnectionState?.activeEntry ?? visiblePageId ?? ""
+                : visiblePageId ?? "";
+        const activeSidebarWorkspace = this.getResolvedSelectedWorkspace();
+        const documentSidebarMode = this.getDocumentSidebarMode(activeSidebarWorkspace);
+        const activeWorkspaceConnectionId = activeSidebarWorkspace.kind === "connection"
+            ? activeSidebarWorkspace.connectionId
+            : undefined;
+
         const className = "dbModuleTabview";
-        const content = <>
-            <Tabview
-                className={className}
-                tabPosition={TabPosition.Top}
-                selectedId={actualSelection}
-                stretchTabs={false}
-                showTabs={showTabs}
-                canReorderTabs
-                pages={pages}
-                onSelectTab={this.handleSelectTab}
-                closeTabs={this.removeTabs}
-                canCloseTab={this.canCloseTab}
-            />
+        const loadingOverlay = loading
+            ? [
+                <ProgressIndicator
+                    key="loadingProgressIndicator"
+                    id="loadingProgressIndicator"
+                    backgroundOpacity={0.95}
+                    linear={false}
+                />,
+                progressMessage
+                    ? (
+                        <Label
+                            key="progressMessage"
+                            id="progressMessageId"
+                            caption={progressMessage}
+                        />
+                    )
+                    : null,
+            ]
+            : undefined;
+        const auxiliaryContent = <>
+            {electronWorkspaceLayout && this.state.debuggerWorkspaceVisible === true &&
+                <Suspense fallback={null}>
+                    <CommunicationDebugger
+                        contentPortalTargetId="communicationDebuggerContentHost"
+                        sidebarPortalTargetId="communicationDebuggerSidebarHost"
+                    />
+                </Suspense>
+            }
             {isEmbedded &&
                 <Menu
                     key="actionMenu"
@@ -818,18 +1719,223 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             <JdvHub ref={this.jdvHubRef} />
         </>;
 
-        const selectedTab = connectionTabs.find((entry) => {
-            return entry.dataModelEntry.id === selectedPage;
-        });
+        let content: ComponentChild = <>
+            <Container id="dbModuleTabHost" orientation={Orientation.TopDown}>
+                <Tabview
+                    className={className}
+                    tabPosition={TabPosition.Top}
+                    selectedId={actualSelection}
+                    stretchTabs={false}
+                    showTabs={showTabs}
+                    canReorderTabs
+                    pages={pages}
+                    onSelectTab={this.handleSelectTab}
+                    closeTabs={this.removeTabs}
+                    canCloseTab={this.canCloseTab}
+                />
+                {loadingOverlay}
+            </Container>
+            {auxiliaryContent}
+        </>;
+
+        if (electronWorkspaceLayout) {
+            const workspaces = this.getWorkspaces();
+            const activeWorkspace = this.getResolvedSelectedWorkspace(this.state, workspaces);
+            const pageById = new Map<string, IWorkspaceTabPage>();
+            pages.forEach((page) => {
+                pageById.set(page.id, page);
+            });
+            const workspacePages = activeWorkspace.pageIds.flatMap((pageId) => {
+                const workspaceDocumentPages = connectionWorkspacePages.get(pageId);
+                if (workspaceDocumentPages) {
+                    return workspaceDocumentPages;
+                }
+
+                const page = pageById.get(pageId);
+
+                return page ? [page] : [];
+            });
+            const workspaceVisiblePageId = this.getVisiblePageIdForWorkspace(activeWorkspace.id)
+                ?? workspacePages[0]?.id;
+            const workspaceSelectedPageId = workspacePages.some((page) => {
+                return page.id === selectedDocument;
+            })
+                ? selectedDocument
+                : workspaceVisiblePageId;
+            const activeWorkspaceConnectionDetails = activeConnectionTab?.connection.details
+                ?? this.getWorkspaceConnectionDetails(activeWorkspace);
+            const titlebarClassName = [
+                activeWorkspace.kind === "connection" ? "withMetadata" : "",
+                showSidebar ? "sidebarVisible" : "sidebarHidden",
+            ].filter((entry) => {
+                return entry.length > 0;
+            }).join(" ") || undefined;
+
+            let workspaceMainContent: ComponentChild;
+            if (activeWorkspace.kind === "home") {
+                const overviewPage = pages.find((page) => {
+                    return page.id === this.documentDataModel.overview.id;
+                });
+                workspaceMainContent = (
+                    <Container id="dbModuleTabHost" orientation={Orientation.TopDown}>
+                        {overviewPage?.content}
+                        {loadingOverlay}
+                    </Container>
+                );
+            } else if (activeWorkspace.kind === "debugger") {
+                const debuggerPage = pageById.get(debuggerWorkspacePageId);
+                workspaceMainContent = (
+                    <Container id="dbModuleTabHost" orientation={Orientation.TopDown}>
+                        {debuggerPage?.content}
+                        {loadingOverlay}
+                    </Container>
+                );
+            } else if (workspacePages.length === 0) {
+                workspaceMainContent = (
+                    <Container id="dbModuleTabHost" orientation={Orientation.TopDown}>
+                        <Container id="desktopWorkspaceEmptyState" orientation={Orientation.TopDown}>
+                            <Label
+                                caption={activeWorkspace.kind === "general"
+                                    ? "General workspace is empty."
+                                    : "No content is currently available for this workspace."}
+                            />
+                        </Container>
+                        {loadingOverlay}
+                    </Container>
+                );
+            } else {
+                workspaceMainContent = (
+                    <Container id="dbModuleTabHost" orientation={Orientation.TopDown}>
+                        <Tabview
+                            className={className}
+                            tabPosition={TabPosition.Top}
+                            selectedId={workspaceSelectedPageId}
+                            stretchTabs={false}
+                            showTabs={true}
+                            canReorderTabs
+                            pages={workspacePages}
+                            onSelectTab={this.handleWorkspaceTabSelection}
+                            closeTabs={this.removeTabs}
+                            canCloseTab={this.canCloseTab}
+                        />
+                        {loadingOverlay}
+                    </Container>
+                );
+            }
+
+            const statusArea = this.renderDesktopStatusArea(
+                activeWorkspaceConnectionDetails,
+                activeConnectionTab,
+                activeConnectionState,
+                activeConnectionDocumentState,
+            );
+            const titlebarActions = activeWorkspace.kind === "connection"
+                ? this.renderDesktopTitlebarConnectionActions(
+                    activeWorkspace,
+                    activeConnectionState,
+                    activeConnectionDocumentState,
+                )
+                : null;
+            const workspaceDropdownItems = workspaces.map((entry) => {
+                const connectionDetails = this.getWorkspaceConnectionDetails(entry);
+                let picture = <Icon src={Codicon.Home} />;
+                if (entry.kind === "general") {
+                    picture = <Icon src={Assets.misc.scriptingIcon} />;
+                } else if (entry.kind === "debugger") {
+                    picture = <Icon src={Codicon.Debug} />;
+                } else if (connectionDetails) {
+                    picture = <Icon
+                        src={connectionDetails.dbType === DBType.MySQL
+                            ? Assets.db.mysqlConnectionIcon
+                            : Assets.db.sqliteConnectionIcon}
+                    />;
+                }
+                const closeButton = entry.kind === "connection"
+                    ? <Button
+                        id={`closeWorkspace-${entry.id}`}
+                        className="workspaceSelectorCloseButton"
+                        data-tooltip="Close Workspace"
+                        imageOnly
+                        onClick={(e) => {
+                            this.handleCloseWorkspace(e, entry.id);
+                        }}
+                    >
+                        <Icon src={Codicon.Close} data-tooltip="inherit" />
+                    </Button>
+                    : undefined;
+
+                return (
+                    <DropdownItem
+                        id={entry.id}
+                        key={entry.id}
+                        caption={entry.caption}
+                        picture={picture}
+                    >
+                        <div className="workspaceSelectorItem">
+                            <Container
+                                className="workspaceSelectorItemLabel"
+                                orientation={Orientation.LeftToRight}
+                                crossAlignment={ContentAlignment.Center}
+                            >
+                                {picture}
+                                <Label caption={entry.caption} />
+                            </Container>
+                            {closeButton}
+                        </div>
+                    </DropdownItem>
+                );
+            });
+
+            content = <>
+                <Container id="desktopWorkspaceHost" orientation={Orientation.TopDown}>
+                    <Container
+                        id="desktopWorkspaceTitlebar"
+                        className={titlebarClassName}
+                        orientation={Orientation.TopDown}
+                    >
+                        <div className="desktopWorkspaceTitlebarGrid">
+                            <Container className="desktopWorkspaceTitlebarLeft" orientation={Orientation.LeftToRight}>
+                                {!showSidebar && this.renderDesktopSidebarToggle(showSidebar)}
+                                <Dropdown
+                                    ref={this.workspaceSelectorRef}
+                                    id="workspaceSelector"
+                                    selection={activeWorkspace.id}
+                                    variant={DropdownVariant.AiryDropdown}
+                                    onSelect={this.handleWorkspaceSelection}
+                                >
+                                    {workspaceDropdownItems}
+                                </Dropdown>
+                            </Container>
+                            <div className="desktopWorkspaceTitlebarCenter">
+                                {statusArea}
+                            </div>
+                            <div className="desktopWorkspaceTitlebarRight">
+                                {titlebarActions}
+                            </div>
+                        </div>
+                    </Container>
+                    {workspaceMainContent}
+                </Container>
+                {auxiliaryContent}
+            </>;
+        }
 
         const splitterPanes: ISplitterPane[] = [];
         if (!appParameters.inExtension) {
             // Don't render the sidebar when in the extension.
-            splitterPanes.push({
-                content: <DocumentSideBar
+            const sideBar = activeSidebarWorkspace.kind === "debugger"
+                ? <Container
+                    id="communicationDebuggerSidebarHost"
+                    orientation={Orientation.TopDown}
+                    style={{ position: "relative", flex: "1 1 auto" }}
+                />
+                : <DocumentSideBar
+                    ref={this.sideBarRef}
                     selectedOpenDocument={selectedDocument}
-                    markedSchema={selectedTab?.connection.currentSchema ?? ""}
+                    markedSchema={activeConnectionTab?.connection.currentSchema ?? ""}
                     savedSectionState={sidebarState}
+                    sidebarMode={documentSidebarMode}
+                    activeWorkspaceConnectionId={activeWorkspaceConnectionId}
                     overviewId={this.documentDataModel.overview.id}
                     onSaveState={this.handleSaveExplorerState}
                     onSelectDocumentItem={this.handleDocumentSelection}
@@ -837,9 +1943,20 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     onConnectionTreeCommand={this.handleSideBarConnectionCommand}
                     onDocumentTreeCommand={this.handleSideBarDocumentCommand}
                     onOciTreeCommand={this.handleSideBarOciCommand}
-                />,
+                />;
+            splitterPanes.push({
+                content: electronWorkspaceLayout
+                    ? <Container id="desktopSidebarPane" orientation={Orientation.TopDown}>
+                        {showSidebar &&
+                            <Container id="desktopSidebarHeader" orientation={Orientation.LeftToRight}>
+                                {this.renderDesktopSidebarToggle(showSidebar)}
+                            </Container>
+                        }
+                        {sideBar}
+                    </Container>
+                    : sideBar,
                 minSize: 0,
-                initialSize: showSidebar ? 250 : 0,
+                initialSize: this.getSidebarInitialSize(),
                 resizable: true,
                 snap: true,
                 collapsed: !showSidebar,
@@ -867,6 +1984,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     innerRef={this.containerRef}
                     orientation={Orientation.LeftToRight}
                     panes={splitterPanes}
+                    onPaneResized={this.handleMainPaneResized}
                 />
             </DocumentContext.Provider >
         );
@@ -876,13 +1994,622 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         await this.connectionsDataModel.addConnectionEntry(entry);
     };
 
+    private renderDesktopSidebarToggle = (showSidebar: boolean): ComponentChild => {
+        return (
+            <Button
+                id="desktopWorkspaceSidebarToggle"
+                className="desktopWorkspaceTitlebarButton"
+                data-tooltip={showSidebar ? "Hide Sidebar" : "Show Sidebar"}
+                imageOnly
+                onClick={this.toggleSidebarVisibility}
+            >
+                <Icon
+                    src={showSidebar ? Codicon.LayoutSidebarLeftOff : Codicon.LayoutSidebarLeft}
+                    data-tooltip="inherit"
+                />
+            </Button>
+        );
+    };
+
+    private renderDesktopTitlebarConnectionActions = (
+        activeWorkspace: IConnectionWorkspace,
+        activeConnectionState?: IConnectionPresentationState,
+        activeDocumentState?: IOpenDocumentState,
+    ): ComponentChild => {
+        const executionContext = this.getActiveDesktopExecutionContext(activeConnectionState, activeDocumentState);
+        const desktopRunState = executionContext?.desktopRunState;
+        const activeConnectionPage = activeWorkspace.connectionTab?.dataModelEntry ?? this.getSelectedConnectionPageEntry();
+        const hasActiveConnectionPage = activeConnectionPage !== undefined;
+        const activeType = executionContext?.activeType;
+        const area = activeType === "notebook" ? "block" : "script";
+        const selectionText = desktopRunState?.canExecuteSubparts ? "the selection or " : "";
+        const hasAlternateRunActions = desktopRunState?.canExecuteSubparts ?? false;
+        const isStopping = this.isDesktopWorkspaceStopping(activeWorkspace.id);
+        const isBusy = isStopping || desktopRunState?.canStop === true;
+        const primaryRunTooltip = activeType === "notebook"
+            ? `Execute ${selectionText}everything in the current block and create a new block`
+            : "Execute full script";
+        const stopTooltip = isStopping
+            ? "Stopping execution..."
+            : "Stop execution of the current statement/script";
+        return (
+            <Container
+                id="desktopWorkspaceTitlebarActions"
+                orientation={Orientation.LeftToRight}
+            >
+                {desktopRunState && isBusy &&
+                    <SplitButton
+                        id="desktopTitlebarRunButton"
+                        key="desktopTitlebarRunButton"
+                        className="desktopWorkspaceRunSplitButton desktopWorkspaceRunStopButton"
+                        data-tooltip={stopTooltip}
+                        disabled={isStopping}
+                        onClick={() => {
+                            void this.stopActiveDesktopExecution("query");
+                        }}
+                        menu={
+                            <Menu
+                                id="desktopTitlebarStopMenu"
+                                placement={ComponentPlacement.BottomCenter}
+                                onItemClick={this.handleDesktopTitlebarRunMenuItemClick}
+                            >
+                                <MenuItem
+                                    id="desktopTitlebarStopKillQueryItem"
+                                    command={{ title: "Kill Query", command: "run.killQuery" }}
+                                    title="Kill the currently running query"
+                                    icon={Codicon.DebugStop}
+                                />
+                                <MenuItem
+                                    id="desktopTitlebarStopKillSessionItem"
+                                    command={{ title: "Kill Session", command: "run.killSession" }}
+                                    title="Kill the current database session"
+                                    icon={Codicon.DebugDisconnect}
+                                />
+                            </Menu>
+                        }
+                    >
+                        <Icon src={Codicon.DebugStop} data-tooltip="inherit" />
+                        <Label caption="Stop" data-tooltip="inherit" />
+                    </SplitButton>
+                }
+                {desktopRunState && !isBusy &&
+                    <SplitButton
+                        id="desktopTitlebarRunButton"
+                        key="desktopTitlebarRunButton"
+                        className="desktopWorkspaceRunSplitButton"
+                        data-tooltip={primaryRunTooltip}
+                        disabled={!desktopRunState.canExecute}
+                        onClick={() => {
+                            void this.executeDesktopCommand("run.execute");
+                        }}
+                        menu={
+                            <Menu
+                                id="desktopTitlebarRunMenu"
+                                placement={ComponentPlacement.BottomCenter}
+                                onItemClick={this.handleDesktopTitlebarRunMenuItemClick}
+                            >
+                                {hasAlternateRunActions &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExecuteItem"
+                                        command={{ title: "Run Script", command: "run.execute" }}
+                                        title="Execute the selected script"
+                                        icon={Assets.toolbar.executeIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {hasAlternateRunActions &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExecuteCurrentItem"
+                                        command={{ title: "Run Current Statement", command: "run.executeCurrent" }}
+                                        title="Execute the statement at the caret position"
+                                        icon={Assets.toolbar.executeCaretIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {hasAlternateRunActions &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExecuteAsTextItem"
+                                        command={{ title: "Run (Results as Text)", command: "run.executeAsText" }}
+                                        title={`Execute the ${area} and print the result as text`}
+                                        icon={Assets.toolbar.executePrintTextIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {hasAlternateRunActions && executionContext?.activeConnectionState?.heatWaveEnabled &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExecuteHeatWaveItem"
+                                        command={{ title: "Run on HeatWave", command: "run.executeHeatWave" }}
+                                        title={`Execute ${selectionText}full ${area} on HeatWave and create a new block`}
+                                        icon={Assets.toolbar.executeHeatwaveIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {hasAlternateRunActions && executionContext?.activeConnectionState?.heatWaveEnabled &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExecuteCurrentHeatWaveItem"
+                                        command={{ title: "Run Current on HeatWave", command: "run.executeCurrentHeatWave" }}
+                                        title="Execute statement at current position on HeatWave"
+                                        icon={Assets.toolbar.executeCaretHeatwaveIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                            </Menu>
+                        }
+                    >
+                        <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
+                        <Label caption="Run" data-tooltip="inherit" />
+                    </SplitButton>
+                }
+                <Button
+                    id="desktopTitlebarAddButton"
+                    className="desktopWorkspaceTitlebarButton desktopWorkspaceCreateButton"
+                    imageOnly
+                    data-tooltip="New or Open Editor"
+                    disabled={!hasActiveConnectionPage}
+                    onClick={this.openDesktopTitlebarAddMenu}
+                >
+                    <Icon src={Codicon.Add} data-tooltip="inherit" />
+                </Button>
+                <Menu
+                    id="desktopTitlebarAddMenu"
+                    ref={this.desktopTitlebarAddMenuRef}
+                    placement={ComponentPlacement.BottomCenter}
+                    onItemClick={this.handleDesktopTitlebarAddMenuItemClick}
+                >
+                    <MenuItem
+                        id="desktopTitlebarAddNewScriptItem"
+                        command={{ title: "New Script", command: "desktop.newScriptTab" }}
+                        icon={Assets.misc.scriptIcon}
+                        disabled={!hasActiveConnectionPage}
+                    />
+                    <MenuItem
+                        id="desktopTitlebarAddNewNotebookItem"
+                        command={{ title: "New Notebook", command: "desktop.newNotebookTab" }}
+                        icon={Assets.misc.newNotebookIcon}
+                        disabled={!hasActiveConnectionPage}
+                    />
+                    <MenuItem command={{ title: "-", command: "" }} />
+                    <MenuItem
+                        id="desktopTitlebarAddOpenScriptItem"
+                        command={{ title: "Open Script...", command: "desktop.openScriptTab" }}
+                        icon={Assets.misc.scriptIcon}
+                        disabled={!hasActiveConnectionPage}
+                    />
+                    <MenuItem
+                        id="desktopTitlebarAddOpenNotebookItem"
+                        command={{ title: "Open Notebook...", command: "desktop.openNotebookTab" }}
+                        icon={Assets.misc.newNotebookIcon}
+                        disabled={!hasActiveConnectionPage}
+                    />
+                </Menu>
+            </Container>
+        );
+    };
+
+    private renderDesktopStatusArea = (
+        connectionDetails?: IConnectionDetails,
+        activeConnectionTab?: IConnectionTab,
+        activeConnectionState?: IConnectionPresentationState,
+        activeDocumentState?: IOpenDocumentState,
+    ): ComponentChild => {
+        if (!connectionDetails) {
+            return null;
+        }
+
+        const workspaceTarget = this.formatConnectionWorkspaceTarget(connectionDetails);
+        const workspaceVersion = this.formatConnectionWorkspaceVersion(connectionDetails);
+        const executionContext = this.getActiveDesktopExecutionContext(activeConnectionState, activeDocumentState);
+        const activeWorkspaceId = this.getResolvedSelectedWorkspaceId();
+        const isStopping = this.isDesktopWorkspaceStopping(activeWorkspaceId);
+        const autoCommit = this.getDesktopFlag(executionContext?.desktopRunState?.autoCommit);
+        const transactionOpen = this.getDesktopFlag(executionContext?.desktopRunState?.transactionOpen);
+        const canStop = executionContext?.desktopRunState?.canStop === true;
+        const isBusy = isStopping || canStop;
+        const statusTimerCaption = this.getDesktopStatusTimerCaption(activeWorkspaceId, isBusy);
+        const statusText = isStopping
+            ? "Stopping execution..."
+            : this.formatConnectionWorkspaceStatus(activeConnectionTab, canStop);
+        const transactionStatusCaption = transactionOpen
+            ? "TX OPEN"
+            : autoCommit ? "AUTO-COMMIT ON" : "AUTO-COMMIT OFF";
+        const transactionStatusTooltip = transactionOpen
+            ? `A transaction is open. Auto-commit is ${autoCommit ? "enabled" : "disabled"}.`
+            : autoCommit ? "No transaction is open. Auto-commit is enabled."
+                : "No transaction is open. Auto-commit is disabled.";
+
+        return (
+            <Container
+                id="desktopStatusArea"
+                orientation={Orientation.LeftToRight}
+                fixedScrollbars={false}
+            >
+                <Container
+                    className="desktopStatusAreaSection desktopStatusAreaPrimary"
+                    orientation={Orientation.LeftToRight}
+                    fixedScrollbars={false}
+                >
+                    <Container
+                        className="desktopStatusPrimaryRow"
+                        orientation={Orientation.LeftToRight}
+                        fixedScrollbars={false}
+                    >
+                        <Container
+                            className="desktopStatusConnectionInfo"
+                            orientation={Orientation.TopDown}
+                            fixedScrollbars={false}
+                        >
+                            <Label
+                                className="desktopStatusPrimary"
+                                caption={workspaceTarget ?? connectionDetails.caption}
+                            />
+                            <Label
+                                className="desktopStatusSecondary"
+                                caption={workspaceVersion ?? ""}
+                            />
+                        </Container>
+                    </Container>
+                </Container>
+                <Container
+                    className="desktopStatusAreaSection desktopStatusAreaSecondary"
+                    orientation={Orientation.TopDown}
+                    fixedScrollbars={false}
+                >
+                    <Container
+                        className="desktopStatusActivityRow"
+                        orientation={Orientation.LeftToRight}
+                        fixedScrollbars={false}
+                    >
+                        <Container
+                            className="desktopStatusActivity"
+                            orientation={Orientation.LeftToRight}
+                            fixedScrollbars={false}
+                        >
+                            {isBusy &&
+                                <Icon
+                                    src={Codicon.Loading}
+                                    className="desktopStatusSpinner"
+                                />
+                            }
+                            <Label
+                                className="desktopStatusSecondary desktopStatusText"
+                                caption={statusText ?? ""}
+                            />
+                        </Container>
+                        {statusTimerCaption &&
+                            <Label
+                                id="desktopStatusTimer"
+                                className="desktopStatusTimer"
+                                caption={statusTimerCaption}
+                            />
+                        }
+                    </Container>
+                    <Container
+                        className="desktopStatusIndicators"
+                        orientation={Orientation.LeftToRight}
+                        fixedScrollbars={false}
+                    >
+                        <div
+                            id="desktopStatusTransactionIndicator"
+                            className={`desktopStatusIndicator ${transactionOpen || autoCommit
+                                ? "desktopStatusIndicatorActive"
+                                : "desktopStatusIndicatorInactive"}`}
+                            data-tooltip={transactionStatusTooltip}
+                        >
+                            {transactionStatusCaption}
+                        </div>
+                    </Container>
+                </Container>
+            </Container>
+        );
+    };
+
+    private stopActiveDesktopExecution = async (mode: "query" | "session" = "query"): Promise<boolean> => {
+        const workspaceId = this.getResolvedSelectedWorkspaceId();
+        const activeConnection = this.getActiveConnectionTab()?.connection;
+        const selectedConnectionTabRef = this.getSelectedConnectionTabRef();
+        const activeEditorExecutionContext = this.getActiveDesktopExecutionContext()?.editorExecutionContext;
+        const stopDisplayFallbackDelay = 1000;
+        let stopExecution: (() => Promise<boolean>) | undefined;
+        if (mode === "session" && activeConnection?.backend) {
+            stopExecution = async () => {
+                await activeConnection.backend.killSession();
+
+                return true;
+            };
+        } else if (selectedConnectionTabRef?.stopExecution) {
+            stopExecution = () => {
+                return selectedConnectionTabRef.stopExecution();
+            };
+        } else if (activeConnection?.backend) {
+            stopExecution = async () => {
+                await activeConnection.backend.killQuery();
+
+                return true;
+            };
+        } else {
+            stopExecution = () => {
+                return requisitions.execute("editorStopExecution", undefined);
+            };
+        }
+
+        let finalized = false;
+        let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+        const clearStopDisplay = (): void => {
+            if (fallbackTimer) {
+                clearTimeout(fallbackTimer);
+                fallbackTimer = undefined;
+            }
+
+            this.setDesktopWorkspaceStopping(workspaceId, false);
+            desktopCommandRegistry.notifyHostStateChanged();
+
+            if (this.isElectronWorkspaceLayout()) {
+                this.forceUpdate();
+            }
+        };
+        const finalizeStopExecution = (): void => {
+            if (finalized) {
+                return;
+            }
+
+            finalized = true;
+            activeEditorExecutionContext?.executionEnded();
+            clearStopDisplay();
+        };
+
+        this.setDesktopWorkspaceStopping(workspaceId, true);
+        fallbackTimer = setTimeout(() => {
+            fallbackTimer = undefined;
+            clearStopDisplay();
+        }, stopDisplayFallbackDelay);
+        void stopExecution().then(() => {
+            finalizeStopExecution();
+        }).catch((reason) => {
+            finalizeStopExecution();
+
+            void ui.showErrorMessage(`Cannot stop execution.${convertErrorToString(reason)}`, {});
+        });
+
+        return true;
+    };
+
+    private handleDesktopTitlebarRunMenuItemClick = (props: IMenuItemProperties): boolean => {
+        switch (props.command.command) {
+            case "run.executeCurrent": {
+                void this.executeDesktopCommand("run.executeCurrent");
+                break;
+            }
+
+            case "run.executeAsText": {
+                void this.executeDesktopCommand("run.executeAsText");
+                break;
+            }
+
+            case "run.executeHeatWave": {
+                void this.runDesktopExecution({
+                    advance: true,
+                    asText: false,
+                    forceSecondaryEngine: true,
+                });
+                break;
+            }
+
+            case "run.executeCurrentHeatWave": {
+                void this.runDesktopExecution({
+                    atCaret: true,
+                    advance: false,
+                    asText: false,
+                    forceSecondaryEngine: true,
+                });
+                break;
+            }
+
+            case "run.killQuery": {
+                void this.stopActiveDesktopExecution("query");
+                break;
+            }
+
+            case "run.killSession": {
+                void this.stopActiveDesktopExecution("session");
+                break;
+            }
+
+            default:
+        }
+
+        return true;
+    };
+
+    private openDesktopTitlebarAddMenu = (event: MouseEvent | KeyboardEvent): void => {
+        event.stopPropagation();
+
+        const target = event.currentTarget as HTMLElement | null;
+        if (!target) {
+            return;
+        }
+
+        const targetRect = event instanceof KeyboardEvent
+            ? target.getBoundingClientRect()
+            : this.menuAnchorRect(event.clientX, event.clientY);
+
+        this.desktopTitlebarAddMenuRef.current?.close();
+        this.desktopTitlebarAddMenuRef.current?.open(targetRect, event instanceof KeyboardEvent);
+    };
+
+    private menuAnchorRect = (x: number, y: number, width = 2, height = 2): DOMRect => {
+        return {
+            x,
+            y,
+            width,
+            height,
+            left: x,
+            top: y,
+            right: x + width,
+            bottom: y + height,
+            toJSON: () => {
+                return { x, y, width, height };
+            },
+        } as DOMRect;
+    };
+
+    private handleDesktopTitlebarAddMenuItemClick = (props: IMenuItemProperties): boolean => {
+        void this.executeDesktopTitlebarAddAction(props.command.command);
+
+        return true;
+    };
+
+    private executeDesktopTitlebarAddAction = async (command: string): Promise<boolean> => {
+        const pageEntry = await this.getOrCreateSelectedUserConnectionPageEntry();
+        if (!pageEntry) {
+            return false;
+        }
+
+        switch (command) {
+            case "desktop.newScriptTab": {
+                const result = await this.handleSideBarDocumentCommand({ title: "", command: "msg.addScript" }, pageEntry);
+
+                return result.success;
+            }
+
+            case "desktop.newNotebookTab": {
+                return this.handleAddNotebook(pageEntry.id) !== undefined;
+            }
+
+            case "desktop.openScriptTab": {
+                const result = await this.handleSideBarDocumentCommand(
+                    { title: "", command: "msg.loadScriptFromDisk" },
+                    pageEntry,
+                );
+
+                return result.success;
+            }
+
+            case "desktop.openNotebookTab": {
+                return requisitions.execute("editorLoadNotebook", { createNew: true });
+            }
+
+            default: {
+                return false;
+            }
+        }
+    };
+
+    private getActiveDesktopExecutionContext = (
+        activeConnectionState?: IConnectionPresentationState,
+        activeDocumentState?: IOpenDocumentState,
+    ): {
+        activeType: "script" | "notebook";
+        activeConnectionState?: IConnectionPresentationState;
+        activeDocumentState?: IOpenDocumentState;
+        editorExecutionContext?: ExecutionContext;
+        desktopRunState?: IDesktopRunState;
+    } | undefined => {
+        const selectedConnectionTabRef = this.getSelectedConnectionTabRef();
+        const activeType = selectedConnectionTabRef?.getActiveDesktopDocumentType();
+        if (!activeType) {
+            return undefined;
+        }
+
+        const resolvedConnectionState = activeConnectionState ?? (() => {
+            const activeConnectionPage = this.getSelectedConnectionPageEntry();
+            return activeConnectionPage ? this.connectionPresentation.get(activeConnectionPage) : undefined;
+        })();
+        const resolvedDocumentState = activeDocumentState ?? resolvedConnectionState?.documentStates.find((entry) => {
+            return entry.document.id === resolvedConnectionState.activeEntry;
+        }) ?? resolvedConnectionState?.documentStates[0];
+        const fallbackRunState = selectedConnectionTabRef?.getDesktopRunState();
+        const editorExecutionContext = this.getActiveEditorExecutionContext(resolvedDocumentState);
+        const desktopRunState = this.getEffectiveDesktopRunState(resolvedDocumentState, fallbackRunState)
+            ?? this.getInferredDesktopRunState(activeType, resolvedDocumentState, fallbackRunState);
+
+        return {
+            activeType,
+            activeConnectionState: resolvedConnectionState,
+            activeDocumentState: resolvedDocumentState,
+            editorExecutionContext,
+            desktopRunState,
+        };
+    };
+
+    private getInferredDesktopRunState = (
+        activeType: "script" | "notebook",
+        activeDocumentState?: IOpenDocumentState,
+        fallbackRunState?: IDesktopRunState,
+    ): IDesktopRunState => {
+        const documentLanguage = activeDocumentState?.document.type === OdmEntityType.Script
+            ? activeDocumentState.document.language
+            : undefined;
+        const canExecuteSubparts = fallbackRunState?.canExecuteSubparts
+            ?? (documentLanguage === "mysql" || documentLanguage === "sql");
+
+        return {
+            canExecute: fallbackRunState?.canExecute ?? true,
+            canExecuteSubparts: activeType === "script" ? canExecuteSubparts : false,
+            canStop: fallbackRunState?.canStop ?? false,
+            autoCommit: fallbackRunState?.autoCommit ?? true,
+            transactionOpen: fallbackRunState?.transactionOpen ?? false,
+            stopOnErrors: fallbackRunState?.stopOnErrors ?? Settings.get("editor.stopOnErrors", true),
+        };
+    };
+
+    private runDesktopExecution = async (options: {
+        advance: boolean;
+        asText: boolean;
+        forceSecondaryEngine: boolean;
+        atCaret?: boolean;
+    }): Promise<boolean> => {
+        const executionContext = this.getActiveDesktopExecutionContext();
+        if (!executionContext) {
+            return false;
+        }
+
+        if (options.atCaret && executionContext.desktopRunState?.canExecuteSubparts !== true) {
+            return false;
+        }
+
+        this.setDesktopWorkspaceStopping(this.getResolvedSelectedWorkspaceId(), false);
+
+        return requisitions.execute(options.atCaret ? "editorExecute" : "editorExecuteSelectedOrAll", {
+            advance: options.advance,
+            forceSecondaryEngine: options.forceSecondaryEngine,
+            asText: options.asText,
+            is3rdLanguage: executionContext.activeDocumentState?.state?.model.is3rdLanguage,
+        });
+    };
+
+    private handleDesktopRunStateChanged = (): void => {
+        this.syncDesktopWorkspaceStoppingState();
+
+        if (this.isElectronWorkspaceLayout()) {
+            this.forceUpdate();
+        }
+    };
+
     private handleKeyPress = (event: KeyboardEvent): void => {
-        if (event.metaKey && event.key === "b") {
+        if (hasElectronHostBridge()) {
+            return;
+        }
+
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "b") {
             event.preventDefault();
 
-            const { showSidebar } = this.state;
+            this.toggleSidebarVisibility();
+        }
+    };
 
-            this.setState({ showSidebar: !showSidebar });
+    private toggleSidebarVisibility = (): void => {
+        if (appParameters.inExtension) {
+            return;
+        }
+
+        this.setState((prevState) => {
+            return { showSidebar: !prevState.showSidebar };
+        });
+    };
+
+    private handleMainPaneResized = (info: ISplitterPaneSizeInfo[]): void => {
+        if (!appParameters.inExtension && info.length > 1) {
+            this.sidebarWidth = info[0]!.currentSize;
         }
     };
 
@@ -924,9 +2651,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showPage = async (data: {
         connectionId?: number; suppressAbout?: boolean; editor?: InitialEditor; pageId?: string; force?: boolean;
-        connectionInfo?: IConnectionInfo;
+        connectionInfo?: IConnectionInfo; serviceOnly?: boolean;
     }): Promise<boolean> => {
-        const { connectionTabs, selectedPage } = this.state;
+        const { connectionTabs, selectedPage, selectedWorkspace } = this.state;
 
         let connection: ICdmConnectionEntry | undefined;
 
@@ -935,8 +2662,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 return t.dataModelEntry.id === data.pageId;
             });
             if (entry) {
-                if (selectedPage !== data.pageId) {
-                    this.setState({ selectedPage: data.pageId });
+                const workspaceId = this.getConnectionWorkspaceId(entry.connection.details.id);
+                if (selectedPage !== data.pageId || selectedWorkspace !== workspaceId) {
+                    this.rememberConnectionPage(entry);
+                    this.setState({ selectedPage: data.pageId, selectedWorkspace: workspaceId });
 
                     return Promise.resolve(true);
                 }
@@ -950,7 +2679,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const doShowPage = (): Promise<boolean> => {
             if (connection) {
                 return this.activateConnectionTab(connection, data.force ?? false, data.suppressAbout ?? false,
-                    data.editor ?? "default");
+                    data.editor ?? "default", data.serviceOnly);
             }
 
             this.showOverview();
@@ -959,7 +2688,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         };
 
         if (this.currentTabRef.current) {
-            const canClose = await this.currentTabRef.current.canClose();
+            const canClose = await this.canCurrentTabClose();
             if (canClose) {
                 return doShowPage();
             } else {
@@ -977,25 +2706,32 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return false;
         }
 
-        const { connectionTabs } = this.state;
-
         const connection = await this.connectionsDataModel.findConnectionEntryById(data.connection.id,
             data.connection.folderPath);
         if (!connection) {
             return false;
         }
 
-        const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
+        const canClose = await this.canCurrentTabClose();
         if (!canClose) {
             return true;
         }
 
-        await this.activateConnectionTab(connection, data.force ?? false, false, "none");
+        const useUserConnection = this.isUserConnectionDocument(data.documentDetails);
 
-        const pageId = this.resolveLatestPageId(connection);
+        await this.activateConnectionTab(connection, data.force ?? false, false, "none", false);
 
-        const tab = connectionTabs.find((tab) => {
-            return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.id === connection.id);
+        const pageId = useUserConnection
+            ? this.resolveLatestPageId(connection)
+            : this.resolveLatestAdministrationPageId(connection);
+
+        const tab = this.state.connectionTabs.find((tab) => {
+            return pageId
+                ? (tab.dataModelEntry.id === pageId)
+                : (tab.connection.id === connection.id
+                    && (useUserConnection
+                        ? this.isUserConnectionPage(tab.dataModelEntry.id)
+                        : this.isServiceConnectionPage(tab.dataModelEntry.id)));
         });
 
         if (tab) {
@@ -1090,7 +2826,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * Activates the overview page (no tab selected).
      */
     private showOverview(): void {
-        this.setState({ selectedPage: this.documentDataModel.overview.id });
+        this.setState({
+            selectedPage: this.documentDataModel.overview.id,
+            selectedWorkspace: homeWorkspaceId,
+        });
         requisitions.executeRemote("selectConnectionTab", { connectionId: -1 });
 
     }
@@ -1154,10 +2893,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsDbObjectDialog = async (request: IMrsDbObjectEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 return this.mrsHubRef.current.showMrsDbObjectDialog(tab.connection.backend, request);
             }
@@ -1168,10 +2904,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsConfigurationDialog = async (): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 const result = await this.mrsHubRef.current.showMrsConfigurationDialog(
                     tab.connection);
@@ -1195,10 +2928,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsServiceDialog = async (data?: IMrsServiceData): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 const result = await this.mrsHubRef.current.showMrsServiceDialog(tab.connection.backend, data);
                 if (result) {
@@ -1221,10 +2951,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsSchemaDialog = async (request: IMrsSchemaEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 await this.mrsHubRef.current.showMrsSchemaDialog(tab.connection.backend, request.schemaName,
                     request.schema);
@@ -1238,10 +2965,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsContentSetDialog = async (request: IMrsContentSetEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 return this.mrsHubRef.current.showMrsContentSetDialog(tab.connection.backend, request.directory,
                     request.contentSet, request.requestPath);
@@ -1253,10 +2977,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsAuthAppDialog = async (request: IMrsAuthAppEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 return this.mrsHubRef.current.showMrsAuthAppDialog(tab.connection.backend, request.authApp,
                     request.service);
@@ -1268,10 +2989,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsUserDialog = async (request: IMrsUserEditRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 return this.mrsHubRef.current.showMrsUserDialog(tab.connection.backend, request.authApp,
                     request.user);
@@ -1283,10 +3001,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showMrsSdkExportDialog = async (request: IMrsSdkExportRequest): Promise<boolean> => {
         if (this.mrsHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 return this.mrsHubRef.current.showMrsSdkExportDialog(tab.connection.backend, request.serviceId,
                     request.connectionId, request.connectionDetails, request.directory);
@@ -1299,10 +3014,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private showCreateLibraryDialog = async (request: IDialogRequest): Promise<boolean> => {
         if (this.createLibraryDialogRef.current) {
             try {
-                const { selectedPage, connectionTabs } = this.state;
-                const tab = connectionTabs.find((entry) => {
-                    return entry.dataModelEntry.id === selectedPage;
-                });
+                const tab = this.getActiveConnectionTab();
                 if (!tab) {
                     void ui.showErrorMessage(`Library cannot be created: no tab`, {});
 
@@ -1390,7 +3102,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return false;
         }
         try {
-            await backend.execute(completeBody);
+            await backend.executeService(completeBody);
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Error while creating library: ${message}`, {});
@@ -1402,7 +3114,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     }
 
     private openSession = async (details: IShellSessionDetails): Promise<boolean> => {
-        const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
+        const canClose = await this.canCurrentTabClose();
         if (!canClose) {
             return true;
         }
@@ -1427,7 +3139,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         webSession.clearCredentials();
 
         // No need to manually close any connection. The data models take care to close when they are cleared.
-        this.setState({ connectionTabs: [], documentTabs: [], schemaDiagramTabs: [], shellSessionTabs: [] });
+        this.setState({
+            connectionTabs: [],
+            documentTabs: [],
+            schemaDiagramTabs: [],
+            shellSessionTabs: [],
+            selectedPage: this.documentDataModel.overview.id,
+            selectedWorkspace: homeWorkspaceId,
+        });
 
         return requisitions.execute("userLoggedOut", {});
     };
@@ -1478,13 +3197,24 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 },
             });
 
-            await this.setStatePromise({ schemaDiagramTabs, selectedPage: document.id, loading: false });
+            await this.setStatePromise({
+                schemaDiagramTabs,
+                selectedPage: document.id,
+                selectedWorkspace: generalWorkspaceId,
+                loading: false,
+            });
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Connection Error: ${message}`, {});
 
             const { lastSelectedPage } = this.state;
-            await this.setStatePromise({ selectedPage: lastSelectedPage ?? this.documentDataModel.overview.id });
+            const selectedPage = lastSelectedPage ?? this.documentDataModel.overview.id;
+            await this.setStatePromise({
+                selectedPage,
+                selectedWorkspace: selectedPage === this.documentDataModel.overview.id
+                    ? homeWorkspaceId
+                    : this.getWorkspaceIdForPageId(selectedPage) ?? this.state.selectedWorkspace,
+            });
             this.hideProgress(true);
         }
 
@@ -1493,10 +3223,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private showJdvObjectDialog = async (request: IJdvEditRequest): Promise<boolean> => {
         if (this.jdvHubRef.current) {
-            const { selectedPage, connectionTabs } = this.state;
-            const tab = connectionTabs.find((entry) => {
-                return entry.dataModelEntry.id === selectedPage;
-            });
+            const tab = this.getActiveConnectionTab();
             if (tab) {
                 return this.jdvHubRef.current.showJdvObjectDialog(tab.connection.backend, request);
             }
@@ -1513,25 +3240,42 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param force If true then create a new tab, even if one for the same connection already exists.
      * @param suppressAbout If true then no about text is show when opening the tab.
      * @param initialEditor Indicates what type of editor to open initially.
+     * @param serviceOnly If true then create/use a tab backed by the service-only connection.
      *
      * @returns A promise fulfilled once the connect tab is added.
      */
     private activateConnectionTab = async (entry: ICdmConnectionEntry, force: boolean, suppressAbout: boolean,
-        initialEditor?: InitialEditor): Promise<boolean> => {
-        let selectedPage = this.resolveLatestPageId(entry);
+        initialEditor?: InitialEditor, serviceOnly = initialEditor === "none"): Promise<boolean> => {
+        let selectedPage = serviceOnly
+            ? this.resolveLatestAdministrationPageId(entry)
+            : this.resolveLatestPageId(entry);
 
         if (selectedPage && !force) {
-            await this.setStatePromise({ selectedPage });
+            await this.setStatePromise({
+                selectedPage,
+                selectedWorkspace: this.getConnectionWorkspaceId(entry.details.id),
+            });
         } else {
             this.showProgress();
             this.setProgressMessage("Starting editor session...");
 
             // Create a new connection entry for the tab. It's open by default.
             try {
-                const newEntry = await entry.duplicate();
+                const newEntry = serviceOnly
+                    ? await entry.duplicateServiceOnly()
+                    : await entry.duplicate();
                 const pageId = uuid();
+                if (serviceOnly) {
+                    this.serviceOnlyConnectionPages.add(pageId);
+                }
                 await this.addNewTab(newEntry, suppressAbout, initialEditor, pageId);
-                selectedPage = pageId;
+                if (this.state.connectionTabs.some((candidate) => {
+                    return candidate.dataModelEntry.id === pageId;
+                })) {
+                    selectedPage = pageId;
+                } else {
+                    this.serviceOnlyConnectionPages.delete(pageId);
+                }
             } catch (error) {
                 void ui.showErrorMessage(convertErrorToString(error), {});
             } finally {
@@ -1539,7 +3283,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
         }
         if (selectedPage) {
-            this.latestPagesByConnection.set(entry.details.id, selectedPage);
+            const tab = this.state.connectionTabs.find((candidate) => {
+                return candidate.dataModelEntry.id === selectedPage;
+            });
+            if (tab) {
+                this.rememberConnectionPage(tab);
+            }
         }
 
         // Always return true to indicated we handled the request.
@@ -1619,6 +3368,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                         viewState: null,
                         options: defaultEditorOptions,
                     },
+                    autoExecuteAbout: type === OdmEntityType.Notebook,
                     currentVersion: model.getVersionId(),
                 };
                 documentStates.push(newState as IOpenDocumentState);
@@ -1693,13 +3443,24 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
 
             this.hideProgress(false);
-            await this.setStatePromise({ connectionTabs, selectedPage: tab.id, loading: false });
+            await this.setStatePromise({
+                connectionTabs,
+                selectedPage: tab.id,
+                selectedWorkspace: this.getConnectionWorkspaceId(connection.details.id),
+                loading: false,
+            });
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Connection Error: ${message}`, {});
 
             const { lastSelectedPage } = this.state;
-            await this.setStatePromise({ selectedPage: lastSelectedPage ?? this.documentDataModel.overview.id });
+            const selectedPage = lastSelectedPage ?? this.documentDataModel.overview.id;
+            await this.setStatePromise({
+                selectedPage,
+                selectedWorkspace: selectedPage === this.documentDataModel.overview.id
+                    ? homeWorkspaceId
+                    : this.getWorkspaceIdForPageId(selectedPage) ?? this.state.selectedWorkspace,
+            });
             this.hideProgress(true);
         }
 
@@ -1708,12 +3469,79 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private canCloseTab = async (id: string): Promise<boolean> => {
         const { selectedPage } = this.state;
+        const connectionDocument = this.findConnectionDocumentLocation(id);
+        if (connectionDocument) {
+            const { connectionState, documentState, tab } = connectionDocument;
+            const isActiveDocument = connectionState.activeEntry === id && tab.dataModelEntry.id === selectedPage;
+            if (isActiveDocument && this.currentTabRef.current) {
+                return this.currentTabRef.current.confirmClose();
+            }
 
-        if (id !== selectedPage || !this.currentTabRef.current) {
+            if (!this.isDocumentDirty(documentState)) {
+                return true;
+            }
+
+            return (await ui.confirm(
+                "This tab has unsaved changes. Do you want to discard them and close the tab?",
+                "Discard",
+                "Cancel",
+            )) === "Discard";
+        }
+
+        const connectionTab = this.state.connectionTabs.find((candidate) => {
+            return candidate.dataModelEntry.id === id;
+        });
+
+        if (connectionTab) {
+            return this.confirmCloseConnectionTab(connectionTab);
+        }
+
+        return true;
+    };
+
+    private confirmCloseConnectionTab = async (connectionTab: IConnectionTab): Promise<boolean> => {
+        const tabId = connectionTab.dataModelEntry.id;
+        const connectionTabRef = this.connectionTabRefs.get(tabId)
+            ?? (this.currentTabRef.current?.props?.id === tabId ? this.currentTabRef.current : null);
+        if (connectionTabRef) {
+            return connectionTabRef.confirmCloseAll();
+        }
+
+        const connectionState = this.connectionPresentation.get(connectionTab.dataModelEntry);
+        if (!connectionState) {
             return true;
         }
 
-        return this.currentTabRef.current.canClose();
+        for (const editorState of connectionState.documentStates) {
+            if (editorState.document.type === OdmEntityType.Notebook
+                && !await (editorState.state?.model.executionContexts?.canClose() ?? true)) {
+                return false;
+            }
+        }
+
+        const hasDirtyEditor = connectionState.documentStates.some((editorState) => {
+            return this.isDocumentDirty(editorState);
+        });
+        if (!hasDirtyEditor) {
+            return true;
+        }
+
+        return (await ui.confirm(
+            "This tab has unsaved changes. Do you want to discard them and close the tab?",
+            "Discard",
+            "Cancel",
+        )) === "Discard";
+    };
+
+    private handleWorkspaceTabSelection = (tabId: string): void => {
+        const connectionDocument = this.findConnectionDocumentLocation(tabId);
+        if (connectionDocument) {
+            void this.handleDocumentSelection(connectionDocument.documentState.document);
+
+            return;
+        }
+
+        this.handleSelectTab(tabId);
     };
 
     /**
@@ -1725,42 +3553,103 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         e.stopPropagation();
         const id = (e.currentTarget as HTMLElement).id;
 
-        if (this.currentTabRef.current) {
-            void this.currentTabRef.current.canClose().then((canClose) => {
-                if (canClose) {
-                    void this.removeTabs([id]);
-                }
-            });
-        } else {
-            void this.removeTabs([id]);
+        void this.canCloseTab(id).then((canClose) => {
+            if (canClose) {
+                void this.removeTabs([id]);
+            }
+        });
+    };
+
+    private handleCloseWorkspace = (e: MouseEvent | KeyboardEvent, workspaceId: string): void => {
+        e.stopPropagation();
+        e.preventDefault();
+        this.workspaceSelectorRef.current?.close(false);
+
+        void this.closeWorkspace(workspaceId);
+    };
+
+    private closeWorkspace = async (workspaceId: string): Promise<boolean> => {
+        const workspace = this.getWorkspaceById(workspaceId);
+        if (workspace?.kind !== "connection") {
+            return false;
         }
+
+        for (const pageId of workspace.pageIds) {
+            if (!await this.canCloseTab(pageId)) {
+                return true;
+            }
+        }
+
+        return this.removeTabs(workspace.pageIds);
     };
 
     private updateAppTabsState = (state: Partial<IDocumentModuleState>, closingIds: string[]): void => {
-        const { selectedPage } = this.state;
+        const connectionTabs = state.connectionTabs ?? this.state.connectionTabs;
+        const documentTabs = state.documentTabs ?? this.state.documentTabs;
+        const schemaDiagramTabs = state.schemaDiagramTabs ?? this.state.schemaDiagramTabs;
+        const shellSessionTabs = state.shellSessionTabs ?? this.state.shellSessionTabs;
+        const nextState: Partial<IDocumentModuleState> = {
+            ...state,
+            connectionTabs,
+            documentTabs,
+            schemaDiagramTabs,
+            shellSessionTabs,
+        };
+
+        if (this.isElectronWorkspaceLayout()) {
+            const mergedState = {
+                ...this.state,
+                ...nextState,
+            } as IDocumentModuleState;
+            const activeWorkspaceId = this.getResolvedSelectedWorkspaceId();
+            const activeWorkspacePageIds = this.getWorkspacePageIds(activeWorkspaceId, mergedState);
+
+            if (activeWorkspaceId === homeWorkspaceId) {
+                nextState.selectedWorkspace = homeWorkspaceId;
+                nextState.selectedPage = this.documentDataModel.overview.id;
+            } else if (activeWorkspacePageIds.length > 0) {
+                nextState.selectedWorkspace = activeWorkspaceId;
+                nextState.selectedPage = Tabview.getSelectedPageId(
+                    activeWorkspacePageIds,
+                    this.getVisiblePageId() ?? "",
+                    closingIds,
+                    activeWorkspacePageIds[activeWorkspacePageIds.length - 1]!,
+                );
+            } else if (activeWorkspaceId === generalWorkspaceId) {
+                nextState.selectedWorkspace = generalWorkspaceId;
+                nextState.selectedPage = this.documentDataModel.overview.id;
+            } else {
+                nextState.selectedWorkspace = homeWorkspaceId;
+                nextState.selectedPage = this.documentDataModel.overview.id;
+            }
+
+            this.setState(nextState);
+
+            return;
+        }
 
         const remainingPageIds: string[] = [];
-        state.shellSessionTabs?.forEach((info) => {
+        shellSessionTabs.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
 
-        state.connectionTabs?.forEach((info) => {
+        connectionTabs.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
 
-        state.documentTabs?.forEach((info) => {
+        documentTabs.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
 
-        state.schemaDiagramTabs?.forEach((info) => {
+        schemaDiagramTabs.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
 
-        const newSelection = Tabview.getSelectedPageId(remainingPageIds, selectedPage, closingIds,
+        const newSelection = Tabview.getSelectedPageId(remainingPageIds, this.state.selectedPage, closingIds,
             this.documentDataModel.overview.id);
-        state.selectedPage = newSelection;
+        nextState.selectedPage = newSelection;
 
-        this.setState(state);
+        this.setState(nextState);
     };
 
     private resetConnectionSuffixes(state: Partial<IDocumentModuleState>): void {
@@ -1798,6 +3687,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return true;
         }
         const { connectionTabs, documentTabs, schemaDiagramTabs, shellSessionTabs } = this.state;
+        const connectionDocumentIds = tabIds.filter((id) => {
+            return this.findConnectionDocumentLocation(id) !== undefined;
+        });
+        const actualTabIds = tabIds.filter((id) => {
+            return !connectionDocumentIds.includes(id);
+        });
+
+        if (connectionDocumentIds.length > 0) {
+            await Promise.all(connectionDocumentIds.map(async (id) => {
+                await ApplicationDB.removeDataByTabId(StoreType.Document, id);
+                const connectionDocument = this.findConnectionDocumentLocation(id);
+                if (connectionDocument) {
+                    await this.closeConnectionDocument(connectionDocument, false);
+                }
+            }));
+        }
+
+        if (actualTabIds.length === 0) {
+            return true;
+        }
 
         const closingTabs: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs" |
             "schemaDiagramTabs"> = {
@@ -1815,7 +3724,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         };
 
         shellSessionTabs.forEach((info) => {
-            if (tabIds.includes(info.dataModelEntry.id)) {
+            if (actualTabIds.includes(info.dataModelEntry.id)) {
                 closingTabs.shellSessionTabs.push(info);
             } else {
                 remainingTabsState.shellSessionTabs.push(info);
@@ -1823,7 +3732,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
 
         connectionTabs.forEach((info) => {
-            if (tabIds.includes(info.dataModelEntry.id)) {
+            if (actualTabIds.includes(info.dataModelEntry.id)) {
                 closingTabs.connectionTabs.push(info);
             } else {
                 remainingTabsState.connectionTabs.push(info);
@@ -1831,7 +3740,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
 
         documentTabs.forEach((info) => {
-            if (tabIds.includes(info.dataModelEntry.id)) {
+            if (actualTabIds.includes(info.dataModelEntry.id)) {
                 closingTabs.documentTabs.push(info);
             } else {
                 remainingTabsState.documentTabs.push(info);
@@ -1839,14 +3748,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
 
         schemaDiagramTabs.forEach((info) => {
-            if (tabIds.includes(info.dataModelEntry.id)) {
+            if (actualTabIds.includes(info.dataModelEntry.id)) {
                 closingTabs.schemaDiagramTabs.push(info);
             } else {
                 remainingTabsState.schemaDiagramTabs.push(info);
             }
         });
 
-        await Promise.all(tabIds.map(async (id) => {
+        await Promise.all(actualTabIds.map(async (id) => {
             // Remove all result data from the application DB.
             await ApplicationDB.removeDataByTabId(StoreType.Document, id);
         }));
@@ -1867,7 +3776,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             this.removeDocument(info.dataModelEntry.id, info.dataModelEntry.id);
         });
 
-        this.updateAppTabsState(remainingTabsState, tabIds);
+        this.updateAppTabsState(remainingTabsState, actualTabIds);
         this.resetConnectionSuffixes(remainingTabsState);
 
         return true;
@@ -1886,6 +3795,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const tabId = info.dataModelEntry.id;
         const page = info.dataModelEntry;
         const connectionState = this.connectionPresentation.get(page);
+
+        this.forgetConnectionPage(info);
 
         // Render is based on the connectionTabs content, it is needed to delete the
         // connection tab to avoid race conditions if the connectionPresentation is
@@ -1946,7 +3857,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @returns A promise resolving to true, when the tab removal is finished.
      */
     private removeShellTab = async (id: string, updateAppState = true): Promise<boolean> => {
-        const { selectedPage, shellSessionTabs } = this.state;
+        const { shellSessionTabs } = this.state;
 
         if (updateAppState) {
             // Remove all result data from the application DB.
@@ -1965,73 +3876,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             shellSessionTabs.splice(index, 1);
             requisitions.executeRemote("sessionRemoved", session.dataModelEntry.details);
-
-            let newSelection = selectedPage;
-
-            if (id === newSelection) {
-                if (index > 0) {
-                    newSelection = shellSessionTabs[index - 1].dataModelEntry.id;
-                } else {
-                    if (index >= shellSessionTabs.length - 1) {
-                        newSelection = "sessions"; // The overview page cannot be closed.
-                    } else {
-                        newSelection = shellSessionTabs[index + 1].dataModelEntry.id;
-                    }
-                }
-            }
-
-            this.setState({ selectedPage: newSelection, shellSessionTabs });
         }
 
         if (updateAppState) {
-            const remainingTabs = shellSessionTabs.filter((t) => {
-                return t.dataModelEntry.id !== id;
-            });
-
-            this.updateAppTabsState({ shellSessionTabs: remainingTabs }, [id]);
+            this.updateAppTabsState({ shellSessionTabs: [...shellSessionTabs] }, [id]);
         }
 
         return true;
-    };
-
-    /**
-     * Triggered by the document outline drop down, to select one of the items in it.
-     *
-     * @param accept True if the selection happens by clicking (and hence closing) the drop down item.
-     * @param ids A set of selected identifiers (in this case we always only have one).
-     * @param payload The data model entry for the selected item.
-     */
-    private handleDropdownSelection = async (accept: boolean, ids: Set<string>, payload: unknown): Promise<void> => {
-        const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
-        if (!canClose) {
-            return;
-        }
-
-        if (!payload) {
-            this.showOverview();
-
-            return;
-        }
-
-        const document = payload as LeafDocumentEntry | IOdmStandaloneDocumentEntry | IOdmShellSessionEntry;
-        if (document.type === OdmEntityType.ShellSession) {
-            void this.activateShellTab(document.id);
-        } else {
-            let tabId = document.parent?.id;
-            if (document.type === OdmEntityType.StandaloneDocument || document.type === OdmEntityType.SchemaDiagram) {
-                // For notebooks and scripts we use the parent id as the tab id.
-                tabId = document.id;
-            }
-
-            // Activate the tab for the selected document.
-            this.handleSelectTab(tabId!);
-
-            // Activate the document.
-            this.handleSelectItem({
-                tabId: tabId!,
-                document,
-            });
-        }
     };
 
     private addNewConsole = (e: MouseEvent | KeyboardEvent): void => {
@@ -2045,7 +3896,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             });
         }
 
-        void this.activateShellTab(uuid());
+        void this.openConsoleForCurrentWorkspace();
     };
 
     /**
@@ -2057,18 +3908,15 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @returns Always true (to close the menu after the click).
      */
     private handleNewScriptClick = (props: IMenuItemProperties): boolean => {
-        const { selectedPage, connectionTabs } = this.state;
+        void this.getOrCreateSelectedUserConnectionTab().then((page) => {
+            const connectionId = page?.connection.details.id;
+            if (!page) {
+                return;
+            }
 
-        const page = connectionTabs.find((candidate) => {
-            return candidate.dataModelEntry.id === selectedPage;
-        });
-
-        const connectionId = page?.connection.details.id;
-
-        if (page) {
             switch (props.id) {
                 case "addEditor": {
-                    this.handleAddNotebook(selectedPage);
+                    this.handleAddNotebook(page.dataModelEntry.id);
 
                     break;
                 }
@@ -2102,7 +3950,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 default:
             }
-        }
+        });
 
         return true;
     };
@@ -2112,67 +3960,75 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return Promise.resolve(false);
     };
 
+    private handleDesktopWindowCloseRequested = async (
+        details?: { requestId?: string; },
+    ): Promise<boolean> => {
+        const requestId = details?.requestId;
+        if (typeof requestId !== "string" || requestId.length === 0) {
+            return false;
+        }
+
+        const allow = await this.confirmWindowClose();
+        requisitions.executeRemote("desktopWindowCloseResponse", { requestId, allow });
+
+        return true;
+    };
+
     private handleCloseDocument = async (
         details: { connectionId?: number, documentId: string, pageId?: string; }): Promise<boolean> => {
-        const { connectionTabs } = this.state;
+        const connectionDocument = this.findConnectionDocumentLocation(details.documentId);
+        if (connectionDocument) {
+            return this.closeConnectionDocument(connectionDocument);
+        }
 
-        const tab = connectionTabs.find((tab) => {
-            return tab.dataModelEntry.id === details.pageId;
+        return this.removeTabs([details.documentId]);
+    };
+
+    private closeConnectionDocument = async (
+        location: IConnectionDocumentLocation,
+        confirmActiveClose = true,
+    ): Promise<boolean> => {
+        const { tab, connectionState, documentState } = location;
+
+        if (confirmActiveClose && connectionState.activeEntry === documentState.document.id) {
+            const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.confirmClose()) : true;
+            if (!canClose) {
+                return true;
+            }
+        }
+
+        const index = connectionState.documentStates.findIndex((state: IOpenDocumentState) => {
+            return state.document.id === documentState.document.id;
         });
 
-        if (!tab) {
-            return this.removeTabs([details.documentId]);
+        if (index === -1) {
+            return false;
         }
 
-        const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
-        if (connectionState) {
-            // Check if the document can be closed, if it is the active one.
-            if (connectionState.activeEntry === details.documentId) {
-                const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
-                if (!canClose) {
-                    return true;
-                }
-            }
-
-            const index = connectionState.documentStates.findIndex((state: IOpenDocumentState) => {
-                return state.document.id === details.documentId;
-            });
-
-            if (index > -1) {
-                const documentState = connectionState.documentStates[index];
-
-                // Select another editor.
-                if (index > 0) {
-                    connectionState.activeEntry = connectionState.documentStates[index - 1].document.id;
-                } else {
-                    if (index < connectionState.documentStates.length - 1) {
-                        connectionState.activeEntry = connectionState.documentStates[index + 1].document.id;
-                    }
-                }
-
-                connectionState.documentStates.splice(index, 1);
-
-                if (connectionState.documentStates.length === 0) {
-                    // No editor left over -> close the connection. This will also send a remote notification.
-                    this.maxConnectionDocumentSuffix = new Map();
-                    if (this.latestPagesByConnection.get(tab.connection.details.id) === tab.dataModelEntry.id) {
-                        this.latestPagesByConnection.delete(tab.connection.details.id);
-                    }
-
-                    return this.removeTabs([tab.dataModelEntry.id]);
-                } else {
-                    this.notifyRemoteEditorClose(tab.dataModelEntry.id, documentState.document.id,
-                        tab.connection.details.id, tab.connection.details);
-                    this.removeDocument(tab.dataModelEntry.id, documentState.document.id, tab.connection.details);
-
-                    this.forceUpdate();
-
-                    return Promise.resolve(true);
-                }
+        if (connectionState.activeEntry === documentState.document.id) {
+            if (index > 0) {
+                connectionState.activeEntry = connectionState.documentStates[index - 1]!.document.id;
+            } else if (index < connectionState.documentStates.length - 1) {
+                connectionState.activeEntry = connectionState.documentStates[index + 1]!.document.id;
             }
         }
 
-        return Promise.resolve(false);
+        connectionState.documentStates.splice(index, 1);
+
+        if (connectionState.documentStates.length === 0) {
+            this.maxConnectionDocumentSuffix = new Map();
+            this.forgetConnectionPage(tab);
+
+            return this.removeTabs([tab.dataModelEntry.id]);
+        }
+
+        this.notifyRemoteEditorClose(tab.dataModelEntry.id, documentState.document.id,
+            tab.connection.details.id, tab.connection.details);
+        this.removeDocument(tab.dataModelEntry.id, documentState.document.id, tab.connection.details);
+
+        this.forceUpdate();
+
+        return true;
     };
 
     private handleSelectDocument = async (details: {
@@ -2196,12 +4052,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         }
     };
 
-    private createNewEditor = (details: INewEditorRequest): Promise<boolean> => {
-        const { selectedPage } = this.state;
+    private createNewEditor = async (details: INewEditorRequest): Promise<boolean> => {
+        const pageId = (await this.getOrCreateSelectedUserConnectionPageEntry())?.id;
 
         // Currently this is only used to create a new notebook.
-        if (details.language === "msg") {
-            this.handleAddNotebook(selectedPage);
+        if (details.language === "msg" && pageId) {
+            this.handleAddNotebook(pageId);
         }
 
         return Promise.resolve(true);
@@ -2244,13 +4100,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return;
         }
 
+        if (tabId === debuggerWorkspacePageId && this.state.debuggerWorkspaceVisible === true) {
+            this.setState({
+                selectedPage: debuggerWorkspacePageId,
+                selectedWorkspace: debuggerWorkspaceId,
+            });
+
+            return;
+        }
+
         // Now get the tab we want to switch to.
         const tab = connectionTabs.find((entry) => {
             return entry.dataModelEntry.id === tabId;
         });
 
         if (tab) {
-            this.setState({ selectedPage: tabId });
+            this.rememberConnectionPage(tab);
+            this.setState({
+                selectedPage: tabId,
+                selectedWorkspace: this.getConnectionWorkspaceId(tab.connection.details.id),
+            });
 
             requisitions.executeRemote("selectConnectionTab", {
                 connectionId: tab.connection.details.id,
@@ -2262,21 +4131,34 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             });
 
             if (docTab) {
-                this.setState({ selectedPage: docTab.dataModelEntry.id });
+                this.setState({
+                    selectedPage: docTab.dataModelEntry.id,
+                    selectedWorkspace: generalWorkspaceId,
+                });
             } else {
                 const schemaDiagramTab = schemaDiagramTabs.find((entry) => {
                     return entry.dataModelEntry.id === tabId;
                 });
 
                 if (schemaDiagramTab) {
-                    this.setState({ selectedPage: schemaDiagramTab.dataModelEntry.id });
+                    this.setState({
+                        selectedPage: schemaDiagramTab.dataModelEntry.id,
+                        selectedWorkspace: schemaDiagramTab.dataModelEntry.connection?.id
+                            ? this.getConnectionWorkspaceId(schemaDiagramTab.dataModelEntry.connection.id)
+                            : generalWorkspaceId,
+                    });
                 } else {
                     const shellTab = shellSessionTabs.find((entry) => {
                         return entry.dataModelEntry.id === tabId;
                     });
 
                     if (shellTab) {
-                        this.setState({ selectedPage: shellTab.dataModelEntry.id });
+                        this.setState({
+                            selectedPage: shellTab.dataModelEntry.id,
+                            selectedWorkspace: shellTab.dataModelEntry.details.dbConnectionId
+                                ? this.getConnectionWorkspaceId(shellTab.dataModelEntry.details.dbConnectionId)
+                                : generalWorkspaceId,
+                        });
                     }
                 }
             }
@@ -2304,6 +4186,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 const model = this.createEditorModel(connection.backend, "", "msg", connection.details.version ?? 0,
                     connection.details.sqlMode ?? "", connection.currentSchema);
 
+                const autoExecuteAbout = !connectionState.documentStates.some((state) => {
+                    return state.document.type === OdmEntityType.Notebook;
+                });
+
                 const editorId = uuid();
                 const caption = `DB Notebook ${++this.documentCounter}`;
                 const newState: Mutable<Partial<IOpenDocumentState>> = {
@@ -2312,6 +4198,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                         viewState: null,
                         options: defaultEditorOptions,
                     },
+                    autoExecuteAbout,
                     currentVersion: model.getVersionId(),
                 };
                 connectionState.documentStates.push(newState as IOpenDocumentState);
@@ -2378,7 +4265,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         const connectionState = tab ? this.connectionPresentation.get(tab.dataModelEntry) : undefined;
         if (connectionState) {
-            this.latestPagesByConnection.set(tab!.connection.details.id, details.tabId);
+            this.rememberConnectionPage(tab!);
 
             // Check if we have an open document with the new id
             // (administration pages like server status count here too).
@@ -2398,7 +4285,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     if (details.content !== undefined) {
                         const newState = this.addEditorFromScript(details.tabId, tab!.connection,
                             details.document, details.content, details.spName, details.schemaName,
-                            details.is3rdLanguage);
+                            details.is3rdLanguage, details.fileName);
                         connectionState.documentStates.push(newState);
                     }
                 } else {
@@ -2416,6 +4303,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             if (tab?.dataModelEntry) {
                 connectionState.activeEntry = documentId;
+                this.rememberConnectionPage(tab);
                 requisitions.executeRemote("selectDocument", {
                     connectionId: tab.connection.details.id, documentId,
                     pageId: tab.dataModelEntry.id,
@@ -2444,11 +4332,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param spName The stored program's name if available
      * @param schemaName The schema where is the stored program will be added
      * @param is3rdLanguage Whether the script involves non-SQL language
+     * @param fileName The optional file name/path associated with the script.
      *
      * @returns The new editor state.
      */
     private addEditorFromScript(tabId: string, connection: ICdmConnectionEntry, script: IOdmScriptEntry,
-        content: string, spName?: string, schemaName?: string, is3rdLanguage?: boolean): IOpenDocumentState {
+        content: string, spName?: string, schemaName?: string, is3rdLanguage?: boolean,
+        fileName?: string): IOpenDocumentState {
         const model = this.createEditorModel(connection.backend, content, script.language,
             connection.details.version!, connection.details.sqlMode!, schemaName ?? "", spName,
             is3rdLanguage);
@@ -2461,6 +4351,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 options: defaultEditorOptions,
             },
             currentVersion: model.getVersionId(),
+            fileName,
         };
 
         this.notifyRemoteEditorOpen(tabId, script, connection.details);
@@ -2496,6 +4387,21 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         }
     };
 
+    private handleEditorChange = (tabId: string, editorId: string): void => {
+        const tab = this.state.connectionTabs.find((entry) => {
+            return entry.dataModelEntry.id === tabId;
+        });
+
+        const connectionState = tab ? this.connectionPresentation.get(tab.dataModelEntry) : undefined;
+        const editorState = connectionState?.documentStates.find((entry) => {
+            return entry.document.id === editorId;
+        });
+
+        if (editorState) {
+            this.forceUpdate();
+        }
+    };
+
     /**
      * Handles sidebar menu actions for the document tree.
      *
@@ -2507,7 +4413,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private handleSideBarDocumentCommand = async (command: Command,
         entry: OpenDocumentDataModelEntry): Promise<ISideBarCommandResult> => {
 
-        const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
+        const canClose = await this.canCurrentTabClose();
         if (!canClose) {
             return { success: false };
         }
@@ -2599,7 +4505,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
         }
 
-        const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
+        const canClose = await this.canCurrentTabClose();
         if (!canClose) {
             return { success: false };
         }
@@ -2613,7 +4519,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         } else {
             const connection = entry.connection;
             const connectionId = connection.details.id;
-            const pageId = this.resolveLatestPageId(connection);;
+            const pageId = this.resolveLatestPageId(connection);
 
             switch (command.command) {
                 case "msg.openConnection": {
@@ -2720,9 +4626,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                         viewState: null,
                         options: defaultEditorOptions,
                     },
+                    currentVersion: model.getVersionId(),
                 });
 
-                this.setState({ documentTabs, selectedPage: document.id });
+                this.setState({
+                    documentTabs,
+                    selectedPage: document.id,
+                    selectedWorkspace: generalWorkspaceId,
+                });
 
                 this.notifyRemoteEditorOpen(document.id, document);
             }
@@ -2785,14 +4696,122 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return { success };
     };
 
+    private readonly desktopOpenSupportedFileResourceId = "desktopOpenSupportedFile";
+
+    private getDesktopOpenSupportedFileFilters = (): Record<string, string[]> => {
+        return {
+            "Supported Files": ["sql", "mysql", "js", "ts", "mysql-notebook"],
+        };
+    };
+
+    private readSelectedFile = (file: IOpenFileDialogResult["file"][number]): string => {
+        return new TextDecoder().decode(file.content);
+    };
+
+    private getLanguageForOpenedScript = (fileName: string, connection: IConnectionDetails): EditorLanguage | undefined => {
+        const normalized = fileName.toLowerCase();
+        if (normalized.endsWith(".js")) {
+            return "javascript";
+        }
+
+        if (normalized.endsWith(".ts")) {
+            return "typescript";
+        }
+
+        if (normalized.endsWith(".sql") || normalized.endsWith(".mysql")) {
+            return connection.dbType === DBType.MySQL ? "mysql" : "sql";
+        }
+
+        return undefined;
+    };
+
+    private openSupportedFile = async (
+        pageEntry: IOdmConnectionPageEntry,
+        fileName: string,
+        content: string,
+    ): Promise<boolean> => {
+        if (fileName.toLowerCase().endsWith(".mysql-notebook")) {
+            return requisitions.execute("editorLoadNotebook", {
+                fileName,
+                content,
+                createNew: true,
+            });
+        }
+
+        const language = this.getLanguageForOpenedScript(fileName, pageEntry.details);
+        if (!language) {
+            void ui.showErrorMessage(`Unsupported file type: ${fileName}`, {});
+
+            return false;
+        }
+
+        await this.createAndSelectScriptDocument(
+            pageEntry.details,
+            getDocumentFileName(fileName),
+            language,
+            content,
+            pageEntry.id,
+            fileName,
+        );
+
+        return true;
+    };
+
+    private openDesktopSupportedFileFromDisk = async (): Promise<boolean> => {
+        const pageEntry = await this.getOrCreateSelectedUserConnectionPageEntry();
+        if (!pageEntry) {
+            return false;
+        }
+
+        if (appParameters.embedded) {
+            requisitions.executeRemote("showOpenDialogWithRead", {
+                id: this.desktopOpenSupportedFileResourceId,
+                title: "Open File",
+                openLabel: "Open",
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                filters: this.getDesktopOpenSupportedFileFilters(),
+            });
+
+            return true;
+        }
+
+        const files = await selectFileInBrowser([".sql", ".mysql", ".js", ".ts", ".mysql-notebook"], false);
+        if (!files?.length) {
+            return true;
+        }
+
+        const file = files[0];
+        const fileName = (file as File & { path?: string }).path ?? file.name;
+        const content = await loadFileAsText(file);
+
+        return this.openSupportedFile(pageEntry, fileName, content);
+    };
+
+    private selectFile = async (fileResult: IOpenFileDialogResult): Promise<boolean> => {
+        if (fileResult.resourceId !== this.desktopOpenSupportedFileResourceId) {
+            return false;
+        }
+
+        const pageEntry = await this.getOrCreateSelectedUserConnectionPageEntry();
+        const file = fileResult.file[0];
+        if (!pageEntry || !file) {
+            return false;
+        }
+
+        return this.openSupportedFile(pageEntry, file.path, this.readSelectedFile(file));
+    };
+
     private async loadScriptFromDisk(connection: IConnectionDetails, pageId?: string): Promise<void> {
         const files = await selectFileInBrowser([".sql"], false);
         if (files && files.length > 0) {
             const file = files[0];
+            const fileName = (file as File & { path?: string }).path ?? file.name;
             const content = await loadFileAsText(file);
 
-            await this.createAndSelectScriptDocument(connection, file.name,
-                connection.dbType === DBType.MySQL ? "mysql" : "sql", content, pageId);
+            await this.createAndSelectScriptDocument(connection, getDocumentFileName(fileName),
+                connection.dbType === DBType.MySQL ? "mysql" : "sql", content, pageId, fileName);
         }
     }
 
@@ -2804,17 +4823,27 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param language The language of the script.
      * @param content The initial content of the script.
      * @param pageId The id of the page.
+     * @param fileName The optional file name/path associated with the script.
      */
     private async createAndSelectScriptDocument(connection: IConnectionDetails, caption: string,
-        language: EditorLanguage, content: string, pageId?: string): Promise<void> {
-        const { connectionTabs } = this.state;
+        language: EditorLanguage, content: string, pageId?: string, fileName?: string): Promise<void> {
+        const requestedPageId = pageId && this.isUserConnectionPage(pageId) ? pageId : undefined;
 
         // Make sure we have a tab open for the connection.
-        await this.showPage({ connectionId: connection.id, pageId });
+        await this.showPage({
+            connectionId: connection.id,
+            pageId: requestedPageId,
+            editor: "none",
+            serviceOnly: false,
+        });
+
+        const targetPageId = requestedPageId ?? this.latestPagesByConnection.get(connection.id);
 
         // At this point we should always find the tab.
-        const tab = connectionTabs.find((tab) => {
-            return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.details.id === connection.id);
+        const tab = this.state.connectionTabs.find((tab) => {
+            return targetPageId
+                ? (tab.dataModelEntry.id === targetPageId)
+                : (tab.connection.details.id === connection.id && this.isUserConnectionPage(tab.dataModelEntry.id));
         });
 
         if (tab) {
@@ -2834,6 +4863,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     document,
                     tabId: tab.dataModelEntry.id,
                     content,
+                    fileName,
                 });
             }
         }
@@ -2884,9 +4914,17 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
 
         if (existing) {
-            this.setState({ selectedPage: sessionId });
-            // !TODO: Check the need of pageId (existing.dataModelEntry.id?)
-            requisitions.executeRemote("selectDocument", { connectionId, documentId: sessionId });
+            const existingConnectionId = existing.dataModelEntry.details.dbConnectionId;
+            this.setState({
+                selectedPage: existing.dataModelEntry.id,
+                selectedWorkspace: existingConnectionId
+                    ? this.getConnectionWorkspaceId(existingConnectionId)
+                    : generalWorkspaceId,
+            });
+            requisitions.executeRemote("selectDocument", {
+                connectionId: existingConnectionId,
+                documentId: sessionId,
+            });
         } else {
             this.showProgress();
             const backend = new ShellInterfaceShellSession();
@@ -2937,7 +4975,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 shellSessionTabs.push({ dataModelEntry: document, savedState: sessionState });
 
                 this.hideProgress(false);
-                this.setState({ shellSessionTabs, selectedPage: document.id, loading: false });
+                this.setState({
+                    shellSessionTabs,
+                    selectedPage: document.id,
+                    selectedWorkspace: connectionId
+                        ? this.getConnectionWorkspaceId(connectionId)
+                        : generalWorkspaceId,
+                    loading: false,
+                });
 
                 requisitions.executeRemote("sessionAdded", document.details);
             } catch (error) {
@@ -3102,7 +5147,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private handleDocumentSelection = async (entry: OpenDocumentDataModelEntry): Promise<void> => {
-        const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
+        const canClose = await this.canCurrentTabClose();
         if (!canClose) {
             return;
         }
@@ -3143,7 +5188,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 });
 
                 if (tab) {
-                    this.setState({ selectedPage: entry.id });
+                    this.doSwitchTab(entry.id);
                 }
 
                 break;
@@ -3157,7 +5202,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 });
 
                 if (tab) {
-                    this.setState({ selectedPage: entry.id });
+                    this.doSwitchTab(entry.id);
                 }
 
                 break;
@@ -3173,26 +5218,29 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param entry The entry that was selected.
      */
     private handleConnectionEntrySelection = async (entry: ConnectionDataModelEntry): Promise<void> => {
-        const { connectionTabs } = this.state;
-
         switch (entry.type) {
             case CdmEntityType.AdminPage: {
                 const connectionId = entry.connection.details.id;
 
-                const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
+                const canClose = await this.canCurrentTabClose();
                 if (!canClose) {
                     return;
                 }
 
-                let pageId = this.resolveLatestPageId(entry.connection);
+                let pageId = this.resolveLatestAdministrationPageId(entry.connection);
 
-                // At this point pageId may be still undefined if none are opened.
-                await this.showPage({ connectionId, pageId });
+                await this.showPage({
+                    connectionId,
+                    pageId,
+                    editor: "none",
+                    force: pageId === undefined,
+                    serviceOnly: false,
+                });
 
-                // But now it surely exists.
-                pageId = this.resolveLatestPageId(entry.connection);
+                // But now it surely exists, either from the admin page map or from the freshly opened page.
+                pageId = this.resolveLatestAdministrationPageId(entry.connection);
 
-                const tab = connectionTabs.find((tab) => {
+                const tab = this.state.connectionTabs.find((tab) => {
                     return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.details.id === connectionId);
                 });
 
@@ -3209,6 +5257,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 if (document) {
                     this.handleSelectItem({ tabId: tab!.dataModelEntry.id, document });
+                    this.latestAdministrationPagesByConnection.set(connectionId, tab!.dataModelEntry.id);
                 }
 
                 break;
@@ -3358,6 +5407,25 @@ EXAMPLES
         }
     };
 
+    private openActiveAdministrationPage = async (pageType: AdminPageType): Promise<boolean> => {
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        const page = connection?.adminEntry?.pages.find((candidate) => {
+            return candidate.pageType === pageType;
+        });
+
+        if (!page) {
+            return false;
+        }
+
+        await this.handleConnectionEntrySelection(page);
+
+        return true;
+    };
+
+    private toggleActiveWorkspaceSystemSchemas = async (): Promise<boolean> => {
+        return this.sideBarRef.current?.toggleActiveWorkspaceSystemSchemas() ?? false;
+    };
+
     private getNumberOfOpenedConnectionPages(entry: ICdmConnectionEntry): number {
         return this.state.connectionTabs.filter(
             (info) => {
@@ -3367,14 +5435,15 @@ EXAMPLES
 
     private resolveLatestPageId(entry: ICdmConnectionEntry): string | undefined {
         let pageId = this.latestPagesByConnection.get(entry.details.id);
-        if (pageId && !this.isValidPage(pageId)) {
+        if (pageId && !this.isUserConnectionPage(pageId)) {
             // pageUuid does not exist anymore, invalidating.
             this.latestPagesByConnection.delete(entry.details.id);
             pageId = undefined;
         }
 
         this.state.connectionTabs.forEach((info: IConnectionTab) => {
-            if (!pageId && info.connection.details.id === entry.details.id) {
+            if (!pageId && info.connection.details.id === entry.details.id
+                && this.isUserConnectionPage(info.dataModelEntry.id)) {
                 // Fallback: searching pageUuid by connectionId if it's not yet set after validation.
                 pageId = info.dataModelEntry.id;
             }
@@ -3383,10 +5452,88 @@ EXAMPLES
         return pageId;
     }
 
-    private isValidPage(id: string): boolean {
-        return this.state.connectionTabs.findIndex((info: IConnectionTab) => {
+    private resolveLatestAdministrationPageId(entry: ICdmConnectionEntry): string | undefined {
+        let pageId = this.latestAdministrationPagesByConnection.get(entry.details.id);
+        if (pageId && !this.findConnectionTabByPageId(pageId)) {
+            this.latestAdministrationPagesByConnection.delete(entry.details.id);
+            pageId = undefined;
+        }
+
+        pageId ??= this.resolveLatestPageId(entry);
+
+        this.state.connectionTabs.some((info: IConnectionTab) => {
+            if (pageId) {
+                return true;
+            }
+
+            if (info.connection.details.id === entry.details.id) {
+                pageId = info.dataModelEntry.id;
+
+                return true;
+            }
+
+            return false;
+        });
+
+        return pageId;
+    }
+
+    private findConnectionTabByPageId(id: string): IConnectionTab | undefined {
+        return this.state.connectionTabs.find((info: IConnectionTab) => {
             return info.dataModelEntry.id === id;
-        }) !== -1;
+        });
+    }
+
+    private isUserConnectionDocument(document: { type: OdmEntityType; }): boolean {
+        return document.type === OdmEntityType.Script || document.type === OdmEntityType.Notebook;
+    }
+
+    private isUserConnectionPage(id: string): boolean {
+        const tab = this.findConnectionTabByPageId(id);
+        if (!tab) {
+            return false;
+        }
+
+        return !this.serviceOnlyConnectionPages.has(id);
+    }
+
+    private isServiceConnectionPage(id: string): boolean {
+        const tab = this.findConnectionTabByPageId(id);
+        if (!tab) {
+            return false;
+        }
+
+        return this.serviceOnlyConnectionPages.has(id);
+    }
+
+    private rememberConnectionPage(tab: IConnectionTab): void {
+        const connectionId = tab.connection.details.id;
+        const pageId = tab.dataModelEntry.id;
+
+        if (this.isServiceConnectionPage(pageId)) {
+            this.latestAdministrationPagesByConnection.set(connectionId, pageId);
+            if (this.latestPagesByConnection.get(connectionId) === pageId) {
+                this.latestPagesByConnection.delete(connectionId);
+            }
+        } else if (this.isUserConnectionPage(pageId)) {
+            this.latestPagesByConnection.set(connectionId, pageId);
+            if (this.latestAdministrationPagesByConnection.get(connectionId) === pageId) {
+                this.latestAdministrationPagesByConnection.delete(connectionId);
+            }
+        }
+    }
+
+    private forgetConnectionPage(tab: IConnectionTab): void {
+        const connectionId = tab.connection.details.id;
+        const pageId = tab.dataModelEntry.id;
+
+        if (this.latestPagesByConnection.get(connectionId) === pageId) {
+            this.latestPagesByConnection.delete(connectionId);
+        }
+        if (this.latestAdministrationPagesByConnection.get(connectionId) === pageId) {
+            this.latestAdministrationPagesByConnection.delete(connectionId);
+        }
+        this.serviceOnlyConnectionPages.delete(pageId);
     }
 
     private resolveTabCaption(connection: ICdmConnectionEntry): string {
@@ -3432,5 +5579,526 @@ EXAMPLES
             }, logoutTimeout);
         }
     };
+
+    private getDesktopCommandState = (): IDesktopCommandDescriptor[] => {
+        const selectedConnectionTabRef = this.getSelectedConnectionTabRef();
+        const hasActiveConnectionPage = this.getSelectedConnectionPageEntry() !== undefined;
+        const activeDesktopDocumentType = selectedConnectionTabRef?.getActiveDesktopDocumentType();
+        const canUseEditorViewCommands = activeDesktopDocumentType !== undefined;
+        const desktopRunState = this.getActiveDesktopExecutionContext()?.desktopRunState;
+        const canRecallPreviousCommand = activeDesktopDocumentType === "notebook"
+            && (selectedConnectionTabRef?.canNavigateHistory(true) ?? false);
+        const canRecallNextCommand = activeDesktopDocumentType === "notebook"
+            && (selectedConnectionTabRef?.canNavigateHistory(false) ?? false);
+        const showHiddenCharacters = Settings.get("editor.showHidden", false);
+        const softWrapEnabled = Settings.get("editor.wordWrap", "off") === "on";
+        const isMac = navigator.userAgent.includes("Macintosh");
+        const activeWorkspaceConnection = this.getActiveWorkspaceConnectionEntry();
+        const sidebarShowSystemSchemas = this.sideBarRef.current?.getActiveWorkspaceSystemSchemasState();
+        const canUseActiveMySQLConnection = sidebarShowSystemSchemas !== undefined
+            || activeWorkspaceConnection?.details.dbType === DBType.MySQL;
+        const showSystemSchemas = sidebarShowSystemSchemas
+            ?? (activeWorkspaceConnection?.state?.payload?.showSystemSchemas === true);
+        const availableAdministrationPages = activeWorkspaceConnection?.adminEntry?.pages ?? [];
+        const communicationDebuggerAvailable = this.isElectronWorkspaceLayout() && webSession.runMode === RunMode.LocalUser;
+        const administrationCommands = databaseAdministrationCommands.map(({ pageType, id, label }) => {
+            const page = availableAdministrationPages.find((candidate) => {
+                return candidate.pageType === pageType;
+            });
+
+            return {
+                id,
+                label: page?.caption ?? label,
+                enabled: page !== undefined,
+            };
+        });
+
+        return [{
+            id: "desktop.newScriptTab",
+            label: "New SQL Script",
+            enabled: hasActiveConnectionPage,
+            accelerator: "CmdOrCtrl+N",
+        }, {
+            id: "desktop.newNotebookTab",
+            label: "New Notebook",
+            enabled: hasActiveConnectionPage,
+        }, {
+            id: "file.open",
+            label: "Open...",
+            enabled: hasActiveConnectionPage,
+            accelerator: "CmdOrCtrl+O",
+        }, {
+            id: "file.save",
+            label: "Save",
+            enabled: selectedConnectionTabRef?.getActiveDesktopDocumentType() !== undefined,
+            accelerator: "CmdOrCtrl+S",
+        }, {
+            id: "file.saveAs",
+            label: "Save As...",
+            enabled: selectedConnectionTabRef?.getActiveDesktopDocumentType() !== undefined,
+            accelerator: "CmdOrCtrl+Shift+S",
+        }, {
+            id: "file.closeDocument",
+            label: "Close Tab",
+            enabled: this.getClosableDocumentId() !== undefined,
+            accelerator: "CmdOrCtrl+W",
+        }, {
+            id: "file.close",
+            label: "Close Connection",
+            enabled: this.getClosablePageId() !== undefined,
+            accelerator: "CmdOrCtrl+Shift+W",
+        }, {
+            id: "edit.previousCommand",
+            label: "Previous Command",
+            enabled: canRecallPreviousCommand,
+            accelerator: isMac ? "Cmd+Up" : undefined,
+        }, {
+            id: "edit.nextCommand",
+            label: "Next Command",
+            enabled: canRecallNextCommand,
+            accelerator: isMac ? "Cmd+Down" : undefined,
+        }, {
+            id: "view.find",
+            label: "Find",
+            enabled: canUseEditorViewCommands,
+            accelerator: "CmdOrCtrl+F",
+        }, {
+            id: "view.toggleSidebar",
+            label: "Toggle Sidebar",
+            enabled: !appParameters.inExtension,
+            accelerator: "CmdOrCtrl+B",
+        }, {
+            id: "view.showHiddenCharacters",
+            label: "Show Hidden Characters",
+            enabled: canUseEditorViewCommands,
+            checked: showHiddenCharacters,
+        }, {
+            id: "view.softWrap",
+            label: "Soft Wrap Lines",
+            enabled: canUseEditorViewCommands,
+            checked: softWrapEnabled,
+            accelerator: "Alt+Z",
+        }, {
+            id: "dev.toggleDebugger",
+            label: "Toggle Communication Debugger",
+            enabled: communicationDebuggerAvailable,
+            checked: this.state.debuggerWorkspaceVisible === true,
+        }, {
+            id: "view.schemas.showSystemSchemas",
+            label: "Show System Schemas",
+            enabled: canUseActiveMySQLConnection,
+            checked: showSystemSchemas,
+        }, {
+            id: "run.execute",
+            label: "Execute",
+            enabled: desktopRunState?.canExecute ?? false,
+            accelerator: "CmdOrCtrl+Enter",
+        }, {
+            id: "run.executeCurrent",
+            label: "Execute One",
+            enabled: (desktopRunState?.canExecute ?? false) && (desktopRunState?.canExecuteSubparts ?? false),
+            accelerator: "Shift+CmdOrCtrl+Enter",
+        }, {
+            id: "run.executeAsText",
+            label: "Execute with Results as Text",
+            enabled: (desktopRunState?.canExecute ?? false) && (desktopRunState?.canExecuteSubparts ?? false),
+            accelerator: "Alt+Enter",
+        }, {
+            id: "run.stop",
+            label: "Stop",
+            enabled: desktopRunState?.canStop ?? false,
+            accelerator: isMac ? "Cmd+." : undefined,
+        }, {
+            id: "run.stopOnError",
+            label: "Stop on Error",
+            enabled: desktopRunState?.canExecuteSubparts ?? false,
+            checked: desktopRunState?.stopOnErrors ?? false,
+        }, {
+            id: "run.autoCommit",
+            label: "Auto-commit",
+            enabled: desktopRunState?.canExecuteSubparts ?? false,
+            checked: desktopRunState?.autoCommit ?? false,
+        }, ...administrationCommands, {
+            id: "database.mrs.configure",
+            label: "Configure MySQL REST Service",
+            enabled: canUseActiveMySQLConnection,
+        }, {
+            id: "database.mrs.browseDocs",
+            label: "Browse MySQL REST Service Documentation",
+            enabled: true,
+        }];
+    };
+
+    private executeDesktopCommand = async (id: DesktopCommandId): Promise<boolean> => {
+        const administrationCommand = databaseAdministrationCommands.find((command) => {
+            return command.id === id;
+        });
+        if (administrationCommand) {
+            return this.openActiveAdministrationPage(administrationCommand.pageType);
+        }
+
+        switch (id) {
+            case "file.open": {
+                return this.openDesktopSupportedFileFromDisk();
+            }
+
+            case "file.save": {
+                return this.currentTabRef.current?.saveActiveDocument(false) ?? false;
+            }
+
+            case "file.saveAs": {
+                return this.currentTabRef.current?.saveActiveDocument(true) ?? false;
+            }
+
+            case "file.closeDocument": {
+                const documentId = this.getClosableDocumentId();
+                if (!documentId) {
+                    return false;
+                }
+
+                if (!await this.canCloseTab(documentId)) {
+                    return true;
+                }
+
+                const connectionDocument = this.findConnectionDocumentLocation(documentId);
+                if (connectionDocument) {
+                    return this.closeConnectionDocument(connectionDocument, false);
+                }
+
+                return this.removeTabs([documentId]);
+            }
+
+            case "file.close": {
+                const pageId = this.getClosablePageId();
+                if (!pageId) {
+                    return false;
+                }
+
+                if (!await this.canCloseTab(pageId)) {
+                    return true;
+                }
+
+                return this.removeTabs([pageId]);
+            }
+
+            case "edit.previousCommand": {
+                return this.currentTabRef.current?.navigateHistory?.(true) ?? false;
+            }
+
+            case "edit.nextCommand": {
+                return this.currentTabRef.current?.navigateHistory?.(false) ?? false;
+            }
+
+            case "view.find": {
+                if (this.currentTabRef.current?.getActiveDesktopDocumentType() === undefined) {
+                    return false;
+                }
+
+                return requisitions.execute("editorFind", undefined);
+            }
+
+            case "view.toggleSidebar": {
+                if (appParameters.inExtension) {
+                    return false;
+                }
+
+                this.toggleSidebarVisibility();
+
+                return true;
+            }
+
+            case "view.showHiddenCharacters": {
+                if (this.currentTabRef.current?.getActiveDesktopDocumentType() === undefined) {
+                    return false;
+                }
+
+                Settings.set("editor.showHidden", !Settings.get("editor.showHidden", false));
+
+                return true;
+            }
+
+            case "view.softWrap": {
+                if (this.currentTabRef.current?.getActiveDesktopDocumentType() === undefined) {
+                    return false;
+                }
+
+                const wordWrap = Settings.get("editor.wordWrap", "off");
+                Settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on");
+
+                return true;
+            }
+
+            case "dev.toggleDebugger": {
+                return this.toggleCommunicationDebuggerWorkspace();
+            }
+
+            case "view.schemas.showSystemSchemas": {
+                return this.toggleActiveWorkspaceSystemSchemas();
+            }
+
+            case "run.execute": {
+                const executionContext = this.getActiveDesktopExecutionContext();
+                if (!executionContext) {
+                    return false;
+                }
+
+                return this.runDesktopExecution({
+                    advance: executionContext.activeType === "notebook",
+                    forceSecondaryEngine: false,
+                    asText: false,
+                });
+            }
+
+            case "run.executeCurrent": {
+                return this.runDesktopExecution({
+                    atCaret: true,
+                    advance: false,
+                    forceSecondaryEngine: false,
+                    asText: false,
+                });
+            }
+
+            case "run.executeAsText": {
+                const executionContext = this.getActiveDesktopExecutionContext();
+                if (!executionContext) {
+                    return false;
+                }
+
+                return this.runDesktopExecution({
+                    advance: executionContext.activeType === "notebook"
+                        || executionContext.desktopRunState?.canExecuteSubparts === true,
+                    asText: true,
+                    forceSecondaryEngine: false,
+                });
+            }
+
+            case "run.stop": {
+                return this.stopActiveDesktopExecution();
+            }
+
+            case "run.stopOnError": {
+                return requisitions.execute("editorToggleStopExecutionOnError",
+                    Settings.get("editor.stopOnErrors", true));
+            }
+
+            case "run.autoCommit": {
+                return requisitions.execute("editorToggleAutoCommit", undefined);
+            }
+
+            case "database.mrs.configure": {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (!connection) {
+                    return false;
+                }
+
+                const result = await this.handleSideBarConnectionCommand({
+                    title: "Configure MRS",
+                    command: "msg.mrs.configureMySQLRestService",
+                }, connection);
+
+                return result.success;
+            }
+
+            case "database.mrs.browseDocs": {
+                const result = await this.handleSideBarConnectionCommand({
+                    title: "Browse MRS Docs",
+                    command: "msg.mrs.docs",
+                });
+
+                return result.success;
+            }
+
+            case "desktop.newScriptTab":
+            case "desktop.newNotebookTab": {
+                return this.executeDesktopTitlebarAddAction(id);
+            }
+
+            default: {
+                return false;
+            }
+        }
+    };
+
+    private getSelectedConnectionPageEntry = (): IOdmConnectionPageEntry | undefined => {
+        return this.getActiveConnectionTab()?.dataModelEntry;
+    };
+
+    private getSelectedUserConnectionTab = (): IConnectionTab | undefined => {
+        const activeConnectionTab = this.getActiveConnectionTab();
+        if (activeConnectionTab && this.isUserConnectionPage(activeConnectionTab.dataModelEntry.id)) {
+            return activeConnectionTab;
+        }
+
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        const pageId = connection ? this.resolveLatestPageId(connection) : undefined;
+
+        return this.state.connectionTabs.find((candidate) => {
+            return candidate.dataModelEntry.id === pageId && this.isUserConnectionPage(candidate.dataModelEntry.id);
+        });
+    };
+
+    private getOrCreateSelectedUserConnectionTab = async (): Promise<IConnectionTab | undefined> => {
+        const selectedUserTab = this.getSelectedUserConnectionTab();
+        if (selectedUserTab) {
+            return selectedUserTab;
+        }
+
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        if (!connection) {
+            return undefined;
+        }
+
+        await this.showPage({
+            connectionId: connection.details.id,
+            editor: "none",
+            serviceOnly: false,
+        });
+
+        return this.getSelectedUserConnectionTab();
+    };
+
+    private getOrCreateSelectedUserConnectionPageEntry = async (): Promise<IOdmConnectionPageEntry | undefined> => {
+        return (await this.getOrCreateSelectedUserConnectionTab())?.dataModelEntry;
+    };
+
+    private isDocumentDirty = (entry?: IOpenDocumentState): boolean => {
+        return entry?.state !== undefined && entry.currentVersion !== entry.state.model.getVersionId();
+    };
+
+    private isStandaloneDocumentDirty = (entry?: IDocumentTab): boolean => {
+        return entry !== undefined && entry.currentVersion !== entry.savedState.model.getVersionId();
+    };
+
+    private hasUnsavedDocuments = (): boolean => {
+        for (const connectionState of this.connectionPresentation.values()) {
+            for (const entry of connectionState.documentStates) {
+                if (this.isDocumentDirty(entry)) {
+                    return true;
+                }
+            }
+        }
+
+        return this.state.documentTabs.some((entry) => {
+            return this.isStandaloneDocumentDirty(entry);
+        });
+    };
+
+    private confirmWindowClose = async (): Promise<boolean> => {
+        if (!this.hasUnsavedDocuments()) {
+            return true;
+        }
+
+        return (await ui.confirm(
+            "There are unsaved documents. Do you want to discard them and close the window?",
+            "Discard",
+            "Cancel",
+        )) === "Discard";
+    };
+
+    private handleStandaloneDocumentSaved = (id: string): void => {
+        const { documentTabs } = this.state;
+        const index = documentTabs.findIndex((entry) => {
+            return entry.dataModelEntry.id === id;
+        });
+
+        if (index === -1) {
+            return;
+        }
+
+        const entry = documentTabs[index]!;
+        const currentVersion = entry.savedState.model.getVersionId();
+        if (entry.currentVersion === currentVersion) {
+            return;
+        }
+
+        const nextTabs = [...documentTabs];
+        nextTabs[index] = {
+            ...entry,
+            currentVersion,
+        };
+
+        this.setState({ documentTabs: nextTabs });
+    };
+
+    private isDocumentExecutingSql = (entry?: IOpenDocumentState): boolean => {
+        const executionContexts = entry?.state?.model.executionContexts;
+        if (!executionContexts) {
+            return false;
+        }
+
+        if (Symbol.iterator in executionContexts && typeof executionContexts[Symbol.iterator] === "function") {
+            for (const context of executionContexts as Iterable<ExecutionContext>) {
+                if (context.isSQLLike && context.loadingState !== LoadingState.Idle) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        const activeContext = executionContexts.contextFromPosition?.(executionContexts.cursorPosition);
+
+        return activeContext?.isSQLLike === true && activeContext.loadingState !== LoadingState.Idle;
+    };
+
+    private getTabCloseButtonClassName = (entry?: IOpenDocumentState): string => {
+        const classNames = ["closeButton"];
+        if (this.isDocumentDirty(entry)) {
+            classNames.push("dirty");
+        }
+        if (this.isDocumentExecutingSql(entry)) {
+            classNames.push("executing");
+        }
+
+        return classNames.join(" ");
+    };
+
+    private getSidebarInitialSize = (): number => {
+        return this.state.showSidebar ? this.sidebarWidth : 0;
+    };
+
+    private getTabCloseIcon = (entry?: IOpenDocumentState): string | Codicon => {
+        if (this.isDocumentExecutingSql(entry)) {
+            return Codicon.Loading;
+        }
+
+        return this.isDocumentDirty(entry) ? Codicon.PrimitiveDot : Assets.misc.close2Icon;
+    };
+
+    private renderTabCloseButtonContent = (entry?: IOpenDocumentState): ComponentChild => {
+        if (this.isDocumentExecutingSql(entry)) {
+            return <Icon className="closeSpinner" src={Codicon.Loading} />;
+        }
+
+        if (!this.isDocumentDirty(entry)) {
+            return <Icon src={Assets.misc.close2Icon} />;
+        }
+
+        return (
+            <span className="closeIconStack">
+                <Icon className="dirtyIndicator" src={Codicon.PrimitiveDot} />
+                <Icon className="closeIcon" src={Assets.misc.close2Icon} />
+            </span>
+        );
+    };
+
+    private getConnectionTabIcon(entry?: IOpenDocumentState): string {
+        if (entry?.document.type === OdmEntityType.Notebook) {
+            return Assets.documents.notebookIcon;
+        }
+
+        return Assets.misc.scriptIcon;
+    }
+
+    private getConnectionTabCaption(entry: IOpenDocumentState, connectionCaption: string, pageCaption: string): ComponentChild {
+        return (
+            <span className="tabCaptionMain">
+                {getOpenDocumentDisplayCaption(entry, {
+                    connectionCaption,
+                    pageCaption,
+                })}
+            </span>
+        );
+    }
 
 }

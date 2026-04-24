@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -56,6 +56,7 @@ export enum ConnectionTileType {
 export interface ITileActionOptions {
     newTab?: boolean;
     target?: HTMLElement | null;
+    anchorRect?: DOMRect;
     editor?: "notebook" | "script";
 
     id?: string;
@@ -100,6 +101,7 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
         ]);
 
         const actions = this.renderTileActionUI();
+        const showActions = actions !== null;
 
         return (
             <Button
@@ -117,17 +119,23 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
                     <Label className="tileCaption">{caption}</Label>
                     <Label className="tileDescription">{description}</Label>
                 </Container>
-                {type === ConnectionTileType.Open && actions &&
+                {showActions &&
                     <>
-                        <Container id="actionsBackground" />
+                        <Container
+                            id="actionsBackground"
+                            onClick={this.handleActionsAreaClick}
+                        />
                         <Container
                             id="actions"
                             orientation={Orientation.TopDown}
-                            mainAlignment={ContentAlignment.Center}
+                            mainAlignment={type === ConnectionTileType.Group
+                                ? ContentAlignment.Start
+                                : ContentAlignment.Center}
                             crossAlignment={ContentAlignment.Center}
                             innerRef={this.actionsRef}
+                            onClick={this.handleActionsAreaClick}
                         >
-                            {this.renderTileActionUI()}
+                            {actions}
                         </Container>
                     </>
                 }
@@ -136,6 +144,25 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
     }
 
     protected renderTileActionUI = (): ComponentChild => {
+        const { type } = this.props;
+
+        if (type === ConnectionTileType.Group) {
+            return (
+                <Button
+                    id="tileMoreActionsAction"
+                    data-tooltip="More Actions"
+                    imageOnly
+                    onClick={this.handleActionClick}
+                >
+                    <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
+                </Button>
+            );
+        }
+
+        if (type !== ConnectionTileType.Open) {
+            return null;
+        }
+
         return (
             <>
                 <Button
@@ -228,7 +255,11 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
         const id = (e.currentTarget as HTMLElement).id;
         switch (id) {
             case "tileMoreActionsAction": {
-                onAction?.("menu", this.props, { target: e.currentTarget as HTMLElement });
+                const mouseEvent = e as MouseEvent;
+                const anchorRect = typeof mouseEvent.clientX === "number" && typeof mouseEvent.clientY === "number"
+                    ? new DOMRect(mouseEvent.clientX, mouseEvent.clientY, 2, 2)
+                    : undefined;
+                onAction?.("menu", this.props, { target: e.currentTarget as HTMLElement, anchorRect });
 
                 break;
             }
@@ -271,11 +302,15 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
         }
     };
 
+    private handleActionsAreaClick = (e: MouseEvent | KeyboardEvent): void => {
+        e.stopPropagation();
+    };
+
     private handleKeydown = (e: KeyboardEvent): void => {
         if (e.key === KeyboardKeys.A) { // Unmodified A key.
             e.stopPropagation();
             const { type, onAction } = this.props;
-            if (type === ConnectionTileType.Open) {
+            if (type === ConnectionTileType.Open || type === ConnectionTileType.Group) {
                 this.actionsRef.current?.focus();
                 onAction?.("menu", this.props, { target: this.actionsRef.current });
             }

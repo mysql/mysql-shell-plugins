@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,10 +27,11 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
-import { IShellDbConnection, ShellAPIGui } from "../../../../communication/ProtocolGui.js";
+import { IShellDbConnection, multiResultAPIs, ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { ResponseError } from "../../../../communication/ResponseError.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterfaceDb } from "../../../../supplement/ShellInterface/ShellInterfaceDb.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 
 import { MessageScheduler, type ISendRequestParameters } from "../../../../communication/MessageScheduler.js";
@@ -48,6 +49,17 @@ vi.spyOn(MessageScheduler.get, "sendRequest").mockImplementation(
 
             case ShellAPIGui.GuiDbGetCatalogObjectNames: {
                 return Promise.resolve([{ result: ["mysql", "sys"] }]);
+            }
+
+            case ShellAPIGui.GuiDbExecute: {
+                const parameters = details.parameters as { args: { sql: string; moduleSessionId: string; }; };
+
+                return Promise.resolve([{
+                    result: {
+                        rows: [[parameters.args.sql, parameters.args.moduleSessionId]],
+                        totalRowCount: 1,
+                    },
+                }]);
             }
 
             case ShellAPIGui.GuiDbGetSchemaObjectNames: {
@@ -121,6 +133,10 @@ describe("ShellInterfaceDb Tests", () => {
         expect(db.moduleSessionId).toBeUndefined();
     });
 
+    it("Treats service SQL execution as a multi-result API", () => {
+        expect(multiResultAPIs).toContain(ShellAPIGui.GuiDbExecute);
+    });
+
     it("Stored connection, catalog objects", async () => {
         try {
             await db.startSession("test1", testConnection.id);
@@ -128,6 +144,18 @@ describe("ShellInterfaceDb Tests", () => {
 
             const objects = await db.getCatalogObjects("Schema");
             expect(objects).toContain("mysql");
+
+            const result = await db.executeService("show variables");
+            expect(result?.rows).toEqual([["show variables", "testSessionId"]]);
+            expect(MessageScheduler.get.sendRequest).toHaveBeenLastCalledWith(expect.objectContaining({
+                requestType: ShellAPIGui.GuiDbExecute,
+                parameters: {
+                    args: expect.objectContaining({
+                        moduleSessionId: "testSessionId",
+                        sql: "show variables",
+                    }),
+                },
+            }));
         } finally {
             await db.closeSession();
         }
@@ -184,6 +212,24 @@ describe("ShellInterfaceDb Tests", () => {
         expect(objects).toHaveLength(0);
         objects = await db.getTableObjectNames("mysql", "help_topic", "Column");
         expect(objects).toHaveLength(0);
+    });
+
+    it("SQL editor can open and close a service-only DB session", async () => {
+        vi.mocked(MessageScheduler.get.sendRequest).mockClear();
+
+        const editor = new ShellInterfaceSqlEditor();
+        await editor.startServiceSession("adminOnly", testConnection.id);
+
+        expect(MessageScheduler.get.sendRequest).toHaveBeenCalledWith(expect.objectContaining({
+            requestType: ShellAPIGui.GuiDbStartSession,
+            parameters: { args: { connection: testConnection.id } },
+        }));
+
+        await editor.closeSession();
+        expect(MessageScheduler.get.sendRequest).toHaveBeenLastCalledWith(expect.objectContaining({
+            requestType: ShellAPIGui.GuiDbCloseSession,
+            parameters: { args: { moduleSessionId: "testSessionId" } },
+        }));
     });
 
 });

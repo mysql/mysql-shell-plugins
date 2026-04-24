@@ -29,6 +29,7 @@ import { createRef, type ComponentChild, type RefObject } from "preact";
 
 import { type Resolver } from "../../../app-logic/general-types.js";
 import { appParameters } from "../../../supplement/AppParameters.js";
+import { hasElectronHostBridge } from "../../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import type { EditorLanguage } from "../../../supplement/index.js";
 import { Button } from "../Button/Button.js";
@@ -153,7 +154,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
         if (!appParameters.hideStatusBar) {
             requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
-            if (!appParameters.inExtension) {
+            if (!appParameters.inExtension && !hasElectronHostBridge()) {
                 this.#statusBarItem = StatusBar.createStatusBarItem({
                     id: "showNotificationHistory",
                     command: "notifications:showHistory",

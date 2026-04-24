@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SplitButton component tests > Test SplitButton output (Snapshot) 1`] = `
+<div>
+  <div>
+    <div
+      class="msg splitButton"
+      id="splitButton1"
+      title="Run query"
+    >
+      <div
+        class="splitButtonPrimary"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon codicon codicon-play"
+        />
+        <label
+          class="msg label"
+          data-tooltip="expand"
+        >
+          Run Query
+        </label>
+      </div>
+      <div
+        aria-haspopup="menu"
+        class="splitButtonTrigger"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon codicon codicon-chevron-down"
+        />
+      </div>
+    </div>
+    <div
+      class="msg splitButton disabled"
+      id="splitButton2"
+    >
+      <div
+        class="splitButtonPrimary"
+        role="button"
+        tabindex="0"
+      >
+        Disabled
+      </div>
+      <div
+        aria-haspopup="menu"
+        class="splitButtonTrigger"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon codicon codicon-chevron-down"
+        />
+      </div>
+    </div>
+    <div
+      class="msg container fixedScrollbar toolbar dropShadow verticalCenterContent"
+      id="toolbar"
+      style="flex-direction: row; align-items: center;"
+    >
+      <div
+        class="msg splitButton"
+        id="splitButton3"
+      >
+        <div
+          class="splitButtonPrimary"
+          role="button"
+          tabindex="0"
+        >
+          Toolbar Action
+        </div>
+        <div
+          aria-haspopup="menu"
+          class="splitButtonTrigger"
+          role="button"
+          tabindex="0"
+        >
+          <div
+            class="msg icon codicon codicon-chevron-down"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,26 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-declare class StandaloneThemeService {
-    // Neither of these works:
-    // import { IDisposable } from "monaco-editor";
-    // import { IDisposable } from "monaco-editor/esm/vs/editor/editor.api.js";
-
-    // Therefore inlining interface signature
-    public registerEditorContainer(domNode: HTMLElement): { dispose(): void; };
+interface IMonacoDisposable {
+    dispose(): void;
 }
 
-declare module "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js" {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    export declare const IStandaloneThemeService: StandaloneThemeService;
+interface IMonacoIconsStyleSheet extends IMonacoDisposable {
+    onDidChange(listener: () => void): IMonacoDisposable;
+    getCSS(): string;
 }
 
-declare module "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js" {
-    type SupportedServices = StandaloneThemeService;
-    declare class ServiceContainer<T extends SupportedServices> {
-        public get(id: T): T;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    export declare const StandaloneServices: ServiceContainer<StandaloneThemeService>;
+declare module "monaco-editor/esm/vs/platform/theme/browser/iconsStyleSheet.js" {
+    export declare function getIconsStyleSheet(): IMonacoIconsStyleSheet;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import type { DataCallback } from "../../../communication/MessageScheduler.js";
-import type { IOpenConnectionData, ShellAPIGui } from "../../../communication/ProtocolGui.js";
+import type { IOpenConnectionData, IShellPasswordFeedbackRequest, ShellAPIGui } from "../../../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsRouterData, IMrsRouterService, IMrsSchemaData,
     IMrsServiceData, IMrsStatusData, IMrsUserData,
@@ -51,6 +51,8 @@ import {
 } from "./data-model-test-data.js";
 
 const dataModelChanged = vi.fn();
+const openConnectionCredentials: Array<ILoginCredentials | undefined> = [];
+let promptForPassword = false;
 
 mockClassMethods(ShellInterfaceSqlEditor, {
     startSession: vi.fn(),
@@ -61,6 +63,17 @@ mockClassMethods(ShellInterfaceSqlEditor, {
         credentials?: ILoginCredentials,
         callback?: DataCallback<ShellAPIGui.GuiSqlEditorOpenConnection>,
     ) => {
+        openConnectionCredentials.push(credentials);
+        if (promptForPassword) {
+            await callback?.({
+                result: {
+                    prompt: "Please provide the password for 'root@localhost:3306'",
+                    type: "password",
+                } as IShellPasswordFeedbackRequest,
+                requestState: { type: "success", msg: "" },
+            }, requestId!);
+        }
+
         await callback?.({
             result: cdmMockState.haveMockConnectionResponse ? openConnectionDataMock1 : {} as IOpenConnectionData,
             requestState: { type: "success", msg: "" },
@@ -214,6 +227,8 @@ describe("ConnectionDataModel", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         dataModelChanged.mockClear();
+        openConnectionCredentials.length = 0;
+        promptForPassword = false;
     });
 
     it("Connection handling", async () => {
@@ -250,6 +265,7 @@ describe("ConnectionDataModel", () => {
         await firstConnection.refresh?.();
         expect(firstConnection.isOpen).toBe(true);
         expect(await dataModel.isValidConnectionId(firstConnection.details.id)).toBe(true);
+        expect(firstConnection.details.versionComment).toBe("MySQL Community Server - GPL");
 
         // Run the MRS timer at least once. For this we need to expand the MRS item in the connection.
         // This test cannot be used when an MRS database upgrade is due.
@@ -374,5 +390,32 @@ describe("ConnectionDataModel", () => {
         await roots[0].refresh?.();
 
         checkNoUiWarningsOrErrors();
+    });
+
+    it("reuses an accepted MySQL password for later connection opens", async () => {
+        await dataModel.reloadConnections();
+        const connection = dataModel.roots.find((entry) => {
+            return entry.type === CdmEntityType.Connection;
+        }) as ICdmConnectionEntry | undefined;
+        expect(connection).toBeDefined();
+        await connection!.close();
+
+        cdmMockState.haveMockConnectionResponse = true;
+        promptForPassword = true;
+        vi.mocked(uiLayerMock.requestPassword).mockResolvedValueOnce("secret");
+
+        await connection!.refresh?.();
+        await vi.waitFor(() => {
+            expect(uiLayerMock.requestPassword).toHaveBeenCalled();
+        });
+        await connection!.close();
+
+        promptForPassword = false;
+        await connection!.refresh?.();
+
+        expect(openConnectionCredentials.at(-1)).toEqual({
+            userName: "root",
+            password: "secret",
+        });
     });
 });

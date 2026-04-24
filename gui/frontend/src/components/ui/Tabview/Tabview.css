@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -234,6 +234,33 @@
     color: var(--tab-activeForeground);
 }
 
+.msg.tabview .tabArea > .tabItem .tabCaption {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.tabview .tabArea > .tabItem .tabCaptionMain,
+.msg.tabview .tabArea > .tabItem .tabCaptionSecondary {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.tabview .tabArea > .tabItem .tabCaptionMain {
+    color: inherit;
+}
+
+.msg.tabview .tabArea > .tabItem .tabCaptionSecondary {
+    color: var(--descriptionForeground);
+}
+
+.msg.tabview .tabArea > .tabItem.selected .tabCaptionSecondary {
+    color: var(--descriptionForeground);
+}
+
 /* Icons in the auxillary view. */
 .msg.tabview .tabArea > .tabItem #auxillary .icon {
     height: 16px;
@@ -249,8 +276,11 @@
     visibility: visible;
 }
 
+.msg.tabview .tabArea > .tabItem #auxillary .closeButton.dirty .icon {
+    visibility: visible;
+}
+
 .msg.tabview .tabArea > .tabItem:hover:not(.selected) #auxillary .icon {
-    background-color: var(--tab-inactiveForeground);
     visibility: visible;
 }
 

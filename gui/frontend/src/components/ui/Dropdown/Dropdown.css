@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -131,7 +131,14 @@
     border: 1px solid transparent;
 
     max-height: 250px;
-    overflow-y: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.msg.popup.dropdownList.airyDropdown {
+    padding: 12px;
+    row-gap: 4px;
+    border-radius: 8px;
 }
 
 .msg.popup.dropdownList > .dropdownItem {
@@ -139,6 +146,12 @@
     padding: 4px 4px;
 
     min-height: 20px;
+}
+
+.msg.popup.dropdownList.airyDropdown > .dropdownItem {
+    padding: 7px 12px;
+    min-height: 30px;
+    border-radius: 6px;
 }
 
 .msg.dropdown .icon.codicon {
@@ -193,7 +206,16 @@
     margin: 2px 0;
 }
 
+.msg.popup.dropdownList.airyDropdown > .dropdownDivider {
+    margin: 4px 0;
+}
+
 .msg.popup.dropdownList > .dropdownDescription {
     min-height: 15px;
     margin: 4px;
+}
+
+.msg.popup.dropdownList.airyDropdown > .dropdownDescription {
+    min-height: 18px;
+    margin: 6px 8px 4px;
 }

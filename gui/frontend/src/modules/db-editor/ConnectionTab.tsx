@@ -28,7 +28,7 @@ import "./assets/document.css";
 import { ComponentChild, createRef } from "preact";
 import ts, { ScriptTarget } from "typescript";
 
-import { IMarkdownString } from "monaco-editor";
+import type { IMarkdownString } from "monaco-editor/esm/vs/editor/editor.api.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { IDictionary, IServicePasswordRequest, MessageType } from "../../app-logic/general-types.js";
@@ -44,7 +44,8 @@ import { ComponentBase, IComponentProperties, IComponentState } from "../../comp
 import { SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
 import { type ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import {
-    OdmEntityType, type IOdmShellSessionEntry, type IOdmStandaloneDocumentEntry, type LeafDocumentEntry,
+    OdmEntityType, type IOdmScriptEntry, type IOdmShellSessionEntry, type IOdmStandaloneDocumentEntry,
+    type LeafDocumentEntry,
     type OpenDocumentDataModel,
 } from "../../data-models/OpenDocumentDataModel.js";
 import { QueryType } from "../../parsing/parser-common.js";
@@ -59,10 +60,11 @@ import {
 import { appParameters } from "../../supplement/AppParameters.js";
 import {
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, type IColumnDetails,
-    type IOpenFileDialogResult,
+    type IOpenFileDialogResult, type ISqlTransactionChangeDetails,
 } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
+import { desktopCommandRegistry } from "../../supplement/DesktopCommandRegistry.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
     EditorLanguage,
@@ -71,7 +73,8 @@ import {
     generateColumnInfo,
 } from "../../supplement/index.js";
 import {
-    convertErrorToString, getConnectionInfoFromDetails, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
+    convertErrorToString, getConnectionInfoFromDetails, loadFileAsText, resolvePageSize, saveTextAsFile,
+    selectFileInBrowser, uuid, waitFor,
 } from "../../utilities/helpers.js";
 import { clearIntervalAsync, type SetIntervalAsyncTimer } from "../../utilities/AsyncInterval.js";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
@@ -79,6 +82,7 @@ import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
 import { ClientConnections } from "./ClientConnections.js";
+import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
 import { Notebook } from "./Notebook.js";
 import { PerformanceDashboard } from "./PerformanceDashboard.js";
@@ -123,6 +127,9 @@ export interface IOpenDocumentState {
 
     readonly state?: IEditorPersistentState;
 
+    /** If true, an empty notebook runs its about command the first time it is shown. */
+    autoExecuteAbout?: boolean;
+
     /** The version number of the editor model when we last saved it (for entries that are actually saved). */
     currentVersion: number;
 
@@ -165,6 +172,7 @@ export interface ISelectItemDetails {
 
     /** For external/broken out scripts only: the script's content. */
     content?: string;
+    fileName?: string;
 
     is3rdLanguage?: boolean;
     spName?: string;
@@ -207,6 +215,7 @@ interface IConnectionTabProperties extends IComponentProperties {
 
     onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
     onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
+    onDesktopRunStateChanged?: () => void;
 }
 
 interface IConnectionTabState extends IComponentState {
@@ -214,6 +223,8 @@ interface IConnectionTabState extends IComponentState {
 
     /** Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode. */
     standaloneMode: boolean;
+
+    autoCommit?: boolean;
 
     genAiStatus?: IMdsChatStatus;
 }
@@ -274,12 +285,16 @@ interface IMrsServiceSdkMetadata {
 
 /** A tab page for a single connection (managed by the connection host). */
 export class ConnectionTab extends ComponentBase<IConnectionTabProperties, IConnectionTabState> {
-    private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
+    private static aboutMessage = `Welcome to the DB Notebook.
 
-Press %modifier%+Enter to execute the code block.
+Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and TypeScript code blocks.
 
-Execute \\sql to switch to SQL, \\js to JavaScript and \\ts to TypeScript mode.
-Execute \\help or \\? for help;`;
+* Press %modifier%+Enter to execute or re-execute the selected code block.
+* Use Up and Down keys to move between code blocks.
+* Use %modifier%+Up and %modifier%+Down to navigate through the command history.
+
+* Execute \\sql to switch to SQL, \\js to JavaScript and \\ts to TypeScript mode.
+* Execute \\help or \\? for help;`;
 
     // Currently executing contexts.
     private runningContexts = new Map<string, ExecutionContext>();
@@ -315,6 +330,7 @@ Execute \\help or \\? for help;`;
 
         this.state = {
             standaloneMode: false,
+            autoCommit: undefined,
         };
 
         this.sqlQueryExecutor = new SqlQueryExecutor(this.sqlUpdateColumnInfo, props.connection);
@@ -323,7 +339,8 @@ Execute \\help or \\? for help;`;
         this.addHandledProperties("connectionId", "dbType", "savedState", "workerPool", "toolbarInset", "showExplorer",
             "showAbout", "extraLibs",
             "onHelpCommand", "onAddEditor", "onLoadEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor",
-            "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
+            "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction",
+            "onDesktopRunStateChanged");
 
     }
 
@@ -404,6 +421,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("showLakehouseNavigator", this.showLakehouseNavigator);
         requisitions.register("showChatOptions", this.showChatOptions);
         requisitions.register("selectFile", this.selectFile);
+        requisitions.register("sqlTransactionChanged", this.handleTransactionChanged);
 
         const { id, connection } = this.props;
         if (connection) {
@@ -416,6 +434,7 @@ Execute \\help or \\? for help;`;
         }
 
         this.notebookRef.current?.focus();
+        void this.refreshAutoCommitState();
 
         // Update the cachedMrsServiceSdk for the first time
         void this.updateMrsServiceSdkCache();
@@ -455,6 +474,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("showLakehouseNavigator", this.showLakehouseNavigator);
         requisitions.unregister("showChatOptions", this.showChatOptions);
         requisitions.unregister("selectFile", this.selectFile);
+        requisitions.unregister("sqlTransactionChanged", this.handleTransactionChanged);
     }
 
     public override componentDidUpdate(prevProps: IConnectionTabProperties): void {
@@ -464,6 +484,7 @@ Execute \\help or \\? for help;`;
             const details = connection.details;
             if (details.id !== prevProps.connection?.details.id) {
                 this.sqlQueryExecutor.connection = connection;
+                void this.refreshAutoCommitState();
 
                 requisitions.executeRemote("sqlSetCurrentSchema",
                     {
@@ -472,10 +493,130 @@ Execute \\help or \\? for help;`;
                     });
             }
         }
+
+        if (prevProps.savedState.activeEntry !== this.props.savedState.activeEntry
+            || prevProps.savedState.documentStates !== this.props.savedState.documentStates) {
+            desktopCommandRegistry.notifyHostStateChanged();
+        }
     }
 
+    public getActiveDesktopDocumentType = (): "script" | "notebook" | undefined => {
+        const activeEditor = this.findActiveEditor();
+        switch (activeEditor?.document.type) {
+            case OdmEntityType.Script:
+                return "script";
+
+            case OdmEntityType.Notebook:
+                return "notebook";
+
+            default:
+                return undefined;
+        }
+    };
+
+    public openForActiveDocument = async (): Promise<boolean> => {
+        const activeType = this.getActiveDesktopDocumentType();
+        if (activeType === "script") {
+            this.scriptRef.current?.openIntoActiveScript();
+            return true;
+        }
+
+        if (activeType === "notebook") {
+            return requisitions.execute("editorLoadNotebook", undefined);
+        }
+
+        return false;
+    };
+
+    public saveActiveDocument = async (saveAs = false): Promise<boolean> => {
+        const activeType = this.getActiveDesktopDocumentType();
+        if (activeType === "script") {
+            this.scriptRef.current?.saveActiveScript(saveAs);
+            return true;
+        }
+
+        if (activeType === "notebook") {
+            return requisitions.execute("editorSaveNotebook", saveAs ? { saveAs: true } : undefined);
+        }
+
+        return false;
+    };
+
+    public getDesktopRunState = (): {
+        canExecute: boolean;
+        canExecuteSubparts: boolean;
+        canStop: boolean;
+        autoCommit: boolean;
+        transactionOpen?: boolean;
+        stopOnErrors: boolean;
+    } | undefined => {
+        const activeType = this.getActiveDesktopDocumentType();
+        const editorRunState = activeType === "script"
+            ? this.scriptRef.current?.getDesktopRunState()
+            : activeType === "notebook"
+                ? this.notebookRef.current?.getDesktopRunState()
+                : undefined;
+
+        if (!editorRunState) {
+            return undefined;
+        }
+
+        const autoCommit = this.state.autoCommit ?? editorRunState.autoCommit;
+
+        return {
+            ...editorRunState,
+            autoCommit: autoCommit === true,
+        };
+    };
+
+    public canNavigateHistory = (backwards: boolean): boolean => {
+        const { savedState } = this.props;
+
+        return backwards
+            ? savedState.currentExecutionHistoryIndex < savedState.executionHistory.length
+            : savedState.currentExecutionHistoryIndex > 0;
+    };
+
+    public navigateHistory = (backwards: boolean): boolean => {
+        if (!this.canNavigateHistory(backwards)) {
+            return false;
+        }
+
+        this.handleNavigateHistory(backwards);
+
+        return true;
+    };
+
+    private refreshAutoCommitState = async (): Promise<void> => {
+        if (!this.getActiveDesktopDocumentType()) {
+            return;
+        }
+
+        const value = await this.props.connection?.backend.getAutoCommit?.();
+        if (value === undefined) {
+            return;
+        }
+
+        const autoCommit = value === true;
+        if (this.state.autoCommit === autoCommit) {
+            return;
+        }
+
+        this.setState({ autoCommit }, () => {
+            desktopCommandRegistry.notifyHostStateChanged();
+            this.props.onDesktopRunStateChanged?.();
+        });
+    };
+
+    private handleTransactionChanged = async (_details?: ISqlTransactionChangeDetails): Promise<boolean> => {
+        await this.refreshAutoCommitState();
+
+        return true;
+    };
+
     public render(): ComponentChild {
-        const { connection, toolbarItems, savedState, onHelpCommand, showAbout, extraLibs } = this.props;
+        const { connection, toolbarItems, savedState, onHelpCommand, extraLibs, onDesktopRunStateChanged }
+            = this.props;
         const { standaloneMode, genAiStatus } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
@@ -497,12 +638,14 @@ Execute \\help or \\? for help;`;
                             standaloneMode={standaloneMode}
                             dbType={connection.details.dbType}
                             extraLibs={extraLibs}
-                            showAbout={showAbout && !this.loadingNotebook}
+                            showAbout={this.shouldAutoExecuteAbout(activeEditor)}
                             fontSize={appParameters.editorFontSize}
+                            onEdit={this.handleEdit}
                             onHelpCommand={onHelpCommand}
                             onScriptExecution={this.handleExecution}
                             onContextLanguageChange={this.handleContextLanguageChange}
                             onNavigateHistory={this.handleNavigateHistory}
+                            onDesktopRunStateChanged={onDesktopRunStateChanged}
                         />;
 
                         const chatOptionsExpanded = savedState.chatOptionsState.chatOptionsExpanded;
@@ -550,12 +693,14 @@ Execute \\help or \\? for help;`;
                             extraLibs={extraLibs}
                             savedState={savedState}
                             connectionId={connection.details.id}
+                            defaultSaveCaption={this.getDefaultOpenDocumentFileName(activeEditor)}
                             toolbarItemsTemplate={toolbarItems}
                             standaloneMode={standaloneMode}
                             fontSize={appParameters.editorFontSize}
                             onScriptExecution={this.handleExecution}
                             onEdit={this.handleEdit}
                             onExplainError={this.explainError}
+                            onDesktopRunStateChanged={onDesktopRunStateChanged}
                         />;
 
                         break;
@@ -634,6 +779,56 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     }
 
+    public stopExecution = async (): Promise<boolean> => {
+        return this.editorStopExecution();
+    };
+
+    public confirmClose = async (): Promise<boolean> => {
+        if (!await this.canClose()) {
+            return false;
+        }
+
+        const activeEditor = this.findActiveEditor();
+        if (!this.isEditorDirty(activeEditor)) {
+            return true;
+        }
+
+        return this.confirmDiscardDirtyEditor();
+    };
+
+    public confirmCloseAll = async (): Promise<boolean> => {
+        for (const editorState of this.props.savedState.documentStates) {
+            if (!await this.canCloseEditor(editorState)) {
+                return false;
+            }
+        }
+
+        const dirtyEditor = this.props.savedState.documentStates.some((editorState) => {
+            return this.isEditorDirty(editorState);
+        });
+        if (!dirtyEditor) {
+            return true;
+        }
+
+        return this.confirmDiscardDirtyEditor();
+    };
+
+    private confirmDiscardDirtyEditor = async (): Promise<boolean> => {
+        return (await ui.confirm(
+            "This tab has unsaved changes. Do you want to discard them and close the tab?",
+            "Discard",
+            "Cancel",
+        )) === "Discard";
+    };
+
+    private canCloseEditor = async (editorState: IOpenDocumentState): Promise<boolean> => {
+        if (editorState.document.type === OdmEntityType.Notebook) {
+            return editorState.state?.model.executionContexts?.canClose() ?? true;
+        }
+
+        return true;
+    };
+
     private editorStopExecution = async (): Promise<boolean> => {
         const { connection } = this.props;
 
@@ -644,7 +839,6 @@ Execute \\help or \\? for help;`;
 
             return true;
         }
-
         return false;
     };
 
@@ -657,7 +851,7 @@ Execute \\help or \\? for help;`;
 
         try {
             await connection.backend.execute("commit");
-            await requisitions.execute("sqlTransactionChanged", undefined);
+            await requisitions.execute("sqlTransactionChanged", { queryType: QueryType.Commit });
 
             void ui.showInformationMessage("Commit successful.", {});
         } catch (reason) /* istanbul ignore next */ {
@@ -676,7 +870,7 @@ Execute \\help or \\? for help;`;
         }
 
         await connection.backend.execute("rollback");
-        await requisitions.execute("sqlTransactionChanged", undefined);
+        await requisitions.execute("sqlTransactionChanged", { queryType: QueryType.RollbackWork });
 
         void ui.showInformationMessage("Rollback successful.", {});
 
@@ -791,20 +985,106 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     };
 
-    private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
-        const { id, onLoadScript } = this.props;
+    private editorLoadScript = async (details: IScriptRequest): Promise<boolean> => {
+        if (details.openFromFile) {
+            if (appParameters.inExtension) {
+                return requisitions.executeRemote("editorLoadScript", details);
+            }
+
+            const languageToExt: Partial<Record<EditorLanguage, string[]>> = {
+                mysql: [".mysql", ".sql"],
+                sql: [".sql"],
+                typescript: [".ts"],
+                javascript: [".js"],
+                msg: [".sql", ".mysql", ".ts", ".js"],
+            };
+            const extensions = languageToExt[details.language] ?? [];
+
+            if (appParameters.embedded) {
+                requisitions.executeRemote("showOpenDialogWithRead", {
+                    id: this.getScriptLoadResourceId(details.id),
+                    title: "Load Script From File",
+                    openLabel: "Load",
+                    canSelectFiles: true,
+                    canSelectFolders: false,
+                    canSelectMany: false,
+                    filters: {
+                        Script: extensions.map((entry) => {
+                            return entry.startsWith(".") ? entry.slice(1) : entry;
+                        }),
+                    },
+                });
+
+                return true;
+            }
+
+            const files = await selectFileInBrowser(extensions, false);
+            if (!files?.length) {
+                return true;
+            }
+
+            const file = files[0];
+            const fileName = (file as File & { path?: string }).path ?? file.name;
+
+            return this.editorLoadScript({
+                ...details,
+                caption: getDocumentFileName(fileName),
+                fileName,
+                content: await file.text(),
+                openFromFile: false,
+            });
+        }
+
+        const { id, onEditorRename, onLoadScript } = this.props;
+        const openState = this.findOpenEditor(details.id);
+        if (!openState) {
+            return false;
+        }
+
+        if (details.fileName) {
+            openState.fileName = details.fileName;
+        }
 
         onLoadScript?.(id ?? "", details.id, details.content);
+        openState.currentVersion = this.getEditorModelVersion(openState) ?? openState.currentVersion;
+        onEditorRename?.(id ?? "", details.id, details.caption);
 
-        return Promise.resolve(true);
+        return true;
     };
 
     private editorRenameScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onEditorRename } = this.props;
+        const openState = this.findOpenEditor(details.id);
+
+        if (openState && details.fileName) {
+            openState.fileName = details.fileName;
+            openState.currentVersion = this.getEditorModelVersion(openState) ?? openState.currentVersion;
+        }
 
         onEditorRename?.(id ?? "", details.id, details.caption);
 
         return Promise.resolve(true);
+    };
+
+    private refreshOpenEditorTitle = (editorId: string): void => {
+        const { id, onEditorRename } = this.props;
+        const openState = this.findOpenEditor(editorId);
+
+        if (openState) {
+            onEditorRename?.(id ?? "", editorId, openState.document.caption);
+        }
+    };
+
+    private getEditorModelVersion = (openState: IOpenDocumentState): number | undefined => {
+        const versionGetter = openState.state?.model.getVersionId;
+
+        return typeof versionGetter === "function" ? versionGetter.call(openState.state?.model) : undefined;
+    };
+
+    private isEditorDirty = (openState?: IOpenDocumentState): boolean => {
+        const version = openState ? this.getEditorModelVersion(openState) : undefined;
+
+        return version !== undefined && version !== openState?.currentVersion;
     };
 
     private addContextResultMessage = (contextId: string, message: string) => {
@@ -890,13 +1170,38 @@ Execute \\help or \\? for help;`;
      *
      * @returns A promise that resolves to true if the notebook was loaded, false if the request could not be fulfilled.
      */
-    private editorLoadNotebook = async (details?: { fileName: string, content: string; standalone: boolean; }): Promise<boolean> => {
+    private editorLoadNotebook = async (
+        details?: {
+            id?: string;
+            fileName?: string;
+            content?: string;
+            standalone?: boolean;
+            createNew?: boolean;
+        }): Promise<boolean> => {
         /**
          * Helper method to actually create the notebook from the given text.
          *
          * @param text The content to load into the notebook.
          */
-        const createNotebook = async (fileName: string, text: string): Promise<void> => {
+        const createNotebook = async (fileName: string, text: string, editorId?: string,
+            createNew = false): Promise<void> => {
+            const waitForOpenEditor = async (targetEditorId: string): Promise<IOpenDocumentState | undefined> => {
+                let state = this.findOpenEditor(targetEditorId);
+                if (state) {
+                    return state;
+                }
+
+                const isReady = await waitFor(1000, () => {
+                    return this.findOpenEditor(targetEditorId) !== undefined;
+                });
+
+                if (isReady) {
+                    state = this.findOpenEditor(targetEditorId);
+                }
+
+                return state;
+            };
+
             let content: Partial<INotebookFileFormat>;
             if (text.length === 0) {
                 content = {
@@ -924,59 +1229,72 @@ Execute \\help or \\? for help;`;
                 try {
                     this.loadingNotebook = true;
 
-                    let openState = this.findActiveEditor();
+                    let openState = createNew ? undefined : this.findOpenEditor(editorId);
+                    if (!openState && editorId && !createNew) {
+                        openState = await waitForOpenEditor(editorId);
+                    }
                     if (!openState) {
-                        const editorId = await this.handleAddEditor();
-                        if (editorId) {
-                            // Adding a new notebook will always make it the active editor.
-                            openState = this.findActiveEditor();
+                        const newEditorId = await this.handleAddEditor();
+                        if (newEditorId) {
+                            openState = await waitForOpenEditor(newEditorId);
+                        } else {
+                            this.loadingNotebook = false;
+
+                            return;
                         }
                     }
 
-                    const persistentState: IEditorPersistentState | undefined = openState?.state;
-                    if (persistentState) {
-                        const { id } = this.props;
+                    if (!openState?.state) {
+                        this.loadingNotebook = false;
+                        void ui.showErrorMessage("Cannot prepare the notebook editor.", {});
 
-                        // Stores the file name on the state associated to the active document
-                        openState!.fileName = fileName;
+                        return;
+                    }
 
-                        // Replace the default caption with the one from the notebook file.
-                        if (content.caption) {
-                            openState!.document.caption = content.caption;
-                        }
-                        persistentState.model.setValue(content.content ?? "");
-                        persistentState.options = content.options ?? {};
+                    const persistentState = openState.state;
+                    const { id } = this.props;
 
-                        // Restore the result data in the application DB.
-                        const transaction = ApplicationDB.db.transaction(StoreType.Document, "readwrite");
-                        const objectStore = transaction.objectStore(StoreType.Document);
-                        for (const context of content.contexts ?? []) {
-                            // Create new result IDs for the data, to avoid multiple result views pointing to the
-                            // same data, for example when the same notebook is loaded twice.
-                            const idMap = new Map<string, string>();
-                            const result = context.state.result;
-                            if (result?.type === "resultIds") {
-                                result.list.forEach((resultId, index, list) => {
-                                    const newId = uuid();
-                                    idMap.set(resultId, newId);
-                                    list[index] = newId;
-                                });
+                    // Stores the file name on the state associated to the active document
+                    openState.fileName = fileName;
 
-                                for (const data of context.data ?? []) {
-                                    data.resultId = idMap.get(data.resultId) ?? "";
+                    // Replace the default caption with the one from the notebook file.
+                    if (content.caption) {
+                        openState.document.caption = content.caption;
+                    }
+                    persistentState.model.setValue(content.content ?? "");
+                    openState.currentVersion = this.getEditorModelVersion(openState) ?? openState.currentVersion;
+                    this.refreshOpenEditorTitle(openState.document.id);
+                    persistentState.options = content.options ?? {};
 
-                                    // Also replace the tab ID in the result data.
-                                    data.tabId = id!;
-                                    await objectStore.add(data);
-                                }
+                    // Restore the result data in the application DB.
+                    const transaction = ApplicationDB.db.transaction(StoreType.Document, "readwrite");
+                    const objectStore = transaction.objectStore(StoreType.Document);
+                    for (const context of content.contexts ?? []) {
+                        // Create new result IDs for the data, to avoid multiple result views pointing to the
+                        // same data, for example when the same notebook is loaded twice.
+                        const idMap = new Map<string, string>();
+                        const result = context.state.result;
+                        if (result?.type === "resultIds") {
+                            result.list.forEach((resultId, index, list) => {
+                                const newId = uuid();
+                                idMap.set(resultId, newId);
+                                list[index] = newId;
+                            });
+
+                            for (const data of context.data ?? []) {
+                                data.resultId = idMap.get(data.resultId) ?? "";
+
+                                // Also replace the tab ID in the result data.
+                                data.tabId = id!;
+                                await objectStore.add(data);
                             }
                         }
-
-                        setTimeout(() => {
-                            this.notebookRef.current?.restoreNotebook(content as INotebookFileFormat);
-                            this.loadingNotebook = false;
-                        }, 10);
                     }
+
+                    setTimeout(() => {
+                        this.notebookRef.current?.restoreNotebook(content as INotebookFileFormat);
+                        this.loadingNotebook = false;
+                    }, 10);
 
                     if (appParameters.embedded) {
                         this.setState({ standaloneMode: details?.standalone ?? false });
@@ -989,38 +1307,71 @@ Execute \\help or \\? for help;`;
             }
         };
 
-        if (details === undefined) {
+        if (details?.fileName === undefined || details.content === undefined) {
             // Ask the user to select a file.
+            const targetEditorId = details?.createNew ? undefined : this.findActiveEditor()?.document.id;
+
             if (appParameters.inExtension) {
-                return requisitions.executeRemote("editorLoadNotebook", undefined);
+                return requisitions.executeRemote("editorLoadNotebook", details?.createNew
+                    ? { createNew: true }
+                    : targetEditorId ? { id: targetEditorId } : undefined);
+            }
+
+            if (appParameters.embedded) {
+                requisitions.executeRemote("showOpenDialogWithRead", {
+                    id: this.getNotebookLoadResourceId(targetEditorId, details?.createNew ?? false),
+                    title: "Load MySQL Notebook",
+                    openLabel: "Open",
+                    canSelectFiles: true,
+                    canSelectFolders: false,
+                    canSelectMany: false,
+                    filters: {
+                        MySQLNotebook: ["mysql-notebook"],
+                    },
+                });
+
+                return Promise.resolve(true);
             }
 
             const selection = await selectFileInBrowser([".mysql-notebook"], false);
             if (selection) {
                 const file = selection[0];
-                const reader = new FileReader();
-                reader.onload = (): void => {
-                    if (typeof reader.result === "string") {
-                        try {
-                            void createNotebook(file.name, reader.result);
-                        } catch (e) {
-                            if (e instanceof Error) {
-                                const message = e.toString() || "";
-                                alert(`Error while parsing JSON data: \n${message}`);
-                            }
-                        }
-                    } else {
-                        void ui.showErrorMessage("Cannot read notebook file.", {});
-                    }
-                };
-
-                reader.readAsText(file, "utf-8");
+                const fileName = (file as File & { path?: string }).path ?? file.name;
+                try {
+                    const content = await loadFileAsText(file);
+                    await createNotebook(fileName, content, targetEditorId, details?.createNew ?? false);
+                } catch (e) {
+                    const message = convertErrorToString(e);
+                    void ui.showErrorMessage(`Cannot read notebook file: ${message}`, {});
+                }
             }
         } else {
-            await createNotebook(details.fileName, details.content);
+            await createNotebook(details.fileName, details.content, details.id, details.createNew ?? false);
         }
 
         return Promise.resolve(true);
+    };
+
+    private getScriptLoadResourceId = (editorId: string): string => {
+        return `loadActiveScript:${editorId}`;
+    };
+
+    private getNotebookLoadResourceId = (editorId?: string, createNew = false): string => {
+        return createNew ? "loadNewNotebook" : `loadActiveNotebook:${editorId ?? ""}`;
+    };
+
+    private getLoadResourceEditorId = (resourceId: string, prefix: "loadActiveScript" | "loadActiveNotebook"): string | undefined => {
+        const marker = `${prefix}:`;
+
+        if (!resourceId.startsWith(marker)) {
+            return undefined;
+        }
+
+        return resourceId.slice(marker.length) || undefined;
+    };
+
+    private readSelectedFile = (file: IOpenFileDialogResult["file"][number]): string => {
+        return new TextDecoder().decode(file.content);
     };
 
     private showLakehouseNavigator = async (): Promise<boolean> => {
@@ -1061,36 +1412,34 @@ Execute \\help or \\? for help;`;
      * This can either be handled by the browser (not allowing to specify a target path) or by the host application
      * which has more freedom to allow the user to select a target path.
      *
-     * @param details Name and Content of the Notebook.
+     * @param details Save options and optional host-managed file metadata.
      *
      * @returns A promise that resolves to true if the notebook was saved, false if the request could not be fulfilled.
-     * 
-     * NOTE: This handler does not use details.fileName as the name, the fileName is determined from the fileName
-     * associated to the active editor. OTOH if details.fileName is "viaSaveAs" it will be an indicator that not even
-     * stored file name should be used, but that a new file should be created.
-     * 
-     * If no fileName is associated to the active editor, the remote handler will interpret that as the need to
-     * open a fileSave dialog to get the final fileName.
-     * 
-     * The final fileName will be sent back through the selectFile requisition, which will store the fileName on the
-     * state of the active editor.
+     *
+     * When running embedded, the current notebook path is tracked on the active editor state. Unsaved notebooks send
+     * only a `defaultFileName` suggestion to the host so it can open a save dialog without treating that suggestion
+     * as a writable path. After a successful save, the host returns the chosen path through this same requisition so
+     * the active editor can remember it for subsequent saves.
      */
-    private editorSaveNotebook = async (details?: {fileName?: string; content?: string, saveAs?: boolean}): Promise<boolean> => {
-        const openState = this.findActiveEditor();
+    private editorSaveNotebook = async (details?: {
+        id?: string; fileName?: string; defaultFileName?: string; content?: string, saveAs?: boolean
+    }): Promise<boolean> => {
+        const openState = this.findOpenEditor(details?.id);
 
         if (openState) {
             const persistentState: IEditorPersistentState | undefined = openState.state;
             // The case where the file has been sucessfully saved
             if (details?.fileName && !details?.content) {
-                let openState = this.findActiveEditor();
-                openState!.fileName = details?.fileName;
+                openState.fileName = details.fileName;
+                openState.currentVersion = this.getEditorModelVersion(openState) ?? openState.currentVersion;
+                this.refreshOpenEditorTitle(openState.document.id);
                 if (appParameters.embedded && !appParameters.inExtension) {
-                    ui.setStatusBarMessage(`DB Notebook saved to ${details?.fileName}`);
+                    ui.setStatusBarMessage(`DB Notebook saved to ${details.fileName}`);
                 }
 
                 return Promise.resolve(true);
             }
-            
+
             if (persistentState?.model.executionContexts) {
                 const content: INotebookFileFormat = {
                     type: "MySQLNotebook",
@@ -1111,23 +1460,54 @@ Execute \\help or \\? for help;`;
                 }, 4);
 
                 if (appParameters.embedded) {
-                    let targetFileName = undefined;
-                    let targetSaveAs = details?.saveAs ?? false;
-                    if (!targetSaveAs) {
-                        targetFileName = openState.fileName;
-                    }
+                    const defaultFileName = this.getDefaultOpenDocumentFileName(openState);
+                    const targetFileName = openState.fileName;
+                    const targetSaveAs = details?.saveAs ?? false;
 
-                    requisitions.executeRemote("editorSaveNotebook", {fileName: targetFileName, content: text, saveAs: targetSaveAs});
+                    requisitions.executeRemote("editorSaveNotebook", {
+                        id: openState.document.id,
+                        fileName: targetFileName,
+                        defaultFileName,
+                        content: text,
+                        saveAs: targetSaveAs,
+                    });
                 } else {
-                    // TODO: make the file name configurable.
-                    const { caption } = this.props;
-                    saveTextAsFile(text, `${caption ?? "<unnamed>"} - ${openState.document.caption}.mysql-notebook`);
+                    saveTextAsFile(text, this.getDefaultOpenDocumentFileName(openState));
+                    openState.currentVersion = this.getEditorModelVersion(openState) ?? openState.currentVersion;
                 }
             }
         }
 
         return Promise.resolve(true);
     };
+
+    private getDefaultOpenDocumentFileName(openState: IOpenDocumentState): string {
+        const pageCaption = this.getOpenDocumentPageCaption(openState);
+
+        return getOpenDocumentDisplayCaption(openState, {
+            connectionCaption: this.props.connection?.details.caption,
+            pageCaption,
+        });
+    }
+
+    private getOpenDocumentPageCaption(openState: IOpenDocumentState): string | undefined {
+        const { connection, savedState, caption } = this.props;
+        const connectionCaption = connection?.details.caption;
+
+        if (!connectionCaption) {
+            return caption;
+        }
+
+        const pageOffset = getUntitledFileIndex(connectionCaption, caption);
+        const documentIndex = savedState.documentStates.findIndex((entry: IOpenDocumentState) => {
+            return entry.document.id === openState.document.id;
+        });
+        const captionIndex = Math.max(pageOffset + Math.max(documentIndex, 0), 0);
+
+        return captionIndex === 0
+            ? connectionCaption
+            : `${connectionCaption} (${captionIndex + 1})`;
+    }
 
     /**
      * Called for SQL code from a code editor. All result sets start at 0 offset in this scenario.
@@ -1452,7 +1832,7 @@ Execute \\help or \\? for help;`;
             case QueryType.BeginWork:
             case QueryType.Commit:
             case QueryType.RollbackWork: {
-                void requisitions.execute("sqlTransactionChanged", undefined);
+                void requisitions.execute("sqlTransactionChanged", { queryType: options.queryType });
 
                 break;
             }
@@ -1633,6 +2013,8 @@ Execute \\help or \\? for help;`;
      */
     private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
         const { workerPool, savedState, connection } = this.props;
+        // Script tabs can execute entire large SQL files; do not add those to notebook command history.
+        const storeNotebookHistory = this.findActiveEditor()?.document.type === OdmEntityType.Notebook;
 
         // Store this execution in the ExecutionHistory list for the connection in the backend database
         const storeHistoryEntry = async (connection: ICdmConnectionEntry | undefined, code: string, language: string,
@@ -1645,6 +2027,8 @@ Execute \\help or \\? for help;`;
                     savedState.currentExecutionHistoryIndex = 0;
 
                     this.forceUpdate();
+                    desktopCommandRegistry.notifyHostStateChanged();
+                    this.props.onDesktopRunStateChanged?.();
                 } catch (error) {
                     const message = convertErrorToString(error);
                     void ui.showErrorMessage(`Unable to create execution history entry. Error: ${message}`, {});
@@ -1676,7 +2060,7 @@ Execute \\help or \\? for help;`;
                     await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
                 } else {
                     const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = ConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
+                    const content = ConnectionTab.aboutMessage.replaceAll("%modifier%", isMac ? "Cmd" : "Ctrl");
                     await context.addResultData({
                         type: "text",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
@@ -1704,7 +2088,9 @@ Execute \\help or \\? for help;`;
                 const nlQuery = command.substring(firstSpace + 1);
                 await this.executeNlQuery(context, options, nlQuery);
 
-                await storeHistoryEntry(connection, `\\nl ${nlQuery}`, "sql", savedState);
+                if (storeNotebookHistory) {
+                    await storeHistoryEntry(connection, `\\nl ${nlQuery}`, "sql", savedState);
+                }
 
                 return true;
             }
@@ -1714,7 +2100,9 @@ Execute \\help or \\? for help;`;
 
         await context.clearResult();
 
-        await storeHistoryEntry(connection, context.code, context.language, savedState);
+        if (storeNotebookHistory) {
+            await storeHistoryEntry(connection, context.code, context.language, savedState);
+        }
 
         switch (context.language) {
             case "javascript":
@@ -2417,6 +2805,8 @@ Execute \\help or \\? for help;`;
             void this.canClose().then((canClose) => {
                 if (canClose) {
                     resolve(onAddEditor?.(id ?? ""));
+                } else {
+                    resolve(undefined);
                 }
             });
         });
@@ -2441,7 +2831,17 @@ Execute \\help or \\? for help;`;
      * @returns The active editor or undefined, if no editor is open.
      */
     private findActiveEditor = (): IOpenDocumentState | undefined => {
+        return this.findOpenEditor();
+    };
+
+    private findOpenEditor = (editorId?: string): IOpenDocumentState | undefined => {
         const { savedState } = this.props;
+        if (editorId) {
+            return savedState.documentStates.find((entry): boolean => {
+                return entry.document.id === editorId;
+            });
+        }
+
         let activeEditor = savedState.documentStates.find((entry): boolean => {
             return entry.document.id === savedState.activeEntry;
         });
@@ -2451,6 +2851,23 @@ Execute \\help or \\? for help;`;
         }
 
         return activeEditor;
+    };
+
+    private shouldAutoExecuteAbout = (editor: IOpenDocumentState): boolean => {
+        const { savedState, showAbout } = this.props;
+        if (!showAbout || this.loadingNotebook || editor.document.type !== OdmEntityType.Notebook) {
+            return false;
+        }
+
+        if (editor.autoExecuteAbout !== undefined) {
+            return editor.autoExecuteAbout;
+        }
+
+        const firstNotebook = savedState.documentStates.find((entry) => {
+            return entry.document.type === OdmEntityType.Notebook;
+        });
+
+        return firstNotebook?.document.id === editor.document.id;
     };
 
     private handleChatAction = (action: ChatOptionAction, _options?: IMdsChatData): void => {
@@ -2514,9 +2931,60 @@ Execute \\help or \\? for help;`;
 
     private selectFile = async (fileResult: IOpenFileDialogResult): Promise<boolean> => {
         const { savedState, id, connection, onChatOptionsChange } = this.props;
+        const scriptEditorId = this.getLoadResourceEditorId(fileResult.resourceId, "loadActiveScript");
+        if (scriptEditorId) {
+            const file = fileResult.file[0];
+            const openState = this.findOpenEditor(scriptEditorId);
+
+            if (file && openState?.state) {
+                const document = openState.document as IOdmScriptEntry;
+
+                return this.editorLoadScript({
+                    id: document.id,
+                    caption: getDocumentFileName(file.path),
+                    fileName: file.path,
+                    language: openState.state.model.getLanguageId() as EditorLanguage,
+                    content: this.readSelectedFile(file),
+                });
+            }
+
+            return false;
+        }
+
+        const notebookEditorId = this.getLoadResourceEditorId(fileResult.resourceId, "loadActiveNotebook");
+        if (notebookEditorId) {
+            const file = fileResult.file[0];
+            if (!file) {
+                return false;
+            }
+
+            return this.editorLoadNotebook({
+                id: notebookEditorId,
+                fileName: file.path,
+                content: this.readSelectedFile(file),
+                standalone: this.state.standaloneMode,
+            });
+        }
+
+        if (fileResult.resourceId === this.getNotebookLoadResourceId(undefined, true)) {
+            const file = fileResult.file[0];
+            if (!file) {
+                return false;
+            }
+
+            return this.editorLoadNotebook({
+                fileName: file.path,
+                content: this.readSelectedFile(file),
+                standalone: this.state.standaloneMode,
+                createNew: true,
+            });
+        }
+
+        let handled = false;
 
         switch (fileResult.resourceId) {
             case "saveChatOptions": {
+                handled = true;
                 if (fileResult.file.length === 1) {
                     // Save Chat Profile options
                     const options: IDictionary = {
@@ -2549,6 +3017,7 @@ Execute \\help or \\? for help;`;
             }
 
             case "loadChatOptions": {
+                handled = true;
                 if (fileResult.file.length === 1) {
                     try {
                         // Load Chat Profile options
@@ -2584,13 +3053,13 @@ Execute \\help or \\? for help;`;
             default:
         }
 
-        return Promise.resolve(true);
+        return Promise.resolve(handled);
     };
 
     private handleNavigateHistory = (backwards: boolean): void => {
         const { savedState, connection } = this.props;
 
-        if (!this.notebookRef.current) {
+        if (!this.notebookRef.current || !this.canNavigateHistory(backwards)) {
             return;
         }
 
@@ -2623,6 +3092,9 @@ Execute \\help or \\? for help;`;
                         this.notebookRef.current?.restoreHistoryState(historyEntry);
                     });
             }
+
+            desktopCommandRegistry.notifyHostStateChanged();
+            this.props.onDesktopRunStateChanged?.();
         }
     };
 

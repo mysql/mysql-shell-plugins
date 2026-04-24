@@ -27,16 +27,15 @@ import "./App.css";
 
 import { Component, createRef, VNode } from "preact";
 
-import type { IDisposable } from "monaco-editor";
-import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js";
-import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js";
+import "monaco-editor/esm/vs/base/browser/ui/codicons/codiconStyles.js";
+import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api.js";
+import { getIconsStyleSheet } from "monaco-editor/esm/vs/platform/theme/browser/iconsStyleSheet.js";
 
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
 import { LoginPage } from "../components/Login/LoginPage.js";
 import { IThemeChangeData, ThemeManager } from "../components/Theming/ThemeManager.js";
-import { CodeEditorSetup } from "../components/ui/CodeEditor/CodeEditorSetup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
 import { renderStatusBar, StatusBar } from "../components/ui/Statusbar/Statusbar.js";
@@ -46,6 +45,7 @@ import type {
 } from "../components/ui/Statusbar/StatusBarItem.js";
 import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
 import { appParameters } from "../supplement/AppParameters.js";
+import { hasElectronDesktopBackend, hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { Settings } from "../supplement/Settings/Settings.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
@@ -61,8 +61,6 @@ import {
 import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
 import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
 import { Mutex, lockMutex } from "../supplement/Mutex.js";
-
-CodeEditorSetup.init();
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -81,7 +79,11 @@ export class App extends Component<{}, IAppState> {
 
     private passwordDialogMutex = new Mutex();
 
+    private codiconStyleDisposables: IDisposable[] = [];
+
     #notificationCenterRef = createRef<NotificationCenter>();
+
+    private static readonly desktopLocalUserName = "LocalAdministrator";
 
     public constructor(props: {}) {
         super(props);
@@ -111,8 +113,18 @@ export class App extends Component<{}, IAppState> {
 
             // Session recovery is not supported in tests, so remove the else branch from test coverage.
             // istanbul ignore else
+            const hasBootstrapProfile = data.activeProfile !== undefined
+                && data.activeProfile.id !== undefined
+                && data.activeProfile.userId !== undefined
+                && data.activeProfile.id >= 0
+                && data.activeProfile.userId >= 0;
+
             if (webSession.userName === "" && data.requestState.msg !== "Session recovered") {
                 if (webSession.runMode === RunMode.LocalUser) {
+                    if (hasBootstrapProfile) {
+                        return this.completeDesktopBootstrap(data.activeProfile);
+                    }
+
                     ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
                         if (profile) {
                             // Detour via requisitions for the rest of the profile processing as we need the same
@@ -133,20 +145,7 @@ export class App extends Component<{}, IAppState> {
         });
 
         requisitions.register("userAuthenticated", async (profile: IShellProfile): Promise<boolean> => {
-            // Check if the connected shell has the minimum required version.
-            const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
-            if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
-                void ui.showErrorMessage(`The connected shell has an unsupported version: ` +
-                    `${info.major}.${info.minor}.${info.patch}`, {});
-
-                return Promise.resolve(false);
-            }
-
-            this.defaultProfile = profile;
-            webSession.loadProfile(this.defaultProfile);
-            this.setState({ loginInProgress: false });
-
-            return Promise.resolve(true);
+            return this.completeAuthenticatedProfile(profile);
         });
 
         requisitions.register("userLoggedOut", async (): Promise<boolean> => {
@@ -191,21 +190,30 @@ export class App extends Component<{}, IAppState> {
             requisitions.unregister("themeChanged", this.themeChanged);
             requisitions.unregister("dialogResponse", this.dialogResponse);
             requisitions.unregister("hostThemeChange", this.themeManager.hostThemeChange);
+
+            this.codiconStyleDisposables.forEach((disposable) => {
+                disposable.dispose();
+            });
+            this.codiconStyleDisposables = [];
         });
 
-        // The Monaco Editor includes a font (codicon.ttf).
-        // However, its associated CSS, such as .codicon-chevron-down:before { content: '\eb09'; },
-        // is dynamically injected into the document by JavaScript via a style.monaco-colors element.
-        // This injection only occurs if an Editor instance is created.
-        // We require the icons to be available on pages even without an editor instance.
-        const themeService = StandaloneServices.get(IStandaloneThemeService);
-        themeService.registerEditorContainer(document.createElement("div"));
+        this.installCodiconStyles();
     }
 
     public override componentDidMount(): void {
         /* istanbul ignore next */
         if (!appParameters.testsRunning) {
             void MessageScheduler.get.connect({ url: new URL(window.location.href) });
+        }
+
+        if (hasElectronHostBridge()) {
+            document.body.classList.add("electronDesktopHost");
+            document.getElementById("root")?.classList.add("electronDesktopHost");
+
+            if (navigator.userAgent.includes("Mac")) {
+                document.body.classList.add("electronDesktopMacHost");
+                document.getElementById("root")?.classList.add("electronDesktopMacHost");
+            }
         }
 
         // Set the default font size by either using the default of 14px or the app parameter fontSize
@@ -228,14 +236,78 @@ export class App extends Component<{}, IAppState> {
         requisitions.register("themeChanged", this.themeChanged);
     }
 
+    private async validateShellVersion(): Promise<boolean> {
+        const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
+        if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
+            void ui.showErrorMessage(`The connected shell has an unsupported version: ` +
+                `${info.major}.${info.minor}.${info.patch}`, {});
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private loadAuthenticatedProfile(profile: IShellProfile): void {
+        this.defaultProfile = profile;
+        webSession.loadProfile(this.defaultProfile);
+        this.setState({ loginInProgress: false });
+    }
+
+    private installCodiconStyles(): void {
+        const iconsStyleSheet = getIconsStyleSheet();
+        const style = document.createElement("style");
+        style.className = "monaco-colors";
+
+        const update = (): void => {
+            style.textContent = iconsStyleSheet.getCSS();
+        };
+
+        update();
+        document.head.appendChild(style);
+
+        this.codiconStyleDisposables.push(
+            iconsStyleSheet,
+            iconsStyleSheet.onDidChange(update),
+            {
+                dispose: () => {
+                    style.remove();
+                },
+            },
+        );
+    }
+
+    private async completeAuthenticatedProfile(profile: IShellProfile): Promise<boolean> {
+        if (!await this.validateShellVersion()) {
+            return false;
+        }
+
+        this.loadAuthenticatedProfile(profile);
+
+        return true;
+    }
+
+    private async completeDesktopBootstrap(profile: IShellProfile): Promise<boolean> {
+        if (!await this.validateShellVersion()) {
+            return false;
+        }
+
+        webSession.userName = App.desktopLocalUserName;
+        webSession.userId = profile.userId;
+        this.loadAuthenticatedProfile(profile);
+
+        return true;
+    }
+
     public render(): VNode {
         const { loginInProgress } = this.state;
 
         let content;
         if (loginInProgress) {
             const connectionToken = appParameters.get("token") ?? "";
-            if (connectionToken.length > 0) {
-                content = LoadingIndicator;
+            const electronDesktopHost = hasElectronHostBridge() || hasElectronDesktopBackend();
+            if (connectionToken.length > 0 || electronDesktopHost) {
+                content = electronDesktopHost ? null : LoadingIndicator;
             } else {
                 content = <LoginPage />;
             }
@@ -248,15 +320,17 @@ export class App extends Component<{}, IAppState> {
                 {content}
 
                 <TooltipProvider showDelay={200} />
-                <NotificationCenter ref={this.#notificationCenterRef} />
                 <PasswordDialog ref={this.passwordDialogRef} />
                 <DialogHost />
 
-                {!appParameters.hideStatusBar && (
-                    <>
-                        {renderStatusBar()}
-                    </>
-                )}
+                <div id="applicationOverlayDock">
+                    <NotificationCenter ref={this.#notificationCenterRef} />
+                    {!appParameters.hideStatusBar && !hasElectronHostBridge() && (
+                        <div id="floatingStatusDock">
+                            {renderStatusBar()}
+                        </div>
+                    )}
+                </div>
             </ErrorBoundary>
         );
     }
@@ -413,8 +487,9 @@ export class App extends Component<{}, IAppState> {
             title: title,
             values: {
                 prompt: message,
-                value: placeHolder
-            }
+                placeholder: placeHolder,
+                value,
+            },
         });
 
         if (response.closure === DialogResponseClosure.Accept && response.values) {

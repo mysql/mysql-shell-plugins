@@ -66,7 +66,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
     public render(): ComponentChild {
         const { userName, password, errorMessage } = this.state;
 
-        const title = isStandalone() ? "MySQL Shell Workbench" : "MySQL Shell GUI";
+        const title = isStandalone() ? "MySQL Workbench" : "MySQL Shell GUI";
 
         return (
             <Container id="loginDialog" orientation={Orientation.TopDown}>

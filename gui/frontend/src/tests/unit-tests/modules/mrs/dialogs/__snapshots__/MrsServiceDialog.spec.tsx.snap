@@ -169,12 +169,12 @@ exports[`MRS Service dialog tests > Show MRS Service Dialog (snapshot) and cance
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Settings
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -182,12 +182,12 @@ exports[`MRS Service dialog tests > Show MRS Service Dialog (snapshot) and cance
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -195,12 +195,12 @@ exports[`MRS Service dialog tests > Show MRS Service Dialog (snapshot) and cance
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Authentication Details
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -208,12 +208,12 @@ exports[`MRS Service dialog tests > Show MRS Service Dialog (snapshot) and cance
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Advanced
-                  </label>
+                  </span>
                 </div>
               </div>
               <div

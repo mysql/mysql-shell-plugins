@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General License: , version .=> 0,
@@ -57,6 +57,9 @@ export interface IConnectionDetails<OptionsType = IShellConnectionOptions> {
 
     /** The version of the server. Valid not before the connection is open. */
     version?: number;
+
+    /** The version_comment sysvar of the server. Valid not before the connection is open. */
+    versionComment?: string;
 
     /** The current SQL mode of the session. Valid not before the connection is open. */
     sqlMode?: string;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,6 +35,7 @@ import { msg } from "./languages/msg/msg.contribution.js";
 import { mysql } from "./languages/mysql/mysql.contribution.js";
 
 import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager.js";
+import { ThemeManager } from "../../Theming/ThemeManager.js";
 
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { CodeCompletionProvider } from "./CodeCompletionProvider.js";
@@ -48,9 +49,15 @@ import { RenameProvider } from "./RenameProvider.js";
 import { SignatureHelpProvider } from "./SignatureHelpProvider.js";
 
 export class CodeEditorSetup {
+    private static initialized = false;
     private static monacoConfigured = false;
 
     public static init(): void {
+        if (CodeEditorSetup.initialized) {
+            return;
+        }
+
+        CodeEditorSetup.initialized = true;
         CodeEditorSetup.configureMonaco();
 
         requisitions.register("themeChanged", (data: IThemeChangeData): Promise<boolean> => {
@@ -58,6 +65,13 @@ export class CodeEditorSetup {
 
             return Promise.resolve(true);
         });
+
+        const themeManager = ThemeManager.get;
+        const activeThemeValues = themeManager.activeThemeValues;
+        const activeThemeType = themeManager.activeThemeType;
+        if (activeThemeValues && activeThemeType) {
+            CodeEditorSetup.updateTheme(themeManager.activeThemeSafe, activeThemeType, activeThemeValues);
+        }
     }
 
     /**

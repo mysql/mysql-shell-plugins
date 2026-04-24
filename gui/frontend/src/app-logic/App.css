@@ -41,6 +41,7 @@
 
 :root {
     --msg-monospace-font-family: 'SourceCodePro+Powerline+Awesome+MySQL', monospace;
+    --electron-desktop-drag-strip-height: 34px;
 }
 
 body {
@@ -66,6 +67,32 @@ body {
     height: 100vh;
 
     background-color: transparent;
+}
+
+body.electronDesktopMacHost #root.electronDesktopMacHost {
+    position: relative;
+    padding-top: var(--electron-desktop-drag-strip-height);
+}
+
+body.electronDesktopMacHost #root.electronDesktopMacHost::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--electron-desktop-drag-strip-height);
+    z-index: 2147483647;
+
+    pointer-events: auto;
+    background: transparent;
+    -webkit-app-region: drag;
+}
+
+body.electronDesktopMacHost.electronDesktopWorkspaceLayout #root.electronDesktopMacHost.electronDesktopWorkspaceLayout {
+    padding-top: 0;
+}
+
+body.electronDesktopMacHost.electronDesktopWorkspaceLayout
+    #root.electronDesktopMacHost.electronDesktopWorkspaceLayout::before {
+    display: none;
 }
 
 a {
@@ -162,6 +189,70 @@ html.themeSwitch *:after {
 
 .msg.applicationHost #appHostSplitter {
     flex: 1 1 auto;
+}
+
+#applicationOverlayDock {
+    position: fixed;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: calc(100vw - 16px);
+    z-index: 20;
+    pointer-events: none;
+}
+
+#applicationOverlayDock > * {
+    pointer-events: auto;
+}
+
+#applicationOverlayDock .msg.notificationCenter {
+    position: static;
+    right: auto;
+    bottom: auto;
+    width: min(500px, calc(100vw - 16px));
+}
+
+#floatingStatusDock {
+    max-width: min(80vw, 960px);
+}
+
+#floatingStatusDock .msg.statusbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: auto;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 4px;
+    border: 1px solid color-mix(in srgb, var(--statusBar-border, var(--editorGroupHeader-tabsBorder)) 80%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--statusBar-background) 94%, transparent);
+    box-shadow: 0 8px 24px var(--widget-shadow);
+}
+
+#floatingStatusDock .msg.statusbar > .leftItems,
+#floatingStatusDock .msg.statusbar > .rightItems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: stretch;
+}
+
+#floatingStatusDock .msg.statusbar > .rightItems {
+    overflow: visible;
+    max-width: none;
+}
+
+#floatingStatusDock .msg.statusbar .statusbarItem {
+    min-height: 24px;
+    max-width: min(40vw, 360px);
+    border-radius: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Special styles for macOS auto disappearing scroll bars. */

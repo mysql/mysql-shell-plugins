@@ -28,19 +28,25 @@ import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
-    ISqlEditorHistoryEntry,
+    IShellDbConnection, ISqlEditorHistoryEntry,
 } from "../../communication/ProtocolGui.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
 import { promiseWithTimeout } from "../../utilities/helpers.js";
-import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js"
+import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
+
+const isBackendTrue = (value: unknown): boolean => {
+    return value === true || value === 1;
+};
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
 
     public interactive: ShellInteractiveInterface = new ShellInteractiveInterface();
     public mhs: ShellInterfaceMhs = new ShellInterfaceMhs(this.interactive);
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();
+
+    private serviceOnlySession = false;
 
     /**
      * @returns a flag which indicates if a session was opened already.
@@ -57,6 +63,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      * @returns A promise which resolves when the operation was concluded.
      */
     public override async startSession(id: string): Promise<void> {
+        this.serviceOnlySession = false;
         this.moduleSessionLookupId = `sqlEditor.${id}`;
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
 
@@ -73,11 +80,29 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     }
 
     /**
+     * Starts a DB service session without opening the SQL editor user session.
+     *
+     * This is used by administration pages, which must keep working when the user session is busy or blocked.
+     */
+    public async startServiceSession(id: string, connection: number | IShellDbConnection): Promise<void> {
+        this.serviceOnlySession = true;
+        await super.startSession(id, connection);
+        this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
+    }
+
+    /**
      * Closes this editor session and all open connections.
      *
      * @returns A promise which resolves when the operation was concluded.
      */
     public override async closeSession(): Promise<void> {
+        if (this.serviceOnlySession) {
+            await super.closeSession();
+            this.serviceOnlySession = false;
+
+            return;
+        }
+
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             await promiseWithTimeout(MessageScheduler.get.sendRequest({
@@ -283,6 +308,21 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     }
 
     /**
+     * Kills the current database session.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public async killSession(): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiSqlEditorKillSession,
+                parameters: { args: { moduleSessionId } },
+            });
+        }
+    }
+
+    /**
      * Sets the auto commit mode for the current connection.
      * Note: this mode can implicitly be changed by executing certain SQL code (begin, set autocommit, rollback, etc.).
      *
@@ -313,7 +353,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
                 parameters: { args: { moduleSessionId } },
             });
 
-            return response.result;
+            return isBackendTrue(response.result);
         }
     }
 

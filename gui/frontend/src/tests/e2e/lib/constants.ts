@@ -98,7 +98,7 @@ export const dbConnectionOverview = "DB Connection Overview";
 export const editConnection = "Edit Connection";
 export const dupConnection = "Duplicate Connection";
 export const removeConnection = "Remove Connection";
-export const connectionOverview = "Connection Overview";
+export const connectionOverview = "Connections";
 
 // EDIT RESULT GRIDS
 export const doubleClick = "doubleClick";

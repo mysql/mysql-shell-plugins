@@ -48,6 +48,10 @@ const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
 const leadingLineBreaksRegExp = new RegExp(`^\\s*\\n+`);
 
+const columnNameKey = (name: string): string => {
+    return name.toLowerCase();
+};
+
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
     results: Array<[IExecutionResult, IResponseDataOptions]>;
@@ -371,8 +375,9 @@ export class SqlQueryExecutor {
             columns: [],
         };
 
+        const resultColumnNames = new Set(columnNames.map(columnNameKey));
         for (const tableColumn of tableColumns ?? []) {
-            if (columnNames.includes(tableColumn)) {
+            if (resultColumnNames.has(columnNameKey(tableColumn))) {
                 const info = await connection?.backend.getTableObject(schema, table, "Column", tableColumn);
                 if (info) {
                     details.columns.push({
@@ -731,8 +736,9 @@ export class SqlQueryExecutor {
                     if (options.updatable && options.fullTableName) {
                         if (options.pkColumns && options.pkColumns.length > 0) {
                             for (const pkColumn of options.pkColumns) {
+                                const pkColumnKey = columnNameKey(pkColumn);
                                 const column = columns.find((c) => {
-                                    return c.title === pkColumn;
+                                    return columnNameKey(c.title) === pkColumnKey;
                                 });
                                 if (!column) {
                                     options.updatable = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -271,6 +271,7 @@ export class DialogHost extends ComponentBase {
                 input: {
                     type: "text",
                     caption: request.values?.prompt as string,
+                    placeholder: request.values?.placeholder as string | undefined,
                     value: request.values?.value as string | undefined ?? "",
                     horizontalSpan: 8,
                     options: [CommonDialogValueOption.AutoFocus],

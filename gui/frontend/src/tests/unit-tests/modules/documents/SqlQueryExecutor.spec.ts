@@ -28,6 +28,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SqlQueryExecutor } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 import type { SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
 import type { IExecutionResult, IResponseDataOptions } from "../../../../script-execution/index.js";
+import type { IColumnDetails } from "../../../../supplement/RequisitionTypes.js";
 
 interface IResultTimer {
     results: Array<[IExecutionResult, IResponseDataOptions]>;
@@ -78,5 +79,32 @@ describe("SqlQueryExecutor tests", (): void => {
         } finally {
             vi.useRealTimers();
         }
+    });
+
+    it("matches result columns to table columns case-insensitively", async () => {
+        const sqlUpdateColumnInfo = vi.fn<(details: IColumnDetails) => void>();
+        const backend = {
+            getTableObjectNames: vi.fn().mockResolvedValue(["id"]),
+            getTableObject: vi.fn().mockResolvedValue({
+                isPk: 1,
+                default: undefined,
+                notNull: 1,
+                autoIncrement: 0,
+            }),
+        };
+        const executor = new SqlQueryExecutor(sqlUpdateColumnInfo, { backend } as never);
+
+        await executor.updateColumnDetails("result-id", "`sakila`.`film`", ["ID"]);
+
+        expect(backend.getTableObject).toHaveBeenCalledWith("sakila", "film", "Column", "id");
+        expect(sqlUpdateColumnInfo).toHaveBeenCalledWith({
+            resultId: "result-id",
+            columns: [{
+                inPK: true,
+                default: undefined,
+                nullable: false,
+                autoIncrement: false,
+            }],
+        });
     });
 });

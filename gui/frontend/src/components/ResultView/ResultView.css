@@ -25,7 +25,10 @@
 
 .msg.resultHost {
     flex: 1 1 auto;
+    align-content: stretch;
     border-radius: 8px;
+    font-family: var(--msg-standard-font-family);
+    height: 100%;
 }
 
 .msg.resultHost:not(.dropTarget) > .content {
@@ -57,13 +60,6 @@
     flex: 1 1 auto;
 }
 
-.msg.resultHost {
-    font-family: var(--msg-monospace-font-family);
-    height: 100%;
-
-    align-content: stretch;
-}
-
 .msg.resultHost .resultTabview .outputHost,
 .msg.codeEditor .zoneHost .renderTarget .outputHost {
     flex: 1;
@@ -85,6 +81,7 @@
 
 .msg.resultHost .resultView .tabulator {
     flex: 1 1 auto;
+    font-size: 12px;
 }
 
 .msg.resultHost .resultView .tabulator-tableholder {
@@ -329,6 +326,22 @@
     background-color: var(--resultStatus-foreground);
 }
 
+.msg.resultHost .resultStatus .toolbar > #showActionMenu {
+    background: transparent;
+}
+
+.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):hover,
+.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):focus,
+.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):focus-visible,
+.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):active {
+    background-color: var(--button-hoverBackground);
+}
+
+.msg.resultHost .resultStatus .toolbar > #showActionMenu > .icon.codicon {
+    background: transparent;
+    color: var(--resultStatus-foreground);
+}
+
 .msg.resultHost .resultStatus .toolbar > .label {
     margin: 0 4px;
     font-family: var(--msg-standard-font-family);
@@ -417,6 +430,7 @@
 }
 
 .msg.connectionTabHost .resultHost .copyButton,
+.msg.dbModuleTabview .standaloneScriptHost .resultHost .copyButton,
 .zoneHost > .renderTarget > .resultHost .copyButton,
 .zoneHost > .renderTarget > .outputHost .copyButton,
 #resultPaneHost > .renderTarget >.resultHost .copyButton {
@@ -434,6 +448,7 @@
 }
 
 .msg.connectionTabHost .resultHost:hover .copyButton,
+.msg.dbModuleTabview .standaloneScriptHost .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .outputHost:hover .copyButton,
 #resultPaneHost > .renderTarget >.resultHost .copyButton {

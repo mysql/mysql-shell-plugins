@@ -614,6 +614,9 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
 
     /** Creates a copy of this connection and opens it. */
     duplicate(): Promise<ICdmConnectionEntry>;
+
+    /** Creates a copy of this connection and opens only its DB service session. */
+    duplicateServiceOnly(): Promise<ICdmConnectionEntry>;
 }
 
 /** Connections can be grouped together and this is the entry for such groups. */
@@ -850,7 +853,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         const typeName = cdbDbEntityTypeName.get(entry.type);
         if (typeName) {
             const query = `drop ${typeName} ${qualifiedName}`;
-            await connection.backend.execute(query);
+            await connection.backend.executeService(query);
         }
     }
 
@@ -3199,7 +3202,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         const entryType = uppercaseKeywords ? typeName.toUpperCase() : typeName.toLowerCase();
 
         const qualifiedName = this.getQualifiedName(entry);
-        const data = await entry.connection.backend.execute(`show create ${entryType} ${qualifiedName}`);
+        const data = await entry.connection.backend.executeService(`show create ${entryType} ${qualifiedName}`);
 
         // Same logic applies for libraries as for the routines.
         const isRoutine = entry.type === CdmEntityType.StoredProcedure

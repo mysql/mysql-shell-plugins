@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -68,9 +68,41 @@
     flex: 1 1 auto;
 }
 
-.msg.settingsEditor #settingsTree {
+.msg.settingsEditor #settingsSectionListHost {
     flex: 0 0 210px;
     margin-right: 8px;
+    min-height: 0;
+}
+
+.msg.settingsEditor #settingsBackButton {
+    align-self: stretch;
+    justify-content: flex-start;
+    margin: 0 0 8px 0;
+    min-width: 0;
+    min-height: 24px;
+    padding: 2px 6px;
+    border: 1px solid transparent;
+    border-radius: 0;
+    background: none;
+    color: var(--foreground);
+}
+
+.msg.settingsEditor #settingsBackButton:not(.disabled):hover,
+.msg.settingsEditor #settingsBackButton:not(.disabled):active {
+    background-color: var(--settings-rowHoverBackground);
+}
+
+.msg.settingsEditor #settingsBackButton:focus-visible {
+    border-color: var(--settings-focusedRowBorder);
+}
+
+.msg.settingsEditor #settingsBackButton > .icon.codicon {
+    margin-right: 8px;
+}
+
+.msg.settingsEditor #settingsTree {
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .msg.settingsEditor #settingsTree .settingsTreeCell {

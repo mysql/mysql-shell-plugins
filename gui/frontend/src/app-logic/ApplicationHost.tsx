@@ -36,6 +36,10 @@ import {
 import { StatusBarAlignment, type IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
 import { DocumentModule } from "../modules/db-editor/DocumentModule.js";
 import { appParameters } from "../supplement/AppParameters.js";
+import {
+    type DesktopCommandId, desktopCommandRegistry, type IDesktopCommandDescriptor, type IDesktopCommandProvider,
+} from "../supplement/DesktopCommandRegistry.js";
+import { hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { RunMode, webSession } from "../supplement/WebSession.js";
 import { LoadingIndicator } from "./LazyAppRouter.js";
@@ -61,6 +65,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     private optionsStatusItem?: IStatusBarItem;
     private aboutStatusItem?: IStatusBarItem;
     private debuggerStatusItem?: IStatusBarItem;
+    private desktopCommandProvider: IDesktopCommandProvider;
 
     private editorHost = <DocumentModule />;
     private aboutBoxRef = createRef<AboutBox>();
@@ -75,12 +80,23 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
             debuggerMaximized: true,
             debuggerEnabledInBackground: false,
         };
+
+        this.desktopCommandProvider = {
+            getCommands: this.getDesktopCommandState,
+            execute: this.executeDesktopCommand,
+        };
     }
 
     public override componentDidMount(): void {
         requisitions.register("showAbout", this.showAbout);
         requisitions.register("showPreferences", this.showPreferences);
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
+        desktopCommandRegistry.registerProvider(this.desktopCommandProvider);
+
+        if (hasElectronHostBridge() && !appParameters.inExtension) {
+            document.body.classList.add("electronDesktopWorkspaceLayout");
+            document.getElementById("root")?.classList.add("electronDesktopWorkspaceLayout");
+        }
 
         if (!appParameters.inExtension && !appParameters.hideStatusBar) {
             this.optionsStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 9);
@@ -93,14 +109,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
             this.aboutStatusItem.tooltip = "Show About";
             this.aboutStatusItem.command = "application:toggleAbout";
 
-            // We don't want the protocol debugger when embedded or not in development mode.
-            // We always want it when running tests (particularly end-to-end).
-            // We are checking for falsy, not null or undefined.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const debuggerIconVisible = appParameters.testsRunning || (webSession.runMode === RunMode.LocalUser
-                && !appParameters.embedded && appParameters.inDevelopment);
-
-            if (debuggerIconVisible) {
+            if (this.embeddedCommunicationDebuggerAvailable()) {
                 this.debuggerStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 8);
                 this.debuggerStatusItem.text = "$(debug)";
                 this.debuggerStatusItem.tooltip = "Toggle Communication Debugger";
@@ -116,9 +125,22 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         this.optionsStatusItem?.dispose();
         this.debuggerStatusItem?.dispose();
 
+        document.body.classList.remove("electronDesktopWorkspaceLayout");
+        document.getElementById("root")?.classList.remove("electronDesktopWorkspaceLayout");
+
+        desktopCommandRegistry.unregisterProvider(this.desktopCommandProvider);
         requisitions.unregister("showAbout", this.showAbout);
         requisitions.unregister("showPreferences", this.showPreferences);
         requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
+    }
+
+    public override componentDidUpdate(_previousProps: IApplicationHostProperties,
+        previousState: IApplicationHostState): void {
+        if (previousState.aboutVisible !== this.state.aboutVisible
+            || previousState.settingsVisible !== this.state.settingsVisible
+            || previousState.debuggerVisible !== this.state.debuggerVisible) {
+            desktopCommandRegistry.notifyHostStateChanged();
+        }
     }
 
     public render(): ComponentChild {
@@ -128,15 +150,14 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         const pages: ComponentChild[] = [this.editorHost];
 
         if (settingsVisible) {
-            pages.push(<SettingsEditor key="settingsEditor" />);
+            pages.push(<SettingsEditor key="settingsEditor" onBack={this.handleSettingsBack} />);
         } else if (aboutVisible) {
             pages.push(<AboutBox ref={this.aboutBoxRef} onClose={this.handleAboutClose} />);
         }
 
         let content = pages;
-        if (webSession.runMode === RunMode.LocalUser && !appParameters.embedded &&
+        if (this.embeddedCommunicationDebuggerAvailable() &&
             (!appParameters.testsRunning || appParameters.launchWithDebugger)) {
-
             const panes: ISplitterPane[] = [{
                 id: "appHostPane",
                 content: pages,
@@ -152,13 +173,7 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
             if (debuggerEnabledInBackground) {
                 panes.push({
                     id: "debuggerPane",
-                    content: (
-                        <Suspense fallback={LoadingIndicator}>
-                            <CommunicationDebugger
-                                toggleDisplayMode={this.toggleDebuggerDisplayMode}
-                            />
-                        </Suspense>
-                    ),
+                    content: this.renderCommunicationDebugger(this.toggleDebuggerDisplayMode),
                     minSize: debuggerVisible && !debuggerMaximized ? 200 : 0,
                     initialSize: !debuggerVisible ? 0 : undefined,
                     snap: true,
@@ -185,14 +200,19 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     }
 
     private showAbout = (): Promise<boolean> => {
-        this.setState({ aboutVisible: true, settingsVisible: false, debuggerVisible: false }, () => {
-            this.aboutBoxRef.current?.show();
+        return new Promise((resolve) => {
+            this.setState({ aboutVisible: true, settingsVisible: false, debuggerVisible: false }, () => {
+                this.aboutBoxRef.current?.show();
+                resolve(true);
+            });
         });
-
-        return Promise.resolve(true);
     };
 
     private handleAboutClose = (): void => {
+        this.setState({ debuggerVisible: false, aboutVisible: false, settingsVisible: false });
+    };
+
+    private handleSettingsBack = (): void => {
         this.setState({ debuggerVisible: false, aboutVisible: false, settingsVisible: false });
     };
 
@@ -205,39 +225,55 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     };
 
     private statusBarButtonClick = (values: { type: string; }): Promise<boolean> => {
-        switch (values.type) {
-            case "application:toggleAbout": {
-                const { aboutVisible } = this.state;
+        return new Promise((resolve) => {
+            const done = (): void => {
+                resolve(true);
+            };
 
-                this.setState({ debuggerVisible: false, aboutVisible: !aboutVisible, settingsVisible: false });
-                break;
+            switch (values.type) {
+                case "application:toggleAbout": {
+                    const { aboutVisible } = this.state;
+
+                    this.setState({ debuggerVisible: false, aboutVisible: !aboutVisible, settingsVisible: false }, done);
+                    break;
+                }
+
+                case "application:togglePreferences": {
+                    const { settingsVisible } = this.state;
+
+                    this.setState({ debuggerVisible: false, settingsVisible: !settingsVisible, aboutVisible: false }, done);
+                    break;
+                }
+
+                case "application:toggleDebugger": {
+                    const { debuggerVisible } = this.state;
+
+                    this.setState({
+                        debuggerVisible: !debuggerVisible,
+                        debuggerEnabledInBackground: true,
+                        settingsVisible: false,
+                        aboutVisible: false,
+                    }, done);
+
+                    break;
+                }
+
+                default: {
+                    resolve(false);
+                }
             }
-
-            case "application:togglePreferences": {
-                const { settingsVisible } = this.state;
-
-                this.setState({ debuggerVisible: false, settingsVisible: !settingsVisible, aboutVisible: false });
-                break;
-            }
-
-            case "application:toggleDebugger": {
-                const { debuggerVisible } = this.state;
-
-                this.setState({
-                    debuggerVisible: !debuggerVisible,
-                    debuggerEnabledInBackground: true,
-                    settingsVisible: false,
-                    aboutVisible: false,
-                });
-
-                break;
-            }
-
-            default:
-        }
-
-        return Promise.resolve(false);
+        });
     };
+
+    private renderCommunicationDebugger(toggleDisplayMode: () => void): ComponentChild {
+        return (
+            <Suspense fallback={LoadingIndicator}>
+                <CommunicationDebugger
+                    toggleDisplayMode={toggleDisplayMode}
+                />
+            </Suspense>
+        );
+    }
 
     private embeddedDebuggerSplitterResize = (info: ISplitterPaneSizeInfo[]): void => {
         info.forEach((value) => {
@@ -252,5 +288,64 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
 
         this.setState({ debuggerMaximized: !debuggerMaximized });
     };
+
+    private getDesktopCommandState = (): IDesktopCommandDescriptor[] => {
+        const commands: IDesktopCommandDescriptor[] = [{
+            id: "app.about",
+            label: "About MySQL Workbench",
+            enabled: true,
+        }, {
+            id: "app.preferences",
+            label: "Preferences...",
+            enabled: true,
+            accelerator: "CmdOrCtrl+,",
+        }];
+
+        if (!hasElectronHostBridge()) {
+            const debuggerAvailable = this.embeddedCommunicationDebuggerAvailable();
+            commands.push({
+                id: "dev.toggleDebugger",
+                label: "Toggle Communication Debugger",
+                enabled: debuggerAvailable,
+                checked: debuggerAvailable ? this.state.debuggerVisible : false,
+            });
+        }
+
+        return commands;
+    };
+
+    private executeDesktopCommand = async (id: DesktopCommandId): Promise<boolean> => {
+        switch (id) {
+            case "app.about": {
+                await this.showAbout();
+
+                return true;
+            }
+
+            case "app.preferences": {
+                await this.showPreferences();
+
+                return true;
+            }
+
+            case "dev.toggleDebugger": {
+                if (hasElectronHostBridge() || !this.embeddedCommunicationDebuggerAvailable()) {
+                    return false;
+                }
+
+                await this.statusBarButtonClick({ type: "application:toggleDebugger" });
+
+                return true;
+            }
+
+            default: {
+                return false;
+            }
+        }
+    };
+
+    private embeddedCommunicationDebuggerAvailable(): boolean {
+        return webSession.runMode === RunMode.LocalUser && !appParameters.embedded;
+    }
 
 }

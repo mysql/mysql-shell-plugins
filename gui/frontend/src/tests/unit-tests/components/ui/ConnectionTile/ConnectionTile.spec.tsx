@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render } from "@testing-library/preact";
+import { describe, expect, it, vi } from "vitest";
 
 import { ConnectionTile, ConnectionTileType } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Assets } from "../../../../../supplement/Assets.js";
@@ -54,6 +54,66 @@ describe("ConnectionTile component tests", (): void => {
             />,
         );
         expect(container).toMatchSnapshot();
+
+        unmount();
+    });
+
+    it("renders only the menu action for folder tiles", () => {
+        const { container, unmount } = render(
+            <ConnectionTile
+                id="tile2"
+                tileId={"2"}
+                caption={"Folder"}
+                description={"Connection Group"}
+                type={ConnectionTileType.Group}
+                icon={Assets.file.folderIcon as string}
+            />,
+        );
+
+        expect(container.querySelector("#tileMoreActionsAction")).toBeTruthy();
+        expect(container.querySelector("#tileNewNotebookAction")).toBeNull();
+        expect(container.querySelector("#tileNewScriptAction")).toBeNull();
+
+        unmount();
+    });
+
+    it("passes a point anchor when opening the menu with a mouse click", () => {
+        const onAction = vi.fn();
+        const { container, unmount } = render(
+            <ConnectionTile
+                id="tile3"
+                tileId={"3"}
+                caption={details.caption}
+                description={details.description}
+                type={ConnectionTileType.Open}
+                icon={Assets.file.mysqlIcon as string}
+                onAction={onAction}
+            />,
+        );
+
+        const button = container.querySelector("#tileMoreActionsAction") as HTMLElement;
+        fireEvent.click(button, { clientX: 123, clientY: 456 });
+
+        expect(onAction).toHaveBeenCalledTimes(1);
+        expect(onAction).toHaveBeenCalledWith(
+            "menu",
+            expect.objectContaining({ tileId: "3" }),
+            expect.objectContaining({
+                target: button,
+                anchorRect: expect.objectContaining({
+                    x: 123,
+                    y: 456,
+                    width: 2,
+                    height: 2,
+                }),
+            }),
+        );
+
+        const options = onAction.mock.calls[0][2] as { anchorRect: DOMRect; };
+        expect(options.anchorRect.x).toBe(123);
+        expect(options.anchorRect.y).toBe(456);
+        expect(options.anchorRect.width).toBe(2);
+        expect(options.anchorRect.height).toBe(2);
 
         unmount();
     });

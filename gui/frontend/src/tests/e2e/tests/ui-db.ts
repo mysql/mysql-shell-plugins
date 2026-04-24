@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -153,7 +153,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe("Connection Overview", () => {
+    describe("Connections", () => {
 
         const dbConnectionOverview = new E2EDatabaseConnectionOverview();
         let testFailed = false;
@@ -163,7 +163,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await tabContainer.closeAllTabs();
             } catch (e) {
-                await Misc.storeScreenShot(undefined, "Connection Overview");
+                await Misc.storeScreenShot(undefined, "Connections");
                 throw e;
             }
 

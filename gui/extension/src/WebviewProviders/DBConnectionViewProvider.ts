@@ -463,15 +463,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
      * notebook file here NotebookEditorProvider.triggerSave.
      *
-     * @param details The fileName and content of the Notebook.
+     * @param details Save request metadata and notebook content.
+     * @param details.id The notebook document id.
+     * @param details.fileName The current notebook path, if known.
+     * @param details.defaultFileName The default file name to use when prompting.
+     * @param details.content The serialized notebook content.
+     * @param details.saveAs Whether the user explicitly requested Save As.
      *
      * @returns A promise which resolves to true if the save was successful.
      */
-    private editorSaveNotebook = (details?: {fileName?: string, content?: string; }): Promise<boolean> => {
+    private editorSaveNotebook = (details?: {
+        id?: string; fileName?: string; defaultFileName?: string; content?: string; saveAs?: boolean;
+    }): Promise<boolean> => {
         return new Promise((resolve) => {
-            if (details && details.content) {
-                const content = details.content;
-                if (details.fileName === undefined) {
+            const content = details?.content;
+            if (content) {
+                if (details.saveAs || details.fileName === undefined) {
                     const dialogOptions: SaveDialogOptions = {
                         title: "",
                         filters: {
@@ -487,7 +494,10 @@ export class DBConnectionViewProvider extends WebviewProvider {
                             writeFile(path, content).then(() => {
                                 window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
 
-                            void this.requisitions?.executeRemote("editorSaveNotebook", {fileName: path});
+                                void this.requisitions?.executeRemote("editorSaveNotebook", {
+                                    id: details.id,
+                                    fileName: path,
+                                });
 
                                 resolve(true);
                             }).catch(() => {
@@ -527,9 +537,17 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
      * notebook file here NotebookEditorProvider.triggerLoad.
      *
+     * @param details Load request metadata for the notebook dialog.
+     * @param details.id The notebook document id.
+     * @param details.fileName Unused when opening the dialog.
+     * @param details.content Unused when opening the dialog.
+     * @param details.standalone Unused when opening the dialog.
+     *
      * @returns A promise which resolves to true if the save was successful.
      */
-    private editorLoadNotebook = (): Promise<boolean> => {
+    private editorLoadNotebook = (details?: {
+        id?: string; fileName?: string; content?: string; standalone?: boolean; createNew?: boolean;
+    }): Promise<boolean> => {
         return new Promise((resolve) => {
             const dialogOptions: OpenDialogOptions = {
                 title: "",
@@ -547,7 +565,13 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 if (paths && paths.length > 0) {
                     const path = paths[0].fsPath;
                     readFile(path, { encoding: "utf-8" }).then((content: string) => {
-                        this.requisitions?.executeRemote("editorLoadNotebook", { fileName: path, content, standalone: false });
+                        this.requisitions?.executeRemote("editorLoadNotebook", {
+                            id: details?.id,
+                            fileName: path,
+                            content,
+                            standalone: false,
+                            createNew: details?.createNew,
+                        });
                     }).catch(() => {
                         void ui.showErrorMessage(`Could not load notebook from ${path}.`, {});
                     });

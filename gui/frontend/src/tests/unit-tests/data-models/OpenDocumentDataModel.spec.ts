@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -60,7 +60,7 @@ describe("OpenDocumentDataModel", () => {
         const roots = dataModel.roots;
         expect(roots).toHaveLength(1);
 
-        roots[0].caption = "Connection Overview";
+        roots[0].caption = "Connections";
         expect(OpenDocumentDataModel.isDocumentType(roots[0].type, OdmEntityType.Overview)).toBe(true);
         expect(OpenDocumentDataModel.isDocumentType(roots[0].type, OdmEntityType.ConnectionPage)).toBe(false);
 

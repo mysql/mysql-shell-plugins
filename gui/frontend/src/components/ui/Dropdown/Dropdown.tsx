@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,6 +40,11 @@ import { Popup } from "../Popup/Popup.js";
 import { ITag, TagInput } from "../TagInput/TagInput.js";
 import { DropdownItem, IDropdownItemProperties } from "./DropdownItem.js";
 
+export enum DropdownVariant {
+    Default,
+    AiryDropdown,
+}
+
 export interface IDropdownProperties extends IComponentProperties {
     /** A single id or a set of it that identify the items that shall be selected. */
     selection?: string | Set<string>;
@@ -76,6 +81,9 @@ export interface IDropdownProperties extends IComponentProperties {
     /** If set this string is shown as placeholder if nothing is selected yet (only useful when optional is true). */
     placeholder?: string;
 
+    /** Selects one of the predefined dropdown styles. */
+    variant?: DropdownVariant;
+
     autoFocus?: boolean;
 
     /**
@@ -103,6 +111,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         showDescription: false,
         multiSelect: false,
         withoutArrow: false,
+        variant: DropdownVariant.Default,
     };
 
     private static lastClickTarget?: HTMLElement;
@@ -122,7 +131,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         };
 
         this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "iconOnly", "multiSelect",
-            "withoutArrow", "placeholder", "autoFocus", "onSelect", "onCancel");
+            "withoutArrow", "placeholder", "variant", "autoFocus", "onSelect", "onCancel");
 
         this.connectEvents("onFocus", "onBlur");
     }
@@ -153,10 +162,14 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         }
     }
 
+    public close(cancelled = false): void {
+        this.popupRef.current?.close(cancelled);
+    }
+
     public render(): ComponentChild {
         const {
             children, id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
-            placeholder, iconOnly, disabled,
+            placeholder, iconOnly, disabled, variant,
         } = this.props;
         const { hotId } = this.state;
 
@@ -164,12 +177,15 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         const selectionValue = currentSelection?.values().next().value;
         const currentDescription = this.descriptionFromId(hotId ?? selectionValue);
 
+        const variantClass = this.classFromProperty(variant, ["", "airyDropdown"]);
         const className = this.getEffectiveClassNames([
             "dropdown",
+            variantClass,
             withoutArrow ? "withoutArrow" : "",
             this.classFromProperty(multiSelect, "multiSelect"),
             this.classFromProperty(disabled, "disabled"),
         ]);
+        const popupClassName = variantClass ? `dropdownList ${variantClass}` : "dropdownList";
 
         const tags: ITag[] = [];
         let content = null;
@@ -180,7 +196,11 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             const { id: childId, caption: childCaption, picture, className } = child.props;
             let itemClassName = className ?? "";
             if (currentSelection?.has(childId!)) {
-                tags.push({ id: childId ?? "", caption: childCaption, picture });
+                tags.push({
+                    id: childId ?? "",
+                    caption: childCaption,
+                    picture: picture ? cloneElement(picture, {}) : undefined,
+                });
                 checked = true;
             }
 
@@ -268,7 +288,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 {inputControl}
                 <Popup
                     ref={this.popupRef}
-                    className="dropdownList"
+                    className={popupClassName}
                     innerRef={this.listRef}
                     id={`${id ?? ""}Popup`}
                     showArrow={false}

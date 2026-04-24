@@ -42,6 +42,7 @@ export interface IOpenConnectionData {
     info: {
         sqlMode?: string;
         version?: string;
+        versionComment?: string;
         edition?: string;
         heatWaveAvailable?: boolean;
         mleAvailable?: boolean;
@@ -422,6 +423,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiShellComplete]: { result?: { offset: number; options: string[]; }; };
     [ShellAPIGui.GuiShellKillTask]: {};
     [ShellAPIGui.GuiDbGetObjectsTypes]: {};
+    [ShellAPIGui.GuiDbExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };
@@ -440,6 +442,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: {};
+    [ShellAPIGui.GuiSqlEditorKillSession]: {};
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { result: string; };
     [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: {};
     [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { result: boolean; };
@@ -510,6 +513,7 @@ export interface IProtocolGuiResults {
  */
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
+    ShellAPIGui.GuiDbExecute,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
     ShellAPIGui.GuiDbGetRoutinesMetadata,
     ShellAPIGui.GuiDbGetLibrariesMetadata,

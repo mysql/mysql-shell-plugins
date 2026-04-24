@@ -162,12 +162,12 @@ exports[`MRS AuthApp dialog tests > Dialog error testing 1`] = `
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Settings
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -175,12 +175,12 @@ exports[`MRS AuthApp dialog tests > Dialog error testing 1`] = `
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
               </div>
               <div
@@ -447,12 +447,12 @@ exports[`MRS AuthApp dialog tests > Show MRS Authentication App Dialog (snapshot
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Settings
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -460,12 +460,12 @@ exports[`MRS AuthApp dialog tests > Show MRS Authentication App Dialog (snapshot
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
               </div>
               <div
@@ -732,12 +732,12 @@ exports[`MRS AuthApp dialog tests > Show MRS Authentication App Dialog (snapshot
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Settings
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -745,12 +745,12 @@ exports[`MRS AuthApp dialog tests > Show MRS Authentication App Dialog (snapshot
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
               </div>
               <div

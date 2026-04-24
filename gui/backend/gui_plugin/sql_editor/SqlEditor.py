@@ -266,6 +266,19 @@ def kill_query(module_session):
     module_session.kill_query()
 
 
+@plugin_function("gui.sqlEditor.killSession", shell=False, web=True)
+def kill_session(module_session):
+    """Kills the database session that is currently executing.
+
+    Args:
+        module_session (object): The module session object where the query is running
+
+    Returns:
+        None
+    """
+    module_session.kill_session()
+
+
 @plugin_function("gui.sqlEditor.getCurrentSchema", shell=True, web=True)
 def get_current_schema(session):
     """Requests the current schema for this module.

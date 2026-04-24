@@ -448,24 +448,31 @@ class DbMysqlSession(DbSession):
     def start_transaction(self):
         self.execute("START TRANSACTION")
 
+    def _run_kill_sql(self, user_session, sql):
+        try:
+            self.run_sql(sql)
+        except mysqlsh.DBError as e:
+            if user_session.is_killed() and self.is_connection_error(e.code):
+                if self._auto_reconnect and self._reconnect(True):
+                    self.run_sql(sql)
+                    return
+            raise
+        except RuntimeError as e:
+            if user_session.is_killed() and "Not connected." in str(e):
+                if self._auto_reconnect and self._reconnect(True):
+                    self.run_sql(sql)
+                    return
+            raise
+
     def kill_query(self, user_session):
         with lock_usage(self._mutex, 5):
             user_session._killed = True
-            sql = f"KILL QUERY {user_session.connection_id}"
-            try:
-                self.run_sql(sql)
-            except mysqlsh.DBError as e:
-                if user_session.is_killed() and self.is_connection_error(e.code):
-                    if self._auto_reconnect and self._reconnect(True):
-                        self.run_sql(sql)
-                        return
-                raise
-            except RuntimeError as e:
-                if user_session.is_killed() and "Not connected." in str(e):
-                    if self._auto_reconnect and self._reconnect(True):
-                        self.run_sql(sql)
-                        return
-                raise
+            self._run_kill_sql(user_session, f"KILL QUERY {user_session.connection_id}")
+
+    def kill_session(self, user_session):
+        with lock_usage(self._mutex, 5):
+            user_session._killed = True
+            self._run_kill_sql(user_session, f"KILL {user_session.connection_id}")
 
     def get_default_schema(self):
         return (

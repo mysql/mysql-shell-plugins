@@ -30,5 +30,6 @@
     "button.defaultBackground": "#1177BB",
     "button.defaultForeground": "#FFFFFF",
     "list.sortIndicatorForeground": "#007ACC",
+    "sideBar.markerBackground": "#AB5A00",
     "text.captionForeground": "#998F8F"
 }

@@ -1184,32 +1184,42 @@ export class SidebarCommandHandler {
                     // in the list too.
                     await entry?.refresh?.();
                     const flatList = await this.connectionDataModel.flattenGroupList(entry as ICdmConnectionGroupEntry);
+                    const isEmptyFolder = flatList.connections.length === 0 && flatList.groups.length === 1;
+
+                    if (isEmptyFolder) {
+                        success = true;
+
+                        for (const group of flatList.groups.reverse()) {
+                            await this.connectionDataModel.dropItem(group);
+                            await this.connectionDataModel.removeEntry(group);
+                        }
+
+                        void ui.showInformationMessage(`The connection group ` +
+                            `"${entry?.caption}" has been deleted.`, {});
+
+                        break;
+                    }
 
                     let description: string[] = [];
                     let prompt = `Are you sure you want to remove the folder "${entry?.caption}", including all its ` +
                         `contents? This operation cannot be reverted!`;
-                    if (flatList.connections.length === 0 &&
-                        flatList.groups.length === 1) { // Only the group entry is in the list.
-                        prompt = `The folder "${entry?.caption}" is empty. Do you want to remove it?`;
+                    let groupString = "";
+                    if (flatList.groups.length > 1) {
+                        groupString = formatWithNumber("subfolder", flatList.groups.length - 1);
+                    }
+
+                    let connectionString = "";
+                    if (flatList.connections.length > 0) {
+                        connectionString = formatWithNumber("connection", flatList.connections.length);
+                    }
+
+                    if (groupString && connectionString) {
+                        description = [`The folder contains ${groupString} and ` +
+                            `${connectionString}.`];
+                    } else if (groupString) {
+                        description = [`The folder contains ${groupString}.`];
                     } else {
-                        let groupString = "";
-                        if (flatList.groups.length > 1) {
-                            groupString = formatWithNumber("subfolder", flatList.groups.length - 1);
-                        }
-
-                        let connectionString = "";
-                        if (flatList.connections.length > 0) {
-                            connectionString = formatWithNumber("connection", flatList.connections.length);
-                        }
-
-                        if (groupString && connectionString) {
-                            description = [`The folder contains ${groupString} and ` +
-                                `${connectionString}.`];
-                        } else if (groupString) {
-                            description = [`The folder contains ${groupString}.`];
-                        } else {
-                            description = [`The folder contains ${connectionString}.`];
-                        }
+                        description = [`The folder contains ${connectionString}.`];
                     }
 
                     const response = await DialogHost.showDialog({
@@ -1219,8 +1229,8 @@ export class SidebarCommandHandler {
                             title: "Confirmation",
                             prompt,
                             accept: "Delete Folder",
-                            refuse: "No",
-                            default: "No",
+                            refuse: "Cancel",
+                            default: "Cancel",
                         },
                         description,
                     });
@@ -1565,7 +1575,7 @@ export class SidebarCommandHandler {
             title,
             values: {
                 prompt,
-                value: addSubFolder ? "" : group.caption,
+                value: addSubFolder ? "folder" : group.caption,
             },
             description: ["A connection folder is an organizational unit for connections."],
         });
@@ -1617,7 +1627,7 @@ export class SidebarCommandHandler {
         }
         let completeBody = `CREATE LIBRARY \`${schemaName}\`.\`${libraryName}\`\n${commentPart}`;
         completeBody += `LANGUAGE ${language} AS ${currentQuote}\n${body}\n${currentQuote};`;
-        const status = await backend.execute(completeBody);
+        const status = await backend.executeService(completeBody);
         if (!status) {
             void ui.showErrorMessage(`Library cannot be created on the server! SidebarCommandHandler`, {});
 

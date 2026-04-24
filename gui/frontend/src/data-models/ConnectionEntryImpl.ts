@@ -24,7 +24,7 @@
  */
 
 import { ui } from "../app-logic/UILayer.js";
-import type { Mutable } from "../app-logic/general-types.js";
+import type { IServicePasswordRequest, Mutable } from "../app-logic/general-types.js";
 import type { IMySQLConnectionOptions } from "../communication/MySQL.js";
 import type {
     IOpenConnectionData,
@@ -35,7 +35,7 @@ import { ShellPromptHandler } from "../modules/common/ShellPromptHandler.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
-import { convertErrorToString, uuid } from "../utilities/helpers.js";
+import { convertErrorToString, isShellPromptResult, uuid } from "../utilities/helpers.js";
 import {
     CdmEntityType, ICdmAdminEntry, ICdmConnectionEntry, ICdmRestRootEntry, ICdmSchemaEntry,
     type ConnectionDataModelEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
@@ -43,9 +43,10 @@ import {
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import type { ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
-import { isShellPromptResult } from "../utilities/helpers.js"
 
 export type ConnectionReadyCallback = (entry: ICdmConnectionEntry, progress?: ProgressCallback) => void;
+
+const connectionPasswordCache = new Map<number, string>();
 
 /** An implementation of the ICdmConnectionEntry. This interface has more tasks than just holding data. */
 export class ConnectionEntryImpl implements ICdmConnectionEntry {
@@ -199,6 +200,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         return newEntry;
     }
 
+    public async duplicateServiceOnly(): Promise<ICdmConnectionEntry> {
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager,
+            this.showLakehouseNavigator);
+        await newEntry.initializeServiceOnly();
+
+        return newEntry;
+    }
+
     public getChildren(): ConnectionDataModelEntry[] {
         const children: ConnectionDataModelEntry[] = [];
         if (this.mrsEntry) {
@@ -226,18 +235,34 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         const requestId = uuid();
         let connectionData: IOpenConnectionData | undefined;
 
-        const credentials = await this.accessManager.getCredentials();
-        await this.backend.openConnection(this.details.id, requestId, credentials, ((response, requestId) => {
-            if (typeof response.result === "string") {
-                callback?.(response.result);
-            } else if (!isShellPromptResult(response.result) || !ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
-                requestId, this.backend.interactive, !credentials)) {
-                // Don't save the password in the backend, if we stored in the frontend.
-                connectionData = response.result as IOpenConnectionData;
+        const cachedCredentials = this.cachedConnectionCredentials();
+        let credentials = await this.accessManager.getCredentials();
+        credentials ??= cachedCredentials;
+        try {
+            await this.backend.openConnection(this.details.id, requestId, credentials, ((response, requestId) => {
+                if (typeof response.result === "string") {
+                    callback?.(response.result);
+                } else if (!isShellPromptResult(response.result) || !ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
+                    requestId, this.backend.interactive, !credentials, {
+                        onPasswordAccepted: (password: string, request: IServicePasswordRequest) => {
+                            if (!request.service?.startsWith("ssh://")) {
+                                connectionPasswordCache.set(this.details.id, password);
+                            }
+                        },
+                    })) {
+                    // Don't save the password in the backend, if we stored in the frontend.
+                    connectionData = response.result as IOpenConnectionData;
+                }
+
+                return Promise.resolve(true);
+            }));
+        } catch (error) {
+            if (credentials === cachedCredentials) {
+                connectionPasswordCache.delete(this.details.id);
             }
 
-            return Promise.resolve(true);
-        }));
+            throw error;
+        }
 
         if (!connectionData || Object.keys(connectionData).length === 0) {
             return false;
@@ -258,12 +283,41 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             this.details.version = (major * 10000) + (minor * 100) + patch;
         }
 
+        this.details.versionComment = connectionData.info.versionComment;
         this.details.sqlMode = connectionData.info.sqlMode;
         this.details.edition = connectionData.info.edition;
         this.details.heatWaveAvailable = connectionData.info.heatWaveAvailable;
         this.details.mleAvailable = connectionData.info.mleAvailable;
         this.details.isCloudInstance = connectionData.info.isCloudInstance;
         this.details.hasExplainError = connectionData.info.hasExplainError;
+
+        return true;
+    }
+
+    private cachedConnectionCredentials(): { userName: string; password: string; } | undefined {
+        const password = connectionPasswordCache.get(this.details.id);
+        if (password === undefined || this.details.dbType !== DBType.MySQL) {
+            return undefined;
+        }
+
+        const options = this.details.options as IMySQLConnectionOptions;
+        if (!options.user) {
+            return undefined;
+        }
+
+        return {
+            userName: options.user,
+            password,
+        };
+    }
+
+    private async initializeServiceOnly(callback?: ProgressCallback): Promise<boolean> {
+        callback?.("Starting DB service session...");
+        await this.backend.startServiceSession(`CDM_${this.id}`, this.details.id);
+
+        this.open = true;
+        (this.state as Mutable<IDataModelEntryState>).initialized = true;
+        callback?.();
 
         return true;
     }

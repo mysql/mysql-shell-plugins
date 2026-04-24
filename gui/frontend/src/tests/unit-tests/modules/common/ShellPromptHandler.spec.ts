@@ -68,6 +68,24 @@ describe("Shell Prompt Handler Tests", (): void => {
         expect(result).toBe(true);
     });
 
+    it("runs the password callback after a password prompt is accepted", async () => {
+        const backend = new ShellInteractiveInterface();
+        const onPasswordAccepted = vi.fn();
+        vi.mocked(uiLayerMock.requestPassword).mockResolvedValueOnce("secret");
+
+        const result = ShellPromptHandler.handleShellPrompt({
+            prompt: "Please provide the password for 'root@localhost:3306'",
+            type: "password",
+        }, "<requestId>", backend, true, { onPasswordAccepted });
+
+        expect(result).toBe(true);
+        await vi.waitFor(() => {
+            expect(onPasswordAccepted).toHaveBeenCalledWith("secret", expect.objectContaining({
+                service: "root@localhost:3306",
+            }));
+        });
+    });
+
     it("ShellPrompt 'confirm' prompt", () => {
         const handler = new ShellPromptHandler();
         const backend = new ShellInteractiveInterface();

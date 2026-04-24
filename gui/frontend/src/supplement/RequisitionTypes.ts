@@ -47,6 +47,7 @@ import type {
 import type { AdminPageType } from "../data-models/data-model-types.js";
 import type { OdmEntityType } from "../data-models/OpenDocumentDataModel.js";
 import type { IConnectionDetails, IFolderPath, IShellSessionDetails } from "./ShellInterface/index.js";
+import type { QueryType } from "../parsing/parser-common.js";
 
 export interface IAppParameters {
     /** Indicates if the app runs under control of a wrapper app (a web client control embedded in a desktop app). */
@@ -75,6 +76,10 @@ export interface IAppParameters {
 }
 
 export type SimpleCallback = (_: unknown) => Promise<boolean>;
+
+export interface ISqlTransactionChangeDetails {
+    queryType?: QueryType;
+}
 
 /**
  * Information to use when frontend components want to update their statusbar items.
@@ -508,7 +513,9 @@ export interface IRequestTypeMap {
      * notebook, which will be saved to a file, using a file picker provided by host (usually the native OS file
      * selector). If `content` is empty, nothing happens.
      */
-    "editorSaveNotebook": (details ?: {fileName?: string, content?: string; saveAs?: boolean}) => Promise<boolean>;
+    "editorSaveNotebook": (details ?: {
+        id?: string, fileName?: string, defaultFileName?: string, content?: string; saveAs?: boolean
+    }) => Promise<boolean>;
 
     /**
      * Triggers loading a notebook from a file. The actual behavior depends on the context and the given `details`
@@ -516,14 +523,22 @@ export interface IRequestTypeMap {
      *
      * In the frontend: If `details` is given, it will be used to create a new notebook document in the editor. If
      * there's no content given, the user will be prompted to select a file. If the app runs in a browser, the
-     * browser's file picker will be used and file content will be loaded into a new notebook document. If the app
-     * runs in an embedded context, this request will be forwarded to the host.
+     * browser's file picker will be used and file content will be loaded into either the current notebook or a new
+     * notebook document when `createNew` is set. If the app runs in an embedded context, this request will be
+     * forwarded to the host.
      *
      * In the host (if the app is embedded): The `details` parameter is ignored and instead the host will prompt the
      * user to select a file. The file content will replace the current notebook document (the request can only be sent
      * when a notebook is active).
      */
-    "editorLoadNotebook": (details?: { fileName: string, content: string, standalone: boolean; }) => Promise<boolean>;
+    "editorLoadNotebook": (
+        details?: {
+            id?: string,
+            fileName?: string,
+            content?: string,
+            standalone?: boolean,
+            createNew?: boolean,
+        }) => Promise<boolean>;
 
     /** Sent when a document is to be closed. */
     "closeDocument": (details: { connectionId?: number; documentId: string; pageId?: string; }) => Promise<boolean>;
@@ -550,8 +565,8 @@ export interface IRequestTypeMap {
     "editorInsertText": (text: string) => Promise<boolean>;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionInfo: IConnectionInfo; schema: string; }) => Promise<boolean>;
-    "sqlTransactionChanged": SimpleCallback;
-    "sqlTransactionEnded": SimpleCallback;
+    "sqlTransactionChanged": (data?: ISqlTransactionChangeDetails) => Promise<boolean>;
+    "sqlTransactionEnded": (data?: ISqlTransactionChangeDetails) => Promise<boolean>;
     "sqlModeChanged": (data: { id: string; connectionInfo: IConnectionInfo; sqlMode: string; }) => Promise<boolean>;
 
     "sessionAdded": (session: IShellSessionDetails) => Promise<boolean>;
@@ -637,6 +652,8 @@ export interface IRequestTypeMap {
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;
     "closeInstance": SimpleCallback;
+    "desktopWindowCloseRequested": (data: { requestId: string; }) => Promise<boolean>;
+    "desktopWindowCloseResponse": (data: { requestId: string; allow: boolean; }) => Promise<boolean>;
 
     /** Creates a new editor (script or notebook) with optional content. */
     "createNewEditor": (request: INewEditorRequest) => Promise<boolean>;

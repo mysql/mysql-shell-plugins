@@ -126,32 +126,40 @@ exports[`Application tests > Application readiness 1`] = `
     />
   </div>
   <div
-    class="msg container fixedScrollbar notificationCenter"
-    style="flex-direction: column;"
-  />
-  <div
-    class="msg container fixedScrollbar statusbar verticalCenterContent"
-    style="flex-direction: row;"
+    id="applicationOverlayDock"
   >
     <div
-      class="msg container leftItems"
-      style="flex-direction: row; align-items: stretch;"
+      class="msg container fixedScrollbar notificationCenter"
+      style="flex-direction: column;"
     />
     <div
-      class="msg container rightItems"
-      style="flex-direction: row; align-items: stretch;"
+      id="floatingStatusDock"
     >
       <div
-        class="msg button statusbarItem"
-        data-command="notifications:showHistory"
-        id="showNotificationHistory"
-        role="button"
-        tabindex="0"
-        title="No Notifications"
+        class="msg container fixedScrollbar statusbar verticalCenterContent"
+        style="flex-direction: row;"
       >
-        <span
-          class="codicon codicon-bell"
+        <div
+          class="msg container leftItems"
+          style="flex-direction: row; align-items: stretch;"
         />
+        <div
+          class="msg container rightItems"
+          style="flex-direction: row; align-items: stretch;"
+        >
+          <div
+            class="msg button statusbarItem"
+            data-command="notifications:showHistory"
+            id="showNotificationHistory"
+            role="button"
+            tabindex="0"
+            title="No Notifications"
+          >
+            <span
+              class="codicon codicon-bell"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>

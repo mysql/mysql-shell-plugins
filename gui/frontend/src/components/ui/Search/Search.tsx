@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,12 +47,15 @@ export interface ISearchProperties extends IComponentProperties {
     placeholder?: string;
     autoFocus?: boolean;
     result?: string;
+    leadingIcon?: string | Codicon;
 
     buttons?: {
         matchChase?: boolean;
         matchWholeWord?: boolean;
         useRegExp?: boolean;
         clearAll?: boolean;
+        clearAllIcon?: string | Codicon;
+        hideClearAllWhenEmpty?: boolean;
     };
 
     values?: ISearchValues;
@@ -68,7 +71,8 @@ export class Search extends ComponentBase<ISearchProperties> {
     public constructor(props: ISearchProperties) {
         super(props);
 
-        this.addHandledProperties("placeholder", "autoFocus", "result", "buttons", "values", "onChange", "onConfirm");
+        this.addHandledProperties("placeholder", "autoFocus", "result", "leadingIcon", "buttons", "values",
+            "onChange", "onConfirm");
     }
 
     public override componentDidUpdate(): void {
@@ -79,7 +83,7 @@ export class Search extends ComponentBase<ISearchProperties> {
     }
 
     public render(): ComponentChild {
-        const { placeholder = "Search", values, autoFocus, result, buttons } = this.props;
+        const { placeholder = "Search", values, autoFocus, result, buttons, leadingIcon } = this.props;
         const className = this.getEffectiveClassNames(["search"]);
 
         return (
@@ -88,6 +92,12 @@ export class Search extends ComponentBase<ISearchProperties> {
                 orientation={Orientation.LeftToRight}
                 {...this.unhandledProperties}
             >
+                {
+                    leadingIcon && <Icon
+                        className="leadingIcon"
+                        src={leadingIcon}
+                    />
+                }
                 <Input
                     id="search"
                     className={className}
@@ -140,13 +150,13 @@ export class Search extends ComponentBase<ISearchProperties> {
                     </Button>
                 }
                 {
-                    buttons?.clearAll && <Button
+                    buttons?.clearAll && (!buttons.hideClearAllWhenEmpty || (values?.value ?? "").length > 0) && <Button
                         id="clearAll"
                         disabled={(values?.value ?? "").length === 0}
                         data-tooltip="Clear Search Input"
                         onClick={this.handleButtonClick}
                     >
-                        <Icon src={Codicon.ClearAll} />
+                        <Icon src={buttons.clearAllIcon ?? Codicon.ClearAll} />
                     </Button>
                 }
             </Container>

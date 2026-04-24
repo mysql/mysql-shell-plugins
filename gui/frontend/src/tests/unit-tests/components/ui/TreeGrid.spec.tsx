@@ -25,7 +25,8 @@
 
 import { render } from "@testing-library/preact";
 import { createRef } from "preact";
-import { describe, expect, it } from "vitest";
+import { type ColumnDefinition } from "tabulator-tables";
+import { describe, expect, it, vi } from "vitest";
 
 import { SetDataAction, TreeGrid } from "../../../../components/ui/TreeGrid/TreeGrid.js";
 import { nextRunLoop } from "../../test-helpers.js";
@@ -157,6 +158,45 @@ describe("TreeGrid tests", (): void => {
         gridRef.current!.endUpdate();
         gridRef.current!.endUpdate();
         expect(gridRef.current!.updateLockCount).toBe(0);
+
+        unmount();
+    });
+
+    it("preserves resized column widths when data is refreshed", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const columns = [
+            { title: "col1", field: "field1", width: 120 },
+            { title: "col2", field: "field2", width: 140 },
+        ];
+        const { unmount, rerender } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={columns}
+                tableData={[{ id: "1", field1: "a", field2: "b" }]}
+            />,
+        );
+
+        await nextRunLoop();
+        const table = await gridRef.current!.table;
+
+        table!.getColumn("field1").setWidth(222);
+        expect(table!.getColumn("field1").getWidth()).toBe(222);
+        const setColumns = vi.spyOn(table!, "setColumns");
+
+        rerender(
+            <TreeGrid
+                ref={gridRef}
+                columns={[...columns]}
+                tableData={[{ id: "1", field1: "c", field2: "d" }]}
+            />,
+        );
+
+        await nextRunLoop();
+        const refreshedColumns = setColumns.mock.calls.at(-1)?.[0] as ColumnDefinition[];
+        expect(refreshedColumns.find((column) => {
+            return column.field === "field1";
+        })?.width).toBe(222);
+        expect(table!.getColumn("field1").getWidth()).toBe(222);
 
         unmount();
     });

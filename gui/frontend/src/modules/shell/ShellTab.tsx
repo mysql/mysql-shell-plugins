@@ -250,7 +250,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
 
                 case "\\about": {
                     const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = ShellTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
+                    const content = ShellTab.aboutMessage.replaceAll("%modifier%", isMac ? "Cmd" : "Ctrl");
                     await context.addResultData({
                         type: "text",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],

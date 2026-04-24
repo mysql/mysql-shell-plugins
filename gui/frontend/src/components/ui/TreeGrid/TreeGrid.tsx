@@ -321,6 +321,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             // is changed to use the setData API.
             //if (prevProps.tableData !== tableData) {
             if (tableData) {
+                const widths = columns ? this.currentColumnWidths() : undefined;
+
                 // The call to replaceData does not change the scroll position.
                 void this.tabulator.replaceData(tableData as Array<{}>).then(() => {
                     if (!this.cancelled) {
@@ -334,18 +336,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                             const scrollTop = (rowManager.element as IDictionary).scrollTop as number;
                             const scrollLeft = rowElement.scrollLeft;
 
-                            const previousColumnComponents = this.tabulator!.getColumns(true);
-                            const widths = previousColumnComponents.map((component) => {
-                                return component.getWidth();
-                            });
-                            this.tabulator?.setColumns(columns);
-
-                            const newColumnComponents = this.tabulator!.getColumns(true);
-                            if (previousColumnComponents.length === newColumnComponents.length) {
-                                newColumnComponents.forEach((component, index) => {
-                                    component.setWidth(widths[index]);
-                                });
-                            }
+                            const resizedColumns = widths
+                                ? TreeGrid.applyColumnWidths(columns, widths)
+                                : columns;
+                            this.tabulator?.setColumns(TreeGrid.addDefaultHeaderTooltips(resizedColumns));
 
                             rowElement.scrollTop = scrollTop;
 
@@ -811,6 +805,32 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         onColumnResized?.(column);
     };
 
+    private currentColumnWidths(): Map<string, number> {
+        const widths = new Map<string, number>();
+        this.tabulator?.getColumns(true).forEach((component) => {
+            const field = component.getField();
+            if (field) {
+                widths.set(field, component.getWidth());
+            }
+        });
+
+        return widths;
+    }
+
+    private static applyColumnWidths(columns: ColumnDefinition[], widths: Map<string, number>): ColumnDefinition[] {
+        return columns.map((column) => {
+            const columnWithWidths = column.columns
+                ? { ...column, columns: TreeGrid.applyColumnWidths(column.columns, widths) }
+                : { ...column };
+
+            if (columnWithWidths.field && widths.has(columnWithWidths.field)) {
+                columnWithWidths.width = widths.get(columnWithWidths.field);
+            }
+
+            return columnWithWidths;
+        });
+    }
+
     /**
      * Called when the vertical position of the grid changes.
      *
@@ -895,5 +915,38 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     private limitValue(value: number, min: number, max: number): number {
         return Math.min(Math.max(value, min), Math.max(min, max));
+    }
+
+    private static readonly headerOverflowTooltip = (
+        first: ColumnComponent | MouseEvent, second?: ColumnComponent,
+    ): string => {
+        const column = second ?? first as ColumnComponent;
+        const titleElement = column.getElement().querySelector<HTMLElement>(".tabulator-col-title");
+        if (!titleElement) {
+            return "";
+        }
+
+        const isClipped = titleElement.scrollWidth > titleElement.clientWidth + 1 ||
+            titleElement.scrollHeight > titleElement.clientHeight + 1;
+
+        return isClipped ? (titleElement.textContent ?? "") : "";
+    };
+
+    private static addDefaultHeaderTooltips(columns: ColumnDefinition[]): ColumnDefinition[] {
+        return columns.map((column) => {
+            const columnWithChildren = column.columns
+                ? { ...column, columns: TreeGrid.addDefaultHeaderTooltips(column.columns) }
+                : column;
+
+            const title = (columnWithChildren as { title?: string }).title ?? "";
+            if (columnWithChildren.headerTooltip !== undefined || title.length === 0) {
+                return columnWithChildren;
+            }
+
+            return {
+                ...columnWithChildren,
+                headerTooltip: TreeGrid.headerOverflowTooltip,
+            };
+        });
     }
 }

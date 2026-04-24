@@ -109,5 +109,10 @@ class SqlEditorModuleSession(DbModuleSession):
     def kill_query(self):
         self._db_service_session.kill_query(self._db_user_session)
 
+    @check_user_database_session
+    @check_service_database_session
+    def kill_session(self):
+        self._db_service_session.kill_session(self._db_user_session)
+
     def cancel_request(self, request_id):
         self._db_service_session.cancel_request(request_id)

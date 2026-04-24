@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,7 +35,6 @@ import {
 import { Orientation, Container } from "../Container/Container.js";
 import { Button, IButtonProperties } from "../Button/Button.js";
 import { Icon } from "../Icon/Icon.js";
-import { Label } from "../Label/Label.js";
 import { Menu } from "../Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../Menu/MenuItem.js";
 
@@ -61,7 +60,7 @@ export interface ITabviewPage {
     icon?: string | Codicon;
 
     /** A tab's title. */
-    caption: string;
+    caption: ComponentChild;
 
     /** Tooltip for the tab. */
     tooltip?: string;
@@ -230,7 +229,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
                     onDrop={this.handleTabItemDrop}
                 >
                     {page.icon && <Icon src={page.icon} data-tooltip="inherit" />}
-                    {page.caption && <Label data-tooltip="inherit">{page.caption}</Label>}
+                    {page.caption && <span className="tabCaption" data-tooltip="inherit">{page.caption}</span>}
                     {page.auxiliary && <span id="auxillary">{page.auxiliary}</span>}
                 </Button>
             );

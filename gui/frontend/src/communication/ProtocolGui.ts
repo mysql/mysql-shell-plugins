@@ -117,6 +117,8 @@ export enum ShellAPIGui {
     GuiShellKillTask = "gui.shell.kill_task",
     /** Returns the database objects supported by a DBMS */
     GuiDbGetObjectsTypes = "gui.db.get_objects_types",
+    /** Executes the given SQL on the DB service session. */
+    GuiDbExecute = "gui.db.execute",
     /** Returns the names of the existing objects of the given     type. If a filter is provided, only the names matching the given filter will be returned. */
     GuiDbGetCatalogObjectNames = "gui.db.get_catalog_object_names",
     /** Returns the names of the existing objects of the given type in the given     schema that match the provided filter. */
@@ -203,6 +205,8 @@ export enum ShellAPIGui {
     GuiSqlEditorExecute = "gui.sqlEditor.execute",
     /** Stops the query that is currently executing. */
     GuiSqlEditorKillQuery = "gui.sqlEditor.kill_query",
+    /** Kills the database session that is currently executing. */
+    GuiSqlEditorKillSession = "gui.sqlEditor.kill_session",
     /** Requests the current schema for this module. */
     GuiSqlEditorGetCurrentSchema = "gui.sqlEditor.get_current_schema",
     /** Requests to change the current schema for this module. */
@@ -353,6 +357,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiShellComplete]: { args: { data: string; offset: number; moduleSessionId: string; }; };
     [ShellAPIGui.GuiShellKillTask]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbGetObjectsTypes]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiDbExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { }; }; };
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { args: { moduleSessionId: string; type: string; filter?: string; }; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { args: { moduleSessionId: string; type: string; schemaName: string; filter?: string; routineType?: string; }; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; filter?: string; }; };
@@ -396,6 +401,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorRollbackTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize?: number; featureId?: string; }; }; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorKillSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: { args: { moduleSessionId: string; schemaName: string; }; };
     [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { args: { moduleSessionId: string; }; };
@@ -482,6 +488,7 @@ export interface IOpenConnectionData {
     info: {
         sqlMode?: string;
         version?: string;
+        versionComment?: string;
         edition?: string;
         heatWaveAvailable?: boolean;
         mleAvailable?: boolean;
@@ -862,6 +869,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiShellComplete]: { result?: { offset: number; options: string[]; }; };
     [ShellAPIGui.GuiShellKillTask]: {};
     [ShellAPIGui.GuiDbGetObjectsTypes]: {};
+    [ShellAPIGui.GuiDbExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };
@@ -880,6 +888,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: {};
+    [ShellAPIGui.GuiSqlEditorKillSession]: {};
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { result: string; };
     [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: {};
     [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { result: boolean; };
@@ -956,6 +965,7 @@ export interface IProtocolGuiResults {
  */
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
+    ShellAPIGui.GuiDbExecute,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
     ShellAPIGui.GuiDbGetRoutinesMetadata,
     ShellAPIGui.GuiDbGetLibrariesMetadata,

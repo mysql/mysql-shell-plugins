@@ -26,6 +26,8 @@
 import type { IDictionary } from "../app-logic/general-types.js";
 import type { IEmbeddedMessage, IEmbeddedSourceType } from "../communication/index.js";
 import { appParameters, parseAppParameters } from "./AppParameters.js";
+import { type DesktopCommandId, desktopCommandRegistry } from "./DesktopCommandRegistry.js";
+import { hasElectronHostBridge } from "./ElectronDesktop.js";
 import { RequisitionPipeline } from "./RequisitionPipeline.js";
 import type {
     IRemoteTarget, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider,
@@ -88,7 +90,13 @@ export class RequisitionHub {
             const messageHandlers = window as IBrowserMessageHandlers;
 
             // If no explicit target is given determine one from special values.
-            if (messageHandlers.webkit) {
+            if (hasElectronHostBridge()) {
+                this.remoteTarget = {
+                    postMessage: (data: IEmbeddedMessage) => {
+                        window.electronHost!.postMessage(data);
+                    },
+                };
+            } else if (messageHandlers.webkit) {
                 this.remoteTarget = messageHandlers.webkit.messageHandlers.hostChannel;
             } else {
                 if (messageHandlers.chrome?.webview) {
@@ -107,6 +115,7 @@ export class RequisitionHub {
                 messageHandlers.onNativeMessage = (message: IEmbeddedMessage): void => {
                     this.handleRemoteMessage(message);
                 };
+                window.electronHost?.setMessageHandler?.(messageHandlers.onNativeMessage);
             } else {
                 // Here we know the app is running in a browser. This can be a standalone browser or a web view
                 // in Visual Studio Code. In all these cases we can just send messages to the parent window.
@@ -336,6 +345,21 @@ export class RequisitionHub {
      */
     public handleRemoteMessage(message: IEmbeddedMessage): void {
         switch (message.command) {
+            case "getDesktopCommandState": {
+                desktopCommandRegistry.notifyHostStateChanged();
+
+                break;
+            }
+
+            case "executeDesktopCommand": {
+                const commandId = message.data?.id;
+                if (typeof commandId === "string") {
+                    void desktopCommandRegistry.execute(commandId as DesktopCommandId);
+                }
+
+                break;
+            }
+
             case "paste": {
                 const text = message.data?.["text/plain"] as string | undefined ?? "";
                 const element = document.activeElement;

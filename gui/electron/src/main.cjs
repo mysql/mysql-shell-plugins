@@ -1171,7 +1171,7 @@ const createDesktopCommandMenuItem = (id, label, options = {}) => {
     const command = getDesktopCommand(options.stateId ?? id);
 
     return {
-        label,
+        label: options.label ?? (options.stateId ? label : command?.label ?? label),
         type: options.type,
         accelerator: options.accelerator ?? command?.accelerator,
         enabled: command?.enabled ?? false,
@@ -1181,9 +1181,7 @@ const createDesktopCommandMenuItem = (id, label, options = {}) => {
 };
 
 const createDesktopCommandStateMenuItem = (id, fallbackLabel, options = {}) => {
-    const command = getDesktopCommand(options.stateId ?? id);
-
-    return createDesktopCommandMenuItem(id, command?.label ?? fallbackLabel, options);
+    return createDesktopCommandMenuItem(id, fallbackLabel, options);
 };
 
 const handleHostMessage = (browserWindow, message) => {
@@ -1365,16 +1363,8 @@ const createMenu = () => {
     const fileMenu = {
         label: "File",
         submenu: [
-            {
-                ...createDesktopCommandMenuItem("desktop.newScriptTab", "New SQL Script", {
-                    stateId: "script.newSql",
-                }),
-            },
-            {
-                ...createDesktopCommandMenuItem("desktop.newNotebookTab", "New Notebook", {
-                    stateId: "script.newSql",
-                }),
-            },
+            createDesktopCommandMenuItem("desktop.newScriptTab", "New SQL Script"),
+            createDesktopCommandMenuItem("desktop.newNotebookTab", "New Notebook"),
             { type: "separator" },
             {
                 ...createDesktopCommandMenuItem("file.open", "Open..."),
@@ -1441,11 +1431,24 @@ const createMenu = () => {
     const viewMenu = {
         label: "View",
         submenu: [
+            createDesktopCommandMenuItem("view.toggleSidebar", "Toggle Sidebar", {
+                accelerator: "CmdOrCtrl+B",
+            }),
+            { type: "separator" },
             createDesktopCommandMenuItem("view.showHiddenCharacters", "Show Hidden Characters", { type: "checkbox" }),
             createDesktopCommandMenuItem("view.softWrap", "Soft Wrap Lines", {
                 type: "checkbox",
                 accelerator: "Alt+Z",
             }),
+            { type: "separator" },
+            {
+                label: "Schemas",
+                submenu: [
+                    createDesktopCommandMenuItem("view.schemas.showSystemSchemas", "Show System Schemas", {
+                        type: "checkbox",
+                    }),
+                ],
+            },
             { type: "separator" },
             { label: "Zoom In", accelerator: "CmdOrCtrl+Plus", click: adjustZoomFactor },
             { label: "Zoom Out", accelerator: "CmdOrCtrl+-", click: decreaseZoomFactor },
@@ -1490,7 +1493,7 @@ const createMenu = () => {
                 label: browseMrsDocsCommand?.label ?? "Browse MySQL REST Service Documentation",
                 enabled: browseMrsDocsCommand?.enabled ?? true,
                 click: () => {
-                    void shell.openExternal(mrsDocsUrl);
+                    openExternalUrl(mrsDocsUrl);
                 },
             },
         ],
@@ -1518,7 +1521,7 @@ const createMenu = () => {
             {
                 label: `${appName} Help`,
                 click: () => {
-                    void shell.openExternal(workbenchHelpUrl);
+                    openExternalUrl(workbenchHelpUrl);
                 },
             },
         ],

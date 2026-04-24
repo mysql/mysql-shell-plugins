@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,13 @@
 .msg.dbModuleTabview,
 .msg#shellEditorHost {
     flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg.dbModuleTabview>.tabContent {
+    min-width: 0;
+    min-height: 0;
 }
 
 .msg.dbModuleTabview .closeButton {
@@ -37,6 +44,48 @@
     background: transparent;
 }
 
+.msg.dbModuleTabview .closeButton:not(.disabled):hover,
+.msg.dbModuleTabview .closeButton:not(.disabled):active {
+    background: transparent;
+    border-color: transparent;
+}
+
+.msg.dbModuleTabview .closeButton .closeIconStack {
+    position: relative;
+    display: block;
+    width: 16px;
+    height: 16px;
+}
+
+.msg.dbModuleTabview .closeButton .closeIconStack .icon {
+    position: absolute;
+    inset: 0;
+}
+
+.msg.dbModuleTabview .tabArea>.tabItem #auxillary .closeButton.dirty .closeIcon {
+    visibility: hidden;
+}
+
+.msg.dbModuleTabview .tabArea>.tabItem #auxillary .closeButton.dirty .dirtyIndicator {
+    visibility: visible;
+}
+
+.msg.dbModuleTabview .tabArea>.tabItem #auxillary .closeButton.executing .icon {
+    visibility: visible;
+}
+
+.msg.dbModuleTabview .tabArea>.tabItem #auxillary .closeButton.dirty:hover .closeIcon {
+    visibility: visible;
+}
+
+.msg.dbModuleTabview .tabArea>.tabItem #auxillary .closeButton.dirty:hover .dirtyIndicator {
+    visibility: hidden;
+}
+
+.msg.dbModuleTabview .closeButton .closeSpinner {
+    animation: desktopStatusSpin 1s linear infinite;
+}
+
 .msg #mainSplitHost {
     flex: 1 1 auto;
 
@@ -45,6 +94,597 @@
 
 .msg #mainSplitHost .connectionBrowser {
     flex: 1 1 auto;
+}
+
+.msg #dbModuleTabHost {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg #desktopWorkspaceHost {
+    flex: 1 1 auto;
+    min-height: 0;
+    background-color: var(--background);
+}
+
+.msg #desktopSidebarPane {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background-color: var(--sideBar-background);
+}
+
+.msg #desktopSidebarHeader {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 16px 6px;
+    background-color: var(--sideBar-background);
+    gap: 16px;
+
+    -webkit-app-region: drag;
+}
+
+body.electronDesktopMacHost .msg #desktopSidebarHeader {
+    min-height: max(54px, var(--electron-desktop-drag-strip-height));
+    padding-top: 6px;
+    padding-left: 80px;
+}
+
+.msg #desktopSidebarPane #documentSideBar {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.msg #desktopWorkspaceTitlebar {
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    padding: 8px 16px 6px;
+    border-bottom: 1px solid var(--editorGroupHeader-tabsBorder);
+    background-color: var(--editorGroup-emptyBackground);
+    color: var(--foreground);
+    overflow: hidden;
+
+    -webkit-app-region: drag;
+}
+
+body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar {
+    min-height: var(--electron-desktop-drag-strip-height);
+    padding-top: 6px;
+    padding-left: 16px;
+}
+
+body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
+    padding-left: 80px;
+}
+
+.msg #desktopWorkspaceTitlebar .desktopWorkspaceTitlebarGrid {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.msg .desktopWorkspaceTitlebarLeft {
+    min-width: 0;
+    align-items: center;
+    gap: 10px;
+}
+
+.msg .desktopWorkspaceTitlebarCenter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg .desktopWorkspaceTitlebarRight {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+}
+
+.msg #desktopWorkspaceTitlebarActions {
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    min-width: 0;
+}
+
+.msg #workspaceSelector,
+.msg #workspaceSelector * {
+    -webkit-app-region: no-drag;
+}
+
+.msg #workspaceSelectorPopup,
+.msg #workspaceSelectorPopup *,
+.msg#workspaceSelectorPopup,
+.msg#workspaceSelectorPopup * {
+    -webkit-app-region: no-drag;
+}
+
+.msg .desktopWorkspaceTitlebarButton,
+.msg .desktopWorkspaceTitlebarButton * {
+    -webkit-app-region: no-drag;
+}
+
+.msg .desktopWorkspaceTitlebarButton {
+    min-width: 0;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+}
+
+.msg .desktopWorkspaceTitlebarButton>.icon,
+.msg .desktopWorkspaceTitlebarButton>.image,
+.msg .desktopWorkspaceTitlebarButton>.iconHost {
+    width: 16px;
+    height: 16px;
+}
+
+.msg .desktopWorkspaceTitlebarButton>.icon:not(.codicon) {
+    background-color: var(--foreground);
+}
+
+.msg .desktopWorkspaceTitlebarButton>.icon.codicon {
+    color: currentColor;
+}
+
+.msg #desktopTitlebarAddButton {
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+}
+
+.msg #desktopTitlebarAddButton {
+    width: 32px;
+    height: 32px;
+}
+
+.msg #desktopTitlebarAddButton>.icon,
+.msg #desktopTitlebarAddButton>.image,
+.msg #desktopTitlebarAddButton>.iconHost {
+    width: 18px;
+    height: 18px;
+}
+
+.msg #desktopTitlebarAddButton:not(.disabled):hover,
+.msg #desktopTitlebarAddButton:not(.disabled):focus,
+.msg #desktopTitlebarAddButton:not(.disabled):focus-visible,
+.msg #desktopTitlebarAddButton:not(.disabled):active,
+.msg #desktopTitlebarAddButton.manualFocus {
+    background-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 28%, transparent);
+}
+
+.msg #workspaceSelector {
+    min-width: 250px;
+    max-width: 390px;
+    margin: 0;
+    min-height: 44px;
+    padding: 0 38px 0 12px;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--foreground);
+    font-size: 1rem;
+}
+
+.msg #workspaceSelector::after {
+    right: 12px;
+    top: 50%;
+    opacity: 0;
+    transition: opacity 120ms ease;
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.msg #workspaceSelector:hover,
+.msg #workspaceSelector.manualFocus {
+    background-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 28%, transparent);
+}
+
+.msg #workspaceSelector:hover::after,
+.msg #workspaceSelector.manualFocus::after {
+    opacity: 1;
+}
+
+.msg #workspaceSelector>.container {
+    min-width: 0;
+    height: 100%;
+}
+
+.msg #workspaceSelector>.container>.container {
+    min-width: 0;
+    height: 100%;
+    align-items: center;
+}
+
+.msg #workspaceSelector>.container>.label,
+.msg #workspaceSelector>.container>.container>.label,
+.msg #workspaceSelector>.label {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.msg #workspaceSelector>.container>.container>.label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg #workspaceSelectorPopup,
+.msg#workspaceSelectorPopup {
+    font-size: 1rem;
+}
+
+.msg #workspaceSelectorPopup .dropdownItem,
+.msg#workspaceSelectorPopup .dropdownItem {
+    box-sizing: border-box;
+    width: 100%;
+    height: 34px;
+    min-height: 34px;
+    padding-top: 0;
+    padding-bottom: 0;
+    align-items: center;
+}
+
+.msg #workspaceSelectorPopup .workspaceSelectorItem,
+.msg#workspaceSelectorPopup .workspaceSelectorItem {
+    display: grid;
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    gap: 8px;
+}
+
+.msg #workspaceSelectorPopup .workspaceSelectorItemLabel,
+.msg#workspaceSelectorPopup .workspaceSelectorItemLabel {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+}
+
+.msg #workspaceSelectorPopup .workspaceSelectorItemLabel>.label,
+.msg#workspaceSelectorPopup .workspaceSelectorItemLabel>.label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg #workspaceSelectorPopup .workspaceSelectorCloseButton,
+.msg#workspaceSelectorPopup .workspaceSelectorCloseButton {
+    justify-self: end;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    color: currentColor;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.msg #workspaceSelectorPopup .dropdownItem:hover .workspaceSelectorCloseButton,
+.msg #workspaceSelectorPopup .dropdownItem.selected .workspaceSelectorCloseButton,
+.msg#workspaceSelectorPopup .dropdownItem:hover .workspaceSelectorCloseButton,
+.msg#workspaceSelectorPopup .dropdownItem.selected .workspaceSelectorCloseButton {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.msg #workspaceSelectorPopup .workspaceSelectorCloseButton .icon,
+.msg#workspaceSelectorPopup .workspaceSelectorCloseButton .icon {
+    margin: 0;
+    color: currentColor;
+}
+
+.msg #workspaceSelector>.container>.icon,
+.msg #workspaceSelector>.container>.image,
+.msg #workspaceSelector>.container>.container>.icon,
+.msg #workspaceSelector>.container>.container>.image,
+.msg #workspaceSelector>.container>.container>.iconHost,
+.msg #workspaceSelector>.container>.iconHost {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+}
+
+.msg #workspaceSelector>.container>.icon:not(.codicon),
+.msg #workspaceSelector>.container>.container>.icon:not(.codicon),
+.msg #workspaceSelector>.container>.iconHost>.icon:not(.codicon),
+.msg #workspaceSelector>.container>.container>.iconHost>.icon:not(.codicon) {
+    background-color: var(--foreground);
+}
+
+.msg #workspaceSelector .icon.codicon,
+.msg .desktopWorkspaceRunSplitButton .icon.codicon,
+.msg .desktopWorkspaceRunStopButton .icon.codicon {
+    color: currentColor;
+}
+
+.msg .desktopWorkspaceRunSplitButton,
+.msg .desktopWorkspaceRunSplitButton *,
+.msg .desktopWorkspaceRunStopButton,
+.msg .desktopWorkspaceRunStopButton * {
+    -webkit-app-region: no-drag;
+}
+
+.msg .desktopWorkspaceRunSplitButton {
+    flex: 0 0 100px;
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
+    min-height: 28px;
+    margin: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--foreground);
+}
+
+.msg .desktopWorkspaceRunSplitButton>.splitButtonPrimary,
+.msg .desktopWorkspaceRunSplitButton>.splitButtonTrigger {
+    min-height: 28px;
+    background: transparent;
+}
+
+.msg .desktopWorkspaceRunSplitButton>.splitButtonPrimary {
+    justify-content: flex-start;
+    padding: 0 8px 0 6px;
+}
+
+.msg .desktopWorkspaceRunSplitButton>.splitButtonTrigger {
+    flex: 0 0 20px;
+    border-left: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+.msg .desktopWorkspaceRunSplitButton:not(.disabled)>.splitButtonPrimary:hover,
+.msg .desktopWorkspaceRunSplitButton:not(.disabled)>.splitButtonPrimary:focus,
+.msg .desktopWorkspaceRunSplitButton:not(.disabled)>.splitButtonTrigger:hover,
+.msg .desktopWorkspaceRunSplitButton:not(.disabled)>.splitButtonTrigger:focus {
+    background-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 28%, transparent);
+}
+
+.msg .desktopWorkspaceRunSplitButton.disabled {
+    background: transparent;
+    color: var(--disabledForeground);
+}
+
+.msg .desktopWorkspaceRunStopButton {
+    background-color: var(--button-background);
+    box-shadow: none;
+    color: var(--button-foreground);
+}
+
+.msg .desktopWorkspaceRunStopButton>.splitButtonPrimary,
+.msg .desktopWorkspaceRunStopButton>.splitButtonTrigger {
+    background-color: var(--button-background);
+}
+
+.msg .desktopWorkspaceRunStopButton>.splitButtonPrimary {
+    justify-content: center;
+}
+
+.msg .desktopWorkspaceRunStopButton:not(.disabled):hover,
+.msg .desktopWorkspaceRunStopButton:not(.disabled):focus,
+.msg .desktopWorkspaceRunStopButton:not(.disabled):focus-visible,
+.msg .desktopWorkspaceRunStopButton:not(.disabled):active,
+.msg .desktopWorkspaceRunStopButton.manualFocus {
+    outline: none;
+}
+
+.msg .desktopWorkspaceRunStopButton.disabled {
+    background-color: var(--button-secondaryHoverBackground);
+    box-shadow: none;
+    color: var(--disabledForeground);
+}
+
+.msg .desktopWorkspaceRunStopButton.disabled>.splitButtonPrimary,
+.msg .desktopWorkspaceRunStopButton.disabled>.splitButtonTrigger {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg .desktopWorkspaceRunSplitButton>.splitButtonPrimary>.icon,
+.msg .desktopWorkspaceRunSplitButton>.splitButtonTrigger>.icon,
+.msg .desktopWorkspaceRunSplitButton>.splitButtonPrimary>.image,
+.msg .desktopWorkspaceRunSplitButton>.splitButtonTrigger>.image {
+    width: 16px;
+    height: 16px;
+}
+
+.msg .desktopWorkspaceRunSplitButton>.splitButtonPrimary>.icon:not(.codicon),
+.msg .desktopWorkspaceRunSplitButton>.splitButtonTrigger>.icon:not(.codicon) {
+    background-color: currentColor;
+}
+
+.msg .desktopWorkspaceRunSplitButton>.splitButtonPrimary>.label,
+.msg .desktopWorkspaceRunStopButton>.splitButtonPrimary>.label {
+    font-weight: 600;
+}
+
+.msg #desktopStatusArea {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    min-width: 0;
+    width: 100%;
+    max-width: 900px;
+    align-items: stretch;
+    gap: 16px;
+    margin: 0;
+    padding: 6px 24px;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    background-color: var(--input-background);
+    -webkit-app-region: drag;
+}
+
+.msg .desktopStatusAreaSection {
+    flex: 1 1 50%;
+    overflow: hidden;
+    justify-content: flex-start;
+}
+
+.msg .desktopStatusPrimaryRow {
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+}
+
+.msg .desktopStatusConnectionInfo {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg .desktopStatusIndicators {
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    -webkit-app-region: no-drag;
+}
+
+.msg .desktopStatusIndicator {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 12px;
+    width: 82px;
+    padding: 0 6px;
+    border: 0px;
+    border-radius: 2px;
+    font-family: var(--msg-monospace-font-family);
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 12px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    grid-auto-flow: column;
+    pointer-events: auto;
+    -webkit-app-region: no-drag;
+}
+
+.msg .desktopStatusIndicatorActive {
+    color: color-mix(in srgb, #efffea 92%, var(--foreground));
+    background: color-mix(in srgb, var(--disabledForeground) 35%, var(--input-background));
+    text-shadow: 0 0 6px rgb(220 255 201 / 38%);
+}
+
+.msg .desktopStatusIndicatorInactive {
+    background: color-mix(in srgb, var(--disabledForeground) 35%, var(--input-background));
+    color: var(--disabledForeground);
+    text-shadow: none;
+}
+
+.msg .desktopStatusAreaSecondary {
+    align-items: stretch;
+    justify-content: center;
+    gap: 3px;
+    padding-left: 16px;
+    border-left: 1px solid var(--editorGroupHeader-tabsBorder);
+}
+
+.msg .desktopStatusActivityRow {
+    flex: 0 0 auto;
+    min-width: 0;
+    height: 26px;
+    align-items: center;
+    gap: 12px;
+}
+
+.msg .desktopStatusActivity {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    align-items: center;
+    gap: 8px;
+}
+
+.msg .desktopStatusSpinner {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+    animation: desktopStatusSpin 1s linear infinite;
+}
+
+.msg .desktopStatusPrimary,
+.msg .desktopStatusSecondary,
+.msg .desktopStatusText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg .desktopStatusPrimary {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.msg .desktopStatusSecondary,
+.msg .desktopStatusText {
+    color: var(--disabledForeground);
+    display: block;
+    font-size: 11px;
+    height: 14px;
+    line-height: 14px;
+    min-height: 14px;
+}
+
+.msg .desktopStatusTimer {
+    flex: 0 0 auto;
+    display: block;
+    height: 14px;
+    min-width: 3ch;
+    color: var(--foreground);
+    font-family: var(--msg-monospace-font-family);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 14px;
+    white-space: nowrap;
+}
+
+.msg .desktopStatusAreaPrimary>.desktopStatusSecondary {
+    font-size: 0.82rem;
+}
+
+@keyframes desktopStatusSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.msg #desktopWorkspaceEmptyState {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.msg #desktopWorkspaceEmptyState>.label {
+    color: var(--disabledForeground);
 }
 
 .msg.dbModuleTabview #overviewHost {
@@ -84,15 +724,17 @@
 
 .msg.connectionTabHost {
     flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
 }
 
 .msg.connectionTabHost #documentToolbar #lakehouseNavigatorButton {
     flex: 0 0 20px;
 }
 
-.msg.connectionBrowser .toolbar > .label,
-.msg.dbModuleTabview .toolbar > .label,
-.msg.schemaDiagramDesigner .toolbar > .label {
+.msg.connectionBrowser .toolbar>.label,
+.msg.dbModuleTabview .toolbar>.label,
+.msg.schemaDiagramDesigner .toolbar>.label {
     white-space: nowrap;
 }
 
@@ -103,15 +745,30 @@
     height: 20px;
 }
 
-.msg.connectionBrowser #importConnectionsButton > .icon {
+.msg.connectionBrowser #importConnectionsButton>.icon {
     width: 8px;
     height: 8px;
 }
 
-.msg.connectionBrowser #documentSelector,
-.msg.dbModuleTabview #documentSelector {
-    flex: 0 0 210px;
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton {
     margin: 0;
+    border-color: transparent;
+    background-color: transparent;
+}
+
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton:not(.disabled):hover,
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton:not(.disabled):focus,
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton:not(.disabled):focus-visible,
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton:not(.disabled):active,
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton.manualFocus {
+    border-color: transparent;
+    background-color: transparent;
+}
+
+body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNavigationButton.disabled {
+    border-color: transparent;
+    background-color: transparent;
+    opacity: 0.45;
 }
 
 .msg#connectionEditor #loadingProgressIndicator {
@@ -140,8 +797,8 @@
     margin: 0;
 }
 
-.msg.connectionBrowser .toolbar .button > .icon,
-.msg.dbModuleTabview .toolbar .button > .icon {
+.msg.connectionBrowser .toolbar .button>.icon,
+.msg.dbModuleTabview .toolbar .button>.icon {
     background-color: var(--titleBar-activeForeground);
 }
 
@@ -157,8 +814,66 @@
 }
 
 /* Definitions for standalone editors. */
+.msg.dbModuleTabview .standaloneScriptEditorRoot,
 .msg.dbModuleTabview .standaloneScriptHost {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scriptEditorStatusbarSash {
+    --divider-background-color: var(--statusBar-background);
+    background-color: var(--statusBar-background);
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    color: var(--statusBar-foreground);
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scriptEditorStatusbarSash .sashContent {
+    display: flex;
+    align-items: stretch;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #editorPaneHost {
+    box-sizing: border-box;
+    padding-bottom: 24px;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #scriptEditorEmbeddedStatusbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0 4px;
+    background: transparent;
+    color: inherit;
+    font-size: 10pt;
+    overflow: hidden;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #scriptEditorEmbeddedStatusbar>.leftItems {
+    min-width: 0;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #scriptEditorEmbeddedStatusbar>.rightItems {
+    align-items: center;
+    justify-content: flex-end;
+    overflow: visible;
+    max-width: none;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost #scriptEditorEmbeddedStatusbar .statusbarItem {
+    flex: 0 0 auto;
+    min-width: max-content;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    margin: 0 4px;
+    padding: 0 6px;
+    white-space: pre;
+    font-size: 10pt;
 }
 
 .msg.dbModuleTabview .resultHost {
@@ -172,12 +887,26 @@
     font-weight: 300;
 }
 
+.msg.dbModuleTabview .standaloneScriptHost .scriptEditorResultPane {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost .scriptEditorResultPane>.resultHost,
 .msg.dbModuleTabview .standaloneScriptHost .renderTarget {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .msg.dbModuleTabview .standaloneScriptHost .resultHost {
     border-radius: 0;
+    min-height: 0;
+}
+
+.msg.dbModuleTabview .standaloneScriptHost .resultHost .resultTabview,
+.msg.dbModuleTabview .standaloneScriptHost .resultHost .resultTabview>.tabContent,
+.msg.dbModuleTabview .standaloneScriptHost .resultHost .resultView {
+    min-height: 0;
 }
 
 .msg.dbModuleTabview #itemLoadButton .icon,
@@ -266,20 +995,20 @@
     --thickness: 1px !important;
 }
 
-.msg.serverStatus .statusIndicator > h3,
-.msg.serverStatus .statusIndicator > h1 {
+.msg.serverStatus .statusIndicator>h3,
+.msg.serverStatus .statusIndicator>h1 {
     padding-left: 0;
     padding-top: 1px;
     display: flex;
     flex-direction: column;
 }
 
-.msg.serverStatus .statusIndicator > h3 {
+.msg.serverStatus .statusIndicator>h3 {
     font-size: 0.7rem;
     font-weight: 300;
 }
 
-.msg.serverStatus .statusIndicator > h1 {
+.msg.serverStatus .statusIndicator>h1 {
     font-size: 1.7rem;
     margin-top: 1px;
 }
@@ -518,7 +1247,7 @@
     flex: 1 1 auto;
 }
 
-.msg#shellEditorHost .renderTarget > .textHost > .label[data-lang] {
+.msg#shellEditorHost .renderTarget>.textHost>.label[data-lang] {
     font-family: var(--msg-monospace-font-family);
 }
 
@@ -540,7 +1269,7 @@
     user-select: text;
 }
 
-.msg#shellEditorHost .renderTarget > .resultStatus > .message {
+.msg#shellEditorHost .renderTarget>.resultStatus>.message {
     padding: 0 0 0 4px;
     border: none;
     border-radius: 0;
@@ -760,7 +1489,7 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     transform: none;
 }
 
-.msg.portal#shellPromptDialog .valueEditDialog > .content {
+.msg.portal#shellPromptDialog .valueEditDialog>.content {
     padding: 0 32px 8px 32px;
     margin-top: 0;
 }
@@ -797,13 +1526,59 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     padding-right: 14px;
 }
 
-.msg#schemaDiagramToolbar > .button {
+.msg .connectionBrowser #frontPageHeading {
+    gap: 6px;
+}
+
+.msg .connectionBrowser #contentTitleRow {
+    width: 100%;
+    gap: 8px;
+}
+
+.msg .connectionBrowser #contentTitleRow>.expander {
+    flex: 1 1 auto;
+}
+
+.msg .connectionBrowser #newConnectionButton,
+.msg .connectionBrowser #newFolderButton {
+    min-width: 0;
+    margin: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background-color: var(--button-secondaryBackground);
+    border-color: var(--button-border);
+    transition: background-color 0.15s ease-in, border-color 0.15s ease-in;
+}
+
+.msg .connectionBrowser #newConnectionButton:hover,
+.msg .connectionBrowser #newFolderButton:hover,
+.msg .connectionBrowser #newConnectionButton:focus,
+.msg .connectionBrowser #newFolderButton:focus {
+    background-color: var(--button-hoverBackground);
+    border-color: var(--button-hoverBackground);
+}
+
+.msg .connectionBrowser #newConnectionButton>.icon,
+.msg .connectionBrowser #newFolderButton>.icon {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    background-color: var(--button-secondaryForeground);
+}
+
+.msg .connectionBrowser #newConnectionButton>.icon {
+    width: 12px;
+    height: 12px;
+}
+
+.msg#schemaDiagramToolbar>.button {
     margin: 0 8px;
     background-color: inherit;
     width: 40px;
 }
 
-.msg#schemaDiagramToolbar > .button > .icon {
+.msg#schemaDiagramToolbar>.button>.icon {
     background-color: color-mix(in oklab, var(--button-secondaryBackground) 70%, var(--button-foreground));
     width: 16px;
     height: 16px;
@@ -813,7 +1588,7 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     background-color: color-mix(in oklab, var(--button-secondaryBackground) 50%, var(--editorStickyScroll-shadow));
 }
 
-.msg#schemaDiagramToolbar > .button.active > .icon {
+.msg#schemaDiagramToolbar>.button.active>.icon {
     background-color: var(--button-secondaryForeground);
 }
 

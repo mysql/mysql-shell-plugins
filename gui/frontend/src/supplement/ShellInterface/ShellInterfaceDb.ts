@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
 import {
-    IDBSchemaObjectEntry, IGetColumnsMetadataItem,
+    IDBSchemaObjectEntry, IDbEditorResultSetData, IGetColumnsMetadataItem,
     IJdvObjectFieldWithReference, IJdvTableColumnWithReference, IJdvViewInfo,
     IShellDbConnection, ITableObjectInfo, ShellAPIGui,
 } from "../../communication/ProtocolGui.js";
+import { Settings } from "../Settings/Settings.js";
 import { webSession } from "../WebSession.js";
 
 export type RoutineType = "function" | "procedure";
@@ -105,6 +106,69 @@ export class ShellInterfaceDb {
         const result: string[] = [];
         response.forEach((entry) => {
             result.push(...entry.result);
+        });
+
+        return result;
+    }
+
+    /**
+     * Executes internal SQL on the DB service session.
+     *
+     * User-entered SQL must use ShellInterfaceSqlEditor.execute() instead.
+     */
+    public async executeService(sql: string, params?: unknown[], requestId?: string,
+        callback?: DataCallback<ShellAPIGui.GuiDbExecute>, featureId?: string):
+        Promise<IDbEditorResultSetData | undefined> {
+        if (!this.moduleSessionId) {
+            return undefined;
+        }
+
+        const executeOptions: { rowPacketSize: number; featureId?: string } = {
+            rowPacketSize: Settings.get("sql.rowPacketSize", 1000),
+        };
+        if (featureId) {
+            executeOptions.featureId = featureId;
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbExecute,
+            requestId,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                    sql,
+                    params: params !== undefined && params.length > 0 ? params : undefined,
+                    options: executeOptions,
+                },
+            },
+            caseConversionIgnores: ["rows"],
+            onData: callback,
+        });
+
+        const result: IDbEditorResultSetData = {};
+
+        response.forEach((entry) => {
+            if (entry.result.executionTime) {
+                result.executionTime = entry.result.executionTime;
+            }
+
+            if (entry.result.rows) {
+                result.rows ??= [];
+                result.rows.push(...entry.result.rows);
+            }
+
+            if (entry.result.columns) {
+                result.columns ??= [];
+                result.columns.push(...entry.result.columns);
+            }
+
+            if (entry.result.totalRowCount) {
+                result.totalRowCount = entry.result.totalRowCount;
+            }
+
+            if (entry.result.rowsAffected) {
+                result.rowsAffected = entry.result.rowsAffected;
+            }
         });
 
         return result;

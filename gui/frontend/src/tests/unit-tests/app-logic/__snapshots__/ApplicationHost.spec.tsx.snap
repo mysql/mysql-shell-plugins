@@ -121,7 +121,7 @@ exports[`Application host tests > Rendering About 1`] = `
                       <div
                         class="msg treeGrid tabulator"
                         role="grid"
-                        selectedrows="<filtered>"
+                        selectedrows=""
                         style="height: 100%;"
                         tabulator-layout="fitColumns"
                       >
@@ -260,10 +260,10 @@ exports[`Application host tests > Rendering About 1`] = `
                 <div
                   class="msg container fixedScrollbar splitHost stretch"
                   id="ociSectionHost"
-                  style="flex-direction: column; justify-content: stretch; height: 100px; top: 300px;"
+                  style="flex-direction: column; justify-content: stretch; height: 22px; top: 300px;"
                 >
                   <div
-                    class="msg container fixedScrollbar section expanded"
+                    class="msg container fixedScrollbar section"
                     id="ociSection"
                     style="flex-direction: column; align-items: stretch;"
                   >
@@ -273,7 +273,7 @@ exports[`Application host tests > Rendering About 1`] = `
                       tabindex="0"
                     >
                       <div
-                        class="msg icon codicon codicon-chevron-down"
+                        class="msg icon codicon codicon-chevron-right"
                       />
                       <label
                         class="msg label"
@@ -329,81 +329,237 @@ exports[`Application host tests > Rendering About 1`] = `
           style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
         >
           <div
-            class="msg container fixedScrollbar tabview top dbModuleTabview"
-            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+            class="msg container fixedScrollbar"
+            id="dbModuleTabHost"
+            style="flex-direction: column;"
           >
             <div
-              class="msg container tabAreaContainer"
-              style="flex-direction: row;"
+              class="msg container fixedScrollbar tabview top dbModuleTabview"
+              style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
             >
               <div
-                class="scrollable"
+                class="msg container tabAreaContainer"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg container tabArea"
-                  style="flex-direction: row;"
+                  class="scrollable"
                 >
                   <div
-                    class="msg button tabItem selected"
-                    draggable="true"
-                    id="progress"
-                    role="button"
-                    tabindex="-1"
+                    class="msg container tabArea"
+                    style="flex-direction: row;"
                   >
                     <div
-                      class="msg icon"
-                      data-tooltip="inherit"
-                      style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='overviewPage'%20transform='matrix(1,0,0,1,1.46549e-14,1)'%3e%3cg%20transform='matrix(1.14286,0,0,1.14286,-1.14286,-2.28572)'%3e%3cpath%20d='M14.5,2L1.5,2L1,2.5L1,13.762L1.5,14.262L14.5,14.262L15,13.762L15,2.5L14.5,2ZM14.125,13.375L1.875,13.375L1.875,2.875L14.125,2.875L14.125,13.375Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3cg%20id='symbol-structure'%20transform='matrix(1.13557,0,0,1.13557,-1.11994,-3.23989)'%3e%3cg%20transform='matrix(1,0,0,1,0,3.52247)'%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3cg%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,9.31536,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                    />
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
+                      class="msg button tabItem selected"
+                      draggable="true"
+                      id="<filtered>"
+                      role="button"
+                      tabindex="-1"
                     >
-                      Open Connection
-                    </label>
+                      <div
+                        class="msg icon codicon codicon-home"
+                        data-tooltip="inherit"
+                      />
+                      <span
+                        class="tabCaption"
+                        data-tooltip="inherit"
+                      >
+                        Connections
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="scrollbar"
+                  >
+                    <div
+                      class="slider"
+                    />
                   </div>
                 </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar tabContent"
+                style="flex-direction: column;"
+              >
                 <div
-                  class="scrollbar"
+                  class="msg container fixedScrollbar"
+                  id="overviewHost"
+                  style="flex-direction: column;"
                 >
                   <div
-                    class="slider"
-                  />
+                    class="msg container fixedScrollbar connectionBrowser"
+                    style="flex-direction: column; flex-wrap: nowrap;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar toolbar verticalCenterContent"
+                      id="connectionOverviewToolbar"
+                      style="flex-direction: row; align-items: center;"
+                    >
+                      <div
+                        class="expander"
+                      />
+                    </div>
+                    <div
+                      class="msg container fixedScrollbar frontPage"
+                      style="flex-direction: column;"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="title"
+                        style="text-align: center;"
+                      >
+                        MySQL Shell - Database Connections
+                      </label>
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="description"
+                        style="text-align: center;"
+                      >
+                        Welcome to MySQL Shell for VS Code.
+
+Click [New Connection] to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+                      </label>
+                      <div
+                        class="msg container fixedScrollbar"
+                        id="linksHost"
+                        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                      >
+                        <a
+                          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Learn More &gt;
+                        </a>
+                        <a
+                          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Documentation &gt;
+                        </a>
+                      </div>
+                      <div
+                        class="msg button round"
+                        data-tooltip="Close Greeting"
+                        id="closeButton"
+                        role="button"
+                        tabindex="0"
+                      >
+                        <div
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+                        />
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar"
+                        style="flex-direction: column;"
+                      >
+                        <div
+                          class="msg container"
+                          id="frontPageHeading"
+                          style="flex-direction: column; align-items: flex-start;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="contentTitleRow"
+                            style="flex-direction: row; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                              id="contentTitle"
+                            >
+                              Database Connections
+                            </label>
+                            <div
+                              class="expander"
+                            />
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Connection"
+                              id="newConnectionButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%2032,%2032'%3e%3cg%20id='plus.svg'%20transform='translate(0,%200)'%3e%3cpath%20d='M-0,13.333%20L13.333,13.333%20L13.333,-0%20L18.667,-0%20L18.667,13.333%20L32,13.333%20L32,18.667%20L18.667,18.667%20L18.667,32%20L13.333,32%20L13.333,18.667%20L-0,18.667%20L-0,13.333%20z'%20fill='%23000000'%20id='_-'/%3e%3cpath%20d='M289,21%20L289,21'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e");"
+                              />
+                            </div>
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Folder"
+                              id="newFolderButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xml:space='preserve'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%20id='svg1'%20sodipodi:docname='newFolder.svg'%20inkscape:version='1.4.3%20(0d15f75,%202025-12-25)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%20/%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23ffffff'%20bordercolor='%23000000'%20borderopacity='0.25'%20inkscape:showpageshadow='2'%20inkscape:pageopacity='0.0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23d1d1d1'%20inkscape:zoom='45.254834'%20inkscape:cx='10.61765'%20inkscape:cy='10.529262'%20inkscape:window-width='1642'%20inkscape:window-height='1022'%20inkscape:window-x='1996'%20inkscape:window-y='91'%20inkscape:window-maximized='0'%20inkscape:current-layer='svg1'%20/%3e%3cpath%20d='m%201.5097656,2%20-0.5,0.5%20v%2011%20l%200.5,0.5%20H%209.9550781%20V%2013%20H%201.9902344%20V%207%20H%206.4804687%20L%206.8300781,6.8496094%207.6894531,5.9902344%20H%2014%20v%201.5%20l%20-0.0059,2.5703126%20h%201.015625%20V%203.5%20L%2014.5,3%20H%207.7109375%20L%206.859375,2.1503906%206.5097656,2%20Z%20M%202,3.0097656%20H%206.2890625%20L%207.140625,3.859375%207.5,4.0097656%20H%2014%20L%2013.990234,5%20H%207.4902344%20L%207.140625,5.1503906%206.2792969,6.0097656%20H%202%20Z'%20style='fill-rule:nonzero'%20id='path4'%20/%3e%3cpath%20d='m%2013,11%20h%201%20v%202%20h%202%20v%201%20h%20-2%20v%202%20h%20-1%20v%20-2%20h%20-2%20v%20-1%20h%202%20z'%20id='path5'%20style='clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2'%20/%3e%3c/svg%3e");"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar breadcrumb"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button breadcrumbItem"
+                              id="1"
+                              role="button"
+                              tabindex="0"
+                            >
+                              /
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          id="tilesHost"
+                          style="flex-direction: row; flex-wrap: wrap;"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar tabContent"
-              style="flex-direction: column;"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
             >
-              <div
-                class="msg container fixedScrollbar progressIndicatorHost"
-                id="loadingProgressIndicator"
-                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+              <svg
+                class="circleBackground animated"
               >
-                <svg
-                  class="circleBackground animated"
-                >
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                </svg>
-              </div>
-              <label
-                class="msg label"
-                data-tooltip="expand"
-                id="progressMessageId"
-              >
-                
-              </label>
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
             </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            >
+              
+            </label>
           </div>
         </div>
       </div>
@@ -533,7 +689,7 @@ exports[`Application host tests > Rendering Debugger Maximized 1`] = `
                       <div
                         class="msg treeGrid tabulator"
                         role="grid"
-                        selectedrows="<filtered>"
+                        selectedrows=""
                         style="height: 100%;"
                         tabulator-layout="fitColumns"
                       >
@@ -672,10 +828,10 @@ exports[`Application host tests > Rendering Debugger Maximized 1`] = `
                 <div
                   class="msg container fixedScrollbar splitHost stretch"
                   id="ociSectionHost"
-                  style="flex-direction: column; justify-content: stretch; height: 100px; top: 300px;"
+                  style="flex-direction: column; justify-content: stretch; height: 22px; top: 300px;"
                 >
                   <div
-                    class="msg container fixedScrollbar section expanded"
+                    class="msg container fixedScrollbar section"
                     id="ociSection"
                     style="flex-direction: column; align-items: stretch;"
                   >
@@ -685,7 +841,7 @@ exports[`Application host tests > Rendering Debugger Maximized 1`] = `
                       tabindex="0"
                     >
                       <div
-                        class="msg icon codicon codicon-chevron-down"
+                        class="msg icon codicon codicon-chevron-right"
                       />
                       <label
                         class="msg label"
@@ -741,81 +897,237 @@ exports[`Application host tests > Rendering Debugger Maximized 1`] = `
           style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
         >
           <div
-            class="msg container fixedScrollbar tabview top dbModuleTabview"
-            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+            class="msg container fixedScrollbar"
+            id="dbModuleTabHost"
+            style="flex-direction: column;"
           >
             <div
-              class="msg container tabAreaContainer"
-              style="flex-direction: row;"
+              class="msg container fixedScrollbar tabview top dbModuleTabview"
+              style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
             >
               <div
-                class="scrollable"
+                class="msg container tabAreaContainer"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg container tabArea"
-                  style="flex-direction: row;"
+                  class="scrollable"
                 >
                   <div
-                    class="msg button tabItem selected"
-                    draggable="true"
-                    id="progress"
-                    role="button"
-                    tabindex="-1"
+                    class="msg container tabArea"
+                    style="flex-direction: row;"
                   >
                     <div
-                      class="msg icon"
-                      data-tooltip="inherit"
-                      style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='overviewPage'%20transform='matrix(1,0,0,1,1.46549e-14,1)'%3e%3cg%20transform='matrix(1.14286,0,0,1.14286,-1.14286,-2.28572)'%3e%3cpath%20d='M14.5,2L1.5,2L1,2.5L1,13.762L1.5,14.262L14.5,14.262L15,13.762L15,2.5L14.5,2ZM14.125,13.375L1.875,13.375L1.875,2.875L14.125,2.875L14.125,13.375Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3cg%20id='symbol-structure'%20transform='matrix(1.13557,0,0,1.13557,-1.11994,-3.23989)'%3e%3cg%20transform='matrix(1,0,0,1,0,3.52247)'%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3cg%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,9.31536,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                    />
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
+                      class="msg button tabItem selected"
+                      draggable="true"
+                      id="<filtered>"
+                      role="button"
+                      tabindex="-1"
                     >
-                      Open Connection
-                    </label>
+                      <div
+                        class="msg icon codicon codicon-home"
+                        data-tooltip="inherit"
+                      />
+                      <span
+                        class="tabCaption"
+                        data-tooltip="inherit"
+                      >
+                        Connections
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="scrollbar"
+                  >
+                    <div
+                      class="slider"
+                    />
                   </div>
                 </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar tabContent"
+                style="flex-direction: column;"
+              >
                 <div
-                  class="scrollbar"
+                  class="msg container fixedScrollbar"
+                  id="overviewHost"
+                  style="flex-direction: column;"
                 >
                   <div
-                    class="slider"
-                  />
+                    class="msg container fixedScrollbar connectionBrowser"
+                    style="flex-direction: column; flex-wrap: nowrap;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar toolbar verticalCenterContent"
+                      id="connectionOverviewToolbar"
+                      style="flex-direction: row; align-items: center;"
+                    >
+                      <div
+                        class="expander"
+                      />
+                    </div>
+                    <div
+                      class="msg container fixedScrollbar frontPage"
+                      style="flex-direction: column;"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="title"
+                        style="text-align: center;"
+                      >
+                        MySQL Shell - Database Connections
+                      </label>
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="description"
+                        style="text-align: center;"
+                      >
+                        Welcome to MySQL Shell for VS Code.
+
+Click [New Connection] to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+                      </label>
+                      <div
+                        class="msg container fixedScrollbar"
+                        id="linksHost"
+                        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                      >
+                        <a
+                          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Learn More &gt;
+                        </a>
+                        <a
+                          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Documentation &gt;
+                        </a>
+                      </div>
+                      <div
+                        class="msg button round"
+                        data-tooltip="Close Greeting"
+                        id="closeButton"
+                        role="button"
+                        tabindex="0"
+                      >
+                        <div
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+                        />
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar"
+                        style="flex-direction: column;"
+                      >
+                        <div
+                          class="msg container"
+                          id="frontPageHeading"
+                          style="flex-direction: column; align-items: flex-start;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="contentTitleRow"
+                            style="flex-direction: row; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                              id="contentTitle"
+                            >
+                              Database Connections
+                            </label>
+                            <div
+                              class="expander"
+                            />
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Connection"
+                              id="newConnectionButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%2032,%2032'%3e%3cg%20id='plus.svg'%20transform='translate(0,%200)'%3e%3cpath%20d='M-0,13.333%20L13.333,13.333%20L13.333,-0%20L18.667,-0%20L18.667,13.333%20L32,13.333%20L32,18.667%20L18.667,18.667%20L18.667,32%20L13.333,32%20L13.333,18.667%20L-0,18.667%20L-0,13.333%20z'%20fill='%23000000'%20id='_-'/%3e%3cpath%20d='M289,21%20L289,21'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e");"
+                              />
+                            </div>
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Folder"
+                              id="newFolderButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xml:space='preserve'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%20id='svg1'%20sodipodi:docname='newFolder.svg'%20inkscape:version='1.4.3%20(0d15f75,%202025-12-25)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%20/%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23ffffff'%20bordercolor='%23000000'%20borderopacity='0.25'%20inkscape:showpageshadow='2'%20inkscape:pageopacity='0.0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23d1d1d1'%20inkscape:zoom='45.254834'%20inkscape:cx='10.61765'%20inkscape:cy='10.529262'%20inkscape:window-width='1642'%20inkscape:window-height='1022'%20inkscape:window-x='1996'%20inkscape:window-y='91'%20inkscape:window-maximized='0'%20inkscape:current-layer='svg1'%20/%3e%3cpath%20d='m%201.5097656,2%20-0.5,0.5%20v%2011%20l%200.5,0.5%20H%209.9550781%20V%2013%20H%201.9902344%20V%207%20H%206.4804687%20L%206.8300781,6.8496094%207.6894531,5.9902344%20H%2014%20v%201.5%20l%20-0.0059,2.5703126%20h%201.015625%20V%203.5%20L%2014.5,3%20H%207.7109375%20L%206.859375,2.1503906%206.5097656,2%20Z%20M%202,3.0097656%20H%206.2890625%20L%207.140625,3.859375%207.5,4.0097656%20H%2014%20L%2013.990234,5%20H%207.4902344%20L%207.140625,5.1503906%206.2792969,6.0097656%20H%202%20Z'%20style='fill-rule:nonzero'%20id='path4'%20/%3e%3cpath%20d='m%2013,11%20h%201%20v%202%20h%202%20v%201%20h%20-2%20v%202%20h%20-1%20v%20-2%20h%20-2%20v%20-1%20h%202%20z'%20id='path5'%20style='clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2'%20/%3e%3c/svg%3e");"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar breadcrumb"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button breadcrumbItem"
+                              id="1"
+                              role="button"
+                              tabindex="0"
+                            >
+                              /
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          id="tilesHost"
+                          style="flex-direction: row; flex-wrap: wrap;"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar tabContent"
-              style="flex-direction: column;"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
             >
-              <div
-                class="msg container fixedScrollbar progressIndicatorHost"
-                id="loadingProgressIndicator"
-                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+              <svg
+                class="circleBackground animated"
               >
-                <svg
-                  class="circleBackground animated"
-                >
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                </svg>
-              </div>
-              <label
-                class="msg label"
-                data-tooltip="expand"
-                id="progressMessageId"
-              >
-                
-              </label>
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
             </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            >
+              
+            </label>
           </div>
         </div>
       </div>
@@ -945,7 +1257,7 @@ exports[`Application host tests > Rendering Debugger Normal 1`] = `
                       <div
                         class="msg treeGrid tabulator"
                         role="grid"
-                        selectedrows="<filtered>"
+                        selectedrows=""
                         style="height: 100%;"
                         tabulator-layout="fitColumns"
                       >
@@ -1084,10 +1396,10 @@ exports[`Application host tests > Rendering Debugger Normal 1`] = `
                 <div
                   class="msg container fixedScrollbar splitHost stretch"
                   id="ociSectionHost"
-                  style="flex-direction: column; justify-content: stretch; height: 100px; top: 300px;"
+                  style="flex-direction: column; justify-content: stretch; height: 22px; top: 300px;"
                 >
                   <div
-                    class="msg container fixedScrollbar section expanded"
+                    class="msg container fixedScrollbar section"
                     id="ociSection"
                     style="flex-direction: column; align-items: stretch;"
                   >
@@ -1097,7 +1409,7 @@ exports[`Application host tests > Rendering Debugger Normal 1`] = `
                       tabindex="0"
                     >
                       <div
-                        class="msg icon codicon codicon-chevron-down"
+                        class="msg icon codicon codicon-chevron-right"
                       />
                       <label
                         class="msg label"
@@ -1153,81 +1465,237 @@ exports[`Application host tests > Rendering Debugger Normal 1`] = `
           style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
         >
           <div
-            class="msg container fixedScrollbar tabview top dbModuleTabview"
-            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+            class="msg container fixedScrollbar"
+            id="dbModuleTabHost"
+            style="flex-direction: column;"
           >
             <div
-              class="msg container tabAreaContainer"
-              style="flex-direction: row;"
+              class="msg container fixedScrollbar tabview top dbModuleTabview"
+              style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
             >
               <div
-                class="scrollable"
+                class="msg container tabAreaContainer"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg container tabArea"
-                  style="flex-direction: row;"
+                  class="scrollable"
                 >
                   <div
-                    class="msg button tabItem selected"
-                    draggable="true"
-                    id="progress"
-                    role="button"
-                    tabindex="-1"
+                    class="msg container tabArea"
+                    style="flex-direction: row;"
                   >
                     <div
-                      class="msg icon"
-                      data-tooltip="inherit"
-                      style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='overviewPage'%20transform='matrix(1,0,0,1,1.46549e-14,1)'%3e%3cg%20transform='matrix(1.14286,0,0,1.14286,-1.14286,-2.28572)'%3e%3cpath%20d='M14.5,2L1.5,2L1,2.5L1,13.762L1.5,14.262L14.5,14.262L15,13.762L15,2.5L14.5,2ZM14.125,13.375L1.875,13.375L1.875,2.875L14.125,2.875L14.125,13.375Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3cg%20id='symbol-structure'%20transform='matrix(1.13557,0,0,1.13557,-1.11994,-3.23989)'%3e%3cg%20transform='matrix(1,0,0,1,0,3.52247)'%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3cg%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,9.31536,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                    />
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
+                      class="msg button tabItem selected"
+                      draggable="true"
+                      id="<filtered>"
+                      role="button"
+                      tabindex="-1"
                     >
-                      Open Connection
-                    </label>
+                      <div
+                        class="msg icon codicon codicon-home"
+                        data-tooltip="inherit"
+                      />
+                      <span
+                        class="tabCaption"
+                        data-tooltip="inherit"
+                      >
+                        Connections
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="scrollbar"
+                  >
+                    <div
+                      class="slider"
+                    />
                   </div>
                 </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar tabContent"
+                style="flex-direction: column;"
+              >
                 <div
-                  class="scrollbar"
+                  class="msg container fixedScrollbar"
+                  id="overviewHost"
+                  style="flex-direction: column;"
                 >
                   <div
-                    class="slider"
-                  />
+                    class="msg container fixedScrollbar connectionBrowser"
+                    style="flex-direction: column; flex-wrap: nowrap;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar toolbar verticalCenterContent"
+                      id="connectionOverviewToolbar"
+                      style="flex-direction: row; align-items: center;"
+                    >
+                      <div
+                        class="expander"
+                      />
+                    </div>
+                    <div
+                      class="msg container fixedScrollbar frontPage"
+                      style="flex-direction: column;"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="title"
+                        style="text-align: center;"
+                      >
+                        MySQL Shell - Database Connections
+                      </label>
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="description"
+                        style="text-align: center;"
+                      >
+                        Welcome to MySQL Shell for VS Code.
+
+Click [New Connection] to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+                      </label>
+                      <div
+                        class="msg container fixedScrollbar"
+                        id="linksHost"
+                        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                      >
+                        <a
+                          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Learn More &gt;
+                        </a>
+                        <a
+                          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Documentation &gt;
+                        </a>
+                      </div>
+                      <div
+                        class="msg button round"
+                        data-tooltip="Close Greeting"
+                        id="closeButton"
+                        role="button"
+                        tabindex="0"
+                      >
+                        <div
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+                        />
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar"
+                        style="flex-direction: column;"
+                      >
+                        <div
+                          class="msg container"
+                          id="frontPageHeading"
+                          style="flex-direction: column; align-items: flex-start;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="contentTitleRow"
+                            style="flex-direction: row; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                              id="contentTitle"
+                            >
+                              Database Connections
+                            </label>
+                            <div
+                              class="expander"
+                            />
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Connection"
+                              id="newConnectionButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%2032,%2032'%3e%3cg%20id='plus.svg'%20transform='translate(0,%200)'%3e%3cpath%20d='M-0,13.333%20L13.333,13.333%20L13.333,-0%20L18.667,-0%20L18.667,13.333%20L32,13.333%20L32,18.667%20L18.667,18.667%20L18.667,32%20L13.333,32%20L13.333,18.667%20L-0,18.667%20L-0,13.333%20z'%20fill='%23000000'%20id='_-'/%3e%3cpath%20d='M289,21%20L289,21'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e");"
+                              />
+                            </div>
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Folder"
+                              id="newFolderButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xml:space='preserve'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%20id='svg1'%20sodipodi:docname='newFolder.svg'%20inkscape:version='1.4.3%20(0d15f75,%202025-12-25)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%20/%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23ffffff'%20bordercolor='%23000000'%20borderopacity='0.25'%20inkscape:showpageshadow='2'%20inkscape:pageopacity='0.0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23d1d1d1'%20inkscape:zoom='45.254834'%20inkscape:cx='10.61765'%20inkscape:cy='10.529262'%20inkscape:window-width='1642'%20inkscape:window-height='1022'%20inkscape:window-x='1996'%20inkscape:window-y='91'%20inkscape:window-maximized='0'%20inkscape:current-layer='svg1'%20/%3e%3cpath%20d='m%201.5097656,2%20-0.5,0.5%20v%2011%20l%200.5,0.5%20H%209.9550781%20V%2013%20H%201.9902344%20V%207%20H%206.4804687%20L%206.8300781,6.8496094%207.6894531,5.9902344%20H%2014%20v%201.5%20l%20-0.0059,2.5703126%20h%201.015625%20V%203.5%20L%2014.5,3%20H%207.7109375%20L%206.859375,2.1503906%206.5097656,2%20Z%20M%202,3.0097656%20H%206.2890625%20L%207.140625,3.859375%207.5,4.0097656%20H%2014%20L%2013.990234,5%20H%207.4902344%20L%207.140625,5.1503906%206.2792969,6.0097656%20H%202%20Z'%20style='fill-rule:nonzero'%20id='path4'%20/%3e%3cpath%20d='m%2013,11%20h%201%20v%202%20h%202%20v%201%20h%20-2%20v%202%20h%20-1%20v%20-2%20h%20-2%20v%20-1%20h%202%20z'%20id='path5'%20style='clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2'%20/%3e%3c/svg%3e");"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar breadcrumb"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button breadcrumbItem"
+                              id="1"
+                              role="button"
+                              tabindex="0"
+                            >
+                              /
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          id="tilesHost"
+                          style="flex-direction: row; flex-wrap: wrap;"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar tabContent"
-              style="flex-direction: column;"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
             >
-              <div
-                class="msg container fixedScrollbar progressIndicatorHost"
-                id="loadingProgressIndicator"
-                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+              <svg
+                class="circleBackground animated"
               >
-                <svg
-                  class="circleBackground animated"
-                >
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                </svg>
-              </div>
-              <label
-                class="msg label"
-                data-tooltip="expand"
-                id="progressMessageId"
-              >
-                
-              </label>
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
             </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            >
+              
+            </label>
           </div>
         </div>
       </div>
@@ -1357,7 +1825,7 @@ exports[`Application host tests > Rendering Preferences 1`] = `
                       <div
                         class="msg treeGrid tabulator"
                         role="grid"
-                        selectedrows="<filtered>"
+                        selectedrows=""
                         style="height: 100%;"
                         tabulator-layout="fitColumns"
                       >
@@ -1496,10 +1964,10 @@ exports[`Application host tests > Rendering Preferences 1`] = `
                 <div
                   class="msg container fixedScrollbar splitHost stretch"
                   id="ociSectionHost"
-                  style="flex-direction: column; justify-content: stretch; height: 100px; top: 300px;"
+                  style="flex-direction: column; justify-content: stretch; height: 22px; top: 300px;"
                 >
                   <div
-                    class="msg container fixedScrollbar section expanded"
+                    class="msg container fixedScrollbar section"
                     id="ociSection"
                     style="flex-direction: column; align-items: stretch;"
                   >
@@ -1509,7 +1977,7 @@ exports[`Application host tests > Rendering Preferences 1`] = `
                       tabindex="0"
                     >
                       <div
-                        class="msg icon codicon codicon-chevron-down"
+                        class="msg icon codicon codicon-chevron-right"
                       />
                       <label
                         class="msg label"
@@ -1565,81 +2033,237 @@ exports[`Application host tests > Rendering Preferences 1`] = `
           style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
         >
           <div
-            class="msg container fixedScrollbar tabview top dbModuleTabview"
-            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+            class="msg container fixedScrollbar"
+            id="dbModuleTabHost"
+            style="flex-direction: column;"
           >
             <div
-              class="msg container tabAreaContainer"
-              style="flex-direction: row;"
+              class="msg container fixedScrollbar tabview top dbModuleTabview"
+              style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
             >
               <div
-                class="scrollable"
+                class="msg container tabAreaContainer"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg container tabArea"
-                  style="flex-direction: row;"
+                  class="scrollable"
                 >
                   <div
-                    class="msg button tabItem selected"
-                    draggable="true"
-                    id="progress"
-                    role="button"
-                    tabindex="-1"
+                    class="msg container tabArea"
+                    style="flex-direction: row;"
                   >
                     <div
-                      class="msg icon"
-                      data-tooltip="inherit"
-                      style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='overviewPage'%20transform='matrix(1,0,0,1,1.46549e-14,1)'%3e%3cg%20transform='matrix(1.14286,0,0,1.14286,-1.14286,-2.28572)'%3e%3cpath%20d='M14.5,2L1.5,2L1,2.5L1,13.762L1.5,14.262L14.5,14.262L15,13.762L15,2.5L14.5,2ZM14.125,13.375L1.875,13.375L1.875,2.875L14.125,2.875L14.125,13.375Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3cg%20id='symbol-structure'%20transform='matrix(1.13557,0,0,1.13557,-1.11994,-3.23989)'%3e%3cg%20transform='matrix(1,0,0,1,0,3.52247)'%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3cg%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,9.31536,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                    />
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
+                      class="msg button tabItem selected"
+                      draggable="true"
+                      id="<filtered>"
+                      role="button"
+                      tabindex="-1"
                     >
-                      Open Connection
-                    </label>
+                      <div
+                        class="msg icon codicon codicon-home"
+                        data-tooltip="inherit"
+                      />
+                      <span
+                        class="tabCaption"
+                        data-tooltip="inherit"
+                      >
+                        Connections
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="scrollbar"
+                  >
+                    <div
+                      class="slider"
+                    />
                   </div>
                 </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar tabContent"
+                style="flex-direction: column;"
+              >
                 <div
-                  class="scrollbar"
+                  class="msg container fixedScrollbar"
+                  id="overviewHost"
+                  style="flex-direction: column;"
                 >
                   <div
-                    class="slider"
-                  />
+                    class="msg container fixedScrollbar connectionBrowser"
+                    style="flex-direction: column; flex-wrap: nowrap;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar toolbar verticalCenterContent"
+                      id="connectionOverviewToolbar"
+                      style="flex-direction: row; align-items: center;"
+                    >
+                      <div
+                        class="expander"
+                      />
+                    </div>
+                    <div
+                      class="msg container fixedScrollbar frontPage"
+                      style="flex-direction: column;"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="title"
+                        style="text-align: center;"
+                      >
+                        MySQL Shell - Database Connections
+                      </label>
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="description"
+                        style="text-align: center;"
+                      >
+                        Welcome to MySQL Shell for VS Code.
+
+Click [New Connection] to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+                      </label>
+                      <div
+                        class="msg container fixedScrollbar"
+                        id="linksHost"
+                        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                      >
+                        <a
+                          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Learn More &gt;
+                        </a>
+                        <a
+                          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Documentation &gt;
+                        </a>
+                      </div>
+                      <div
+                        class="msg button round"
+                        data-tooltip="Close Greeting"
+                        id="closeButton"
+                        role="button"
+                        tabindex="0"
+                      >
+                        <div
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+                        />
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar"
+                        style="flex-direction: column;"
+                      >
+                        <div
+                          class="msg container"
+                          id="frontPageHeading"
+                          style="flex-direction: column; align-items: flex-start;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="contentTitleRow"
+                            style="flex-direction: row; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                              id="contentTitle"
+                            >
+                              Database Connections
+                            </label>
+                            <div
+                              class="expander"
+                            />
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Connection"
+                              id="newConnectionButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%2032,%2032'%3e%3cg%20id='plus.svg'%20transform='translate(0,%200)'%3e%3cpath%20d='M-0,13.333%20L13.333,13.333%20L13.333,-0%20L18.667,-0%20L18.667,13.333%20L32,13.333%20L32,18.667%20L18.667,18.667%20L18.667,32%20L13.333,32%20L13.333,18.667%20L-0,18.667%20L-0,13.333%20z'%20fill='%23000000'%20id='_-'/%3e%3cpath%20d='M289,21%20L289,21'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e");"
+                              />
+                            </div>
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Folder"
+                              id="newFolderButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xml:space='preserve'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%20id='svg1'%20sodipodi:docname='newFolder.svg'%20inkscape:version='1.4.3%20(0d15f75,%202025-12-25)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%20/%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23ffffff'%20bordercolor='%23000000'%20borderopacity='0.25'%20inkscape:showpageshadow='2'%20inkscape:pageopacity='0.0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23d1d1d1'%20inkscape:zoom='45.254834'%20inkscape:cx='10.61765'%20inkscape:cy='10.529262'%20inkscape:window-width='1642'%20inkscape:window-height='1022'%20inkscape:window-x='1996'%20inkscape:window-y='91'%20inkscape:window-maximized='0'%20inkscape:current-layer='svg1'%20/%3e%3cpath%20d='m%201.5097656,2%20-0.5,0.5%20v%2011%20l%200.5,0.5%20H%209.9550781%20V%2013%20H%201.9902344%20V%207%20H%206.4804687%20L%206.8300781,6.8496094%207.6894531,5.9902344%20H%2014%20v%201.5%20l%20-0.0059,2.5703126%20h%201.015625%20V%203.5%20L%2014.5,3%20H%207.7109375%20L%206.859375,2.1503906%206.5097656,2%20Z%20M%202,3.0097656%20H%206.2890625%20L%207.140625,3.859375%207.5,4.0097656%20H%2014%20L%2013.990234,5%20H%207.4902344%20L%207.140625,5.1503906%206.2792969,6.0097656%20H%202%20Z'%20style='fill-rule:nonzero'%20id='path4'%20/%3e%3cpath%20d='m%2013,11%20h%201%20v%202%20h%202%20v%201%20h%20-2%20v%202%20h%20-1%20v%20-2%20h%20-2%20v%20-1%20h%202%20z'%20id='path5'%20style='clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2'%20/%3e%3c/svg%3e");"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar breadcrumb"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button breadcrumbItem"
+                              id="1"
+                              role="button"
+                              tabindex="0"
+                            >
+                              /
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          id="tilesHost"
+                          style="flex-direction: row; flex-wrap: wrap;"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar tabContent"
-              style="flex-direction: column;"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
             >
-              <div
-                class="msg container fixedScrollbar progressIndicatorHost"
-                id="loadingProgressIndicator"
-                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+              <svg
+                class="circleBackground animated"
               >
-                <svg
-                  class="circleBackground animated"
-                >
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                </svg>
-              </div>
-              <label
-                class="msg label"
-                data-tooltip="expand"
-                id="progressMessageId"
-              >
-                
-              </label>
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
             </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            >
+              
+            </label>
           </div>
         </div>
       </div>
@@ -1710,11 +2334,33 @@ exports[`Application host tests > Rendering Preferences 1`] = `
           style="flex-direction: row;"
         >
           <div
-            class="msg treeGrid"
-            id="settingsTree"
-            selectedrows="1"
-            tabindex="0"
-          />
+            class="msg container fixedScrollbar"
+            id="settingsSectionListHost"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg button"
+              id="settingsBackButton"
+              role="button"
+              tabindex="0"
+            >
+              <div
+                class="msg icon codicon codicon-arrow-left"
+              />
+              <label
+                class="msg label"
+                data-tooltip="expand"
+              >
+                Back
+              </label>
+            </div>
+            <div
+              class="msg treeGrid"
+              id="settingsTree"
+              selectedrows="1"
+              tabindex="0"
+            />
+          </div>
           <div
             class="msg treeGrid"
             id="settingsValueList"
@@ -1847,7 +2493,7 @@ exports[`Application host tests > Standard Rendering 1`] = `
                       <div
                         class="msg treeGrid tabulator"
                         role="grid"
-                        selectedrows="<filtered>"
+                        selectedrows=""
                         style="height: 100%;"
                         tabulator-layout="fitColumns"
                       >
@@ -1986,10 +2632,10 @@ exports[`Application host tests > Standard Rendering 1`] = `
                 <div
                   class="msg container fixedScrollbar splitHost stretch"
                   id="ociSectionHost"
-                  style="flex-direction: column; justify-content: stretch; height: 100px; top: 300px;"
+                  style="flex-direction: column; justify-content: stretch; height: 22px; top: 300px;"
                 >
                   <div
-                    class="msg container fixedScrollbar section expanded"
+                    class="msg container fixedScrollbar section"
                     id="ociSection"
                     style="flex-direction: column; align-items: stretch;"
                   >
@@ -1999,7 +2645,7 @@ exports[`Application host tests > Standard Rendering 1`] = `
                       tabindex="0"
                     >
                       <div
-                        class="msg icon codicon codicon-chevron-down"
+                        class="msg icon codicon codicon-chevron-right"
                       />
                       <label
                         class="msg label"
@@ -2055,81 +2701,237 @@ exports[`Application host tests > Standard Rendering 1`] = `
           style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
         >
           <div
-            class="msg container fixedScrollbar tabview top dbModuleTabview"
-            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+            class="msg container fixedScrollbar"
+            id="dbModuleTabHost"
+            style="flex-direction: column;"
           >
             <div
-              class="msg container tabAreaContainer"
-              style="flex-direction: row;"
+              class="msg container fixedScrollbar tabview top dbModuleTabview"
+              style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
             >
               <div
-                class="scrollable"
+                class="msg container tabAreaContainer"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg container tabArea"
-                  style="flex-direction: row;"
+                  class="scrollable"
                 >
                   <div
-                    class="msg button tabItem selected"
-                    draggable="true"
-                    id="progress"
-                    role="button"
-                    tabindex="-1"
+                    class="msg container tabArea"
+                    style="flex-direction: row;"
                   >
                     <div
-                      class="msg icon"
-                      data-tooltip="inherit"
-                      style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='overviewPage'%20transform='matrix(1,0,0,1,1.46549e-14,1)'%3e%3cg%20transform='matrix(1.14286,0,0,1.14286,-1.14286,-2.28572)'%3e%3cpath%20d='M14.5,2L1.5,2L1,2.5L1,13.762L1.5,14.262L14.5,14.262L15,13.762L15,2.5L14.5,2ZM14.125,13.375L1.875,13.375L1.875,2.875L14.125,2.875L14.125,13.375Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3cg%20id='symbol-structure'%20transform='matrix(1.13557,0,0,1.13557,-1.11994,-3.23989)'%3e%3cg%20transform='matrix(1,0,0,1,0,3.52247)'%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3cg%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,2.27042,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,5.79288,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3cg%20transform='matrix(0.704493,0,0,0.659639,9.31536,-1.32241)'%3e%3cpath%20d='M1,10L2,9L4.384,9L5.384,10L5.384,12.005L4.384,13.005L2,13.005L1,12.005L1,10ZM4.384,10L2,10L2,12.005L4.384,12.005L4.384,10Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                    />
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
+                      class="msg button tabItem selected"
+                      draggable="true"
+                      id="<filtered>"
+                      role="button"
+                      tabindex="-1"
                     >
-                      Open Connection
-                    </label>
+                      <div
+                        class="msg icon codicon codicon-home"
+                        data-tooltip="inherit"
+                      />
+                      <span
+                        class="tabCaption"
+                        data-tooltip="inherit"
+                      >
+                        Connections
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="scrollbar"
+                  >
+                    <div
+                      class="slider"
+                    />
                   </div>
                 </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar tabContent"
+                style="flex-direction: column;"
+              >
                 <div
-                  class="scrollbar"
+                  class="msg container fixedScrollbar"
+                  id="overviewHost"
+                  style="flex-direction: column;"
                 >
                   <div
-                    class="slider"
-                  />
+                    class="msg container fixedScrollbar connectionBrowser"
+                    style="flex-direction: column; flex-wrap: nowrap;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar toolbar verticalCenterContent"
+                      id="connectionOverviewToolbar"
+                      style="flex-direction: row; align-items: center;"
+                    >
+                      <div
+                        class="expander"
+                      />
+                    </div>
+                    <div
+                      class="msg container fixedScrollbar frontPage"
+                      style="flex-direction: column;"
+                    >
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="title"
+                        style="text-align: center;"
+                      >
+                        MySQL Shell - Database Connections
+                      </label>
+                      <label
+                        class="msg label"
+                        data-tooltip="expand"
+                        id="description"
+                        style="text-align: center;"
+                      >
+                        Welcome to MySQL Shell for VS Code.
+
+Click [New Connection] to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+                      </label>
+                      <div
+                        class="msg container fixedScrollbar"
+                        id="linksHost"
+                        style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                      >
+                        <a
+                          href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Learn More &gt;
+                        </a>
+                        <a
+                          href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                          rel="noopener noreferrer"
+                          tabindex="0"
+                          target="_blank"
+                        >
+                          Documentation &gt;
+                        </a>
+                      </div>
+                      <div
+                        class="msg button round"
+                        data-tooltip="Close Greeting"
+                        id="closeButton"
+                        role="button"
+                        tabindex="0"
+                      >
+                        <div
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+                        />
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar"
+                        style="flex-direction: column;"
+                      >
+                        <div
+                          class="msg container"
+                          id="frontPageHeading"
+                          style="flex-direction: column; align-items: flex-start;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="contentTitleRow"
+                            style="flex-direction: row; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                              id="contentTitle"
+                            >
+                              Database Connections
+                            </label>
+                            <div
+                              class="expander"
+                            />
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Connection"
+                              id="newConnectionButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%2032,%2032'%3e%3cg%20id='plus.svg'%20transform='translate(0,%200)'%3e%3cpath%20d='M-0,13.333%20L13.333,13.333%20L13.333,-0%20L18.667,-0%20L18.667,13.333%20L32,13.333%20L32,18.667%20L18.667,18.667%20L18.667,32%20L13.333,32%20L13.333,18.667%20L-0,18.667%20L-0,13.333%20z'%20fill='%23000000'%20id='_-'/%3e%3cpath%20d='M289,21%20L289,21'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e");"
+                              />
+                            </div>
+                            <div
+                              class="msg button imageOnly"
+                              data-tooltip="New Folder"
+                              id="newFolderButton"
+                              role="button"
+                              tabindex="0"
+                            >
+                              <div
+                                class="msg icon"
+                                data-tooltip="inherit"
+                                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xml:space='preserve'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%20id='svg1'%20sodipodi:docname='newFolder.svg'%20inkscape:version='1.4.3%20(0d15f75,%202025-12-25)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%20/%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23ffffff'%20bordercolor='%23000000'%20borderopacity='0.25'%20inkscape:showpageshadow='2'%20inkscape:pageopacity='0.0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23d1d1d1'%20inkscape:zoom='45.254834'%20inkscape:cx='10.61765'%20inkscape:cy='10.529262'%20inkscape:window-width='1642'%20inkscape:window-height='1022'%20inkscape:window-x='1996'%20inkscape:window-y='91'%20inkscape:window-maximized='0'%20inkscape:current-layer='svg1'%20/%3e%3cpath%20d='m%201.5097656,2%20-0.5,0.5%20v%2011%20l%200.5,0.5%20H%209.9550781%20V%2013%20H%201.9902344%20V%207%20H%206.4804687%20L%206.8300781,6.8496094%207.6894531,5.9902344%20H%2014%20v%201.5%20l%20-0.0059,2.5703126%20h%201.015625%20V%203.5%20L%2014.5,3%20H%207.7109375%20L%206.859375,2.1503906%206.5097656,2%20Z%20M%202,3.0097656%20H%206.2890625%20L%207.140625,3.859375%207.5,4.0097656%20H%2014%20L%2013.990234,5%20H%207.4902344%20L%207.140625,5.1503906%206.2792969,6.0097656%20H%202%20Z'%20style='fill-rule:nonzero'%20id='path4'%20/%3e%3cpath%20d='m%2013,11%20h%201%20v%202%20h%202%20v%201%20h%20-2%20v%202%20h%20-1%20v%20-2%20h%20-2%20v%20-1%20h%202%20z'%20id='path5'%20style='clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2'%20/%3e%3c/svg%3e");"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar breadcrumb"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button breadcrumbItem"
+                              id="1"
+                              role="button"
+                              tabindex="0"
+                            >
+                              /
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          id="tilesHost"
+                          style="flex-direction: row; flex-wrap: wrap;"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar tabContent"
-              style="flex-direction: column;"
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
             >
-              <div
-                class="msg container fixedScrollbar progressIndicatorHost"
-                id="loadingProgressIndicator"
-                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+              <svg
+                class="circleBackground animated"
               >
-                <svg
-                  class="circleBackground animated"
-                >
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                  <circle
-                    cx="37.5"
-                    cy="37.5"
-                    r="35"
-                  />
-                </svg>
-              </div>
-              <label
-                class="msg label"
-                data-tooltip="expand"
-                id="progressMessageId"
-              >
-                
-              </label>
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
             </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            >
+              
+            </label>
           </div>
         </div>
       </div>

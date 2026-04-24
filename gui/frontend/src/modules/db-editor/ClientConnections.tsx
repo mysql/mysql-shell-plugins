@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -459,6 +459,14 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             >
                 {items}
             </Dropdown>,
+            <Button
+                key="refresh"
+                data-tooltip="Refresh"
+                imageOnly={true}
+                onClick={this.handleRefresh}
+            >
+                <Icon src={Assets.toolbar.refreshIcon2} data-tooltip="inherit" />
+            </Button>,
             <Divider vertical={true} thickness={1} key="refreshSeparator" />,
             <Button
                 key="hideSleepConn"
@@ -718,6 +726,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     private handleShowDetails = (): void => {
         const { showDetails } = this.state;
         this.setState({ showDetails: !showDetails });
+    };
+
+    private handleRefresh = (): void => {
+        void this.updateValues();
     };
 
     private handleKillConnection = (): void => {

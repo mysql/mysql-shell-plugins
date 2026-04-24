@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,6 +28,7 @@ import { lazy, Suspense } from "preact/compat";
 
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { appParameters } from "../supplement/AppParameters.js";
+import { hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
 
 const ApplicationHost = lazy(async () => {
     return import("./ApplicationHost.js");
@@ -60,7 +61,7 @@ switch (appParameters.subApp) {
 export class LazyAppRouter extends Component {
     public override render(): ComponentChild {
         return (
-            <Suspense fallback={LoadingIndicator}>
+            <Suspense fallback={hasElectronHostBridge() ? null : LoadingIndicator}>
                 <Root />
             </Suspense>
         );

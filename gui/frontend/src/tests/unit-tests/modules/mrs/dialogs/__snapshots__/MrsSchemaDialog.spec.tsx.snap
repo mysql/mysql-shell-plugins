@@ -156,12 +156,12 @@ exports[`MRS Schema dialog tests > Show MRS Schema Dialog (snapshot) and escape 
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Settings
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -169,12 +169,12 @@ exports[`MRS Schema dialog tests > Show MRS Schema Dialog (snapshot) and escape 
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -182,12 +182,12 @@ exports[`MRS Schema dialog tests > Show MRS Schema Dialog (snapshot) and escape 
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Metadata
-                  </label>
+                  </span>
                 </div>
               </div>
               <div

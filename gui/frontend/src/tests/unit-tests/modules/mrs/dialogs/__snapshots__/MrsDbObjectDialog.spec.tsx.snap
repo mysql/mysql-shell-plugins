@@ -188,12 +188,12 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Data Mapping
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -201,12 +201,12 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Settings
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -214,12 +214,12 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Authorization
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -227,12 +227,12 @@ exports[`MRS Db Object dialog tests > Show MRS DB Object Dialog (snapshot) and e
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
               </div>
               <div

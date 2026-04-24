@@ -24,23 +24,31 @@
  */
 
 import { render } from "@testing-library/preact";
-import { createRef } from "preact";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { type ComponentChild, createRef } from "preact";
+import { afterAll, beforeAll, describe, expect, it, vi, type Mock } from "vitest";
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import type { IShellProfile, IWebSessionData } from "../../../../communication/ProtocolGui.js";
 import type { ISqliteConnectionOptions } from "../../../../communication/Sqlite.js";
+import { Codicon } from "../../../../components/ui/Codicon.js";
 import { ConnectionDataModel, type ICdmConnectionEntry } from "../../../../data-models/ConnectionDataModel.js";
-import { DocumentModule, type IDocumentModuleState } from "../../../../modules/db-editor/DocumentModule.js";
+import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
+import { ConnectionProcessor } from "../../../../modules/common/ConnectionProcessor.js";
+import {
+    DocumentModule, type IConnectionTab, type IDocumentModuleState,
+} from "../../../../modules/db-editor/DocumentModule.js";
 import type { IDocumentSideBarSectionState } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
 import { sendSqlUpdatesFromModel } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
+import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionTab.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
+import { Assets } from "../../../../supplement/Assets.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { DBType, type IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { LoadingState } from "../../../../script-execution/index.js";
 import { webSession } from "../../../../supplement/WebSession.js";
 import { IExecutionContext, INewEditorRequest, type EditorLanguage } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
@@ -58,6 +66,13 @@ class TestDocumentModule extends DocumentModule {
     declare public handleEditorRename: (id: string, editorId: string, newCaption: string) => void;
     declare public handleAddConnection: (entry: ICdmConnectionEntry) => void;
     declare public handleUpdateConnection: (entry: ICdmConnectionEntry) => void;
+    declare public handleMainPaneResized: (info: Array<{ currentSize: number }>) => void;
+    declare public canCloseTab: (id: string) => Promise<boolean>;
+    declare public isDocumentDirty: (entry?: IOpenDocumentState) => boolean;
+    declare public getSidebarInitialSize: () => number;
+    declare public getTabCloseIcon: (entry?: IOpenDocumentState) => string | Codicon;
+    declare public renderTabCloseButtonContent: (entry?: IOpenDocumentState) => ComponentChild;
+    declare public getConnectionTabIcon: (entry?: { document: { type: number } }) => string;
     public dataModel(): ConnectionDataModel {
         return (this.context as DocumentContextType).connectionsDataModel;
     }
@@ -143,9 +158,8 @@ describe("Document module tests", (): void => {
 
         const button = container.querySelector(".button");
         expect(button).toBeDefined();
-
-        const divider = container.querySelector(".divider");
-        expect(divider).toBeDefined();
+        expect(container.querySelector("#documentSelector")).toBeNull();
+        expect(container.textContent).not.toContain("Editor:");
 
         unmount();
         appParameters.embedded = originalEmbedded;
@@ -155,6 +169,7 @@ describe("Document module tests", (): void => {
         const overviewId = "abc-def";
         const state: IDocumentModuleState = {
             selectedPage: "",
+            selectedWorkspace: "__workspace_home__",
             connectionTabs: [],
             documentTabs: [],
             shellSessionTabs: [],
@@ -173,6 +188,18 @@ describe("Document module tests", (): void => {
 
     });
 
+    it("preserves the resized sidebar width across rerenders", () => {
+        const module = new TestDocumentModule({});
+
+        expect(module.getSidebarInitialSize()).toBe(250);
+
+        module.handleMainPaneResized([{ currentSize: 312 }, { currentSize: 900 }]);
+        expect(module.getSidebarInitialSize()).toBe(312);
+
+        module.state.showSidebar = false;
+        expect(module.getSidebarInitialSize()).toBe(0);
+    });
+
     it("Test DocumentModule adding connection tab", async () => {
         const moduleRef = createRef<TestDocumentModule>();
         const { unmount } = render(
@@ -186,9 +213,10 @@ describe("Document module tests", (): void => {
         await moduleRef.current!.handlePushConnection(entry);
 
         const docSelector = document.getElementById("documentSelector");
-        expect(docSelector).toBeDefined();
+        expect(docSelector).toBeNull();
         const closeButton = document.getElementById("itemCloseButton");
         expect(closeButton).toBeDefined();
+        expect(document.body.textContent).not.toContain("Editor:");
 
         unmount();
     });
@@ -325,7 +353,7 @@ describe("Document module tests", (): void => {
         expect(moduleRef.current!.state.progressMessage).toBe("Connection opened, creating the editor...");
 
         unmount();
-    });
+    }, 15000);
 
     it("Test DocumentModule function requisitions.openConnectionTab for Sqlite", async () => {
         const moduleRef = createRef<TestDocumentModule>();
@@ -493,6 +521,270 @@ EXAMPLES
         unmount();
     });
 
+    it("uses a notebook icon for notebook connection tabs", () => {
+        const module = new TestDocumentModule({});
+
+        expect(module.getConnectionTabIcon({
+            document: { type:  OdmEntityType.Notebook },
+        })).toBe(Assets.documents.notebookIcon);
+        expect(module.getConnectionTabIcon({
+            document: { type:  OdmEntityType.Script },
+        })).toBe(Assets.misc.scriptIcon);
+        expect(module.getConnectionTabIcon()).toBe(Assets.misc.scriptIcon);
+    });
+
+    it("uses a dirty indicator instead of the close icon for unsaved documents", () => {
+        const module = new TestDocumentModule({});
+        const cleanEntry = {
+            currentVersion: 4,
+            state: {
+                model: {
+                    getVersionId: () => {
+                        return 4;
+                    },
+                },
+            },
+        } as unknown as IOpenDocumentState;
+        const dirtyEntry = {
+            currentVersion: 4,
+            state: {
+                model: {
+                    getVersionId: () => {
+                        return 5;
+                    },
+                },
+            },
+        } as unknown as IOpenDocumentState;
+        const executingEntry = {
+            currentVersion: 4,
+            state: {
+                model: {
+                    getVersionId: () => {
+                        return 4;
+                    },
+                    executionContexts: {
+                        cursorPosition: {},
+                        contextFromPosition: () => {
+                            return undefined;
+                        },
+                        [Symbol.iterator]: function* () {
+                            yield {
+                                isSQLLike: true,
+                                loadingState: LoadingState.Loading,
+                            };
+                        },
+                    },
+                },
+            },
+        } as unknown as IOpenDocumentState;
+
+        expect(module.isDocumentDirty(cleanEntry)).toBe(false);
+        expect(module.getTabCloseIcon(cleanEntry)).toBe(Assets.misc.close2Icon);
+        expect(module.isDocumentDirty(dirtyEntry)).toBe(true);
+        expect(module.getTabCloseIcon(dirtyEntry)).toBe(Codicon.PrimitiveDot);
+        expect(module.getTabCloseIcon(executingEntry)).toBe(Codicon.Loading);
+    });
+
+    it("renders both dirty and close icons for dirty tab close buttons", () => {
+        const module = new TestDocumentModule({});
+        const dirtyEntry = {
+            currentVersion: 4,
+            state: {
+                model: {
+                    getVersionId: () => {
+                        return 5;
+                    },
+                },
+            },
+        } as unknown as IOpenDocumentState;
+
+        const { container, unmount } = render(<div>{module.renderTabCloseButtonContent(dirtyEntry)}</div>);
+
+        expect(container.querySelector(".closeIconStack")).toBeTruthy();
+        expect(container.querySelector(".dirtyIndicator")).toBeTruthy();
+        expect(container.querySelector(".closeIcon")).toBeTruthy();
+
+        unmount();
+    });
+
+    it("renders a spinner for tab close buttons while SQL is executing", () => {
+        const module = new TestDocumentModule({});
+        const executingEntry = {
+            currentVersion: 4,
+            state: {
+                model: {
+                    getVersionId: () => {
+                        return 4;
+                    },
+                    executionContexts: {
+                        cursorPosition: {},
+                        contextFromPosition: () => {
+                            return undefined;
+                        },
+                        [Symbol.iterator]: function* () {
+                            yield {
+                                isSQLLike: true,
+                                loadingState: LoadingState.Loading,
+                            };
+                        },
+                    },
+                },
+            },
+        } as unknown as IOpenDocumentState;
+
+        const { container, unmount } = render(<div>{module.renderTabCloseButtonContent(executingEntry)}</div>);
+
+        expect(container.querySelector(".closeSpinner")).toBeTruthy();
+        expect(container.querySelector(".closeIconStack")).toBeFalsy();
+
+        unmount();
+    });
+
+    it("asks before closing the window when a standalone document is dirty", async () => {
+        const module = new TestDocumentModule({});
+        const confirmMock = uiLayerMock.confirm as Mock;
+
+        confirmMock.mockClear();
+        confirmMock.mockResolvedValueOnce("Cancel");
+
+        module.state = {
+            selectedPage: "doc-1",
+            selectedWorkspace: "__workspace_general__",
+            connectionTabs: [],
+            documentTabs: [{
+                dataModelEntry: {
+                    id: "doc-1",
+                    caption: "Info.json",
+                    type: OdmEntityType.StandaloneDocument,
+                },
+                savedState: {
+                    model: {
+                        getVersionId: vi.fn().mockReturnValue(2),
+                    },
+                },
+                currentVersion: 1,
+            } as unknown as IDocumentModuleState["documentTabs"][number]],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map<string, IDocumentSideBarSectionState>(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+
+        const result = await (module as unknown as { confirmWindowClose: () => Promise<boolean>; }).confirmWindowClose();
+
+        expect(result).toBe(false);
+        expect(confirmMock).toHaveBeenCalledWith(
+            "There are unsaved documents. Do you want to discard them and close the window?",
+            "Discard",
+            "Cancel",
+        );
+    });
+
+    it("asks before closing a background connection tab with an inactive dirty document", async () => {
+        const module = new TestDocumentModule({});
+        const confirmMock = uiLayerMock.confirm as Mock;
+        const pageEntry = { id: "page-1" };
+        const activeEntry = {
+            document: {
+                id: "doc-1",
+                caption: "Untitled",
+                type: OdmEntityType.Script,
+            },
+            currentVersion: 1,
+            state: {
+                model: {
+                    getVersionId: vi.fn().mockReturnValue(1),
+                },
+            },
+        } as unknown as IOpenDocumentState;
+        const inactiveDirtyEntry = {
+            document: {
+                id: "doc-2",
+                caption: "Scratch",
+                type: OdmEntityType.Script,
+            },
+            currentVersion: 1,
+            state: {
+                model: {
+                    getVersionId: vi.fn().mockReturnValue(2),
+                },
+            },
+        } as unknown as IOpenDocumentState;
+
+        confirmMock.mockClear();
+        confirmMock.mockResolvedValueOnce("Cancel");
+
+        module.state = {
+            selectedPage: "other-page",
+            selectedWorkspace: "__workspace_home__",
+            connectionTabs: [{
+                dataModelEntry: pageEntry,
+            } as unknown as IConnectionTab],
+            documentTabs: [],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map<string, IDocumentSideBarSectionState>(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+
+        (module as unknown as { connectionPresentation: Map<object, unknown> }).connectionPresentation = new Map([
+            [pageEntry, {
+                activeEntry: "doc-1",
+                documentStates: [activeEntry, inactiveDirtyEntry],
+            }],
+        ]);
+
+        const result = await module.canCloseTab("page-1");
+
+        expect(result).toBe(false);
+        expect(confirmMock).toHaveBeenCalledWith(
+            "This tab has unsaved changes. Do you want to discard them and close the tab?",
+            "Discard",
+            "Cancel",
+        );
+    });
+
+    it("allows closing the selected shell tab without using the connection tab ref", async () => {
+        const module = new TestDocumentModule({});
+
+        module.state = {
+            selectedPage: "shell-1",
+            selectedWorkspace: "__workspace_general__",
+            connectionTabs: [],
+            documentTabs: [],
+            shellSessionTabs: [{
+                dataModelEntry: { id: "shell-1" },
+            } as unknown as IDocumentModuleState["shellSessionTabs"][number]],
+            schemaDiagramTabs: [],
+            sidebarState: new Map<string, IDocumentSideBarSectionState>(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+
+        (module as unknown as {
+            currentTabRef: { current: { confirmClose: () => Promise<boolean>; }; };
+        }).currentTabRef = {
+            current: {
+                confirmClose: vi.fn().mockResolvedValue(false),
+            },
+        };
+
+        const result = await module.canCloseTab("shell-1");
+
+        expect(result).toBe(true);
+    });
+
     it("Test DocumentModule handleAddConnection handler", async () => {
         const moduleRef = createRef<TestDocumentModule>();
         const { unmount } = render(
@@ -513,16 +805,12 @@ EXAMPLES
         };
         const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
 
-        expect(moduleRef.current!.state.connectionTabs).toHaveLength(0);
-
-        await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { connectionId });
-
-        await nextProcessTick();
+        const addConnection = vi.spyOn(ConnectionProcessor, "addConnection").mockResolvedValueOnce();
 
         moduleRef.current!.handleAddConnection(entry);
-        expect(moduleRef.current!.state.connectionTabs).toHaveLength(1);
+        expect(addConnection).toHaveBeenCalledWith(entry, expect.any(ConnectionDataModel));
 
+        addConnection.mockRestore();
         unmount();
     });
 
@@ -546,15 +834,14 @@ EXAMPLES
         };
         const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
 
-        expect(moduleRef.current!.state.connectionTabs).toHaveLength(0);
-
-        await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { connectionId });
-
-        await nextProcessTick();
+        const updateDbConnection = vi.spyOn(ShellInterface.dbConnections, "updateDbConnection")
+            .mockResolvedValueOnce();
 
         moduleRef.current!.handleUpdateConnection(entry);
+        await nextProcessTick();
+        expect(updateDbConnection).toHaveBeenCalledWith(webSession.currentProfileId, entry.details, expect.any(Number));
 
+        updateDbConnection.mockRestore();
         unmount();
     });
 

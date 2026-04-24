@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import { fireEvent, render, waitFor } from "@testing-library/preact";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CloseMenuItem, ITabviewPage, Tabview } from "../../../../components/ui/Tabview/Tabview.js";
 import { nextProcessTick } from "../../test-helpers.js";
@@ -50,6 +50,10 @@ const examplePages: ITabviewPage[] = [
 ];
 
 describe("Tabview component tests", (): void => {
+    afterEach(() => {
+        Reflect.deleteProperty(window, "electronHost");
+    });
+
     const queryMenu = () => {
         return document.querySelector(".popup.menu.visible");
     };
@@ -66,6 +70,31 @@ describe("Tabview component tests", (): void => {
         expect(queryByText("Three")).toBeDefined();
 
         expect(queryByText("Content")).toBeNull();
+
+        unmount();
+    });
+
+    it("renders rich caption content", () => {
+        const pages: ITabviewPage[] = [{
+            id: "1",
+            caption: (
+                <>
+                    <span>Untitled</span>
+                    <span>Local MySQL</span>
+                </>
+            ),
+            content: <h1 data-testid="content-1">Content 1</h1>,
+        }];
+
+        const { unmount, getByText } = render(
+            <Tabview
+                pages={pages}
+                selectedId="1"
+            />,
+        );
+
+        expect(getByText("Untitled")).toBeDefined();
+        expect(getByText("Local MySQL")).toBeDefined();
 
         unmount();
     });
@@ -121,6 +150,66 @@ describe("Tabview component tests", (): void => {
         expect(getByText("Close Others")).toBeTruthy();
         expect(getByText("Close to the Right")).toBeTruthy();
         expect(getByText("Close All")).toBeTruthy();
+
+        unmount();
+    });
+
+    it("uses the native Electron bridge for the tab context menu", async () => {
+        const closeTabs = vi.fn();
+        const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        let nativeMenuHandler: ((event: { type: "select"; requestId: string; itemId: string; }) => void) | undefined;
+
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+                showNativeMenu,
+                closeNativeMenu: vi.fn().mockResolvedValue(undefined),
+                setNativeMenuHandler: (handler: typeof nativeMenuHandler) => {
+                    nativeMenuHandler = handler;
+                },
+            },
+        });
+
+        const { getByText, unmount } = render(
+            <Tabview
+                pages={examplePages}
+                selectedId="3"
+                closeTabs={closeTabs}
+            />,
+        );
+
+        fireEvent.contextMenu(getByText("One"));
+
+        expect(showNativeMenu).toHaveBeenCalledTimes(1);
+        const request = showNativeMenu.mock.calls[0][0] as {
+            id: string;
+            x?: number;
+            y?: number;
+            items: Array<{ id: string; label?: string; enabled?: boolean; }>;
+        };
+        expect(request.x).toBeUndefined();
+        expect(request.y).toBeUndefined();
+        expect(request.items).toEqual(expect.arrayContaining([
+            expect.objectContaining({ label: "Close" }),
+            expect.objectContaining({ label: "Close Others" }),
+            expect.objectContaining({ label: "Close to the Right" }),
+            expect.objectContaining({ label: "Close All" }),
+        ]));
+
+        const closeOthers = request.items.find((item) => {
+            return item.label === "Close Others";
+        });
+        expect(closeOthers).toBeTruthy();
+
+        nativeMenuHandler?.({
+            type: "select",
+            requestId: request.id,
+            itemId: closeOthers!.id,
+        });
+        await nextProcessTick();
+
+        expect(closeTabs).toHaveBeenCalledWith(["3"]);
 
         unmount();
     });

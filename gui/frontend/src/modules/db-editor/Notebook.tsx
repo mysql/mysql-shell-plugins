@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { type IPosition } from "monaco-editor";
+import { type IPosition } from "monaco-editor/esm/vs/editor/editor.api.js";
 import { ComponentChild, createRef } from "preact";
 
 import { ui } from "../../app-logic/UILayer.js";
 import type { ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
 import { Button } from "../../components/ui/Button/Button.js";
-import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import {
+    CodeEditor, IEditorPersistentState, type INotebookHistoryNavigation,
+} from "../../components/ui/CodeEditor/CodeEditor.js";
 import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
@@ -40,17 +42,23 @@ import type { ConnectionDataModelEntry } from "../../data-models/ConnectionDataM
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
-import { INotebookFileFormat } from "../../script-execution/index.js";
+import { INotebookFileFormat, LoadingState } from "../../script-execution/index.js";
 import { Assets } from "../../supplement/Assets.js";
+import { desktopCommandRegistry } from "../../supplement/DesktopCommandRegistry.js";
+import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import type { ISqlTransactionChangeDetails } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import type { EditorLanguage } from "../../supplement/index.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 import type { IConnectionPresentationState, IOpenDocumentState } from "./ConnectionTab.js";
-import { DocumentToolbar } from "./DocumentToolbar.js";
+import { DocumentToolbar, type IDesktopRunState } from "./DocumentToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
 import { IToolbarItems } from "./index.js";
+import { QueryType } from "../../parsing/parser-common.js";
+import { getNextTransactionOpenState } from "./transactionState.js";
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;
@@ -71,15 +79,26 @@ interface INotebookProperties extends IComponentProperties {
     /** Font size to use. */
     fontSize?: number;
 
+    onEdit?: (id?: string) => void;
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
     onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
     onNavigateHistory: (backwards: boolean) => void;
+    onDesktopRunStateChanged?: () => void;
 }
 
 export class Notebook extends ComponentBase<INotebookProperties> {
     #editorRef = createRef<CodeEditor>();
     #toolbarRef = createRef<DocumentToolbar>();
+    #stateChangeTimer: ReturnType<typeof setTimeout> | null = null;
+    #desktopRunState: IDesktopRunState = {
+        canExecute: true,
+        canExecuteSubparts: false,
+        canStop: false,
+        autoCommit: true,
+        transactionOpen: false,
+        stopOnErrors: Settings.get("editor.stopOnErrors", true),
+    };
 
     #editorLanguageSbEntry!: IStatusBarItem;
     #editorEolSbEntry!: IStatusBarItem;
@@ -90,13 +109,23 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         super(props);
 
         this.addHandledProperties("standaloneMode", "toolbarItemsTemplate", "savedState", "backend", "dbType",
-            "readOnly", "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand", "onContextLanguageChange");
+            "readOnly", "showAbout", "extraLibs", "onEdit", "onScriptExecution", "onHelpCommand",
+            "onContextLanguageChange", "onDesktopRunStateChanged");
     }
 
     public override componentDidMount(): void {
         requisitions.register("connectionItemDefaultAction", this.onConnectionItemDblClick);
         requisitions.register("editorInsertText", this.doInsertText);
         requisitions.register("editorCaretMoved", this.handleCaretMove);
+
+        if (hasElectronHostBridge()) {
+            requisitions.register("editorContextStateChanged", this.handleContextStateChanged);
+            requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
+            requisitions.register("editorToggleAutoCommit", this.toggleAutoCommit);
+            requisitions.register("sqlTransactionChanged", this.handleTransactionChanged);
+            requisitions.register("sqlTransactionEnded", this.handleTransactionEnded);
+            requisitions.register("settingsChanged", this.handleSettingsChanged);
+        }
 
         this.#editorPositionSbEntry = ui.createStatusBarItem("editorPosition", StatusBarAlignment.Right, 990);
         this.#editorIndentSbEntry = ui.createStatusBarItem("editorIndent", StatusBarAlignment.Right, 985);
@@ -105,29 +134,54 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
         this.initialSetup();
         this.updateStatusItems();
+
+        if (hasElectronHostBridge()) {
+            this.updateDesktopRunState();
+            void this.queryAutoCommit();
+            this.notifyDesktopRunStateChanged();
+        }
     }
 
-    public override componentDidUpdate(): void {
+    public override componentDidUpdate(prevProps: INotebookProperties): void {
         this.initialSetup();
         this.updateStatusItems();
+
+        if (hasElectronHostBridge() && prevProps.savedState.activeEntry !== this.props.savedState.activeEntry) {
+            this.updateDesktopRunState();
+        }
     }
 
     public override componentWillUnmount(): void {
-        this.#editorLanguageSbEntry.dispose();
-        this.#editorIndentSbEntry.dispose();
-        this.#editorPositionSbEntry.dispose();
-        this.#editorEolSbEntry.dispose();
+        if (this.#stateChangeTimer) {
+            clearTimeout(this.#stateChangeTimer);
+            this.#stateChangeTimer = null;
+        }
+
+        this.#editorLanguageSbEntry?.dispose();
+        this.#editorIndentSbEntry?.dispose();
+        this.#editorPositionSbEntry?.dispose();
+        this.#editorEolSbEntry?.dispose();
 
         requisitions.unregister("connectionItemDefaultAction", this.onConnectionItemDblClick);
         requisitions.unregister("editorCaretMoved", this.handleCaretMove);
         requisitions.unregister("editorInsertText", this.doInsertText);
+
+        if (hasElectronHostBridge()) {
+            requisitions.unregister("editorContextStateChanged", this.handleContextStateChanged);
+            requisitions.unregister("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
+            requisitions.unregister("editorToggleAutoCommit", this.toggleAutoCommit);
+            requisitions.unregister("sqlTransactionChanged", this.handleTransactionChanged);
+            requisitions.unregister("sqlTransactionEnded", this.handleTransactionEnded);
+            requisitions.unregister("settingsChanged", this.handleSettingsChanged);
+        }
     }
 
     public render(): ComponentChild {
         const {
             standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs, fontSize,
-            onScriptExecution, onHelpCommand,
+            onScriptExecution, onHelpCommand, onDesktopRunStateChanged,
         } = this.props;
+        const isElectronHost = hasElectronHostBridge();
 
         const dialect = this.dialectFromDbType(dbType);
 
@@ -155,26 +209,6 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             toolbarItems.navigation = [];
         }
 
-        toolbarItems.navigation.push(
-            <Button
-                key="editorSaveNotebookButton"
-                data-tooltip="Save this Notebook"
-                requestType="editorSaveNotebook"
-                imageOnly={true}
-                style={{ marginLeft: "4px" }}
-            >
-                <Icon src={Assets.toolbar.saveEditorIcon} data-tooltip="inherit" />
-            </Button>,
-            <Button
-                key="editorLoadNotebookButton"
-                data-tooltip="Replace this Notebook With Content from a File"
-                requestType="editorLoadNotebook"
-                imageOnly={true}
-            >
-                <Icon src={Assets.toolbar.loadEditorIcon} data-tooltip="inherit" />
-            </Button>,
-        );
-
         if (standaloneMode) {
             toolbarItems.auxiliary = [];
         }
@@ -182,9 +216,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         const canGoBackInHistory =
             savedState.currentExecutionHistoryIndex < savedState.executionHistory.length;
         const canGoForwardInHistory = savedState.currentExecutionHistoryIndex > 0;
-
-        toolbarItems.navigation.push(
-            <Divider key="historyDivider" vertical={true} thickness={1} />,
+        const historyNavigationButtons: ComponentChild[] = [
             <Button
                 key="editorNotebookHistoryBackButton"
                 data-tooltip="Recall the previous command"
@@ -203,7 +235,21 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             >
                 <Icon src={Assets.toolbar.historyForwardIcon} data-tooltip="inherit" />
             </Button>,
-        );
+        ];
+
+        if (!isElectronHost) {
+            if (toolbarItems.navigation.length > 0) {
+                toolbarItems.navigation.push(<Divider key="historyDivider" vertical={true} thickness={1} />);
+            }
+
+            toolbarItems.navigation.push(...historyNavigationButtons);
+        }
+
+        const notebookHistory: INotebookHistoryNavigation = {
+            navigate: this.navigateHistory.bind(this),
+            canGoBack: canGoBackInHistory,
+            canGoForward: canGoForwardInHistory,
+        };
 
         return (
             <Container
@@ -214,15 +260,18 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 mainAlignment={ContentAlignment.Stretch}
                 {...this.unhandledProperties}
             >
-                <DocumentToolbar
-                    ref={this.#toolbarRef}
-                    toolbarItems={toolbarItems}
-                    language="msg"
-                    activeDocument={savedState.activeEntry}
-                    heatWaveEnabled={savedState.heatWaveEnabled}
-                    documentState={savedState.documentStates}
-                    backend={backend}
-                />
+                {!isElectronHost &&
+                    <DocumentToolbar
+                        ref={this.#toolbarRef}
+                        toolbarItems={toolbarItems}
+                        language="msg"
+                        activeDocument={savedState.activeEntry}
+                        heatWaveEnabled={savedState.heatWaveEnabled}
+                        documentState={savedState.documentStates}
+                        backend={backend}
+                        onDesktopRunStateChanged={onDesktopRunStateChanged}
+                    />
+                }
 
                 <CodeEditor
                     ref={this.#editorRef}
@@ -235,14 +284,17 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     readonly={readOnly}
                     allowSoftWrap={true}
                     autoFocus={true}
+                    onSave={(saveAs) => {
+                        return requisitions.execute("editorSaveNotebook", saveAs ? { saveAs: true } : undefined);
+                    }}
                     className="scriptingConsole"
                     minimap={{
                         enabled: true,
                     }}
                     font={{
                         fontFamily: "var(--msg-monospace-font-family)",
-                        fontSize: fontSize ?? 15,
-                        lineHeight: 24,
+                        fontSize: fontSize ?? 12,
+                        lineHeight: 18,
                     }}
                     scrollbar={{
                         useShadows: true,
@@ -251,14 +303,18 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                         vertical: "auto",
                         horizontal: "auto",
 
-                        verticalScrollbarSize: 16,
-                        horizontalScrollbarSize: 16,
+                        verticalScrollbarSize: 12,
+                        horizontalScrollbarSize: 12,
                     }}
                     lineNumbers={this.contextRelativeLineNumbers}
                     onScriptExecution={onScriptExecution}
                     onHelpCommand={onHelpCommand}
+                    onModelChange={() => {
+                        this.props.onEdit?.(savedState.activeEntry);
+                    }}
                     onOptionsChanged={this.handleOptionsChanged}
                     onContextLanguageChange={this.handleContextLanguageChange}
+                    notebookHistory={notebookHistory}
                     createResultPresentation={this.createPresentation}
                 />
             </Container>
@@ -285,6 +341,14 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     public focus(): void {
         this.#editorRef.current?.focus();
     }
+
+    public getDesktopRunState = (): IDesktopRunState | undefined => {
+        if (hasElectronHostBridge()) {
+            return this.#desktopRunState;
+        }
+
+        return this.#toolbarRef.current?.getDesktopRunState();
+    };
 
     /**
      * Executes a single query with optional parameters and a link ID for external editors (like text editors
@@ -396,8 +460,162 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         return currentBlock;
     }
 
+    private notifyDesktopRunStateChanged(): void {
+        desktopCommandRegistry.notifyHostStateChanged();
+        this.props.onDesktopRunStateChanged?.();
+    }
+
+    private setDesktopRunState(nextState: Partial<IDesktopRunState>): void {
+        let changed = false;
+        (Object.keys(nextState) as Array<keyof IDesktopRunState>).forEach((key) => {
+            if (nextState[key] !== undefined && this.#desktopRunState[key] !== nextState[key]) {
+                changed = true;
+                this.#desktopRunState[key] = nextState[key] as never;
+            }
+        });
+
+        if (changed) {
+            this.notifyDesktopRunStateChanged();
+        }
+    }
+
+    private updateDesktopRunState(position?: IPosition): void {
+        if (!hasElectronHostBridge()) {
+            return;
+        }
+
+        const editorState = this.getActiveEditorState();
+        const contexts = editorState?.model.executionContexts;
+        const targetPosition = position ?? contexts?.cursorPosition;
+        if (!contexts || !targetPosition) {
+            return;
+        }
+
+        const context = contexts.contextFromPosition(targetPosition);
+        if (!context) {
+            return;
+        }
+
+        this.setDesktopRunState({
+            canExecute: context.loadingState === LoadingState.Idle,
+            canStop: context.loadingState !== LoadingState.Idle,
+            canExecuteSubparts: context.isSQLLike,
+            stopOnErrors: Settings.get("editor.stopOnErrors", true),
+        });
+    }
+
+    private startStateChangeTimer(): void {
+        if (this.#stateChangeTimer) {
+            clearTimeout(this.#stateChangeTimer);
+        }
+
+        this.#stateChangeTimer = setTimeout(() => {
+            const currentContext = this.currentContext;
+            if (currentContext?.loadingState === LoadingState.Idle) {
+                this.updateDesktopRunState();
+                this.#stateChangeTimer = null;
+            } else {
+                this.startStateChangeTimer();
+            }
+        }, 500);
+    }
+
+    private handleContextStateChanged = (id: string): Promise<boolean> => {
+        if (!hasElectronHostBridge()) {
+            return Promise.resolve(false);
+        }
+
+        const changedContext = this.getActiveEditorState()?.model.executionContexts?.contextWithId(id);
+        if (!changedContext) {
+            return Promise.resolve(false);
+        }
+
+        if (id === this.currentContext?.id && changedContext.loadingState !== LoadingState.Idle) {
+            this.setDesktopRunState({
+                canExecute: false,
+                canStop: true,
+            });
+            this.startStateChangeTimer();
+        } else {
+            this.updateDesktopRunState();
+        }
+
+        return Promise.resolve(true);
+    };
+
+    private toggleStopExecutionOnError = (active: boolean): Promise<boolean> => {
+        Settings.set("editor.stopOnErrors", !active);
+        this.setDesktopRunState({
+            stopOnErrors: Settings.get("editor.stopOnErrors", true),
+        });
+
+        return Promise.resolve(true);
+    };
+
+    private queryAutoCommit = async (notify = true): Promise<boolean> => {
+        const value = await this.props.backend?.getAutoCommit?.();
+        const autoCommit = value === true;
+        const changed = this.#desktopRunState.autoCommit !== autoCommit;
+        this.#desktopRunState.autoCommit = autoCommit;
+
+        if (changed && notify) {
+            this.notifyDesktopRunStateChanged();
+        }
+
+        return autoCommit;
+    };
+
+    private toggleAutoCommit = async (): Promise<boolean> => {
+        try {
+            await this.props.backend?.setAutoCommit(!this.#desktopRunState.autoCommit);
+            await this.queryAutoCommit(false);
+            await requisitions.execute("sqlTransactionChanged", { queryType: QueryType.SetAutoCommit });
+        } catch (reason) {
+            void ui.showErrorMessage(`Cannot Switch Auto Commit Mode.${convertErrorToString(reason)}`, {});
+        }
+
+        this.notifyDesktopRunStateChanged();
+
+        return true;
+    };
+
+    private handleTransactionChanged = async (details?: ISqlTransactionChangeDetails): Promise<boolean> => {
+        if (!hasElectronHostBridge()) {
+            return false;
+        }
+
+        const autoCommit = await this.queryAutoCommit(false);
+        this.setDesktopRunState({
+            autoCommit,
+            transactionOpen: getNextTransactionOpenState(
+                this.#desktopRunState.transactionOpen ?? false,
+                autoCommit,
+                details,
+            ),
+        });
+
+        return true;
+    };
+
+    private handleTransactionEnded = async (details?: ISqlTransactionChangeDetails): Promise<boolean> => {
+        return this.handleTransactionChanged(details);
+    };
+
+    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
+        if (!entry || entry.key === "editor.stopOnErrors") {
+            this.setDesktopRunState({
+                stopOnErrors: Settings.get("editor.stopOnErrors", true),
+            });
+
+            return Promise.resolve(true);
+        }
+
+        return Promise.resolve(false);
+    };
+
     private handleCaretMove = (position: { lineNumber: number; column: number; }): Promise<boolean> => {
         this.updateStatusItems(position);
+        this.updateDesktopRunState(position);
 
         return Promise.resolve(true);
     };

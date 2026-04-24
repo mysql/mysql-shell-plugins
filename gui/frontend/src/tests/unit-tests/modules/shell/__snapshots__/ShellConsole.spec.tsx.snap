@@ -5,7 +5,7 @@ exports[`ShellConsole tests > Matching snapshot 1`] = `
   <div
     class="msg editorHost"
     data-keybinding-context="1"
-    data-mode-id="plaintext"
+    data-mode-id="msg"
   >
     "<filtered>"
   </div>

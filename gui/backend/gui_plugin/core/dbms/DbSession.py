@@ -427,6 +427,9 @@ class DbSession(threading.Thread):
     def kill_query(self, user_session):  # pragma: no cover
         raise NotImplementedError()
 
+    def kill_session(self, user_session):  # pragma: no cover
+        raise NotImplementedError()
+
     def get_objects_types(self):  # pragma: no cover
         raise NotImplementedError()
 

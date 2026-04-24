@@ -32,35 +32,6 @@ exports[`DBConnectionTab tests > Test DBConnectionTab snapshot 1`] = `
             style="flex-direction: row; align-items: center;"
           >
             <div
-              class="msg button imageOnly"
-              data-tooltip="Save this Notebook"
-              role="button"
-              style="margin-left: 4px;"
-              tabindex="0"
-            >
-              <div
-                class="msg icon"
-                data-tooltip="inherit"
-                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-730,-161)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3c/g%3e%3cg%20id='refresh'%3e%3c/g%3e%3cg%20id='New-File'%20serif:id='New%20File'%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3cg%20id='Close'%3e%3c/g%3e%3cg%20id='load'%3e%3c/g%3e%3cg%20id='save'%3e%3c/g%3e%3cg%20id='Execute-on-Heatwave'%20serif:id='Execute%20on%20Heatwave'%3e%3c/g%3e%3cg%20id='Execute-Current-on-Heatwave'%20serif:id='Execute%20Current%20on%20Heatwave'%3e%3c/g%3e%3cg%20id='Trace-Heatwave-Query'%20serif:id='Trace%20Heatwave%20Query'%3e%3c/g%3e%3cg%20id='Layer3'%3e%3c/g%3e%3cg%20id='New-Shell-Console'%20serif:id='New%20Shell%20Console'%3e%3c/g%3e%3cg%20id='New-File-Selector'%20serif:id='New%20File%20Selector'%3e%3c/g%3e%3cg%20id='saveNotebook'%20transform='matrix(1,0,0,1,733,163)'%3e%3cg%20id='Add-Notebook'%20serif:id='Add%20Notebook'%20transform='matrix(1,0,0,1,0,-1)'%3e%3cpath%20d='M6,15L2,15L1,14L1,2L2,1L12,1L13,2L13,7.01L12,7.01L12,2L2,2L2,14L6,14L6,15ZM15,5.029L15,7L14,7L14,5.029L15,5.029Z'/%3e%3c/g%3e%3cg%20transform='matrix(1.14286,0,0,1,-1.57143,-1)'%3e%3cpath%20d='M4,4L5,3L10,3L11,4L11,5L10,6L5,6L4,5L4,4ZM4.878,4L4.878,5L10.125,5L10.125,4L4.878,4Z'/%3e%3c/g%3e%3cg%20id='Save'%20transform='matrix(1,0,0,1,5,5)'%3e%3cg%20transform='matrix(1.5,0,0,1,-13,-4)'%3e%3crect%20x='10'%20y='15'%20width='6'%20height='1'/%3e%3c/g%3e%3cg%20transform='matrix(1,0,0,1,-1,0)'%3e%3cpath%20d='M7,8.293L7,3.032L8,3.032L8,8.293L10.468,5.825L11.175,6.532L7.499,10.208L6.792,9.501L6.793,9.5L3.845,6.553L4.553,5.845L7,8.293Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3cg%20id='saveNotebook1'%20serif:id='saveNotebook'%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-              />
-            </div>
-            <div
-              class="msg button imageOnly"
-              data-tooltip="Replace this Notebook With Content from a File"
-              role="button"
-              tabindex="0"
-            >
-              <div
-                class="msg icon"
-                data-tooltip="inherit"
-                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-762,-161)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3c/g%3e%3cg%20id='refresh'%3e%3c/g%3e%3cg%20id='New-File'%20serif:id='New%20File'%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3cg%20id='Close'%3e%3c/g%3e%3cg%20id='load'%3e%3c/g%3e%3cg%20id='save'%3e%3c/g%3e%3cg%20id='Execute-on-Heatwave'%20serif:id='Execute%20on%20Heatwave'%3e%3c/g%3e%3cg%20id='Execute-Current-on-Heatwave'%20serif:id='Execute%20Current%20on%20Heatwave'%3e%3c/g%3e%3cg%20id='Trace-Heatwave-Query'%20serif:id='Trace%20Heatwave%20Query'%3e%3c/g%3e%3cg%20id='Layer3'%3e%3c/g%3e%3cg%20id='New-Shell-Console'%20serif:id='New%20Shell%20Console'%3e%3c/g%3e%3cg%20id='New-File-Selector'%20serif:id='New%20File%20Selector'%3e%3c/g%3e%3cg%20id='saveNotebook'%3e%3c/g%3e%3cg%20id='saveNotebook1'%20serif:id='saveNotebook'%20transform='matrix(1,0,0,1,765,163)'%3e%3cg%20id='Add-Notebook'%20serif:id='Add%20Notebook'%20transform='matrix(1,0,0,1,0,-1)'%3e%3cpath%20d='M6,15L2,15L1,14L1,2L2,1L12,1L13,2L13,7.01L12,7.01L12,2L2,2L2,14L6,14L6,15ZM15,5.029L15,7L14,7L14,5.029L15,5.029Z'/%3e%3c/g%3e%3cg%20transform='matrix(1.14286,0,0,1,-1.57143,-1)'%3e%3cpath%20d='M4,4L5,3L10,3L11,4L11,5L10,6L5,6L4,5L4,4ZM4.878,4L4.878,5L10.125,5L10.125,4L4.878,4Z'/%3e%3c/g%3e%3cg%20id='Save'%20transform='matrix(1,0,0,1,5,5)'%3e%3cg%20transform='matrix(1.5,0,0,1,-13,-4)'%3e%3crect%20x='10'%20y='15'%20width='6'%20height='1'/%3e%3c/g%3e%3cg%20transform='matrix(1,0,0,-1,-1,13.0014)'%3e%3cpath%20d='M7,8.293L7,3.032L8,3.032L8,8.293L10.468,5.825L11.175,6.532L7.499,10.208L6.792,9.501L6.793,9.5L3.845,6.553L4.553,5.845L7,8.293Z'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-              />
-            </div>
-            <div
-              class="msg divider vertical"
-              style="--thickness: 1px;"
-            />
-            <div
               class="msg button imageOnly disabled"
               data-tooltip="Recall the previous command"
               role="button"
@@ -82,22 +53,6 @@ exports[`DBConnectionTab tests > Test DBConnectionTab snapshot 1`] = `
                 class="msg icon"
                 data-tooltip="inherit"
                 style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-939,-59)'%3e%3cg%20id='Menu'%3e%3c/g%3e%3cg%20id='Expand'%3e%3c/g%3e%3cg%20id='Grid'%3e%3c/g%3e%3cg%20id='Word-Wrap'%20serif:id='Word%20Wrap'%3e%3c/g%3e%3cg%20id='Special-Chars'%20serif:id='Special%20Chars'%3e%3c/g%3e%3cg%20id='Search'%3e%3c/g%3e%3cg%20id='SQL-Beautifier'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='SQL-Beautifier1'%20serif:id='SQL%20Beautifier'%3e%3c/g%3e%3cg%20id='Auto-Commit'%20serif:id='Auto%20Commit'%3e%3c/g%3e%3cg%20id='Stop-on-Error'%20serif:id='Stop%20on%20Error'%3e%3c/g%3e%3cg%20id='Execute-Explain'%20serif:id='Execute%20Explain'%3e%3c/g%3e%3cg%20id='Execute-Current'%20serif:id='Execute%20Current'%3e%3c/g%3e%3cg%20id='Execute-and-Next-Cmd'%20serif:id='Execute%20and%20Next%20Cmd'%3e%3c/g%3e%3cg%20id='Kill-Connection-2'%20serif:id='Kill%20Connection%202'%3e%3c/g%3e%3cg%20id='Sleeping-Connections'%20serif:id='Sleeping%20Connections'%3e%3c/g%3e%3cg%20id='Kill-Connection'%20serif:id='Kill%20Connection'%3e%3c/g%3e%3cg%20id='Kill-Query'%20serif:id='Kill%20Query'%3e%3c/g%3e%3cg%20id='Show-Details'%20serif:id='Show%20Details'%3e%3c/g%3e%3cg%20id='Infos'%3e%3c/g%3e%3cg%20id='Background-Threads'%20serif:id='Background%20Threads'%3e%3c/g%3e%3cg%20id='refresh'%3e%3c/g%3e%3cg%20id='New-File'%20serif:id='New%20File'%3e%3c/g%3e%3cg%20id='Minimize'%3e%3c/g%3e%3cg%20id='Maximize'%3e%3c/g%3e%3cg%20id='Close'%3e%3c/g%3e%3cg%20id='load'%3e%3c/g%3e%3cg%20id='save'%3e%3c/g%3e%3cg%20id='Execute-on-Heatwave'%20serif:id='Execute%20on%20Heatwave'%3e%3c/g%3e%3cg%20id='Execute-Current-on-Heatwave'%20serif:id='Execute%20Current%20on%20Heatwave'%3e%3c/g%3e%3cg%20id='Trace-Heatwave-Query'%20serif:id='Trace%20Heatwave%20Query'%3e%3c/g%3e%3cg%20id='Layer3'%3e%3c/g%3e%3cg%20id='New-Shell-Console'%20serif:id='New%20Shell%20Console'%3e%3c/g%3e%3cg%20id='New-File-Selector'%20serif:id='New%20File%20Selector'%3e%3c/g%3e%3cg%20id='saveNotebook'%3e%3c/g%3e%3cg%20id='saveNotebook1'%20serif:id='saveNotebook'%3e%3c/g%3e%3cg%20id='sqlPreview'%3e%3c/g%3e%3cg%20id='historyBack'%3e%3c/g%3e%3cg%20id='historyForward'%20transform='matrix(1,0,0,1,943,60)'%3e%3cpath%20d='M2.513,12.324C0.552,9.826%200.525,6.292%202.448,3.764C3.77,2.024%205.835,1%208.02,1C10.474,1%2012.755,2.29%2014.02,4.393L14.02,2L15.02,2L15.02,5.5L14.52,6L11.02,6L11.02,5L13.209,5C12.136,3.146%2010.15,2%208.008,2C4.712,2%202,4.712%202,8.008C2,11.304%204.712,14.016%208.008,14.016C10.25,14.016%2012.313,12.761%2013.344,10.77L14.231,11.232C13.028,13.546%2010.628,15.003%208.02,15.003C5.872,15.003%203.839,14.014%202.513,12.324ZM10.146,11.354L10.854,10.647L8,7.792L8,4L7,4L7,8L7.146,8.354L10.146,11.354Z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-              />
-            </div>
-            <div
-              class="msg divider vertical"
-              style="--thickness: 1px;"
-            />
-            <div
-              class="msg button imageOnly"
-              data-tooltip="Execute everything in the current block and create a new block"
-              role="button"
-              tabindex="0"
-            >
-              <div
-                class="msg icon"
-                data-tooltip="inherit"
-                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-59)'%3e%3cg%20id='Execute'%20transform='matrix(0.946417,0,0,0.947368,-288.894,-1847.05)'%3e%3cpath%20d='M676,2013L670,2023L675,2023L670,2032L684,2020L678,2019L685,2013L676,2013Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
               />
             </div>
             <div
@@ -143,6 +98,18 @@ exports[`DBConnectionTab tests > Test DBConnectionTab snapshot 1`] = `
             <div
               class="expander"
             />
+            <div
+              class="msg button imageOnly"
+              data-tooltip="Execute everything in the current block and create a new block"
+              role="button"
+              tabindex="0"
+            >
+              <div
+                class="msg icon"
+                data-tooltip="inherit"
+                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-59)'%3e%3cg%20id='Execute'%20transform='matrix(0.946417,0,0,0.947368,-288.894,-1847.05)'%3e%3cpath%20d='M676,2013L670,2023L675,2023L670,2032L684,2020L678,2019L685,2013L676,2013Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { fireEvent, render } from "@testing-library/preact";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/preact";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase.js";
 import { Menu } from "../../../../components/ui/Menu/Menu.js";
@@ -35,6 +35,21 @@ import { nextRunLoop } from "../../test-helpers.js";
 import { createRef } from "preact";
 
 describe("Menu component tests", (): void => {
+    afterEach(() => {
+        cleanup();
+        Reflect.deleteProperty(window, "electronHost");
+        vi.restoreAllMocks();
+        (Menu as unknown as { menuStack: Menu[] }).menuStack.length = 0;
+        const menuStatics = Menu as unknown as {
+            nativeMenuRegistrations: Map<string, unknown>;
+            nativeMenuHandlerRegistered: boolean;
+            nativeMenuSequence: number;
+        };
+        menuStatics.nativeMenuRegistrations.clear();
+        menuStatics.nativeMenuHandlerRegistered = false;
+        menuStatics.nativeMenuSequence = 0;
+    });
+
     it("Test Menu output (snapshot)", () => {
         const { container, unmount } = render(
             <Menu
@@ -255,6 +270,371 @@ describe("Menu component tests", (): void => {
         expect(onItemClick).toHaveBeenCalled();
 
         unmount;
+    });
+
+    it("keeps the menu open when a click handler returns false", async () => {
+        const menuRef = createRef<Menu>();
+
+        render(
+            <Menu
+                ref={menuRef}
+                id="tileActionMenu"
+                placement={ComponentPlacement.BottomLeft}
+                onItemClick={(props) => {
+                    return !props.children;
+                }}
+            >
+                <MenuItem command={{ title: "Move to Folder", command: "" }}>
+                    <MenuItem command={{ title: "Archive", command: "archive" }} />
+                </MenuItem>
+            </Menu>,
+        );
+
+        await nextRunLoop();
+        menuRef.current!.open(new DOMRect(0, 0, 2, 2), false);
+        await nextRunLoop();
+
+        const portal = document.getElementsByClassName("portal")[0]!;
+        fireEvent.click(portal.getElementsByClassName("menuItem")[0]);
+        await nextRunLoop();
+
+        expect(document.getElementsByClassName("portal")).toHaveLength(1);
+    });
+
+    it("closes the menu when clicking outside it", async () => {
+        const menuRef = createRef<Menu>();
+        const { getByTestId } = render(
+            <>
+                <div
+                    data-testid="outside"
+                    onClick={() => {
+                        return;
+                    }}
+                >
+                    Outside
+                </div>
+                <Menu
+                    ref={menuRef}
+                    id="tileActionMenu"
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={vi.fn()}
+                >
+                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }} />
+                </Menu>
+            </>,
+        );
+
+        await nextRunLoop();
+
+        menuRef.current!.open(new DOMRect(0, 0, 2, 2), false);
+        await nextRunLoop();
+
+        expect(document.getElementsByClassName("portal")).toHaveLength(1);
+
+        fireEvent.click(getByTestId("outside"));
+        await waitFor(() => {
+            expect(document.getElementsByClassName("portal")).toHaveLength(0);
+        });
+    });
+
+    it("closes the menu when outside mousedown stops bubbling", async () => {
+        const menuRef = createRef<Menu>();
+        const { getByTestId } = render(
+            <>
+                <div
+                    data-testid="outside"
+                    onMouseDown={(e) => {
+                        e.stopPropagation();
+                    }}
+                >
+                    Outside
+                </div>
+                <Menu
+                    ref={menuRef}
+                    id="tileActionMenu"
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={vi.fn()}
+                >
+                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }} />
+                </Menu>
+            </>,
+        );
+
+        await nextRunLoop();
+
+        menuRef.current!.open(new DOMRect(0, 0, 2, 2), false);
+        await nextRunLoop();
+
+        expect(document.getElementsByClassName("portal")).toHaveLength(1);
+
+        fireEvent.mouseDown(getByTestId("outside"));
+        await waitFor(() => {
+            expect(document.getElementsByClassName("portal")).toHaveLength(0);
+        });
+    });
+
+    it("keeps the parent menu closable after a submenu is closed from the parent menu", async () => {
+        const menuRef = createRef<Menu>();
+        const { getByTestId } = render(
+            <>
+                <div data-testid="outside">Outside</div>
+                <Menu
+                    ref={menuRef}
+                    id="tileActionMenu"
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={vi.fn()}
+                >
+                    <MenuItem command={{ title: "Move to Folder", command: "" }}>
+                        <MenuItem command={{ title: "Archive", command: "archive" }} />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Rename", command: "rename" }} />
+                </Menu>
+            </>,
+        );
+
+        await nextRunLoop();
+
+        menuRef.current!.open(new DOMRect(0, 0, 2, 2), false);
+        await nextRunLoop();
+
+        const menu = menuRef.current as unknown as {
+            itemRefs: Array<{ current?: { openSubMenu: (activateFirstEntry: boolean) => void } }>;
+        };
+        menu.itemRefs[0].current?.openSubMenu(false);
+        await nextRunLoop();
+
+        expect(document.getElementsByClassName("portal")).toHaveLength(2);
+
+        const rootPortal = document.getElementsByClassName("portal")[0]!;
+        const rootItems = rootPortal.getElementsByClassName("menuItem");
+        fireEvent.mouseEnter(rootItems[1]);
+        await nextRunLoop();
+
+        expect(document.getElementsByClassName("portal")).toHaveLength(1);
+        expect((Menu as unknown as { menuStack: Menu[] }).menuStack).toEqual([menuRef.current]);
+
+        fireEvent.mouseDown(getByTestId("outside"));
+        await waitFor(() => {
+            expect(document.getElementsByClassName("portal")).toHaveLength(0);
+        });
+    });
+
+    it("serializes native Electron menus with resolved commands and checked state", async () => {
+        const menuRef = createRef<Menu>();
+        const onItemClick = vi.fn();
+        const onClose = vi.fn();
+        const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        const closeNativeMenu = vi.fn().mockResolvedValue(undefined);
+        let nativeMenuHandler: ((event: { type: "select" | "close"; requestId: string; itemId?: string;
+            cancelled?: boolean; }) => void) | undefined;
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+                showNativeMenu,
+                closeNativeMenu,
+                setNativeMenuHandler: (handler: typeof nativeMenuHandler) => {
+                    nativeMenuHandler = handler;
+                },
+            },
+        });
+
+        render(
+            <Menu
+                ref={menuRef}
+                id="nativeMenu"
+                placement={ComponentPlacement.BottomLeft}
+                onItemClick={onItemClick}
+                onClose={onClose}
+                customCommand={(props, payload) => {
+                    const typedPayload = payload as { hide: boolean; } | undefined;
+                    if (props.command.command === "toggle") {
+                        return {
+                            title: typedPayload?.hide ? "Hide Private Items" : "Show Private Items",
+                            command: typedPayload?.hide ? "hide" : "show",
+                        };
+                    }
+
+                    return undefined;
+                }}
+                isItemDisabled={(props, payload) => {
+                    const typedPayload = payload as { disableLeaf: boolean; } | undefined;
+
+                    return props.command.command === "leaf" && Boolean(typedPayload?.disableLeaf);
+                }}
+            >
+                <MenuItem command={{ title: "More", command: "" }}>
+                    <MenuItem checked={true} command={{ title: "Stop on Error", command: "checked" }} />
+                    <MenuItem command={{ title: "Show Private Items", command: "toggle" }} />
+                </MenuItem>
+                <MenuItem command={{ title: "Leaf Item", command: "leaf" }} />
+            </Menu>,
+        );
+
+        menuRef.current!.open(new DOMRect(10, 20, 30, 40), true, undefined, { hide: true, disableLeaf: true });
+        await nextRunLoop();
+
+        expect(showNativeMenu).toHaveBeenCalledTimes(1);
+        const request = showNativeMenu.mock.calls[0][0] as {
+            id: string;
+            positioningItem?: number;
+            items: Array<{
+                id: string;
+                label?: string;
+                enabled?: boolean;
+                checked?: boolean;
+                submenu?: Array<{ id: string; label?: string; checked?: boolean; }>;
+            }>;
+        };
+
+        expect(request).toMatchObject({
+            positioningItem: 0,
+            items: [
+                {
+                    label: "More",
+                    enabled: true,
+                    submenu: [
+                        { label: "Stop on Error", checked: true },
+                        { label: "Hide Private Items", checked: undefined },
+                    ],
+                },
+                {
+                    label: "Leaf Item",
+                    enabled: false,
+                },
+            ],
+        });
+
+        const toggleItem = request.items[0].submenu?.find((item) => {
+            return item.label === "Hide Private Items";
+        });
+        expect(toggleItem).toBeTruthy();
+
+        nativeMenuHandler?.({
+            type: "select",
+            requestId: request.id,
+            itemId: toggleItem!.id,
+        });
+        await nextRunLoop();
+
+        expect(onItemClick).toHaveBeenCalledWith(expect.objectContaining({
+            command: expect.objectContaining({
+                title: "Hide Private Items",
+                command: "hide",
+            }),
+        }), false, { hide: true, disableLeaf: true });
+
+        menuRef.current!.close();
+        expect(closeNativeMenu).toHaveBeenCalledWith(request.id);
+
+        nativeMenuHandler?.({
+            type: "close",
+            requestId: request.id,
+            cancelled: false,
+        });
+        await nextRunLoop();
+
+        expect(onClose).toHaveBeenCalledWith(false, expect.objectContaining({ id: "nativeMenu" }));
+    });
+
+    it("omits popup coordinates for point-target native menus", async () => {
+        const menuRef = createRef<Menu>();
+        const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        const targetRect = {
+            x: 10,
+            y: 20,
+            width: 2,
+            height: 2,
+            left: 10,
+            top: 20,
+            right: 12,
+            bottom: 22,
+            toJSON: () => "",
+        } as unknown as DOMRect;
+
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+                showNativeMenu,
+                closeNativeMenu: vi.fn().mockResolvedValue(undefined),
+                setNativeMenuHandler: vi.fn(),
+            },
+        });
+
+        render(
+            <Menu
+                ref={menuRef}
+                id="mouseNativeMenu"
+                placement={ComponentPlacement.BottomLeft}
+                onItemClick={vi.fn()}
+            >
+                <MenuItem command={{ title: "First", command: "first" }} />
+            </Menu>,
+        );
+
+        menuRef.current!.open(targetRect, false);
+        await nextRunLoop();
+
+        expect(showNativeMenu).toHaveBeenCalledTimes(1);
+        const request = showNativeMenu.mock.calls[0][0] as {
+            x?: number;
+            y?: number;
+            positioningItem?: number;
+        };
+        expect(request.x).toBeUndefined();
+        expect(request.y).toBeUndefined();
+        expect(request.positioningItem).toBeUndefined();
+    });
+
+    it("anchors non-point native menus to the supplied target rect", async () => {
+        const menuRef = createRef<Menu>();
+        const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        const targetRect = {
+            x: 10,
+            y: 20,
+            width: 30,
+            height: 40,
+            left: 10,
+            top: 20,
+            right: 40,
+            bottom: 60,
+            toJSON: () => "",
+        } as unknown as DOMRect;
+
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+                showNativeMenu,
+                closeNativeMenu: vi.fn().mockResolvedValue(undefined),
+                setNativeMenuHandler: vi.fn(),
+            },
+        });
+
+        render(
+            <Menu
+                ref={menuRef}
+                id="anchoredNativeMenu"
+                placement={ComponentPlacement.BottomRight}
+                onItemClick={vi.fn()}
+            >
+                <MenuItem command={{ title: "First", command: "first" }} />
+            </Menu>,
+        );
+
+        menuRef.current!.open(targetRect, false);
+        await nextRunLoop();
+
+        expect(showNativeMenu).toHaveBeenCalledTimes(1);
+        const request = showNativeMenu.mock.calls[0][0] as {
+            x?: number;
+            y?: number;
+            positioningItem?: number;
+        };
+        expect(request.x).toBe(40);
+        expect(request.y).toBe(60);
+        expect(request.positioningItem).toBeUndefined();
     });
 
 });

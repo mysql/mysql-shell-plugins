@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -506,11 +506,12 @@ export class PresentationInterface {
                         this.resultData.text.push(...data.text);
                         if (data.executionInfo) {
                             this.resultData.executionInfo = data.executionInfo;
-
-                            // We got execution info, so we can return into idle state.
-                            this.changeLoadingState(LoadingState.Idle);
                         }
                     }
+                }
+
+                if (data.executionInfo && this.loadingState !== LoadingState.Idle) {
+                    this.changeLoadingState(LoadingState.Idle);
                 }
 
                 break;
@@ -1035,17 +1036,27 @@ export class PresentationInterface {
             }
 
             case "resultSets": {
-                const hasOutput = this.resultData.output && this.resultData.output.length > 0;
+                const effectiveResultData = this.alwaysShowTab
+                    && (!this.resultData.output || this.resultData.output.length === 0)
+                    ? {
+                        ...this.resultData,
+                        output: [{
+                            type: MessageType.Text,
+                            content: "",
+                        }],
+                    }
+                    : this.resultData;
+                const hasOutput = effectiveResultData.output && effectiveResultData.output.length > 0;
 
                 // Switch the tab if we're currently on the output tab re-running the query,
                 // results are present but output is missing.
-                if (!hasOutput && this.resultData.sets.length > 0 && this.currentSet === 0) {
+                if (!hasOutput && effectiveResultData.sets.length > 0 && this.currentSet === 0) {
                     this.currentSet = 1;
                 }
 
                 element = <ResultTabView
                     ref={this.resultRef}
-                    resultSets={this.resultData}
+                    resultSets={effectiveResultData}
                     contextId={contextId}
                     currentSet={this.currentSet}
                     hideTabs={this.hideTabs}

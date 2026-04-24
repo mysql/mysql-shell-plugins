@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,7 @@ export interface IMenuItemProperties extends Omit<IComponentProperties, "onClick
     altCommand?: Command;
 
     icon?: string | Codicon;
+    checked?: boolean;
     active?: boolean;
     subMenuPlacement?: ComponentPlacement;
 
@@ -84,16 +85,17 @@ export class MenuItem extends ComponentBase<IMenuItemProperties, IMenuItemState>
 
         this.itemRef = props.innerRef ?? createRef<HTMLDivElement>();
 
-        this.addHandledProperties("caption", "icon", "active", "subMenuPlacement", "onSubMenuClose",
+        this.addHandledProperties("caption", "icon", "checked", "active", "subMenuPlacement", "onSubMenuClose",
             "onSubMenuOpen", "subMenuShowOnClick", "innerRef", "title");
     }
 
     public render(): ComponentChild {
-        const { children, id, command, altCommand, icon, disabled, active, subMenuPlacement, title } = this.props;
+        const { children, id, command, altCommand, icon, checked, disabled, active, subMenuPlacement, title } = this.props;
         const { altActive } = this.state;
 
         const isSeparator = command.title === "-";
         const actualCaption = (altActive && altCommand) ? altCommand.title : command.title;
+        const actualIcon = checked ? Codicon.Check : icon;
         const className = this.getEffectiveClassNames([
             "menuItem",
             this.classFromProperty(disabled ?? isSeparator, "disabled"),
@@ -115,7 +117,7 @@ export class MenuItem extends ComponentBase<IMenuItemProperties, IMenuItemState>
                 onClick={this.handleItemClick}
                 title={title}
             >
-                {icon && <Icon src={icon} />}
+                {actualIcon && <Icon src={actualIcon} />}
                 <Label>{actualCaption}</Label>
             </Container>;
         } else {

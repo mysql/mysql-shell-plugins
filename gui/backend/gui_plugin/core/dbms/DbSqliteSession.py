@@ -325,6 +325,10 @@ class DbSqliteSession(DbSession):
         user_session._killed = True
         user_session.interrupt()
 
+    def kill_session(self, user_session):
+        self.kill_query(user_session)
+        user_session.close()
+
     def get_default_schema(self):
         return self._default_schema
 

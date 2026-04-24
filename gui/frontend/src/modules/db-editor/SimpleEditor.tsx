@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,6 +47,9 @@ interface ISimpleEditorProperties extends IComponentProperties {
 
     /** The name to be used if the user saves the content to a file. */
     fileName: string;
+
+    /** Triggered after the current editor content has been saved. */
+    onSave?: () => void;
 
     /** The toolbar items to show. We only use the navigation entry. */
     toolbarItemsTemplate: IToolbarItems;
@@ -222,9 +225,10 @@ export class SimpleEditor extends ComponentBase<ISimpleEditorProperties> {
     };
 
     private handleEditorSave = (): void => {
-        const { savedState, fileName } = this.props;
+        const { savedState, fileName, onSave } = this.props;
         const text = savedState.model.getValue();
         saveTextAsFile(text, fileName);
+        onSave?.();
     };
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,9 +24,11 @@
  */
 
 import { act, render } from "@testing-library/preact";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { createRef, type RefObject } from "preact";
 import type { CellComponent, EmptyCallback, ValueBooleanCallback, ValueVoidCallback } from "tabulator-tables";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultView, getWideColumns, updateWideColumnsCache } from "../../../../../components/ResultView/ResultView.js";
@@ -48,6 +50,29 @@ const createColumn = (title: string, field: string, inPK = false): IColumnInfo =
         autoIncrement: false,
         nullable: false,
     };
+};
+
+const readFrontendSourceFile = (path: string): string => {
+    let directory = process.cwd();
+
+    for (let i = 0; i < 8; i++) {
+        const candidate = join(directory, path);
+
+        if (existsSync(candidate)) {
+            return readFileSync(candidate, "utf-8");
+        }
+
+        directory = dirname(directory);
+    }
+
+    throw new Error(`Unable to find ${path}`);
+};
+
+const readCssRule = (css: string, selector: string): string => {
+    const escapedSelector = selector.replaceAll(".", "\\.").replaceAll("#", "\\#");
+    const match = new RegExp(`${escapedSelector}\\s*{(?<rule>[^}]*)}`, "s").exec(css);
+
+    return match?.groups?.rule ?? "";
 };
 
 // @ts-expect-error, we are extending a class for testing purposes.
@@ -122,6 +147,24 @@ const assignColumnWithoutFormatterParams = (cell: CellComponentMock, info: IColu
 };
 
 describe("Result View Tests", (): void => {
+    afterEach(() => {
+        Reflect.deleteProperty(window, "electronHost");
+    });
+
+    it("uses 12px as the default result grid font size", () => {
+        const resultViewCss = readFrontendSourceFile("src/components/ResultView/ResultView.css");
+        const tabulatorRule = readCssRule(resultViewCss, ".msg.resultHost .resultView .tabulator");
+
+        expect(tabulatorRule).toContain("font-size: 12px;");
+    });
+
+    it("uses the standard UI font for result grids", () => {
+        const resultViewCss = readFrontendSourceFile("src/components/ResultView/ResultView.css");
+        const resultHostRule = readCssRule(resultViewCss, ".msg.resultHost");
+
+        expect(resultHostRule).toContain("font-family: var(--msg-standard-font-family);");
+        expect(resultHostRule).not.toContain("var(--msg-monospace-font-family)");
+    });
 
     it("Standard Rendering", () => {
         const { container, unmount } = render(
@@ -145,6 +188,42 @@ describe("Result View Tests", (): void => {
 
         expect(container).toMatchSnapshot();
 
+        unmount();
+    });
+
+    it("does not reload unchanged rows after status-only updates", async () => {
+        const resultSet = createResultSet("123", [{ id: 1 }]);
+        const viewRef = createRef<ResultView>();
+        const { rerender, unmount } = render(
+            <ResultView
+                ref={viewRef}
+                resultSet={resultSet}
+                editModeActive={false}
+                editable={false}
+            />,
+        );
+
+        await nextRunLoop();
+
+        const addDataSpy = vi.spyOn(viewRef.current!, "addData");
+        resultSet.data.executionInfo = {
+            type: MessageType.Response,
+            text: "OK",
+        };
+
+        rerender(
+            <ResultView
+                ref={viewRef}
+                resultSet={{ ...resultSet }}
+                editModeActive={false}
+                editable={false}
+            />,
+        );
+        await nextRunLoop();
+
+        expect(addDataSpy).not.toHaveBeenCalled();
+
+        addDataSpy.mockRestore();
         unmount();
     });
 
@@ -2048,6 +2127,96 @@ describe("Result View Tests", (): void => {
 
         unmount();
 
+    });
+
+    it("uses the native Electron bridge for the result cell context menu", async () => {
+        const columns = [createColumn("name", "0")];
+        const rows = [{ 0: "Animal" }];
+        const viewRef = createRef<TestResultView>();
+        const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        let nativeMenuHandler: ((event: { type: "select"; requestId: string; itemId: string; }) => void) | undefined;
+
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+                showNativeMenu,
+                closeNativeMenu: vi.fn().mockResolvedValue(undefined),
+                setNativeMenuHandler: (handler: typeof nativeMenuHandler) => {
+                    nativeMenuHandler = handler;
+                },
+            },
+        });
+
+        render(
+            <TestResultView
+                ref={viewRef}
+                resultSet={{
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "native-menu-result",
+                    columns,
+                    updatable: true,
+                    fullTableName: "test",
+                    data: {
+                        rows,
+                        currentPage: 0,
+                    },
+                }}
+                editModeActive={true}
+                editable={true}
+            />,
+        );
+
+        const clipboardSpy = vi.spyOn(requisitions, "writeToClipboard").mockImplementation(() => { /**/ });
+        const menu = viewRef.current!.cellContextMenuRef.current;
+        const cell = new CellComponentMock();
+
+        viewRef.current!.setFakeCell(cell);
+        menu!.open(new DOMRect(5, 10, 2, 2), false);
+        await nextRunLoop();
+
+        expect(showNativeMenu).toHaveBeenCalledTimes(1);
+        const request = showNativeMenu.mock.calls[0][0] as {
+            id: string;
+            x?: number;
+            y?: number;
+            items: Array<{
+                id: string;
+                label?: string;
+                enabled?: boolean;
+                submenu?: Array<{ id: string; label?: string; }>;
+            }>;
+        };
+        expect(request.x).toBeUndefined();
+        expect(request.y).toBeUndefined();
+
+        expect(request.items).toEqual(expect.arrayContaining([
+            expect.objectContaining({ label: "Open Value in Editor", enabled: false }),
+            expect.objectContaining({
+                label: "Copy Single Row",
+                submenu: expect.arrayContaining([
+                    expect.objectContaining({ label: "Copy Row" }),
+                ]),
+            }),
+            expect.objectContaining({ label: "Copy Field", enabled: true }),
+        ]));
+
+        const copyField = request.items.find((item) => {
+            return item.label === "Copy Field";
+        });
+        expect(copyField).toBeTruthy();
+
+        nativeMenuHandler?.({
+            type: "select",
+            requestId: request.id,
+            itemId: copyField!.id,
+        });
+        await nextRunLoop();
+
+        expect(clipboardSpy).toHaveBeenCalledWith("'Animal'");
+
+        clipboardSpy.mockRestore();
     });
 });
 

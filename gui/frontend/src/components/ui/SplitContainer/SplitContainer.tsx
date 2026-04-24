@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -64,6 +64,9 @@ interface IPanePositionData {
 export interface ISplitterPane {
     id?: string;
     content: ComponentChild;
+    splitterContent?: ComponentChild;
+    splitterClassName?: string;
+    splitterPlacement?: "center" | "before" | "after";
 
     minSize?: number;
     maxSize?: number;
@@ -112,6 +115,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
 
     private containerRef: preact.RefObject<HTMLElement>;
     private resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    private connectedSashes = new Set<HTMLElement>();
 
     public constructor(props: ISplitContainerProperties) {
         super(props);
@@ -133,6 +137,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
     public override componentDidUpdate(): void {
         this.updatePaneData();
         this.computeLayout();
+        this.syncSashListeners();
     }
 
     public override componentDidMount(): void {
@@ -143,14 +148,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
 
         if (this.sashContainerRef.current && this.contentContainerRef.current) {
             this.computeLayout();
-
-            const sashes = this.sashContainerRef.current.childNodes;
-            sashes.forEach((node: ChildNode) => {
-                const sash = node as HTMLElement;
-                sash.addEventListener("pointerdown", this.handleSplitterPointerDown);
-                sash.addEventListener("pointerup", this.handleSplitterPointerUp);
-                sash.addEventListener("pointermove", this.handleSplitterPointerMove);
-            });
+            this.syncSashListeners();
 
             this.lastMouseX = this.contentContainerRef.current.clientWidth;
             this.lastMouseY = this.contentContainerRef.current.clientHeight;
@@ -163,17 +161,8 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
             clearTimeout(this.resizeTimer);
         }
 
-        if (this.sashContainerRef.current && this.contentContainerRef.current) {
-            const sashes = this.sashContainerRef.current.childNodes;
-            sashes.forEach((node: ChildNode): void => {
-                const sash = node as HTMLElement;
-                sash.removeEventListener("pointerdown", this.handleSplitterPointerDown);
-                sash.removeEventListener("pointerup", this.handleSplitterPointerUp);
-                sash.removeEventListener("pointermove", this.handleSplitterPointerMove);
-            });
-        }
-
         document.removeEventListener("pointerup", this.handleSplitterPointerUp);
+        this.disconnectSashListeners();
 
         if (this.contentContainerRef.current) {
             this.resizeObserver?.unobserve(this.contentContainerRef.current);
@@ -191,13 +180,23 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
         const content = panes.map((pane: ISplitterPane, index: number) => {
             const baseId = pane.id ?? `pane${index}`;
             if (index < panes.length - 1) {
+                const sashClassName = [
+                    "sash",
+                    pane.resizable ? "" : "disabled",
+                    pane.splitterClassName ?? "",
+                ].filter((entry) => {
+                    return entry.length > 0;
+                }).join(" ");
+
                 sashes.push(<Divider
                     key={baseId + "Sash"}
                     id={baseId + "Sash"}
-                    className={"sash" + (pane.resizable ? "" : " disabled")}
+                    className={sashClassName}
                     vertical={this.isHorizontal}
                     thickness={splitterSize}
-                />);
+                >
+                    {pane.splitterContent && <div className="sashContent">{pane.splitterContent}</div>}
+                </Divider>);
             }
 
             return (
@@ -249,12 +248,47 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
         return orientation === Orientation.LeftToRight || orientation === Orientation.RightToLeft;
     }
 
+    private syncSashListeners(): void {
+        const currentSashes = new Set<HTMLElement>();
+        this.sashContainerRef.current?.childNodes.forEach((node: ChildNode) => {
+            currentSashes.add(node as HTMLElement);
+        });
+
+        this.connectedSashes.forEach((sash: HTMLElement) => {
+            if (!currentSashes.has(sash)) {
+                this.disconnectSash(sash);
+            }
+        });
+
+        currentSashes.forEach((sash: HTMLElement) => {
+            if (!this.connectedSashes.has(sash)) {
+                sash.addEventListener("pointerdown", this.handleSplitterPointerDown);
+                sash.addEventListener("pointerup", this.handleSplitterPointerUp);
+                sash.addEventListener("pointermove", this.handleSplitterPointerMove);
+                this.connectedSashes.add(sash);
+            }
+        });
+    }
+
+    private disconnectSashListeners(): void {
+        this.connectedSashes.forEach((sash: HTMLElement) => {
+            this.disconnectSash(sash);
+        });
+    }
+
+    private disconnectSash(sash: HTMLElement): void {
+        sash.removeEventListener("pointerdown", this.handleSplitterPointerDown);
+        sash.removeEventListener("pointerup", this.handleSplitterPointerUp);
+        sash.removeEventListener("pointermove", this.handleSplitterPointerMove);
+        this.connectedSashes.delete(sash);
+    }
+
     private handleSplitterPointerDown = (e: PointerEvent): void => {
         if (this.sashContainerRef.current) {
             const sashes = this.sashContainerRef.current.childNodes;
             sashes.forEach((node: ChildNode, index: number): void => {
                 const sash = node as HTMLElement;
-                if (node === e.target) {
+                if (node === e.currentTarget) {
                     this.currentSashIndex = index;
                     this.lastMouseX = e.x;
                     this.lastMouseY = e.y;
@@ -615,11 +649,12 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
 
     private applyLayout = (): void => {
         if (this.sashContainerRef.current && this.contentContainerRef.current) {
+            const { panes, splitterSize = 4 } = this.props;
             const sashes = this.sashContainerRef.current.childNodes;
-            const panes = this.contentContainerRef.current.childNodes;
+            const paneHosts = this.contentContainerRef.current.childNodes;
 
             let currentPosition = 0;
-            panes.forEach((node: ChildNode, index: number): void => {
+            paneHosts.forEach((node: ChildNode, index: number): void => {
                 let sash: HTMLElement | undefined;
                 if (index < sashes.length) {
                     sash = sashes[index] as HTMLElement;
@@ -642,7 +677,9 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
                     currentPosition += paneData.currentSize;
 
                     if (sash) {
-                        sash.style.left = convertPropValue(currentPosition - 3)!;
+                        sash.style.left = convertPropValue(
+                            this.getSashPosition(currentPosition, splitterSize, panes[index]),
+                        )!;
                     }
                 } else {
                     pane.style.height = convertPropValue(paneData.currentSize)!;
@@ -650,10 +687,29 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
                     currentPosition += paneData.currentSize;
 
                     if (sash) {
-                        sash.style.top = convertPropValue(currentPosition - 3)!;
+                        sash.style.top = convertPropValue(
+                            this.getSashPosition(currentPosition, splitterSize, panes[index]),
+                        )!;
                     }
                 }
             });
+        }
+    };
+
+    private getSashPosition = (
+        boundaryPosition: number,
+        splitterSize: number,
+        pane: ISplitterPane | undefined,
+    ): number => {
+        switch (pane?.splitterPlacement) {
+            case "before":
+                return boundaryPosition - splitterSize;
+
+            case "after":
+                return boundaryPosition;
+
+            default:
+                return boundaryPosition - 3;
         }
     };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -68,7 +68,11 @@ export class StandalonePresentationInterface extends PresentationInterface {
             this.resizeObserver = undefined;
         }
 
-        this.#host?.setState({ showResultPane: false });
+        this.#host?.setState({
+            showResultPane: true,
+            maximizeResultPane: false,
+            hasResultContent: false,
+        });
     }
 
     protected override updateRenderTarget(height?: number): void {
@@ -81,6 +85,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
         this.#host?.setState({
             showResultPane: true,
             maximizeResultPane: this.maximizedResult ?? false,
+            hasResultContent: true,
         });
     }
 
@@ -109,12 +114,13 @@ export class StandalonePresentationInterface extends PresentationInterface {
         this.#host?.setState({
             showResultPane: true,
             maximizeResultPane: this.maximizedResult ?? false,
+            hasResultContent: true,
         });
 
         return this.#target!.current!;
     }
 
     protected override get hideTabs(): "always" | "single" | "never" {
-        return this.maximizedResult ? "always" : "never";
+        return "never";
     }
 }

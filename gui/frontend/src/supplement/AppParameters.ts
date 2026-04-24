@@ -25,6 +25,7 @@
 /* eslint-disable no-restricted-syntax */
 
 import type { IAppParameters } from "./RequisitionTypes.js";
+import { hasElectronHostBridge } from "./ElectronDesktop.js";
 
 /** A set of values passed to the application via URL parameters and a couple other application wide values. */
 export const appParameters: Map<string, string> & IAppParameters = new Map<string, string>();
@@ -41,6 +42,10 @@ export const parseAppParameters = (): void => {
     appParameters.inExtension = false;
 
     if (typeof window !== "undefined") {
+        if (hasElectronHostBridge()) {
+            appParameters.embedded = true;
+        }
+
         const search = new URLSearchParams(window.location.search);
 
         for (const [queryParam, value] of search) {

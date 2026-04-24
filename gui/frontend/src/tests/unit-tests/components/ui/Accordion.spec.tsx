@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -200,5 +200,89 @@ describe("Accordion component tests", (): void => {
         expect(container).toMatchSnapshot();
 
         unmount();
+    });
+
+    it("keeps dynamically added section splitters resizable", async () => {
+        const onSectionResize = vi.fn();
+        const originalSetPointerCapture = HTMLElement.prototype.setPointerCapture;
+        const originalReleasePointerCapture = HTMLElement.prototype.releasePointerCapture;
+        Object.defineProperty(HTMLElement.prototype, "setPointerCapture", {
+            configurable: true,
+            value: vi.fn(),
+        });
+        Object.defineProperty(HTMLElement.prototype, "releasePointerCapture", {
+            configurable: true,
+            value: vi.fn(),
+        });
+
+        const pointerEvent = (type: string): PointerEvent => {
+            const event = new MouseEvent(type, {
+                bubbles: true,
+                clientX: 10,
+                clientY: 10,
+            }) as PointerEvent;
+            Object.defineProperty(event, "pointerId", {
+                configurable: true,
+                value: 1,
+            });
+
+            return event;
+        };
+
+        try {
+            const { container, rerender, unmount } = render(
+                <Accordion
+                    id="sidebar1"
+                    onSectionResize={onSectionResize}
+                    sections={[{
+                        caption: "FIRST SECTION",
+                        id: "first",
+                        resizable: true,
+                        content: <Accordion.Item id="item1" caption="Item 1" />,
+                    }]}
+                />,
+            );
+
+            try {
+                rerender(
+                    <Accordion
+                        id="sidebar1"
+                        onSectionResize={onSectionResize}
+                        sections={[{
+                            caption: "FIRST SECTION",
+                            id: "first",
+                            resizable: true,
+                            content: <Accordion.Item id="item1" caption="Item 1" />,
+                        }, {
+                            caption: "SECOND SECTION",
+                            id: "second",
+                            resizable: true,
+                            content: <Accordion.Item id="item2" caption="Item 2" />,
+                        }]}
+                    />,
+                );
+
+                const sash = container.querySelector("#firstSash") as HTMLElement;
+                expect(sash).toBeDefined();
+
+                await act(() => {
+                    sash.dispatchEvent(pointerEvent("pointerdown"));
+                    sash.dispatchEvent(pointerEvent("pointerup"));
+                });
+
+                expect(onSectionResize).toHaveBeenCalled();
+            } finally {
+                unmount();
+            }
+        } finally {
+            Object.defineProperty(HTMLElement.prototype, "setPointerCapture", {
+                configurable: true,
+                value: originalSetPointerCapture,
+            });
+            Object.defineProperty(HTMLElement.prototype, "releasePointerCapture", {
+                configurable: true,
+                value: originalReleasePointerCapture,
+            });
+        }
     });
 });

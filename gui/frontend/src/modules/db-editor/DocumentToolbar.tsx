@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,15 +32,20 @@ import { ComponentBase, IComponentProperties, IComponentState } from "../../comp
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { LoadingState } from "../../script-execution/index.js";
 import { Assets } from "../../supplement/Assets.js";
+import { desktopCommandRegistry } from "../../supplement/DesktopCommandRegistry.js";
+import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import type { ISqlTransactionChangeDetails } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import type { IOpenDocumentState } from "./ConnectionTab.js";
 import { IToolbarItems } from "./index.js";
+import { getNextTransactionOpenState } from "./transactionState.js";
 
 interface IDocumentToolbarProperties extends IComponentProperties {
     /**
@@ -57,19 +62,29 @@ interface IDocumentToolbarProperties extends IComponentProperties {
     language: string;
 
     backend?: ShellInterfaceSqlEditor;
+    onDesktopRunStateChanged?: () => void;
 }
 
 interface IDocumentToolbarState extends IComponentState {
     editorId: string;
     currentEditor?: IOpenDocumentState;
-
     currentContext?: ExecutionContext;
 
     canExecute: boolean;
     canStop: boolean;
     canExecuteSubparts: boolean;
     autoCommit: boolean;
+    transactionOpen: boolean;
     contextLanguage: string;
+}
+
+export interface IDesktopRunState {
+    canExecute: boolean;
+    canExecuteSubparts: boolean;
+    canStop: boolean;
+    autoCommit: boolean;
+    transactionOpen?: boolean;
+    stopOnErrors: boolean;
 }
 
 export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, IDocumentToolbarState> {
@@ -90,14 +105,16 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
             canStop: false,
             canExecuteSubparts: false,
             autoCommit: true,
+            transactionOpen: false,
             contextLanguage: "sql",
         };
 
         this.addHandledProperties("toolbarItems", "activeDocument", "heatWaveEnabled", "documentState", "language",
-            "backend");
+            "backend", "onDesktopRunStateChanged");
     }
 
-    public override componentDidUpdate(oldProps: IDocumentToolbarProperties): void {
+    public override componentDidUpdate(oldProps: IDocumentToolbarProperties, oldState: IDocumentToolbarState): void {
+        const { onDesktopRunStateChanged } = this.props;
         const { activeDocument, documentState } = this.props;
         if (activeDocument !== oldProps.activeDocument) {
             const currentEditor = documentState.find((state) => {
@@ -120,6 +137,17 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                 }
             }
         }
+
+        if (this.state.autoCommit !== oldState.autoCommit
+            || this.state.transactionOpen !== oldState.transactionOpen
+            || this.state.canExecute !== oldState.canExecute
+            || this.state.canStop !== oldState.canStop
+            || this.state.canExecuteSubparts !== oldState.canExecuteSubparts
+            || this.state.currentContext !== oldState.currentContext
+            || this.state.currentEditor !== oldState.currentEditor) {
+            desktopCommandRegistry.notifyHostStateChanged();
+            onDesktopRunStateChanged?.();
+        }
     }
 
     public override componentDidMount(): void {
@@ -129,12 +157,18 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
         requisitions.register("editorContextStateChanged", this.contextStateChanged);
         requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.register("editorToggleAutoCommit", this.toggleAutoCommit);
+        requisitions.register("sqlTransactionChanged", this.transactionChanged);
         requisitions.register("sqlTransactionEnded", this.transactionEnded);
         requisitions.register("settingsChanged", this.settingsChanged);
 
         this.setState({
             canExecuteSubparts: language === "mysql" || language === "sql",
         });
+
+        this.updateState();
+        void this.queryAutoCommit();
+        desktopCommandRegistry.notifyHostStateChanged();
+        this.props.onDesktopRunStateChanged?.();
     }
 
     public override componentWillUnmount(): void {
@@ -147,24 +181,19 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
         requisitions.unregister("editorContextStateChanged", this.contextStateChanged);
         requisitions.unregister("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.unregister("editorToggleAutoCommit", this.toggleAutoCommit);
+        requisitions.unregister("sqlTransactionChanged", this.transactionChanged);
         requisitions.unregister("sqlTransactionEnded", this.transactionEnded);
         requisitions.unregister("settingsChanged", this.settingsChanged);
     }
 
     public render(): ComponentChild {
         const { toolbarItems, language, heatWaveEnabled } = this.props;
-        const { autoCommit, canExecute, canStop, canExecuteSubparts, currentEditor } = this.state;
+        const { canExecute, canStop, canExecuteSubparts, currentEditor } = this.state;
 
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "the selection or " : "";
 
         const is3rdLanguage = currentEditor?.state?.model.is3rdLanguage;
-        const stopOnErrors = Settings.get("editor.stopOnErrors", true);
-        const stopOnErrorIcon = stopOnErrors
-            ? Assets.toolbar.stopOnErrorActiveIcon
-            : Assets.toolbar.stopOnErrorInactiveIcon;
-
-        const autoCommitIcon = autoCommit ? Assets.toolbar.autoCommitActiveIcon : Assets.toolbar.autoCommitInactiveIcon;
 
         const showHidden = Settings.get("editor.showHidden", false);
         const showHiddenIcon = showHidden ? Assets.toolbar.showHiddenActiveIcon : Assets.toolbar.showHiddenInactiveIcon;
@@ -173,206 +202,167 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
         const wordWrapIcon = wordWrap === "on"
             ? Assets.toolbar.wordWrapActiveIcon
             : Assets.toolbar.wordWrapInactiveIcon;
+        const showEditorViewButtons = !hasElectronHostBridge();
 
         const executionItems = toolbarItems.execution.slice();
-        if (language === "msg") {
-            executionItems.push(
-                <Button
-                    key="executeFullBlock"
-                    data-tooltip={`Execute ${selectionText}everything in the current block and create a new block`}
-                    imageOnly={true}
-                    disabled={!canExecute}
-                    onClick={
-                        () => {
-                            void requisitions.execute("editorExecuteSelectedOrAll",
-                                { advance: true, forceSecondaryEngine: false, asText: false, is3rdLanguage });
-                        }
-                    }
-                >
-                    <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
-                </Button>);
-        } else {
-            executionItems.push(
-                <Button
-                    key="executeFullBlock"
-                    data-tooltip={`Execute full script`}
-                    imageOnly={true}
-                    disabled={!canExecute}
-                    onClick={
-                        () => {
-                            void requisitions.execute("editorExecuteSelectedOrAll",
-                                { advance: false, forceSecondaryEngine: false, asText: false, is3rdLanguage });
-                        }
-                    }
-                >
-                    <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
-                </Button>);
-        }
-
-        if (canExecuteSubparts) {
-            executionItems.push(
-                <Button
-                    key="executeFromCaret"
-                    data-tooltip="Execute the statement at the caret position"
-                    imageOnly={true}
-                    disabled={!canExecute}
-                    onClick={
-                        () => {
-                            void requisitions.execute("editorExecute",
-                                { advance: false, forceSecondaryEngine: false, asText: false, is3rdLanguage });
-                        }
-                    }
-                >
-                    <Icon src={Assets.toolbar.executeCaretIcon} data-tooltip="inherit" />
-                </Button>,
-            );
-
-            executionItems.push(
-                <Button
-                    key="executeToText"
-                    data-tooltip={`Execute the ${area} and print the result as text`}
-                    imageOnly={true}
-                    disabled={!canExecute}
-                    onClick={
-                        () => {
-                            void requisitions.execute("editorExecuteSelectedOrAll",
-                                { advance: true, forceSecondaryEngine: false, asText: true, is3rdLanguage });
-                        }
-                    }
-                >
-                    <Icon src={Assets.toolbar.executePrintTextIcon} data-tooltip="inherit" />
-                </Button>,
-            );
-
-            if (heatWaveEnabled) {
+        if (!hasElectronHostBridge()) {
+            if (language === "msg") {
                 executionItems.push(
                     <Button
-                        key="executeFullBlockHeatWave"
-                        data-tooltip={`Execute ${selectionText}full ${area} on HeatWave and create a new block`}
+                        key="executeFullBlock"
+                        data-tooltip={`Execute ${selectionText}everything in the current block and create a new block`}
                         imageOnly={true}
                         disabled={!canExecute}
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecuteSelectedOrAll",
-                                    { advance: true, forceSecondaryEngine: true, asText: false, is3rdLanguage });
+                                    { advance: true, forceSecondaryEngine: false, asText: false, is3rdLanguage });
                             }
                         }
                     >
-                        <Icon src={Assets.toolbar.executeHeatwaveIcon} data-tooltip="inherit" />
-                    </Button>,
+                        <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
+                    </Button>);
+            } else {
+                executionItems.push(
                     <Button
-                        key="executeFromCaretHeatWave"
-                        data-tooltip={`Execute statement at current position on HeatWave`}
+                        key="executeFullBlock"
+                        data-tooltip={`Execute full script`}
+                        imageOnly={true}
+                        disabled={!canExecute}
+                        onClick={
+                            () => {
+                                void requisitions.execute("editorExecuteSelectedOrAll",
+                                    { advance: false, forceSecondaryEngine: false, asText: false, is3rdLanguage });
+                            }
+                        }
+                    >
+                        <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
+                    </Button>);
+            }
+
+            if (canExecuteSubparts) {
+                executionItems.push(
+                    <Button
+                        key="executeFromCaret"
+                        data-tooltip="Execute the statement at the caret position"
                         imageOnly={true}
                         disabled={!canExecute}
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecute",
-                                    { advance: false, forceSecondaryEngine: true, asText: false, is3rdLanguage });
+                                    { advance: false, forceSecondaryEngine: false, asText: false, is3rdLanguage });
                             }
                         }
                     >
-                        <Icon src={Assets.toolbar.executeCaretHeatwaveIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.toolbar.executeCaretIcon} data-tooltip="inherit" />
+                    </Button>,
+                );
+
+                executionItems.push(
+                    <Button
+                        key="executeToText"
+                        data-tooltip={`Execute the ${area} and print the result as text`}
+                        imageOnly={true}
+                        disabled={!canExecute}
+                        onClick={
+                            () => {
+                                void requisitions.execute("editorExecuteSelectedOrAll",
+                                    { advance: true, forceSecondaryEngine: false, asText: true, is3rdLanguage });
+                            }
+                        }
+                    >
+                        <Icon src={Assets.toolbar.executePrintTextIcon} data-tooltip="inherit" />
+                    </Button>,
+                );
+
+                if (heatWaveEnabled) {
+                    executionItems.push(
+                        <Button
+                            key="executeFullBlockHeatWave"
+                            data-tooltip={`Execute ${selectionText}full ${area} on HeatWave and create a new block`}
+                            imageOnly={true}
+                            disabled={!canExecute}
+                            onClick={
+                                () => {
+                                    void requisitions.execute("editorExecuteSelectedOrAll",
+                                        { advance: true, forceSecondaryEngine: true, asText: false, is3rdLanguage });
+                                }
+                            }
+                        >
+                            <Icon src={Assets.toolbar.executeHeatwaveIcon} data-tooltip="inherit" />
+                        </Button>,
+                        <Button
+                            key="executeFromCaretHeatWave"
+                            data-tooltip={`Execute statement at current position on HeatWave`}
+                            imageOnly={true}
+                            disabled={!canExecute}
+                            onClick={
+                                () => {
+                                    void requisitions.execute("editorExecute",
+                                        { advance: false, forceSecondaryEngine: true, asText: false, is3rdLanguage });
+                                }
+                            }
+                        >
+                            <Icon src={Assets.toolbar.executeCaretHeatwaveIcon} data-tooltip="inherit" />
+                        </Button>,
+                    );
+                }
+
+                executionItems.push(
+                    <Button
+                        key="editorStpExecutionButton"
+                        data-tooltip="Stop execution of the current statement/script"
+                        requestType="editorStopExecution"
+                        imageOnly={true}
+                        disabled={!canStop}
+                    >
+                        <Icon src={Assets.toolbar.stopExecutionIcon} data-tooltip="inherit" />
                     </Button>,
                 );
             }
-
-            executionItems.push(
-                <Button
-                    key="editorStpExecutionButton"
-                    data-tooltip="Stop execution of the current statement/script"
-                    requestType="editorStopExecution"
-                    imageOnly={true}
-                    disabled={!canStop}
-                >
-                    <Icon src={Assets.toolbar.stopExecutionIcon} data-tooltip="inherit" />
-                </Button>,
-                <Button
-                    key="editorStpExecutionOnErrorButton"
-                    data-tooltip="Stop execution of the current statement/script in case of errors"
-                    imageOnly={true}
-                    onClick={
-                        () => {
-                            void requisitions.execute("editorToggleStopExecutionOnError", stopOnErrors);
-                        }
-                    }
-                >
-                    <Icon src={stopOnErrorIcon} data-tooltip="inherit" />
-                </Button>,
-            );
-        }
-
-        if (canExecuteSubparts) {
-            executionItems.push(
-                <Divider key="divider2" vertical={true} thickness={1} />,
-                <Button
-                    key="commitButton"
-                    data-tooltip="Commit DB changes"
-                    requestType="editorCommit"
-                    imageOnly={true}
-                    disabled={autoCommit}
-                >
-                    <Icon src={Assets.toolbar.commitIcon} data-tooltip="inherit" />
-                </Button>,
-                <Button
-                    key="rollbackButton"
-                    data-tooltip="Rollback DB changes"
-                    requestType="editorRollback"
-                    imageOnly={true}
-                    disabled={autoCommit}
-                >
-                    <Icon src={Assets.toolbar.rollbackIcon} data-tooltip="inherit" />
-                </Button>,
-                <Button
-                    key="autoCommitButton"
-                    data-tooltip="Auto commit DB changes"
-                    requestType="editorToggleAutoCommit"
-                    imageOnly={true}
-                >
-                    <Icon src={autoCommitIcon} data-tooltip="inherit" />
-                </Button>,
-            );
         }
 
         const editorItems = toolbarItems.editor.slice();
-        editorItems.push(
-            /* We have no formatting yet.
-            <Button
-                key="editorFormatButton"
-                data-tooltip="Format current block or script"
-                requestType="editorFormat"
-                imageOnly={true}
-            >
-                <Icon src={formatIcon} data-tooltip="inherit" />
-            </Button>,
-            <Divider key="formatDivider" vertical={true} thickness={1} />,*/
-            <Button
-                key="editorFindButton"
-                data-tooltip="Find"
-                requestType="editorFind"
-                imageOnly={true}
-            >
-                <Icon src={Assets.toolbar.searchIcon} data-tooltip="inherit" />
-            </Button>,
-            <Button
-                key="editorShowHiddenButton"
-                data-tooltip="Show hidden characters"
-                imageOnly={true}
-                onClick={this.toggleHidden}
-            >
-                <Icon src={showHiddenIcon} data-tooltip="inherit" />
-            </Button>,
-            <Button
-                key="editorToggleSoftWrapButton"
-                data-tooltip="Soft wrap lines"
-                imageOnly={true}
-                onClick={() => {
-                    Settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on");
-                }}
-            >
-                <Icon src={wordWrapIcon} data-tooltip="inherit" />
-            </Button>,
-        );
+        if (showEditorViewButtons) {
+            editorItems.push(
+                /* We have no formatting yet.
+                <Button
+                    key="editorFormatButton"
+                    data-tooltip="Format current block or script"
+                    requestType="editorFormat"
+                    imageOnly={true}
+                >
+                    <Icon src={formatIcon} data-tooltip="inherit" />
+                </Button>,
+                <Divider key="formatDivider" vertical={true} thickness={1} />,*/
+                <Button
+                    key="editorFindButton"
+                    data-tooltip="Find"
+                    requestType="editorFind"
+                    imageOnly={true}
+                >
+                    <Icon src={Assets.toolbar.searchIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    key="editorShowHiddenButton"
+                    data-tooltip="Show hidden characters"
+                    imageOnly={true}
+                    onClick={this.toggleHidden}
+                >
+                    <Icon src={showHiddenIcon} data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    key="editorToggleSoftWrapButton"
+                    data-tooltip="Soft wrap lines"
+                    imageOnly={true}
+                    onClick={() => {
+                        Settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on");
+                    }}
+                >
+                    <Icon src={wordWrapIcon} data-tooltip="inherit" />
+                </Button>,
+            );
+        }
 
         if (heatWaveEnabled) {
             editorItems.push(
@@ -399,21 +389,45 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                 </Button>);
         }
 
+        const showNavigationDivider = toolbarItems.navigation.length > 0 && editorItems.length > 0;
+        const showRightDivider = executionItems.length > 0 && toolbarItems.auxiliary.length > 0;
+
         return (
             <Toolbar
                 id="documentToolbar"
                 dropShadow={false}
             >
                 {toolbarItems.navigation}
-                {toolbarItems.navigation.length > 0 && <Divider vertical={true} thickness={1} />}
-                {executionItems}
-                {executionItems.length > 0 && <Divider vertical={true} thickness={1} />}
+                {showNavigationDivider && <Divider vertical={true} thickness={1} />}
                 {editorItems}
                 <div className="expander" />
+                {executionItems}
+                {showRightDivider && <Divider vertical={true} thickness={1} />}
                 {toolbarItems.auxiliary}
             </Toolbar >
         );
     }
+
+    public getDesktopRunState = (): IDesktopRunState => {
+        const { autoCommit, transactionOpen, canExecute, canStop, canExecuteSubparts } = this.state;
+
+        return {
+            canExecute,
+            canExecuteSubparts,
+            canStop,
+            autoCommit,
+            transactionOpen,
+            stopOnErrors: Settings.get("editor.stopOnErrors", true),
+        };
+    };
+
+    public toggleDesktopStopOnError = (): Promise<boolean> => {
+        return this.toggleStopExecutionOnError(Settings.get("editor.stopOnErrors", true));
+    };
+
+    public toggleDesktopAutoCommit = (): Promise<boolean> => {
+        return this.toggleAutoCommit();
+    };
 
     private handleCaretMove = (position: IPosition): Promise<boolean> => {
         this.updateState(position);
@@ -429,11 +443,20 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
     private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!entry) {
             this.forceUpdate();
+            desktopCommandRegistry.notifyHostStateChanged();
         } else {
             switch (entry.key) {
                 case "editor.showHidden":
                 case "editor.wordWrap": {
                     this.forceUpdate();
+                    desktopCommandRegistry.notifyHostStateChanged();
+
+                    break;
+                }
+
+                case "editor.stopOnErrors": {
+                    this.forceUpdate();
+                    desktopCommandRegistry.notifyHostStateChanged();
 
                     break;
                 }
@@ -448,11 +471,15 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
     };
 
     private contextStateChanged = (id: string): Promise<boolean> => {
-        const { currentContext } = this.state;
+        const { currentContext, currentEditor } = this.state;
+        const changedContext = currentEditor?.state?.model.executionContexts?.contextWithId(id);
 
-        // Coalesce multiple state changes into one, as they can come in quickly.
-        if (currentContext && id === currentContext.id) {
-            if (currentContext.loadingState !== LoadingState.Idle) {
+        if (changedContext) {
+            desktopCommandRegistry.notifyHostStateChanged();
+            this.props.onDesktopRunStateChanged?.();
+
+            // Coalesce multiple state changes into one, as they can come in quickly.
+            if (currentContext && id === currentContext.id && changedContext.loadingState !== LoadingState.Idle) {
                 this.setState({
                     canExecute: false,
                     canStop: true,
@@ -494,6 +521,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
     private toggleStopExecutionOnError = (active: boolean): Promise<boolean> => {
         Settings.set("editor.stopOnErrors", !active);
         this.forceUpdate();
+        desktopCommandRegistry.notifyHostStateChanged();
 
         return Promise.resolve(true);
     };
@@ -505,21 +533,41 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
         try {
             await backend?.setAutoCommit(!autoCommit);
             await this.queryAutoCommit();
+            await requisitions.execute("sqlTransactionChanged", { queryType: QueryType.SetAutoCommit });
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Cannot Switch Auto Commit Mode.${message}`, {});
         }
 
         this.updateState();
+        desktopCommandRegistry.notifyHostStateChanged();
+        this.props.onDesktopRunStateChanged?.();
 
         return true;
     };
 
-    private transactionEnded = async (): Promise<boolean> => {
-        await this.queryAutoCommit();
+    private transactionChanged = async (details?: ISqlTransactionChangeDetails): Promise<boolean> => {
+        const autoCommit = await this.queryAutoCommit();
+        await new Promise<void>((resolve) => {
+            this.setState((prevState) => {
+                return {
+                    transactionOpen: getNextTransactionOpenState(
+                        prevState.transactionOpen,
+                        autoCommit,
+                        details,
+                    ),
+                };
+            }, resolve);
+        });
         this.updateState();
+        desktopCommandRegistry.notifyHostStateChanged();
+        this.props.onDesktopRunStateChanged?.();
 
         return true;
+    };
+
+    private transactionEnded = async (details?: ISqlTransactionChangeDetails): Promise<boolean> => {
+        return this.transactionChanged(details);
     };
 
     private updateState(position?: IPosition): void {
@@ -546,13 +594,20 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
     /**
      * Queries the backend for the current auto commit mode and sets the internal state according to the result.
      */
-    private queryAutoCommit = (): Promise<void> => {
+    private queryAutoCommit = (): Promise<boolean> => {
         return new Promise((resolve, reject) => {
             const { backend } = this.props;
+            const autoCommitPromise = backend?.getAutoCommit?.();
+            if (!autoCommitPromise) {
+                resolve(this.state.autoCommit);
 
-            backend?.getAutoCommit().then((value): void => {
-                this.setState({ autoCommit: value ?? false }, () => {
-                    resolve();
+                return;
+            }
+
+            autoCommitPromise.then((value): void => {
+                const autoCommit = value === true;
+                this.setState({ autoCommit }, () => {
+                    resolve(autoCommit);
                 });
             }).catch((reason: unknown) => {
                 reject(reason as Error);

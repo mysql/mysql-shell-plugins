@@ -180,7 +180,7 @@ export class MdsEndpointDialog extends ValueDialogBase {
                 },
                 createDbConnection: {
                     type: "boolean",
-                    caption: isStandalone() ? "MySQL Shell Workbench" : "MySQL Shell GUI",
+                    caption: isStandalone() ? "MySQL Workbench" : "MySQL Shell GUI",
                     label: "Create DB Connection",
                     description: "Create a DB Connection using this endpoint.",
                     value: true,

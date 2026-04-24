@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,6 +28,7 @@ import "./CommunicationDebugger.css";
 import typings from "../../typings/debugger-runtime.d.ts?raw";
 
 import { ComponentChild, createRef, render } from "preact";
+import { createPortal } from "preact/compat";
 import { CellComponent } from "tabulator-tables";
 
 import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
@@ -82,7 +83,9 @@ enum OutputType {
 }
 
 interface ICommunicationDebuggerProperties extends IComponentProperties {
-    toggleDisplayMode: () => void;
+    contentPortalTargetId?: string;
+    toggleDisplayMode?: () => void;
+    sidebarPortalTargetId?: string;
 }
 
 interface ICommunicationDebuggerState extends IComponentState {
@@ -133,14 +136,84 @@ export default class CommunicationDebugger
     }
 
     public override componentDidMount(): void {
-        if (MessageScheduler.get.isConnected) {
-            this.loadScripts();
+        if (this.props.contentPortalTargetId || this.props.sidebarPortalTargetId) {
+            this.forceUpdate();
         }
+
+        if (MessageScheduler.get.isConnected) {
+            setTimeout(() => {
+                this.loadScripts();
+            }, 0);
+        }
+    }
+
+    public override componentWillUnmount(): void {
+        MessageScheduler.get.traceEnabled = false;
+        requisitions.unregister("socketStateChanged", this.connectionStateChanged);
+        requisitions.unregister("webSessionStarted", this.webSessionStarted);
+        requisitions.unregister("debugger", this.handleTraceEvent);
+        requisitions.unregister("message", this.logMessage);
     }
 
     public render(): ComponentChild {
         const className = this.getEffectiveClassNames(["debugger"]);
 
+        if (this.props.contentPortalTargetId || this.props.sidebarPortalTargetId) {
+            const contentTarget = this.props.contentPortalTargetId
+                ? document.getElementById(this.props.contentPortalTargetId)
+                : undefined;
+            const sidebarTarget = this.props.sidebarPortalTargetId
+                ? document.getElementById(this.props.sidebarPortalTargetId)
+                : undefined;
+            const content = (
+                <Container className={className} orientation={Orientation.TopDown}>
+                    {this.renderContent()}
+                </Container>
+            );
+
+            return <>
+                {sidebarTarget && createPortal(
+                    <Container className={className} orientation={Orientation.TopDown}>
+                        {this.renderSidebar()}
+                    </Container>,
+                    sidebarTarget,
+                )}
+                {this.props.contentPortalTargetId
+                    ? contentTarget && createPortal(content, contentTarget)
+                    : content}
+            </>;
+        }
+
+        return (
+            <SplitContainer
+                className={className}
+                orientation={Orientation.LeftToRight}
+                panes={[
+                    {
+                        id: "scriptTree",
+                        content: this.renderSidebar(),
+                        minSize: 200,
+                        maxSize: 600,
+                        initialSize: this.sidebarWidth,
+                        snap: true,
+                        resizable: true,
+                        stretch: false,
+                    },
+                    {
+                        id: "outputPane",
+                        content: this.renderContent(),
+                        minSize: 500,
+                        snap: false,
+                        resizable: true,
+                        stretch: true,
+                    },
+                ]}
+                onPaneResized={this.handlePaneResized}
+            />
+        );
+    }
+
+    private renderSidebar(): ComponentChild {
         const scriptTreeOptions: ITreeGridOptions = {
             treeColumn: "name",
             selectionType: SelectionType.Single,
@@ -155,61 +228,41 @@ export default class CommunicationDebugger
             options={scriptTreeOptions}
         />;
 
+        return <Accordion
+            className="stretch"
+            sections={[
+                {
+                    id: "scriptSection",
+                    caption: "SCRIPTS",
+                    expanded: true,
+                    stretch: true,
+                    minSize: 100,
+                    content: scriptSectionContent,
+                    actions: [
+                        {
+                            icon: Codicon.Refresh,
+                            command: {
+                                tooltip: "Reload the scripts",
+                                command: "refreshScriptList",
+                                title: "Reload the scripts",
+                            },
+                        },
+                    ],
+                },
+            ]}
+            onSectionAction={this.handleSectionAction}
+        />;
+    }
+
+    private renderContent(): ComponentChild {
         return (
             <SplitContainer
-                className={className}
-                orientation={Orientation.LeftToRight}
+                id="debuggerContent"
+                className="stretch"
+                orientation={Orientation.TopDown}
                 panes={[
-                    {
-                        id: "scriptTree",
-                        content: <Accordion
-                            className="stretch"
-                            sections={[
-                                {
-                                    id: "scriptSection",
-                                    caption: "SCRIPTS",
-                                    expanded: true,
-                                    stretch: true,
-                                    minSize: 100,
-                                    content: scriptSectionContent,
-                                    actions: [
-                                        {
-                                            icon: Codicon.Refresh,
-                                            command: {
-                                                tooltip: "Reload the scripts",
-                                                command: "refreshScriptList",
-                                                title: "Reload the scripts",
-                                            },
-                                        },
-                                    ],
-                                },
-                            ]}
-                            onSectionAction={this.handleSectionAction}
-                        />,
-                        minSize: 200,
-                        maxSize: 600,
-                        initialSize: this.sidebarWidth,
-                        snap: true,
-                        resizable: true,
-                        stretch: false,
-                    },
-                    {
-                        id: "outputPane",
-                        content: <SplitContainer
-                            id="debuggerContent"
-                            className="stretch"
-                            orientation={Orientation.TopDown}
-                            panes={[
-                                this.outputPane,
-                                this.inputPane,
-                            ]}
-                            onPaneResized={this.handlePaneResized}
-                        />,
-                        minSize: 500,
-                        snap: false,
-                        resizable: true,
-                        stretch: true,
-                    },
+                    this.outputPane,
+                    this.inputPane,
                 ]}
                 onPaneResized={this.handlePaneResized}
             />
@@ -250,14 +303,15 @@ export default class CommunicationDebugger
                         <Icon src={Codicon.ClearAll} />
                         <Label caption="Clear Output" />
                     </Button>
-                    <Button
-                        className="rightAlign"
-                        imageOnly
-                        data-tooltip="Toggle maximized/embedded mode"
-                        onClick={toggleDisplayMode}
-                    >
-                        <Icon src={Codicon.ChromeRestore} data-tooltip="inherit" />
-                    </Button>
+                    {toggleDisplayMode &&
+                        <Button
+                            className="rightAlign"
+                            imageOnly
+                            data-tooltip="Toggle maximized/embedded mode"
+                            onClick={toggleDisplayMode}
+                        >
+                            <Icon src={Codicon.ChromeRestore} data-tooltip="inherit" />
+                        </Button>}
                 </Toolbar>
                 <CodeEditor
                     ref={this.messageOutputRef}

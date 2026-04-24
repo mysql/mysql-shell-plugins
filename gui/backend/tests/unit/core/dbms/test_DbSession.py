@@ -770,3 +770,61 @@ class TestDbMysqlSession:
         assert user_session.is_killed() is True
         assert reconnect_calls == [True]
         assert run_sql_calls == ["KILL QUERY 10552", "KILL QUERY 10552"]
+
+    def test_kill_session_raises_when_retry_after_reconnect_fails(self, monkeypatch):
+        fake_mysql_error = self.FakeDbError(
+            2013, "Lost connection to MySQL server during query"
+        )
+        monkeypatch.setattr(mysqlsh, "DBError", self.FakeDbError)
+
+        session = object.__new__(DbMysqlSession)
+        session._mutex = threading.RLock()
+        session._auto_reconnect = ReconnectionMode.EXTENDED
+        run_sql_calls = []
+
+        reconnect_calls = []
+        session._reconnect = lambda auto: reconnect_calls.append(auto) or True
+
+        user_session = self.FakeKilledUserSession(10552)
+
+        def run_sql(sql, _args=None):
+            run_sql_calls.append(sql)
+            raise fake_mysql_error
+
+        session.run_sql = run_sql
+
+        with pytest.raises(self.FakeDbError):
+            session.kill_session(user_session)
+
+        assert user_session.is_killed() is True
+        assert reconnect_calls == [True]
+        assert run_sql_calls == ["KILL 10552", "KILL 10552"]
+
+    def test_kill_session_retries_after_service_session_reconnect(self, monkeypatch):
+        fake_mysql_error = self.FakeDbError(
+            2013, "Lost connection to MySQL server during query"
+        )
+        monkeypatch.setattr(mysqlsh, "DBError", self.FakeDbError)
+
+        session = object.__new__(DbMysqlSession)
+        session._mutex = threading.RLock()
+        session._auto_reconnect = ReconnectionMode.EXTENDED
+        run_sql_calls = []
+
+        def run_sql(sql, _args=None):
+            run_sql_calls.append(sql)
+            if len(run_sql_calls) == 1:
+                raise fake_mysql_error
+
+        session.run_sql = run_sql
+
+        reconnect_calls = []
+        session._reconnect = lambda auto: reconnect_calls.append(auto) or True
+
+        user_session = self.FakeKilledUserSession(10552)
+
+        session.kill_session(user_session)
+
+        assert user_session.is_killed() is True
+        assert reconnect_calls == [True]
+        assert run_sql_calls == ["KILL 10552", "KILL 10552"]

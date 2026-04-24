@@ -138,6 +138,7 @@ import sqliteIcon from "../assets/images/file-icons/scriptSqlite.svg";
 import typescriptIcon from "../assets/images/file-icons/scriptTs.svg";
 import folderIcon from "../assets/images/folder.svg";
 import folderCurrentIcon from "../assets/images/folderCurrent.svg";
+import newFolderIcon from "../assets/images/newFolder.svg";
 
 import closeIcon from "../assets/images/close.svg";
 import close2Icon from "../assets/images/close2.svg";
@@ -414,6 +415,7 @@ export class Assets {
         typescriptIcon,
         folderIcon,
         folderCurrentIcon,
+        newFolderIcon,
     };
 
     public static router = {

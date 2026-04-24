@@ -28,7 +28,6 @@ import "./CodeEditor.css";
 import { ComponentChild, createRef } from "preact";
 
 import { SymbolTable } from "antlr4-c3";
-import { editor } from "monaco-editor";
 
 import "./userWorker.js";
 
@@ -36,6 +35,7 @@ import {
     CodeEditorMode, ICodeEditorViewState, IDisposable, IPosition, IProviderEditorModel,
     IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco, Range, Selection,
 } from "./index.js";
+import { CodeEditorSetup } from "./CodeEditorSetup.js";
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
@@ -96,6 +96,12 @@ export interface IEditorPersistentState {
     viewState: ICodeEditorViewState | null;
     model: ICodeEditorModel;
     options: ICodeEditorOptions;
+}
+
+export interface INotebookHistoryNavigation {
+    navigate: (backwards: boolean) => void;
+    canGoBack: boolean;
+    canGoForward: boolean;
 }
 
 type WordWrapType = "off" | "on" | "wordWrapColumn" | "bounded";
@@ -160,6 +166,8 @@ interface ICodeEditorProperties extends IComponentProperties {
     onModelChange?: () => void;
     onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
     onExplainError?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
+    onSave?: (saveAs?: boolean) => Promise<boolean> | boolean | void;
+    notebookHistory?: INotebookHistoryNavigation;
 
     /** The presentation class depends on the place where the editor is used. */
     createResultPresentation?: ResultPresentationFactory;
@@ -213,6 +221,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     private templateCodeBlocks: ITemplateItem[] = [];
     private templatePastePosition: number | undefined;
+    private notebookHistoryContextKeys?: {
+        canGoBack: { set(value: boolean): void; };
+        canGoForward: { set(value: boolean): void; };
+    };
 
     public constructor(props: ICodeEditorProperties) {
         super(props);
@@ -223,7 +235,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
             "onScriptExecution", "onHelpCommand", "onOptionsChanged", "onContextLanguageChange",
-            "createResultPresentation", "onExplainError",
+            "createResultPresentation", "onExplainError", "notebookHistory",
         );
 
         // istanbul ignore next
@@ -231,7 +243,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
         }
 
-        editor.registerCommand("explainError", () => {
+        Monaco.registerCommand("explainError", () => {
             const { onExplainError } = this.props;
 
             const index = this.currentBlockIndex;
@@ -260,6 +272,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (!this.hostRef.current) {
             return;
         }
+
+        CodeEditorSetup.init();
 
         const {
             language, initialContent, savedState, autoFocus, readonly, minimap, detectLinks, suggest, showIndentGuides,
@@ -389,6 +403,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.resizeObserver?.observe(this.hostRef.current as Element);
 
         this.prepareUse();
+        this.syncNotebookHistoryContextKeys();
 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (languages.typescript) {
@@ -447,6 +462,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     public override componentDidUpdate(prevProps: ICodeEditorProperties): void {
         const { initialContent, language, savedState, autoFocus } = this.props;
+        const modelChanged = savedState?.model !== prevProps.savedState?.model;
 
         const editor = this.backend;
         if (editor && savedState?.model !== editor.getModel()) {
@@ -492,8 +508,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         this.editor?.layout();
         Monaco.remeasureFonts();
+        this.syncNotebookHistoryContextKeys();
 
-        if (autoFocus) {
+        if (autoFocus && (!prevProps.autoFocus || modelChanged)) {
             this.editor?.focus();
         }
     }
@@ -851,18 +868,36 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return Promise.resolve(true);
     };
 
+    private async handleSave(saveAs: boolean): Promise<void> {
+        await this.props.onSave?.(saveAs);
+    }
+
     /**
      * Additional setup beside the initial configuration.
      */
     private prepareUse(): void {
-        const { language, allowedLanguages = [] } = this.props;
+        const { language, allowedLanguages = [], notebookHistory } = this.props;
         const editor = this.backend;
         if (!editor) {
             return;
         }
+        const contextKeyEditor = editor as Monaco.IStandaloneCodeEditor & {
+            createContextKey?: (key: string, defaultValue: boolean) => { set(value: boolean): void; };
+        };
 
         const precondition = "editorTextFocus && !suggestWidgetVisible && !renameInputVisible && !inSnippetMode " +
             "&& !quickFixWidgetVisible";
+        const isMac = navigator.userAgent.includes("Macintosh");
+
+        if (notebookHistory && contextKeyEditor.createContextKey) {
+            this.notebookHistoryContextKeys = {
+                canGoBack: contextKeyEditor.createContextKey("notebookCanGoBackInHistory", notebookHistory.canGoBack),
+                canGoForward: contextKeyEditor.createContextKey(
+                    "notebookCanGoForwardInHistory",
+                    notebookHistory.canGoForward,
+                ),
+            };
+        }
 
         const mixedLanguage = language === "msg";
         this.disposables.push(editor.addAction({
@@ -960,12 +995,38 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         if (mixedLanguage) {
+            if (notebookHistory) {
+                this.disposables.push(editor.addAction({
+                    id: "notebookPreviousCommand",
+                    label: "Previous Command",
+                    ...(isMac ? { keybindings: [KeyMod.CtrlCmd | KeyCode.UpArrow] } : {}),
+                    contextMenuGroupId: "navigation",
+                    contextMenuOrder: 1,
+                    precondition: `${precondition} && notebookCanGoBackInHistory`,
+                    run: () => {
+                        notebookHistory.navigate(true);
+                    },
+                }));
+
+                this.disposables.push(editor.addAction({
+                    id: "notebookNextCommand",
+                    label: "Next Command",
+                    ...(isMac ? { keybindings: [KeyMod.CtrlCmd | KeyCode.DownArrow] } : {}),
+                    contextMenuGroupId: "navigation",
+                    contextMenuOrder: 2,
+                    precondition: `${precondition} && notebookCanGoForwardInHistory`,
+                    run: () => {
+                        notebookHistory.navigate(false);
+                    },
+                }));
+            }
+
             if (allowedLanguages.includes("sql")) {
                 this.disposables.push(editor.addAction({
                     id: "switchToSQL",
                     label: "Switch Language of Current Block to SQL",
                     contextMenuGroupId: "3_language",
-                    contextMenuOrder: 1,
+                    contextMenuOrder: 3,
                     precondition,
                     run: this.switchCurrentLanguage.bind(this, "sql", false),
                 }));
@@ -976,7 +1037,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     id: "switchToTypeScript",
                     label: "Switch Language of Current Block to TypeScript",
                     contextMenuGroupId: "3_language",
-                    contextMenuOrder: 2,
+                    contextMenuOrder: 4,
                     precondition,
                     run: this.switchCurrentLanguage.bind(this, "typescript", false),
                 }));
@@ -987,7 +1048,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     id: "switchToJavaScript",
                     label: "Switch Language of Current Block to JavaScript",
                     contextMenuGroupId: "3_language",
-                    contextMenuOrder: 3,
+                    contextMenuOrder: 5,
                     precondition,
                     run: this.switchCurrentLanguage.bind(this, "javascript", false),
                 }));
@@ -1031,6 +1092,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 label: "Move Cursor to the Start of the Current Statement Block",
                 keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.UpArrow],
                 contextMenuGroupId: "navigation",
+                contextMenuOrder: 3,
                 precondition,
                 run: () => {
                     this.jumpToBlockStart();
@@ -1042,6 +1104,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 label: "Move Cursor to the End of the Current Statement Block",
                 keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.DownArrow],
                 contextMenuGroupId: "navigation",
+                contextMenuOrder: 4,
                 precondition,
                 run: () => {
                     this.jumpToBlockEnd();
@@ -1050,34 +1113,32 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         this.disposables.push(editor.addAction({
+            id: "save",
+            label: "Save",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+            precondition,
+            run: () => {
+                void this.handleSave(false);
+            },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "saveAs",
+            label: "Save As",
+            keybindings: [KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyS],
+            precondition,
+            run: () => {
+                void this.handleSave(true);
+            },
+        }));
+
+        this.disposables.push(editor.addAction({
             id: "selectAll",
             label: "Select All",
             contextMenuGroupId: "9_cutcopypaste",
             keybindings: [KeyMod.CtrlCmd | KeyCode.KeyA],
             run: () => {
                 this.handleSelectAll();
-            },
-            precondition,
-        }));
-
-        this.disposables.push(editor.addAction({
-            id: "saveAs",
-            label: "Save As ...",
-            contextMenuGroupId: "10_save",
-            keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.KeyS],
-            run: () => {
-                void requisitions.execute("editorSaveNotebook", {saveAs: true});
-            },
-            precondition,
-        }));
-
-        this.disposables.push(editor.addAction({
-            id: "save",
-            label: "Save",
-            contextMenuGroupId: "10_save",
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-            run: () => {
-                void requisitions.execute("editorSaveNotebook", undefined);
             },
             precondition,
         }));
@@ -1204,6 +1265,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         requisitions.register("editorFind", this.executeFind);
         requisitions.register("editorFormat", this.executeFormat);
         requisitions.register("editorSelectStatement", this.handleSelectStatement);
+    }
+
+    private syncNotebookHistoryContextKeys(): void {
+        if (!this.notebookHistoryContextKeys) {
+            return;
+        }
+
+        this.notebookHistoryContextKeys.canGoBack.set(this.props.notebookHistory?.canGoBack ?? false);
+        this.notebookHistoryContextKeys.canGoForward.set(this.props.notebookHistory?.canGoForward ?? false);
     }
 
     /**

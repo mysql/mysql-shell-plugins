@@ -45,6 +45,24 @@ def get_objects_types(session):
     return session.get_objects_types()
 
 
+@plugin_function("gui.db.execute", shell=True, web=True)
+def execute(session, sql, params=None, options=None):
+    """Executes the given SQL on the DB service session.
+
+    Args:
+        session (object): The session used to execute the operation
+        sql (str): The sql command to execute.
+        params (list): The parameters for the sql command.
+        options (dict): A dictionary that holds additional options.
+
+    Returns:
+        dict: the result message
+    """
+    session = backend.get_db_session(session)
+
+    return session.execute(sql=sql, params=params, options=options)
+
+
 @plugin_function("gui.db.getCatalogObjectNames", shell=True, web=True)
 def get_catalog_object_names(session, type, filter="%"):
     """Returns the names of the existing objects of the given

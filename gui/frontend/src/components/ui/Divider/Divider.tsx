@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,6 +32,7 @@ import { ComponentBase, IComponentProperties, MouseEventType } from "../Componen
 interface IDividerProperties extends IComponentProperties {
     vertical?: boolean;
     thickness?: number;
+    children?: ComponentChild;
 
     innerRef?: preact.RefObject<HTMLDivElement>;
 
@@ -55,7 +56,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
     }
 
     public render(): ComponentChild {
-        const { vertical, thickness, style, innerRef } = this.props;
+        const { vertical, thickness, style, innerRef, children } = this.props;
 
         const className = this.getEffectiveClassNames([
             "divider",
@@ -74,6 +75,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
                 style={newStyle}
                 {...this.unhandledProperties}
             >
+                {children}
             </div >
         );
     }

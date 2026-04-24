@@ -30,6 +30,7 @@ import { requisitions } from "../../supplement/Requisitions.js";
 
 import { DialogResponseClosure, DialogType, IDialogResponse, IDictionary } from "../../app-logic/general-types.js";
 import { IMySQLDbSystem } from "../../communication/index.js";
+import { Button } from "../../components/ui/Button/Button.js";
 import { Breadcrumb, type IBreadCrumbSegment } from "../../components/ui/Breadcrumb/Breadcrumb.js";
 
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
@@ -43,6 +44,7 @@ import {
 } from "../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { FrontPage } from "../../components/ui/FrontPage/FrontPage.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
@@ -54,17 +56,22 @@ import {
 import { Assets } from "../../supplement/Assets.js";
 import { IConnectionInfo } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import {
     DBType, IConnectionDetails, IFolderPath, type IShellSessionDetails,
 } from "../../supplement/ShellInterface/index.js";
-import { uuid, isStandalone } from "../../utilities/helpers.js";
+import { convertErrorToString, uuid, isStandalone } from "../../utilities/helpers.js";
+import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { ui } from "../../app-logic/UILayer.js";
+import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
+import { webSession } from "../../supplement/WebSession.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
+    showToolbar?: boolean;
 
     onAddConnection: (entry: ICdmConnectionEntry) => void | Promise<void>;
     onUpdateConnection: (entry: ICdmConnectionEntry) => void;
@@ -73,6 +80,8 @@ interface IConnectionBrowserProperties extends IComponentProperties {
 
 interface IConnectionBrowserState extends IComponentState {
     currentGroup?: ICdmConnectionGroupEntry;
+    moveTargetGroups: ICdmConnectionGroupEntry[];
+    showMoveToRoot: boolean;
 }
 
 export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties, IConnectionBrowserState> {
@@ -84,16 +93,21 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     ]);
 
     private editorRef = createRef<ConnectionEditor>();
-    private actionMenuRef = createRef<Menu>();
+    private connectionActionMenuRef = createRef<Menu>();
+    private groupActionMenuRef = createRef<Menu>();
     private hostRef = createRef<HTMLDivElement>();
-
-    private currentDataModelEntry?: ICdmConnectionEntry; // Set during context menu invocation.
+    private currentActionMenuEntry?: ICdmConnectionEntry | ICdmConnectionGroupEntry;
+    private actionMenuRequestId = 0;
 
     public constructor(props: IConnectionBrowserProperties) {
         super(props);
 
-        this.state = {};
-        this.addHandledProperties("toolbarItems", "onAddConnection", "onUpdateConnection", "onRemoveConnection");
+        this.state = {
+            moveTargetGroups: [],
+            showMoveToRoot: false,
+        };
+        this.addHandledProperties("toolbarItems", "showToolbar", "onAddConnection", "onUpdateConnection",
+            "onRemoveConnection");
     }
 
     public override componentDidMount(): void {
@@ -130,8 +144,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     }
 
     public render(): ComponentChild {
-        const { toolbarItems } = this.props;
-        const { currentGroup } = this.state;
+        const { toolbarItems, showToolbar = true } = this.props;
+        const { currentGroup, moveTargetGroups, showMoveToRoot } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionBrowser"]);
 
@@ -155,7 +169,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 key={-2}
                 caption={"Back"}
                 description={"Go up one folder level"}
-                icon={Codicon.ChevronLeft}
+                icon={Assets.toolbar.pagePreviousIcon}
                 type={ConnectionTileType.Back}
                 onAction={this.handleTileAction}
             />);
@@ -215,61 +229,35 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             path.unshift({ id: 1, caption: "/", selected: false });
         }
 
-        const dataModel = this.dataModel;
-        if (dataModel) {
-            tiles.push(
-                <ConnectionTile
-                    tileId={"-1"}
-                    key={-1}
-                    entry={dataModel.createConnectionEntry({
-                        id: -1,
-                        dbType: DBType.MySQL,
-                        useSSH: false,
-                        useMHS: false,
-                        caption: "New Connection",
-                        description: "Add a new database connection",
-                        options: {
-                            dbFile: "",
-                            dbName: "",
-                        },
-                        folderPath,
-                        index: -1,
-                    })}
-                    caption="New Connection"
-                    description="Add a new database connection"
-                    icon={Assets.misc.plusIcon}
-                    type={ConnectionTileType.CreateNew}
-                    onAction={this.handleTileAction}
-
-                //onTileReorder={this.handleTileReorder}
-                />,
-            );
-        }
-
         // If toolbar items are given, render a toolbar with them.
-        const toolbar = <Toolbar id="connectionOverviewToolbar" dropShadow={false} >
-            {toolbarItems.navigation}
-            <div className="expander" />
-            {toolbarItems.auxiliary}
-        </Toolbar>;
+        const toolbar = showToolbar
+            ? <Toolbar id="connectionOverviewToolbar" dropShadow={false} >
+                {toolbarItems.navigation}
+                <div className="expander" />
+                {toolbarItems.auxiliary}
+            </Toolbar>
+            : null;
 
         const contentTitle = "Database Connections";
+        const showWorkbenchBranding = hasElectronHostBridge() || isStandalone();
         let projectShortName = "MySQL Shell";
-        let projectName = "MySQL Shell for VS Code extension";
-        if (isStandalone()) {
+        let projectName = "MySQL Shell for VS Code";
+        if (showWorkbenchBranding) {
             projectShortName = "MySQL Workbench";
             projectName = "MySQL Workbench";
         }
 
-        const contentHeader = `${projectShortName} - Database Connections`;
+        const contentHeader = showWorkbenchBranding
+            ? "Welcome to MySQL Workbench"
+            : `${projectShortName} - Database Connections`;
 
-        const contentDescription = 
-        `Welcome to the ${projectName}.\n\n` +
-        "Click the [New Connection] tile to add a new database connection. Click a " +
-        "[Database Connection] tile to open a new DB Notebook.\n\n" +
-        "DB Notebooks are modern editors for working with databases. You can use them to " +
-        "create and manage databases schema objects, write SQL queries and scripts, and work with " +
-        "data.";
+        const contentDescription =
+            `Welcome to ${projectName}.\n\n` +
+            "Click [New Connection] to add a new database connection. Click a " +
+            "[Database Connection] tile to open a new DB Notebook.\n\n" +
+            "DB Notebooks are modern editors for working with databases. You can use them to " +
+            "create and manage databases schema objects, write SQL queries and scripts, and work with " +
+            "data.";
 
         return (
             <Container
@@ -285,16 +273,37 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     onUpdateConnection={this.handleUpdateConnection}
                 />
                 <Menu
-                    id="tileActionMenu"
-                    ref={this.actionMenuRef}
-                    placement={ComponentPlacement.BottomLeft}
-                    onItemClick={this.handleMenuItemClick}
+                    id="connectionTileActionMenu"
+                    ref={this.connectionActionMenuRef}
+                    placement={ComponentPlacement.BottomRight}
+                    onItemClick={this.handleConnectionMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }} icon={Assets.misc.editIcon} />
+                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }}
+                        icon={Assets.misc.editIcon} />
                     <MenuItem
                         command={{ title: "Duplicate Connection…", command: "duplicate" }}
                         icon={Assets.misc.cloneIcon}
                     />
+                    <MenuItem command={{ title: "Move to Folder", command: "" }} icon={Assets.file.folderIcon}>
+                        {showMoveToRoot && (
+                            <MenuItem command={{ title: "Back to Root", command: "move:root" }} />
+                        )}
+                        {moveTargetGroups.map((group) => {
+                            return (
+                                <MenuItem
+                                    key={`moveToFolder${group.folderPath.id}`}
+                                    command={{
+                                        title: this.connectionGroupPath(group),
+                                        command: `move:folder:${group.folderPath.id}`,
+                                    }}
+                                />
+                            );
+                        })}
+                        {(showMoveToRoot || moveTargetGroups.length > 0) &&
+                            <MenuItem command={{ title: "-", command: "" }} />
+                        }
+                        <MenuItem command={{ title: "New Folder…", command: "move:newFolder" }} />
+                    </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} />
                     <MenuItem command={{
                         title: "Start MySQL Cloud Migration Assistant",
@@ -308,6 +317,15 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     <MenuItem command={{ title: "-", command: "" }} />
                     <MenuItem id="remove" command={{ title: "Remove Connection…", command: "remove" }} />
                 </Menu>
+                <Menu
+                    id="groupTileActionMenu"
+                    ref={this.groupActionMenuRef}
+                    placement={ComponentPlacement.BottomRight}
+                    onItemClick={this.handleGroupMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Delete Folder…", command: "removeFolder" }}
+                        icon={Assets.misc.close2Icon} />
+                </Menu>
                 <FrontPage
                     id="frontPageContent"
                     showGreeting={Settings.get("dbEditor.connectionBrowser.showGreeting", true)}
@@ -317,10 +335,33 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 >
                     <Container
                         id="frontPageHeading"
+                        orientation={Orientation.TopDown}
                         fixedScrollbars={false}
-                        crossAlignment={ContentAlignment.Center}
+                        crossAlignment={ContentAlignment.Start}
                     >
-                        <Label id="contentTitle" caption={contentTitle} />
+                        <Container
+                            id="contentTitleRow"
+                            crossAlignment={ContentAlignment.Center}
+                        >
+                            <Label id="contentTitle" caption={contentTitle} />
+                            <div className="expander" />
+                            <Button
+                                id="newConnectionButton"
+                                imageOnly
+                                data-tooltip="New Connection"
+                                onClick={this.handleNewConnectionClick}
+                            >
+                                <Icon src={Assets.misc.plusIcon} data-tooltip="inherit" />
+                            </Button>
+                            <Button
+                                id="newFolderButton"
+                                imageOnly
+                                data-tooltip="New Folder"
+                                onClick={this.handleNewFolderClick}
+                            >
+                                <Icon src={Assets.file.newFolderIcon} data-tooltip="inherit" />
+                            </Button>
+                        </Container>
                         <Breadcrumb
                             path={path}
                             onSelect={this.handleSelectPath}
@@ -355,6 +396,36 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         this.doHandleTileAction("new", undefined, options);
 
         return Promise.resolve(true);
+    };
+
+    private handleNewConnectionClick = (): void => {
+        this.doHandleTileAction("new", undefined, undefined);
+    };
+
+    private handleNewFolderClick = async (): Promise<void> => {
+        const { currentGroup } = this.state;
+        const folderName = await this.promptForFolderName(currentGroup);
+        if (!folderName) {
+            return;
+        }
+
+        try {
+            await ShellInterface.dbConnections.addFolderPath(
+                webSession.currentProfileId,
+                folderName,
+                currentGroup?.folderPath.id,
+            );
+
+            const rootGroup = await this.dataModel?.groupFromPath("/");
+            const group = currentGroup ?? rootGroup;
+            await group?.refresh?.();
+            if (group) {
+                void requisitions.executeRemote("refreshConnectionGroup", group.folderPath);
+            }
+        } catch (reason) {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot create folder: " + message);
+        }
     };
 
     private editConnection = async (connectionInfo: IConnectionInfo): Promise<boolean> => {
@@ -523,12 +594,33 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         (e.currentTarget as HTMLElement).classList.remove("dropTarget");
     };
 
-    private handleMenuItemClick = (props: IMenuItemProperties): boolean => {
+    private handleConnectionMenuItemClick = (props: IMenuItemProperties): boolean => {
         if (!props.children || Children.count(props.children) === 0) {
             const command = props.command.command;
-            this.doHandleTileAction(command, this.currentDataModelEntry, {});
+            if (this.currentActionMenuEntry?.type !== CdmEntityType.Connection) {
+                return false;
+            }
+
+            if (command.startsWith("move:")) {
+                void this.handleMoveToFolderAction(command, this.currentActionMenuEntry);
+            } else {
+                this.doHandleTileAction(command, this.currentActionMenuEntry, {});
+            }
 
             return true;
+        }
+
+        return false;
+    };
+
+    private handleGroupMenuItemClick = (props: IMenuItemProperties): boolean => {
+        if (!props.children || Children.count(props.children) === 0) {
+            if (props.command.command === "removeFolder"
+                && this.currentActionMenuEntry?.type === CdmEntityType.ConnectionGroup) {
+                this.confirmFolderRemoval(this.currentActionMenuEntry);
+
+                return true;
+            }
         }
 
         return false;
@@ -547,6 +639,16 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
     private doHandleTileAction = (action: string, entry: ICdmConnectionEntry | ICdmConnectionGroupEntry | undefined,
         options?: ITileActionOptions): void => {
+
+        if (action === "menu") {
+            const anchorRect = options?.anchorRect
+                ?? (options?.target instanceof HTMLElement ? options.target.getBoundingClientRect() : undefined);
+            if (entry && anchorRect) {
+                void this.openTileActionMenu(entry, anchorRect);
+            }
+
+            return;
+        }
 
         let dbType: DBType | undefined;
 
@@ -613,15 +715,6 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
 
         switch (action) {
-            case "menu": {
-                this.currentDataModelEntry = entry;
-                if (options && options.target instanceof HTMLElement) {
-                    const rect = options.target.getBoundingClientRect();
-                    this.actionMenuRef.current?.open(rect, false);
-                }
-                break;
-            }
-
             case "edit": {
                 void this.editorRef.current?.show(dbType, false, "", entry.details);
                 break;
@@ -640,10 +733,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "open": {
+                // In the standalone/Electron frontend, match the sidebar behavior and always
+                // open a fresh connection page for notebook/script actions.
+                const forceNewTab = !appParameters.inExtension || options?.newTab === true;
+
                 void requisitions.execute("openConnectionTab",
                     {
                         connection: entry,
-                        force: options?.newTab ?? false,
+                        force: forceNewTab,
                         initialEditor: options?.editor ?? "notebook",
                     });
 
@@ -695,6 +792,245 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }, 0);
     };
 
+    private confirmFolderRemoval = (entry: ICdmConnectionGroupEntry): void => {
+        setTimeout(() => {
+            void this.showFolderRemovalDialog(entry);
+        }, 0);
+    };
+
+    private showFolderRemovalDialog = async (entry: ICdmConnectionGroupEntry): Promise<void> => {
+        const dataModel = this.dataModel;
+        if (!dataModel) {
+            return;
+        }
+
+        await entry.refresh?.();
+        const flatList = await dataModel.flattenGroupList(entry);
+        const isEmptyFolder = flatList.connections.length === 0 && flatList.groups.length === 1;
+
+        if (isEmptyFolder) {
+            await this.deleteFolder(entry);
+
+            return;
+        }
+
+        let description: string[] = [];
+        let prompt = `Are you sure you want to remove the folder "${entry.caption}", including all its ` +
+            `contents? This operation cannot be reverted!`;
+        let groupString = "";
+        if (flatList.groups.length > 1) {
+            groupString = formatWithNumber("subfolder", flatList.groups.length - 1);
+        }
+
+        let connectionString = "";
+        if (flatList.connections.length > 0) {
+            connectionString = formatWithNumber("connection", flatList.connections.length);
+        }
+
+        if (groupString && connectionString) {
+            description = [`The folder contains ${groupString} and ${connectionString}.`];
+        } else if (groupString) {
+            description = [`The folder contains ${groupString}.`];
+        } else {
+            description = [`The folder contains ${connectionString}.`];
+        }
+
+        void requisitions.execute("showDialog", {
+            type: DialogType.Confirm,
+            id: "deleteFolder",
+            parameters: {
+                prompt,
+                refuse: "Cancel",
+                accept: "Delete Folder",
+                default: "Cancel",
+            },
+            description,
+            data: { entry },
+        });
+    };
+
+    private openTileActionMenu = async (entry: ICdmConnectionEntry | ICdmConnectionGroupEntry,
+        anchorRect: DOMRect): Promise<void> => {
+        const requestId = ++this.actionMenuRequestId;
+
+        if (entry.type === CdmEntityType.Connection) {
+            const moveTargetGroups = await this.getMoveTargetGroups(entry);
+            if (requestId !== this.actionMenuRequestId) {
+                return;
+            }
+
+            this.currentActionMenuEntry = entry;
+
+            this.setState({
+                moveTargetGroups,
+                showMoveToRoot: !this.isConnectionInRoot(entry),
+            }, () => {
+                if (requestId === this.actionMenuRequestId) {
+                    this.connectionActionMenuRef.current?.open(anchorRect, false);
+                }
+            });
+        } else {
+            this.currentActionMenuEntry = entry;
+            this.groupActionMenuRef.current?.open(anchorRect, false);
+        }
+    };
+
+    private getMoveTargetGroups = async (entry: ICdmConnectionEntry): Promise<ICdmConnectionGroupEntry[]> => {
+        const currentFolderId = entry.parent?.folderPath.id;
+        const groups = await this.dataModel?.groupList("/") ?? [];
+
+        return groups
+            .filter((group) => {
+                return group.folderPath.id !== currentFolderId;
+            })
+            .sort((left, right) => {
+                return this.connectionGroupPath(left).localeCompare(this.connectionGroupPath(right));
+            });
+    };
+
+    private handleMoveToFolderAction = async (action: string, entry: ICdmConnectionEntry): Promise<void> => {
+        const dataModel = this.dataModel;
+        if (!dataModel) {
+            return;
+        }
+
+        const rootGroup = await dataModel.groupFromPath("/");
+        const oldGroup = entry.parent ?? rootGroup;
+
+        try {
+            let targetGroup = rootGroup;
+            if (action === "move:newFolder") {
+                const folderName = await this.promptForFolderName(entry.parent);
+                if (!folderName) {
+                    return;
+                }
+
+                await ShellInterface.dbConnections.addFolderPath(
+                    webSession.currentProfileId,
+                    folderName,
+                    entry.parent?.folderPath.id,
+                );
+
+                const parentPath = this.connectionGroupPath(entry.parent);
+                const folderPath = parentPath === "/" ? `/${folderName}` : `${parentPath}/${folderName}`;
+                targetGroup = await dataModel.groupFromPath(folderPath);
+            } else if (action !== "move:root") {
+                const folderId = Number.parseInt(action.substring("move:folder:".length), 10);
+                const { moveTargetGroups } = this.state;
+                targetGroup = moveTargetGroups.find((group) => {
+                    return group.folderPath.id === folderId;
+                }) ?? rootGroup;
+            }
+
+            if (oldGroup.folderPath.id === targetGroup.folderPath.id) {
+                return;
+            }
+
+            const updatedConnection = {
+                ...entry.details,
+                folderPath: this.connectionGroupPath(targetGroup),
+            };
+
+            await ShellInterface.dbConnections.updateDbConnection(
+                webSession.currentProfileId,
+                updatedConnection,
+                targetGroup.folderPath.id,
+            );
+
+            await oldGroup.refresh?.();
+            if (targetGroup !== oldGroup) {
+                await targetGroup.refresh?.();
+            }
+
+            void requisitions.executeRemote("refreshConnectionGroup", oldGroup.folderPath);
+            if (targetGroup !== oldGroup) {
+                void requisitions.executeRemote("refreshConnectionGroup", targetGroup.folderPath);
+            }
+            void requisitions.executeRemote("connectionUpdated", updatedConnection);
+        } catch (reason) {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot move DB connection: " + message);
+        }
+    };
+
+    private deleteFolder = async (entry: ICdmConnectionGroupEntry): Promise<void> => {
+        const dataModel = this.dataModel;
+        if (!dataModel) {
+            return;
+        }
+
+        try {
+            await entry.refresh?.();
+            const flatList = await dataModel.flattenGroupList(entry);
+
+            for (const connection of flatList.connections.reverse()) {
+                await dataModel.dropItem(connection);
+                await dataModel.removeEntry(connection);
+            }
+
+            for (const group of flatList.groups.reverse()) {
+                await dataModel.dropItem(group);
+                await dataModel.removeEntry(group);
+            }
+
+            void ui.showInformationMessage(`The connection group "${entry.caption}" has been deleted.`, {});
+        } catch (reason) {
+            void ui.showErrorMessage(`Error while executing the command: ${convertErrorToString(reason)}`, {});
+        }
+    };
+
+    private promptForFolderName = async (parentGroup?: ICdmConnectionGroupEntry): Promise<string | undefined> => {
+        let value = "folder";
+        while (true) {
+            const name = await ui.showInputBox(
+                "Create New Folder",
+                "Folder name",
+                "Enter the name of the new folder.",
+                value,
+            );
+
+            const folderName = name?.trim();
+            if (!folderName) {
+                return undefined;
+            }
+
+            if (!this.folderNameExists(parentGroup, folderName)) {
+                return folderName;
+            }
+
+            value = folderName;
+            await ui.showErrorMessage(`A folder named "${folderName}" already exists here.`, {});
+        }
+    };
+
+    private folderNameExists = (parentGroup: ICdmConnectionGroupEntry | undefined, folderName: string): boolean => {
+        const entries = parentGroup?.entries ?? this.roots;
+
+        return entries.some((entry) => {
+            return entry.type === CdmEntityType.ConnectionGroup
+                && entry.caption.localeCompare(folderName, undefined, { sensitivity: "base" }) === 0;
+        });
+    };
+
+    private isConnectionInRoot = (entry?: ICdmConnectionEntry): boolean => {
+        return !entry?.parent || entry.parent.folderPath.id === 1;
+    };
+
+    private connectionGroupPath = (group?: ICdmConnectionGroupEntry): string => {
+        if (!group || group.folderPath.id === 1) {
+            return "/";
+        }
+
+        const parts: string[] = [];
+        let runner: ICdmConnectionGroupEntry | undefined = group;
+        while (runner && runner.folderPath.id !== 1) {
+            parts.unshift(runner.caption);
+            runner = runner.parent;
+        }
+
+        return `/${parts.join("/")}`;
+    };
+
     // TODO: change tile reorder to use module state not settings.
     /**
      * Triggered after the user dragged one tile onto another. This is used to reorder tiles.
@@ -737,6 +1073,15 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             if (entry && response.closure === DialogResponseClosure.Accept && this.dataModel) {
                 const { onRemoveConnection } = this.props;
                 onRemoveConnection(entry);
+            }
+
+            return Promise.resolve(true);
+        }
+
+        if (response.id === "deleteFolder") {
+            const entry = response.data?.entry as ICdmConnectionGroupEntry | undefined;
+            if (entry && response.closure === DialogResponseClosure.Accept) {
+                await this.deleteFolder(entry);
             }
 
             return Promise.resolve(true);

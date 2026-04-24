@@ -26,6 +26,7 @@
 import { ui } from "../app-logic/UILayer.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { appParameters } from "../supplement/AppParameters.js";
+import { hasElectronDesktopBackend } from "../supplement/ElectronDesktop.js";
 import { webSession } from "../supplement/WebSession.js";
 import { uuid } from "../utilities/helpers.js";
 import { convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase } from "../utilities/string-helpers.js";
@@ -109,12 +110,179 @@ interface IOngoingRequest<K extends keyof IProtocolResults> {
 
 type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | ShellAPIMsm | ShellAPIMigration | "native";
 
+interface IConnectionEventMap {
+    close: Event;
+    error: CustomEvent<string>;
+    message: MessageEvent<string>;
+    open: Event;
+}
+
+interface IBackendConnection {
+    readonly CONNECTING: number;
+    readonly OPEN: number;
+    readonly readyState: number;
+
+    addEventListener: <K extends keyof IConnectionEventMap>(
+        type: K, listener: (event: IConnectionEventMap[K]) => void) => void;
+    close: () => void;
+    connect: () => void;
+    send: (data: string) => void;
+}
+
+class BrowserBackendConnection implements IBackendConnection {
+    private readonly socket: WebSocket;
+
+    public constructor(target: URL) {
+        this.socket = new WebSocket(target);
+    }
+
+    public get CONNECTING(): number {
+        return WebSocket.CONNECTING;
+    }
+
+    public get OPEN(): number {
+        return WebSocket.OPEN;
+    }
+
+    public get readyState(): number {
+        return this.socket.readyState;
+    }
+
+    public addEventListener = <K extends keyof IConnectionEventMap>(
+        type: K, listener: (event: IConnectionEventMap[K]) => void): void => {
+        this.socket.addEventListener(type, listener as EventListener);
+    };
+
+    public close = (): void => {
+        this.socket.close();
+    };
+
+    public connect = (): void => {
+        // WebSocket starts connecting immediately on construction.
+    };
+
+    public send = (data: string): void => {
+        this.socket.send(data);
+    };
+}
+
+class ElectronBackendConnection implements IBackendConnection {
+    public static readonly CONNECTING = 0;
+    public static readonly OPEN = 1;
+    private static readonly CLOSED = 3;
+
+    private readonly eventTarget = new EventTarget();
+    private readyStateValue = ElectronBackendConnection.CONNECTING;
+    private unsubscribeFunctions: Array<() => void> = [];
+    private closed = false;
+
+    public get CONNECTING(): number {
+        return ElectronBackendConnection.CONNECTING;
+    }
+
+    public get OPEN(): number {
+        return ElectronBackendConnection.OPEN;
+    }
+
+    public get readyState(): number {
+        return this.readyStateValue;
+    }
+
+    public addEventListener = <K extends keyof IConnectionEventMap>(
+        type: K, listener: (event: IConnectionEventMap[K]) => void): void => {
+        this.eventTarget.addEventListener(type, listener as EventListener);
+    };
+
+    public close = (): void => {
+        if (this.closed) {
+            return;
+        }
+
+        this.closed = true;
+        this.readyStateValue = ElectronBackendConnection.CLOSED;
+
+        const backend = window.electronDesktopBackend;
+        void backend?.disconnect().finally(() => {
+            this.disposeListeners();
+            this.dispatch("close", new Event("close"));
+        });
+    };
+
+    public connect = (): void => {
+        const backend = window.electronDesktopBackend;
+        if (!backend) {
+            this.dispatchError("Electron desktop backend is not available.");
+
+            return;
+        }
+
+        this.unsubscribeFunctions = [
+            backend.onMessage((payload) => {
+                this.dispatch("message", new MessageEvent("message", { data: payload }));
+            }),
+            backend.onClose(() => {
+                this.finishClose();
+            }),
+            backend.onError((message) => {
+                this.dispatchError(message);
+            }),
+        ];
+
+        void backend.connect().then((bufferedMessages) => {
+            if (this.closed) {
+                return;
+            }
+
+            this.readyStateValue = ElectronBackendConnection.OPEN;
+            this.dispatch("open", new Event("open"));
+
+            bufferedMessages.forEach((payload) => {
+                this.dispatch("message", new MessageEvent("message", { data: payload }));
+            });
+        }).catch((reason: unknown) => {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            this.dispatchError(message);
+        });
+    };
+
+    public send = (data: string): void => {
+        window.electronDesktopBackend?.send(data);
+    };
+
+    private dispatch = <K extends keyof IConnectionEventMap>(type: K, event: IConnectionEventMap[K]): void => {
+        this.eventTarget.dispatchEvent(event);
+    };
+
+    private dispatchError(message: string): void {
+        this.dispatch("error", new CustomEvent("error", { detail: message }));
+        this.finishClose();
+    }
+
+    private finishClose(): void {
+        if (this.closed) {
+            return;
+        }
+
+        this.closed = true;
+        this.readyStateValue = ElectronBackendConnection.CLOSED;
+        this.disposeListeners();
+        this.dispatch("close", new Event("close"));
+    }
+
+    private disposeListeners(): void {
+        this.unsubscribeFunctions.forEach((unsubscribe) => {
+            unsubscribe();
+        });
+        this.unsubscribeFunctions = [];
+    }
+}
+
 /** Wrapper around a web socket that performs (re)connection and message scheduling. */
 export class MessageScheduler {
     protected static instance?: MessageScheduler;
     private static readonly multiResultList: readonly APIListType[] = multiResultAPIs;
 
-    protected socket?: WebSocket;
+    protected socket?: IBackendConnection;
 
     private debugging = false;
     private disconnecting = false;
@@ -189,7 +357,7 @@ export class MessageScheduler {
             }
 
             return new Promise((resolve, reject) => {
-                const socket = this.createWebSocket(target, options);
+                const socket = this.createConnection(target, options);
 
                 socket.addEventListener("close", this.onClose.bind(this, options));
                 socket.addEventListener("message", this.onMessage);
@@ -197,6 +365,7 @@ export class MessageScheduler {
                 socket.addEventListener("error", this.onError.bind(this, options, reject));
 
                 this.socket = socket;
+                socket.connect();
             });
         }
     }
@@ -228,7 +397,6 @@ export class MessageScheduler {
      */
     public sendRequest<K extends keyof IProtocolResults>(
         details: ISendRequestParameters<K>, useExecute = true): ResponsePromise<K> {
-
         return this.constructAndSendRequest(useExecute, { ...details });
     }
 
@@ -270,8 +438,12 @@ export class MessageScheduler {
      *
      * @returns A new websocket instance.
      */
-    protected createWebSocket(target: URL, options: IConnectionOptions): WebSocket {
-        return new WebSocket(target);
+    protected createConnection(target: URL, options: IConnectionOptions): IBackendConnection {
+        if (hasElectronDesktopBackend()) {
+            return new ElectronBackendConnection();
+        }
+
+        return new BrowserBackendConnection(target);
     }
 
     /**
@@ -379,6 +551,7 @@ export class MessageScheduler {
 
             const data = convertObjectKeysCamelToSnakeCase(record,
                 { ignore: details.caseConversionIgnores }) as INativeShellRequest;
+            const payload = JSON.stringify(data);
 
             if (this.traceEnabled) {
                 void requisitions.execute("debugger", { request: data });
@@ -393,8 +566,7 @@ export class MessageScheduler {
                 onData: details.onData,
             };
             this.ongoingRequests.set(requestId, ongoingRequest);
-
-            this.socket?.send(JSON.stringify(data));
+            this.socket?.send(payload);
         });
     }
 
@@ -452,7 +624,10 @@ export class MessageScheduler {
             return;
         }
 
-        reject(new Error(JSON.stringify(event, undefined, 4)));
+        const detail = event instanceof CustomEvent && typeof event.detail === "string"
+            ? event.detail
+            : JSON.stringify(event, undefined, 4);
+        reject(new Error(detail));
 
         this.reconnectTimeout *= 2;
         if (this.reconnectTimer) {

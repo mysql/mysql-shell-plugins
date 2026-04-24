@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -286,6 +286,11 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             this.prepareRenderTarget();
         }
         const renderTarget = this.zoneInfo!.zone.domNode.firstChild as HTMLDivElement;
+
+        if (!this.currentHeight && this.resultData?.type === "resultSets") {
+            this.currentHeight = PresentationInterface.maxAutoHeight.resultSets;
+            this.zoneInfo!.zone.heightInPx = this.currentHeight;
+        }
 
         renderTarget.addEventListener("wheel", (e) => {
             e.stopPropagation();

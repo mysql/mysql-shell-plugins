@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { afterAll, beforeAll, describe, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { MessageType } from "../../../../../app-logic/general-types.js";
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { ICodeEditorModel, IEditorPersistentState } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor/index.js";
 import type { ISavedEditorState } from "../../../../../modules/db-editor/ConnectionTab.js";
 import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
+import { StandalonePresentationInterface } from "../../../../../modules/db-editor/execution/StandalonePresentationInterface.js";
 import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
 import { notebookDocumentMock } from "../../../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
@@ -82,10 +84,74 @@ describe("Standalone presentation interface tests", (): void => {
                 savedState={savedState}
                 standaloneMode={false}
                 connectionId={-1}
+                connectionCaption="Test Connection"
+                pageCaption="Test Connection"
                 toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
         unmount();
+    });
+
+    it("keeps the embedded result pane visible when results are removed", () => {
+        const host = {
+            setState: vi.fn(),
+        } as unknown as ScriptEditor;
+        const target = { current: document.createElement("div") };
+        const presentation = new StandalonePresentationInterface("mysql");
+
+        presentation.onMount(target, host);
+
+        (presentation as unknown as { removeRenderTarget: () => void }).removeRenderTarget();
+
+        expect(host.setState).toHaveBeenCalledWith({
+            showResultPane: true,
+            maximizeResultPane: false,
+            hasResultContent: false,
+        });
+
+        presentation.dispose();
+    });
+
+    it("keeps the output tab when result sets have no textual output", () => {
+        const host = {
+            setState: vi.fn(),
+        } as unknown as ScriptEditor;
+        const targetElement = document.createElement("div");
+        document.body.append(targetElement);
+
+        const presentation = new StandalonePresentationInterface("mysql");
+        presentation.onMount({ current: targetElement }, host);
+        presentation.context = {
+            id: "ctx-1",
+        } as never;
+        presentation.activate({
+            getModel: () => null,
+        } as never);
+
+        presentation.setResult({
+            type: "resultSets",
+            sets: [{
+                type: "resultSet",
+                resultId: "result-1",
+                fullTableName: "",
+                sql: "select 1",
+                updatable: false,
+                columns: [],
+                data: {
+                    rows: [{ value: 1 }],
+                    currentPage: 0,
+                    executionInfo: {
+                        type: MessageType.Info,
+                        text: "1 row returned",
+                    },
+                },
+            }],
+        });
+
+        expect(targetElement.querySelector("#output")).toBeTruthy();
+
+        presentation.dispose();
+        targetElement.remove();
     });
 });

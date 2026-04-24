@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,10 +25,13 @@
 
 .msg#documentSideBar {
     flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
 }
 
 .msg#documentSideBar .sidebarTreeEntry {
     flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -54,6 +57,7 @@
 .msg#documentSideBar .tabulator-row .tabulator-cell {
     display: flex;
     flex-direction: row;
+    min-width: 0;
     padding: 0 0 0 3px;
 }
 
@@ -61,29 +65,84 @@
     flex: 1 1 auto;
 }
 
-.msg#documentSideBar .marked {
-    font-weight: 900;
-    border-left: 3px solid var(--sideBar-markerBackground);
-    color: var(--sideBar-markerBackground);
-}
-
 .msg#documentSideBar .tabulator-tableholder {
     overflow-x: hidden;
 }
 
-.msg#documentSideBar .tabulator-row.marked .tabulator-cell:first-child {
-    /* The first cell in a marked row needs a small adjustment to align properly with unmarked rows. */
-    margin-left: -3px;
+.msg#documentSideBar .tabulator-table,
+.msg#documentSideBar .tabulator-row,
+.msg#documentSideBar .tabulator-cell {
+    width: 100% !important;
+    max-width: 100%;
 }
 
 .msg#documentSideBar .input {
     margin-left: 40px;
 }
 
+.msg#documentSideBar .sidebarSectionContent {
+    flex: 1 1 auto;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg#documentSideBar .schemasSectionTree,
+.msg#documentSideBar .administrationSectionTree {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg#documentSideBar #schemasSectionSearch {
+    flex: 0 0 auto;
+    margin: 1px 12px 0;
+    min-height: 24px;
+    border-radius: 6px;
+}
+
+.msg#documentSideBar #schemasSectionSearch:focus-within {
+    border-color: var(--focusBorder);
+}
+
+.msg#documentSideBar #schemasSectionSearch .input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    margin-left: 0;
+    padding: 1px 10px 1px 6px;
+    border: none;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+}
+
+.msg#documentSideBar #schemasSectionSearch .leadingIcon {
+    margin: 0 0 0 10px;
+}
+
+.msg#documentSideBar #schemasSectionSearch .input:hover,
+.msg#documentSideBar #schemasSectionSearch .input:focus {
+    background: transparent;
+}
+
 .msg#documentSideBar .sidebarTreeEntry .label {
     display: inline;
+    min-width: 0;
     padding: 0 0 0 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     user-select: none;
+}
+
+.msg#documentSideBar .sidebarTreeEntry .schemaSearchMatch {
+    color: var(--list-highlightForeground);
+}
+
+.msg#documentSideBar .sidebarTreeEntry .icon.markedSchemaIcon {
+    background-color: var(--sideBar-markerBackground);
 }
 
 .msg#documentSideBar .sidebarTreeEntry #subCaption {

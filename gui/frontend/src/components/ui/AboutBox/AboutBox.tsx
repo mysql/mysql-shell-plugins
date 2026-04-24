@@ -86,7 +86,7 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
 
         const className = this.getEffectiveClassNames(["aboutBox"]);
         const showWorkbenchBranding = !title && (hasElectronHostBridge() || isStandalone());
-        const headingTitle = showWorkbenchBranding ? "MySQL Workbench 10" : (title ?? "About MySQL Shell");
+        const headingTitle = showWorkbenchBranding ? "MySQL Workbench" : (title ?? "About MySQL Shell");
 
         // The version is injected by the vite config.
         const versionParts: string[] = globalThis.MSG_VERSION_NUMBER?.split(".") ?? [];
@@ -198,7 +198,7 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                         <Icon src={Assets.misc.close2Icon} data-tooltip="inherit" />
                     </Button>
 
-                    <Image src={Assets.modules.appIcon} id="sakilaLogo" alt="MySQL Workbench 10" />
+                    <Image src={Assets.modules.appIcon} id="sakilaLogo" alt="MySQL Workbench" />
                     <Container id="heading" orientation={Orientation.TopDown}>
                         <Label id="headingLabel">
                             {headingTitle}

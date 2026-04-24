@@ -244,12 +244,12 @@ exports[`MRS User dialog tests > Show MRS User Dialog (snapshot) and escape 1`] 
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Options
-                  </label>
+                  </span>
                 </div>
                 <div
                   class="msg button tabItem"
@@ -257,12 +257,12 @@ exports[`MRS User dialog tests > Show MRS User Dialog (snapshot) and escape 1`] 
                   role="button"
                   tabindex="-1"
                 >
-                  <label
-                    class="msg label"
+                  <span
+                    class="tabCaption"
                     data-tooltip="inherit"
                   >
                     Auth App Settings
-                  </label>
+                  </span>
                 </div>
               </div>
               <div

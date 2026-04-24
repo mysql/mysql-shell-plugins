@@ -78,7 +78,7 @@ import {
 import { isExternalLangRoutine, showMessageWithTimeout } from "./utilities.js";
 import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
-import { resolveNewSqlScript } from "../../frontend/src/utilities/mysql-helpers.js"
+import { resolveNewSqlScript } from "../../frontend/src/utilities/mysql-helpers.js";
 
 const homeDir = os.homedir();
 
@@ -1332,19 +1332,16 @@ export class DocumentCommandHandler {
                     const provider = this.host.currentProvider;
                     if (provider) {
                         const scripts = this.openScripts.get(provider);
+                        const fileName = list[0].fsPath;
+                        const newName = basename(fileName);
                         if (scripts) {
                             scripts.set(details.id, list[0]);
-                            const newName = basename(list[0].fsPath);
-
-                            void provider.renameFile({
-                                ...details,
-                                caption: newName,
-                            });
-
                             void requisitions.execute("editorSaved",
                                 { id: details.id, newName, saved: false });
                         }
 
+                        details.caption = newName;
+                        details.fileName = fileName;
                         details.content = content.toString();
                         const connectionId = this.openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
 
@@ -1365,7 +1362,7 @@ export class DocumentCommandHandler {
             if (scripts) {
                 const uri = scripts.get(details.id);
                 if (uri) {
-                    if (uri.scheme === "untitled") {
+                    if (details.saveAs || uri.scheme === "untitled") {
                         // The user has to select a target file.
                         const filters: Record<string, string[]> = {};
 
@@ -1400,10 +1397,9 @@ export class DocumentCommandHandler {
                             if (value) {
                                 const newName = basename(value.fsPath);
                                 scripts.set(details.id, value);
-                                void provider.renameFile({
-                                    ...details,
-                                    caption: newName,
-                                });
+                                details.caption = newName;
+                                details.fileName = value.fsPath;
+                                void provider.renameFile(details);
 
                                 const buffer = Buffer.from(details.content, "utf-8");
 

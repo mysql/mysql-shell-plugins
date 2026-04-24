@@ -1,0 +1,106 @@
+/*
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.splitButton {
+    display: flex;
+    align-items: stretch;
+
+    background-color: var(--button-background);
+    border: 1px solid var(--button-border);
+    border-radius: 4px;
+    color: var(--button-foreground);
+    margin: 2px 10px;
+    min-height: 22px;
+    min-width: 80px;
+    overflow: hidden;
+}
+
+.msg.splitButton.default {
+    background: var(--button-defaultBackground);
+    color: var(--button-defaultForeground);
+}
+
+.msg.splitButton.disabled {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.splitButton > .splitButtonPrimary,
+.msg.splitButton > .splitButtonTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    user-select: none;
+}
+
+.msg.splitButton > .splitButtonPrimary {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 3px 8px;
+}
+
+.msg.splitButton > .splitButtonTrigger {
+    flex: 0 0 24px;
+    border-left: 1px solid var(--button-border);
+}
+
+.msg.splitButton:not(.disabled) > .splitButtonPrimary:hover,
+.msg.splitButton:not(.disabled) > .splitButtonPrimary:focus,
+.msg.splitButton:not(.disabled) > .splitButtonTrigger:hover,
+.msg.splitButton:not(.disabled) > .splitButtonTrigger:focus {
+    background-color: var(--button-hoverBackground);
+    cursor: pointer;
+    outline: none;
+}
+
+.msg.splitButton > .splitButtonPrimary > .icon,
+.msg.splitButton > .splitButtonPrimary > .image,
+.msg.splitButton > .splitButtonTrigger > .icon,
+.msg.splitButton > .splitButtonTrigger > .image {
+    height: 16px;
+    width: 16px;
+}
+
+.msg.splitButton > .splitButtonPrimary > .icon,
+.msg.splitButton > .splitButtonPrimary > .image {
+    margin-right: 8px;
+}
+
+.msg.splitButton > .splitButtonPrimary > .icon:not(.codicon),
+.msg.splitButton > .splitButtonTrigger > .icon:not(.codicon) {
+    background-color: var(--button-foreground);
+}
+
+.msg.splitButton.default > .splitButtonPrimary > .icon:not(.codicon),
+.msg.splitButton.default > .splitButtonTrigger > .icon:not(.codicon) {
+    background-color: var(--button-defaultForeground);
+}
+
+.msg.splitButton > .splitButtonPrimary > .label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

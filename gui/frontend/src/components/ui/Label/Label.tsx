@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -240,6 +240,8 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                     className = [...classNames].join(" ");
                 }
 
+                const text = value.content.length > 0 ? value.content : undefined;
+
                 return (
                     <span
                         key={index}
@@ -247,7 +249,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                         style={style}
                         data-tooltip={"inherit"}
                     >
-                        {value.content}
+                        {text}
                     </span >
                 );
             });

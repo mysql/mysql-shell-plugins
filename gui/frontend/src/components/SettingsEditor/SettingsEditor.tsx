@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,13 +31,22 @@ import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables"
 import type { IDictionary } from "../../app-logic/general-types.js";
 import { settingCategories, type ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
+import { Button } from "../ui/Button/Button.js";
 import { CheckState, Checkbox, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
-import { ComponentBase, SelectionType, type IComponentState, } from "../ui/Component/ComponentBase.js";
+import { Codicon } from "../ui/Codicon.js";
+import {
+    ComponentBase, SelectionType, type IComponentProperties, type IComponentState,
+} from "../ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
+import { Icon } from "../ui/Icon/Icon.js";
 import { Label } from "../ui/Label/Label.js";
 import { Search, type ISearchProperties, type ISearchValues } from "../ui/Search/Search.js";
 import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { SettingsEditorList } from "./SettingsEditorList.js";
+
+interface ISettingsEditorProperties extends IComponentProperties {
+    onBack?: () => void;
+}
 
 interface ISettingsEditorState extends IComponentState {
     settingsTree: ISettingCategory[];
@@ -51,7 +60,7 @@ interface ISettingsEditorState extends IComponentState {
 }
 
 /** A dialog to edit user and application settings. */
-export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
+export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISettingsEditorState> {
 
     private treeRef = createRef<TreeGrid>();
     private valueListRef = createRef<SettingsEditorList>();
@@ -59,7 +68,7 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
     private scrolling = false;
     private filterTimer: ReturnType<typeof setTimeout> | null = null;
 
-    public constructor(props: {}) {
+    public constructor(props: ISettingsEditorProperties) {
         super(props);
 
         const settingsTree = settingCategories.children!;
@@ -152,16 +161,28 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
                     orientation={Orientation.LeftToRight}
                     id="settingsTreeHost"
                 >
-                    <TreeGrid
-                        id="settingsTree"
-                        ref={this.treeRef}
-                        columns={settingsTreeColumns}
-                        tableData={filteredTree}
-                        selectedRows={[selectedTreeEntry]}
-                        options={settingsTreeOptions}
-                        tabIndex={0}
-                        onRowSelected={this.handleSettingTreeRowSelected}
-                    />
+                    <Container
+                        id="settingsSectionListHost"
+                        orientation={Orientation.TopDown}
+                    >
+                        <Button
+                            id="settingsBackButton"
+                            onClick={this.handleBack}
+                        >
+                            <Icon src={Codicon.ArrowLeft} />
+                            <Label caption="Back" />
+                        </Button>
+                        <TreeGrid
+                            id="settingsTree"
+                            ref={this.treeRef}
+                            columns={settingsTreeColumns}
+                            tableData={filteredTree}
+                            selectedRows={[selectedTreeEntry]}
+                            options={settingsTreeOptions}
+                            tabIndex={0}
+                            onRowSelected={this.handleSettingTreeRowSelected}
+                        />
+                    </Container>
                     <SettingsEditorList
                         id="settingsValueList"
                         ref={this.valueListRef}
@@ -171,6 +192,10 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
                 </Container>
             </Container>
         );
+    };
+
+    private handleBack = (): void => {
+        this.props.onBack?.();
     };
 
     private formatSettingNamesTreeCell = (cell: CellComponent): string | HTMLElement => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -118,6 +118,9 @@ export interface IScriptRequest {
     /** The caption that should be set in that editor. */
     caption: string;
 
+    /** Optional file path or file name associated with the script. */
+    fileName?: string;
+
     /** The content to load/save. */
     content: string;
 
@@ -129,6 +132,8 @@ export interface IScriptRequest {
      * engine (usually HeatWave).
      */
     forceSecondaryEngine?: boolean;
+    saveAs?: boolean;
+    openFromFile?: boolean;
 
     pageId?: string;
     connectionInfo?: IConnectionInfo;

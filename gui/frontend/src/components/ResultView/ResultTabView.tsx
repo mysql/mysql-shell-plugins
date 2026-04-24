@@ -33,6 +33,7 @@ import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/
 import { Assets } from "../../supplement/Assets.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { Button } from "../ui/Button/Button.js";
+import { Codicon } from "../ui/Codicon.js";
 import {
     ComponentBase, ComponentPlacement, IComponentProperties, IComponentState,
 } from "../ui/Component/ComponentBase.js";
@@ -451,7 +452,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                             data-tooltip="Show Action Menu"
                             onClick={this.showActionMenu}
                         >
-                            <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
+                            <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
                         </Button>
                     </Toolbar>}
             </ResultStatus>

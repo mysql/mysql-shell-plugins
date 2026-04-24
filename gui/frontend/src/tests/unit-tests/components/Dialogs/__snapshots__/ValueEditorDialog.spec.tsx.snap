@@ -204,12 +204,12 @@ exports[`Value Edit Dialog Tests > Grouped Sections 1`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <label
-                      class="msg label"
+                    <span
+                      class="tabCaption"
                       data-tooltip="inherit"
                     >
                       My First Section
-                    </label>
+                    </span>
                   </div>
                   <div
                     class="msg button tabItem selected"
@@ -217,12 +217,12 @@ exports[`Value Edit Dialog Tests > Grouped Sections 1`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <label
-                      class="msg label"
+                    <span
+                      class="tabCaption"
                       data-tooltip="inherit"
                     >
                       My Second Section
-                    </label>
+                    </span>
                   </div>
                   <div
                     class="msg button tabItem"
@@ -230,12 +230,12 @@ exports[`Value Edit Dialog Tests > Grouped Sections 1`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <label
-                      class="msg label"
+                    <span
+                      class="tabCaption"
                       data-tooltip="inherit"
                     >
                       My Third Section
-                    </label>
+                    </span>
                   </div>
                 </div>
                 <div
@@ -413,12 +413,12 @@ exports[`Value Edit Dialog Tests > Grouped Sections 2`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <label
-                      class="msg label"
+                    <span
+                      class="tabCaption"
                       data-tooltip="inherit"
                     >
                       My First Section
-                    </label>
+                    </span>
                   </div>
                   <div
                     class="msg button tabItem selected"
@@ -426,12 +426,12 @@ exports[`Value Edit Dialog Tests > Grouped Sections 2`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <label
-                      class="msg label"
+                    <span
+                      class="tabCaption"
                       data-tooltip="inherit"
                     >
                       My Second Section
-                    </label>
+                    </span>
                   </div>
                   <div
                     class="msg button tabItem"
@@ -439,12 +439,12 @@ exports[`Value Edit Dialog Tests > Grouped Sections 2`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <label
-                      class="msg label"
+                    <span
+                      class="tabCaption"
                       data-tooltip="inherit"
                     >
                       My Third Section
-                    </label>
+                    </span>
                   </div>
                 </div>
                 <div

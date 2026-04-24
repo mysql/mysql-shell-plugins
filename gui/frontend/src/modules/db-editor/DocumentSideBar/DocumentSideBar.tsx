@@ -42,6 +42,7 @@ import { Icon, type IIconOverlay } from "../../../components/ui/Icon/Icon.js";
 import { Label } from "../../../components/ui/Label/Label.js";
 import { Menu } from "../../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../../components/ui/Menu/MenuItem.js";
+import { Search, type ISearchProperties, type ISearchValues } from "../../../components/ui/Search/Search.js";
 import { ISplitterPaneSizeInfo } from "../../../components/ui/SplitContainer/SplitContainer.js";
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import {
@@ -58,6 +59,7 @@ import {
 } from "../../../data-models/data-model-types.js";
 import { BastionLifecycleState } from "../../../oci-typings/oci-bastion/lib/model/bastion-lifecycle-state.js";
 import { Assets } from "../../../supplement/Assets.js";
+import { hasElectronHostBridge } from "../../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { DBType, IFolderPath } from "../../../supplement/ShellInterface/index.js";
@@ -173,6 +175,8 @@ export interface IDocumentSideBarSectionState {
     size?: number;
 }
 
+export type DocumentSideBarMode = "classic" | "electronHome" | "electronGeneral" | "electronConnection";
+
 interface IDocumentSideBarProperties extends IComponentProperties {
     /** Which document item is currently selected. */
     selectedOpenDocument: string;
@@ -182,6 +186,9 @@ interface IDocumentSideBarProperties extends IComponentProperties {
 
     /** The state of each accordion section. */
     savedSectionState?: Map<string, IDocumentSideBarSectionState>;
+
+    sidebarMode?: DocumentSideBarMode;
+    activeWorkspaceConnectionId?: number;
 
     overviewId: string;
 
@@ -230,6 +237,8 @@ interface IDocumentSideBarState extends IComponentState {
 
     /** Set when the default connection is being opened (in single server mode). */
     defaultOpening: boolean;
+
+    schemaSearchValues: ISearchValues;
 }
 
 export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, IDocumentSideBarState> {
@@ -289,14 +298,24 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
     private documentTableRef = createRef<TreeGrid>();
     private connectionTableRef = createRef<TreeGrid>();
+    private schemasTableRef = createRef<TreeGrid>();
+    private administrationTableRef = createRef<TreeGrid>();
     private ociTableRef = createRef<TreeGrid>();
 
     private connectionSectionRef = createRef<AccordionSection>();
+    private schemasSectionRef = createRef<AccordionSection>();
+    private administrationSectionRef = createRef<AccordionSection>();
     private ociSectionRef = createRef<AccordionSection>();
+
+    private selectedSchemaTreeItemId?: string;
+    private selectedSchemaTreeEntry?: ConnectionDataModelEntry;
+    private restoringSchemaSelection = false;
 
     // > 0 if a data model refresh is running. In this case ignore all incoming data model changes
     // (we are the source of them in this case).
     private refreshRunning = 0;
+
+    private schemaSearchLoadedConnectionId?: number;
 
     public constructor(props: IDocumentSideBarProperties) {
         super(props);
@@ -308,9 +327,13 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 ociTreeItems: [],
             },
             defaultOpening: false,
+            schemaSearchValues: {
+                value: "",
+            },
         };
 
-        this.addHandledProperties("selectedOpenDocument", "markedSchema", "savedSectionState", "overviewId",
+        this.addHandledProperties("selectedOpenDocument", "markedSchema", "savedSectionState", "sidebarMode",
+            "activeWorkspaceConnectionId", "overviewId",
             "onSelectConnectionItem", "onSelectDocumentItem", "onChangeItem", "onSaveState",
             "onConnectionTreeCommand", "onDocumentTreeCommand", "onOciTreeCommand",
         );
@@ -329,6 +352,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
             this.updateTreesFromContext();
         }
+
+        void this.ensureWorkspaceConnectionReady();
     }
 
     public override componentWillUnmount(): void {
@@ -342,6 +367,28 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         requisitions.unregister("refreshConnection", this.refreshConnection);
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
     }
+
+    public toggleActiveWorkspaceSystemSchemas = async (): Promise<boolean> => {
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        if (connection?.details.dbType !== DBType.MySQL) {
+            return false;
+        }
+
+        connection.state.payload ??= {};
+        connection.state.payload.showSystemSchemas = !connection.state.payload.showSystemSchemas;
+        await this.refreshWorkspaceSchemas(connection);
+
+        return true;
+    };
+
+    public getActiveWorkspaceSystemSchemasState = (): boolean | undefined => {
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        if (connection?.details.dbType !== DBType.MySQL) {
+            return undefined;
+        }
+
+        return connection.state.payload?.showSystemSchemas === true;
+    };
 
     public override componentDidUpdate(prevProps: IDocumentSideBarProperties): void {
         if (webSession.runMode === RunMode.SingleServer) {
@@ -372,23 +419,45 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             }
         }
 
-        const { markedSchema, selectedOpenDocument } = this.props;
+        const { markedSchema, selectedOpenDocument, sidebarMode = "classic", activeWorkspaceConnectionId } = this.props;
 
         // Check for data model changes and update our trees.
         this.updateTreesFromContext();
 
+        if (prevProps.sidebarMode !== sidebarMode
+            || prevProps.activeWorkspaceConnectionId !== activeWorkspaceConnectionId) {
+            this.schemaSearchLoadedConnectionId = undefined;
+
+            void this.updateConnectionTreeItems();
+
+            if ((this.state.schemaSearchValues.value ?? "").length > 0) {
+                this.selectedSchemaTreeItemId = undefined;
+                this.selectedSchemaTreeEntry = undefined;
+                this.setState({
+                    schemaSearchValues: {
+                        value: "",
+                    },
+                });
+            } else {
+                this.selectedSchemaTreeItemId = undefined;
+                this.selectedSchemaTreeEntry = undefined;
+            }
+
+            void this.ensureWorkspaceConnectionReady();
+        }
+
         if (this.connectionTableRef.current) {
             if (markedSchema !== prevProps.markedSchema) {
-                let rows = this.connectionTableRef.current.searchAllRows("caption", markedSchema);
-                rows.forEach((row) => {
-                    row.reformat();
-                });
-
-                rows = this.connectionTableRef.current.searchAllRows("caption", prevProps.markedSchema);
-                rows.forEach((row) => {
-                    row.reformat();
-                });
+                this.reformatMarkedSchemaRows(this.connectionTableRef, markedSchema, prevProps.markedSchema);
             }
+        }
+
+        if (this.schemasTableRef.current) {
+            if (markedSchema !== prevProps.markedSchema) {
+                this.reformatMarkedSchemaRows(this.schemasTableRef, markedSchema, prevProps.markedSchema);
+            }
+
+            this.restoreSelectedSchemaTreeRow();
         }
 
         if (prevProps.selectedOpenDocument !== selectedOpenDocument) {
@@ -412,8 +481,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     }
 
     public render(): ComponentChild {
-        const { savedSectionState } = this.props;
-        const { editing } = this.state;
+        const { savedSectionState, sidebarMode = "classic" } = this.props;
+        const { editing, schemaSearchValues } = this.state;
 
         const context = this.context as DocumentContextType | undefined;
         if (!context) {
@@ -422,81 +491,148 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         const documentSectionState = savedSectionState?.get("documentSection") ?? {};
         const connectionSectionState = savedSectionState?.get("connectionSection") ?? {};
+        const schemasSectionState = savedSectionState?.get("schemasSection") ?? {};
+        const administrationSectionState = savedSectionState?.get("administrationSection") ?? {};
         const ociSectionState = savedSectionState?.get("ociSection") ?? {};
+        const schemasSectionExpanded = schemasSectionState.expanded ?? true;
+        const ociSectionExpanded = ociSectionState.expanded ?? false;
+        const homeConnectionTreeItems = sidebarMode === "electronHome"
+            ? this.getHomeConnectionTreeItems(context.connectionsDataModel.roots)
+            : [];
+        const activeWorkspaceConnection = sidebarMode === "electronConnection"
+            ? this.getActiveWorkspaceConnectionEntry()
+            : undefined;
+        const schemaTreeItems = activeWorkspaceConnection
+            ? this.getSchemasTreeItems(activeWorkspaceConnection, schemaSearchValues.value ?? "")
+            : [];
+        const administrationTreeItems = activeWorkspaceConnection
+            ? this.getAdministrationTreeItems(activeWorkspaceConnection)
+            : [];
 
-        const title = isStandalone() ? "MYSQL SHELL WORKBENCH" : "MYSQL SHELL GUI";
+        const title = hasElectronHostBridge() ? undefined : (isStandalone() ? "MYSQL WORKBENCH" : "MYSQL SHELL GUI");
 
-        const accordionSections: IAccordionSection[] = [{
-            id: "documentSection",
-            caption: "OPEN EDITORS",
-            stretch: false,
-            minSize: 70,
-            maxSize: 400,
-            resizable: true,
-            expanded: documentSectionState.expanded,
-            initialSize: documentSectionState.size,
-            dimmed: editing != null,
-            actions: [],
-            content: this.renderDocumentsTree(context.documentDataModel.roots),
-        }];
-
-        if (webSession.runMode !== RunMode.SingleServer) {
-            accordionSections[0].actions!.push({
-                icon: Codicon.NewFile,
-                command: {
-                    command: "addConsole",
-                    tooltip: "Add new console",
-                    title: "Add new console",
-                },
+        const accordionSections: IAccordionSection[] = [];
+        if (sidebarMode === "classic" && !hasElectronHostBridge()) {
+            accordionSections.push({
+                id: "documentSection",
+                caption: "OPEN EDITORS",
+                stretch: false,
+                minSize: 70,
+                maxSize: 400,
+                resizable: true,
+                expanded: documentSectionState.expanded,
+                initialSize: documentSectionState.size,
+                dimmed: editing != null,
+                actions: [],
+                content: this.renderDocumentsTree(context.documentDataModel.roots),
             });
+
+            if (webSession.runMode !== RunMode.SingleServer) {
+                accordionSections[0].actions!.push({
+                    icon: Codicon.NewFile,
+                    command: {
+                        command: "addConsole",
+                        tooltip: "Add new console",
+                        title: "Add new console",
+                    },
+                });
+            }
         }
 
-        const connectionSection: IAccordionSection = {
-            ref: this.connectionSectionRef,
-            id: "connectionSection",
-            caption: "DATABASE CONNECTIONS",
-            stretch: true,
-            expanded: connectionSectionState.expanded,
-            initialSize: connectionSectionState.size ?? 500,
-            resizable: true,
-            minSize: 100,
-            actions: [],
-            content: this.renderConnectionsTree(context.connectionsDataModel.roots),
-        };
+        if (sidebarMode === "classic") {
+            const connectionSection: IAccordionSection = {
+                ref: this.connectionSectionRef,
+                id: "connectionSection",
+                caption: "DATABASE CONNECTIONS",
+                stretch: true,
+                expanded: connectionSectionState.expanded,
+                initialSize: connectionSectionState.size ?? 500,
+                resizable: true,
+                minSize: 100,
+                actions: [],
+                content: this.renderConnectionsTree(context.connectionsDataModel.roots),
+            };
 
-        accordionSections.push(connectionSection);
+            accordionSections.push(connectionSection);
 
-        if (webSession.runMode === RunMode.SingleServer) {
-            connectionSection.actions!.push({
-                icon: Codicon.CollapseAll,
-                command: {
-                    command: "msg.collapseAll",
-                    tooltip: "Collapse Connection Node",
-                    title: "Collapse Connection Node",
-                },
+            if (webSession.runMode === RunMode.SingleServer) {
+                connectionSection.actions!.push({
+                    icon: Codicon.CollapseAll,
+                    command: {
+                        command: "msg.collapseAll",
+                        tooltip: "Collapse Connection Node",
+                        title: "Collapse Connection Node",
+                    },
+                });
+            } else {
+                connectionSection.actions!.push({
+                    icon: Codicon.Add,
+                    command: {
+                        command: "msg.addConnection",
+                        tooltip: "Create New DB Connection",
+                        title: "Create New DB Connection",
+                    },
+                }, {
+                    icon: Codicon.Refresh,
+                    command: {
+                        command: "msg.refreshConnections",
+                        tooltip: "Refresh the Connection List",
+                        title: "Refresh the Connection List",
+                    },
+                }, {
+                    icon: Codicon.CollapseAll,
+                    command: {
+                        command: "msg.collapseAll",
+                        tooltip: "Collapse All",
+                        title: "Collapse All",
+                    },
+                });
+            }
+        } else if (sidebarMode === "electronHome") {
+            accordionSections.push({
+                ref: this.connectionSectionRef,
+                id: "connectionSection",
+                caption: "CONNECTIONS",
+                stretch: true,
+                expanded: connectionSectionState.expanded,
+                initialSize: connectionSectionState.size ?? 260,
+                resizable: true,
+                minSize: 100,
+                content: this.renderConnectionTreeItems(homeConnectionTreeItems),
             });
-        } else {
-            connectionSection.actions!.push({
-                icon: Codicon.Add,
-                command: {
-                    command: "msg.addConnection",
-                    tooltip: "Create New DB Connection",
-                    title: "Create New DB Connection",
-                },
-            }, {
-                icon: Codicon.Refresh,
-                command: {
-                    command: "msg.refreshConnections",
-                    tooltip: "Refresh the Connection List",
-                    title: "Refresh the Connection List",
-                },
-            }, {
-                icon: Codicon.CollapseAll,
-                command: {
-                    command: "msg.collapseAll",
-                    tooltip: "Collapse All",
-                    title: "Collapse All",
-                },
+        } else if (sidebarMode === "electronConnection") {
+            if (administrationTreeItems.length > 0) {
+                accordionSections.push({
+                    ref: this.administrationSectionRef,
+                    id: "administrationSection",
+                    caption: "ADMINISTRATION",
+                    stretch: !schemasSectionExpanded && !ociSectionExpanded,
+                    expanded: administrationSectionState.expanded,
+                    initialSize: administrationSectionState.size,
+                    resizable: true,
+                    minSize: 100,
+                    content: this.renderAdministrationTree(administrationTreeItems),
+                });
+            }
+
+            accordionSections.push({
+                ref: this.schemasSectionRef,
+                id: "schemasSection",
+                caption: "SCHEMAS",
+                stretch: true,
+                expanded: schemasSectionState.expanded,
+                initialSize: schemasSectionState.size ?? 500,
+                resizable: true,
+                minSize: 100,
+                actions: [{
+                    icon: Codicon.Refresh,
+                    command: {
+                        command: "msg.electronSchemas.refresh",
+                        tooltip: "Refresh Schemas",
+                        title: "Refresh Schemas",
+                    },
+                }],
+                content: this.renderSchemasTree(schemaTreeItems),
             });
         }
 
@@ -506,7 +642,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 id: "ociSection",
                 caption: "ORACLE CLOUD INFRASTRUCTURE",
                 stretch: true,
-                expanded: ociSectionState.expanded,
+                expanded: ociSectionState.expanded ?? false,
                 initialSize: ociSectionState.size,
                 resizable: true,
                 minSize: 100,
@@ -535,7 +671,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 <Accordion
                     id="documentSideBar"
                     caption={title}
-                    actions={[{
+                    actions={hasElectronHostBridge() ? [] : [{
                         icon: Codicon.KebabHorizontal,
                         tooltip: "More Actions",
                         choices: [{
@@ -581,26 +717,772 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         );
     }
 
+    private getActiveWorkspaceConnectionEntry = (): ICdmConnectionEntry | undefined => {
+        const { activeWorkspaceConnectionId } = this.props;
+        const context = this.context as DocumentContextType | undefined;
+        if (!context || activeWorkspaceConnectionId === undefined) {
+            return undefined;
+        }
+
+        const findConnection = (
+            entries: ReadonlyArray<ICdmConnectionEntry | ICdmConnectionGroupEntry>,
+        ): ICdmConnectionEntry | undefined => {
+            for (const entry of entries) {
+                if (entry.type === CdmEntityType.ConnectionGroup) {
+                    const match = findConnection(entry.entries);
+                    if (match) {
+                        return match;
+                    }
+                } else if (entry.details.id === activeWorkspaceConnectionId) {
+                    return entry;
+                }
+            }
+
+            return undefined;
+        };
+
+        return findConnection(context.connectionsDataModel.roots);
+    };
+
+    private ensureWorkspaceConnectionReady = async (): Promise<void> => {
+        const { sidebarMode = "classic" } = this.props;
+        if (sidebarMode !== "electronConnection") {
+            return;
+        }
+
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        if (!connection || connection.state.initialized) {
+            return;
+        }
+
+        await this.refreshConnectionEntry(connection, this.schemasSectionRef);
+    };
+
+    private withSectionProgress = async <T,>(
+        sectionRef: RefObject<AccordionSection> | undefined,
+        action: () => Promise<T>,
+    ): Promise<T> => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        if (sectionRef?.current) {
+            timer = setTimeout(() => {
+                if (sectionRef.current) {
+                    sectionRef.current.showProgress = true;
+                }
+            }, 200);
+        }
+
+        try {
+            return await action();
+        } finally {
+            if (timer) {
+                clearTimeout(timer);
+            }
+
+            if (sectionRef?.current) {
+                sectionRef.current.showProgress = false;
+            }
+        }
+    };
+
+    private isElectronConnectionSidebar = (): boolean => {
+        return (this.props.sidebarMode ?? "classic") === "electronConnection";
+    };
+
+    private isElectronHomeSidebar = (): boolean => {
+        return (this.props.sidebarMode ?? "classic") === "electronHome";
+    };
+
+    private isEntryFromActiveWorkspaceConnection = (
+        entry: ConnectionDataModelEntry,
+        activeConnection: ICdmConnectionEntry,
+    ): boolean => {
+        if (entry.type === CdmEntityType.ConnectionGroup) {
+            return false;
+        }
+
+        if (entry.type === CdmEntityType.Connection) {
+            return entry.details.id === activeConnection.details.id;
+        }
+
+        return entry.connection.details.id === activeConnection.details.id;
+    };
+
+    private getWorkspaceConnectionSectionRef = (
+        entry: ConnectionDataModelEntry,
+    ): RefObject<AccordionSection> => {
+        switch (entry.type) {
+            case CdmEntityType.Admin:
+            case CdmEntityType.AdminPage: {
+                return this.administrationSectionRef;
+            }
+
+            default: {
+                return this.schemasSectionRef;
+            }
+        }
+    };
+
+    private refreshConnectionEntry = async (
+        entry: ConnectionDataModelEntry,
+        sectionRef?: RefObject<AccordionSection>,
+    ): Promise<boolean> => {
+        try {
+            await this.withSectionProgress(sectionRef, async () => {
+                ++this.refreshRunning;
+
+                try {
+                    await entry.refresh?.((result?: string | Error) => {
+                        if (result instanceof Error) {
+                            void ui.showErrorMessage(convertErrorToString(result), {});
+                        } else if (typeof result === "string") {
+                            ui.setStatusBarMessage(result, 15000);
+                        }
+                    });
+                } finally {
+                    --this.refreshRunning;
+                }
+            });
+
+            return true;
+        } catch (error) {
+            void ui.showErrorMessage(convertErrorToString(error), {});
+
+            return false;
+        } finally {
+            this.forceUpdate();
+        }
+    };
+
+    private refreshWorkspaceConnectionTreeEntryChildren = async (
+        entry: ConnectionDataModelEntry,
+        needRefresh: boolean,
+        recursive = false,
+    ): Promise<void> => {
+        const activeConnection = this.getActiveWorkspaceConnectionEntry();
+        if (!activeConnection || !this.isEntryFromActiveWorkspaceConnection(entry, activeConnection)) {
+            if (needRefresh) {
+                await this.refreshConnectionEntry(entry);
+            } else {
+                this.forceUpdate();
+            }
+
+            return;
+        }
+
+        if (needRefresh) {
+            await this.refreshConnectionEntry(entry, this.getWorkspaceConnectionSectionRef(entry));
+        } else {
+            this.forceUpdate();
+        }
+
+        if (recursive) {
+            const children = entry.getChildren?.() ?? [];
+            for (const child of children) {
+                if (child.state.expandedOnce) {
+                    await this.refreshWorkspaceConnectionTreeEntryChildren(child, true, true);
+                }
+            }
+        }
+    };
+
+    private loadSchemaSearchData = async (connection: ICdmConnectionEntry): Promise<void> => {
+        if (this.schemaSearchLoadedConnectionId === connection.details.id) {
+            return;
+        }
+
+        try {
+            await this.withSectionProgress(this.schemasSectionRef, async () => {
+                if (!connection.state.initialized) {
+                    ++this.refreshRunning;
+                    try {
+                        await connection.refresh?.();
+                    } finally {
+                        --this.refreshRunning;
+                    }
+                }
+
+                for (const schema of connection.schemaEntries) {
+                    const groups = schema.getChildren?.() ?? [];
+                    for (const group of groups) {
+                        ++this.refreshRunning;
+                        try {
+                            await group.refresh?.();
+                        } finally {
+                            --this.refreshRunning;
+                        }
+                    }
+                }
+            });
+
+            this.schemaSearchLoadedConnectionId = connection.details.id;
+        } catch (error) {
+            void ui.showErrorMessage(convertErrorToString(error), {});
+        } finally {
+            this.forceUpdate();
+        }
+    };
+
+    private refreshWorkspaceSchemas = async (connection: ICdmConnectionEntry): Promise<void> => {
+        this.schemaSearchLoadedConnectionId = undefined;
+
+        const refreshed = await this.refreshConnectionEntry(connection, this.schemasSectionRef);
+        const filterValue = this.state.schemaSearchValues.value ?? "";
+        if (refreshed && filterValue.trim().length > 0) {
+            await this.loadSchemaSearchData(connection);
+        }
+    };
+
+    private reformatMarkedSchemaRows = (
+        tableRef: RefObject<TreeGrid>,
+        markedSchema: string,
+        previousMarkedSchema: string,
+    ): void => {
+        let rows = tableRef.current?.searchAllRows("caption", markedSchema) ?? [];
+        rows.forEach((row) => {
+            row.reformat();
+        });
+
+        rows = tableRef.current?.searchAllRows("caption", previousMarkedSchema) ?? [];
+        rows.forEach((row) => {
+            row.reformat();
+        });
+    };
+
+    private createWorkspaceConnectionTreeItem = (
+        entry: ConnectionDataModelEntry,
+        schema: string | undefined,
+        table: string | undefined,
+        children: IConnectionTreeItem[] | undefined,
+        captionHighlightFilter?: string,
+    ): IConnectionTreeItem => {
+        return {
+            id: entry.id,
+            dataModelEntry: entry,
+            caption: entry.caption,
+            qualifiedName: {
+                schema,
+                table,
+                name: entry.caption,
+            },
+            captionHighlightFilter,
+            children,
+        };
+    };
+
+    private buildWorkspaceConnectionTreeItem = (
+        entry: ConnectionDataModelEntry,
+        schema?: string,
+        table?: string,
+    ): IConnectionTreeItem => {
+        const nextSchema = entry.type === CdmEntityType.Schema ? entry.caption : schema;
+        const nextTable = this.isWorkspaceConnectionObjectWithMembers(entry) ? entry.caption : table;
+
+        let children: IConnectionTreeItem[] | undefined;
+        if (!entry.state.isLeaf) {
+            if (entry.state.expandedOnce) {
+                children = (entry.getChildren?.() ?? []).map((child) => {
+                    return this.buildWorkspaceConnectionTreeItem(child, nextSchema, nextTable);
+                });
+            } else {
+                children = [];
+            }
+        }
+
+        return this.createWorkspaceConnectionTreeItem(entry, schema, table, children);
+    };
+
+    private isWorkspaceConnectionObjectWithMembers = (entry: ConnectionDataModelEntry): boolean => {
+        return entry.type === CdmEntityType.Table || entry.type === CdmEntityType.View || entry.type === CdmEntityType.Jdv;
+    };
+
+    private isWorkspaceConnectionTreeGroup = (entry: ConnectionDataModelEntry): boolean => {
+        switch (entry.type) {
+            case CdmEntityType.ConnectionGroup:
+            case CdmEntityType.SchemaGroup:
+            case CdmEntityType.TableGroup:
+            case CdmEntityType.MrsRouterGroup:
+            case CdmEntityType.MrsAuthAppGroup: {
+                return true;
+            }
+
+            default: {
+                return false;
+            }
+        }
+    };
+
+    private normalizeSchemaSearchPart = (part: string): string => {
+        return part.trim().replace(/^`|`$/g, "").toLowerCase();
+    };
+
+    private parseSchemaSearchFilter = (filter: string): string[] => {
+        return filter.split(".").map((part) => {
+            return this.normalizeSchemaSearchPart(part);
+        }).filter((part) => {
+            return part.length > 0;
+        });
+    };
+
+    private getFuzzyMatchIndices = (filter: string, value: string | undefined): number[] | undefined => {
+        if (!value) {
+            return undefined;
+        }
+
+        let filterIndex = 0;
+        const filterCharacters = Array.from(filter);
+        const normalizedValueCharacters = Array.from(value.toLowerCase());
+        const result: number[] = [];
+
+        for (let valueIndex = 0; valueIndex < normalizedValueCharacters.length && filterIndex < filterCharacters.length;
+            ++valueIndex) {
+            if (filterCharacters[filterIndex] === normalizedValueCharacters[valueIndex]) {
+                result.push(valueIndex);
+                ++filterIndex;
+            }
+        }
+
+        return filterIndex === filterCharacters.length ? result : undefined;
+    };
+
+    private matchesFuzzyPart = (filter: string, value: string | undefined): boolean => {
+        return this.getFuzzyMatchIndices(filter, value) !== undefined;
+    };
+
+    private matchesSchemaSearchFilter = (
+        entry: ConnectionDataModelEntry,
+        filter: string,
+        schema?: string,
+        table?: string,
+    ): boolean => {
+        const parts = this.parseSchemaSearchFilter(filter);
+
+        if (parts.length === 0) {
+            return false;
+        }
+
+        if (parts.length === 1) {
+            return this.matchesFuzzyPart(parts[0], entry.caption);
+        }
+
+        if (this.isWorkspaceConnectionTreeGroup(entry)) {
+            return false;
+        }
+
+        const name = entry.caption;
+        if (parts.length === 2) {
+            const [ownerFilter, nameFilter] = parts;
+
+            return (table === undefined
+                && this.matchesFuzzyPart(ownerFilter, schema)
+                && this.matchesFuzzyPart(nameFilter, name))
+                || (table !== undefined
+                    && this.matchesFuzzyPart(ownerFilter, table)
+                    && this.matchesFuzzyPart(nameFilter, name));
+        }
+
+        if (parts.length === 3) {
+            const [schemaFilter, tableFilter, nameFilter] = parts;
+
+            return this.matchesFuzzyPart(schemaFilter, schema)
+                && this.matchesFuzzyPart(tableFilter, table)
+                && this.matchesFuzzyPart(nameFilter, name);
+        }
+
+        return false;
+    };
+
+    private schemaSearchCaptionFilter = (
+        entry: ConnectionDataModelEntry,
+        filter: string,
+        schema?: string,
+        table?: string,
+    ): string | undefined => {
+        const parts = this.parseSchemaSearchFilter(filter);
+
+        if (parts.length === 0) {
+            return undefined;
+        }
+
+        if (parts.length === 1) {
+            return this.matchesFuzzyPart(parts[0], entry.caption) ? parts[0] : undefined;
+        }
+
+        if (entry.type === CdmEntityType.Schema) {
+            return this.matchesFuzzyPart(parts[0], entry.caption) ? parts[0] : undefined;
+        }
+
+        if (this.isWorkspaceConnectionObjectWithMembers(entry)) {
+            if (parts.length === 2) {
+                if (this.matchesFuzzyPart(parts[0], schema) && this.matchesFuzzyPart(parts[1], entry.caption)) {
+                    return parts[1];
+                }
+
+                if (this.matchesFuzzyPart(parts[0], entry.caption)) {
+                    return parts[0];
+                }
+            }
+
+            if (parts.length === 3
+                && this.matchesFuzzyPart(parts[0], schema)
+                && this.matchesFuzzyPart(parts[1], entry.caption)) {
+                return parts[1];
+            }
+        }
+
+        if (table) {
+            if (parts.length === 2
+                && this.matchesFuzzyPart(parts[0], table)
+                && this.matchesFuzzyPart(parts[1], entry.caption)) {
+                return parts[1];
+            }
+
+            if (parts.length === 3
+                && this.matchesFuzzyPart(parts[0], schema)
+                && this.matchesFuzzyPart(parts[1], table)
+                && this.matchesFuzzyPart(parts[2], entry.caption)) {
+                return parts[2];
+            }
+        } else if (parts.length === 2
+            && this.matchesFuzzyPart(parts[0], schema)
+            && this.matchesFuzzyPart(parts[1], entry.caption)) {
+            return parts[1];
+        }
+
+        return undefined;
+    };
+
+    private renderSchemaSearchCaption = (data: IConnectionTreeItem): ComponentChild => {
+        const filter = data.captionHighlightFilter;
+        const matchIndices = filter ? this.getFuzzyMatchIndices(filter, data.caption) : undefined;
+        if (!matchIndices) {
+            return <Label id="mainCaption" caption={data.caption} />;
+        }
+
+        const matchIndexSet = new Set(matchIndices);
+
+        return <label id="mainCaption" className="msg label" data-tooltip="expand">
+            {Array.from(data.caption).map((character, index) => {
+                return <span
+                    key={index}
+                    className={matchIndexSet.has(index) ? "schemaSearchMatch" : undefined}
+                    data-tooltip="inherit"
+                >
+                    {character}
+                </span>;
+            })}
+        </label>;
+    };
+
+    private filterWorkspaceConnectionTreeItem = (
+        entry: ConnectionDataModelEntry,
+        filter: string,
+        schema?: string,
+        table?: string,
+    ): IConnectionTreeItem | undefined => {
+        const nextSchema = entry.type === CdmEntityType.Schema ? entry.caption : schema;
+        const nextTable = this.isWorkspaceConnectionObjectWithMembers(entry) ? entry.caption : table;
+        const matches = this.matchesSchemaSearchFilter(entry, filter, schema, table);
+        const captionHighlightFilter = this.schemaSearchCaptionFilter(entry, filter, schema, table);
+        const filteredChildren = entry.state.isLeaf
+            ? []
+            : (entry.getChildren?.() ?? []).map((child) => {
+                return this.filterWorkspaceConnectionTreeItem(child, filter, nextSchema, nextTable);
+            }).filter((child): child is IConnectionTreeItem => {
+                return child !== undefined;
+            });
+
+        if (!matches && filteredChildren.length === 0) {
+            return undefined;
+        }
+
+        return this.createWorkspaceConnectionTreeItem(
+            entry,
+            schema,
+            table,
+            filteredChildren.length > 0 ? filteredChildren : matches && !entry.state.isLeaf ? [] : undefined,
+            captionHighlightFilter,
+        );
+    };
+
+    private getSchemasTreeItems = (
+        connection: ICdmConnectionEntry,
+        filterValue: string,
+    ): IConnectionTreeItem[] => {
+        const schemaEntries = connection.state.payload?.showSystemSchemas
+            ? connection.schemaEntries
+            : connection.schemaEntries.filter((entry) => {
+                return !systemSchemas.has(entry.caption);
+            });
+        const normalizedFilter = filterValue.trim().toLowerCase();
+        if (normalizedFilter.length === 0) {
+            return schemaEntries.map((entry) => {
+                return this.buildWorkspaceConnectionTreeItem(entry);
+            });
+        }
+
+        return schemaEntries.map((entry) => {
+            return this.filterWorkspaceConnectionTreeItem(entry, normalizedFilter);
+        }).filter((entry): entry is IConnectionTreeItem => {
+            return entry !== undefined;
+        });
+    };
+
+    private getAdministrationTreeItems = (connection: ICdmConnectionEntry): IConnectionTreeItem[] => {
+        return (connection.adminEntry?.pages ?? []).map((entry) => {
+            return this.buildWorkspaceConnectionTreeItem(entry);
+        });
+    };
+
+    private buildHomeConnectionTreeItem = (
+        entry: ICdmConnectionEntry | ICdmConnectionGroupEntry,
+    ): IConnectionTreeItem => {
+        if (entry.type === CdmEntityType.ConnectionGroup) {
+            const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+            const childEntries = Array.from(entry.entries);
+            if (foldersFirst) {
+                this.sortConnectionGroupItems(childEntries);
+            }
+
+            return this.createWorkspaceConnectionTreeItem(
+                entry,
+                undefined,
+                undefined,
+                entry.state.expandedOnce ? childEntries.map((child) => {
+                    return this.buildHomeConnectionTreeItem(child);
+                }) : [],
+            );
+        }
+
+        return this.createWorkspaceConnectionTreeItem(entry, undefined, undefined, undefined);
+    };
+
+    private getHomeConnectionTreeItems = (
+        entries: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry>,
+    ): IConnectionTreeItem[] => {
+        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+        const sortedEntries = Array.from(entries);
+        if (foldersFirst) {
+            this.sortConnectionGroupItems(sortedEntries);
+        }
+
+        return sortedEntries.map((entry) => {
+            return this.buildHomeConnectionTreeItem(entry);
+        });
+    };
+
+    private renderSchemasTree = (items: IConnectionTreeItem[]): ComponentChild => {
+        const { schemaSearchValues } = this.state;
+        const filterValue = schemaSearchValues.value ?? "";
+        const columns = this.getConnectionWorkspaceTreeColumns();
+        const options = this.getConnectionWorkspaceTreeOptions();
+        const treeContent = items.length === 0
+            ? <Accordion.Item caption="no schemas available" />
+            : <TreeGrid
+                ref={this.schemasTableRef}
+                className="schemasSectionTree"
+                columns={columns}
+                tableData={items}
+                options={options}
+                selectedRows={this.selectedSchemaTreeItemId ? [this.selectedSchemaTreeItemId] : undefined}
+                onRowSelected={this.handleSchemasTreeRowSelected}
+                onRowExpanded={this.handleSchemasTreeRowExpanded}
+                onRowCollapsed={this.handleSchemasTreeRowCollapsed}
+                isRowExpanded={this.isSchemasTreeRowExpanded}
+                onRowContext={this.handleConnectionTreeRowContext}
+            />;
+
+        return (
+            <Container className="sidebarSectionContent" orientation={Orientation.TopDown}>
+                {filterValue.trim().length > 0 && items.length === 0
+                    ? <Accordion.Item caption="<no matching schemas>" />
+                    : treeContent}
+                <Search
+                    id="schemasSectionSearch"
+                    className="sidebarSectionSearch"
+                    placeholder="Search"
+                    leadingIcon={Codicon.Search}
+                    buttons={{
+                        clearAll: true,
+                        clearAllIcon: Codicon.Close,
+                        hideClearAllWhenEmpty: true,
+                    }}
+                    values={this.state.schemaSearchValues}
+                    onChange={this.handleSchemasSearchChange}
+                />
+            </Container>
+        );
+    };
+
+    private renderAdministrationTree = (items: IConnectionTreeItem[]): ComponentChild => {
+        if (items.length === 0) {
+            return <Accordion.Item caption="<no administration pages>" />;
+        }
+
+        return <TreeGrid
+            ref={this.administrationTableRef}
+            className="administrationSectionTree"
+            columns={this.getConnectionWorkspaceTreeColumns()}
+            tableData={items}
+            options={this.getConnectionWorkspaceTreeOptions()}
+            onRowSelected={this.handleConnectionTreeRowSelected}
+            onRowExpanded={this.handleAdministrationTreeRowExpanded}
+            onRowCollapsed={this.handleAdministrationTreeRowCollapsed}
+            isRowExpanded={this.isAdministrationTreeRowExpanded}
+            onRowContext={this.handleConnectionTreeRowContext}
+        />;
+    };
+
+    private getConnectionWorkspaceTreeColumns = (): ColumnDefinition[] => {
+        return [{
+            title: "",
+            field: "caption",
+            resizable: false,
+            hozAlign: "left",
+            formatter: this.connectionTreeCellFormatter,
+            cellDblClick: this.handleConnectionTreeDoubleClick,
+        }];
+    };
+
+    private getConnectionWorkspaceTreeOptions = (): ITreeGridOptions => {
+        return {
+            treeColumn: "caption",
+            selectionType: SelectionType.Single,
+            showHeader: false,
+            layout: "fitColumns",
+        };
+    };
+
+    private expandWorkspaceConnectionTreeRow = async (
+        row: RowComponent,
+        sectionRef: RefObject<AccordionSection>,
+    ): Promise<void> => {
+        const entry = row.getData() as IConnectionTreeItem;
+        entry.dataModelEntry.state.expanded = true;
+        if (!entry.dataModelEntry.state.isLeaf && !entry.dataModelEntry.state.expandedOnce) {
+            entry.dataModelEntry.state.expandedOnce = true;
+            await this.refreshConnectionEntry(entry.dataModelEntry, sectionRef);
+        } else {
+            this.forceUpdate();
+        }
+    };
+
+    private handleSchemasTreeRowSelected = (row: RowComponent): void => {
+        const entry = row.getData() as IConnectionTreeItem;
+
+        this.selectedSchemaTreeItemId = entry.id;
+        this.selectedSchemaTreeEntry = entry.dataModelEntry;
+        if (this.restoringSchemaSelection) {
+            return;
+        }
+
+        this.handleConnectionTreeRowSelected(row);
+    };
+
+    private restoreSelectedSchemaTreeRow = (): void => {
+        const selectedId = this.selectedSchemaTreeItemId;
+        if (!selectedId) {
+            return;
+        }
+
+        setTimeout(() => {
+            const row = this.schemasTableRef.current?.searchAllRows("id", selectedId)[0];
+            if (!row) {
+                return;
+            }
+
+            this.restoringSchemaSelection = true;
+            try {
+                row.select();
+            } finally {
+                this.restoringSchemaSelection = false;
+            }
+        }, 0);
+    };
+
+    private expandSelectedSchemaTreeEntry = (): void => {
+        let entry = this.selectedSchemaTreeEntry;
+
+        while (entry) {
+            const parent = (entry as { parent?: ConnectionDataModelEntry; }).parent;
+            if (!parent || parent.type === CdmEntityType.ConnectionGroup) {
+                return;
+            }
+
+            if (parent.type !== CdmEntityType.Connection) {
+                parent.state.expanded = true;
+                parent.state.expandedOnce = true;
+            }
+
+            entry = parent;
+        }
+    };
+
+    private handleSchemasTreeRowExpanded = (row: RowComponent): void => {
+        void this.expandWorkspaceConnectionTreeRow(row, this.schemasSectionRef);
+    };
+
+    private handleSchemasTreeRowCollapsed = (row: RowComponent): void => {
+        const entry = row.getData() as IConnectionTreeItem;
+        entry.dataModelEntry.state.expanded = false;
+        this.forceUpdate();
+    };
+
+    private isSchemasTreeRowExpanded = (row: RowComponent): boolean => {
+        const filterValue = this.state.schemaSearchValues.value ?? "";
+        if (filterValue.trim().length > 0) {
+            return true;
+        }
+
+        return this.isConnectionTreeRowExpanded(row);
+    };
+
+    private handleAdministrationTreeRowExpanded = (row: RowComponent): void => {
+        void this.expandWorkspaceConnectionTreeRow(row, this.administrationSectionRef);
+    };
+
+    private handleAdministrationTreeRowCollapsed = (row: RowComponent): void => {
+        const entry = row.getData() as IConnectionTreeItem;
+        entry.dataModelEntry.state.expanded = false;
+        this.forceUpdate();
+    };
+
+    private isAdministrationTreeRowExpanded = (row: RowComponent): boolean => {
+        return this.isConnectionTreeRowExpanded(row);
+    };
+
+    private handleSchemasSearchChange = (_e: UIEvent, _props: ISearchProperties, values: ISearchValues): void => {
+        const value = values.value ?? "";
+        const previousValue = this.state.schemaSearchValues.value ?? "";
+
+        if (previousValue.trim().length > 0 && value.trim().length === 0) {
+            this.expandSelectedSchemaTreeEntry();
+        }
+
+        this.setState({
+            schemaSearchValues: {
+                value,
+            },
+        });
+
+        if (value.trim().length > 0) {
+            void this.ensureWorkspaceConnectionReady().then(async () => {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (connection) {
+                    await this.loadSchemaSearchData(connection);
+                }
+            });
+        }
+    };
+
     private renderConnectionTreeContextMenus(): ComponentChild {
+        const isClassicSidebar = (this.props.sidebarMode ?? "classic") === "classic";
         const optionalMenuItems: ComponentChild[] = [];
         if (webSession.runMode !== RunMode.SingleServer) {
             optionalMenuItems.push(
-                <MenuItem command={{ title: "Edit DB Connection", command: "msg.editConnection" }} />,
-                <MenuItem command={{ title: "Duplicate this DB Connection", command: "msg.duplicateConnection" }} />,
+                <MenuItem command={{ title: "Edit DB Connection...", command: "msg.editConnection" }} />,
+                <MenuItem command={{ title: "Duplicate this DB Connection...", command: "msg.duplicateConnection" }} />,
                 <MenuItem command={{ title: "Delete DB Connection...", command: "msg.removeConnection" }} />,
-                <MenuItem command={{ title: "-", command: "" }} disabled />,
-                <MenuItem
-                    id="showSystemSchemas"
-                    command={{
-                        title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
-                    }}
-                    altCommand={{
-                        title: "Hide MySQL System Schemas", command: "msg.hideSystemSchemasOnConnection",
-                    }}
-                />,
-                <MenuItem command={{ title: "-", command: "" }} disabled />,
-                <MenuItem command={{ title: "Load SQL Script from Disk...", command: "msg.loadScriptFromDisk" }} />,
-                <MenuItem command={{ title: "Load Dump from Disk...", command: "msg.loadDumpFromDisk" }} disabled />,
                 <MenuItem command={{ title: "-", command: "" }} disabled />,
                 <MenuItem
                     command={{
@@ -609,6 +1491,18 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     }} />,
                 <MenuItem command={{ title: "-", command: "" }} disabled />,
             );
+
+            if ((this.props.sidebarMode ?? "classic") === "classic") {
+                optionalMenuItems.splice(3, 0,
+                    <MenuItem command={{ title: "-", command: "" }} disabled />,
+                    <MenuItem
+                        id="showSystemSchemas"
+                        command={{
+                            title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
+                        }}
+                    />,
+                );
+            }
         }
 
         const copyToClipboardMenuItems = () => (
@@ -663,20 +1557,25 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Connection)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                    customCommand={this.handleConnectionTreeContextMenuCustomCommand}
                     isItemDisabled={this.isConnectionMenuItemDisabled}
                 >
                     <MenuItem command={{ title: "Open New Database Connection", command: "msg.openConnection" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     {optionalMenuItems}
-                    <MenuItem
-                        command={{ title: "Browse the MySQL REST Service Documentation", command: "msg.mrs.docs" }}
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Configure Instance for MySQL REST Service Support",
-                            command: "msg.mrs.configureMySQLRestService",
-                        }}
-                    />
+                    {isClassicSidebar &&
+                        <MenuItem
+                            command={{ title: "Browse the MySQL REST Service Documentation", command: "msg.mrs.docs" }}
+                        />
+                    }
+                    {isClassicSidebar &&
+                        <MenuItem
+                            command={{
+                                title: "Configure Instance for MySQL REST Service Support",
+                                command: "msg.mrs.configureMySQLRestService",
+                            }}
+                        />
+                    }
                 </Menu>
 
                 <Menu
@@ -933,6 +1832,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsRoot)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
+                    customCommand={this.handleMrsContextMenuCustomCommand}
                 >
                     <MenuItem
                         command={{
@@ -972,7 +1872,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{ title: "Show Private Items", command: "msg.mrs.showPrivateItems" }}
-                        altCommand={{ title: "Hide Private Items", command: "msg.mrs.hidePrivateItems" }}
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
@@ -1471,6 +2370,46 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return true;
     };
 
+    private handleConnectionTreeContextMenuCustomCommand = (props: IMenuItemProperties,
+        payload: unknown): Command | undefined => {
+        if (props.id !== "showSystemSchemas") {
+            return undefined;
+        }
+
+        const entry = payload as IConnectionTreeItem | undefined;
+        if (entry?.dataModelEntry.type !== CdmEntityType.Connection) {
+            return undefined;
+        }
+
+        const connection = entry.dataModelEntry as ICdmConnectionEntry;
+        const showSystemSchemas = connection.state.payload?.showSystemSchemas ?? false;
+
+        return {
+            ...props.command,
+            title: showSystemSchemas ? "Hide MySQL System Schemas" : "Show MySQL System Schemas",
+            command: showSystemSchemas ? "msg.hideSystemSchemasOnConnection" : "msg.showSystemSchemasOnConnection",
+        };
+    };
+
+    private handleMrsContextMenuCustomCommand = (props: IMenuItemProperties, payload: unknown): Command | undefined => {
+        if (props.command.command !== "msg.mrs.showPrivateItems") {
+            return undefined;
+        }
+
+        const entry = payload as IConnectionTreeItem | undefined;
+        if (entry?.dataModelEntry.type !== CdmEntityType.MrsRoot) {
+            return undefined;
+        }
+
+        const mrsRoot = entry.dataModelEntry as ICdmRestRootEntry;
+
+        return {
+            ...props.command,
+            title: mrsRoot.showPrivateItems ? "Hide Private Items" : "Show Private Items",
+            command: mrsRoot.showPrivateItems ? "msg.mrs.hidePrivateItems" : "msg.mrs.showPrivateItems",
+        };
+    };
+
     /**
      * Determines if the given menu item should be disabled.
      *
@@ -1490,8 +2429,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return item.disabled ?? false;
     };
 
+    private isMarkedSchemaTreeItem = (data: IConnectionTreeItem): boolean => {
+        const { markedSchema } = this.props;
+
+        return markedSchema.length > 0
+            && data.dataModelEntry.type === CdmEntityType.Schema
+            && data.dataModelEntry.caption === markedSchema;
+    };
+
     private connectionTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as IConnectionTreeItem;
+        const isMarkedSchema = this.isMarkedSchemaTreeItem(data);
 
         let iconName = cdmTypeToEntryIcon.get(data.dataModelEntry.type) ?? Assets.file.defaultIcon;
 
@@ -1510,10 +2458,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             }
 
             case CdmEntityType.Schema: {
-                const { markedSchema } = this.props;
-
                 const isMysql = data.dataModelEntry.connection.details.dbType === DBType.MySQL;
-                if (data.dataModelEntry.caption === markedSchema) {
+                if (isMarkedSchema) {
                     if (isMysql) {
                         iconName = Assets.db.mysqlSchemaCurrentIcon;
                     } else {
@@ -1668,7 +2614,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
 
         const host = document.createElement("div");
-        host.className = "connectionTreeEntry sidebarTreeEntry";
+        host.className = `connectionTreeEntry sidebarTreeEntry${isMarkedSchema ? " marked" : ""}`;
 
         let actionBox;
 
@@ -1680,6 +2626,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         switch (data.dataModelEntry.type) {
             case CdmEntityType.Connection: {
                 const connection = data.dataModelEntry;
+                const isClassicSidebar = (this.props.sidebarMode ?? "classic") === "classic";
                 const runNotebookButton = <Button
                     className="actionButton"
                     data-tooltip="Open New Connection using Notebook"
@@ -1712,21 +2659,21 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <Icon src={Assets.db.runScriptIcon} data-tooltip="inherit" />
                 </Button>;
 
-                const refreshButton = <Button
-                    className="actionButton"
-                    data-tooltip="Refresh Connection"
-                    imageOnly
-                    onClick={() => {
-                        void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true, true);
-                    }}
-                >
-                    <Icon src={Codicon.Refresh} data-tooltip="inherit" />
-                </Button>;
-
                 actionBox = <Container className="actionBox" orientation={Orientation.LeftToRight}>
                     {runNotebookButton}
                     {runScriptButton}
-                    {refreshButton}
+                    {isClassicSidebar &&
+                        <Button
+                            className="actionButton"
+                            data-tooltip="Refresh Connection"
+                            imageOnly
+                            onClick={() => {
+                                void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true, true);
+                            }}
+                        >
+                            <Icon src={Codicon.Refresh} data-tooltip="inherit" />
+                        </Button>
+                    }
                 </Container>;
 
                 break;
@@ -1760,13 +2707,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
 
         const dimClass = dimEntry ? "dim" : "";
+        const iconClass = [
+            dimClass,
+            isMarkedSchema ? "markedSchemaIcon" : "",
+        ].filter(Boolean).join(" ");
         const content = <>
             <Icon
                 src={iconName}
                 overlays={overlays}
-                className={dimClass}
+                className={iconClass || undefined}
             />
-            <Label id="mainCaption" caption={data.caption} />
+            {this.renderSchemaSearchCaption(data)}
             {subCaption}
             {actionBox}
         </>;
@@ -1964,6 +2915,15 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private handleConnectionTreeRowExpanded = (row: RowComponent): void => {
         const entry = row.getData() as IConnectionTreeItem;
         entry.dataModelEntry.state.expanded = true;
+        if (this.isElectronHomeSidebar()) {
+            if (entry.dataModelEntry.type === CdmEntityType.ConnectionGroup && !entry.dataModelEntry.state.expandedOnce) {
+                entry.dataModelEntry.state.expandedOnce = true;
+                void this.updateConnectionTreeItems();
+            }
+
+            return;
+        }
+
         if (!entry.dataModelEntry.state.isLeaf && !entry.dataModelEntry.state.expandedOnce) {
             entry.dataModelEntry.state.expandedOnce = true;
             void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true);
@@ -2319,6 +3279,21 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
             case "msg.collapseAll": {
                 this.collapseAllConnectionTreeTopLevelItems();
+
+                break;
+            }
+
+            case "msg.electronSchemas.refresh": {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (connection) {
+                    void this.refreshWorkspaceSchemas(connection);
+                }
+
+                break;
+            }
+
+            case "msg.electronSchemas.collapseAll": {
+                this.collapseAllConnectionTreeTopLevelItems(this.schemasTableRef);
 
                 break;
             }
@@ -2940,6 +3915,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             await this.refreshConnectionTreeEntryChildren(connection, true);
         } else {
             this.updateTreesFromContext();
+            this.forceUpdate();
         }
 
         return Promise.resolve(true);
@@ -2964,6 +3940,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             }
         } else {
             this.updateTreesFromContext();
+            this.forceUpdate();
         }
 
         return Promise.resolve(true);
@@ -2976,7 +3953,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      *
      * @returns The list of entries.
      */
-    private renderConnectionsTree(connections: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry>): ComponentChild {
+    private renderConnectionTreeItems(items: IConnectionTreeItem[]): ComponentChild {
         const connectionTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "caption",
@@ -2993,7 +3970,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             layout: "fitColumns",
         };
 
-        const connectionSectionContent = connections.length === 0
+        const connectionSectionContent = items.length === 0
             ? <Accordion.Item caption="<no connections>" />
             : <TreeGrid
                 ref={this.connectionTableRef}
@@ -3009,9 +3986,23 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return connectionSectionContent;
     }
 
+    private renderConnectionsTree(connections: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry>): ComponentChild {
+        const items = this.isElectronHomeSidebar()
+            ? this.getHomeConnectionTreeItems(connections)
+            : this.state.treeItems.connectionTreeItems;
+
+        return this.renderConnectionTreeItems(items);
+    }
+
     private connectionDataModelChanged = (list: Readonly<ConnectionDMActionList>): void => {
 
         if (this.refreshRunning) {
+            return;
+        }
+
+        if (this.isElectronHomeSidebar()) {
+            void this.updateConnectionTreeItems();
+
             return;
         }
 
@@ -3370,6 +4361,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      */
     private async refreshConnectionTreeEntryChildren(entry: ConnectionDataModelEntry,
         needRefresh: boolean, recursive = false): Promise<void> {
+
+        if (this.isElectronConnectionSidebar()) {
+            await this.refreshWorkspaceConnectionTreeEntryChildren(entry, needRefresh, recursive);
+
+            return;
+        }
 
         const table = this.connectionTableRef.current;
         const rows = table?.searchAllRows("id", entry.id);
@@ -3833,8 +4830,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return indices;
     }
 
-    private collapseAllConnectionTreeTopLevelItems() {
-        const table = this.connectionTableRef.current;
+    private collapseAllConnectionTreeTopLevelItems(tableRef: RefObject<TreeGrid> = this.connectionTableRef) {
+        const table = tableRef.current;
         if (!table) {
             return;
         }
@@ -3874,17 +4871,29 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      * Updates the connection tree items in the connection table (sorted or not).
      */
     private async updateConnectionTreeItems(): Promise<void> {
+        const context = this.context as DocumentContextType | undefined;
+        if (!context || !this.connectionTableRef.current) {
+            return;
+        }
+
+        if (this.isElectronHomeSidebar()) {
+            await this.connectionTableRef.current.setData(
+                this.getHomeConnectionTreeItems(context.connectionsDataModel.roots),
+                SetDataAction.Replace,
+            );
+
+            return;
+        }
+
         const { treeItems } = this.state;
 
-        if (this.connectionTableRef.current) {
-            const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
-            if (foldersFirst) {
-                const sortedItems = Array.from(treeItems.connectionTreeItems);
-                this.sortConnectionTreeItems(sortedItems);
-                await this.connectionTableRef.current.setData(sortedItems, SetDataAction.Replace);
-            } else {
-                await this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
-            }
+        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+        if (foldersFirst) {
+            const sortedItems = Array.from(treeItems.connectionTreeItems);
+            this.sortConnectionTreeItems(sortedItems);
+            await this.connectionTableRef.current.setData(sortedItems, SetDataAction.Replace);
+        } else {
+            await this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
         }
     }
 

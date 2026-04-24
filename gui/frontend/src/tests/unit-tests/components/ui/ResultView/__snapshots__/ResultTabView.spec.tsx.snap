@@ -28,12 +28,12 @@ exports[`Result Tabview Tests > Rendering Only Output 1`] = `
               role="button"
               tabindex="-1"
             >
-              <label
-                class="msg label"
+              <span
+                class="tabCaption"
                 data-tooltip="inherit"
               >
                 Output
-              </label>
+              </span>
             </div>
           </div>
           <div
@@ -148,12 +148,12 @@ exports[`Result Tabview Tests > Tabview With Result Sets 1`] = `
               role="button"
               tabindex="-1"
             >
-              <label
-                class="msg label"
+              <span
+                class="tabCaption"
                 data-tooltip="inherit"
               >
                 Output
-              </label>
+              </span>
             </div>
             <div
               class="msg button tabItem hasAuxillary selected"
@@ -162,12 +162,12 @@ exports[`Result Tabview Tests > Tabview With Result Sets 1`] = `
               role="button"
               tabindex="-1"
             >
-              <label
-                class="msg label"
+              <span
+                class="tabCaption"
                 data-tooltip="inherit"
               >
                 Result #1
-              </label>
+              </span>
               <span
                 id="auxillary"
               >
@@ -193,12 +193,12 @@ exports[`Result Tabview Tests > Tabview With Result Sets 1`] = `
               role="button"
               tabindex="-1"
             >
-              <label
-                class="msg label"
+              <span
+                class="tabCaption"
                 data-tooltip="inherit"
               >
                 Result #2
-              </label>
+              </span>
               <span
                 id="auxillary"
               >
