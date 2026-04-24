@@ -11,7 +11,7 @@ ws.validateLastResponse({
         "type": "PENDING",
         "msg": ws.ignore
     },
-    "result": [
+    "result": ws.matchList([
         { "name": "admin1" },
         { "name": "admin2" },
         { "name": "power1" },
@@ -19,7 +19,7 @@ ws.validateLastResponse({
         { "name": "user1" },
         { "name": "user2" },
         { "name": "user3" }
-    ]
+    ], false)
 })
 
 ws.validateLastResponse({

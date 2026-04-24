@@ -68,8 +68,9 @@ class DbModuleSession(ModuleSession):
         self._connect_again = False
 
         context = get_context()
+        web_handler = context.web_handler if context else None
         self._single_server_mode = (
-            context.web_handler.single_server is not None if context else False
+            getattr(web_handler, "single_server", None) is not None
         )
 
     def __del__(self):

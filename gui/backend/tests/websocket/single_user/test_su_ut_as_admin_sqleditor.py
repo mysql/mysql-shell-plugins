@@ -202,6 +202,7 @@ def sqlide_session(ws, add_connection):
                     "module_session_id": module_session_id,
                     "info": {
                         "version": ws.matchRegexp("\\d+\\.\\d+\\.\\d+"),
+                        "version_comment": ws.ignore,
                         "edition": ws.ignore,
                         "sql_mode": ws.ignore,
                     },

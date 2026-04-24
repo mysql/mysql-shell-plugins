@@ -155,6 +155,7 @@ class TestSessionInfoTask:
                 {
                     common.MySQLData.CONNECTION_ID: 5,
                     common.MySQLData.VERSION_INFO: "8.0.30",
+                    common.MySQLData.VERSION_COMMENT: "MySQL Community Server - GPL",
                     common.MySQLData.SQL_MODE: "SOME SQL MODE",
                 },
                 expected_queries=[
@@ -162,10 +163,20 @@ class TestSessionInfoTask:
                         (
                             """SELECT connection_id(),
                             @@version,
+                            @@version_comment,
                             @@SESSION.sql_mode""",
                             None,
                         ),
-                        MockResult([[5, "8.0.30", "SOME SQL MODE"]]),
+                        MockResult(
+                            [
+                                [
+                                    5,
+                                    "8.0.30",
+                                    "MySQL Community Server - GPL",
+                                    "SOME SQL MODE",
+                                ]
+                            ]
+                        ),
                     )
                 ],
             )

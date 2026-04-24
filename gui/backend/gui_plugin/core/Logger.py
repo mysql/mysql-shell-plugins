@@ -43,6 +43,10 @@ SENSITIVE_KEYWORDS = ["password"]
 SENSITIVE_DATA_REPLACEMENT = "****"
 
 
+def _get_real_stream(stream_name):
+    return getattr(sys, f"real_{stream_name}", getattr(sys, stream_name))
+
+
 class LogLevel(IntEnum):
     NONE = 1
     INTERNAL_ERROR = 2
@@ -66,6 +70,9 @@ class BackendLogger:
     __instance = None
     __log_level = None
     __log_filters: list[Filtering.LogFilter] = []
+    __stdout_stream = _get_real_stream("stdout")
+    __stderr_stream = _get_real_stream("stderr")
+    __console_stream = __stdout_stream
 
     @staticmethod
     def get_instance() -> "BackendLogger":
@@ -95,7 +102,14 @@ class BackendLogger:
         message = prefix + str(self._filter(message) if sensitive else message)
 
         if "session" in tags:
-            BackendDbLogger.log(event_type=log_type.name, message=message)
+            try:
+                BackendDbLogger.log(event_type=log_type.name, message=message)
+            except Exception as e:
+                print(
+                    f"Backend DB log message could not be inserted. {e}",
+                    file=self.__console_stream,
+                    flush=True,
+                )
 
         if "shell" in tags:
             mysqlsh.globals.shell.log(
@@ -106,7 +120,7 @@ class BackendLogger:
             if self.__log_level >= log_type:
                 print(
                     f"{now.hour}:{now.minute}:{now.second}.{now.microsecond} {log_type.name}: {message}",
-                    file=sys.real_stdout,
+                    file=self.__console_stream,
                     flush=True,
                 )
 
@@ -139,6 +153,14 @@ class BackendLogger:
 
     def get_log_level(self):
         return BackendLogger.__log_level
+
+    def set_console_stream(self, stream_name):
+        if stream_name == "stdout":
+            BackendLogger.__console_stream = BackendLogger.__stdout_stream
+        elif stream_name == "stderr":
+            BackendLogger.__console_stream = BackendLogger.__stderr_stream
+        else:
+            raise ValueError(f"Invalid console stream: {stream_name}")
 
     def _filter(self, data):
         for filter in self.__log_filters:
@@ -227,6 +249,10 @@ def internal_error(message, tags=[], sensitive=False, prefix=""):
 
 def add_filter(options):
     return BackendLogger.get_instance().add_filter(options)
+
+
+def set_console_stream(stream_name):
+    BackendLogger.get_instance().set_console_stream(stream_name)
 
 
 def track_print(type):

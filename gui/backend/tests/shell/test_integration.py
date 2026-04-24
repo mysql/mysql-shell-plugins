@@ -531,6 +531,9 @@ DESCRIPTION
       application served by a web server.
 
 FUNCTIONS
+      desktop_bridge()
+            Starts the local single-user JSON bridge over stdio.
+
       help([member])
             Provides help about this object and it's members
 

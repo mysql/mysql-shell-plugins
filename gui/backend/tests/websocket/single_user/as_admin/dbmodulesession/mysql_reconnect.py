@@ -148,6 +148,7 @@ ws.sendAndValidate(
                 "module_session_id": ws.lastModuleSessionId,
                 "info": {
                     "version": ws.ignore,
+                    "version_comment": ws.ignore,
                     "edition": ws.ignore,
                     "sql_mode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
                     "heat_wave_available": false,
@@ -229,6 +230,7 @@ ws.sendAndValidate(
                 "module_session_id": ws.lastModuleSessionId,
                 "info": {
                     "version": ws.matchRegexp("\\d+\\.\\d+\\.\\d+"),
+                    "version_comment": ws.ignore,
                     "edition": ws.ignore,
                     "sql_mode": ws.ignore,
                 },

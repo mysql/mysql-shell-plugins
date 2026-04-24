@@ -35,11 +35,13 @@ class SessionInfoTask(DbSessionSetupTask):
     def on_connected(self):
         result = self.execute("""SELECT connection_id(),
                         @@version,
+                        @@version_comment,
                         @@SESSION.sql_mode""").fetch_all()[0]
 
         self.define_data(common.MySQLData.CONNECTION_ID, result[0])
         self.define_data(common.MySQLData.VERSION_INFO, result[1])
-        self.define_data(common.MySQLData.SQL_MODE, result[2])
+        self.define_data(common.MySQLData.VERSION_COMMENT, result[2])
+        self.define_data(common.MySQLData.SQL_MODE, result[3])
 
 
 class HeatWaveCheckTask(DbSessionSetupTask):

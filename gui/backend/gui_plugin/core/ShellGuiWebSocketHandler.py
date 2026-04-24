@@ -66,6 +66,12 @@ def command_matches_privileges(cmd, privileges):
 
 
 class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
+    """General-purpose HTTP/WebSocket transport.
+
+    Unlike the stdio bridge, this path may serve local or remote clients and
+    must support both single-user and multi-user deployments.
+    """
+
     _db = None
     session_uuid = ""
     session_id = None
@@ -870,16 +876,20 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     )
 
                 user_session_functions = [
-                    "gui.sql_editor.execute",
-                    "gui.sql_editor.default_user_schema",
-                    "gui.sql_editor.get_current_schema",
-                    "gui.sql_editor.set_current_schema",
-                    "gui.sql_editor.get_auto_commit",
-                    "gui.sql_editor.set_auto_commit",
+                    "execute",
+                    "start_transaction",
+                    "commit_transaction",
+                    "rollback_transaction",
+                    "default_user_schema",
+                    "get_current_schema",
+                    "set_current_schema",
+                    "get_auto_commit",
+                    "set_auto_commit",
                 ]
                 if (
                     isinstance(module_session, SqlEditorModuleSession)
-                    and cmd in user_session_functions
+                    and found_objects == ["gui", "sql_editor"]
+                    and function_name in user_session_functions
                 ):
                     db_module_session = module_session._db_user_session
                 else:

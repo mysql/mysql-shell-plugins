@@ -45,6 +45,7 @@ import gui_plugin.core.Logger as logger
 from gui_plugin.core import Filtering
 from gui_plugin.core.Certificates import is_shell_web_certificate_installed
 from gui_plugin.core.lib import certs
+from gui_plugin.core.ShellGuiStdioBridge import ShellGuiStdioBridge
 from gui_plugin.core.lib import SystemUtils
 from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
@@ -314,6 +315,24 @@ def native_ui():
         return
 
     logger.info(f"The native client was launched with the PID: {process.pid}")
+
+
+@plugin_function("gui.start.desktopBridge", cli=True)
+def desktop_bridge():
+    """Starts the local single-user JSON bridge over stdio.
+
+    This transport is local-only. It is intended for hosts which bundle the
+    frontend assets themselves and want to talk to mysqlsh like a regular child
+    process instead of via localhost HTTP/WebSocket. Unlike the HTTP/WebSocket
+    transport, stdio is always single-user.
+
+    Returns:
+        Nothing
+    """
+    logger.set_console_stream("stderr")
+    logger.info("Starting MySQL Shell GUI desktop bridge...")
+    with ShellGuiStdioBridge() as bridge:
+        bridge.run()
 
 
 def browser_app():

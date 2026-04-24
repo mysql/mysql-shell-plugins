@@ -1234,7 +1234,7 @@ class VCN:
             for rt in route_tables:
                 rules = [
                     (r.description, r.network_entity_id)
-                    for r in rt.route_rules or []
+                    for r in cast(list, rt.route_rules or [])
                 ]
                 show(f"        - {format_description(rt)} rules={rules}")
 
@@ -1469,8 +1469,9 @@ class DBSystem:
 
     @property
     def configuration(self) -> MySQLConfiguration:
-        assert self.db_system.configuration_id
-        return MySQLConfiguration(self._config, self.db_system.configuration_id)
+        configuration_id = self.db_system.configuration_id
+        assert configuration_id
+        return MySQLConfiguration(self._config, configuration_id)
 
     def freeform_tag(self, tag: str = k_my_id_tag_name):
         return freeform_tag(self.db_system, tag)

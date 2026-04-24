@@ -213,7 +213,7 @@ class DbMysqlSession(DbSession):
         return replied, value
 
     def on_shell_print(self, text):
-        sys.real_stdout.write(text)
+        sys.real_stderr.write(text)
 
     def on_shell_print_diag(self, text):
         sys.real_stderr.write(text)
@@ -347,12 +347,16 @@ class DbMysqlSession(DbSession):
                 self.cursor = self.session.run_sql(sql, params)
                 return self.cursor
             except mysqlsh.DBError as e:
+                if self.is_killed() and self.is_connection_error(e.code):
+                    raise MSGException(Error.DB_QUERY_KILLED, "Query killed") from e
                 if self.is_connection_error(e.code):
                     if self._auto_reconnect and self._reconnect(True):
                         continue
                 raise
             # TODO(MiguelT): In what case we need to validate vs the error message?
             except RuntimeError as e:
+                if self.is_killed() and "Not connected." in str(e):
+                    raise MSGException(Error.DB_QUERY_KILLED, "Query killed") from e
                 if "Not connected." in str(e):
                     if self._auto_reconnect and self._reconnect(True):
                         continue
@@ -412,6 +416,9 @@ class DbMysqlSession(DbSession):
                 version_info.split("-")[1] if "-" in version_info else ""
             )
 
+        if common.MySQLData.VERSION_COMMENT in self.data:
+            ret_val["version_comment"] = self.data[common.MySQLData.VERSION_COMMENT]
+
         if common.MySQLData.SQL_MODE in self.data:
             ret_val["sql_mode"] = self.data[common.MySQLData.SQL_MODE]
 
@@ -444,7 +451,21 @@ class DbMysqlSession(DbSession):
     def kill_query(self, user_session):
         with lock_usage(self._mutex, 5):
             user_session._killed = True
-            self.run_sql(f"KILL QUERY {user_session.connection_id}")
+            sql = f"KILL QUERY {user_session.connection_id}"
+            try:
+                self.run_sql(sql)
+            except mysqlsh.DBError as e:
+                if user_session.is_killed() and self.is_connection_error(e.code):
+                    if self._auto_reconnect and self._reconnect(True):
+                        self.run_sql(sql)
+                        return
+                raise
+            except RuntimeError as e:
+                if user_session.is_killed() and "Not connected." in str(e):
+                    if self._auto_reconnect and self._reconnect(True):
+                        self.run_sql(sql)
+                        return
+                raise
 
     def get_default_schema(self):
         return (

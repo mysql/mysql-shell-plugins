@@ -285,6 +285,7 @@ await ws.sendAndValidate({
             "module_session_id": ws.lastModuleSessionId,
             "info": {
                 "version": ws.matchRegexp("\\d+\\.\\d+\\.\\d+"),
+                "version_comment": ws.ignore,
                 "edition": ws.ignore,
                 "sql_mode": ws.ignore
             },
