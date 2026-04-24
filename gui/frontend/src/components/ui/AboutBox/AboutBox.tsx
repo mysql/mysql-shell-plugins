@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -42,7 +42,10 @@ import { Grid } from "../Grid/Grid.js";
 import { GridCell } from "../Grid/GridCell.js";
 import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
 import { Icon } from "../Icon/Icon.js";
+import { Image } from "../Image/Image.js";
 import { Label } from "../Label/Label.js";
+import { isStandalone } from "../../../utilities/helpers.js";
+import { hasElectronHostBridge } from "../../../supplement/ElectronDesktop.js";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;
@@ -82,6 +85,8 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
         const { onClose, additionalInfo, title, showLinks } = this.props;
 
         const className = this.getEffectiveClassNames(["aboutBox"]);
+        const showWorkbenchBranding = !title && (hasElectronHostBridge() || isStandalone());
+        const headingTitle = showWorkbenchBranding ? "MySQL Workbench 10" : (title ?? "About MySQL Shell");
 
         // The version is injected by the vite config.
         const versionParts: string[] = globalThis.MSG_VERSION_NUMBER?.split(".") ?? [];
@@ -97,7 +102,16 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
 
         if (data) {
             infoCells.push(
-                <GridCell key="cell5" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
+                <GridCell key="cell3" className="left title">Version:</GridCell>,
+                <GridCell key="cell4" className="right">
+                    {versionParts.join(".")}
+                    <span className="buildHash">
+                        {` (${globalThis.MSG_BUILD_NUMBER ?? "unknown"})`}
+                    </span>
+                </GridCell>,
+
+                <GridCell key="cell5" className="heading shellBuildHeading" columnSpan={2}
+                    orientation={Orientation.TopDown} >
                     <Label caption="Shell Build Information" />
                 </GridCell>,
                 <GridCell
@@ -108,33 +122,20 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                     <Divider />
                 </GridCell>,
 
-                <GridCell key="cell7" className="left title">Version:</GridCell>,
-                <GridCell key="cell8" className="right">{`${data.major}.${data.minor}.${data.patch}`}</GridCell>,
+                <GridCell key="cell7" className="left title shellBuildInfo">MySQL Shell Version:</GridCell>,
+                <GridCell key="cell8" className="right shellBuildInfo">
+                    {`${data.major}.${data.minor}.${data.patch}`}
+                </GridCell>,
 
-                <GridCell key="cell9" className="left title">Platform/Architecture:</GridCell>,
-                <GridCell key="cell10" className="right">{data.platform}/{data.architecture}</GridCell>,
+                <GridCell key="cell9" className="left title shellBuildInfo">Platform/Architecture:</GridCell>,
+                <GridCell key="cell10" className="right shellBuildInfo">{data.platform}/{data.architecture}</GridCell>,
 
-                <GridCell key="cell13" className="left title">Server Distribution:</GridCell>,
-                <GridCell key="cell14" className="right">{data.serverDistribution}</GridCell>,
+                <GridCell key="cell13" className="left title shellBuildInfo">Server Distribution:</GridCell>,
+                <GridCell key="cell14" className="right shellBuildInfo">{data.serverDistribution}</GridCell>,
 
-                <GridCell key="cell15" className="left title">Server Version:</GridCell>,
-                <GridCell key="cell16" className="right">
+                <GridCell key="cell15" className="left title shellBuildInfo">libmysqlclient:</GridCell>,
+                <GridCell key="cell16" className="right shellBuildInfo">
                     {`${data.serverMajor}.${data.serverMinor}.${data.serverPatch}`}
-                </GridCell>,
-                <GridCell key="cell1" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                    <Label caption="Frontend Information" />
-                </GridCell>,
-
-                <GridCell
-                    key="cell2"
-                    columnSpan={2}
-                    orientation={Orientation.TopDown}
-                    crossAlignment={ContentAlignment.Center}>
-                    <Divider />
-                </GridCell>,
-                <GridCell key="cell3" className="left title">Version:</GridCell>,
-                <GridCell key="cell4" className="right">
-                    {`${versionParts.join(".")} (${globalThis.MSG_BUILD_NUMBER ?? "unknown"})`}
                 </GridCell>,
             );
         }
@@ -175,7 +176,7 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
         return (
             <Dialog
                 ref={this.dialogRef}
-                caption={title ?? "About MySQL Shell"}
+                caption={headingTitle}
                 onClose={(cancelled) => {
                     onClose?.();
                 }}
@@ -186,10 +187,21 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                     mainAlignment={ContentAlignment.Center}
                     crossAlignment={ContentAlignment.Center}
                 >
-                    <Icon src={Assets.modules.moduleShellIcon} id="sakilaLogo" />
+                    <Button
+                        id="closeButton"
+                        imageOnly
+                        data-tooltip="Close"
+                        onClick={() => {
+                            onClose?.();
+                        }}
+                    >
+                        <Icon src={Assets.misc.close2Icon} data-tooltip="inherit" />
+                    </Button>
+
+                    <Image src={Assets.modules.appIcon} id="sakilaLogo" alt="MySQL Workbench 10" />
                     <Container id="heading" orientation={Orientation.TopDown}>
                         <Label id="headingLabel">
-                            {title ?? "About MySQL Shell"}
+                            {headingTitle}
                         </Label>
                     </Container>
 
@@ -204,26 +216,13 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                         </Container>
                     )}
 
-                    <Grid columns={2} rowGap={12} columnGap={12}>
+                    <Grid className="versionGrid" columns={2} rowGap={10} columnGap={12}>
                         {infoCells}
                     </Grid>
 
-                    <Grid columns={5} rowGap={12} columnGap={12} style={{ width: "90%" }}>
+                    <Grid className="additionalInfoGrid" columns={5} rowGap={10} columnGap={12}>
                         {additionalInfo && additionalInfo.length > 0 && additionalInfoCells}
                     </Grid>
-
-                    <Container
-                        orientation={Orientation.LeftToRight}
-                        mainAlignment={ContentAlignment.End}
-                        style={{ marginTop: 32 }}
-                    >
-                        <Button
-                            caption="Close"
-                            onClick={() => {
-                                onClose?.();
-                            }}
-                        />
-                    </Container>
 
                     <div className="copyright" />
                 </Container>

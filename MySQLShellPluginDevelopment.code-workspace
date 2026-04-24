@@ -14,6 +14,10 @@
             "path": "gui/extension"
         },
         {
+            "name": "Desktop App",
+            "path": "gui/electron"
+        },
+        {
             "name": "Shell GUI Backend",
             "path": "gui/backend"
         },
@@ -90,11 +94,12 @@
         "files.exclude": {
             "gui": true,
             "mds_plugin": true,
+            "migration_plugin": true,
             "mrs_plugin": true,
             "msm_plugin": true,
-            "migration_plugin": true,
-            "util_plugin": true,
             "MySQLShellPluginDevelopment.code-workspace": true,
+            "output": true,
+            "util_plugin": true
         },
         "editor.defaultFormatter": "ms-python.black-formatter"
     },

@@ -1,0 +1,20 @@
+{
+    "name": "mysql-shell-gui-electron-poc",
+    "private": true,
+    "description": "Electron proof of concept host for the full MySQL Shell Workbench frontend.",
+    "main": "src/main.cjs",
+    "scripts": {
+        "build:frontend": "npm --prefix ../frontend run build",
+        "electron:dev:vite": "bash ./scripts/run_vite_dev.sh",
+        "electron:dev": "npm run build:frontend && electron src/main.cjs",
+        "package:desktop": "bash ./scripts/package_desktop.sh",
+        "package:desktop:darwin-arm64": "bash ./scripts/package_desktop.sh darwin-arm64",
+        "package:desktop:darwin-x64": "bash ./scripts/package_desktop.sh darwin-x64",
+        "package:desktop:win32-x64": "bash ./scripts/package_desktop.sh win32-x64",
+        "package:desktop:linux-arm64": "bash ./scripts/package_desktop.sh linux-arm64",
+        "package:desktop:linux-x64": "bash ./scripts/package_desktop.sh linux-x64"
+    },
+    "devDependencies": {
+        "electron": "41.3.0"
+    }
+}

@@ -141,6 +141,7 @@ import folderCurrentIcon from "../assets/images/folderCurrent.svg";
 
 import closeIcon from "../assets/images/close.svg";
 import close2Icon from "../assets/images/close2.svg";
+import appIcon from "../assets/app-icon.svg";
 
 import newNotebookIcon from "../assets/images/newNotebook.svg";
 import newScriptIcon from "../assets/images/newScript.svg";
@@ -573,6 +574,7 @@ export class Assets {
     };
 
     public static modules = {
+        appIcon,
         moduleShellIcon,
         moduleSqlIcon,
         moduleClusterIcon,

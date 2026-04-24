@@ -12,9 +12,6 @@
     "settings": {
         "workbench.colorCustomizations": {},
         "typescript.tsdk": "node_modules/typescript/lib",
-        "files.exclude": {
-            "**/app-wrapper": true
-        },
         "vitest.configSearchPatternExclude": "{**/node_modules/**,**/.*/**,**/*.d.ts,./e2e.vitest.config.ts}",
     }
 }

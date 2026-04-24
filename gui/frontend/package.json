@@ -10,6 +10,8 @@
         "run-vite:dev-server": "vite",
         "build": "bash ./scripts/production-build.sh",
         "build-with-maps": "bash ./scripts/production-build.sh development true",
+        "build-if-needed": "node --experimental-strip-types scripts/build-if-needed.ts",
+        "build-if-needed-with-maps": "node --experimental-strip-types scripts/build-if-needed.ts --with-maps",
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
         "build-win-with-maps": "pwsh scripts/production-build.ps1 true && tsc -p tsconfig.json",
         "type-check": "tsc -p tsconfig.json",

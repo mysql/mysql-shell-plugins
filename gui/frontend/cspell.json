@@ -240,7 +240,6 @@
         "src/parsing/SQLite/data",
         "src/components/Theming/Preview/assets",
         "src/components/Theming/assets",
-        "src/app-wrapper",
         "src/modules/mrs/sdk",
         "statements.txt",
         "src/tests/unit-tests/data"

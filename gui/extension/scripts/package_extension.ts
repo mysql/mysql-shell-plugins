@@ -25,7 +25,6 @@
 
 import { spawnSync } from "child_process";
 import { cpSync, mkdirSync, readdirSync, rmSync } from "fs";
-import { platform } from "os";
 import { join, resolve } from "path";
 
 class Logger {
@@ -111,12 +110,7 @@ rmSync("package-lock.json", { force: true });
 Logger.done();
 
 executeTask("npm install", "Installing node modules...");
-
-if (platform() === "win32") {
-    executeTask("npm run build-win", "Building the frontend...");
-} else {
-    executeTask("npm run build", "Building the frontend...");
-}
+executeTask("npm run build-if-needed", "Ensuring the frontend build is up to date...");
 
 Logger.info("Removing shell ...");
 rmSync(join(extensionFolder, "shell"), { recursive: true, force: true });
@@ -183,4 +177,3 @@ Logger.done();
 
 executeTask("npm install", "Installing the extension node modules...");
 executeTask("npm run build-dev-package", "Building the extension...");
-

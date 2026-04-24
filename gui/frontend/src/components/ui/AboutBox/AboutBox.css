@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,16 +24,27 @@
  */
 
 .msg.aboutBox {
+    position: relative;
+    box-sizing: border-box;
     height: 100%;
     width: 100%;
+    padding: 24px 40px 28px;
     overflow: auto;
 
     color: var(--foreground);
 }
 
 .msg.aboutBox .grid {
-    width: 60%;
     font-size: 11pt;
+}
+
+.msg.aboutBox .versionGrid {
+    width: min(100%, 430px);
+}
+
+.msg.aboutBox .additionalInfoGrid {
+    width: min(100%, 560px);
+    margin-top: 8px;
 }
 
 .msg.aboutBox .grid .title {
@@ -60,16 +71,44 @@
     user-select: text;
 }
 
+.msg.aboutBox .buildHash {
+    padding-left: 10px;
+    font-weight: 300;
+}
+
 .msg.aboutBox .heading {
-    margin: 30px 30px 0 30px;
+    margin: 18px 30px 0 30px;
     text-align: center;
 }
 
 .msg #sakilaLogo {
-    margin: 8px 0;
-    width: 160px;
-    height: 160px;
-    background-color: hsl(200, 65%, 40%);
+    margin: 0 0 12px;
+    width: 128px;
+    height: 128px;
+}
+
+.msg.aboutBox #closeButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+
+    background-color: transparent;
+    border: none;
+}
+
+.msg.aboutBox #closeButton:not(.disabled):hover,
+.msg.aboutBox #closeButton:not(.disabled):active {
+    background-color: var(--toolbar-hoverBackground);
+}
+
+.msg.aboutBox #closeButton .icon {
+    width: 16px;
+    height: 16px;
 }
 
 .msg.aboutBox #heading {
@@ -80,17 +119,11 @@
 
 .msg.aboutBox #headingLabel {
     margin-top: 0px;
-    font-size: 25pt;
-    height: 39px;
+    font-size: 22pt;
     font-weight: 100;
+    line-height: 28pt;
 
     overflow: hidden;
-}
-
-.msg.aboutBox #headingSubLabel {
-    line-height: 13pt;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
 }
 
 .msg.aboutBox .label {
@@ -104,13 +137,13 @@
 }
 
 .msg.aboutBox #aboutBoxLinks {
-    width: 60%;
+    width: min(100%, 480px);
     display: flex;
     flex-direction: row;
     justify-content: center;
     font-size: 11pt;
-    padding-top: 10px;
-    padding-bottom: 30px;
+    padding-top: 4px;
+    padding-bottom: 22px;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -118,7 +151,7 @@
 .msg.aboutBox #aboutBoxLinks a {
     color: var(--textLink-foreground);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 400;
     padding: 0 20px;
     font-size: 14px;
 }
@@ -126,7 +159,7 @@
 
 
 .msg.aboutBox .divider {
-    width: 60%;
+    width: 100%;
     background-color: var(--tree-tableColumnsBorder);
     --thickness: 1px !important;
 }
@@ -134,4 +167,12 @@
 .msg.aboutBox .heading .label {
     font-size: 120%;
     margin-top: 10px;
+}
+
+.msg.aboutBox .shellBuildHeading .label {
+    font-size: 90%;
+}
+
+.msg.aboutBox .shellBuildInfo {
+    font-size: 9pt;
 }

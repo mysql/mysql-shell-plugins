@@ -53,6 +53,12 @@ extension/packaging
 extension/router
 extension/*.vsix
 
+# Electron desktop packaging artifacts
+electron/output
+electron/packaging/desktop-packages
+electron/packaging/electron
+electron/packaging/mysql-shell-staging
+
 # e2e testing
 frontend/src/tests/e2e/screenshots
 frontend/src/tests/e2e/attachScreenshots.js
