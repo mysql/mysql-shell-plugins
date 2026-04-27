@@ -1426,7 +1426,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             if (savedState.activeSchema !== undefined) {
                 this.setActiveDatabaseSchema(savedState.activeSchema);
             } else {
-                const currentSchemaRes = await backend.execute("SELECT DATABASE()");
+                const currentSchemaRes = await backend.executeService("SELECT DATABASE()");
                 if (currentSchemaRes?.rows !== undefined && currentSchemaRes.rows.length > 0) {
                     const row = currentSchemaRes.rows[0] as unknown[];
                     if (row[0] !== null) {
@@ -2505,7 +2505,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 const sql = "CALL sys.vector_store_load(NULL, JSON_OBJECT('schema_name', ?, 'description', ?, " +
                     languageSql + taskNameSql + taskTableName + formatsSql +
                     `'uris', JSON_ARRAY(${urisSql})))`;
-                await backend.execute(sql, params, undefined, (data) => {
+                await backend.executeService(sql, params, undefined, (data) => {
                     if (data.result.rows !== undefined && data.result.rows.length > 0) {
                         taskId = String((data.result.rows[0] as string[])[0]);
                     }
@@ -2542,7 +2542,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         const { backend } = this.props;
 
         // Check if the user has access to the mysql_tasks VIEWs
-        const res = await backend.execute(`
+        const res = await backend.executeService(`
             SELECT * FROM INFORMATION_SCHEMA.TABLES
             WHERE TABLE_SCHEMA = 'mysql_tasks'
             AND (TABLE_NAME = 'task_i' OR TABLE_NAME = 'task_log_i')
@@ -2697,10 +2697,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (tables.length > 0) {
             let taskId = "";
             try {
-                await backend.execute(`CALL mysql_tasks.create_task(?, ?, NULL, @genai_task_id)`,
+                await backend.executeService(`CALL mysql_tasks.create_task(?, ?, NULL, @genai_task_id)`,
                     [`Unload Lakehouse Table${tables.length > 1 ? "s" : ""}`, "GenAI_Load"]);
 
-                await backend.execute(`SELECT @genai_task_id`, [], undefined, (data) => {
+                await backend.executeService(`SELECT @genai_task_id`, [], undefined, (data) => {
                     if (data.result.rows !== undefined && data.result.rows.length > 0) {
                         taskId = String((data.result.rows[0] as string[])[0]);
                     }
@@ -2709,7 +2709,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 });
 
                 if (taskId !== "") {
-                    await backend.execute(
+                    await backend.executeService(
                         `CALL mysql_tasks.add_task_log(?, ?, NULL, ?, ?)`,
                         [taskId, "Task starting.", "0", "RUNNING"]);
 
@@ -2719,14 +2719,14 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
                     try {
                         for (const table of tables) {
-                            await backend.execute(`ALTER TABLE ${table} SECONDARY_UNLOAD`);
+                            await backend.executeService(`ALTER TABLE ${table} SECONDARY_UNLOAD`);
                         }
 
-                        await backend.execute(
+                        await backend.executeService(
                             `CALL mysql_tasks.add_task_log(?, ?, NULL, ?, ?)`,
                             [taskId, "Task completed.", "0", "COMPLETED"]);
                     } catch (e) {
-                        await backend.execute(
+                        await backend.executeService(
                             `CALL mysql_tasks.add_task_log(?, ?, NULL, ?, ?)`,
                             [taskId, String(e), "0", "ERROR"]);
                     }
@@ -2778,7 +2778,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (tables.length > 0) {
             try {
                 let taskId = "";
-                await backend.execute(
+                await backend.executeService(
                     `CALL sys.vector_store_load(NULL, JSON_OBJECT('schema_name', ?,
                     'task_name', 'Reload Lakehouse Table${tables.length > 1 ? "s" : ""}',
                     'description', 'Reload of table${tables.length > 1 ? "s" : ""} ${tables.join(", ")}',
@@ -2830,7 +2830,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
         try {
             for (const table of tables) {
-                await backend.execute(`DROP TABLE ${table}`);
+                await backend.executeService(`DROP TABLE ${table}`);
             }
 
             // Clear row selection
@@ -2865,7 +2865,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             if (task.id !== undefined && task.status === "RUNNING") {
                 count++;
-                void backend.execute("CALL mysql_tasks.kill_task(?)", [task.id]);
+                void backend.executeService("CALL mysql_tasks.kill_task(?)", [task.id]);
             }
         });
 
@@ -3258,7 +3258,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
 
             try {
-                await backend.execute(
+                await backend.executeService(
                     `CALL sys.genai_ensure_privileges(?, ?)`,
                     [userName, hostName], undefined, (data) => {
                         if (data.result.rows !== undefined && data.result.rows.length === 0) {
@@ -3312,7 +3312,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
 
             try {
-                void await backend.execute(`CREATE SCHEMA ${escapeSqlString(val)} `);
+                void await backend.executeService(`CREATE SCHEMA ${escapeSqlString(val)} `);
 
                 this.refreshAvailableDatabaseSchemas();
 

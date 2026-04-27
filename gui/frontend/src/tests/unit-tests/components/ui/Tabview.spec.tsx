@@ -114,7 +114,7 @@ describe("Tabview component tests", (): void => {
         unmount();
     });
 
-    it("Test select other tab", () => {
+    it("Test select other tab on primary mouse down", () => {
         const onSelectTab = vi.fn();
 
         const { unmount, getByText } = render(
@@ -125,7 +125,47 @@ describe("Tabview component tests", (): void => {
             />,
         );
 
-        fireEvent.click(getByText("One") as Element);
+        const tab = getByText("One") as Element;
+
+        fireEvent.mouseDown(tab, { button: 0 });
+        fireEvent.click(tab, { detail: 1 });
+
+        expect(onSelectTab).toHaveBeenCalledWith("1");
+        expect(onSelectTab).toHaveBeenCalledTimes(1);
+
+        unmount();
+    });
+
+    it("does not select tabs on non-primary mouse down", () => {
+        const onSelectTab = vi.fn();
+
+        const { unmount, getByText } = render(
+            <Tabview
+                pages={examplePages}
+                selectedId="2"
+                onSelectTab={onSelectTab}
+            />,
+        );
+
+        fireEvent.mouseDown(getByText("One") as Element, { button: 2 });
+
+        expect(onSelectTab).not.toHaveBeenCalled();
+
+        unmount();
+    });
+
+    it("supports synthetic click tab selection", () => {
+        const onSelectTab = vi.fn();
+
+        const { unmount, getByText } = render(
+            <Tabview
+                pages={examplePages}
+                selectedId="2"
+                onSelectTab={onSelectTab}
+            />,
+        );
+
+        fireEvent.click(getByText("One") as Element, { detail: 0 });
 
         expect(onSelectTab).toHaveBeenCalledWith("1");
 

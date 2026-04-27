@@ -92,6 +92,13 @@ export interface ITreeGridOptions {
      */
     layoutColumnsOnNewData?: boolean;
 
+    /**
+     * If true then current column widths are preserved when replacing data and columns (default: true).
+     * Disable this when the parent component tracks explicit user-resized widths and wants Tabulator to recompute
+     * all other columns from the selected layout.
+     */
+    preserveColumnWidthsOnDataUpdate?: boolean;
+
     /** If false, no header is shown (default: true). */
     showHeader?: boolean;
 
@@ -109,6 +116,9 @@ export interface ITreeGridOptions {
 
     /** If true then the user can vertically resize rows using the mouse. */
     resizableRows?: boolean;
+
+    /** If true, a plain left mouse down selects the row before the click is released. */
+    selectOnMouseDown?: boolean;
 
     /** If true then the grid content is scrolled to the first selected item if the selection is modified. */
     autoScrollOnSelect?: boolean;
@@ -191,7 +201,6 @@ interface ITreeGridProperties extends IComponentProperties {
  * can also be added on demand using the methods `setColumns` and `setRows`.
  */
 export class TreeGrid extends ComponentBase<ITreeGridProperties> {
-
     /** A counter to manage redraw blocks (public for testing). */
     public updateLockCount = 0;
 
@@ -285,6 +294,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.tabulator.on("rowContext", this.handleRowContext);
             this.tabulator.on("cellClick", this.handleCellClick);
             this.tabulator.on("cellContext", this.handleCellContext);
+            this.tabulator.on("rowMouseDown", this.handleRowMouseDown);
             this.tabulator.on("rowSelected", this.handleRowSelected);
             this.tabulator.on("rowClick", this.handleRowClicked);
             this.tabulator.on("rowDeselected", this.handleRowDeselected);
@@ -310,7 +320,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     public override componentDidUpdate(_prevProps: ITreeGridProperties): void {
         if (this.tabulator && this.tableReady) {
-            const { selectedRows, columns, tableData } = this.props;
+            const { selectedRows, columns, tableData, options } = this.props;
 
             // When we are editing, we don't want to update the table.
             if (this.isEditing) {
@@ -321,7 +331,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             // is changed to use the setData API.
             //if (prevProps.tableData !== tableData) {
             if (tableData) {
-                const widths = columns ? this.currentColumnWidths() : undefined;
+                const preserveColumnWidths = options?.preserveColumnWidthsOnDataUpdate ?? true;
+                const widths = columns && preserveColumnWidths ? this.currentColumnWidths() : undefined;
 
                 // The call to replaceData does not change the scroll position.
                 void this.tabulator.replaceData(tableData as Array<{}>).then(() => {
@@ -357,7 +368,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             } else if (selectedRows && !this.cancelled) {
                 if (columns) {
                     // No data here, so no need to restore the scroll position.
-                    this.tabulator.setColumns(columns);
+                    this.tabulator.setColumns(TreeGrid.addDefaultHeaderTooltips(columns));
                 }
 
                 this.tabulator.selectRow(selectedRows);
@@ -407,7 +418,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         return new Promise((resolve, reject) => {
             this.table.then(() => {
                 if (!this.cancelled) {
-                    this.tabulator?.setColumns(columns);
+                    this.tabulator?.setColumns(TreeGrid.addDefaultHeaderTooltips(columns));
                 }
                 resolve();
             }).catch((reason: unknown) => {
@@ -672,7 +683,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             debugInvalidOptions: appParameters.inDevelopment,
 
             index: options?.index ?? "id",
-            columns,
+            columns: TreeGrid.addDefaultHeaderTooltips(columns),
             data: tableData,
             frozenRows,
 
@@ -753,10 +764,38 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         onCellContext?.(event, cell);
     };
 
+    private handleRowMouseDown = (event: Event, row: RowComponent): void => {
+        const { options } = this.props;
+
+        if (!options?.selectOnMouseDown || options.selectionType === SelectionType.None ||
+            options.selectionType === SelectionType.Highlight) {
+            return;
+        }
+
+        if (!(event instanceof MouseEvent) || event.defaultPrevented || event.button !== 0 ||
+            event.shiftKey || event.ctrlKey || event.metaKey) {
+            return;
+        }
+
+        const target = event.target;
+        if (target instanceof Element && target.closest(
+            "button, input, textarea, select, [contenteditable='true'], " +
+            ".tabulator-row-resize-handle, .tabulator-data-tree-control",
+        )) {
+            return;
+        }
+
+        row.select();
+    };
+
     private handleRowClicked = (event: Event, row: RowComponent): void => {
         const { options, columns } = this.props;
 
         if (options?.treeColumn) {
+            if (!this.rowHasTreeChildren(row)) {
+                return;
+            }
+
             if (this.toggleTimeoutId) {
                 clearTimeout(this.toggleTimeoutId);
                 this.toggleTimeoutId = null;
@@ -777,6 +816,15 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             }
         }
     };
+
+    private rowHasTreeChildren(row: RowComponent): boolean {
+        const { options } = this.props;
+        const childKey = options?.childKey ?? "children";
+        const rowData = row.getData() as Record<string, unknown>;
+        const children = rowData[childKey];
+
+        return Array.isArray(children) && children.length > 0;
+    }
 
     private handleRowSelected = (row: RowComponent): void => {
         const { options } = this.props;

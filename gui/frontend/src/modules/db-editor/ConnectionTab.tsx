@@ -81,7 +81,7 @@ import { formatTime, formatWithNumber } from "../../utilities/string-helpers.js"
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
-import { ClientConnections } from "./ClientConnections.js";
+import { ClientConnections, type IClientConnectionsSavedState } from "./ClientConnections.js";
 import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
 import { Notebook } from "./Notebook.js";
@@ -139,6 +139,7 @@ export interface IOpenDocumentState {
 
 export interface IAdminPageStates {
     lakehouseNavigatorState: ILakehouseNavigatorState;
+    clientConnectionsState: IClientConnectionsSavedState;
 }
 
 /**
@@ -214,6 +215,7 @@ interface IConnectionTabProperties extends IComponentProperties {
     onGraphDataChange?: (id: string, data: ISavedGraphData) => void;
 
     onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
+    onSaveAdminClientConnectionsState?: (id: string, data: Partial<IClientConnectionsSavedState>) => void;
     onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
     onDesktopRunStateChanged?: () => void;
 }
@@ -340,6 +342,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             "showAbout", "extraLibs",
             "onHelpCommand", "onAddEditor", "onLoadEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor",
             "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction",
+            "onSaveAdminClientConnectionsState",
             "onDesktopRunStateChanged");
 
     }
@@ -724,6 +727,8 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                                     backend={connection.backend}
                                     toolbarItems={toolbarItems}
                                     refreshInterval={5000}
+                                    savedState={savedState.adminPageStates.clientConnectionsState}
+                                    onStateChange={this.handleClientConnectionsStateChange}
                                 />;
 
                                 break;
@@ -2816,6 +2821,12 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         const { id, onGraphDataChange } = this.props;
 
         onGraphDataChange?.(id ?? "", data);
+    };
+
+    private handleClientConnectionsStateChange = (data: Partial<IClientConnectionsSavedState>): void => {
+        const { id, onSaveAdminClientConnectionsState } = this.props;
+
+        onSaveAdminClientConnectionsState?.(id ?? "", data);
     };
 
     private handleLakehouseNavigatorStateChange = (data: Partial<ILakehouseNavigatorSavedState>): void => {

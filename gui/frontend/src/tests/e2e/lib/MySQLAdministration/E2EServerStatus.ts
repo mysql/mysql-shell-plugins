@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -142,14 +142,6 @@ export class E2EServerStatus {
     /** The SSL Key*/
     public sslKey: string | undefined;
 
-    // SERVER AUTHENTICATION
-
-    /** The private Key*/
-    public privateKey: string | undefined;
-
-    /** The public Key*/
-    public publicKey: string | undefined;
-
     /**
      * Loads the Server Status page objects and attributes
      * 
@@ -170,16 +162,16 @@ export class E2EServerStatus {
             dataDir,
             pluginsDir,
             tmpDir,
-            errorLogClasses,
-            generalLogClasses,
-            slowQueryLogClasses,
-            performanceSchemaClasses,
-            threadPoolClasses,
+            errorLogText,
+            generalLogText,
+            slowQueryLogText,
+            performanceSchemaText,
+            threadPoolText,
             memCachedPlugin,
             semiSyncReplicationPlugin,
-            pamAuthenticationClasses,
-            passwordValidationClasses,
-            auditLogClasses,
+            pamAuthenticationText,
+            passwordValidationText,
+            auditLogText,
             firewall,
             firewallTrace,
             sslCa,
@@ -189,8 +181,6 @@ export class E2EServerStatus {
             sslCrl,
             sslCrlPath,
             sslKey,
-            privateKey,
-            publicKey,
         ] = await Promise.all([
             await driver.findElement(serverStatusLocator.host),
             await driver.findElement(serverStatusLocator.socket),
@@ -203,24 +193,16 @@ export class E2EServerStatus {
             await driver.findElement(serverStatusLocator.dataDir),
             await driver.findElement(serverStatusLocator.pluginsDir),
             await driver.findElement(serverStatusLocator.tmpDir),
-            await (await driver.findElement(serverStatusLocator.errorLog).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.generalLog).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.slowQueryLog).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.performanceSchema).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.threadPool).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
+            await driver.findElement(serverStatusLocator.errorLog).getText(),
+            await driver.findElement(serverStatusLocator.generalLog).getText(),
+            await driver.findElement(serverStatusLocator.slowQueryLog).getText(),
+            await driver.findElement(serverStatusLocator.performanceSchema).getText(),
+            await driver.findElement(serverStatusLocator.threadPool).getText(),
             await driver.findElement(serverStatusLocator.memCachedPlugin),
             await driver.findElement(serverStatusLocator.semiSyncReplicationPlugin),
-            await (await driver.findElement(serverStatusLocator.pamAuthentication).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.passwordValidation).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.auditLog).findElement(locator.htmlTag.label))
-                .getAttribute("class"),
+            await driver.findElement(serverStatusLocator.pamAuthentication).getText(),
+            await driver.findElement(serverStatusLocator.passwordValidation).getText(),
+            await driver.findElement(serverStatusLocator.auditLog).getText(),
             await driver.findElement(serverStatusLocator.firewall),
             await driver.findElement(serverStatusLocator.firewallTrace),
             await driver.findElement(serverStatusLocator.sslCa),
@@ -230,8 +212,6 @@ export class E2EServerStatus {
             await driver.findElement(serverStatusLocator.sslCrl),
             await driver.findElement(serverStatusLocator.sslCrlPath),
             await driver.findElement(serverStatusLocator.sslKey),
-            await driver.findElement(serverStatusLocator.privateKey),
-            await driver.findElement(serverStatusLocator.publicKey),
         ]);
 
         const notEmpty = /(.|\s)*\S(.|\s)*/;
@@ -256,26 +236,26 @@ export class E2EServerStatus {
             notEmpty), wait3seconds)).getText();
 
         this.errorLog = {
-            checked: errorLogClasses.includes("unchecked") ? false : true,
+            checked: this.pillTextIsOn(errorLogText),
             path: await (await driver.findElement(serverStatusLocator.errorLog)).getText(),
         };
         this.generalLog = {
-            checked: generalLogClasses.includes("unchecked") ? false : true,
+            checked: this.pillTextIsOn(generalLogText),
             path: await (await driver.findElement(serverStatusLocator.generalLog)).getText(),
         };
         this.slowQueryLog = {
-            checked: slowQueryLogClasses.includes("unchecked") ? false : true,
+            checked: this.pillTextIsOn(slowQueryLogText),
             path: await (await driver.findElement(serverStatusLocator.slowQueryLog)).getText(),
         };
-        this.performanceSchema = performanceSchemaClasses.includes("unchecked") ? false : true;
-        this.threadPool = threadPoolClasses.includes("unchecked") ? false : true;
+        this.performanceSchema = this.pillTextIsOn(performanceSchemaText);
+        this.threadPool = this.pillTextIsOn(threadPoolText);
         this.memCachedPlugin = await (await driver.wait(until.elementTextMatches(memCachedPlugin,
             notEmpty), wait3seconds)).getText();
         this.semiSyncRepPlugin = await (await driver.wait(until.elementTextMatches(semiSyncReplicationPlugin,
             notEmpty), wait3seconds)).getText();
-        this.pamAuthentication = pamAuthenticationClasses.includes("unchecked") ? false : true;
-        this.passwordValidation = passwordValidationClasses.includes("unchecked") ? false : true;
-        this.auditLog = auditLogClasses.includes("unchecked") ? false : true;
+        this.pamAuthentication = this.pillTextIsOn(pamAuthenticationText);
+        this.passwordValidation = this.pillTextIsOn(passwordValidationText);
+        this.auditLog = this.pillTextIsOn(auditLogText);
         this.firewall = await (await driver.wait(until.elementTextMatches(firewall, notEmpty), wait3seconds)).getText();
         this.firewallTrace = await (await driver.wait(until.elementTextMatches(firewallTrace,
             notEmpty), wait3seconds)).getText();
@@ -289,10 +269,10 @@ export class E2EServerStatus {
         this.sslCrlPath = await sslCrlPath.getText();
         this.sslKey = await (await driver.wait(until.elementTextMatches(sslKey,
             notEmpty), wait3seconds)).getText();
-        this.privateKey = await (await driver.wait(until.elementTextMatches(privateKey,
-            notEmpty), wait3seconds)).getText();
-        this.publicKey = await (await driver.wait(until.elementTextMatches(publicKey,
-            notEmpty), wait3seconds)).getText();
+    };
+
+    private pillTextIsOn = (text: string): boolean => {
+        return text.trim().toLowerCase().startsWith("on");
     };
 
 }

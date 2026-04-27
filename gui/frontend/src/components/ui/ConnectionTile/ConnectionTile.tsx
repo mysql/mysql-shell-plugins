@@ -32,7 +32,7 @@ import { Assets } from "../../../supplement/Assets.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
 import { filterInt } from "../../../utilities/string-helpers.js";
 import { Button } from "../Button/Button.js";
-import type { Codicon } from "../Codicon.js";
+import { Codicon } from "../Codicon.js";
 import { ComponentBase, DragEventType, type IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { Icon } from "../Icon/Icon.js";
@@ -154,7 +154,7 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
                     imageOnly
                     onClick={this.handleActionClick}
                 >
-                    <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
+                    <Icon src={Codicon.KebabHorizontal} data-tooltip="inherit" />
                 </Button>
             );
         }
@@ -171,7 +171,7 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
                     imageOnly
                     onClick={this.handleActionClick}
                 >
-                    <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
+                    <Icon src={Codicon.KebabHorizontal} data-tooltip="inherit" />
                 </Button>
                 <Button
                     id="tileNewNotebookAction"

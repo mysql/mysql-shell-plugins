@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { beforeAll, describe, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
+import type { IDbEditorResultSetData } from "../../../../communication/ProtocolGui.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { mockClassMethods, nextRunLoop } from "../../test-helpers.js";
 
@@ -47,5 +48,24 @@ describe("ShellInterfaceSqlEditor Tests", () => {
         });
         await nextRunLoop();
 
+    });
+
+    it("caches performance schema availability on the backend instance", async () => {
+        class TestBackend extends ShellInterfaceSqlEditor {
+            public calls: string[] = [];
+            public response: IDbEditorResultSetData | undefined = { rows: [["1"]] };
+
+            public override async executeService(sql: string): Promise<IDbEditorResultSetData | undefined> {
+                this.calls.push(sql);
+
+                return this.response;
+            }
+        }
+
+        const testBackend = new TestBackend();
+
+        expect(await testBackend.isPerformanceSchemaAvailable()).toBe(true);
+        expect(await testBackend.isPerformanceSchemaAvailable()).toBe(true);
+        expect(testBackend.calls).toEqual(["select @@performance_schema"]);
     });
 });

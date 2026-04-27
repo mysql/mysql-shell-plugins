@@ -24,14 +24,43 @@
  */
 
 import { render } from "@testing-library/preact";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { createRef } from "preact";
-import { type ColumnDefinition } from "tabulator-tables";
+import { type ColumnComponent, type ColumnDefinition, type RowComponent } from "tabulator-tables";
 import { describe, expect, it, vi } from "vitest";
 
 import { SetDataAction, TreeGrid } from "../../../../components/ui/TreeGrid/TreeGrid.js";
+import { SelectionType } from "../../../../components/ui/Component/ComponentBase.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
+const readFrontendSourceFile = (path: string): string => {
+    let directory = process.cwd();
+
+    for (let i = 0; i < 8; i++) {
+        const candidate = join(directory, path);
+
+        if (existsSync(candidate)) {
+            return readFileSync(candidate, "utf-8");
+        }
+
+        directory = dirname(directory);
+    }
+
+    throw new Error(`Unable to find ${path}`);
+};
+
 describe("TreeGrid tests", (): void => {
+
+    it("keeps selected row color unchanged on hover", () => {
+        const treeGridCss = readFrontendSourceFile("src/components/ui/TreeGrid/TreeGrid.css");
+        const clientConnectionsCss = readFrontendSourceFile("src/modules/db-editor/assets/document.css");
+
+        expect(treeGridCss).toContain("tabulator-selectable:not(.tabulator-selected):hover");
+        expect(clientConnectionsCss).toContain("tabulator-selectable:not(.tabulator-selected):hover");
+        expect(treeGridCss).not.toContain("tabulator-selected:hover");
+        expect(clientConnectionsCss).not.toContain("tabulator-selected:hover");
+    });
 
     it("Test TreeGrid instantiation", async () => {
         const { unmount: unmount1 } = render(
@@ -88,6 +117,140 @@ describe("TreeGrid tests", (): void => {
         await gridRef.current!.table;
 
         expect(container).toMatchSnapshot();
+
+        unmount();
+    });
+
+    it("selects rows on mouse down when requested", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const { container, unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                height={100}
+                columns={[
+                    { title: "col1", field: "field1" },
+                ]}
+                tableData={[
+                    { id: "1", field1: "a" },
+                ]}
+                options={{
+                    selectionType: SelectionType.Single,
+                    selectOnMouseDown: true,
+                }}
+            />,
+        );
+
+        await nextRunLoop();
+        await gridRef.current!.table;
+
+        const eventTarget = document.createElement("div");
+        container.append(eventTarget);
+        const event = new MouseEvent("mousedown", { button: 0 });
+        Object.defineProperty(event, "target", {
+            configurable: true,
+            value: eventTarget,
+        });
+        const row = {
+            select: vi.fn(),
+        } as unknown as RowComponent;
+
+        (
+            gridRef.current! as TreeGrid & {
+                handleRowMouseDown: (event: MouseEvent, row: RowComponent) => void;
+            }
+        ).handleRowMouseDown(event, row);
+
+        expect(row.select).toHaveBeenCalledTimes(1);
+        unmount();
+    });
+
+    it("does not toggle tree rows without children", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const { unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[
+                    { title: "col1", field: "field1" },
+                ]}
+                tableData={[
+                    { id: "1", field1: "a" },
+                ]}
+                options={{
+                    treeColumn: "field1",
+                }}
+            />,
+        );
+
+        await nextRunLoop();
+        await gridRef.current!.table;
+
+        const event = new MouseEvent("click");
+        const leafRow = {
+            getData: () => {
+                return { id: "leaf", field1: "Leaf" };
+            },
+            treeToggle: vi.fn(),
+        } as unknown as RowComponent;
+        const parentRow = {
+            getData: () => {
+                return { id: "parent", field1: "Parent", children: [{ id: "child" }] };
+            },
+            treeToggle: vi.fn(),
+        } as unknown as RowComponent;
+        const internals = gridRef.current! as TreeGrid & {
+            handleRowClicked: (event: MouseEvent, row: RowComponent) => void;
+        };
+
+        internals.handleRowClicked(event, leafRow);
+        internals.handleRowClicked(event, parentRow);
+
+        expect(leafRow.treeToggle).not.toHaveBeenCalled();
+        expect(parentRow.treeToggle).toHaveBeenCalledTimes(1);
+
+        unmount();
+    });
+
+    it("shows header tooltips only for clipped titles", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const { unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[
+                    { title: "Long Column Title", field: "field1" },
+                    { title: "Explicit Tooltip", field: "field2", headerTooltip: "Always visible" },
+                ]}
+                tableData={[]}
+            />,
+        );
+
+        await nextRunLoop();
+        const table = await gridRef.current!.table;
+
+        const column = table!.getColumn("field1");
+        const titleElement = column.getElement().querySelector<HTMLElement>(".tabulator-col-title");
+        expect(titleElement).toBeDefined();
+
+        const tooltip = column.getDefinition().headerTooltip;
+        expect(typeof tooltip).toBe("function");
+        const tooltipFormatter = tooltip as unknown as (event: MouseEvent, column: ColumnComponent) => string;
+        const event = new MouseEvent("mousemove");
+
+        Object.defineProperties(titleElement!, {
+            clientHeight: { configurable: true, value: 20 },
+            clientWidth: { configurable: true, value: 40 },
+            scrollHeight: { configurable: true, value: 20 },
+            scrollWidth: { configurable: true, value: 80 },
+        });
+        expect(tooltipFormatter(event, column)).toBe("Long Column Title");
+
+        Object.defineProperties(titleElement!, {
+            clientWidth: { configurable: true, value: 80 },
+            scrollWidth: { configurable: true, value: 80 },
+        });
+        expect(tooltipFormatter(event, column)).toBe("");
+
+        const explicitTooltipColumn = table!.getColumn("field2");
+        expect(explicitTooltipColumn.getDefinition().headerTooltip).toBe("Always visible");
 
         unmount();
     });
@@ -197,6 +360,46 @@ describe("TreeGrid tests", (): void => {
             return column.field === "field1";
         })?.width).toBe(222);
         expect(table!.getColumn("field1").getWidth()).toBe(222);
+
+        unmount();
+    });
+
+    it("can skip preserving computed column widths when data is refreshed", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const columns = [
+            { title: "col1", field: "field1" },
+            { title: "col2", field: "field2" },
+        ];
+        const { unmount, rerender } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={columns}
+                tableData={[{ id: "1", field1: "a", field2: "b" }]}
+                options={{ preserveColumnWidthsOnDataUpdate: false }}
+            />,
+        );
+
+        await nextRunLoop();
+        const table = await gridRef.current!.table;
+
+        table!.getColumn("field1").setWidth(222);
+        expect(table!.getColumn("field1").getWidth()).toBe(222);
+        const setColumns = vi.spyOn(table!, "setColumns");
+
+        rerender(
+            <TreeGrid
+                ref={gridRef}
+                columns={[...columns]}
+                tableData={[{ id: "1", field1: "c", field2: "d" }]}
+                options={{ preserveColumnWidthsOnDataUpdate: false }}
+            />,
+        );
+
+        await nextRunLoop();
+        const refreshedColumns = setColumns.mock.calls.at(-1)?.[0] as ColumnDefinition[];
+        expect(refreshedColumns.find((column) => {
+            return column.field === "field1";
+        })?.width).toBeUndefined();
 
         unmount();
     });

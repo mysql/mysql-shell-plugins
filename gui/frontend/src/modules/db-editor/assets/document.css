@@ -778,7 +778,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 .msg#connectionEditor #progressMessageId {
     color: var(--disabledForeground);
-    font-size: 12px;
+    font-size: 10px;
     display: flex;
     align-items: center;
     padding-left: 5px;
@@ -926,50 +926,299 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 /* Definitions for server status. */
 
-.msg#serverStatus #serverDirectories,
-.msg#serverStatus #serverFeatures,
-.msg#serverStatus #serverDirectories,
-.msg#serverStatus #serverSsl,
-.msg#serverStatus #serverAuthentication,
-.msg#serverStatus #firewall {
-    padding-left: 20px;
-    margin-bottom: 30px;
+.msg.serverStatusHost {
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .msg.serverStatus {
     display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
     overflow: auto;
-    margin: 0 20px;
+    margin: 0;
+    padding: 16px 24px 24px;
     color: var(--foreground);
 }
 
-.msg.serverStatus #statusBoxHost {
+.msg.serverStatus #serverStatusOverview,
+.msg.serverStatus #statusBoxHost,
+.msg.clientConnections #clientConnectionsOverview,
+.msg.clientConnections #connectionList,
+.msg.msg.clientConnections #clientConnectionToolbar {
+    width: min(1560px, 100%);
     margin: 0 auto;
 }
 
-.msg.serverStatus #statusBoxHost .grid {
-    font-size: 11pt;
-    min-width: 400px;
-    max-width: 400px;
-    padding: 0 8px 0 8px;
+.msg.clientConnections #clientConnectionToolbar .button>.icon.codicon {
+    background: none;
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.clientConnections #clientConnectionToolbar .button {
+    background-color: var(--secondaryButton-background);
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):hover,
+.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):focus,
+.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):focus-visible,
+.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):active {
+    background-color: var(--secondaryButton-hoverBackground);
+}
+
+.msg.clientConnections #clientConnectionToolbar .button.disabled {
+    background-color: var(--secondaryButton-disabledBackground);
+    color: var(--secondaryButton-disabledForeground);
+}
+
+.msg.clientConnections .clientConnectionKillButton.disabled {
+    background-color: var(--secondaryButton-disabledBackground);
+}
+
+.msg.clientConnections #clientConnectionToolbar .button.disabled>.icon {
+    background-color: var(--secondaryButton-disabledForeground) !important;
+}
+
+.msg.clientConnections #clientConnectionToolbar .clientConnectionKillButton.disabled>.icon.codicon,
+.msg.clientConnections .connectionDetailsActions .clientConnectionKillButton.disabled>.icon.codicon {
+    background: none !important;
+}
+
+.msg.clientConnections #clientConnectionToolbar .button.disabled>.icon.codicon {
+    color: var(--secondaryButton-disabledForeground);
+}
+
+.msg.serverStatus #serverStatusOverview {
+    flex: 0 0 auto;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
+            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+}
+
+.msg.serverStatus #serverStatusHeader {
+    gap: 16px;
+}
+
+.msg.serverStatus #serverStatusOverview,
+.msg.serverStatus #serverStatusOverview *,
+.msg.serverStatus .serverStatusCard,
+.msg.serverStatus .serverStatusCard * {
+    user-select: text;
+}
+
+.msg.serverStatus .serverStatusTitle {
+    min-width: 0;
+    gap: 14px;
+}
+
+.msg.serverStatus #mysqlLogo {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
+}
+
+.msg.serverStatus h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.msg.serverStatus .serverStatusVersion {
+    margin: 2px 0 0;
+    color: var(--disabledForeground);
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.msg.serverStatus .serverStatusState {
+    flex: 0 0 auto;
+    min-width: 88px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    text-align: center;
+    color: var(--administration-statusForeground, var(--button-foreground));
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.msg.serverStatus .serverStatusState.running {
+    background-color: var(--administration-statusSuccessBackground, var(--charts-green));
+}
+
+.msg.serverStatus .serverStatusState.stopped {
+    background-color: var(--administration-statusWarningBackground, var(--statusBarItem-warningBackground));
+    color: var(--administration-statusWarningForeground, var(--statusBarItem-warningForeground));
+}
+
+.msg.serverStatus .serverStatusSummary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.msg.serverStatus .serverStatusSummaryItem {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
+}
+
+.msg.serverStatus .serverStatusSummaryItem>span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.serverStatus .serverStatusSummaryValue {
+    min-width: 0;
+}
+
+.msg.serverStatus .serverStatusSummaryValue strong {
+    color: var(--foreground);
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.msg.serverStatus .serverStatusSummaryValue .serverStatusBoolean {
+    vertical-align: top;
+}
+
+.msg.serverStatus .serverStatusWarningText {
+    display: inline-block;
+    margin-left: 8px;
+    color: var(--foreground);
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.3;
+    vertical-align: top;
+}
+
+.msg.serverStatus #statusBoxHost {
+    display: grid;
+    box-sizing: border-box;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.msg.serverStatus .serverStatusCard {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    padding: 14px 16px 16px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 78%, transparent);
+}
+
+.msg.serverStatus .serverStatusCardHeader {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+}
+
+.msg.serverStatus .serverStatusCardHeader label {
+    color: var(--foreground);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.msg.serverStatus .serverStatusFields {
+    width: 100%;
+    font-size: 0.78rem;
+}
+
+.msg.serverStatus .serverStatusFieldLabel {
+    justify-content: flex-end;
+    color: var(--disabledForeground);
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.msg.serverStatus .serverStatusFieldValue {
+    min-width: 0;
+    gap: 6px;
+    line-height: 1.35;
     word-break: break-word;
 }
 
-.msg.serverStatus .grid .left {
-    margin-left: auto;
-    padding-left: 16px;
+.msg.serverStatus .serverStatusBoolean {
+    display: inline-flex;
+    align-items: center;
+    min-height: 16px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    color: var(--administration-statusForeground, var(--button-foreground));
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.serverStatus .serverStatusBoolean.on {
+    background-color: var(--administration-statusSuccessBackground, var(--charts-green));
+}
+
+.msg.serverStatus .serverStatusBoolean.off {
+    background-color: var(--administration-statusWarningBackground, var(--statusBarItem-warningBackground));
+    color: var(--administration-statusWarningForeground, var(--statusBarItem-warningForeground));
+}
+
+.msg.serverStatus .serverStatusBoolean.redoLog.off {
+    background-color: var(--administration-statusErrorBackground, var(--statusBarItem-errorBackground));
+    color: var(--administration-statusErrorForeground, var(--statusBarItem-errorForeground));
+}
+
+.msg.serverStatus .serverStatusBoolean.none {
     color: var(--disabledForeground);
+    background-color: color-mix(in srgb, var(--disabledForeground) 18%, transparent);
 }
 
-.msg.serverStatus .heading {
-    margin: 20px 30px 0 30px;
-    text-align: center;
-    font-size: 20pt;
-    height: 34px;
-    font-weight: 100;
+@media (max-width: 700px) {
+    .msg.serverStatus {
+        padding: 8px 14px 14px;
+    }
+
+    .msg.serverStatus #serverStatusHeader {
+        align-items: flex-start;
+        flex-direction: column !important;
+    }
+
+    .msg.serverStatus .serverStatusFields {
+        grid-template-columns: 1fr !important;
+    }
+
+    .msg.serverStatus .serverStatusFieldLabel {
+        justify-content: flex-start;
+        text-align: left;
+    }
 }
 
-.msg.serverStatus #header,
 .msg.clientConnections #header {
     display: flex;
     grid-template-columns: none;
@@ -977,7 +1226,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     justify-content: center;
 }
 
-.msg.serverStatus #mysqlLogo,
 .msg.clientConnections #mysqlLogo {
     width: 46px;
     height: 46px;
@@ -989,34 +1237,16 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     height: 92px;
 }
 
-.msg.serverStatus .divider,
 .msg.clientConnections .divider {
     background-color: var(--tree-tableColumnsBorder);
     --thickness: 1px !important;
-}
-
-.msg.serverStatus .statusIndicator>h3,
-.msg.serverStatus .statusIndicator>h1 {
-    padding-left: 0;
-    padding-top: 1px;
-    display: flex;
-    flex-direction: column;
-}
-
-.msg.serverStatus .statusIndicator>h3 {
-    font-size: 0.7rem;
-    font-weight: 300;
-}
-
-.msg.serverStatus .statusIndicator>h1 {
-    font-size: 1.7rem;
-    margin-top: 1px;
 }
 
 /* Definitions for the performance dashboard. */
 
 .msg .performanceDashboard {
     flex: 1;
+    padding-top: 8px;
 }
 
 .msg .performanceDashboard #graphColorsDropdown,
@@ -1124,65 +1354,808 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 /* Definitions for client connections. */
 
-.msg.clientConnections #contentHost {
-    flex: 1;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-.msg.serverStatus h1,
-.msg.clientConnections h1 {
-    font-size: 1.4rem;
-    font-weight: 500;
-    margin: 0;
-}
-
-.msg.serverStatus h2,
-.msg.clientConnections h2 {
-    font-size: 1rem;
-    margin-top: 0;
-    font-weight: 300;
-}
-
 .msg.clientConnections {
-    flex: 1;
+    --secondaryButton-background: transparent;
+    --secondaryButton-foreground: var(--foreground);
+    --secondaryButton-hoverBackground: var(--button-secondaryHoverBackground);
+    --secondaryButton-disabledBackground: transparent;
+    --secondaryButton-disabledForeground: var(--disabledForeground);
+
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
-.msg.clientConnections #clientConnectionDetails {
-    word-break: break-word;
+.msg.clientConnections #contentHost {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 18px;
+    min-height: 0;
+    margin: 0;
+    overflow: auto;
+    padding: 16px 24px 24px;
+    color: var(--foreground);
+}
+
+.msg.clientConnections #clientConnectionsOverview {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
+            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+}
+
+.msg.clientConnections #clientConnectionsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.msg.clientConnections .clientConnectionsTitle {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 14px;
+}
+
+.msg.clientConnections #clientConnectionsIcon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
+}
+
+.msg.clientConnections h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.msg.clientConnections .clientConnectionsVersion {
+    margin: 2px 0 0;
+    color: var(--disabledForeground);
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.msg.clientConnections #connectionProps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.msg.clientConnections .clientConnectionPrimaryMetrics {
+    flex: 0 1 220px;
+    width: auto;
+}
+
+.msg.clientConnections .clientConnectionMetric {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
+}
+
+.msg.clientConnections .clientConnectionMetric>span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections .clientConnectionMetric label {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--foreground);
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.msg.clientConnections .clientConnectionMetric.primary .clientConnectionLimitValue {
+    font-size: 0.78em;
+}
+
+.msg.clientConnections .clientConnectionMetric.primary .clientConnectionLimitValue::before {
+    content: " / ";
+}
+
+.msg.clientConnections .clientConnectionHiddenMetric {
+    display: none !important;
 }
 
 .msg.clientConnections #connectionList {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+}
+
+.msg.clientConnections #connectionListContent {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 8px;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+}
+
+.msg.clientConnections #connectionGridFrame {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg.clientConnections #connectionList.splitContainer {
+    display: flex;
+}
+
+.msg.clientConnections #connectionGridHost,
+.msg.clientConnections #connectionDetailsHost {
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.msg.clientConnections #connectionGridHost {
+    padding-right: 8px;
+}
+
+.msg.clientConnections #connectionDetailsHost {
+    padding-left: 8px;
+}
+
+.msg.clientConnections #clientConnectionsGrid {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--background) 28%, transparent);
+    font-size: 12px;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-header {
+    min-height: 30px;
+    border-bottom-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 86%, transparent);
+    background-color: color-mix(in srgb, var(--list-headerBackground) 88%, var(--sideBar-background));
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-header .tabulator-col {
+    padding: 0 8px;
+    border-right-color: transparent;
+    background-color: transparent;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 6px 0;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-col-title {
+    color: var(--disabledForeground);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-title {
+    padding-right: 0;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-tableholder {
+    background:
+        linear-gradient(color-mix(in srgb, var(--foreground) 3%, transparent), transparent 26px),
+        var(--rowBackgroundColor);
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row {
+    transition: background-color 80ms ease;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row.tabulator-row-odd {
+    background-color: transparent;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row.tabulator-row-even {
+    background-color: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row .tabulator-cell {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 8px;
+    border-right: none;
+    font-size: 0.76rem;
+    line-height: 1.25;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row .tabulator-cell:first-child {
+    border-left: 3px solid transparent;
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row.tabulator-selectable:not(.tabulator-selected):hover .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-hoverBackground) 72%, transparent);
+}
+
+.msg.clientConnections #clientConnectionsGrid:focus-within .tabulator-row.tabulator-selected .tabulator-cell,
+.msg.clientConnections #clientConnectionsGrid .tabulator-row.tabulator-selected .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-activeSelectionBackground) 84%, transparent);
+    color: var(--list-activeSelectionForeground);
+}
+
+.msg.clientConnections #clientConnectionsGrid .tabulator-row.tabulator-selected .tabulator-cell:first-child {
+    border-left-color: var(--administration-selectionBorder, var(--list-focusOutline));
 }
 
 .msg.clientConnections #connectionDetails {
-    flex: 0 0 40%;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    gap: 8px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 72%, transparent);
 }
 
-.msg.clientConnections .grid {
-    width: 95%;
-    font-size: 11pt;
+.msg.clientConnections #connectionDetails,
+.msg.clientConnections #connectionDetails .tabContent,
+.msg.clientConnections #connectionDetails .tabContent * {
+    user-select: text;
 }
 
-.msg.clientConnections .grid .left {
-    justify-content: flex-end;
+.msg.clientConnections #detailsTabView {
+    min-width: 100px;
+}
+
+.msg.clientConnections #detailsTabView .tabAreaContainer {
+    background-color: transparent;
+}
+
+.msg.clientConnections #detailsTabView .tabArea>.tabItem {
+    padding: 7px 12px;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--disabledForeground);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections #detailsTabView .tabArea>.tabItem.selected {
+    background-color: color-mix(in srgb, var(--list-activeSelectionBackground) 14%, transparent);
+    color: var(--foreground);
+}
+
+.msg.clientConnections #detailsTabView>.tabContent {
+    min-height: 0;
+    overflow: auto;
+    background-color: transparent;
+}
+
+.msg.clientConnections #clientConnectionDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    word-break: break-word;
+}
+
+.msg.clientConnections .connectionDetailsSummary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 8px;
+    row-gap: 2px;
+    align-items: stretch;
+    min-width: 0;
+    padding: 0;
+}
+
+.msg.clientConnections #connectionDetails>.connectionDetailsSummary {
+    flex: 0 0 auto;
+    margin: 12px 12px 0;
+}
+
+.msg.clientConnections .connectionDetailsCaption {
+    grid-column: 2;
+    grid-row: 1;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections .connectionDetailsIdentity {
+    display: contents;
+}
+
+.msg.clientConnections .connectionDetailsIdentity>.connectionDetailsProcessId {
+    grid-column: 2;
+    grid-row: 2;
+    overflow: hidden;
+    flex: 0 0 auto;
+    color: var(--foreground);
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.clientConnections .connectionDetailsProcessIdInput {
+    width: 100%;
+    max-width: 14ch;
+    min-width: 5ch;
+    margin: 0;
+    padding: 0 4px 0 8px;
+    border: 1px solid var(--input-border);
+    border-radius: 999px;
+    background-color: var(--input-background);
+    color: var(--input-foreground);
+    font: inherit;
+    line-height: inherit;
+}
+
+.msg.clientConnections .connectionDetailsProcessIdInput:disabled {
     color: var(--disabledForeground);
 }
 
-.msg.clientConnections .grid .right {
-    justify-content: flex-start;
+.msg.clientConnections .connectionDetailsSummary>span:last-child {
+    grid-column: 2 / -1;
+    grid-row: 3;
+    overflow: hidden;
+    min-width: 0;
+    color: var(--disabledForeground);
+    font-size: 0.76rem;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.msg.msg.clientConnections #connectionListTitle .label {
-    padding-top: 10px;
-    padding-bottom: 3px;
-    font-size: 15px;
-    font-weight: 300;
+.msg.clientConnections .connectionDetailsNavigation {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    align-self: center;
+    flex: 0 0 auto;
+    gap: 4px;
 }
 
-.msg.msg.clientConnections .toolbar {
+.msg.clientConnections .connectionDetailsActions {
+    grid-column: 3;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    align-self: center;
+    flex: 0 0 auto;
+    gap: 4px;
+}
+
+.msg.clientConnections .connectionDetailsNavigation .button,
+.msg.clientConnections .connectionDetailsActions .button {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: var(--secondaryButton-background);
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active,
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):hover,
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):focus,
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):focus-visible,
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):active {
+    background-color: var(--button-defaultBackground);
+}
+
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active>.icon.codicon {
+    color: var(--button-defaultForeground);
+}
+
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active>.icon:not(.codicon) {
+    background-color: var(--button-defaultForeground);
+}
+
+.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):hover,
+.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):focus,
+.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):focus-visible,
+.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):active,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):hover,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):focus,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):focus-visible,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):active {
+    background-color: var(--secondaryButton-hoverBackground);
+}
+
+.msg.clientConnections .connectionDetailsNavigation .button>.icon.codicon,
+.msg.clientConnections .connectionDetailsActions .button>.icon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    background: none;
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.clientConnections .connectionDetailsActions .button>.icon:not(.codicon) {
+    width: 16px;
+    height: 16px;
+    background-color: var(--secondaryButton-foreground);
+}
+
+.msg.clientConnections .connectionDetailsNavigation .button.disabled>.icon.codicon,
+.msg.clientConnections .connectionDetailsActions .button.disabled>.icon.codicon {
+    color: var(--secondaryButton-disabledForeground);
+}
+
+.msg.clientConnections .connectionIdPill {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-width: 0;
+    gap: 3px;
+    padding: 0 5px;
+    border: 1px solid var(--button-border);
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--button-secondaryBackground) 72%, transparent);
+    line-height: 1.45;
+    vertical-align: baseline;
+}
+
+.msg.clientConnections .connectionIdTypeMarker {
+    flex: 0 0 auto;
+    color: var(--disabledForeground);
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
+.msg.clientConnections .connectionIdBackgroundMarker {
+    flex: 0 0 auto;
+    color: var(--disabledForeground);
+    font-size: 0.55rem;
+    line-height: 1;
+}
+
+.msg.clientConnections .connectionIdPill>span:not(.connectionIdTypeMarker):first-of-type {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+}
+
+.msg.clientConnections .connectionIdJumpButton {
+    width: 16px;
+    height: 16px;
+    min-width: 0;
+    margin: 0 -2px 0 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--textLink-foreground);
+}
+
+.msg.clientConnections .connectionIdJumpButton:not(.disabled):hover {
+    background: transparent;
+    color: var(--textLink-activeForeground);
+}
+
+.msg.clientConnections .connectionIdJumpButton>.icon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    background: none;
+    color: var(--textLink-foreground);
+    line-height: 14px;
+}
+
+.msg.clientConnections .connectionIdJumpButton:not(.disabled):hover>.icon.codicon {
+    color: var(--textLink-activeForeground);
+}
+
+.msg.clientConnections .connectionIdComposite {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-width: 0;
+    gap: 4px;
+}
+
+.msg.clientConnections .connectionIdCompositeText {
+    color: var(--disabledForeground);
+}
+
+.msg.clientConnections #clientConnectionDetails .grid,
+.msg.clientConnections .lockDetailGrid {
     width: 100%;
+    font-size: 0.78rem;
+}
+
+.msg.clientConnections #clientConnectionDetails .gridCell,
+.msg.clientConnections .lockDetailGrid .gridCell {
+    min-width: 0;
+    padding: 6px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 48%, transparent);
+}
+
+.msg.clientConnections #clientConnectionDetails .detailSection {
+    padding: 10px 0 4px;
+    border-bottom: none;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections #clientConnectionDetails .grid>.detailSection:first-child {
+    padding-top: 0;
+}
+
+.msg.clientConnections #clientConnectionDetails .detailLabel,
+.msg.clientConnections .lockDetailGrid .detailLabel {
+    padding-right: 14px;
+    color: var(--disabledForeground);
+    line-height: 1.35;
+}
+
+.msg.clientConnections #clientConnectionDetails .detailLabel.stacked {
+    border-bottom: none;
+}
+
+.msg.clientConnections .lockDetailGrid .detailLabel.stacked {
+    border-bottom: none;
+}
+
+.msg.clientConnections #clientConnectionDetails .detailValue,
+.msg.clientConnections .lockDetailGrid .detailValue {
+    justify-content: flex-start;
+    overflow-wrap: anywhere;
+    color: var(--foreground);
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.msg.clientConnections .connectionInfoText {
+    width: 100%;
+    min-height: 92px;
+    max-height: 180px;
+    resize: vertical;
+    padding: 8px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--background) 44%, transparent);
+    color: var(--foreground);
+    font-family: var(--monospace-font-family);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: auto;
+}
+
+.msg.clientConnections .connectionSqlTextHost {
+    width: 100%;
+}
+
+.msg.clientConnections .connectionSqlTextHost .connectionInfoText {
+    display: block;
+}
+
+.msg.clientConnections #clientConnectionDetails .connectionSqlLabel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 0;
+}
+
+.msg.clientConnections .lockDetailGrid .connectionSqlLabel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 0;
+}
+
+.msg.clientConnections #clientConnectionDetails .connectionSqlValue {
+    padding-top: 0;
+}
+
+.msg.clientConnections .lockDetailGrid .connectionSqlValue {
+    padding-top: 0;
+}
+
+.msg.clientConnections .connectionSqlOpenButton {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background-color: var(--secondaryButton-background);
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.clientConnections .connectionSqlOpenButton:not(.disabled):hover {
+    background-color: var(--secondaryButton-hoverBackground);
+}
+
+.msg.clientConnections #clientConnectionDetails.connectionDetailsEmpty {
+    justify-content: center;
+    min-height: 120px;
+    color: var(--disabledForeground);
+    font-size: 0.82rem;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.msg.clientConnections .connectionDetailsTabContent {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    padding: 12px;
+    color: var(--foreground);
+}
+
+.msg.clientConnections .connectionDetailsNotice {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--background) 34%, transparent);
+    color: var(--disabledForeground);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.msg.clientConnections .connectionDetailsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+.msg.clientConnections .connectionDetailsSection h2 {
+    margin: 0;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections .connectionDetailsSection p {
+    margin: 0;
+    color: var(--foreground);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.msg.clientConnections .statementWarningPills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.msg.clientConnections .statementWarningPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background-color: var(--administration-statusErrorBackground, var(--statusBarItem-errorBackground));
+    color: var(--administration-statusErrorForeground, var(--statusBarItem-errorForeground));
+    font-size: 0.72rem;
+    line-height: 1.3;
+}
+
+.msg.clientConnections .statementWarningPill strong {
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.msg.clientConnections #clientConnectionLocksHolding,
+.msg.clientConnections #clientConnectionLocksWaiting,
+.msg.clientConnections #clientConnectionInnodbLocks,
+.msg.clientConnections #clientConnectionHistory,
+.msg.clientConnections .summaryGrid,
+.msg.clientConnections #clientConnectionAttributes {
+    min-height: 120px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 60%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--background) 24%, transparent);
+    font-size: 0.76rem;
+}
+
+.msg.clientConnections #clientConnectionSummaryHost .connectionDetailsSection {
+    flex: 0 0 auto;
+}
+
+.msg.clientConnections .summaryGrid {
+    height: 188px;
+    min-height: 188px;
+    overflow: hidden;
+}
+
+.msg.clientConnections #clientConnectionLocksHolding .tabulator-table,
+.msg.clientConnections #clientConnectionLocksHolding .tabulator-cell,
+.msg.clientConnections #clientConnectionLocksWaiting .tabulator-table,
+.msg.clientConnections #clientConnectionLocksWaiting .tabulator-cell,
+.msg.clientConnections #clientConnectionInnodbLocks .tabulator-table,
+.msg.clientConnections #clientConnectionInnodbLocks .tabulator-cell,
+.msg.clientConnections #clientConnectionHistory .tabulator-table,
+.msg.clientConnections #clientConnectionHistory .tabulator-cell,
+.msg.clientConnections .summaryGrid .tabulator-table,
+.msg.clientConnections .summaryGrid .tabulator-cell,
+.msg.clientConnections #clientConnectionAttributes .tabulator-table,
+.msg.clientConnections #clientConnectionAttributes .tabulator-cell {
+    user-select: text;
+}
+
+.msg.clientConnections #clientConnectionLocksHolding .tabulator-header,
+.msg.clientConnections #clientConnectionLocksWaiting .tabulator-header,
+.msg.clientConnections #clientConnectionInnodbLocks .tabulator-header,
+.msg.clientConnections #clientConnectionHistory .tabulator-header,
+.msg.clientConnections .summaryGrid .tabulator-header,
+.msg.clientConnections #clientConnectionAttributes .tabulator-header {
+    background-color: color-mix(in srgb, var(--list-headerBackground) 88%, var(--sideBar-background));
+}
+
+.msg.clientConnections #clientConnectionLocksHolding .tabulator-header .tabulator-col,
+.msg.clientConnections #clientConnectionLocksWaiting .tabulator-header .tabulator-col,
+.msg.clientConnections #clientConnectionInnodbLocks .tabulator-header .tabulator-col,
+.msg.clientConnections #clientConnectionHistory .tabulator-header .tabulator-col,
+.msg.clientConnections .summaryGrid .tabulator-header .tabulator-col,
+.msg.clientConnections #clientConnectionAttributes .tabulator-header .tabulator-col {
+    padding: 0 8px;
+    background-color: transparent;
+}
+
+.msg.clientConnections #clientConnectionLocksHolding .tabulator-col-title,
+.msg.clientConnections #clientConnectionLocksWaiting .tabulator-col-title,
+.msg.clientConnections #clientConnectionInnodbLocks .tabulator-col-title,
+.msg.clientConnections #clientConnectionHistory .tabulator-col-title,
+.msg.clientConnections .summaryGrid .tabulator-col-title,
+.msg.clientConnections #clientConnectionAttributes .tabulator-col-title {
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.msg.clientConnections #clientConnectionLocksHolding .tabulator-row .tabulator-cell,
+.msg.clientConnections #clientConnectionLocksWaiting .tabulator-row .tabulator-cell,
+.msg.clientConnections #clientConnectionInnodbLocks .tabulator-row .tabulator-cell,
+.msg.clientConnections #clientConnectionHistory .tabulator-row .tabulator-cell,
+.msg.clientConnections .summaryGrid .tabulator-row .tabulator-cell,
+.msg.clientConnections #clientConnectionAttributes .tabulator-row .tabulator-cell {
+    padding: 5px 8px;
+    font-size: 0.76rem;
 }
 
 .msg.msg.clientConnections .toolbar #refreshSelector {
@@ -1190,35 +2163,25 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     margin: 0 3px 0 6px;
 }
 
-.msg.clientConnections #connectionProps {
-    margin-top: 10px;
-    margin-bottom: 10px;
+@media (max-width: 850px) {
+    .msg.clientConnections #connectionList {
+        min-width: 580px;
+    }
 }
 
-.msg.clientConnections #connectionProps label {
-    padding-right: 20px;
-    min-width: 190px;
-}
+@media (max-width: 700px) {
+    .msg.clientConnections #contentHost {
+        padding: 8px 14px 14px;
+    }
 
-.msg.clientConnections #detailsTabView {
-    min-width: 100px;
-}
+    .msg.clientConnections #clientConnectionsHeader {
+        align-items: flex-start;
+        flex-direction: column !important;
+    }
 
-.msg.clientConnections #detailsTabView #clientConnectionDetails {
-    padding: 10px;
-}
-
-.msg.clientConnections #locksInfoContainer label {
-    padding: 5px;
-    font-style: italic;
-    font-size: 14px;
-}
-
-.msg.clientConnections #locksInfoContainer label#grantedInfo,
-.msg.clientConnections #locksInfoContainer label#pendingInfo {
-    padding: 5px;
-    font-style: normal;
-    font-weight: bold;
+    .msg.clientConnections .clientConnectionPrimaryMetrics {
+        width: 100%;
+    }
 }
 
 .msg#editorToolbarActionMenu .popup {

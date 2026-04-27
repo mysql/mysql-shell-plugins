@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1153,8 +1153,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const list = this.variableNames.join("\",\"");
         try {
-            const result = await backend.execute(`show global status where variable_name in ("${list}")`);
-            const mleMemoryMax = await backend.execute(`SELECT @@mle.memory_max`);
+            const result = await backend.executeService(`show global status where variable_name in ("${list}")`);
+            const mleMemoryMax = await backend.executeService(`SELECT @@mle.memory_max`);
             if (result?.rows) {
                 const variables = result.rows as Array<[string, string]>;
                 try {
@@ -1179,7 +1179,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 }
 
                 if (this.hasPSAccess) {
-                    const data = await backend.execute(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
+                    const data = await backend.executeService(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
                         `STORAGE_ENGINES->>'$."InnoDB"."LSN_checkpoint"' FROM performance_schema.log_status`);
 
                     if (data?.rows && data.rows.length > 0) {

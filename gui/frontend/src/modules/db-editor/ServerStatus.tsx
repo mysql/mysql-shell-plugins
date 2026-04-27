@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,16 +27,13 @@ import * as os from "os";
 
 import { ComponentChild } from "preact";
 
-import { CheckState } from "../../components/ui/Checkbox/Checkbox.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
-import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
-import { Divider } from "../../components/ui/Divider/Divider.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
 import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
-import { StatusMark } from "../../components/ui/StatusMark/StatusMark.js";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { Assets } from "../../supplement/Assets.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -48,6 +45,7 @@ interface IServerFeatures {
     semisync?: string;
     passwordValidationValue?: string;
     auditLogValue?: string;
+    showSslAvailability?: boolean;
     performanceSchema?: TriState;
     threadPool?: TriState;
     memCachePlugin?: TriState;
@@ -61,14 +59,21 @@ interface IServerFeatures {
 }
 
 interface IServerStatus {
+    adminAddress?: string;
+    adminPort?: string;
+    bindAddress?: string;
+    binaryLogStatus?: string;
     host?: string;
+    offlineModeStatus?: string;
+    readOnlyStatus?: string;
+    redoLogStatus?: string;
+    superReadOnlyStatus?: string;
     socket?: string;
     port?: string;
     version?: string;
     compiledFor?: string;
     configFile?: string;
     runningSince?: string;
-    shortVersion?: string;
 }
 
 interface IServerDirectories {
@@ -84,11 +89,6 @@ interface IServerDirectories {
     slowQueryLogValue?: string;
 }
 
-interface IServerAuthentication {
-    privateKeyPath?: string;
-    publicKeyPath?: string;
-}
-
 interface IServerSsl {
     sslKey?: string;
     sslClrPath?: string;
@@ -97,6 +97,8 @@ interface IServerSsl {
     sslCert?: string;
     sslCaPath?: string;
     sslCa?: string;
+    sslServerNotAfter?: string;
+    sslServerNotBefore?: string;
 }
 
 interface IServerFirewall {
@@ -108,7 +110,6 @@ interface IServerFirewall {
 
 interface IServerStatusProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
-    rowGap?: string | number;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
@@ -120,16 +121,11 @@ interface IServerStatusState extends IComponentState {
     serverFeatures: IServerFeatures;
     serverStatus: IServerStatus;
     serverDirectories: IServerDirectories;
-    serverAuthentication: IServerAuthentication;
     serverSsl: IServerSsl;
     firewall: IServerFirewall;
 }
 
 export class ServerStatus extends ComponentBase<IServerStatusProperties, IServerStatusState> {
-
-    public static override defaultProps = {
-        rowGap: 3,
-    };
 
     private showWindowsAuth = false;
 
@@ -142,12 +138,11 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             serverStatus: {},
             serverDirectories: {},
             serverFeatures: {},
-            serverAuthentication: {},
             serverSsl: {},
             firewall: {},
         };
 
-        this.addHandledProperties("backend", "rowGap", "toolbarItems");
+        this.addHandledProperties("backend", "toolbarItems");
         this.showWindowsAuth = (typeof os.platform === "function" && os.platform() === "win32"
             && !appParameters.testsRunning);
     }
@@ -166,341 +161,357 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
     }
 
     public render(): ComponentChild {
-        const { toolbarItems } = this.props;
-        const { serverStatus } = this.state;
+        const { runStatus, serverStatus } = this.state;
 
-        const infoCells: ComponentChild[] = [];
+        const statusCards: ComponentChild[] = [];
 
         const className = this.getEffectiveClassNames(["serverStatus"]);
-        infoCells.push(this.serverStatus());
-        infoCells.push(this.serverDirectories());
-        infoCells.push(this.serverFeatures());
-        infoCells.push(this.serverSsl());
-        infoCells.push(this.serverAuthentication());
-        infoCells.push(this.firewall());
+        statusCards.push(this.serverStatus());
+        statusCards.push(this.serverModeStatus());
+        statusCards.push(this.serverDirectories());
+        statusCards.push(this.serverFeatures());
+        statusCards.push(this.serverSsl());
+        statusCards.push(this.firewall());
 
-        // If toolbar items are given, render a toolbar with them.
-        const toolbar = <Toolbar id="serverStatusToolbar" dropShadow={false} >
-            {toolbarItems.navigation}
-            <div className="expander" />
-            {toolbarItems.auxiliary}
-        </Toolbar>;
+        const statusText = runStatus === "running" ? "Running" : "Stopped";
 
         return (
             <Container
                 className="serverStatusHost"
                 orientation={Orientation.TopDown}
             >
-                {toolbar}
                 <Container
                     className={className}
                     orientation={Orientation.TopDown}
                     mainAlignment={ContentAlignment.Start}
-                    crossAlignment={ContentAlignment.Center}
+                    crossAlignment={ContentAlignment.Stretch}
                 >
-                    <Grid columns={2} rowGap={15} columnGap={12} id="header">
-                        <GridCell rowSpan={2}>
-                            <Icon src={Assets.misc.mysqlLogoIcon} id="mysqlLogo" />
-                        </GridCell>
-                        <GridCell
-                            orientation={Orientation.TopDown}
-                            key="serverInfo"
-
-                        >
-                            <h1>Server status</h1>
-                            <h2>{serverStatus.shortVersion}</h2>
-                        </GridCell>
-
-                    </Grid>
                     <Container
-                        id="statusBoxHost"
-                        orientation={Orientation.LeftToRight}
-                        mainAlignment={ContentAlignment.SpaceEvenly}
-                        crossAlignment={ContentAlignment.Start}
-                        wrap={ContentWrap.Wrap}
+                        id="serverStatusOverview"
+                        orientation={Orientation.TopDown}
                     >
-                        {infoCells}
+                        <Container
+                            id="serverStatusHeader"
+                            orientation={Orientation.LeftToRight}
+                            mainAlignment={ContentAlignment.SpaceBetween}
+                            crossAlignment={ContentAlignment.Center}
+                        >
+                            <Container
+                                className="serverStatusTitle"
+                                orientation={Orientation.LeftToRight}
+                                crossAlignment={ContentAlignment.Center}
+                            >
+                                <Icon src={Assets.misc.mysqlLogoIcon} id="mysqlLogo" />
+                                <Container orientation={Orientation.TopDown}>
+                                    <h1>Server Status</h1>
+                                    <div className="serverStatusVersion" data-testid="version">
+                                        {this.valueOrNone(serverStatus.version)}
+                                    </div>
+                                </Container>
+                            </Container>
+                            <div className={`serverStatusState ${runStatus}`}>
+                                {statusText}
+                            </div>
+                        </Container>
+                        <div className="serverStatusSummary">
+                            {this.summaryItem("Host:Port", this.hostPort(serverStatus.host, serverStatus.port))}
+                            {this.summaryItem("Uptime", this.valueOrNone(serverStatus.runningSince), "runningSince")}
+                            {this.summaryItem("InnoDB Redo Log", this.redoLogSummary(),
+                                "redoLogStatus")}
+                            {this.summaryItem("Binary Log", this.drawStatusPill(serverStatus.binaryLogStatus),
+                                "binaryLogStatus")}
+                        </div>
                     </Container>
+                    <div id="statusBoxHost">
+                        {statusCards}
+                    </div>
                 </Container>
             </Container>
         );
     }
 
+    private valueOrNone = (value?: string): string => {
+        return value && value.length > 0 ? value : "none";
+    };
+
+    private valueOrBlank = (value?: string): ComponentChild => {
+        return value && value !== "none" ? value : undefined;
+    };
+
+    private hostPort = (host?: string, port?: string): string => {
+        const actualHost = host && host !== "none" ? host : undefined;
+        const actualPort = port && port !== "none" ? port : undefined;
+
+        if (actualHost && actualPort) {
+            return `${actualHost}:${actualPort}`;
+        }
+
+        return actualHost ?? actualPort ?? "none";
+    };
+
+    private valueFrom = (values: Map<string, string>, ...names: string[]): string => {
+        for (const name of names) {
+            const value = values.get(name);
+            if (value !== undefined) {
+                return value;
+            }
+        }
+
+        return "none";
+    };
+
+    private summaryItem = (label: string, value: ComponentChild, testId?: string): ComponentChild => {
+        return (
+            <div className="serverStatusSummaryItem" key={label}>
+                <span>{label}</span>
+                <div className="serverStatusSummaryValue" data-testid={testId}>
+                    <strong>{value}</strong>
+                </div>
+            </div>
+        );
+    };
+
+    private fieldRow = (id: string, label: string, value: ComponentChild): ComponentChild[] => {
+        return [
+            <GridCell key={`${id}Label`} className="serverStatusFieldLabel">{label}</GridCell>,
+            <GridCell key={id} className="serverStatusFieldValue" data-testid={id}>{value}</GridCell>,
+        ];
+    };
+
+    private statusSection = (id: string, title: string, fields: ComponentChild[]): ComponentChild => {
+        return (
+            <Container
+                id={id}
+                className="serverStatusCard"
+                orientation={Orientation.TopDown}
+            >
+                <Container
+                    className="serverStatusCardHeader"
+                    orientation={Orientation.LeftToRight}
+                    mainAlignment={ContentAlignment.SpaceBetween}
+                    crossAlignment={ContentAlignment.Center}
+                >
+                    <Label caption={title} />
+                </Container>
+                <Grid
+                    className="serverStatusFields"
+                    columns={["max-content", "minmax(0, 1fr)"]}
+                    rowGap={8}
+                    columnGap={16}
+                >
+                    {fields}
+                </Grid>
+            </Container>
+        );
+    };
+
     private serverStatus = (): ComponentChild => {
-        const { rowGap } = this.props;
         const { serverStatus } = this.state;
 
-        return (
-            <Grid columns={["minmax(min-content,max-content)", "1fr"]} rowGap={rowGap} columnGap={12}>
-                <GridCell key="cell1" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                    <Label caption="Main Settings" />
-                </GridCell>
-                <GridCell
-                    key="cell2"
-                    columnSpan={2}
-                    orientation={Orientation.TopDown}
-                    crossAlignment={ContentAlignment.Center}>
-                    <Divider />
-                </GridCell>
+        return this.statusSection("serverSettings", "General", [
+            ...this.fieldRow("host", "Host", this.valueOrBlank(serverStatus.host)),
+            ...this.fieldRow("bindAddress", "Bind Address", this.valueOrBlank(serverStatus.bindAddress)),
+            ...this.fieldRow("socket", "Socket", this.valueOrBlank(serverStatus.socket)),
+            ...this.fieldRow("port", "Port", this.valueOrBlank(serverStatus.port)),
+            ...this.fieldRow("adminAddress", "Admin Address", this.valueOrBlank(serverStatus.adminAddress)),
+            ...this.fieldRow("adminPort", "Admin Port", this.valueOrBlank(serverStatus.adminPort)),
+            ...this.fieldRow("compiledFor", "Compiled For", this.valueOrBlank(serverStatus.compiledFor)),
+            ...this.fieldRow("configFile", "Configuration File", this.valueOrBlank(serverStatus.configFile)),
+        ]);
+    };
 
-                <GridCell key="cell5" className="left">Host:</GridCell>
-                <GridCell key="cell6" data-testid="host">{serverStatus.host ?? "none"}</GridCell>
+    private serverModeStatus = (): ComponentChild => {
+        const { serverStatus } = this.state;
 
-                <GridCell key="cell7" className="left">Socket:</GridCell>
-                <GridCell key="cell8" data-testid="socket">{serverStatus.socket ?? "none"}</GridCell>
-
-                <GridCell key="cell9" className="left">Port:</GridCell>
-                <GridCell key="cell10" data-testid="port">{serverStatus.port ?? "none"}</GridCell>
-
-                <GridCell key="cell11" className="left">Version:</GridCell>
-                <GridCell key="cell12" data-testid="version">
-                    {serverStatus.version ?? "none"}
-                </GridCell>
-                <GridCell key="cell13" className="left">Compiled For:</GridCell>
-                <GridCell key="cell14" data-testid="compiledFor">
-                    {serverStatus.compiledFor ?? "none"}
-                </GridCell>
-                <GridCell key="cell15" className="left">Configuration File:</GridCell>
-                <GridCell key="cell16" data-testid="configFile">
-                    {serverStatus.configFile ?? "none"}
-                </GridCell>
-                <GridCell key="cell17" className="left">Running Since:</GridCell>
-                <GridCell key="cell18" data-testid="runningSince">
-                    {serverStatus.runningSince ?? "none"}
-                </GridCell>
-            </Grid>
-        );
+        return this.statusSection("serverModeStatus", "Status", [
+            ...this.fieldRow("readOnlyStatus", "Read-only", this.drawStatusPill(serverStatus.readOnlyStatus)),
+            ...this.fieldRow("superReadOnlyStatus", "Super read-only",
+                this.drawStatusPill(serverStatus.superReadOnlyStatus)),
+            ...this.fieldRow("offlineModeStatus", "Offline mode", this.drawStatusPill(serverStatus.offlineModeStatus)),
+        ]);
     };
 
     private serverFeatures = (): ComponentChild => {
-        const { rowGap } = this.props;
         const { serverFeatures } = this.state;
 
-        return (
-            <Grid columns={["minmax(min-content,max-content)", "1fr"]} rowGap={rowGap} columnGap={12}>
-                <GridCell key="cell16" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                    <Label caption="Server Features" />
-                </GridCell>
-                <GridCell
-                    key="cell17"
-                    columnSpan={2}
-                    orientation={Orientation.TopDown}
-                    crossAlignment={ContentAlignment.Center}>
-                    <Divider />
-                </GridCell>
+        const rows = [
+            ...this.fieldRow("performanceSchema", "Performance Schema",
+                this.drawFeatureBoolean(serverFeatures.performanceSchema)),
+            ...this.fieldRow("threadPool", "Thread Pool", this.drawFeatureBoolean(serverFeatures.threadPool)),
+            ...this.fieldRow("memCached", "Memcached Plugin", this.drawFeatureBoolean(serverFeatures.memCachePlugin)),
+            ...this.fieldRow("semiSyncPlugin", "Semisync Replication Plugin",
+                this.drawFeatureValue(serverFeatures.semisync)),
+            ...this.authenticationOutput(),
+            ...this.fieldRow("passwordValidation", "Password Validation",
+                <>
+                    {this.drawFeatureBoolean(serverFeatures.passwordValidation)}
+                    <span>{serverFeatures.passwordValidationValue}</span>
+                </>),
+            ...this.fieldRow("auditLog", "Audit Log",
+                <>
+                    {this.drawFeatureBoolean(serverFeatures.auditLog)}
+                    <span>{serverFeatures.auditLogValue}</span>
+                </>),
+            ...this.fieldRow("firewall", "Firewall", this.drawFeatureBoolean(serverFeatures.firewall)),
+            ...this.fieldRow("firewallTrace", "Firewall Trace", this.drawFeatureBoolean(serverFeatures.firewallTrace)),
+        ];
 
-                <GridCell key="cell18" className="left">Performance Schema:</GridCell>
-                <GridCell key="cell19" data-testid="performanceSchema">
-                    {this.drawBoolean(serverFeatures.performanceSchema)}
-                    {serverFeatures.performanceSchema}
-                </GridCell>
+        if (serverFeatures.showSslAvailability) {
+            rows.push(...this.fieldRow("sslAvailable", "SSL Available",
+                this.drawFeatureBoolean(serverFeatures.sslAvailability)));
+        }
 
-                <GridCell key="cell20" className="left">Thread Pool:</GridCell>
-                <GridCell key="cell21" data-testid="threadPool">
-                    {this.drawBoolean(serverFeatures.threadPool)}
-                    {serverFeatures.threadPool}
-                </GridCell>
-
-                <GridCell key="cell22" className="left">Memcached Plugin:</GridCell>
-                <GridCell key="cell23" data-testid="memCached">{serverFeatures.memCachePlugin ?? "none"}</GridCell>
-
-                <GridCell key="cell24" className="left">Semisync Replication Plugin:</GridCell>
-                <GridCell key="cell25" data-testid="semiSyncPlugin">{serverFeatures.semisync ?? "none"}</GridCell>
-
-                {this.authenticationOutput()}
-
-                <GridCell key="cell28" className="left">Password Validation:</GridCell>
-                <GridCell key="cell29" data-testid="passwordValidation">
-                    {this.drawBoolean(serverFeatures.passwordValidation)}
-                    {serverFeatures.passwordValidationValue}
-                </GridCell>
-
-                <GridCell key="cell30" className="left">Audit Log:</GridCell>
-                <GridCell key="cell31" data-testid="auditLog">
-                    {this.drawBoolean(serverFeatures.auditLog)}
-                    {serverFeatures.auditLogValue}
-                </GridCell>
-
-                <GridCell key="cell32" className="left">Firewall:</GridCell>
-                <GridCell key="cell33" data-testid="firewall">
-                    {serverFeatures.firewall ?? "none"}
-                </GridCell>
-
-                <GridCell key="cell34" className="left">Firewall Trace:</GridCell>
-                <GridCell key="cell35" data-testid="firewallTrace">
-                    {serverFeatures.firewallTrace ?? "none"}
-                </GridCell>
-            </Grid>
-        );
+        return this.statusSection("serverFeatures", "Server Features", rows);
     };
 
-    private authenticationOutput = (): ComponentChild => {
+    private authenticationOutput = (): ComponentChild[] => {
         const { serverFeatures } = this.state;
 
         if (this.showWindowsAuth) {
-            return <>
-                <GridCell key="cell90" className="left">Windows Authentication:</GridCell>
-                <GridCell key="cell91" data-testid="windowsAuth">
-                    {this.drawBoolean(serverFeatures.windowsAuth)}
-                </GridCell>
-            </>;
+            return this.fieldRow("windowsAuth", "Windows Authentication",
+                this.drawFeatureBoolean(serverFeatures.windowsAuth));
         } else {
-            return <>
-                <GridCell key="cell90" className="left">PAM Authentication:</GridCell>
-                <GridCell key="cell91" data-testid="pamAuth">
-                    {this.drawBoolean(serverFeatures.pamAuth)}
-                </GridCell>
-            </>;
+            return this.fieldRow("pamAuth", "PAM Authentication", this.drawFeatureBoolean(serverFeatures.pamAuth));
         }
     };
 
     private serverDirectories = (): ComponentChild => {
-        const { rowGap } = this.props;
         const { serverDirectories } = this.state;
 
-        return (
-            <Grid columns={["minmax(min-content,max-content)", "1fr"]} rowGap={rowGap} columnGap={12}>
-                <GridCell key="cell36" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                    <Label caption="Server Directories" />
-                </GridCell>
-                <GridCell
-                    key="cell37"
-                    columnSpan={2}
-                    orientation={Orientation.TopDown}
-                    crossAlignment={ContentAlignment.Center}>
-                    <Divider />
-                </GridCell>
-                <GridCell key="cell38" className="left">Base Directory:</GridCell>
-                <GridCell key="cell39" data-testid="baseDir">
-                    {serverDirectories.baseDirectory}
-                </GridCell>
-                <GridCell key="cell40" className="left">Data Directory:</GridCell>
-                <GridCell key="cell41" data-testid="dataDir">
-                    {serverDirectories.dataDirectory}
-                </GridCell>
-                <GridCell key="cell42" className="left">Plugins directory:</GridCell>
-                <GridCell key="cell43" data-testid="pluginsDir">
-                    {serverDirectories.pluginDirectory}
-                </GridCell>
-                <GridCell key="cell44" className="left">Tmp Directory:</GridCell>
-                <GridCell key="cell45" data-testid="tmpDir">
-                    {serverDirectories.tmpDirectory}
-                </GridCell>
-                <GridCell key="cell48" className="left">Error Log:</GridCell>
-                <GridCell key="cell49" data-testid="errorLog">
+        return this.statusSection("serverDirectories", "Directories and Logs", [
+            ...this.fieldRow("baseDir", "Base Directory", this.valueOrNone(serverDirectories.baseDirectory)),
+            ...this.fieldRow("dataDir", "Data Directory", this.valueOrNone(serverDirectories.dataDirectory)),
+            ...this.fieldRow("pluginsDir", "Plugins Directory", this.valueOrNone(serverDirectories.pluginDirectory)),
+            ...this.fieldRow("tmpDir", "Temp Directory", this.valueOrNone(serverDirectories.tmpDirectory)),
+            ...this.fieldRow("errorLog", "Error Log",
+                <>
                     {this.drawBoolean(serverDirectories.errorLog)}
-                    {serverDirectories.errorLogValue}
-                </GridCell>
-                <GridCell key="cell50" className="left">General Log:</GridCell>
-                <GridCell key="cell51" data-testid="generalLog">
+                    <span>{this.valueOrNone(serverDirectories.errorLogValue)}</span>
+                </>),
+            ...this.fieldRow("generalLog", "General Log",
+                <>
                     {this.drawBoolean(serverDirectories.generalLog)}
-                    {serverDirectories.generalLogFile}
-                </GridCell>
-                <GridCell key="cell52" className="left">Slow Query Log:</GridCell>
-                <GridCell key="cell53" data-testid="slowQueryLog">
+                    <span>{this.valueOrNone(serverDirectories.generalLogFile)}</span>
+                </>),
+            ...this.fieldRow("slowQueryLog", "Slow Query Log",
+                <>
                     {this.drawBoolean(serverDirectories.slowQueryLog)}
-                    {serverDirectories.slowQueryLogValue}
-                </GridCell>
-            </Grid >);
-    };
-
-    private serverAuthentication = (): ComponentChild => {
-        const { rowGap } = this.props;
-        const { serverAuthentication } = this.state;
-
-        return (
-            <Grid columns={["minmax(min-content,max-content)", "1fr"]} rowGap={rowGap} columnGap={12}>
-                <GridCell key="cell54" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                    <Label caption="Server Authentication" />
-                </GridCell>
-                <GridCell
-                    key="cell55"
-                    columnSpan={2}
-                    orientation={Orientation.TopDown}
-                    crossAlignment={ContentAlignment.Center}>
-                    <Divider />
-                </GridCell>
-
-                <GridCell key="cell56" className="left">SHA256 Private Key:</GridCell>
-                <GridCell key="cell57" data-testid="privateKey">{serverAuthentication.privateKeyPath}</GridCell>
-
-                <GridCell key="cell58" className="left">SHA256 Public Key:</GridCell>
-                <GridCell key="cell59" data-testid="publicKey">{serverAuthentication.publicKeyPath}</GridCell>
-            </Grid>);
+                    <span>{this.valueOrNone(serverDirectories.slowQueryLogValue)}</span>
+                </>),
+        ]);
     };
 
     private firewall = (): ComponentChild => {
-        const { rowGap } = this.props;
         const { serverFeatures, firewall } = this.state;
 
         if (serverFeatures.firewall) {
-            return (
-                <Grid columns={["minmax(min-content,max-content)", "1fr"]} rowGap={rowGap} columnGap={12}>
-                    <GridCell key="cell60" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                        <Label caption="Firewall" />
-                    </GridCell>
-                    <GridCell
-                        key="cell61"
-                        columnSpan={2}
-                        orientation={Orientation.TopDown}
-                        crossAlignment={ContentAlignment.Center}>
-                        <Divider />
-                    </GridCell>
-                    <GridCell key="cell62" className="left">Access Denied:</GridCell>
-                    <GridCell key="cell63">{firewall.accessDenied}</GridCell>
-                    <GridCell key="cell64" className="left">Access Granted:</GridCell>
-                    <GridCell key="cell65">{firewall.accessGranted}</GridCell>
-                    <GridCell key="cell66" className="left">Access Suspicious:</GridCell>
-                    <GridCell key="cell67">{firewall.accessSuspicious}</GridCell>
-                    <GridCell key="cell68" className="left">Cached Entries:</GridCell>
-                    <GridCell key="cell69">{firewall.cachedEntries}</GridCell>
-                </Grid>
-            );
+            return this.statusSection("firewall", "Firewall", [
+                ...this.fieldRow("firewallDenied", "Access Denied", this.valueOrNone(firewall.accessDenied)),
+                ...this.fieldRow("firewallGranted", "Access Granted", this.valueOrNone(firewall.accessGranted)),
+                ...this.fieldRow("firewallSuspicious", "Access Suspicious",
+                    this.valueOrNone(firewall.accessSuspicious)),
+                ...this.fieldRow("firewallCached", "Cached Entries", this.valueOrNone(firewall.cachedEntries)),
+            ]);
         }
     };
 
     private serverSsl = (): ComponentChild => {
-        const { rowGap } = this.props;
         const { serverSsl } = this.state;
 
-        return (
-            <Grid columns={["minmax(min-content,max-content)", "1fr"]} rowGap={rowGap} columnGap={12}>
-                <GridCell key="cell70" className="heading" columnSpan={2} orientation={Orientation.TopDown} >
-                    <Label caption="Server SSL" />
-                </GridCell>
-                <GridCell
-                    key="cell71"
-                    columnSpan={2}
-                    orientation={Orientation.TopDown}
-                    crossAlignment={ContentAlignment.Center}>
-                    <Divider />
-                </GridCell>
-                <GridCell key="cell72" className="left">SSL CA:</GridCell>
-                <GridCell key="cell73" data-testid="sslCa">{serverSsl.sslCa}</GridCell>
-                <GridCell key="cell74" className="left">SSL CA Path:</GridCell>
-                <GridCell key="cell75" data-testid="sslCaPath">{serverSsl.sslCaPath}</GridCell>
-                <GridCell key="cell76" className="left">SSL Cert:</GridCell>
-                <GridCell key="cell77" data-testid="sslCert">{serverSsl.sslCert}</GridCell>
-                <GridCell key="cell78" className="left">SSL Cipher:</GridCell>
-                <GridCell key="cell79" data-testid="sslCipher">{serverSsl.sslCipher}</GridCell>
-                <GridCell key="cell80" className="left">SSL CRL:</GridCell>
-                <GridCell key="cell81" data-testid="sslCrl">{serverSsl.sslClr}</GridCell>
-                <GridCell key="cell82" className="left">SSL CRL Path:</GridCell>
-                <GridCell key="cell83" data-testid="sslCrlPath">{serverSsl.sslClrPath}</GridCell>
-                <GridCell key="cell84" className="left">SSL Key:</GridCell>
-                <GridCell key="cell85" data-testid="sslKey">{serverSsl.sslKey}</GridCell>
-            </Grid>
-        );
+        return this.statusSection("serverSsl", "TLS and Certificates", [
+            ...this.fieldRow("sslCa", "SSL CA", this.valueOrBlank(serverSsl.sslCa)),
+            ...this.fieldRow("sslCaPath", "SSL CA Path", this.valueOrBlank(serverSsl.sslCaPath)),
+            ...this.fieldRow("sslCert", "SSL Cert", this.valueOrBlank(serverSsl.sslCert)),
+            ...this.fieldRow("sslCipher", "SSL Cipher", this.valueOrBlank(serverSsl.sslCipher)),
+            ...this.fieldRow("sslCrl", "SSL CRL", this.valueOrBlank(serverSsl.sslClr)),
+            ...this.fieldRow("sslCrlPath", "SSL CRL Path", this.valueOrBlank(serverSsl.sslClrPath)),
+            ...this.fieldRow("sslKey", "SSL Key", this.valueOrBlank(serverSsl.sslKey)),
+            ...this.fieldRow("sslServerNotBefore", "SSL Server Not Before",
+                this.valueOrBlank(serverSsl.sslServerNotBefore)),
+            ...this.fieldRow("sslServerNotAfter", "SSL Server Not After",
+                this.valueOrBlank(serverSsl.sslServerNotAfter)),
+        ]);
     };
 
     private drawBoolean = (value: TriState): ComponentChild => {
         if (value === undefined) {
-            return (<StatusMark statusState={CheckState.Indeterminate} text={"none"} />);
+            return <span className="serverStatusBoolean none">none</span>;
         } else if (!value) {
-            return (<StatusMark statusState={CheckState.Unchecked} text={"off"} />);
+            return <span className="serverStatusBoolean off">off</span>;
         } else {
-            return (<StatusMark statusState={CheckState.Checked} text={"on"} />);
+            return <span className="serverStatusBoolean on">on</span>;
         }
+    };
+
+    private drawStatusPill = (value?: string): ComponentChild => {
+        const normalized = value?.toLowerCase();
+        if (!normalized || normalized === "none") {
+            return undefined;
+        }
+
+        const enabled = normalized === "on" || normalized === "yes" || normalized === "1" || normalized === "enabled";
+        const label = enabled ? "on" : "off";
+
+        return <span className={`serverStatusBoolean ${label}`}>{label}</span>;
+    };
+
+    private drawRedoLogStatusPill = (): ComponentChild => {
+        const { serverStatus } = this.state;
+        const normalized = serverStatus.redoLogStatus?.toLowerCase();
+        if (!normalized || normalized === "none") {
+            return undefined;
+        }
+
+        const enabled = normalized === "on" || normalized === "yes" || normalized === "1" || normalized === "enabled";
+        const label = enabled ? "on" : "off";
+
+        return <span className={`serverStatusBoolean redoLog ${label}`}>{label}</span>;
+    };
+
+    private isStatusOff = (value?: string): boolean => {
+        const normalized = value?.toLowerCase();
+
+        return normalized === "off" || normalized === "no" || normalized === "0" || normalized === "disabled";
+    };
+
+    private redoLogSummary = (): ComponentChild => {
+        const { serverStatus } = this.state;
+
+        return (
+            <>
+                {this.drawRedoLogStatusPill()}
+                {this.isStatusOff(serverStatus.redoLogStatus) && (
+                    <span className="serverStatusWarningText">crash recovery is disabled</span>
+                )}
+            </>
+        );
+    };
+
+    private drawFeatureBoolean = (value: TriState): ComponentChild => {
+        if (value === undefined) {
+            return <span className="serverStatusBoolean none">not installed</span>;
+        }
+
+        return this.drawBoolean(value);
+    };
+
+    private featureValueOrNotInstalled = (value?: string): string => {
+        return value && value.length > 0 && value !== "none" ? value : "not installed";
+    };
+
+    private drawFeatureValue = (value?: string): ComponentChild => {
+        const displayValue = this.featureValueOrNotInstalled(value);
+        const className = displayValue === "not installed" ? "none" : "on";
+
+        return <span className={`serverStatusBoolean ${className}`}>{displayValue}</span>;
+    };
+
+    private logTarget = (enabled: boolean, logOutput: string, fileValue?: string): string => {
+        if (!enabled) {
+            return "";
+        }
+
+        return logOutput.split(",").includes("TABLE") ? "[Stored in database]" : fileValue ?? "none";
     };
 
     private async updateValues(): Promise<void> {
@@ -509,28 +520,32 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             return;
         }
 
-        const {
-            serverStatus, serverDirectories, serverFeatures, serverAuthentication, serverSsl, firewall,
-        } = this.state;
+        const { serverStatus, serverDirectories, serverFeatures, serverSsl, firewall } = this.state;
 
-        backend.execute("select 1").then(() => {
+        backend.executeService("select 1").then(() => {
             this.setState({ runStatus: "running" });
         }).catch(() => {
             this.setState({ runStatus: "stopped" });
         });
 
         try {
-            let result = await backend.execute("show variables");
+            let result = await backend.executeService("show variables");
             if (result?.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
 
                 serverStatus.host = values.get("hostname") ?? "none";
+                serverStatus.bindAddress = this.valueFrom(values, "bind_address", "bind-address");
+                serverStatus.adminAddress = this.valueFrom(values, "admin_address", "admin-address");
+                serverStatus.adminPort = this.valueFrom(values, "admin_port", "admin-port");
                 serverStatus.socket = values.get("socket") ?? "none";
                 serverStatus.port = values.get("port") ?? "none";
+                serverStatus.binaryLogStatus = values.get("log_bin") ?? "none";
+                serverStatus.readOnlyStatus = values.get("read_only") ?? "none";
+                serverStatus.superReadOnlyStatus = values.get("super_read_only") ?? "none";
+                serverStatus.offlineModeStatus = values.get("offline_mode") ?? "none";
                 serverStatus.compiledFor = values.get("version_compile_os") ?? "none";
                 serverStatus.version = (values.get("version_comment") ?? "none") +
-                    `(${values.get("version") ?? "none"})`;
-                serverStatus.shortVersion = values.get("version_comment") ?? "none";
+                    ` (${values.get("version") ?? "none"})`;
 
                 // server directories
                 serverDirectories.baseDirectory = values.get("basedir") ?? "none";
@@ -540,15 +555,15 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 const logOutput = values.get("log_output") ?? "FILE";
                 serverDirectories.generalLog = values.get("general_log") !== "OFF" &&
                     logOutput !== "NONE" ? true : false;
-                serverDirectories.generalLogFile = values.get("general_log") !== "OFF" &&
-                    logOutput !== "NONE" ? values.get("general_log_file") ?? "none" : "[Stored in database]";
+                serverDirectories.generalLogFile = this.logTarget(serverDirectories.generalLog, logOutput,
+                    values.get("general_log_file"));
                 serverDirectories.errorLog = values.get("log_error") !== "OFF" ? true : false;
                 serverDirectories.errorLogValue = values.get("log_error") ?? "none";
 
                 serverDirectories.slowQueryLog = values.get("slow_query_log") !== "OFF" &&
                     logOutput !== "NONE" ? true : false;
-                serverDirectories.slowQueryLogValue = values.get("slow_query_log") !== "OFF" &&
-                    logOutput !== "NONE" ? values.get("slow_query_log") ?? "none" : "[Stored in database]";
+                serverDirectories.slowQueryLogValue = this.logTarget(serverDirectories.slowQueryLog, logOutput,
+                    values.get("slow_query_log_file"));
 
                 // server features
                 serverFeatures.performanceSchema = this.checkTriState(values.get("performance_schema"));
@@ -564,6 +579,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 serverFeatures.passwordValidationValue = firewallMode ? `(Policy: ${firewallMode})` : "";
                 serverFeatures.sslAvailability = (values.get("have_openssl") === "YES") ||
                     (values.get("have_ssl") === "YES");
+                serverFeatures.showSslAvailability = parseVersion(values.get("version") ?? "") < 80400;
 
                 const semiSyncMaster = this.checkTriState(values.get("rpl_semi_sync_master_enabled"));
                 const semiSyncSlave = this.checkTriState(values.get("rpl_semi_sync_slave_enabled"));
@@ -578,10 +594,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     }
                     serverFeatures.semisync = `(${tmp.join(", ")})`;
                 }
-
-                // server authentication
-                serverAuthentication.privateKeyPath = values.get("sha256_password_private_key_path") ?? "none";
-                serverAuthentication.publicKeyPath = values.get("sha256_password_public_key_path") ?? "none";
 
                 // server ssl
                 serverSsl.sslCa = values.get("ssl_ca") ?? "none";
@@ -601,11 +613,11 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
                 this.setState({
                     serverStatus, serverDirectories,
-                    serverFeatures, serverAuthentication, serverSsl, firewall,
+                    serverFeatures, serverSsl, firewall,
                 });
             }
 
-            result = await backend.execute("show global status");
+            result = await backend.executeService("show global status");
             if (result?.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 const ut = Number(values.get("Uptime") ?? 0);
@@ -615,10 +627,14 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 } else {
                     serverStatus.runningSince = "none";
                 }
-                this.setState({ serverStatus });
+                serverStatus.redoLogStatus = this.valueFrom(values, "Innodb_redo_log_enabled",
+                    "innodb_redo_log_enabled");
+                serverSsl.sslServerNotBefore = values.get("Ssl_server_not_before") ?? "none";
+                serverSsl.sslServerNotAfter = values.get("Ssl_server_not_after") ?? "none";
+                this.setState({ serverStatus, serverSsl });
             }
 
-            result = await backend.execute("show plugins");
+            result = await backend.executeService("show plugins");
             if (result?.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached"), "ACTIVE");

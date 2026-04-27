@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -265,7 +265,7 @@
     border-left: var(--handleWidth) solid var(--handleColor);
 }
 
-.msg.treeGrid.tabulator .tabulator-row.tabulator-selectable:hover .tabulator-cell {
+.msg.treeGrid.tabulator .tabulator-row.tabulator-selectable:not(.tabulator-selected):hover .tabulator-cell {
     background-color: var(--list-hoverBackground);
 }
 
@@ -277,11 +277,6 @@
 .msg.treeGrid.tabulator .tabulator-row.tabulator-selected .tabulator-cell {
     background-color: var(--list-inactiveSelectionBackground);
     color: var(--list-activeSelectionForeground);
-}
-
-.msg.treeGrid.tabulator:not(:focus-within) .tabulator-row.tabulator-selected:hover .tabulator-cell {
-    cursor: pointer;
-    filter: brightness(90%);
 }
 
 .msg.treeGrid.tabulator .tabulator-row.tabulator-moving {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -308,8 +308,6 @@ export const mysqlAdministration = {
         auditLog: By.css(`div[data-testid="auditLog"]`),
         firewall: By.css(`div[data-testid="firewall"]`),
         firewallTrace: By.css(`div[data-testid="firewallTrace"]`),
-        privateKey: By.css(`div[data-testid="privateKey"]`),
-        publicKey: By.css(`div[data-testid="publicKey"]`),
         sslCa: By.css(`div[data-testid="sslCa"]`),
         sslCaPath: By.css(`div[data-testid="sslCaPath"]`),
         sslCert: By.css(`div[data-testid="sslCert"]`),

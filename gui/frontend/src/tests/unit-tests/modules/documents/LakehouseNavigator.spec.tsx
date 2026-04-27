@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -652,7 +652,7 @@ describe("LakehouseNavigator tests", () => {
     });
 
     it("Test updateValues with undefined activeSchema and profiles", async () => {
-        const mockExecute = vi.spyOn(backend, "execute").mockResolvedValue({ rows: [["testSchema"]] });
+        const mockExecute = vi.spyOn(backend, "executeService").mockResolvedValue({ rows: [["testSchema"]] });
         const mockGetMdsConfigProfiles = vi.spyOn(backend.mhs, "getMdsConfigProfiles")
             .mockResolvedValue([{
                 profile: "testProfile",
@@ -696,7 +696,7 @@ describe("LakehouseNavigator tests", () => {
     });
 
     it("Test updateValues with defined activeSchema and undefined profiles", async () => {
-        const mockExecute = vi.spyOn(backend, "execute").mockResolvedValue({ rows: [["testSchema"]] });
+        const mockExecute = vi.spyOn(backend, "executeService").mockResolvedValue({ rows: [["testSchema"]] });
         const mockGetMdsConfigProfiles = vi.spyOn(backend.mhs, "getMdsConfigProfiles")
             .mockResolvedValue([{
                 profile: "testProfile",
@@ -1972,7 +1972,7 @@ describe("LakehouseNavigator tests", () => {
         let unmount: () => boolean;
 
         let executeSpy: MockInstance<(sql: string, params?: string[], requestId?: string,
-            callback?: DataCallback<ShellAPIGui.GuiSqlEditorExecute>,
+            callback?: DataCallback<ShellAPIGui.GuiDbExecute>,
         ) => Promise<IDbEditorResultSetData | undefined>>;
 
         beforeEach(() => {
@@ -1981,7 +1981,7 @@ describe("LakehouseNavigator tests", () => {
             );
             unmount = result.unmount;
 
-            executeSpy = vi.spyOn(props.backend, "execute");
+            executeSpy = vi.spyOn(props.backend, "executeService");
         });
 
         afterEach(() => {

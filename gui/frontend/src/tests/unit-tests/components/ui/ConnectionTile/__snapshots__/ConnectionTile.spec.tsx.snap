@@ -47,9 +47,8 @@ exports[`ConnectionTile component tests > Test ConnectionTile output (Snapshot) 
         tabindex="0"
       >
         <div
-          class="msg icon"
+          class="msg icon codicon codicon-kebab-horizontal"
           data-tooltip="inherit"
-          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-450,-94)'%3e%3cg%20id='Menu'%20transform='matrix(0.499498,0,0,0.5,-280.339,-815.5)'%3e%3cg%20transform='matrix(1,0,0,1,0.154349,0)'%3e%3crect%20x='1470'%20y='1823'%20width='30'%20height='6'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20transform='matrix(1,0,0,1,0.154349,12)'%3e%3crect%20x='1470'%20y='1823'%20width='30'%20height='6'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3cg%20transform='matrix(1.00101,0,0,1,-1.32378,24)'%3e%3crect%20x='1470'%20y='1823'%20width='30'%20height='6'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
         />
       </div>
       <div

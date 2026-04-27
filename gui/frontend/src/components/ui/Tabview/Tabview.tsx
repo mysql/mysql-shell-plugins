@@ -223,7 +223,8 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
                     className={buttonClassName}
                     focusOnClick={false}
                     draggable={canReorderTabs}
-                    onClick={this.selectTab}
+                    onClick={this.selectTabOnClick}
+                    onMouseDown={this.selectTabOnMouseDown}
                     onContextMenu={this.showTabMenu}
                     onDragEnter={this.handleTabItemDragEnter}
                     onDrop={this.handleTabItemDrop}
@@ -396,7 +397,23 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
         onDrop?.(e, props);
     };
 
-    private selectTab = (event: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
+    private selectTabOnMouseDown = (event: MouseEvent, props: IButtonProperties): void => {
+        if (event.button !== 0) {
+            return;
+        }
+
+        this.selectTab(props);
+    };
+
+    private selectTabOnClick = (event: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
+        if (event instanceof MouseEvent && event.detail > 0) {
+            return;
+        }
+
+        this.selectTab(props);
+    };
+
+    private selectTab = (props: IButtonProperties): void => {
         const { onSelectTab } = this.props;
 
         onSelectTab?.(props.id!);

@@ -83,5 +83,13 @@
         }
     },
     "window.footerBackground": "$window.background",
-    "scrollbarSlider.shadow": "$resultView.headerBackground"
+    "scrollbarSlider.shadow": "$resultView.headerBackground",
+    "administration.overviewAccent": "$textLink.foreground",
+    "administration.selectionBorder": "$list.focusOutline",
+    "administration.statusForeground": "$button.foreground",
+    "administration.statusSuccessBackground": "$charts.green",
+    "administration.statusWarningBackground": "$statusBarItem.warningBackground",
+    "administration.statusWarningForeground": "$statusBarItem.warningForeground",
+    "administration.statusErrorBackground": "$statusBarItem.errorBackground",
+    "administration.statusErrorForeground": "$statusBarItem.errorForeground"
 }

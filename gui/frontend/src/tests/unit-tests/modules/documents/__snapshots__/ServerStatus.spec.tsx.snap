@@ -7,303 +7,419 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
     style="flex-direction: column;"
   >
     <div
-      class="msg container fixedScrollbar toolbar verticalCenterContent"
-      id="serverStatusToolbar"
-      style="flex-direction: row; align-items: center;"
-    >
-      <div
-        class="expander"
-      />
-    </div>
-    <div
       class="msg container fixedScrollbar serverStatus"
-      style="flex-direction: column; justify-content: flex-start; align-items: center;"
+      style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
     >
       <div
-        class="msg grid"
-        id="header"
-        style="grid-template-columns: repeat(2, 1fr); row-gap: 15px; column-gap: 12px;"
+        class="msg container fixedScrollbar"
+        id="serverStatusOverview"
+        style="flex-direction: column;"
       >
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-row: span 2;"
+          class="msg container fixedScrollbar"
+          id="serverStatusHeader"
+          style="flex-direction: row; justify-content: space-between; align-items: center;"
         >
           <div
-            class="msg icon"
-            id="mysqlLogo"
-            style="mask-image: url("/src/assets/images/admin/mysql-logo.svg");"
-          />
+            class="msg container fixedScrollbar serverStatusTitle"
+            style="flex-direction: row; align-items: center;"
+          >
+            <div
+              class="msg icon"
+              id="mysqlLogo"
+              style="mask-image: url("/src/assets/images/admin/mysql-logo.svg");"
+            />
+            <div
+              class="msg container fixedScrollbar"
+              style="flex-direction: column;"
+            >
+              <h1>
+                Server Status
+              </h1>
+              <div
+                class="serverStatusVersion"
+                data-testid="version"
+              >
+                none
+              </div>
+            </div>
+          </div>
+          <div
+            class="serverStatusState stopped"
+          >
+            Stopped
+          </div>
         </div>
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column;"
+          class="serverStatusSummary"
         >
-          <h1>
-            Server status
-          </h1>
-          <h2 />
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              Host:Port
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+            >
+              <strong>
+                none
+              </strong>
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              Uptime
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="runningSince"
+            >
+              <strong>
+                none
+              </strong>
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              InnoDB Redo Log
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="redoLogStatus"
+            >
+              <strong />
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              Binary Log
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="binaryLogStatus"
+            >
+              <strong />
+            </div>
+          </div>
         </div>
       </div>
       <div
-        class="msg container fixedScrollbar"
         id="statusBoxHost"
-        style="flex-direction: row; justify-content: space-evenly; align-items: flex-start; flex-wrap: wrap;"
       >
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverSettings"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
               data-tooltip="expand"
             >
-              Main Settings
+              General
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Host
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="host"
+              style="flex-direction: row;"
             />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Host:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="host"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Socket:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="socket"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Port:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="port"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Version:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="version"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Compiled For:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="compiledFor"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Configuration File:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="configFile"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Running Since:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="runningSince"
-            style="flex-direction: row;"
-          >
-            none
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Bind Address
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="bindAddress"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Socket
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="socket"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Port
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="port"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Admin Address
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="adminAddress"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Admin Port
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="adminPort"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Compiled For
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="compiledFor"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Configuration File
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="configFile"
+              style="flex-direction: row;"
+            />
           </div>
         </div>
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverModeStatus"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
               data-tooltip="expand"
             >
-              Server Directories
+              Status
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Read-only
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="readOnlyStatus"
+              style="flex-direction: row;"
             />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Base Directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="baseDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Data Directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="dataDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Plugins directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="pluginsDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Tmp Directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="tmpDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Error Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="errorLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
             >
-              <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            General Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="generalLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+              Super read-only
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="superReadOnlyStatus"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
             >
-              <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Slow Query Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="slowQueryLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              none
-            </label>
+              Offline mode
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="offlineModeStatus"
+              style="flex-direction: row;"
+            />
           </div>
         </div>
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverDirectories"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
+          >
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              Directories and Logs
+            </label>
+          </div>
+          <div
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
+          >
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Base Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="baseDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Data Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="dataDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Plugins Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="pluginsDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Temp Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="tmpDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Error Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="errorLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                none
+              </span>
+              <span>
+                none
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              General Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="generalLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                none
+              </span>
+              <span>
+                none
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Slow Query Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="slowQueryLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                none
+              </span>
+              <span>
+                none
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverFeatures"
+          style="flex-direction: column;"
+        >
+          <div
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
@@ -313,320 +429,286 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
-            />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Performance Schema:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="performanceSchema"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Performance Schema
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="performanceSchema"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Thread Pool:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="threadPool"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Thread Pool
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="threadPool"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Memcached Plugin:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="memCached"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Semisync Replication Plugin:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="semiSyncPlugin"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            PAM Authentication:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="pamAuth"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Memcached Plugin
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="memCached"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Password Validation:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="passwordValidation"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Semisync Replication Plugin
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="semiSyncPlugin"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Audit Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="auditLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              PAM Authentication
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="pamAuth"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Firewall:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="firewall"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Firewall Trace:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="firewallTrace"
-            style="flex-direction: row;"
-          >
-            none
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Password Validation
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="passwordValidation"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+              <span />
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Audit Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="auditLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+              <span />
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Firewall
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="firewall"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Firewall Trace
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="firewallTrace"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
           </div>
         </div>
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverSsl"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
               data-tooltip="expand"
             >
-              Server SSL
+              TLS and Certificates
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
-            />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CA:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCa"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CA Path:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCaPath"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL Cert:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCert"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL Cipher:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCipher"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CRL:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCrl"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CRL Path:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCrlPath"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL Key:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslKey"
-            style="flex-direction: row;"
-          />
-        </div>
-        <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
-        >
-          <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
-          >
-            <label
-              class="msg label"
-              data-tooltip="expand"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
             >
-              Server Authentication
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
-          >
+              SSL CA
+            </div>
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCa"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL CA Path
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCaPath"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Cert
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCert"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Cipher
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCipher"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL CRL
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCrl"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL CRL Path
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCrlPath"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Key
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslKey"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Server Not Before
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslServerNotBefore"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Server Not After
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslServerNotAfter"
+              style="flex-direction: row;"
             />
           </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SHA256 Private Key:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="privateKey"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SHA256 Public Key:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="publicKey"
-            style="flex-direction: row;"
-          />
         </div>
       </div>
     </div>
@@ -641,303 +723,419 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
     style="flex-direction: column;"
   >
     <div
-      class="msg container fixedScrollbar toolbar verticalCenterContent"
-      id="serverStatusToolbar"
-      style="flex-direction: row; align-items: center;"
-    >
-      <div
-        class="expander"
-      />
-    </div>
-    <div
       class="msg container fixedScrollbar serverStatus"
-      style="flex-direction: column; justify-content: flex-start; align-items: center;"
+      style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
     >
       <div
-        class="msg grid"
-        id="header"
-        style="grid-template-columns: repeat(2, 1fr); row-gap: 15px; column-gap: 12px;"
+        class="msg container fixedScrollbar"
+        id="serverStatusOverview"
+        style="flex-direction: column;"
       >
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; grid-row: span 2;"
+          class="msg container fixedScrollbar"
+          id="serverStatusHeader"
+          style="flex-direction: row; justify-content: space-between; align-items: center;"
         >
           <div
-            class="msg icon"
-            id="mysqlLogo"
-            style="mask-image: url("/src/assets/images/admin/mysql-logo.svg");"
-          />
+            class="msg container fixedScrollbar serverStatusTitle"
+            style="flex-direction: row; align-items: center;"
+          >
+            <div
+              class="msg icon"
+              id="mysqlLogo"
+              style="mask-image: url("/src/assets/images/admin/mysql-logo.svg");"
+            />
+            <div
+              class="msg container fixedScrollbar"
+              style="flex-direction: column;"
+            >
+              <h1>
+                Server Status
+              </h1>
+              <div
+                class="serverStatusVersion"
+                data-testid="version"
+              >
+                none
+              </div>
+            </div>
+          </div>
+          <div
+            class="serverStatusState running"
+          >
+            Running
+          </div>
         </div>
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column;"
+          class="serverStatusSummary"
         >
-          <h1>
-            Server status
-          </h1>
-          <h2 />
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              Host:Port
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+            >
+              <strong>
+                none
+              </strong>
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              Uptime
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="runningSince"
+            >
+              <strong>
+                none
+              </strong>
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              InnoDB Redo Log
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="redoLogStatus"
+            >
+              <strong />
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
+              Binary Log
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="binaryLogStatus"
+            >
+              <strong />
+            </div>
+          </div>
         </div>
       </div>
       <div
-        class="msg container fixedScrollbar"
         id="statusBoxHost"
-        style="flex-direction: row; justify-content: space-evenly; align-items: flex-start; flex-wrap: wrap;"
       >
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverSettings"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
               data-tooltip="expand"
             >
-              Main Settings
+              General
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Host
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="host"
+              style="flex-direction: row;"
             />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Host:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="host"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Socket:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="socket"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Port:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="port"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Version:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="version"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Compiled For:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="compiledFor"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Configuration File:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="configFile"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Running Since:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="runningSince"
-            style="flex-direction: row;"
-          >
-            none
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Bind Address
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="bindAddress"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Socket
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="socket"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Port
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="port"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Admin Address
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="adminAddress"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Admin Port
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="adminPort"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Compiled For
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="compiledFor"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Configuration File
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="configFile"
+              style="flex-direction: row;"
+            />
           </div>
         </div>
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverModeStatus"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
               data-tooltip="expand"
             >
-              Server Directories
+              Status
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Read-only
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="readOnlyStatus"
+              style="flex-direction: row;"
             />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Base Directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="baseDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Data Directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="dataDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Plugins directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="pluginsDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Tmp Directory:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="tmpDir"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Error Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="errorLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
             >
-              <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            General Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="generalLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+              Super read-only
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="superReadOnlyStatus"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
             >
-              <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Slow Query Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="slowQueryLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              none
-            </label>
+              Offline mode
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="offlineModeStatus"
+              style="flex-direction: row;"
+            />
           </div>
         </div>
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverDirectories"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
+          >
+            <label
+              class="msg label"
+              data-tooltip="expand"
+            >
+              Directories and Logs
+            </label>
+          </div>
+          <div
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
+          >
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Base Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="baseDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Data Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="dataDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Plugins Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="pluginsDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Temp Directory
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="tmpDir"
+              style="flex-direction: row;"
+            >
+              none
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Error Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="errorLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                none
+              </span>
+              <span>
+                none
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              General Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="generalLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                none
+              </span>
+              <span>
+                none
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Slow Query Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="slowQueryLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                none
+              </span>
+              <span>
+                none
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverFeatures"
+          style="flex-direction: column;"
+        >
+          <div
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
@@ -947,320 +1145,286 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
-            />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Performance Schema:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="performanceSchema"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Performance Schema
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="performanceSchema"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Thread Pool:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="threadPool"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Thread Pool
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="threadPool"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Memcached Plugin:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="memCached"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Semisync Replication Plugin:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="semiSyncPlugin"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            PAM Authentication:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="pamAuth"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Memcached Plugin
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="memCached"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Password Validation:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="passwordValidation"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Semisync Replication Plugin
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="semiSyncPlugin"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Audit Log:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="auditLog"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg checkbox indeterminate disabled statusmark"
-              tabindex="0"
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              PAM Authentication
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="pamAuth"
+              style="flex-direction: row;"
             >
               <span
-                class="checkMark"
-              />
-              none
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Firewall:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="firewall"
-            style="flex-direction: row;"
-          >
-            none
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            Firewall Trace:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="firewallTrace"
-            style="flex-direction: row;"
-          >
-            none
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Password Validation
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="passwordValidation"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+              <span />
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Audit Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="auditLog"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+              <span />
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Firewall
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="firewall"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Firewall Trace
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="firewallTrace"
+              style="flex-direction: row;"
+            >
+              <span
+                class="serverStatusBoolean none"
+              >
+                not installed
+              </span>
+            </div>
           </div>
         </div>
         <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
+          class="msg container fixedScrollbar serverStatusCard"
+          id="serverSsl"
+          style="flex-direction: column;"
         >
           <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
+            class="msg container fixedScrollbar serverStatusCardHeader"
+            style="flex-direction: row; justify-content: space-between; align-items: center;"
           >
             <label
               class="msg label"
               data-tooltip="expand"
             >
-              Server SSL
+              TLS and Certificates
             </label>
           </div>
           <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
+            class="msg grid serverStatusFields"
+            style="grid-template-columns: max-content minmax(0, 1fr); row-gap: 8px; column-gap: 16px;"
           >
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
-            />
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CA:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCa"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CA Path:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCaPath"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL Cert:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCert"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL Cipher:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCipher"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CRL:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCrl"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL CRL Path:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslCrlPath"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SSL Key:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="sslKey"
-            style="flex-direction: row;"
-          />
-        </div>
-        <div
-          class="msg grid"
-          style="grid-template-columns: minmax(min-content,max-content) 1fr; row-gap: 3px; column-gap: 12px;"
-        >
-          <div
-            class="msg container fixedScrollbar gridCell heading"
-            style="flex-direction: column; grid-column: span 2;"
-          >
-            <label
-              class="msg label"
-              data-tooltip="expand"
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
             >
-              Server Authentication
-            </label>
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            style="flex-direction: column; align-items: center; grid-column: span 2;"
-          >
+              SSL CA
+            </div>
             <div
-              class="msg divider horizontal"
-              style="--thickness: 4px;"
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCa"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL CA Path
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCaPath"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Cert
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCert"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Cipher
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCipher"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL CRL
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCrl"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL CRL Path
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslCrlPath"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Key
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslKey"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Server Not Before
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslServerNotBefore"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              SSL Server Not After
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="sslServerNotAfter"
+              style="flex-direction: row;"
             />
           </div>
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SHA256 Private Key:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="privateKey"
-            style="flex-direction: row;"
-          />
-          <div
-            class="msg container fixedScrollbar gridCell left"
-            style="flex-direction: row;"
-          >
-            SHA256 Public Key:
-          </div>
-          <div
-            class="msg container fixedScrollbar gridCell"
-            data-testid="publicKey"
-            style="flex-direction: row;"
-          />
         </div>
       </div>
     </div>

@@ -37,7 +37,7 @@ import { promiseWithTimeout } from "../../utilities/helpers.js";
 import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
 
 const isBackendTrue = (value: unknown): boolean => {
-    return value === true || value === 1;
+    return value === true || value === 1 || value === "1";
 };
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
@@ -47,6 +47,8 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();
 
     private serviceOnlySession = false;
+    private performanceSchemaAvailable?: boolean;
+    private performanceSchemaAvailabilityProbe?: Promise<boolean>;
 
     /**
      * @returns a flag which indicates if a session was opened already.
@@ -63,6 +65,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      * @returns A promise which resolves when the operation was concluded.
      */
     public override async startSession(id: string): Promise<void> {
+        this.clearWorkspaceCaches();
         this.serviceOnlySession = false;
         this.moduleSessionLookupId = `sqlEditor.${id}`;
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
@@ -85,6 +88,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      * This is used by administration pages, which must keep working when the user session is busy or blocked.
      */
     public async startServiceSession(id: string, connection: number | IShellDbConnection): Promise<void> {
+        this.clearWorkspaceCaches();
         this.serviceOnlySession = true;
         await super.startSession(id, connection);
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
@@ -96,21 +100,60 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      * @returns A promise which resolves when the operation was concluded.
      */
     public override async closeSession(): Promise<void> {
-        if (this.serviceOnlySession) {
-            await super.closeSession();
-            this.serviceOnlySession = false;
+        try {
+            if (this.serviceOnlySession) {
+                await super.closeSession();
+                this.serviceOnlySession = false;
 
-            return;
+                return;
+            }
+
+            const moduleSessionId = this.moduleSessionId;
+            if (moduleSessionId) {
+                await promiseWithTimeout(MessageScheduler.get.sendRequest({
+                    requestType: ShellAPIGui.GuiSqlEditorCloseSession,
+                    parameters: { args: { moduleSessionId } },
+                }), 5000);
+                webSession.setModuleSessionId(this.moduleSessionLookupId);
+            }
+        } finally {
+            this.clearWorkspaceCaches();
+        }
+    }
+
+    /**
+     * Returns the cached performance_schema availability for this editor workspace.
+     *
+     * The value is scoped to the backend instance, which is shared by pages in the same connection workspace.
+     */
+    public async isPerformanceSchemaAvailable(): Promise<boolean> {
+        if (this.performanceSchemaAvailable !== undefined) {
+            return this.performanceSchemaAvailable;
         }
 
-        const moduleSessionId = this.moduleSessionId;
-        if (moduleSessionId) {
-            await promiseWithTimeout(MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqlEditorCloseSession,
-                parameters: { args: { moduleSessionId } },
-            }), 5000);
-            webSession.setModuleSessionId(this.moduleSessionLookupId);
-        }
+        this.performanceSchemaAvailabilityProbe ??= this.executeService("select @@performance_schema")
+            .then((result) => {
+                if (!result) {
+                    return false;
+                }
+
+                const firstRow = result.rows?.[0];
+                const value = Array.isArray(firstRow) ? firstRow[0] : firstRow;
+                const available = isBackendTrue(value);
+                this.performanceSchemaAvailable = available;
+
+                return available;
+            })
+            .finally(() => {
+                this.performanceSchemaAvailabilityProbe = undefined;
+            });
+
+        return this.performanceSchemaAvailabilityProbe;
+    }
+
+    private clearWorkspaceCaches(): void {
+        this.performanceSchemaAvailable = undefined;
+        this.performanceSchemaAvailabilityProbe = undefined;
     }
 
     /**

@@ -1368,8 +1368,6 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(mysqlAdministration.serverStatus.sslCa).toMatch(/.pem/);
                 expect(mysqlAdministration.serverStatus.sslCert).toMatch(/.pem/);
                 expect(mysqlAdministration.serverStatus.sslKey).toMatch(/.pem/);
-                expect(mysqlAdministration.serverStatus.privateKey).toBe("private_key.pem");
-                expect(mysqlAdministration.serverStatus.publicKey).toBe("public_key.pem");
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -1385,17 +1383,18 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await driver.wait(async () => {
                     await mysqlAdministration.clientConnections.create();
-                    return mysqlAdministration.clientConnections.threadsConnected?.match(/Threads Connected: (\d+)/);
+
+                    return mysqlAdministration.clientConnections.threadsConnected?.match(/\d+/);
                 }, constants.wait5seconds, "The Client Connections are not loading");
 
-                expect(mysqlAdministration.clientConnections.threadsRunning).toMatch(/Threads Running: (\d+)/);
-                expect(mysqlAdministration.clientConnections.threadsCreated).toMatch(/Threads Created: (\d+)/);
-                expect(mysqlAdministration.clientConnections.rejected).toMatch(/Rejected \(over limit\):/);
-                expect(mysqlAdministration.clientConnections.totalConnections).toMatch(/Total Connections: (\d+)/);
-                expect(mysqlAdministration.clientConnections.connectionLimit).toMatch(/Connection Limit: (\d+)/);
-                expect(mysqlAdministration.clientConnections.abortedClients).toMatch(/Aborted Clients: (\d+)/);
-                expect(mysqlAdministration.clientConnections.abortedConnections).toMatch(/Aborted Connections: (\d+)/);
-                expect(mysqlAdministration.clientConnections.errors).toMatch(/Errors: (\d+)/);
+                expect(mysqlAdministration.clientConnections.threadsRunning).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.threadsCreated).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.rejected).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.totalConnections).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.connectionLimit).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.abortedClients).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.abortedConnections).toMatch(/\d+/);
+                expect(mysqlAdministration.clientConnections.errors).toMatch(/\d+/);
                 expect((await mysqlAdministration.clientConnections.connectionsList!
                     .findElements(locator.mysqlAdministration.clientConnections.tableRow)).length).toBeGreaterThan(0);
             } catch (e) {

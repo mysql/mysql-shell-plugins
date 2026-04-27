@@ -48,6 +48,7 @@ import { ConnectionBrowser } from "./ConnectionBrowser.js";
 import {
     ConnectionTab, IOpenDocumentState, ISelectItemDetails, type IConnectionPresentationState,
 } from "./ConnectionTab.js";
+import type { IClientConnectionsSavedState } from "./ClientConnections.js";
 import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import {
     DocumentContext, ISavedGraphData, IToolbarItems, type ISideBarCommandResult, type QualifiedName,
@@ -94,7 +95,8 @@ import {
 } from "../../components/ui/SplitContainer/SplitContainer.js";
 import scriptingRuntime from "../../typings/scripting-runtime.d.ts?raw";
 import {
-    DocumentSideBar, type DocumentSideBarMode, type IDocumentSideBarSectionState,
+    DocumentSideBar, pageTypeToDocumentIcon, type DocumentSideBarMode,
+    type IDocumentSideBarSectionState,
 } from "./DocumentSideBar/DocumentSideBar.js";
 
 import { ui } from "../../app-logic/UILayer.js";
@@ -1467,6 +1469,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 onEditorRename={this.handleEditorRename}
                 onEditorChange={this.handleEditorChange}
                 onGraphDataChange={this.handleGraphDataChange}
+                onSaveAdminClientConnectionsState={this.handleClientConnectionsStateChange}
                 onChatOptionsChange={this.onChatOptionsChange}
                 onDesktopRunStateChanged={this.handleDesktopRunStateChanged}
             />);
@@ -3385,6 +3388,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     lakehouseNavigatorState: {
                         activeTabId: LakehouseNavigatorTab.Overview,
                     },
+                    clientConnectionsState: {},
                 },
                 graphData: {
                     timestamp: 0,
@@ -5013,6 +5017,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         this.forceUpdate();
     };
 
+    private handleClientConnectionsStateChange = (tabId: string, data: Partial<IClientConnectionsSavedState>): void => {
+        const { connectionTabs } = this.state;
+
+        const tab = connectionTabs.find((entry) => {
+            return entry.dataModelEntry.id === tabId;
+        });
+
+        if (!tab) {
+            return;
+        }
+
+        const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
+        if (connectionState) {
+            connectionState.adminPageStates.clientConnectionsState = {
+                ...connectionState.adminPageStates.clientConnectionsState,
+                ...data,
+            };
+        }
+    };
+
     private onChatOptionsChange = (tabId: string, data: Partial<IChatOptionsState>): void => {
         const { connectionTabs } = this.state;
 
@@ -6083,6 +6107,10 @@ EXAMPLES
     };
 
     private getConnectionTabIcon(entry?: IOpenDocumentState): string {
+        if (entry?.document.type === OdmEntityType.AdminPage) {
+            return pageTypeToDocumentIcon.get(entry.document.pageType) ?? Assets.file.defaultIcon;
+        }
+
         if (entry?.document.type === OdmEntityType.Notebook) {
             return Assets.documents.notebookIcon;
         }
