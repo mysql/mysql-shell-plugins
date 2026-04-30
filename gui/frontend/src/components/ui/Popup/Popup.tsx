@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -132,8 +132,9 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
         return undefined;
     }
 
-    public updatePosition(newTarget: DOMRect): void {
-        this.setState({ currentTarget: newTarget }, this.handleOpen);
+    public updatePosition(newTarget: DOMRect, options?: Partial<IPortalOptions>): void {
+        this.portalRef.current?.updateOptions(options ?? {});
+        this.setState({ currentTarget: newTarget }, this.updateContentPosition);
     }
 
     private handleClose = (cancelled: boolean): void => {
@@ -143,13 +144,23 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
     };
 
     private handleOpen = (): void => {
-        const { placement, pinned, showArrow, onOpen } = this.props;
+        const { onOpen } = this.props;
+
+        onOpen?.(this.props);
+        this.updateContentPosition();
+    };
+
+    private updateContentPosition = (): void => {
+        const { placement, pinned, showArrow } = this.props;
         const { currentTarget } = this.state;
 
         if (currentTarget) {
-            onOpen?.(this.props);
-
             if (this.containerRef.current && placement) {
+                Object.values(ComponentPlacement).forEach((placementClass) => {
+                    this.containerRef.current?.classList.remove(placementClass);
+                });
+                this.containerRef.current.classList.add(placement);
+
                 const { left, top } = computeContentPosition(placement, this.containerRef.current, currentTarget,
                     showArrow ? 10 : 0, !pinned);
                 this.containerRef.current.style.left = `${left}px`;

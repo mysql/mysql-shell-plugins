@@ -144,9 +144,9 @@ export const objectType = "obj";
 export const expand = "expand";
 export const collapse = "collapse";
 
-export const serverStatus = "Server Status";
+export const serverStatus = "Server Information";
 export const clientConnections = "Client Connections";
-export const performanceDashboard = "Performance Dashboard";
+export const performanceDashboard = "Performance Reports";
 export const lakeHouseNavigator = "Lakehouse Navigator";
 export const perfDashMLETab = "MLE Performance";
 export const perfDashServerTab = "Server Performance";
@@ -219,7 +219,6 @@ export const dumpToDisk = {
     databaseSchemaDump: "Database Schema Dump",
     databaseSchemaDumpForMySQLService: "Database Schema Dump for MySQL Service",
 };
-
 
 // TABLE
 export const dropTable = "Drop Table...";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ import { driver } from "../../Misc";
 import * as constants from "../../constants";
 
 /**
- * This class represents the Server Status page and all its related functions
+ * This class represents the Server Information page and all its related functions
  */
 export class E2EServerStatus {
 
@@ -147,7 +147,7 @@ export class E2EServerStatus {
     public publicKey: string;
 
     /**
-     * Loads the Server Status page objects and attributes
+     * Loads the Server Information page objects and attributes
      * 
      * @returns A promise resolving when the page is loaded
      */

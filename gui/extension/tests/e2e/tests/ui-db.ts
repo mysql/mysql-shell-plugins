@@ -239,7 +239,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it("Server Status", async () => {
+        it("Server Information", async () => {
 
             await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
             await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.serverStatus),

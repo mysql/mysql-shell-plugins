@@ -23,25 +23,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild } from "preact";
+import { ComponentChild, createRef } from "preact";
 
 import { GraphHost } from "../../components/graphs/GraphHost.js";
-import { ColorScheme, ISavedGraphData, IToolbarItems } from "./index.js";
+import { ColorScheme, ISavedGraphData } from "./index.js";
 
-import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
-import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import {
+    ComponentBase, ComponentPlacement, IComponentProperties, IComponentState,
+} from "../../components/ui/Component/ComponentBase.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { Container, Orientation } from "../../components/ui/Container/Container.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
+import { Codicon } from "../../components/ui/Codicon.js";
 import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
-import { Tabview } from "../../components/ui/Tabview/Tabview.js";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { Menu } from "../../components/ui/Menu/Menu.js";
+import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { Assets } from "../../supplement/Assets.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import {
+    IPerformanceReportCapabilities, ShellInterfaceSqlEditor,
+} from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { formatBytes } from "../../utilities/string-helpers.js";
-import { AdministrationPageFrame } from "./AdministrationPageFrame.js";
+import {
+    AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
+} from "./AdministrationPageFrame.js";
+import { MemoryReport, MemoryViewId } from "./performance/MemoryReport.js";
+import { SlowQueriesReport, StatementDetailGroupId } from "./performance/SlowQueriesReport.js";
+import { StatementHistogramReport } from "./performance/StatementHistogramReport.js";
+import { TableSizesReport } from "./performance/TableSizesReport.js";
+import { WaitsReport, WaitViewId } from "./performance/WaitsReport.js";
 
 enum MarkerType {
     None,
@@ -66,22 +79,61 @@ const colorSchemes = new Map<ColorScheme, string[]>([
 interface IPerformanceDashboardProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
 
-    /** Top level toolbar items, to be integrated with page specific ones. */
-    toolbarItems: IToolbarItems;
-
     graphData: ISavedGraphData;
-
-    /** A value that allows to stop collecting data after there were as many updates as given here. */
-    stopAfter?: number;
 
     onGraphDataChange?: (data: ISavedGraphData) => void;
 }
 
 interface IPerformanceDashboardState extends IComponentState {
     graphData: ISavedGraphData;
-    mleEnabled: boolean;
-    activeTabId: string;
+    mleEnabled?: boolean;
+    activeReportId: PerformanceReportId;
+    memoryViewId: MemoryViewId;
+    waitViewId: WaitViewId;
+    slowQueryDetailGroupId: StatementDetailGroupId;
+    performanceCapabilities?: IPerformanceReportCapabilities;
 }
+
+export type PerformanceReportId =
+    "networkStatus" | "mysqlStatus" | "innoDBStatus" | "mleStatus" | "memory" | "waits" | "slowQueries" |
+    "statementHistogram" | "tableSizes";
+
+export interface IPerformanceDashboardSavedState {
+    activeReportId: PerformanceReportId;
+    memoryViewId: MemoryViewId;
+    waitViewId: WaitViewId;
+    slowQueryDetailGroupId: StatementDetailGroupId;
+}
+
+const performanceReports: Array<{
+    id: PerformanceReportId;
+    title: string;
+    summary: string;
+}> = [{
+    id: "statementHistogram",
+    title: "Statement Histogram",
+    summary: "Distribution of all statement execution times.",
+}, {
+    id: "slowQueries",
+    title: "Slow Queries",
+    summary: "Inspect history of slow statements.",
+}, {
+    id: "tableSizes",
+    title: "Table Sizes",
+    summary: "Data and index storage grouped by schema.",
+}, {
+    id: "mleStatus",
+    title: "MLE Status",
+    summary: "MLE heap usage and runtime state.",
+}, {
+    id: "memory",
+    title: "Memory",
+    summary: "Current memory usage from sys schema views.",
+}, {
+    id: "waits",
+    title: "Waits",
+    summary: "Cumulative wait latency by class, event, host, or user.",
+}];
 
 const enum Color {
     Receiving = 0,
@@ -99,10 +151,16 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
     // The interval (in ms) after which new samples are taken.
     private static readonly sampleInterval = 3000;
 
-    private refreshTimer: ReturnType<typeof setInterval> | null = null;
+    private readonly tableSizesReportRef = createRef<TableSizesReport>();
+    private readonly memoryReportRef = createRef<MemoryReport>();
+    private readonly waitsReportRef = createRef<WaitsReport>();
+    private readonly slowQueriesReportRef = createRef<SlowQueriesReport>();
+    private readonly statementHistogramReportRef = createRef<StatementHistogramReport>();
+    private readonly performanceStatusOptionsMenuRef = createRef<Menu>();
 
     private hasPSAccess = false;
-    private updates = 0;
+    private mleAvailable?: boolean;
+    private mleMemoryMax?: string;
 
     private variableNames = [
         "Bytes_received",
@@ -185,6 +243,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
     public constructor(props: IPerformanceDashboardProperties) {
         super(props);
 
+        const savedState = props.graphData.performanceDashboardState;
+        const savedReportId = savedState?.activeReportId;
         this.state = {
             graphData: {
                 timestamp: new Date().getTime(),
@@ -194,18 +254,15 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 computedValues: {},
                 series: new Map(),
             },
-            mleEnabled: false,
-            activeTabId: "serverTab",
+            activeReportId: performanceReports.some((report) => {
+                return report.id === savedReportId;
+            }) ? savedReportId! : "statementHistogram",
+            memoryViewId: savedState?.memoryViewId ?? "thread",
+            waitViewId: savedState?.waitViewId ?? "classes",
+            slowQueryDetailGroupId: savedState?.slowQueryDetailGroupId ?? "activity",
         };
 
-        // Get the initial values to allow computing changes on each query step.
-        // But first check if the user has access to the performance_schema.
-        props.backend?.executeService("select * from performance_schema.log_status").then(() => {
-            this.hasPSAccess = true;
-            void this.queryAndUpdate();
-        }).catch(() => {
-            void this.queryAndUpdate();
-        });
+        void this.initializePerformanceCapabilities();
     }
 
     public static override getDerivedStateFromProps(newProps: IPerformanceDashboardProperties,
@@ -286,127 +343,394 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             ]);
         }
 
-        return { graphData, mleEnabled: state.mleEnabled, activeTabId: state.activeTabId };
-    }
-
-    public override componentDidMount(): void {
-        this.refreshTimer = setInterval(() => {
-            const { stopAfter } = this.props;
-
-            ++this.updates;
-            if (stopAfter && this.updates >= stopAfter && this.refreshTimer) {
-                clearInterval(this.refreshTimer);
-                this.refreshTimer = null;
-            }
-
-            void this.queryAndUpdate();
-        }, PerformanceDashboard.sampleInterval);
+        return {
+            graphData,
+            mleEnabled: state.mleEnabled,
+            activeReportId: state.mleEnabled === false && state.activeReportId === "mleStatus"
+                ? "statementHistogram" : state.activeReportId,
+            memoryViewId: state.memoryViewId,
+            waitViewId: state.waitViewId,
+            slowQueryDetailGroupId: state.slowQueryDetailGroupId,
+            performanceCapabilities: state.performanceCapabilities,
+        };
     }
 
     public override componentWillUnmount(): void {
         const { onGraphDataChange } = this.props;
         const { graphData } = this.state;
 
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-            this.refreshTimer = null;
-        }
-
         onGraphDataChange?.({
             ...graphData,
+            performanceDashboardState: this.savedState(),
             series: new Map<string, IXYDatum[]>(),
         });
     }
 
     public render(): ComponentChild {
-        const { toolbarItems, graphData } = this.props;
-        const { mleEnabled, activeTabId } = this.state;
-
-        const toolbar = <Toolbar id="dashboardToolbar" dropShadow={false} >
-            {toolbarItems.navigation}
-            <Label caption="Graph Colors:" style={{ marginLeft: "8px" }} />
-            <Dropdown
-                id="graphColorsDropdown"
-                selection={graphData.activeColorScheme}
-                onSelect={this.handleColorsSelection}
-            >
-                <DropdownItem caption="Classic" id="classic" />
-                <DropdownItem caption="Light" id="light" />
-                <DropdownItem caption="Lively" id="lively" />
-                <DropdownItem caption="Delectable" id="delectable" />
-                <DropdownItem caption="Trello" id="trello" />
-                <DropdownItem caption="Brewing" id="brewing" />
-                <DropdownItem caption="Gray Tones" id="grays" />
-            </Dropdown>
-            <Label caption="Time Range:" />
-            <Dropdown
-                id="timeRangeDropdown"
-                selection={String(graphData.displayInterval)}
-                onSelect={this.handleTimeRangeSelection}
-            >
-                <DropdownItem caption="150 sec" id="50" />
-                <DropdownItem caption="5 min" id="100" />
-                <DropdownItem caption="10 min" id="200" />
-            </Dropdown>
-            <div className="expander" />
-            {toolbarItems.auxiliary}
-        </Toolbar>;
-
         const className = this.getEffectiveClassNames(["performanceDashboard"]);
-        const pages = [
-            {
-                id: "serverTab",
-                caption: "Server Performance",
-                tooltip: "MySQL Server Performance",
-                content: (
-                    <Grid
-                        id="dashboardGrid"
-                        columns={["33%", "33%", "33%"]}
-                        equalHeight={false}
-                        columnGap={12}
-                        rowGap={30}
-                    >
-                        {this.renderNetworkStatus(1)}
-                        {this.renderMySQLStatus(2)}
-                        {this.renderInnoDBStatus(3)}
-                    </Grid>
-                ),
-            },
-            {
-                id: "mleTab",
-                caption: "MLE Performance",
-                tooltip: "MLE Performance",
-                content: (
-                    <Grid
-                        id="dashboardGrid"
-                        columns={["33%", "33%", "33%"]}
-                        equalHeight={false}
-                        columnGap={12}
-                        rowGap={30}
-                    >
-                        {this.renderMleStatus(1)}
-                    </Grid>
-                ),
-            },
-        ];
 
-        return <AdministrationPageFrame
-            className={className}
-            heading="Performance Dashboard"
-            icon={<Icon src={Assets.db.databaseEngineIcon} />}
-        >
-            {toolbar}
-            <Tabview
-                showTabs={mleEnabled}
-                pages={pages}
-                selectedId={activeTabId}
-                onSelectTab={this.handleSelectTab}
-            />
-        </AdministrationPageFrame>;
+        return <>
+            <AdministrationPageFrame
+                className={className}
+            >
+                <AdministrationPageHeading
+                    id="performanceDashboardHeader"
+                    icon={<Icon id="performanceIcon" src={Assets.documents.adminPerformanceDashboardIcon} />}
+                    heading="Performance Reports"
+                    headerContent={this.performanceReportDropdown()}
+                    actions={this.performanceHeadingAction()}
+                />
+                <AdministrationPageBody
+                    id="performanceDashboardContent"
+                >
+                    {this.activeReport()}
+                </AdministrationPageBody>
+            </AdministrationPageFrame>
+            {this.performanceStatusOptionsMenu()}
+        </>;
     }
 
-    private handleSelectTab = (id: string): void => {
-        this.setState({ activeTabId: id });
+    private performanceReportDropdown(): ComponentChild {
+        const { activeReportId, mleEnabled } = this.state;
+        const reports = performanceReports.filter((report) => {
+            return report.id !== "mleStatus" || mleEnabled === true;
+        });
+        const activeReport = reports.find((report) => {
+            return report.id === activeReportId;
+        }) ?? reports[0];
+
+        return <Dropdown
+            id="performanceReportDropdown"
+            aria-label="Performance report"
+            selection={activeReportId}
+            selectedContent={<div className="performanceReportDropdownItem">
+                <span className="performanceReportDropdownTitle">{activeReport.title}</span>
+                <span className="performanceReportDropdownSummary">{activeReport.summary}</span>
+            </div>}
+            onSelect={this.handlePerformanceReportSelection}
+        >
+            {reports.map((report) => {
+                return <DropdownItem
+                    id={report.id}
+                    key={report.id}
+                    caption={report.title}
+                    description={report.summary}
+                >
+                    <div className="performanceReportDropdownItem">
+                        <span className="performanceReportDropdownTitle">{report.title}</span>
+                        <span className="performanceReportDropdownSummary">{report.summary}</span>
+                    </div>
+                </DropdownItem>;
+            })}
+        </Dropdown>;
+    }
+
+    private selectReport(activeReportId: PerformanceReportId): void {
+        const { graphData, onGraphDataChange } = this.props;
+
+        this.setState({ activeReportId });
+        onGraphDataChange?.({
+            ...graphData,
+            performanceDashboardState: {
+                ...this.savedState(),
+                activeReportId,
+            },
+        });
+
+    }
+
+    private savedState(): IPerformanceDashboardSavedState {
+        const {
+            activeReportId, memoryViewId, slowQueryDetailGroupId, waitViewId,
+        } = this.state;
+
+        return {
+            activeReportId,
+            memoryViewId,
+            waitViewId,
+            slowQueryDetailGroupId,
+        };
+    }
+
+    private activeReport(): ComponentChild {
+        const { activeReportId } = this.state;
+
+        switch (activeReportId) {
+            case "tableSizes": {
+                return <TableSizesReport
+                    ref={this.tableSizesReportRef}
+                    backend={this.props.backend}
+                />;
+            }
+
+            case "mysqlStatus": {
+                return this.statusReport(this.renderMySQLStatus(1));
+            }
+
+            case "innoDBStatus": {
+                return this.statusReport(this.renderInnoDBStatus(1));
+            }
+
+            case "mleStatus": {
+                return this.statusReport(this.renderMleStatus(1));
+            }
+
+            case "memory": {
+                return <MemoryReport
+                    ref={this.memoryReportRef}
+                    backend={this.props.backend}
+                    capabilities={this.state.performanceCapabilities}
+                    initialViewId={this.state.memoryViewId}
+                    onViewIdChange={this.handleMemoryViewChange}
+                />;
+            }
+
+            case "waits": {
+                return <WaitsReport
+                    ref={this.waitsReportRef}
+                    backend={this.props.backend}
+                    capabilities={this.state.performanceCapabilities}
+                    initialViewId={this.state.waitViewId}
+                    onViewIdChange={this.handleWaitViewChange}
+                />;
+            }
+
+            case "slowQueries": {
+                return <SlowQueriesReport
+                    ref={this.slowQueriesReportRef}
+                    backend={this.props.backend}
+                    capabilities={this.state.performanceCapabilities}
+                    initialDetailGroupId={this.state.slowQueryDetailGroupId}
+                    onDetailGroupIdChange={this.handleSlowQueryDetailGroupChange}
+                />;
+            }
+
+            case "statementHistogram": {
+                return <StatementHistogramReport
+                    ref={this.statementHistogramReportRef}
+                    backend={this.props.backend}
+                    capabilities={this.state.performanceCapabilities}
+                />;
+            }
+
+            case "networkStatus":
+            default: {
+                return this.statusReport(this.renderNetworkStatus(1));
+            }
+        }
+    }
+
+    private performanceHeadingAction(): ComponentChild {
+        const { activeReportId } = this.state;
+
+        switch (activeReportId) {
+            case "networkStatus":
+            case "mysqlStatus":
+            case "innoDBStatus": {
+                return <Button
+                    id="performanceStatusOptionsButton"
+                    className="performanceStatusOptionsButton"
+                    data-tooltip="Graph options"
+                    imageOnly
+                    onClick={this.showPerformanceStatusOptionsMenu}
+                >
+                    <Icon src={Codicon.KebabHorizontal} data-tooltip="inherit" />
+                </Button>;
+            }
+
+            case "memory": {
+                return <Container
+                    className="performanceHeadingActions"
+                    orientation={Orientation.LeftToRight}
+                >
+                    <Button
+                        id="memoryRefreshButton"
+                        data-tooltip="Refresh"
+                        imageOnly
+                        onClick={() => {
+                            this.memoryReportRef.current?.refresh();
+                        }}
+                    >
+                        <Icon src={Codicon.Refresh} data-tooltip="inherit" />
+                    </Button>
+                </Container>;
+            }
+
+            case "waits": {
+                return <Container
+                    className="performanceHeadingActions"
+                    orientation={Orientation.LeftToRight}
+                >
+                    <Button
+                        id="waitRefreshButton"
+                        data-tooltip="Refresh"
+                        imageOnly
+                        onClick={() => {
+                            this.waitsReportRef.current?.refresh();
+                        }}
+                    >
+                        <Icon src={Codicon.Refresh} data-tooltip="inherit" />
+                    </Button>
+                </Container>;
+            }
+
+            case "slowQueries": {
+                return <Container
+                    className="performanceHeadingActions"
+                    orientation={Orientation.LeftToRight}
+                >
+                    <Button
+                        id="slowQueriesRefreshButton"
+                        data-tooltip="Refresh"
+                        imageOnly
+                        onClick={() => {
+                            this.slowQueriesReportRef.current?.refresh();
+                        }}
+                    >
+                        <Icon src={Codicon.Refresh} data-tooltip="inherit" />
+                    </Button>
+                </Container>;
+            }
+
+            case "statementHistogram": {
+                return <Container
+                    className="performanceHeadingActions"
+                    orientation={Orientation.LeftToRight}
+                >
+                    <Button
+                        id="statementHistogramRefreshButton"
+                        data-tooltip="Refresh"
+                        imageOnly
+                        onClick={() => {
+                            this.statementHistogramReportRef.current?.refresh();
+                        }}
+                    >
+                        <Icon src={Codicon.Refresh} data-tooltip="inherit" />
+                    </Button>
+                </Container>;
+            }
+
+            case "tableSizes": {
+                return <Container
+                    className="performanceHeadingActions"
+                    orientation={Orientation.LeftToRight}
+                >
+                    <Button
+                        id="mysqlInspectorRefreshButton"
+                        data-tooltip="Refresh"
+                        imageOnly
+                        onClick={() => {
+                            this.tableSizesReportRef.current?.refresh();
+                        }}
+                    >
+                        <Icon src={Codicon.Refresh} data-tooltip="inherit" />
+                    </Button>
+                </Container>;
+            }
+
+            default: {
+                return undefined;
+            }
+        }
+    }
+
+    private statusReport(content: ComponentChild[]): ComponentChild {
+        return <Container
+            className="performanceDashboardReport"
+            orientation={Orientation.TopDown}
+        >
+            <Grid
+                id="dashboardGrid"
+                columns={["100%"]}
+                equalHeight={false}
+                columnGap={12}
+                rowGap={30}
+            >
+                {content}
+            </Grid>
+        </Container>;
+    }
+
+    private performanceStatusOptionsMenu(): ComponentChild {
+        const { graphData } = this.props;
+
+        return <Menu
+            id="performanceStatusOptionsMenu"
+            ref={this.performanceStatusOptionsMenuRef}
+            placement={ComponentPlacement.BottomRight}
+            onItemClick={this.handlePerformanceStatusOptionsMenuItemClick}
+        >
+            <MenuItem command={{ title: "Graph Colors", command: "" }} subMenuShowOnClick>
+                <MenuItem
+                    checked={graphData.activeColorScheme === "classic"}
+                    command={{ title: "Classic", command: "color:classic" }}
+                />
+                <MenuItem
+                    checked={graphData.activeColorScheme === "light"}
+                    command={{ title: "Light", command: "color:light" }}
+                />
+                <MenuItem
+                    checked={graphData.activeColorScheme === "lively"}
+                    command={{ title: "Lively", command: "color:lively" }}
+                />
+                <MenuItem
+                    checked={graphData.activeColorScheme === "delectable"}
+                    command={{ title: "Delectable", command: "color:delectable" }}
+                />
+                <MenuItem
+                    checked={graphData.activeColorScheme === "trello"}
+                    command={{ title: "Trello", command: "color:trello" }}
+                />
+                <MenuItem
+                    checked={graphData.activeColorScheme === "brewing"}
+                    command={{ title: "Brewing", command: "color:brewing" }}
+                />
+                <MenuItem
+                    checked={graphData.activeColorScheme === "grays"}
+                    command={{ title: "Gray Tones", command: "color:grays" }}
+                />
+            </MenuItem>
+            <MenuItem command={{ title: "Time Range", command: "" }} subMenuShowOnClick>
+                <MenuItem
+                    checked={graphData.displayInterval === 50}
+                    command={{ title: "150 sec", command: "time:50" }}
+                />
+                <MenuItem
+                    checked={graphData.displayInterval === 100}
+                    command={{ title: "5 min", command: "time:100" }}
+                />
+                <MenuItem
+                    checked={graphData.displayInterval === 200}
+                    command={{ title: "10 min", command: "time:200" }}
+                />
+            </MenuItem>
+        </Menu>;
+    }
+
+    private showPerformanceStatusOptionsMenu = (event: MouseEvent | KeyboardEvent): void => {
+        const targetRect = event instanceof MouseEvent
+            ? new DOMRect(event.clientX, event.clientY, 2, 2)
+            : (event.currentTarget as HTMLElement).getBoundingClientRect();
+
+        this.performanceStatusOptionsMenuRef.current?.open(targetRect, event instanceof KeyboardEvent);
+    };
+
+    private handlePerformanceStatusOptionsMenuItemClick = (props: IMenuItemProperties): boolean => {
+        const { command } = props;
+
+        if (command.command.startsWith("color:")) {
+            this.handleColorsSelection(true, new Set([command.command.slice("color:".length)]));
+
+            return true;
+        }
+
+        if (command.command.startsWith("time:")) {
+            this.handleTimeRangeSelection(true, new Set([command.command.slice("time:".length)]));
+
+            return true;
+        }
+
+        return false;
     };
 
     private renderNetworkStatus(gridColumn: number): ComponentChild[] {
@@ -425,6 +749,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         let yDomain = this.findYDomainValues(incomingNetworkData, 0);
 
         const incomingGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -448,6 +773,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         yDomain = this.findYDomainValues(outgoingNetworkData, 0);
         const outgoingGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -469,6 +795,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         };
 
         const connectionsGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -492,19 +819,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const cells: ComponentChild[] = [];
         cells.push(
-            <GridCell
-                className="title"
-                orientation={Orientation.TopDown}
-                style={{ gridColumn, gridRow: 1 }}
-                crossAlignment={ContentAlignment.Center}
-            >
-                <Icon className="sectionIcon" src={Assets.documents.clientConnectionsIcon} />
-                <Label>Network Status</Label>
-                <Label>
-                    Statistics for network traffic sent and received by the MySQL server over the client connections.
-                </Label>
-            </GridCell >,
-            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 2 }}>
+            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 1 }}>
                 <Label className="subTitle">Incoming Network Traffic</Label>
                 <GraphHost
                     options={incomingGraphOptions}
@@ -512,7 +827,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 {this.renderNameValuePair("Incoming Data", this.formatTrafficValue(currentIncoming),
                     MarkerType.Incoming, "Number of bytes received by the MySQL server at the network level.")}
             </GridCell >,
-            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 3 }}>
+            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 2 }}>
                 <Label className="subTitle">Outgoing Network Traffic</Label>
                 <GraphHost
                     options={outgoingGraphOptions}
@@ -520,7 +835,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 {this.renderNameValuePair("Outgoing Data", this.formatTrafficValue(currentOutgoing),
                     MarkerType.Outgoing, "Number of bytes sent by the MySQL server at the network level.")}
             </GridCell>,
-            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 4 }}>
+            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 3 }}>
                 <Label className="subTitle">Client Connections</Label>
                 <GraphHost
                     options={connectionsGraphOptions}
@@ -641,6 +956,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         ];
 
         const statementsGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -661,19 +977,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const cells: ComponentChild[] = [];
         cells.push(
-            <GridCell
-                className="title"
-                orientation={Orientation.TopDown}
-                style={{ gridColumn, gridRow: 1 }}
-                crossAlignment={ContentAlignment.Center}
-            >
-                <Icon className="sectionIcon" src={Assets.db.mysqlSchemaIcon} />
-                <Label>MySQL Status</Label>
-                <Label>
-                    Primary MySQL server activity and performance statistics.
-                </Label>
-            </GridCell>,
-            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 2 }}>
+            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 1 }}>
                 <Grid columns={2} rowGap={12} style={{ marginBottom: "8px" }}>
                     <GridCell orientation={Orientation.TopDown}>
                         <Label className="pieTitle">Table Cache</Label>
@@ -718,7 +1022,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             <GridCell
                 className="separated"
                 orientation={Orientation.TopDown}
-                style={{ gridColumn, gridRow: 3 }}
+                style={{ gridColumn, gridRow: 2 }}
             >
                 <Label className="subTitle">SQL Statements Executed</Label>
                 <GraphHost
@@ -727,7 +1031,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 {this.renderNameValuePair("Total Statements", `${totalStatements}/s`,
                     MarkerType.None, "Total number of statements executed.")}
             </GridCell>,
-            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 4 }}>
+            <GridCell className="separated" orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 3 }}>
                 <Grid id="selectGrid" columns={2}>
                     <GridCell orientation={Orientation.TopDown}>
                         {this.renderNameValuePair("SELECT", `${selects.toFixed(0)}/s`, MarkerType.Select,
@@ -867,6 +1171,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         ];
 
         const diskWritesGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -888,6 +1193,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         };
 
         const diskReadsGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -911,19 +1217,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const cells: ComponentChild[] = [];
         cells.push(
-            <GridCell
-                className="title"
-                orientation={Orientation.TopDown}
-                style={{ gridColumn, gridRow: 1 }}
-                crossAlignment={ContentAlignment.Center}
-            >
-                <Icon className="sectionIcon" src={Assets.db.databaseEngineIcon} />
-                <Label>InnoDB Status</Label>
-                <Label>
-                    Overview of the InnoDB buffer pool and disk activity generated by the InnoDB storage engine.
-                </Label>
-            </GridCell>,
-            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 2 }}>
+            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 1 }}>
                 <Grid columns={2} rowGap={12} equalHeight={true} style={{ marginBottom: "8px" }}>
                     <GridCell orientation={Orientation.TopDown} columnSpan={2} style={{ padding: "0 25%" }}>
                         <Label className="pieTitle">InnoDB Buffer Pool</Label>
@@ -955,7 +1249,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     "The number of logical reads that InnoDB could not satisfy from the buffer " +
                     "pool, and had to read directly from the disk.")}
             </GridCell>,
-            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 3 }}>
+            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 2 }}>
                 <Label className="subTitle">InnoDB Disk Writes</Label>
                 <GraphHost
                     options={diskWritesGraphOptions}
@@ -967,7 +1261,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 {this.renderNameValuePair("Writing", this.formatTrafficValue(innoDBDataWritten), MarkerType.Incoming,
                     "Total amount of data in bytes written in file operations by the InnoDB storage engine.")}
             </GridCell>,
-            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 4 }}>
+            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 3 }}>
                 <Label className="subTitle">InnoDB Disk Reads</Label>
                 <GraphHost
                     options={diskReadsGraphOptions}
@@ -1000,6 +1294,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         ];
 
         const heapUsageGraphOptions: IGraphOptions = {
+            resizeToHost: true,
             viewport: { left: 0, top: 0, width: 400, height: 300 },
             series: [
                 {
@@ -1048,18 +1343,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const cells: ComponentChild[] = [];
         cells.push(
             <GridCell
-                className="title"
                 orientation={Orientation.TopDown}
                 style={{ gridColumn, gridRow: 1 }}
-                crossAlignment={ContentAlignment.Center}
-            >
-                <Icon className="sectionIcon" src={Assets.db.databaseEngineIcon} />
-                <Label>MLE Status</Label>
-                <Label>Overview of the MLE Component.</Label>
-            </GridCell>,
-            <GridCell
-                orientation={Orientation.TopDown}
-                style={{ gridColumn, gridRow: 2 }}
             >
                 <Grid columns={1} rowGap={12} equalHeight={true}>
                     <GridCell
@@ -1156,46 +1441,87 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const list = this.variableNames.join("\",\"");
         try {
             const result = await backend.executeService(`show global status where variable_name in ("${list}")`);
-            const mleMemoryMax = await backend.executeService(`SELECT @@mle.memory_max`);
             if (result?.rows) {
                 const variables = result.rows as Array<[string, string]>;
-                try {
-                    if (mleMemoryMax?.rows) {
-                        const mleMemoryMaxValue = mleMemoryMax.rows as Array<[[number]]>;
-                        variables.push([
-                            "mle_memory_max",
-                            mleMemoryMaxValue[0][0].toString(),
-                        ]);
-                        this.setState({ mleEnabled: true });
-                    }
-                    variables.forEach((variable) => {
-                        if (variable[0] === "mle_memory_used") {
-                            const value = Number(variable[1]);
-                            if (value > 100) {
-                                variable[1] = "100";
-                            }
-                        }
+
+                if (this.mleAvailable === undefined) {
+                    const hasMleStatus = variables.some(([name]) => {
+                        return name === "mle_memory_used" || name === "mle_status";
                     });
-                } catch {
-                    this.setState({ mleEnabled: false });
-                }
-
-                if (this.hasPSAccess) {
-                    const data = await backend.executeService(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
-                        `STORAGE_ENGINES->>'$."InnoDB"."LSN_checkpoint"' FROM performance_schema.log_status`);
-
-                    if (data?.rows && data.rows.length > 0) {
-                        const row = data.rows[0] as number[];
-                        this.updateData(variables, row[0]);
+                    if (hasMleStatus) {
+                        const result = await backend.executeService(
+                            `SHOW GLOBAL VARIABLES LIKE 'mle.memory_max'`,
+                        );
+                        const rows = result?.rows as Array<[string, string]> | undefined;
+                        this.mleMemoryMax = rows?.[0]?.[1];
+                        this.mleAvailable = this.mleMemoryMax !== undefined;
+                    } else {
+                        this.mleAvailable = false;
                     }
-                } else {
-                    this.updateData(variables);
+
+                    this.setState({ mleEnabled: this.mleAvailable });
                 }
+
+                if (this.mleAvailable && this.mleMemoryMax !== undefined) {
+                    variables.push(["mle_memory_max", this.mleMemoryMax]);
+                }
+
+                variables.forEach((variable) => {
+                    if (variable[0] === "mle_memory_used") {
+                        const value = Number(variable[1]);
+                        if (value > 100) {
+                            variable[1] = "100";
+                        }
+                    }
+                });
+
+                let lsnDiff = 0;
+                const canReadLogStatus = this.state.performanceCapabilities?.logStatus ?? true;
+                if (this.hasPSAccess && canReadLogStatus) {
+                    try {
+                        const data = await backend.executeService(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
+                            `STORAGE_ENGINES->>'$."InnoDB"."LSN_checkpoint"' FROM performance_schema.log_status`);
+
+                        if (data?.rows && data.rows.length > 0) {
+                            const row = data.rows[0] as number[];
+                            lsnDiff = row[0];
+                        }
+                    } catch {
+                        // The remaining status values are independent of log_status.
+                    }
+                }
+
+                this.updateData(variables, lsnDiff);
             }
         } catch {
             // Update with empty data, to show unreachable servers etc.
             this.updateData([]);
         }
+    }
+
+    private async initializePerformanceCapabilities(): Promise<void> {
+        const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
+        if (typeof backend.getPerformanceReportCapabilities === "function") {
+            try {
+                const capabilities = await backend.getPerformanceReportCapabilities();
+                this.hasPSAccess = capabilities.performanceSchema;
+                this.setState({ performanceCapabilities: capabilities });
+            } catch {
+                this.hasPSAccess = false;
+            }
+        } else {
+            try {
+                this.hasPSAccess = await backend.isPerformanceSchemaAvailable();
+            } catch {
+                this.hasPSAccess = false;
+            }
+        }
+
+        void this.queryAndUpdate();
     }
 
     /**
@@ -1665,6 +1991,29 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const { onGraphDataChange, graphData } = this.props;
 
         onGraphDataChange?.({ ...graphData, displayInterval: parseInt([...selectedIds][0], 10) });
+    };
+
+    private handleMemoryViewChange = (memoryViewId: MemoryViewId): void => {
+        this.setState({ memoryViewId });
+    };
+
+    private handleWaitViewChange = (waitViewId: WaitViewId): void => {
+        this.setState({ waitViewId });
+    };
+
+    private handleSlowQueryDetailGroupChange = (slowQueryDetailGroupId: StatementDetailGroupId): void => {
+        this.setState({ slowQueryDetailGroupId });
+    };
+
+    private handlePerformanceReportSelection = (accept: boolean, selectedIds: Set<string>): void => {
+        if (!accept) {
+            return;
+        }
+
+        const selectedReportId = [...selectedIds][0] as PerformanceReportId | undefined;
+        if (selectedReportId && selectedReportId !== this.state.activeReportId) {
+            this.selectReport(selectedReportId);
+        }
     };
 
 }

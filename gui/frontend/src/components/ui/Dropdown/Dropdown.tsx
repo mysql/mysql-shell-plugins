@@ -67,6 +67,9 @@ export interface IDropdownProperties extends IComponentProperties {
     /** If set, only the icon of the selected item is shown, not the caption. */
     iconOnly?: boolean;
 
+    /** Custom content to render in place of the selected item's caption. */
+    selectedContent?: ComponentChild;
+
     /**
      * If set, the dropdown allows multiple items to be selected at once.
      * Each item is prefaced with a checkbox which allows the user to select or deselect it.
@@ -130,8 +133,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         this.state = {
         };
 
-        this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "iconOnly", "multiSelect",
-            "withoutArrow", "placeholder", "variant", "autoFocus", "onSelect", "onCancel");
+        this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "iconOnly",
+            "selectedContent", "multiSelect", "withoutArrow", "placeholder", "variant", "autoFocus", "onSelect",
+            "onCancel");
 
         this.connectEvents("onFocus", "onBlur");
     }
@@ -169,7 +173,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     public render(): ComponentChild {
         const {
             children, id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
-            placeholder, iconOnly, disabled, variant,
+            placeholder, iconOnly, selectedContent, disabled, variant,
         } = this.props;
         const { hotId } = this.state;
 
@@ -253,7 +257,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         } else {
             let inputContent;
             if (tags.length > 0) {
-                if (tags[0].picture) {
+                if (selectedContent !== undefined) {
+                    inputContent = selectedContent;
+                } else if (tags[0].picture) {
                     inputContent = <Container
                         orientation={Orientation.LeftToRight}
                         crossAlignment={ContentAlignment.Center}

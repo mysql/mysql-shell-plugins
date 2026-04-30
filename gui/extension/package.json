@@ -984,7 +984,7 @@
             },
             {
                 "command": "msg.showServerStatus",
-                "title": "Show Server Status"
+                "title": "Show Server Information"
             },
             {
                 "command": "msg.showClientConnections",

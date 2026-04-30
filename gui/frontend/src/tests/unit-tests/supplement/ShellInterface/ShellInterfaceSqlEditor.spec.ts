@@ -48,6 +48,34 @@ describe("ShellInterfaceSqlEditor Tests", () => {
         expect(testBackend.calls).toEqual(["select @@performance_schema"]);
     });
 
+    it("caches performance report capabilities on the backend instance", async () => {
+        class TestBackend extends ShellInterfaceSqlEditor {
+            public calls: string[] = [];
+            public response: IDbEditorResultSetData | undefined = { rows: [[1, 1, 1, 1, 1, 1]] };
+
+            public override executeService(sql: string): Promise<IDbEditorResultSetData | undefined> {
+                this.calls.push(sql);
+
+                return Promise.resolve(this.response);
+            }
+        }
+
+        const testBackend = new TestBackend();
+
+        await expect(testBackend.getPerformanceReportCapabilities()).resolves.toEqual({
+            performanceSchema: true,
+            logStatus: true,
+            memory: true,
+            waits: true,
+            slowQueries: true,
+            statementHistogram: true,
+        });
+        await testBackend.getPerformanceReportCapabilities();
+
+        expect(testBackend.calls).toHaveLength(1);
+        expect(testBackend.calls[0]).toContain("events_statements_histogram_global");
+    });
+
     it("caches partial revokes availability on the backend instance", async () => {
         class TestBackend extends ShellInterfaceSqlEditor {
             public calls: string[] = [];

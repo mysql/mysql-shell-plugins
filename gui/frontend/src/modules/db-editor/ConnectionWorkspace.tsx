@@ -774,7 +774,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                             case "performanceDashboard": {
                                 document = <PerformanceDashboard
                                     backend={connection.backend}
-                                    toolbarItems={toolbarItems}
                                     graphData={savedState.graphData}
                                     onGraphDataChange={this.handleGraphDataChange}
 

@@ -169,6 +169,7 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 16px;
+    min-height: 55px;
     width: 100%;
 }
 
@@ -291,19 +292,13 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
 .msg #workspaceSelector::after {
     right: 12px;
     top: 50%;
-    opacity: 0;
-    transition: opacity 120ms ease;
+    opacity: 1;
     transform: translateY(-50%) rotate(45deg);
 }
 
 .msg #workspaceSelector:hover,
 .msg #workspaceSelector.manualFocus {
     background-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 28%, transparent);
-}
-
-.msg #workspaceSelector:hover::after,
-.msg #workspaceSelector.manualFocus::after {
-    opacity: 1;
 }
 
 .msg #workspaceSelector>.container {
@@ -966,8 +961,8 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 /* Definitions for server status. */
 
 .msg.msg.clientConnections #clientConnectionToolbar {
-    width: min(1560px, 100%);
-    margin: 0 auto;
+    width: min(1560px, calc(100% - 48px));
+    margin: 16px auto 0;
 }
 
 .msg.clientConnections #clientConnectionToolbar .button>.icon.codicon {
@@ -2438,16 +2433,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 /* Definitions for the performance dashboard. */
 
-.msg .performanceDashboard {
-    flex: 1;
-    padding-top: 8px;
-}
-
-.msg .performanceDashboard>.administrationPageFrameHeader {
-    padding: 0 24px 8px;
-}
-
-.msg .performanceDashboard>.administrationPageFrameHeader .icon {
+.msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingIcon .icon {
     width: 42px;
     height: 42px;
     background-color: var(--icon-foreground);
@@ -2459,16 +2445,816 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     width: 150px;
 }
 
+.msg.performanceDashboard .performanceDashboardReport {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+}
+
+.msg.performanceDashboard #memoryReportDropdown,
+.msg.performanceDashboard #waitReportDropdown {
+    margin: 0;
+    width: 180px;
+}
+
+.msg.performanceDashboard .mysqlInspector {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.msg.performanceDashboard #mysqlInspectorReport {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.performanceDashboard .performanceStatusReportHeader {
+    border-bottom: 1px solid var(--editorGroup-border);
+    flex: 0 0 auto;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+}
+
+.msg.performanceDashboard .memoryHeaderActions,
+.msg.performanceDashboard .waitHeaderActions {
+    gap: 8px;
+}
+
+.msg.performanceDashboard .performanceReportSectionTitle {
+    flex: 0 0 auto;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    margin: 0 0 8px;
+}
+
+.msg.performanceDashboard .performanceStatusOptionsButton.button {
+    background: transparent;
+    border: none;
+    flex: 0 0 24px;
+    height: 24px;
+    min-width: 0;
+    padding: 0;
+}
+
+.msg.performanceDashboard .performanceStatusOptionsButton.button:hover,
+.msg.performanceDashboard .performanceStatusOptionsButton.button:focus-visible {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.performanceDashboard .performanceStatusOptionsButton .icon {
+    height: 16px;
+    width: 16px;
+}
+
+.msg.performanceDashboard #mysqlInspectorRefreshButton.button,
+.msg.performanceDashboard #memoryRefreshButton.button,
+.msg.performanceDashboard #waitRefreshButton.button,
+.msg.performanceDashboard #slowQueriesExplainButton.button,
+.msg.performanceDashboard #slowQueriesRefreshButton.button,
+.msg.performanceDashboard #statementHistogramExplainButton.button,
+.msg.performanceDashboard #statementHistogramRefreshButton.button {
+    background: transparent;
+    border: none;
+    flex: 0 0 24px;
+    height: 24px;
+    min-width: 0;
+    padding: 0;
+}
+
+.msg.performanceDashboard #mysqlInspectorRefreshButton.button:not(.disabled):hover,
+.msg.performanceDashboard #mysqlInspectorRefreshButton.button:not(.disabled):focus-visible,
+.msg.performanceDashboard #memoryRefreshButton.button:not(.disabled):hover,
+.msg.performanceDashboard #memoryRefreshButton.button:not(.disabled):focus-visible,
+.msg.performanceDashboard #waitRefreshButton.button:not(.disabled):hover,
+.msg.performanceDashboard #waitRefreshButton.button:not(.disabled):focus-visible,
+.msg.performanceDashboard #slowQueriesExplainButton.button:not(.disabled):hover,
+.msg.performanceDashboard #slowQueriesExplainButton.button:not(.disabled):focus-visible,
+.msg.performanceDashboard #slowQueriesRefreshButton.button:not(.disabled):hover,
+.msg.performanceDashboard #slowQueriesRefreshButton.button:not(.disabled):focus-visible,
+.msg.performanceDashboard #statementHistogramExplainButton.button:not(.disabled):hover,
+.msg.performanceDashboard #statementHistogramExplainButton.button:not(.disabled):focus-visible,
+.msg.performanceDashboard #statementHistogramRefreshButton.button:not(.disabled):hover,
+.msg.performanceDashboard #statementHistogramRefreshButton.button:not(.disabled):focus-visible {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.performanceDashboard #mysqlInspectorRefreshButton .icon,
+.msg.performanceDashboard #memoryRefreshButton .icon,
+.msg.performanceDashboard #waitRefreshButton .icon,
+.msg.performanceDashboard #slowQueriesExplainButton .icon,
+.msg.performanceDashboard #slowQueriesRefreshButton .icon,
+.msg.performanceDashboard #statementHistogramExplainButton .icon,
+.msg.performanceDashboard #statementHistogramRefreshButton .icon {
+    height: 16px;
+    width: 16px;
+}
+
+.msg.performanceDashboard .performanceHeadingActions {
+    gap: 4px;
+}
+
+.msg.performanceDashboard .performanceHeadingActions > .button {
+    margin: 0;
+}
+
+.msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingHeader {
+    gap: 0;
+    height: 48px;
+    min-height: 48px;
+    overflow: visible;
+    position: relative;
+}
+
+.msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingHeaderContent {
+    align-items: center;
+    display: flex;
+    margin-left: auto;
+}
+
+.msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingActions {
+    height: 48px;
+    margin-left: 12px;
+    overflow: visible;
+    padding-left: 12px;
+    border-left: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+}
+
+.msg.performanceDashboard #performanceReportDropdown {
+    box-sizing: border-box;
+    flex: 0 1 360px;
+    height: 48px;
+    margin: 0;
+    min-height: 48px;
+    overflow: visible;
+    padding: 0 38px 0 12px;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--foreground);
+    font-size: 1rem;
+    top: 0;
+    width: 360px;
+}
+
+.msg.performanceDashboard #performanceReportDropdown::after {
+    right: 12px;
+    top: 50%;
+    opacity: 1;
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.msg.performanceDashboard #performanceReportDropdown:hover,
+.msg.performanceDashboard #performanceReportDropdown.manualFocus {
+    background-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 28%, transparent);
+}
+
+#performanceReportDropdownPopup > .msg.popup.dropdownList {
+    border-color: var(--dropdown-border);
+    max-height: 420px;
+    min-width: 0;
+    padding: 0;
+    width: 360px;
+}
+
+#performanceReportDropdownPopup > .msg.popup.dropdownList > .dropdownItem {
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 5px 12px;
+    white-space: normal;
+}
+
+.msg.performanceDashboard #performanceReportDropdown .performanceReportDropdownItem,
+#performanceReportDropdownPopup .performanceReportDropdownItem {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.msg.performanceDashboard #performanceReportDropdown .performanceReportDropdownTitle,
+#performanceReportDropdownPopup .performanceReportDropdownTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.msg.performanceDashboard #performanceReportDropdown .performanceReportDropdownSummary,
+#performanceReportDropdownPopup .performanceReportDropdownSummary {
+    color: var(--descriptionForeground);
+    font-size: 11px;
+    line-height: 15px;
+}
+
+.msg.performanceDashboard .memorySummary,
+.msg.performanceDashboard .waitSummary {
+    display: grid;
+    flex: 1 1 auto;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-right: 16px;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .memorySummaryItem,
+.msg.performanceDashboard .waitSummaryItem {
+    border-right: 1px solid var(--editorGroup-border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding-right: 12px;
+}
+
+.msg.performanceDashboard .memorySummaryItem span,
+.msg.performanceDashboard .waitSummaryItem span {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.performanceDashboard .memorySummaryItem strong,
+.msg.performanceDashboard .waitSummaryItem strong {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.msg.performanceDashboard .waitSummaryHost {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .waitSummary {
+    grid-auto-columns: minmax(260px, 1fr);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    overflow-x: auto;
+}
+
+.msg.performanceDashboard .waitSummaryItem > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.performanceDashboard .waitSummaryItem strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.performanceDashboard .waitSummaryValues {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .waitSummaryLatencies {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .waitSummaryLatencies small {
+    color: var(--descriptionForeground);
+    font-size: 11px;
+    line-height: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.performanceDashboard .waitSummaryCaption,
+.msg.performanceDashboard .statementHistogramPercentilesCaption {
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.msg.performanceDashboard .performanceTableHost {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.msg.performanceDashboard .performanceTableGrid {
+    background-color: color-mix(in srgb, var(--background) 28%, transparent);
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+    border-radius: 6px;
+    flex: 1 1 auto;
+    font-size: 12px;
+    min-height: 240px;
+    min-width: 0;
+    width: 100%;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-header {
+    background-color: color-mix(in srgb, var(--list-headerBackground) 88%, var(--sideBar-background));
+    border-bottom-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 86%, transparent);
+    min-height: 30px;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-header .tabulator-col {
+    background-color: transparent;
+    border-right-color: transparent;
+    padding: 0 8px;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-header .tabulator-col:hover,
+.msg.performanceDashboard .performanceTableGrid .tabulator-header .tabulator-col.tabulator-sortable:hover {
+    background-color: transparent;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 6px 0;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-col-title {
+    color: var(--disabledForeground);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-title {
+    padding-right: 0;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-tableholder {
+    background:
+        linear-gradient(color-mix(in srgb, var(--foreground) 3%, transparent), transparent 26px),
+        var(--rowBackgroundColor);
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row {
+    transition: background-color 80ms ease;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row.tabulator-row-odd {
+    background-color: transparent;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row.tabulator-row-even {
+    background-color: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row .tabulator-cell {
+    align-items: center;
+    border-right: none;
+    display: inline-flex;
+    font-size: 0.76rem;
+    line-height: 1.25;
+    padding: 5px 8px;
+}
+
+.msg.performanceDashboard .waitNameCell,
+.msg.performanceDashboard .waitRowMessage {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.performanceDashboard .waitRowMessage {
+    color: var(--descriptionForeground);
+    font-style: italic;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row .tabulator-cell:first-child {
+    border-left: 3px solid transparent;
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row.tabulator-selectable:not(.tabulator-selected):hover .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-hoverBackground) 72%, transparent);
+}
+
+.msg.performanceDashboard .performanceTableGrid:focus-within .tabulator-row.tabulator-selected .tabulator-cell,
+.msg.performanceDashboard .performanceTableGrid .tabulator-row.tabulator-selected .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-activeSelectionBackground) 84%, transparent);
+    color: var(--list-activeSelectionForeground);
+}
+
+.msg.performanceDashboard .performanceTableGrid .tabulator-row.tabulator-selected .tabulator-cell:first-child {
+    border-left-color: #f29111;
+}
+
+.msg.performanceDashboard .performanceFullScanBadge {
+    background-color: color-mix(in srgb, var(--errorForeground) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--errorForeground) 45%, transparent);
+    border-radius: 4px;
+    color: var(--errorForeground);
+    display: inline-flex;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 3px 6px;
+}
+
+.msg.performanceDashboard .slowQueryStatementHistogram {
+    border-top: 1px solid var(--editorGroup-border);
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+    min-width: 0;
+    padding-top: 14px;
+}
+
+.msg.performanceDashboard .slowQueryStatementHistogramHeader {
+    align-items: start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryStatementHistogramHeader h3 {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.msg.performanceDashboard .slowQueryStatementHistogramQuery {
+    align-items: start;
+    align-self: stretch;
+    background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 10px 12px;
+}
+
+.msg.performanceDashboard .slowQueryStatementHistogramQueryText {
+    color: var(--descriptionForeground);
+    cursor: text;
+    flex: 1 1 auto;
+    font-family: var(--msg-monospace-font-family);
+    font-size: 12px;
+    line-height: 1.35;
+    max-height: 54px;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    user-select: text;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.msg.performanceDashboard .slowQuerySqlOpenButton {
+    background-color: var(--secondaryButton-background);
+    border: none;
+    color: var(--secondaryButton-foreground);
+    flex: 0 0 auto;
+    height: 24px;
+    min-width: 0;
+    padding: 0;
+    width: 24px;
+}
+
+.msg.performanceDashboard .slowQuerySqlOpenButton:not(.disabled):hover {
+    background-color: var(--secondaryButton-hoverBackground);
+}
+
+.msg.performanceDashboard .statementHistogramPercentiles {
+    border-bottom: 1px solid var(--editorGroup-border);
+    flex: 0 0 auto;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+}
+
+.msg.performanceDashboard .statementHistogramPercentilesInline {
+    align-items: stretch;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    min-width: 0;
+}
+
+.msg.performanceDashboard .statementHistogramPercentileInlineItem {
+    border-right: 1px solid var(--editorGroup-border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding-right: 12px;
+}
+
+.msg.performanceDashboard .statementHistogramPercentileInlineItem:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+.msg.performanceDashboard .statementHistogramPercentileInlineItem span {
+    color: var(--descriptionForeground);
+    display: block;
+    font-size: 12px;
+}
+
+.msg.performanceDashboard .statementHistogramPercentileInlineItem strong {
+    color: var(--foreground);
+    font-size: 18px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.msg.performanceDashboard .slowQueryStatementHistogramDetails {
+    align-items: start;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) minmax(400px, 460px);
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryStatementPrimary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryDetailsTabs,
+.msg.performanceDashboard #slowQueryDetailsTabview {
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryDetailsTabsContent {
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+    border-radius: 6px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.performanceDashboard #slowQueryDetailsTabview .tabAreaContainer {
+    background-color: transparent;
+}
+
+.msg.performanceDashboard #slowQueryDetailsTabview .tabArea>.tabItem {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--disabledForeground);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 7px 12px;
+    text-transform: uppercase;
+}
+
+.msg.performanceDashboard #slowQueryDetailsTabview .tabArea>.tabItem.selected {
+    background-color: color-mix(in srgb, var(--list-activeSelectionBackground) 14%, transparent);
+    color: var(--foreground);
+}
+
+.msg.performanceDashboard #slowQueryDetailsTabview>.tabContent {
+    background-color: transparent;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummary {
+    display: grid;
+    font-size: 0.78rem;
+    gap: 0;
+    grid-template-columns: max-content minmax(0, 1fr);
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryColumns {
+    align-items: start;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryColumnTitle {
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryItem {
+    display: contents;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryItem + .slowQueryDigestSummaryItem span,
+.msg.performanceDashboard .slowQueryDigestSummaryItem + .slowQueryDigestSummaryItem strong {
+    border-top: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 48%, transparent);
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryItem span {
+    color: var(--disabledForeground);
+    font-size: inherit;
+    font-weight: 400;
+    line-height: 1.35;
+    min-width: 0;
+    padding: 6px 14px 6px 0;
+}
+
+.msg.performanceDashboard .slowQueryDigestSummaryItem strong {
+    color: var(--foreground);
+    font-size: inherit;
+    font-weight: 500;
+    line-height: 1.35;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 6px 0;
+    text-align: left;
+}
+
+.msg.performanceDashboard .statementHistogramGraphHost {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .statementHistogramGraph {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    width: 100%;
+}
+
+.msg.performanceDashboard .statementHistogramBucket {
+    align-items: center;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 124px minmax(0, 1fr) 76px;
+    min-width: 0;
+}
+
+.msg.performanceDashboard .statementHistogramBucketLabel {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    line-height: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.performanceDashboard .statementHistogramBucketTrack {
+    background-color: color-mix(in srgb, var(--foreground) 7%, transparent);
+    border-radius: 2px;
+    height: 14px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.performanceDashboard .statementHistogramBucketBar {
+    background-color: #f29111;
+    border-radius: 2px;
+    height: 100%;
+}
+
+.msg.performanceDashboard .statementHistogramBucketValue {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    line-height: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.performanceDashboard .memoryReportError,
+.msg.performanceDashboard .memoryReportEmpty,
+.msg.performanceDashboard .waitReportError,
+.msg.performanceDashboard .waitReportEmpty,
+.msg.performanceDashboard .slowQueriesReportError,
+.msg.performanceDashboard .slowQueriesReportEmpty,
+.msg.performanceDashboard .statementHistogramReportError,
+.msg.performanceDashboard .statementHistogramReportEmpty {
+    color: var(--descriptionForeground);
+    padding: 32px 0;
+}
+
+.msg.performanceDashboard .memoryReportError,
+.msg.performanceDashboard .waitReportError,
+.msg.performanceDashboard .slowQueriesReportError,
+.msg.performanceDashboard .statementHistogramReportError {
+    color: var(--errorForeground);
+}
+
+.msg.performanceDashboard .mysqlInspectorError,
+.msg.performanceDashboard .mysqlInspectorEmpty {
+    color: var(--descriptionForeground);
+    padding: 32px 0;
+}
+
+.msg.performanceDashboard .mysqlInspectorError {
+    color: var(--errorForeground);
+}
+
+.msg.performanceDashboard .mysqlInspectorTreemapContent {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.msg.performanceDashboard .mysqlInspectorTreemapHost {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.performanceDashboard .mysqlInspectorTreemap {
+    display: block;
+    height: 100%;
+    min-height: 320px;
+    width: 100%;
+}
+
+.msg.performanceDashboard .mysqlInspectorSchemaRect {
+    fill-opacity: 0.12;
+    stroke: var(--editorGroup-border);
+    stroke-width: 1;
+}
+
+.msg.performanceDashboard .mysqlInspectorSchemaLabel,
+.msg.performanceDashboard .mysqlInspectorSchemaSize {
+    fill: var(--foreground);
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.msg.performanceDashboard .mysqlInspectorSchemaSize {
+    fill: var(--descriptionForeground);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.msg.performanceDashboard .mysqlInspectorTableRect {
+    fill-opacity: 0.72;
+    stroke: var(--editor-background);
+    stroke-width: 1;
+}
+
+.msg.performanceDashboard .mysqlInspectorTableNode:hover .mysqlInspectorTableRect {
+    fill-opacity: 0.9;
+    stroke: var(--focusBorder);
+    stroke-width: 2;
+}
+
+.msg.performanceDashboard .mysqlInspectorIndexStripe {
+    fill-opacity: 0.98;
+    pointer-events: none;
+}
+
+.msg.performanceDashboard .mysqlInspectorTableLabel,
+.msg.performanceDashboard .mysqlInspectorTableSize,
+.msg.performanceDashboard .mysqlInspectorTableComposition {
+    fill: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+}
+
+.msg.performanceDashboard .mysqlInspectorTableSize {
+    fill-opacity: 0.86;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.msg.performanceDashboard .mysqlInspectorTableComposition {
+    fill-opacity: 0.58;
+    font-size: 10px;
+    font-weight: 500;
+}
+
 .msg #dashboardGrid {
     flex: 1;
     grid-auto-flow: row;
     margin: 32px;
-
-    grid-template-rows: 120px auto auto auto;
 }
 
 .msg #dashboardGrid .separated {
-    border-right: 1px dashed var(--tree-tableColumnsBorder);
+    border-bottom: 1px dashed var(--tree-tableColumnsBorder);
+    padding-bottom: 24px;
 }
 
 .msg #dashboardGrid .title .label:nth-of-type(1) {
@@ -2485,6 +3271,12 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 .msg #dashboardGrid .graphHost #yAxis .tick line:first-child,
 .msg #dashboardGrid .graphHost #xAxis .tick {
     display: none;
+}
+
+.msg.performanceDashboard #dashboardGrid .graphHost {
+    flex: 0 0 220px;
+    height: 220px;
+    width: 100%;
 }
 
 .msg #dashboardGrid .gridCell .subTitle {
@@ -2565,6 +3357,9 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     --secondaryButton-disabledBackground: transparent;
     --secondaryButton-disabledForeground: var(--disabledForeground);
 
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .msg.clientConnections #clientConnectionsOverview {
@@ -3333,12 +4128,34 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 }
 
 @media (max-width: 700px) {
-    .msg.clientConnections #contentHost {
-        padding: 8px 14px 14px;
-    }
-
     .msg.clientConnections #clientConnectionsOverview {
         grid-template-columns: 1fr;
+    }
+
+    .msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingHeader {
+        height: auto;
+        min-height: 0;
+    }
+
+    .msg.performanceDashboard #performanceReportDropdown {
+        flex: 1 1 auto;
+        height: 48px;
+        min-width: 0;
+        position: static;
+        transform: none;
+        width: auto;
+    }
+
+    .msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingHeaderContent {
+        margin-left: 0;
+    }
+
+    .msg.performanceDashboard #performanceDashboardHeader .administrationPageHeadingActions {
+        border-left: none;
+        height: auto;
+        margin-left: 0;
+        min-width: 0;
+        padding-left: 0;
     }
 
 }

@@ -209,6 +209,22 @@ export const registerSettings = (): void => {
         false,
         { range: [0, 24] },
     );
+    registerSetting(
+        "general.statementHistogramExplainerSeen",
+        "Statement Histogram Explanation Seen",
+        "",
+        "boolean",
+        false,
+        true,
+    );
+    registerSetting(
+        "general.slowQueriesExplainerSeen",
+        "Slow Queries Explanation Seen",
+        "",
+        "boolean",
+        false,
+        true,
+    );
 
     registerSettingCategory(
         "workers",

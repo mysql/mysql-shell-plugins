@@ -102,6 +102,9 @@ export type ColorScheme = "classic" | "delectable" | "trello" | "brewing" | "lig
 
 /** Cached data for the performance dashboard. */
 export interface ISavedGraphData {
+    /** The report selections shown when the dashboard was last open. */
+    performanceDashboardState?: import("./PerformanceDashboard.js").IPerformanceDashboardSavedState;
+
     /** The currently selected graph color scheme (default: classic). */
     activeColorScheme: ColorScheme;
 

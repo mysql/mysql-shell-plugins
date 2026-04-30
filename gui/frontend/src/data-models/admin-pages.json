@@ -23,9 +23,9 @@
     {
         "pageType": "performanceDashboard",
         "desktopCommandId": "database.admin.performanceDashboard",
-        "label": "Performance Dashboard",
+        "label": "Performance Reports",
         "command": "msg.showPerformanceDashboard",
-        "commandTitle": "Show Performance Dashboard"
+        "commandTitle": "Show Performance Reports"
     },
     {
         "pageType": "lakehouseNavigator",

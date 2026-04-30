@@ -1927,7 +1927,7 @@ describe("NOTEBOOKS", () => {
 
             await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
             let dialog = await driver
-                .wait(Workbench.untilConfirmationDialogExists(" after switching to Server Status page")
+                .wait(Workbench.untilConfirmationDialogExists(" after switching to Server Information page")
                     , constants.wait1second * 5);
             expect(await (await dialog!.findElement(locator.confirmDialog.msg))
                 .getText())

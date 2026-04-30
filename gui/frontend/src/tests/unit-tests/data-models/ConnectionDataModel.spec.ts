@@ -400,6 +400,36 @@ describe("ConnectionDataModel", () => {
         checkNoUiWarningsOrErrors();
     });
 
+    it("only shows Lakehouse Navigator for HeatWave connections", async () => {
+        cdmMockState.haveMockConnectionResponse = true;
+        openConnectionDataMock1.info.heatWaveAvailable = false;
+
+        try {
+            await dataModel.reloadConnections();
+            const connection = dataModel.roots.find((entry) => {
+                return entry.type === CdmEntityType.Connection;
+            }) as ICdmConnectionEntry | undefined;
+
+            expect(connection).toBeDefined();
+            await connection?.close();
+            await connection?.refresh?.();
+
+            expect(connection?.adminEntry?.pages.some((page) => {
+                return page.pageType === "lakehouseNavigator";
+            })).toBe(false);
+
+            openConnectionDataMock1.info.heatWaveAvailable = true;
+            await connection?.close();
+            await connection?.refresh?.();
+
+            expect(connection?.adminEntry?.pages.some((page) => {
+                return page.pageType === "lakehouseNavigator";
+            })).toBe(true);
+        } finally {
+            openConnectionDataMock1.info.heatWaveAvailable = false;
+        }
+    });
+
     it("MRS auth apps", async () => {
         cdmMockState.haveMockConnectionResponse = true;
         await dataModel.reloadConnections();

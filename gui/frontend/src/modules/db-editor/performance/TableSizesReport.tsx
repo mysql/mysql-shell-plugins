@@ -1,0 +1,474 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import * as d3 from "d3";
+import { ComponentChild, createRef } from "preact";
+
+import {
+    ComponentBase, IComponentProperties, IComponentState,
+} from "../../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { convertErrorToString } from "../../../utilities/helpers.js";
+import { formatBytes, formatInteger } from "../../../utilities/string-helpers.js";
+
+interface ITableSizesReportProperties extends IComponentProperties {
+    backend?: ShellInterfaceSqlEditor;
+}
+
+interface ITableSizeEntry {
+    schema: string;
+    table: string;
+    dataBytes: number;
+    indexBytes: number;
+    totalBytes: number;
+    rows?: number;
+    engine?: string;
+}
+
+interface ISchemaSizeGroup {
+    schema: string;
+    dataBytes: number;
+    indexBytes: number;
+    totalBytes: number;
+    tables: ITableSizeEntry[];
+}
+
+interface ITableSizesReportState extends IComponentState {
+    loading: boolean;
+    error?: string;
+    schemaSizes: ISchemaSizeGroup[];
+    treemapWidth: number;
+    treemapHeight: number;
+}
+
+interface ITreemapDatum {
+    name: string;
+    schema?: ISchemaSizeGroup;
+    table?: ITableSizeEntry;
+    value?: number;
+    children?: ITreemapDatum[];
+}
+
+type TreemapNode = d3.HierarchyRectangularNode<ITreemapDatum>;
+
+const tableSizesQuery = `
+select table_schema,
+       table_name,
+       coalesce(data_length, 0) as data_bytes,
+       coalesce(index_length, 0) as index_bytes,
+       coalesce(data_length, 0) + coalesce(index_length, 0) as total_bytes,
+       table_rows,
+       engine
+  from information_schema.tables
+ where table_type = 'BASE TABLE'
+   and table_schema not in (
+       'information_schema',
+       'mysql',
+       'mysql_innodb_cluster_metadata',
+       'mysql_rest_service_metadata',
+       'performance_schema',
+       'sys'
+   )
+ order by table_schema, total_bytes desc, table_name`;
+
+export class TableSizesReport extends ComponentBase<ITableSizesReportProperties, ITableSizesReportState> {
+
+    private treemapHostRef = createRef<HTMLDivElement>();
+    private resizeObserver?: ResizeObserver;
+    private observedTreemapHost?: HTMLDivElement;
+    private requestId = 0;
+
+    public constructor(props: ITableSizesReportProperties) {
+        super(props);
+
+        this.state = {
+            loading: false,
+            schemaSizes: [],
+            treemapWidth: 0,
+            treemapHeight: 0,
+        };
+
+        this.addHandledProperties("backend");
+    }
+
+    public override componentDidMount(): void {
+        this.startResizeObserver();
+        void this.updateValues();
+    }
+
+    public refresh(): void {
+        void this.updateValues();
+    }
+
+    public override componentDidUpdate(prevProps: ITableSizesReportProperties): void {
+        const { backend } = this.props;
+
+        this.startResizeObserver();
+
+        if (backend !== prevProps.backend) {
+            void this.updateValues();
+        }
+    }
+
+    public override componentWillUnmount(): void {
+        this.resizeObserver?.disconnect();
+        this.observedTreemapHost = undefined;
+    }
+
+    public render(): ComponentChild {
+        const className = this.getEffectiveClassNames(["mysqlInspector"]);
+
+        return (
+            <Container
+                className={className}
+                orientation={Orientation.TopDown}
+                mainAlignment={ContentAlignment.Start}
+                crossAlignment={ContentAlignment.Stretch}
+            >
+                {this.tableSizesReport()}
+            </Container>
+        );
+    }
+
+    private tableSizesReport(): ComponentChild {
+        const { error, loading, schemaSizes } = this.state;
+
+        return (
+            <Container
+                id="mysqlInspectorReport"
+                orientation={Orientation.TopDown}
+                mainAlignment={ContentAlignment.Start}
+                crossAlignment={ContentAlignment.Stretch}
+            >
+                {error && <div className="mysqlInspectorError">{error}</div>}
+                {!error && loading && schemaSizes.length === 0 && <div className="mysqlInspectorEmpty">Loading...</div>}
+                {!error && !loading && schemaSizes.length === 0 &&
+                    <div className="mysqlInspectorEmpty">No user tables found.</div>}
+                {!error && schemaSizes.length > 0 && this.tableSizesTreemap(schemaSizes)}
+            </Container>
+        );
+    }
+
+    private tableSizesTreemap(schemaSizes: ISchemaSizeGroup[]): ComponentChild {
+        const { width, height } = this.treemapDimensions();
+        const { schemaNodes, tableNodes } = this.treemapNodes(schemaSizes, width, height);
+        const schemaColors = d3.scaleOrdinal<string, string>(
+            schemaSizes.map((schema) => {
+                return schema.schema;
+            }).sort(),
+            d3.schemeCategory10,
+        );
+
+        return (
+            <div className="mysqlInspectorTreemapContent">
+                <div className="mysqlInspectorTreemapHost" ref={this.treemapHostRef}>
+                    <svg
+                        className="mysqlInspectorTreemap"
+                        viewBox={`0 0 ${width} ${height}`}
+                        role="img"
+                        aria-label="Table sizes treemap"
+                    >
+                        {schemaNodes.map((node) => {
+                            const schema = node.data.schema;
+                            const nodeWidth = this.nodeWidth(node);
+                            const nodeHeight = this.nodeHeight(node);
+                            const color = schemaColors(schema?.schema ?? node.data.name);
+
+                            return (
+                                <g className="mysqlInspectorSchemaNode" key={node.data.name}>
+                                    <rect
+                                        className="mysqlInspectorSchemaRect"
+                                        x={node.x0}
+                                        y={node.y0}
+                                        width={nodeWidth}
+                                        height={nodeHeight}
+                                        fill={color}
+                                    />
+                                    {nodeWidth > 90 && nodeHeight > 28 &&
+                                        <text
+                                            className="mysqlInspectorSchemaLabel"
+                                            x={node.x0 + 8}
+                                            y={node.y0 + 17}
+                                        >
+                                            {node.data.name}
+                                        </text>}
+                                    {schema && nodeWidth > 170 && nodeHeight > 28 &&
+                                        <text
+                                            className="mysqlInspectorSchemaSize"
+                                            x={node.x1 - 8}
+                                            y={node.y0 + 17}
+                                            text-anchor="end"
+                                        >
+                                            {formatBytes(schema.totalBytes)}
+                                        </text>}
+                                </g>
+                            );
+                        })}
+                        {tableNodes.map((node) => {
+                            const table = node.data.table!;
+                            const tableKey = this.tableKey(table);
+                            const nodeWidth = this.nodeWidth(node);
+                            const nodeHeight = this.nodeHeight(node);
+                            const indexRatio = table.totalBytes > 0 ? table.indexBytes / table.totalBytes : 0;
+                            const indexHeight = Math.max(0, Math.min(nodeHeight, nodeHeight * indexRatio));
+                            const color = schemaColors(table.schema);
+                            const tooltip = this.tableTooltip(table);
+
+                            return (
+                                <g
+                                    key={tableKey}
+                                    className="mysqlInspectorTableNode"
+                                    data-testid={`mysqlInspectorTable-${tableKey}`}
+                                >
+                                    <rect
+                                        className="mysqlInspectorTableRect"
+                                        data-tooltip={tooltip}
+                                        x={node.x0}
+                                        y={node.y0}
+                                        width={nodeWidth}
+                                        height={nodeHeight}
+                                        fill={color}
+                                    />
+                                    <rect
+                                        className="mysqlInspectorIndexStripe"
+                                        data-index-bytes={table.indexBytes}
+                                        data-index-ratio={indexRatio}
+                                        x={node.x0}
+                                        y={node.y1 - indexHeight}
+                                        width={nodeWidth}
+                                        height={indexHeight}
+                                        fill={color}
+                                    />
+                                    {nodeWidth > 58 && nodeHeight > 28 &&
+                                        <text
+                                            className="mysqlInspectorTableLabel"
+                                            x={node.x0 + 6}
+                                            y={node.y0 + 16}
+                                        >
+                                            {table.table}
+                                        </text>}
+                                    {nodeWidth > 72 && nodeHeight > 48 &&
+                                        <text
+                                            className="mysqlInspectorTableSize"
+                                            x={node.x0 + 6}
+                                            y={node.y0 + 33}
+                                        >
+                                            {formatBytes(table.totalBytes)}
+                                        </text>}
+                                    {nodeWidth > 150 && nodeHeight > 70 &&
+                                        <text
+                                            className="mysqlInspectorTableComposition"
+                                            x={node.x0 + 6}
+                                            y={node.y0 + 50}
+                                        >
+                                            {`Data ${formatBytes(table.dataBytes)} / ` +
+                                                `Index ${formatBytes(table.indexBytes)}`}
+                                        </text>}
+                                </g>
+                            );
+                        })}
+                    </svg>
+                </div>
+            </div>
+        );
+    }
+
+    private async updateValues(): Promise<void> {
+        const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
+        const requestId = ++this.requestId;
+        this.setState({ loading: true, error: undefined });
+
+        try {
+            const result = await backend.executeService(tableSizesQuery);
+            const rows = (result?.rows ?? []) as unknown[][];
+            const schemaSizes = this.groupTableSizes(rows);
+
+            if (requestId !== this.requestId) {
+                return;
+            }
+
+            this.setState({
+                loading: false,
+                schemaSizes,
+            });
+        } catch (reason) {
+            if (requestId !== this.requestId) {
+                return;
+            }
+
+            this.setState({
+                loading: false,
+                error: convertErrorToString(reason),
+                schemaSizes: [],
+            });
+        }
+    }
+
+    private groupTableSizes(rows: unknown[][]): ISchemaSizeGroup[] {
+        const groups = new Map<string, ISchemaSizeGroup>();
+
+        rows.forEach((row) => {
+            const entry: ITableSizeEntry = {
+                schema: String(row[0] ?? ""),
+                table: String(row[1] ?? ""),
+                dataBytes: this.toNumber(row[2]),
+                indexBytes: this.toNumber(row[3]),
+                totalBytes: this.toNumber(row[4]),
+                rows: row[5] === null || row[5] === undefined ? undefined : this.toNumber(row[5]),
+                engine: row[6] === null || row[6] === undefined ? undefined : String(row[6]),
+            };
+            const group = groups.get(entry.schema) ?? {
+                schema: entry.schema,
+                dataBytes: 0,
+                indexBytes: 0,
+                totalBytes: 0,
+                tables: [],
+            };
+
+            group.dataBytes += entry.dataBytes;
+            group.indexBytes += entry.indexBytes;
+            group.totalBytes += entry.totalBytes;
+            group.tables.push(entry);
+            groups.set(entry.schema, group);
+        });
+
+        return [...groups.values()].sort((left, right) => {
+            return right.totalBytes - left.totalBytes || left.schema.localeCompare(right.schema);
+        });
+    }
+
+    private toNumber(value: unknown): number {
+        const result = Number(value);
+
+        return Number.isFinite(result) ? result : 0;
+    }
+
+    private startResizeObserver(): void {
+        const host = this.treemapHostRef.current;
+        if (!host || this.observedTreemapHost === host) {
+            return;
+        }
+
+        this.resizeObserver?.disconnect();
+        this.resizeObserver = undefined;
+        this.observedTreemapHost = host;
+
+        const updateSize = (): void => {
+            const rect = host.getBoundingClientRect();
+            const treemapWidth = Math.floor(rect.width);
+            const treemapHeight = Math.floor(rect.height);
+
+            if (treemapWidth <= 0 || treemapHeight <= 0) {
+                return;
+            }
+
+            if (treemapWidth !== this.state.treemapWidth || treemapHeight !== this.state.treemapHeight) {
+                this.setState({ treemapWidth, treemapHeight });
+            }
+        };
+
+        updateSize();
+
+        /* istanbul ignore next */
+        if (typeof ResizeObserver !== "undefined") {
+            this.resizeObserver = new ResizeObserver(updateSize);
+            this.resizeObserver.observe(host);
+        }
+    }
+
+    private treemapDimensions(): { width: number; height: number } {
+        const { treemapWidth, treemapHeight } = this.state;
+
+        return {
+            width: Math.max(360, treemapWidth || 920),
+            height: Math.max(320, treemapHeight || 520),
+        };
+    }
+
+    private treemapNodes(schemaSizes: ISchemaSizeGroup[], width: number, height: number): {
+        schemaNodes: TreemapNode[];
+        tableNodes: TreemapNode[];
+    } {
+        const rootData: ITreemapDatum = {
+            name: "tableSizes",
+            children: schemaSizes.map((schema) => {
+                return {
+                    name: schema.schema,
+                    schema,
+                    children: schema.tables.map((table) => {
+                        return {
+                            name: table.table,
+                            table,
+                            value: Math.max(table.totalBytes, 1),
+                        };
+                    }),
+                };
+            }),
+        };
+        const hierarchy = d3.hierarchy(rootData)
+            .sum((datum) => {
+                return datum.value ?? 0;
+            })
+            .sort((left, right) => {
+                return (right.value ?? 0) - (left.value ?? 0) || left.data.name.localeCompare(right.data.name);
+            });
+        const root = d3.treemap<ITreemapDatum>()
+            .size([width, height])
+            .paddingOuter(8)
+            .paddingTop(28)
+            .paddingInner(2)
+            .round(true)(hierarchy);
+
+        return {
+            schemaNodes: root.children ?? [],
+            tableNodes: root.leaves().filter((node) => {
+                return node.data.table !== undefined;
+            }),
+        };
+    }
+
+    private nodeWidth(node: TreemapNode): number {
+        return Math.max(0, node.x1 - node.x0);
+    }
+
+    private nodeHeight(node: TreemapNode): number {
+        return Math.max(0, node.y1 - node.y0);
+    }
+
+    private tableTooltip(table: ITableSizeEntry): string {
+        return `${table.schema}.${table.table} | Total ${formatBytes(table.totalBytes)} | ` +
+            `Data ${formatBytes(table.dataBytes)} | Index ${formatBytes(table.indexBytes)} | ` +
+            `Rows ${table.rows === undefined ? "" : formatInteger(table.rows)} | Engine ${table.engine ?? ""}`;
+    }
+
+    private tableKey(table: ITableSizeEntry): string {
+        return `${table.schema}.${table.table}`;
+    }
+}

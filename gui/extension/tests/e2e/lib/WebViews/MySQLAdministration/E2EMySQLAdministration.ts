@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,7 +37,7 @@ import { E2EClientConnections } from "./E2EClientConnections";
  */
 export class E2EMySQLAdministration {
 
-    /** The Server Status page */
+    /** The Server Information page */
     public serverStatus = new E2EServerStatus();
 
     /** The Client Connections page */
@@ -53,11 +53,11 @@ export class E2EMySQLAdministration {
      * Verifies if the page is opened and fully loaded
      * 
      * @param connection The DB connection
-     * @param page The page (Server Status, Client Connections, Performance Dashboard, Lakehouse Navigator))
+     * @param page The page (Server Information, Client Connections, Performance Dashboard, Lakehouse Navigator))
      * @returns A condition resolving to true if the page is fully loaded, false otherwise
      */
     public untilPageIsOpened = (connection: interfaces.IDBConnection, page: string): Condition<boolean> => {
-        return new Condition(`for Server Status to be opened`, async () => {
+        return new Condition(`for Server Information to be opened`, async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 

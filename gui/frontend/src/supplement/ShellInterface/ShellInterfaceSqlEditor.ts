@@ -47,6 +47,102 @@ const isBackendTrue = (value: unknown): boolean => {
     return typeof value === "string" && ["ON", "TRUE", "YES"].includes(value.trim().toUpperCase());
 };
 
+export interface IPerformanceReportCapabilities {
+    performanceSchema: boolean;
+    logStatus: boolean;
+    memory: boolean;
+    waits: boolean;
+    slowQueries: boolean;
+    statementHistogram: boolean;
+}
+
+const optimisticPerformanceReportCapabilities = (): IPerformanceReportCapabilities => {
+    return {
+        // Metadata probing is best effort. Let the report query provide the
+        // actual error when the probe itself fails.
+        performanceSchema: true,
+        logStatus: true,
+        memory: true,
+        waits: true,
+        slowQueries: true,
+        statementHistogram: true,
+    };
+};
+
+const performanceReportCapabilitiesQuery = `
+SELECT
+    @@performance_schema,
+    EXISTS (
+        SELECT 1
+          FROM information_schema.tables
+         WHERE table_schema = 'performance_schema'
+           AND table_name = 'log_status'
+    ),
+    (
+        SELECT COUNT(*) = 5
+          FROM information_schema.tables
+         WHERE table_schema = 'sys'
+           AND table_name IN (
+               'memory_global_total',
+               'memory_global_by_current_bytes',
+               'memory_by_thread_by_current_bytes',
+               'memory_by_host_by_current_bytes',
+               'memory_by_user_by_current_bytes'
+           )
+    ),
+    (
+        (SELECT COUNT(*) = 4
+          FROM information_schema.tables
+         WHERE table_schema = 'sys'
+           AND table_name IN (
+               'x$wait_classes_global_by_latency',
+               'x$waits_global_by_latency',
+               'x$waits_by_host_by_latency',
+               'x$waits_by_user_by_latency'
+           ))
+        AND
+        (SELECT COUNT(*) = 1
+           FROM information_schema.routines
+          WHERE routine_schema = 'sys'
+            AND routine_name = 'format_time'
+            AND routine_type = 'FUNCTION')
+    ),
+    (
+        (SELECT COUNT(*) = 3
+           FROM information_schema.tables
+          WHERE (table_schema = 'sys' AND table_name = 'x$statement_analysis')
+             OR (table_schema = 'performance_schema' AND table_name IN (
+                'events_statements_histogram_by_digest',
+                'events_statements_summary_by_digest'
+             )))
+        AND
+        (SELECT COUNT(*) = 6
+           FROM information_schema.columns
+          WHERE table_schema = 'performance_schema'
+            AND table_name = 'events_statements_summary_by_digest'
+            AND column_name IN (
+                'sum_cpu_time',
+                'max_controlled_memory',
+                'max_total_memory',
+                'quantile_95',
+                'quantile_99',
+                'quantile_999'
+            ))
+        AND
+        (SELECT COUNT(*) = 2
+           FROM information_schema.routines
+          WHERE routine_schema = 'sys'
+            AND routine_name IN ('format_time', 'format_bytes')
+            AND routine_type = 'FUNCTION')
+    ),
+    EXISTS (
+        SELECT 1
+          FROM information_schema.tables
+         WHERE table_schema = 'performance_schema'
+           AND table_name = 'events_statements_histogram_global'
+    )
+`;
+
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
 
     public interactive: ShellInteractiveInterface = new ShellInteractiveInterface();
@@ -56,6 +152,8 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     private serviceOnlySession = false;
     private performanceSchemaAvailable?: boolean;
     private performanceSchemaAvailabilityProbe?: Promise<boolean>;
+    private performanceReportCapabilities?: IPerformanceReportCapabilities;
+    private performanceReportCapabilitiesProbe?: Promise<IPerformanceReportCapabilities>;
     private partialRevokesEnabled?: boolean;
     private partialRevokesEnabledProbe?: Promise<boolean>;
 
@@ -157,7 +255,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
                 }
 
                 const firstRow = result.rows?.[0];
-                const value = Array.isArray(firstRow) ? firstRow[0] : firstRow;
+                const value = Array.isArray(firstRow) ? firstRow[0] as unknown : firstRow;
                 const available = isBackendTrue(value);
                 this.performanceSchemaAvailable = available;
 
@@ -168,6 +266,53 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
             });
 
         return this.performanceSchemaAvailabilityProbe;
+    }
+
+    /**
+     * Returns the server capabilities required by the performance reports.
+     *
+     * The report SQL targets MySQL 8.0.31 and newer. Metadata checks are still
+     * used so missing schemas, tables, or disabled Performance Schema features
+     * produce a useful report state instead of an opaque SQL error.
+     */
+    public async getPerformanceReportCapabilities(): Promise<IPerformanceReportCapabilities> {
+        if (this.performanceReportCapabilities) {
+            return this.performanceReportCapabilities;
+        }
+
+        this.performanceReportCapabilitiesProbe ??= this.executeService(performanceReportCapabilitiesQuery)
+            .then((result) => {
+                const values = result?.rows?.[0] as unknown[] | undefined;
+                if (!values) {
+                    const capabilities = optimisticPerformanceReportCapabilities();
+                    this.performanceReportCapabilities = capabilities;
+
+                    return capabilities;
+                }
+
+                const capabilities: IPerformanceReportCapabilities = {
+                    performanceSchema: isBackendTrue(values[0]),
+                    logStatus: isBackendTrue(values[1]),
+                    memory: isBackendTrue(values[2]),
+                    waits: isBackendTrue(values[3]),
+                    slowQueries: isBackendTrue(values[4]),
+                    statementHistogram: isBackendTrue(values[5]),
+                };
+                this.performanceReportCapabilities = capabilities;
+
+                return capabilities;
+            })
+            .catch(() => {
+                const capabilities = optimisticPerformanceReportCapabilities();
+                this.performanceReportCapabilities = capabilities;
+
+                return capabilities;
+            })
+            .finally(() => {
+                this.performanceReportCapabilitiesProbe = undefined;
+            });
+
+        return this.performanceReportCapabilitiesProbe;
     }
 
     /**
@@ -348,7 +493,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
             });
 
             for (const entry of response) {
-                if (entry.result?.svg) {
+                if (entry.result.svg) {
                     return entry.result;
                 }
             }
@@ -887,6 +1032,8 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     private clearWorkspaceCaches(): void {
         this.performanceSchemaAvailable = undefined;
         this.performanceSchemaAvailabilityProbe = undefined;
+        this.performanceReportCapabilities = undefined;
+        this.performanceReportCapabilitiesProbe = undefined;
         this.partialRevokesEnabled = undefined;
         this.partialRevokesEnabledProbe = undefined;
     }

@@ -407,7 +407,7 @@ describe("OpenDocumentDataModel", () => {
         expect(dataModel.roots).toHaveLength(1);
 
         const type = OdmEntityType.AdminPage;
-        const caption = "Server Status";
+        const caption = "Server Information";
         const pageType = "serverStatus";
 
         // Adding the document with the same type but different connection

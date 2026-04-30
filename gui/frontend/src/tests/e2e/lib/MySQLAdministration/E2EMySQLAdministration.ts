@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,7 @@ import { E2ETabContainer } from "../E2ETabContainer.js";
  */
 export class E2EMySQLAdministration {
 
-    /** The Server Status page */
+    /** The Server Information page */
     public serverStatus = new E2EServerStatus();
 
     /** The Client Connections page */

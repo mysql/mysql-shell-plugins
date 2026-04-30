@@ -247,7 +247,7 @@ describe("Document module desktop commands", () => {
 
         const adminPages: Array<Record<string, unknown>> = (options?.adminPages ?? [{
             id: "admin-server-status",
-            caption: "Server Status",
+            caption: "Server Information",
             pageType: "serverStatus" as const,
         }]).map((page) => {
             return {
@@ -3408,7 +3408,7 @@ describe("Document module desktop commands", () => {
         const sharedConnection = createElectronWorkspaceConnection({
             adminPages: [{
                 id: "admin-server-status",
-                caption: "Server Status",
+                caption: "Server Information",
                 pageType: "serverStatus",
             }, {
                 id: "admin-client-connections",
@@ -3420,7 +3420,7 @@ describe("Document module desktop commands", () => {
                 pageType: "userAccounts",
             }, {
                 id: "admin-performance-dashboard",
-                caption: "Performance Dashboard",
+                caption: "Performance Reports",
                 pageType: "performanceDashboard",
             }, {
                 id: "admin-enterprise-backup",
@@ -3467,7 +3467,7 @@ describe("Document module desktop commands", () => {
             }),
             expect.objectContaining({
                 id: "database.admin.serverStatus",
-                label: "Server Status",
+                label: "Server Information",
                 enabled: true,
             }),
             expect.objectContaining({
@@ -3482,7 +3482,7 @@ describe("Document module desktop commands", () => {
             }),
             expect.objectContaining({
                 id: "database.admin.performanceDashboard",
-                label: "Performance Dashboard",
+                label: "Performance Reports",
                 enabled: true,
             }),
             expect.objectContaining({

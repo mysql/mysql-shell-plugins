@@ -1,0 +1,108 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.popup.uiExplainerPopup {
+    width: min(360px, calc(100vw - 24px));
+    padding: 0;
+
+    border: 1px solid var(--dropdown-border);
+    border-radius: 6px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px;
+    position: relative;
+    outline: none;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .close.button {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+
+    background: transparent;
+    border: 0;
+    height: 24px;
+    margin: 0;
+    min-width: 0;
+    padding: 4px;
+    width: 24px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .close.button:not(.disabled):hover,
+.msg.popup.uiExplainerPopup > .uiExplainer > .close.button:not(.disabled):focus-visible {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .close.button .icon {
+    height: 14px;
+    width: 14px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .title {
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    padding-right: 26px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .content {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    padding-right: 26px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .footer > .progress {
+    color: var(--descriptionForeground);
+    flex: 0 0 auto;
+    font-size: 11px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .footer > .actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.msg.popup.uiExplainerPopup > .uiExplainer > .footer .button {
+    margin: 0;
+    min-width: 54px;
+}

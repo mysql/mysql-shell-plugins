@@ -28,7 +28,7 @@ import { E2EEditorSelector } from "../E2EEditorSelector.js";
 import { wait3seconds } from "../constants.js";
 
 /**
- * This class represents the Server Status page and all its related functions
+ * This class represents the Server Information page and all its related functions
  */
 export class E2EServerStatus {
 
@@ -143,7 +143,7 @@ export class E2EServerStatus {
     public sslKey: string | undefined;
 
     /**
-     * Loads the Server Status page objects and attributes
+     * Loads the Server Information page objects and attributes
      * 
      * @returns A promise resolving when the page is loaded
      */

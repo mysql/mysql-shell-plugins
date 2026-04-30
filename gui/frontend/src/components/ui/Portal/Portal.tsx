@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -47,6 +47,9 @@ export interface IPortalOptions {
      * (default: true).
      */
     blockMouseEvents?: boolean;
+
+    /** A viewport rectangle which remains visually clear while the rest of the portal is dimmed. */
+    spotlight?: DOMRect;
 }
 
 export interface IPortalProperties extends IComponentProperties {
@@ -94,23 +97,16 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
 
         if (open) {
             if (!this.host) {
-                const blockMouseEvents = options.blockMouseEvents ?? true;
-                const className = this.getEffectiveClassNames([
-                    "portal",
-                    this.classFromProperty(blockMouseEvents, ["ignoreMouse", ""]),
-                ]);
-
                 this.host = document.createElement("div");
                 if (id) {
                     this.host.id = id;
                 }
 
-                this.host.className = className;
-                this.host.style.setProperty("--background-opacity", String(options.backgroundOpacity ?? 0.5));
                 this.host.addEventListener("mousedown", this.handlePortalMouseDown);
                 this.host.addEventListener("wheel", this.handlePortalMouseWheel);
                 container.appendChild(this.host);
             }
+            this.applyOptionsToHost(options);
             render(children, this.host);
         } else {
             this.host?.remove();
@@ -121,6 +117,13 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
     public override componentWillUnmount(): void {
         this.host?.remove();
         this.host = undefined;
+
+        const index = Portal.portalStack.findIndex((portal) => {
+            return portal === this;
+        });
+        if (index > -1) {
+            Portal.portalStack.splice(index, 1);
+        }
     }
 
     public render(): ComponentChild {
@@ -171,6 +174,24 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
     };
 
     /**
+     * Updates the options of an open portal without closing and reopening it.
+     *
+     * @param options The options to merge into the currently active options.
+     */
+    public updateOptions = (options: Partial<IPortalOptions>): void => {
+        if (this.state.open) {
+            this.setState((previousState) => {
+                return {
+                    options: {
+                        ...previousState.options,
+                        ...options,
+                    },
+                };
+            });
+        }
+    };
+
+    /**
      * FocusOn handler when the focus lock is active.
      *
      * @param event The mouse event generated for the click.
@@ -186,11 +207,38 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
     private handlePortalMouseWheel = (event: WheelEvent): void => {
         const { open, options } = this.state;
 
-        if (open && !options.blockMouseEvents) {
+        if (open && (options.blockMouseEvents ?? true)) {
             event.preventDefault();
             event.stopPropagation();
         }
     };
+
+    private applyOptionsToHost(options: IPortalOptions): void {
+        if (!this.host) {
+            return;
+        }
+
+        const blockMouseEvents = options.blockMouseEvents ?? true;
+        const spotlight = options.spotlight;
+        this.host.className = this.getEffectiveClassNames([
+            "portal",
+            this.classFromProperty(!blockMouseEvents, "ignoreMouse"),
+            this.classFromProperty(Boolean(spotlight), "spotlight"),
+        ]);
+        this.host.style.setProperty("--background-opacity", String(options.backgroundOpacity ?? 0.5));
+
+        if (spotlight) {
+            this.host.style.setProperty("--spotlight-left", `${spotlight.left}px`);
+            this.host.style.setProperty("--spotlight-top", `${spotlight.top}px`);
+            this.host.style.setProperty("--spotlight-width", `${spotlight.width}px`);
+            this.host.style.setProperty("--spotlight-height", `${spotlight.height}px`);
+        } else {
+            this.host.style.removeProperty("--spotlight-left");
+            this.host.style.removeProperty("--spotlight-top");
+            this.host.style.removeProperty("--spotlight-width");
+            this.host.style.removeProperty("--spotlight-height");
+        }
+    }
 
     static {
         // Add a single keydown handler for all portals.

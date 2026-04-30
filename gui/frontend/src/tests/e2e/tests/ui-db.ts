@@ -1327,7 +1327,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Server Status", async () => {
+        it("Server Information", async () => {
             try {
                 await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
                 await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn),
@@ -1337,7 +1337,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.wait(async () => {
                     await mysqlAdministration.serverStatus.create();
                     return mysqlAdministration.serverStatus.socket?.match(/(\.sock|MySQL)/);
-                }, constants.wait5seconds, "The Server Status is not loading");
+                }, constants.wait5seconds, "The Server Information is not loading");
 
                 expect(mysqlAdministration.serverStatus.host).not.toBe("");
                 expect(mysqlAdministration.serverStatus.port).toMatch(/(\d+)/);
