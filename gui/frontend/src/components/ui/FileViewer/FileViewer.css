@@ -1,0 +1,132 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+body.fileViewerBody,
+#root.fileViewerRoot {
+    background-color: var(--background);
+}
+
+.msg.fileViewer {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    color: var(--foreground);
+    background-color: var(--background);
+}
+
+.msg.fileViewer .fileViewerToolbar {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: minmax(180px, 280px) minmax(136px, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--editorGroupHeader-tabsBorder);
+}
+
+.msg.fileViewer .searchContainer {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+}
+
+.msg.fileViewer .fileViewerSearchControls {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+}
+
+.msg.fileViewer .searchContainer .input {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 4px 0 0;
+    padding: 3px 2px 3px 4px;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+.msg.fileViewer .fileViewerIconButton {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    margin: 0;
+    border: none;
+    background-color: transparent;
+}
+
+.msg.fileViewer .fileViewerIconButton .icon {
+    color: var(--button-foreground);
+}
+
+.msg.fileViewer .fileViewerIconToggle {
+    background-color: transparent;
+}
+
+.msg.fileViewer .fileViewerIconToggle.active {
+    background-color: var(--button-background);
+}
+
+.msg.fileViewer .fileViewerActions {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.msg.fileViewer .fileViewerContent {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    padding: 10px;
+    resize: none;
+    border: none;
+    outline: none;
+    color: var(--foreground);
+    background-color: var(--background);
+    font-family: var(--msg-monospace-font-family);
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre;
+    user-select: text;
+}
+
+.msg.fileViewer .fileViewerContent.wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.msg.fileViewer .fileViewerStatus {
+    flex: 0 0 auto;
+    padding: 4px 10px;
+    border-top: 1px solid var(--editorGroupHeader-tabsBorder);
+    color: var(--descriptionForeground);
+    user-select: text;
+}

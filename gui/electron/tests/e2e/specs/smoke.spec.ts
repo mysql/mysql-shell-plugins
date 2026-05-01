@@ -23,6 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
+
 import { test, expect } from "../fixtures/electron.js";
 
 test.describe("Electron desktop shell", () => {
@@ -96,5 +99,44 @@ test.describe("Electron desktop shell", () => {
         } finally {
             await workbench.writeSystemClipboardText(previousText);
         }
+    });
+
+    test("opens mysqlsh.log in a sandboxed file viewer window", async ({ electronApp, workbench }, testInfo) => {
+        await workbench.waitForShell();
+
+        const marker = `electron-log-viewer-${Date.now()}`;
+        const logPath = testInfo.outputPath("mysqlsh-user-config", "mysqlsh.log");
+        await mkdir(dirname(logPath), { recursive: true });
+        await writeFile(logPath, `Log viewer marker: ${marker}\n`, "utf8");
+
+        const fileViewerPagePromise = electronApp.waitForEvent("window");
+        await workbench.clickMenu(["View", "Developer", "Open mysqlsh.log File"]);
+        const fileViewerPage = await fileViewerPagePromise;
+
+        await expect(fileViewerPage.locator(".fileViewer")).toBeVisible({ timeout: 15000 });
+        await expect(fileViewerPage.locator(".fileViewerContent")).toHaveValue(new RegExp(marker), {
+            timeout: 15000,
+        });
+        await expect(fileViewerPage.locator(".fileViewerStatus")).toContainText("loaded");
+
+        const bridgeState = await fileViewerPage.evaluate(() => {
+            const fileViewerWindow = window as unknown as {
+                electronHost?: unknown;
+                fileViewer?: unknown;
+                require?: unknown;
+            };
+
+            return {
+                electronHost: Boolean(fileViewerWindow.electronHost),
+                fileViewer: Boolean(fileViewerWindow.fileViewer),
+                requireType: typeof fileViewerWindow.require,
+            };
+        });
+
+        expect(bridgeState).toEqual({
+            electronHost: false,
+            fileViewer: true,
+            requireType: "undefined",
+        });
     });
 });

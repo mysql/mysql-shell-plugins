@@ -27,16 +27,17 @@ import { render } from "preact";
 
 import { App } from "./app-logic/App.js";
 
-const root = document.getElementById("root")!;
+const renderApplication = (): void => {
+    const root = document.getElementById("root")!;
 
-if (import.meta.hot) {
-    import.meta.hot.dispose(() => {
-        render(null, root);
-    });
-}
+    if (import.meta.hot) {
+        import.meta.hot.dispose(() => {
+            render(null, root);
+        });
+    }
+
+    render(<App />, root);
+};
 
 /* istanbul ignore next */
-render(
-    <App />,
-    root,
-);
+renderApplication();

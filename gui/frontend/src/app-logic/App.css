@@ -262,7 +262,7 @@ html.themeSwitch *:after {
     -webkit-overflow-scrolling: touch;
 
     scrollbar-width: auto;
-    scrollbar-color: var(--scrollbarSlider-background) var(--scrollbarSlider-shadow);
+    scrollbar-color: var(--scrollbarSlider-background) transparent;
 }
 
 .msg .fixedScrollbar::-webkit-scrollbar {
@@ -270,7 +270,7 @@ html.themeSwitch *:after {
     width: 7px;
     height: 7px;
 
-    background-color: var(--scrollbarSlider-shadow);
+    background-color: transparent;
 }
 
 .msg .fixedScrollbar::-webkit-scrollbar-thumb {
@@ -279,7 +279,7 @@ html.themeSwitch *:after {
 }
 
 .msg .fixedScrollbar::-webkit-scrollbar-corner {
-    background-color: var(--scrollbarSlider-shadow);
+    background-color: transparent;
 }
 
 /* Some browser specific rules. */

@@ -34,6 +34,12 @@ const ApplicationHost = lazy(async () => {
     return import("./ApplicationHost.js");
 });
 
+const FileViewer = lazy(async () => {
+    const module = await import("../components/ui/FileViewer/FileViewer.js");
+
+    return { default: module.FileViewer };
+});
+
 const MigrationSubApp = lazy(async () => {
     return import("./MigrationSubApp/MigrationSubApp.js");
 });
@@ -46,15 +52,19 @@ export const LoadingIndicator = (
 );
 
 let Root: ComponentType;
-switch (appParameters.subApp) {
-    case "migration": {
-        Root = MigrationSubApp;
-        break;
-    }
+if (new URLSearchParams(window.location.search).get("view") === "fileViewer") {
+    Root = FileViewer;
+} else {
+    switch (appParameters.subApp) {
+        case "migration": {
+            Root = MigrationSubApp;
+            break;
+        }
 
-    default: {
-        Root = ApplicationHost;
-        break;
+        default: {
+            Root = ApplicationHost;
+            break;
+        }
     }
 }
 

@@ -40,6 +40,7 @@ const {
     shell,
 } = require("electron");
 const { buildNativeMenuTemplate, resolvePositioningItem, translatePopupCoordinates } = require("./native-menu.cjs");
+const { createFileViewerHost } = require("./file-viewer-host.cjs");
 const { buildMysqlShellArguments, parseMysqlShellExtraArguments } = require("./mysqlsh-arguments.cjs");
 
 const appRootDir = path.resolve(__dirname, "..");
@@ -49,6 +50,7 @@ const bundledImagesDir = path.join(appRootDir, "images");
 const isBundledRuntime = fs.existsSync(bundledFrontendBuildDir) && fs.existsSync(path.join(bundledShellDir, "bin"));
 const frontendBuildDir = isBundledRuntime ? bundledFrontendBuildDir : path.resolve(__dirname, "../../frontend/build");
 const preloadPath = path.resolve(__dirname, "./preload.cjs");
+const fileViewerPreloadPath = path.resolve(__dirname, "./file-viewer-preload.cjs");
 const desktopLogPath = path.join(os.homedir(), "Library", "Logs", "MySQL Workbench-electron.log");
 
 const parseCommandLineArguments = (argv) => {
@@ -235,6 +237,20 @@ const isTrustedRendererUrl = (url) => {
     }
 };
 
+const isTrustedFileViewerUrl = (url) => {
+    if (!isTrustedRendererUrl(url)) {
+        return false;
+    }
+
+    try {
+        const parsedUrl = new URL(String(url));
+
+        return parsedUrl.searchParams.get("view") === "fileViewer";
+    } catch (_error) {
+        return false;
+    }
+};
+
 const blockUntrustedNavigation = (event, url, eventName) => {
     if (isTrustedRendererUrl(url)) {
         return;
@@ -274,7 +290,13 @@ const installNavigationGuards = (webContents) => {
 };
 
 const rendererDevUrl = process.env.ELECTRON_RENDERER_URL ?? commandLineArguments["renderer-url"];
-const rendererEntryUrl = rendererDevUrl ? new URL("/", rendererDevUrl).toString() : "app://renderer/index.html";
+const buildRendererUrl = (pathAndSearch = "/") => {
+    return rendererDevUrl
+        ? new URL(pathAndSearch, rendererDevUrl).toString()
+        : `app://renderer${pathAndSearch}`;
+};
+const rendererEntryUrl = buildRendererUrl("/");
+const fileViewerEntryUrl = buildRendererUrl("/index.html?view=fileViewer");
 const isRendererDevMode = Boolean(rendererDevUrl);
 const rendererTrustedOrigin = isRendererDevMode ? new URL(rendererEntryUrl).origin : undefined;
 
@@ -400,6 +422,24 @@ const buildApplicationData = () => {
         logPath: path.join(shellUserConfigDir, "mysqlsh.log"),
         projectsPath: path.join(shellUserConfigDir, "plugin_data", "migration_plugin"),
     };
+};
+
+const fileViewerHost = createFileViewerHost({
+    BrowserWindow,
+    fs,
+    path,
+    shell,
+    nativeTheme,
+    appendDesktopLog,
+    ensureDirectory,
+    fileViewerEntryUrl,
+    fileViewerPreloadPath,
+    installNavigationGuards,
+    isTrustedFileViewerUrl,
+});
+
+const openMysqlShellLogFile = () => {
+    fileViewerHost.openFileViewerWindow(buildApplicationData().logPath);
 };
 
 const toDialogFilters = (filters = {}) => {
@@ -1429,8 +1469,12 @@ const createMenu = () => {
                     type: "checkbox",
                 }),
             },
-            { type: "separator" },
             { role: "toggleDevTools" },
+            { type: "separator" },
+            {
+                label: "Open mysqlsh.log File",
+                click: openMysqlShellLogFile,
+            },
         ],
     };
 
@@ -1747,6 +1791,14 @@ ipcMain.handle("electron-host-close-native-menu", async (event, requestId) => {
     }
 
     closeNativeMenu(browserWindow, requestId);
+});
+
+ipcMain.handle("electron-file-viewer-read", async (event, request) => {
+    return fileViewerHost.read(event, request);
+});
+
+ipcMain.handle("electron-file-viewer-browse", async (event) => {
+    return fileViewerHost.browse(event);
 });
 
 ipcMain.handle("electron-backend-connect", async (event) => {

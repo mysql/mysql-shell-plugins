@@ -72,6 +72,8 @@ interface IAppState extends IComponentState {
 
 export class App extends Component<{}, IAppState> {
 
+    private static readonly desktopLocalUserName = "LocalAdministrator";
+
     private passwordDialogRef = createRef<PasswordDialog>();
 
     private defaultProfile?: IShellProfile;
@@ -82,8 +84,6 @@ export class App extends Component<{}, IAppState> {
     private codiconStyleDisposables: IDisposable[] = [];
 
     #notificationCenterRef = createRef<NotificationCenter>();
-
-    private static readonly desktopLocalUserName = "LocalAdministrator";
 
     public constructor(props: {}) {
         super(props);
@@ -113,10 +113,7 @@ export class App extends Component<{}, IAppState> {
 
             // Session recovery is not supported in tests, so remove the else branch from test coverage.
             // istanbul ignore else
-            const hasBootstrapProfile = data.activeProfile !== undefined
-                && data.activeProfile.id !== undefined
-                && data.activeProfile.userId !== undefined
-                && data.activeProfile.id >= 0
+            const hasBootstrapProfile = data.activeProfile.id >= 0
                 && data.activeProfile.userId >= 0;
 
             if (webSession.userName === "" && data.requestState.msg !== "Session recovered") {
@@ -202,7 +199,7 @@ export class App extends Component<{}, IAppState> {
 
     public override componentDidMount(): void {
         /* istanbul ignore next */
-        if (!appParameters.testsRunning) {
+        if (!appParameters.testsRunning && !this.isStandaloneFileViewer()) {
             void MessageScheduler.get.connect({ url: new URL(window.location.href) });
         }
 
@@ -236,74 +233,14 @@ export class App extends Component<{}, IAppState> {
         requisitions.register("themeChanged", this.themeChanged);
     }
 
-    private async validateShellVersion(): Promise<boolean> {
-        const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
-        if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
-            void ui.showErrorMessage(`The connected shell has an unsupported version: ` +
-                `${info.major}.${info.minor}.${info.patch}`, {});
-
-            return false;
-        }
-
-        return true;
-    }
-
-    private loadAuthenticatedProfile(profile: IShellProfile): void {
-        this.defaultProfile = profile;
-        webSession.loadProfile(this.defaultProfile);
-        this.setState({ loginInProgress: false });
-    }
-
-    private installCodiconStyles(): void {
-        const iconsStyleSheet = getIconsStyleSheet();
-        const style = document.createElement("style");
-        style.className = "monaco-colors";
-
-        const update = (): void => {
-            style.textContent = iconsStyleSheet.getCSS();
-        };
-
-        update();
-        document.head.appendChild(style);
-
-        this.codiconStyleDisposables.push(
-            iconsStyleSheet,
-            iconsStyleSheet.onDidChange(update),
-            {
-                dispose: () => {
-                    style.remove();
-                },
-            },
-        );
-    }
-
-    private async completeAuthenticatedProfile(profile: IShellProfile): Promise<boolean> {
-        if (!await this.validateShellVersion()) {
-            return false;
-        }
-
-        this.loadAuthenticatedProfile(profile);
-
-        return true;
-    }
-
-    private async completeDesktopBootstrap(profile: IShellProfile): Promise<boolean> {
-        if (!await this.validateShellVersion()) {
-            return false;
-        }
-
-        webSession.userName = App.desktopLocalUserName;
-        webSession.userId = profile.userId;
-        this.loadAuthenticatedProfile(profile);
-
-        return true;
-    }
-
     public render(): VNode {
         const { loginInProgress } = this.state;
+        const isStandaloneFileViewer = this.isStandaloneFileViewer();
 
         let content;
-        if (loginInProgress) {
+        if (isStandaloneFileViewer) {
+            content = <LazyAppRouter />;
+        } else if (loginInProgress) {
             const connectionToken = appParameters.get("token") ?? "";
             const electronDesktopHost = hasElectronHostBridge() || hasElectronDesktopBackend();
             if (connectionToken.length > 0 || electronDesktopHost) {
@@ -323,14 +260,16 @@ export class App extends Component<{}, IAppState> {
                 <PasswordDialog ref={this.passwordDialogRef} />
                 <DialogHost />
 
-                <div id="applicationOverlayDock">
-                    <NotificationCenter ref={this.#notificationCenterRef} />
-                    {!appParameters.hideStatusBar && !hasElectronHostBridge() && (
-                        <div id="floatingStatusDock">
-                            {renderStatusBar()}
-                        </div>
-                    )}
-                </div>
+                {!isStandaloneFileViewer && (
+                    <div id="applicationOverlayDock">
+                        <NotificationCenter ref={this.#notificationCenterRef} />
+                        {!appParameters.hideStatusBar && !hasElectronHostBridge() && (
+                            <div id="floatingStatusDock">
+                                {renderStatusBar()}
+                            </div>
+                        )}
+                    </div>
+                )}
             </ErrorBoundary>
         );
     }
@@ -500,6 +439,73 @@ export class App extends Component<{}, IAppState> {
     };
 
     // End of UILayer interface implementation
+
+    private isStandaloneFileViewer(): boolean {
+        return new URLSearchParams(window.location.search).get("view") === "fileViewer";
+    }
+
+    private async validateShellVersion(): Promise<boolean> {
+        const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
+        if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
+            void ui.showErrorMessage(`The connected shell has an unsupported version: ` +
+                `${info.major}.${info.minor}.${info.patch}`, {});
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private loadAuthenticatedProfile(profile: IShellProfile): void {
+        this.defaultProfile = profile;
+        webSession.loadProfile(this.defaultProfile);
+        this.setState({ loginInProgress: false });
+    }
+
+    private installCodiconStyles(): void {
+        const iconsStyleSheet = getIconsStyleSheet();
+        const style = document.createElement("style");
+        style.className = "monaco-colors";
+
+        const update = (): void => {
+            style.textContent = iconsStyleSheet.getCSS();
+        };
+
+        update();
+        document.head.appendChild(style);
+
+        this.codiconStyleDisposables.push(
+            iconsStyleSheet,
+            iconsStyleSheet.onDidChange(update),
+            {
+                dispose: () => {
+                    style.remove();
+                },
+            },
+        );
+    }
+
+    private async completeAuthenticatedProfile(profile: IShellProfile): Promise<boolean> {
+        if (!await this.validateShellVersion()) {
+            return false;
+        }
+
+        this.loadAuthenticatedProfile(profile);
+
+        return true;
+    }
+
+    private async completeDesktopBootstrap(profile: IShellProfile): Promise<boolean> {
+        if (!await this.validateShellVersion()) {
+            return false;
+        }
+
+        webSession.userName = App.desktopLocalUserName;
+        webSession.userId = profile.userId;
+        this.loadAuthenticatedProfile(profile);
+
+        return true;
+    }
 
     private themeChanged = (values: IThemeChangeData): Promise<boolean> => {
         requisitions.executeRemote("themeChanged", values);

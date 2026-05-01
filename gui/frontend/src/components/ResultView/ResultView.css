@@ -90,7 +90,7 @@
 
     /* Scrollbar appearance for Firefox. Other browser use the --webkit-scrollbar pseudo elements. */
     scrollbar-width: auto;
-    scrollbar-color: var(--scrollbarSlider-background) var(--scrollbarSlider-shadow);
+    scrollbar-color: var(--scrollbarSlider-background) transparent;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-header {
