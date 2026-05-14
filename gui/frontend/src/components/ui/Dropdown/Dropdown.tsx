@@ -200,6 +200,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     id: childId ?? "",
                     caption: childCaption,
                     picture: picture ? cloneElement(picture, {}) : undefined,
+                    style: child.props.tagStyle,
                 });
                 checked = true;
             }

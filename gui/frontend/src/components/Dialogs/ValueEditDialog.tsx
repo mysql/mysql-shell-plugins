@@ -95,6 +95,11 @@ export interface IBaseDialogValue {
     type: string;
 
     caption?: string;
+    captionAction?: {
+        icon: Codicon | string;
+        tooltip: string;
+        onClick: (id: string, values: IDialogValues, dialog: ValueEditDialog) => void;
+    };
     options?: CommonDialogValueOption[];
 
     /** Provides a description specific to this value, which will be rendered as part of the value. */
@@ -219,6 +224,9 @@ export interface ISetDialogValue extends IBaseDialogValue {
 
     /** Any combination of entries in the list, represented as tags. */
     tagSet: string[];
+
+    /** Optional per-entry style applied to selected tags. */
+    tagStyles?: Record<string, IComponentProperties["style"]>;
 
     /** Called when the selection was changed. */
     onChange?: (values: string[], dialog: ValueEditDialog) => void;
@@ -741,6 +749,28 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         });
     };
 
+    public updateSetValue = (
+        items: string[],
+        active: string[],
+        id: string,
+        tagStyles?: Record<string, IComponentProperties["style"]>,
+    ): void => {
+        const { values } = this.state;
+
+        values.sections.forEach((section) => {
+            const entry = section.values[id] as IDialogValue | undefined;
+            if (entry?.type === "set") {
+                entry.tagSet = items;
+                entry.value = active;
+                entry.tagStyles = tagStyles;
+
+                void this.handleValidations();
+
+                return;
+            }
+        });
+    };
+
     public beginValueUpdating = (value: string, id: string): void => {
         const { values } = this.state;
 
@@ -1023,6 +1053,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
 
         const captionClass = group[0]?.value.type !== "separator" ? "valueTitle" : "separatorTitle";
+        const captionAction = group[0]?.value.captionAction;
 
         result.push(
             <GridCell
@@ -1033,7 +1064,24 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 columnSpan={groupHorizontalSpan}
                 rowSpan={groupVerticalSpan}
             >
-                {labelCaption && <Label className={captionClass} caption={labelCaption} />}
+                {labelCaption && (captionAction ? <Container
+                    className="valueTitleRow"
+                    orientation={Orientation.LeftToRight}
+                    crossAlignment={ContentAlignment.Center}
+                >
+                    <Label className={captionClass} caption={labelCaption} />
+                    <Button
+                        id={`${group[0].key}CaptionAction`}
+                        className="captionAction"
+                        imageOnly={true}
+                        data-tooltip={captionAction.tooltip}
+                        onClick={() => {
+                            captionAction.onClick(group[0].key, this.state.values, this);
+                        }}
+                    >
+                        <Icon src={captionAction.icon} data-tooltip="inherit" />
+                    </Button>
+                </Container> : <Label className={captionClass} caption={labelCaption} />)}
                 {contentCount > 0 && edits}
                 {errors.map((value: string, errorIndex: number) => {
                     return (
@@ -1232,12 +1280,14 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
                     case "set": {
                         // A set of string values -> represented as tag input.
+                        const tagStyles = entry.value.tagStyles;
                         const items = entry.value.tagSet.map((item: string, itemIndex: number) => {
                             return <DropdownItem
                                 caption={item}
                                 key={itemIndex}
                                 id={item}
                                 payload={key}
+                                tagStyle={tagStyles?.[item]}
                             />;
                         });
 
@@ -1245,6 +1295,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         result.push(<Dropdown
                             id={key}
                             key={key}
+                            className="valueEditor"
                             multiSelect={true}
                             selection={selection}
                             onSelect={this.handleSetChange.bind(this, sectionId)}

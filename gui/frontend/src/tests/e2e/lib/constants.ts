@@ -97,7 +97,7 @@ export const mdsTab = "MDS/Bastion Service";
 export const dbConnectionOverview = "DB Connection Overview";
 export const editConnection = "Edit Connection";
 export const dupConnection = "Duplicate Connection";
-export const removeConnection = "Remove Connection";
+export const removeConnection = "Delete Connection";
 export const connectionOverview = "Connections";
 
 // EDIT RESULT GRIDS

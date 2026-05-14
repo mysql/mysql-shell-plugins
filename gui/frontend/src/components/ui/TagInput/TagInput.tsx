@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@
 
 import "./TagInput.css";
 
-import { ComponentChild, VNode } from "preact";
+import { ComponentChild, type JSX, VNode } from "preact";
 
 import { Assets } from "../../../supplement/Assets.js";
 import { Button } from "../Button/Button.js";
@@ -39,6 +39,7 @@ export interface ITag {
     id: string;
     caption?: string;
     picture?: VNode<IImageProperties | IIconProperties>;
+    style?: JSX.CSSProperties;
 }
 
 /** A block of tags that can be dragged in/out and individually be deleted. */
@@ -71,8 +72,10 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
             return <Label
                 key={tag.id}
                 className="tag"
+                style={tag.style}
                 draggable
             >
+                {tag.picture}
                 {tag.caption}
                 {removable &&
                     <Button

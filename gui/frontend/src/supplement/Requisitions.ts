@@ -261,7 +261,7 @@ export class RequisitionHub {
                 // See also https://stackoverflow.com/questions/55933800/typescript-unexpected-intersection.
                 // And even worse: if there are callbacks with a mix of simple types (e.g. string and boolean), this
                 // intersection type becomes `never`, which requires that explicit cast here.
-                promises.push(callback(parameter as never));
+                promises.push(Promise.resolve(callback(parameter as never)));
             });
 
             const results = await Promise.all(promises);

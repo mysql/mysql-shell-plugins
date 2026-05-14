@@ -162,6 +162,7 @@
     flex: 1 1 auto;
     justify-content: center;
     padding-right: 39px;
+    min-width: 0;
 }
 
 .msg.connectionTile .label {
@@ -183,8 +184,10 @@
 
 .msg.connectionTile .tileDescription {
     font-size: 0.8rem;
-
     scrollbar-width: thin;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .msg.connectionTile .tileDescription::-webkit-scrollbar {
@@ -193,6 +196,26 @@
 
 .msg.connectionTile .tileDescription::-webkit-scrollbar-thumb {
     border-radius: 2px;
+}
+
+.msg.connectionTile .tileTags {
+    gap: 4px;
+    margin-top: 4px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.connectionTile .tileTag {
+    border-radius: 999px;
+    flex: 0 1 auto;
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 14px;
+    max-width: 62px;
+    overflow: hidden;
+    padding: 0 6px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .msg.connectionTile.secondary .label {

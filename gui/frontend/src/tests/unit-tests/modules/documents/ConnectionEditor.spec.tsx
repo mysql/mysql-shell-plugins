@@ -27,16 +27,20 @@ import { render, screen, waitFor } from "@testing-library/preact";
 import { createRef } from "preact";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { IDictionary } from "../../../../app-logic/general-types.js";
+import { DialogResponseClosure, type IDictionary } from "../../../../app-logic/general-types.js";
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import {
     IDialogValidations, IDialogValues, type IDialogSection,
 } from "../../../../components/Dialogs/ValueEditDialog.js";
+import { Codicon } from "../../../../components/ui/Codicon.js";
 import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
+import { ConnectionTags } from "../../../../modules/db-editor/ConnectionTags.js";
 import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
-import { DBType, IConnectionDetails, IFolderPath } from "../../../../supplement/ShellInterface/index.js";
+import {
+    ConnectionEditorType, DBType, IConnectionDetails, IFolderPath,
+} from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { webSession } from "../../../../supplement/WebSession.js";
@@ -52,6 +56,13 @@ class TestConnectionEditor extends ConnectionEditor {
         data?: IDictionary) => Promise<IDialogValidations>;
 
     public declare generateEditorConfig: (currentPath: string, details?: IConnectionDetails) => IDialogValues;
+
+    public declare generateBadgeEditorConfig: () => IDialogValues;
+
+    public declare handleBadgeEditorClose: (closure: DialogResponseClosure, values: IDialogValues) => void;
+
+    public declare handleOptionsDialogClose: (closure: DialogResponseClosure, values: IDialogValues,
+        data?: IDictionary) => void;
 
     public declare validateConnectionValues: (closing: boolean, values: IDialogValues,
         data?: IDictionary) => Promise<IDialogValidations>;
@@ -164,6 +175,87 @@ describe("ConnectionEditor tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
+        unmount();
+    });
+
+    it("Test ConnectionEditor includes badge selector and editor action", async () => {
+        const editorRef = createRef<TestConnectionEditor>();
+        let updatedConnection: IConnectionDetails | undefined;
+
+        const { unmount } = render(
+            <DocumentContext.Provider
+                value={{ connectionsDataModel: dataModel, } as DocumentContextType}>
+
+                <TestConnectionEditor
+                    ref={editorRef}
+                    onAddConnection={() => { /**/ }}
+                    onUpdateConnection={(details) => {
+                        updatedConnection = details;
+                    }} />,
+            </DocumentContext.Provider>,
+        );
+
+        await ConnectionTags.set({ DEV: "#c2410c", QA: "#1d4ed8" });
+
+        await nextRunLoop();
+        expect(editorRef.current).toBeDefined();
+
+        const values = editorRef.current!.generateEditorConfig("", {
+            ...testMySQLConnection,
+            tags: ["QA"],
+            settings: {
+                defaultEditor: ConnectionEditorType.DbNotebook,
+            },
+        });
+        const generalSection = values.sections.get("general")!;
+        const tagsValue = generalSection.values.tags;
+
+        expect(generalSection.values).toHaveProperty("tags");
+        expect(generalSection.values).toHaveProperty("defaultEditor");
+        expect(generalSection.values).toHaveProperty("databaseType");
+        expect(tagsValue).toMatchObject({
+            type: "set",
+            caption: "Tags:",
+            value: ["QA"],
+            tagSet: ["DEV", "QA"],
+            captionAction: {
+                icon: Codicon.Edit,
+                tooltip: "Edit tags",
+            },
+        });
+
+        const badgeEditorValues = editorRef.current!.generateBadgeEditorConfig();
+        const badgeEditorValue = badgeEditorValues.sections.get("badges")!.values.badges;
+        expect(badgeEditorValue).toMatchObject({
+            type: "custom",
+            caption: "Tags:",
+            value: { badges: { DEV: "#c2410c", QA: "#1d4ed8" } },
+        });
+
+        const updatedBadgeEditorValues = editorRef.current!.generateBadgeEditorConfig();
+        const updatedBadgeValue = updatedBadgeEditorValues.sections.get("badges")!.values.badges;
+        updatedBadgeValue.value = {
+            badges: {
+                DEV: "#c2410c",
+                QA: "#1d4ed8",
+                PROD: "#7f1d1d",
+            },
+        };
+
+        editorRef.current!.handleBadgeEditorClose(DialogResponseClosure.Accept, updatedBadgeEditorValues);
+        expect(ConnectionTags.getCached()).toEqual({
+            DEV: "#c2410c",
+            QA: "#1d4ed8",
+            PROD: "#7f1d1d",
+        });
+
+        tagsValue.value = ["DEV", "QA"];
+        editorRef.current!.handleOptionsDialogClose(DialogResponseClosure.Accept, values, {
+            details: testMySQLConnection,
+        });
+        expect(updatedConnection?.tags).toEqual(["DEV", "QA"]);
+
+        await ConnectionTags.set({});
         unmount();
     });
 

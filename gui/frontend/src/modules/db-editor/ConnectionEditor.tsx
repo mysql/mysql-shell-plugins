@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef } from "preact";
+import { ComponentChild, createRef, type JSX } from "preact";
 
 import {
     DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest,
@@ -39,6 +39,7 @@ import {
     CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
 } from "../../components/Dialogs/ValueEditDialog.js";
 import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox.js";
+import { Codicon } from "../../components/ui/Codicon.js";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
@@ -55,6 +56,8 @@ import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/Shel
 import { ConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
+import { ConnectionBadgeEditor } from "./ConnectionBadgeEditor.js";
+import { ConnectionTags } from "./ConnectionTags.js";
 import { DocumentContext, type DocumentContextType } from "./index.js";
 
 const editorHeading = "Database Connection Configuration";
@@ -85,7 +88,10 @@ interface IConnectionEditorState extends IComponentState {
 export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties, IConnectionEditorState> {
     public static override contextType = DocumentContext;
 
+    private static readonly maxTags = 4;
+
     private editorRef = createRef<ValueEditDialog>();
+    private badgeEditorRef = createRef<ValueEditDialog>();
     private confirmClearPasswordDialogRef = createRef<ConfirmDialog>();
     private confirmNewBastionDialogRef = createRef<ConfirmDialog>();
 
@@ -93,6 +99,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
     // A list of paths created from the folder structure for connections.
     private knownPaths: string[] = [];
+
+    private selectedTagsBeforeEdit: string[] = [];
 
     private liveUpdateFields: IConnectionDialogLiveUpdateFields = {
         bastionId: { value: "", loading: false },
@@ -157,6 +165,12 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     onSelectTab={this.handleTabSelect}
                     customFooter={customFooter}
                 />
+                <ValueEditDialog
+                    ref={this.badgeEditorRef}
+                    id="connectionBadgeEditor"
+                    onValidate={this.validateBadgeEditorValues}
+                    onClose={this.handleBadgeEditorClose}
+                />
                 <ConfirmDialog
                     ref={this.confirmClearPasswordDialogRef}
                     id="confirmClearPasswordDlg"
@@ -184,6 +198,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.knowDbTypes = await ShellInterface.core.getDbTypes();
         }
         await this.loadKnownFolders();
+        await ConnectionTags.load();
 
         this.liveUpdateFields.bastionName.value = "";
         this.liveUpdateFields.mdsDatabaseName.value = "";
@@ -256,6 +271,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     },
                     {
                         createNew: newConnection,
+                        currentPath,
                         details,
                     });
             }
@@ -296,6 +312,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         if (!isSqlite && !isMySQL) {
             result.messages.databaseType = "Select one of the database types for your connection";
+        }
+
+        const tags = Object.hasOwn(generalSection, "tags") ? generalSection.tags.value as string[] : [];
+        if (tags.length > ConnectionEditor.maxTags) {
+            result.messages.tags = `Select at most ${ConnectionEditor.maxTags} tags`;
         }
 
         if (!informationSection.caption.value) {
@@ -377,6 +398,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             const mysqlSshSection = values.sections.get("ssh")!.values;
             const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
             const mysqlSslSection = values.sections.get("ssl")!.values;
+            const currentPath = data?.currentPath as string | undefined ?? "";
 
             const isSqlite = generalSection.databaseType.value === "Sqlite";
             const isMySQL = generalSection.databaseType.value === "MySQL";
@@ -393,7 +415,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     useSSH: false,
                     useMHS: false,
                     options: {},
-                    folderPath: generalSection.folderPath.value as string,
+                    folderPath: details?.folderPath ?? currentPath,
                     index: -1,
                 };
 
@@ -416,7 +438,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 details.useSSH = mysqlDetailsSection.useSSH.value as boolean;
                 details.caption = informationSection.caption.value as string;
                 details.description = informationSection.description.value as string;
-                details.folderPath = generalSection.folderPath.value as string;
 
                 if (isSqlite) {
                     details.options = {
@@ -493,10 +514,21 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         /* eslint-enabled @typescript-eslint/naming-convention */
                     };
 
-                    const defaultEditor = generalSection.defaultEditor.value;
-                    details.settings = defaultEditor === globalDefaultEditor
-                        ? {}
-                        : { defaultEditor: defaultEditor as ConnectionEditorType };
+                }
+
+                const tags = generalSection.tags.value as string[];
+                const settings = { ...details.settings };
+                delete settings.badge;
+                details.tags = tags;
+                const defaultEditor = generalSection.defaultEditor.value;
+                if (defaultEditor === globalDefaultEditor) {
+                    delete settings.defaultEditor;
+                    details.settings = settings;
+                } else {
+                    details.settings = {
+                        ...settings,
+                        defaultEditor: defaultEditor as ConnectionEditorType,
+                    };
                 }
 
                 if (data?.createNew) {
@@ -544,6 +576,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         if (details?.settings?.defaultEditor) {
             defaultEditor = details.settings.defaultEditor;
         }
+
+        const badges = this.connectionBadges;
+        const badgeNames = Object.keys(badges);
+        const selectedTags = (details?.tags ?? (details?.settings?.badge ? [details.settings.badge] : []))
+            .filter((tag) => {
+                return badgeNames.includes(tag);
+            });
 
         details = details ?? { // Default for new connections is MySQL.
             id: -1,
@@ -626,6 +665,21 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         const generalSection: IDialogSection = {
             values: {
+                tags: {
+                    type: "set",
+                    caption: "Tags:",
+                    value: selectedTags,
+                    tagSet: badgeNames,
+                    tagStyles: this.connectionBadgeTagStyles(badges),
+                    horizontalSpan: 4,
+                    description: `Select up to ${ConnectionEditor.maxTags} tags to display with the connection.`,
+                    onChange: this.handleTagsChange,
+                    captionAction: {
+                        icon: Codicon.Edit,
+                        tooltip: "Edit tags",
+                        onClick: this.openBadgeEditor,
+                    },
+                },
                 defaultEditor: {
                     type: "choice",
                     caption: "Default Editor:",
@@ -1033,6 +1087,141 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         };
     };
 
+    private get connectionBadges(): IDictionary {
+        const badges = ConnectionTags.getCached();
+        const result: IDictionary = {};
+
+        Object.entries(badges).forEach(([text, color]) => {
+            const badgeText = text.trim();
+            if (badgeText.length > 0 && typeof color === "string" && color.trim().length > 0) {
+                result[badgeText] = color.trim();
+            }
+        });
+
+        return result;
+    }
+
+    private connectionBadgeTagStyles(badges: IDictionary): Record<string, JSX.CSSProperties> {
+        const styles: Record<string, JSX.CSSProperties> = {};
+        Object.entries(badges).forEach(([text, color]) => {
+            styles[text] = {
+                backgroundColor: String(color),
+                color: this.connectionBadgeForeground(String(color)),
+            };
+        });
+
+        return styles;
+    }
+
+    private connectionBadgeForeground(color: string): string {
+        return ConnectionTags.foreground(color);
+    }
+
+    private handleTagsChange = (tags: string[], dialog: ValueEditDialog): void => {
+        if (tags.length <= ConnectionEditor.maxTags) {
+            return;
+        }
+
+        const badges = this.connectionBadges;
+        dialog.updateSetValue(
+            Object.keys(badges),
+            tags.slice(0, ConnectionEditor.maxTags),
+            "tags",
+            this.connectionBadgeTagStyles(badges),
+        );
+    };
+
+    private openBadgeEditor = (_id: string, values: IDialogValues): void => {
+        this.selectedTagsBeforeEdit = values.sections.get("general")?.values.tags.value as string[] | undefined ?? [];
+        this.badgeEditorRef.current?.show(this.generateBadgeEditorConfig(), {
+            title: "Connection Tags",
+            autoMinWidth: true,
+        });
+    };
+
+    private generateBadgeEditorConfig = (): IDialogValues => {
+        return {
+            id: "connectionBadgeEditor",
+            sections: new Map([
+                ["badges", {
+                    values: {
+                        badges: {
+                            type: "custom",
+                            caption: "Tags:",
+                            value: { badges: this.connectionBadges },
+                            component: <ConnectionBadgeEditor />,
+                            horizontalSpan: 8,
+                        },
+                    },
+                }],
+            ]),
+        };
+    };
+
+    private validateBadgeEditorValues = (_closing: boolean, values: IDialogValues): Promise<IDialogValidations> => {
+        const badgeEditorValues = values.sections.get("badges")?.values.badges.value as IDictionary | undefined;
+        const badges = badgeEditorValues?.badges as IDictionary | undefined;
+        const messages: Record<string, string> = {};
+        const normalizedTexts = new Set<string>();
+
+        Object.entries(badges ?? {}).some(([text, color]) => {
+            const badgeText = text.trim();
+            const badgeColor = String(color).trim();
+            if (badgeText.length === 0 || badgeText.length > 16) {
+                messages.badges = "Badge text must be between 1 and 16 characters.";
+
+                return true;
+            }
+
+            const normalizedText = badgeText.toLocaleLowerCase();
+            if (normalizedTexts.has(normalizedText)) {
+                messages.badges = "Badge text must be unique.";
+
+                return true;
+            }
+            normalizedTexts.add(normalizedText);
+
+            if (badgeColor.length === 0) {
+                messages.badges = "Badge color must not be empty.";
+
+                return true;
+            }
+
+            return false;
+        });
+
+        return Promise.resolve({ messages });
+    };
+
+    private handleBadgeEditorClose = (closure: DialogResponseClosure, values: IDialogValues): void => {
+        if (closure !== DialogResponseClosure.Accept) {
+            return;
+        }
+
+        const badgeEditorValues = values.sections.get("badges")?.values.badges.value as IDictionary | undefined;
+        const badges = badgeEditorValues?.badges as IDictionary | undefined;
+        const sanitizedBadges: IDictionary = {};
+        Object.entries(badges ?? {}).forEach(([text, color]) => {
+            const badgeText = text.trim();
+            if (badgeText.length > 0) {
+                sanitizedBadges[badgeText] = String(color).trim();
+            }
+        });
+
+        void ConnectionTags.set(sanitizedBadges);
+
+        const badgeNames = Object.keys(sanitizedBadges);
+        const selectedTags = this.selectedTagsBeforeEdit.filter((tag) => {
+            return badgeNames.includes(tag);
+        });
+        this.editorRef.current?.updateSetValue(
+            badgeNames,
+            selectedTags,
+            "tags",
+            this.connectionBadgeTagStyles(sanitizedBadges),
+        );
+    };
+
     /**
      * Helper function to check if a dialog value is actually an integer number.
      *
@@ -1150,6 +1339,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             },
             {
                 createNew: newConnection,
+                currentPath,
                 details,
             },
         );
@@ -1333,6 +1523,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 },
                 {
                     createNew: !(details.id > 0),
+                    currentPath,
                     details,
                 });
             this.editorRef.current?.preventConfirm(true);

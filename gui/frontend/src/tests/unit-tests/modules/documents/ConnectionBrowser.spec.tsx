@@ -389,6 +389,86 @@ describe("Connection browser tests", (): void => {
         expect(moveSpy).toHaveBeenCalledWith("move:root", entry);
     });
 
+    it("updates the current connection entry with edited details", async () => {
+        const entry = createConnection(undefined, "/");
+        const updatedDetails = {
+            ...entry.details,
+            settings: {
+                tags: ["DEV", "QA"],
+            },
+        };
+        const updateSpy = vi.fn();
+        const browser = new ConnectionBrowser({
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+            onAddConnection: vi.fn(),
+            onUpdateConnection: updateSpy,
+            onRemoveConnection: vi.fn(),
+        });
+        const dataModel = {
+            findConnectionEntryById: vi.fn().mockResolvedValue(entry),
+        };
+
+        (browser as unknown as {
+            context: unknown;
+            handleUpdateConnection: (details: unknown) => void;
+        }).context = { connectionsDataModel: dataModel };
+
+        (browser as unknown as {
+            handleUpdateConnection: (details: unknown) => void;
+        }).handleUpdateConnection(updatedDetails);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
+        expect(dataModel.findConnectionEntryById).toHaveBeenCalledWith(42, "/");
+        expect(updateSpy).toHaveBeenCalledWith({
+            ...entry,
+            details: updatedDetails,
+        });
+    });
+
+    it("updates the connection entry when edited details do not include the folder path", async () => {
+        const entry = createConnection(undefined, "/");
+        const updatedDetails = {
+            ...entry.details,
+            folderPath: undefined,
+            settings: {
+                tags: ["DEV", "QA"],
+            },
+        };
+        const updateSpy = vi.fn();
+        const browser = new ConnectionBrowser({
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+            onAddConnection: vi.fn(),
+            onUpdateConnection: updateSpy,
+            onRemoveConnection: vi.fn(),
+        });
+        const dataModel = {
+            findConnectionEntryById: vi.fn()
+                .mockResolvedValueOnce(undefined)
+                .mockResolvedValueOnce(entry),
+        };
+
+        (browser as unknown as {
+            context: unknown;
+            handleUpdateConnection: (details: unknown) => void;
+        }).context = { connectionsDataModel: dataModel };
+
+        (browser as unknown as {
+            handleUpdateConnection: (details: unknown) => void;
+        }).handleUpdateConnection(updatedDetails);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
+        expect(dataModel.findConnectionEntryById).toHaveBeenNthCalledWith(1, 42, undefined);
+        expect(dataModel.findConnectionEntryById).toHaveBeenNthCalledWith(2, 42);
+        expect(updateSpy).toHaveBeenCalledWith({
+            ...entry,
+            details: updatedDetails,
+        });
+    });
+
     it("ignores stale asynchronous connection tile menu openings", async () => {
         const rootGroup = createGroup(1, "/");
         const sourceGroup = createGroup(2, "Source", rootGroup);

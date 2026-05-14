@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,7 @@ import { ComponentChild, VNode } from "preact";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { Checkbox, CheckState } from "../Checkbox/Checkbox.js";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import type { ITag } from "../TagInput/TagInput.js";
 import { IIconProperties } from "../Icon/Icon.js";
 import { IImageProperties } from "../Image/Image.js";
 import { Label } from "../Label/Label.js";
@@ -52,6 +53,9 @@ export interface IDropdownItemProperties extends IComponentProperties {
 
     /** A value attached to this drop down item, for use in the drop down selection handler. */
     payload?: unknown;
+
+    /** Optional style applied to this item when it is shown as a selected tag. */
+    tagStyle?: ITag["style"];
 }
 
 export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBase<T> {
@@ -59,7 +63,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBa
     public constructor(props: T) {
         super(props);
 
-        this.addHandledProperties("caption", "picture", "description", "selected", "checked", "payload");
+        this.addHandledProperties("caption", "picture", "description", "selected", "checked", "payload", "tagStyle");
     }
 
     public render(): ComponentChild {

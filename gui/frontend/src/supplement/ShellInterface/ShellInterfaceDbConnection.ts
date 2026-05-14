@@ -55,18 +55,21 @@ export class ShellInterfaceDbConnection {
      */
     public async addDbConnection(profileId: number, connection: IConnectionDetails,
         folderPathId?: number): Promise<[number, number, number]> {
+        const connectionPayload = {
+            dbType: connection.dbType,
+            caption: connection.caption,
+            description: connection.description,
+            options: connection.options as IShellDictionary,
+            settings: (connection.settings ?? {}) as IShellDictionary,
+            tags: connection.tags ?? null,
+        };
+
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsAddDbConnection,
             parameters: {
                 args: {
                     profileId,
-                    connection: {
-                        dbType: connection.dbType,
-                        caption: connection.caption,
-                        description: connection.description,
-                        options: connection.options as IShellDictionary,
-                        settings: (connection.settings ?? {}) as IShellDictionary,
-                    },
+                    connection: connectionPayload,
                     folderPathId,
                 },
             },
@@ -86,19 +89,22 @@ export class ShellInterfaceDbConnection {
      */
     public async updateDbConnection(profileId: number, connection: IConnectionDetails,
         folderPathId: number | undefined = undefined): Promise<void> {
+        const connectionPayload = {
+            dbType: connection.dbType,
+            caption: connection.caption,
+            description: connection.description,
+            options: connection.options as IShellDictionary,
+            settings: (connection.settings ?? {}) as IShellDictionary,
+            tags: connection.tags ?? null,
+        };
+
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsUpdateDbConnection,
             parameters: {
                 args: {
                     profileId,
                     connectionId: connection.id,
-                    connection: {
-                        dbType: connection.dbType,
-                        caption: connection.caption,
-                        description: connection.description,
-                        options: connection.options as IShellDictionary,
-                        settings: (connection.settings ?? {}) as IShellDictionary,
-                    },
+                    connection: connectionPayload,
                     folderPathId,
                 },
             },
@@ -146,13 +152,14 @@ export class ShellInterfaceDbConnection {
     /**
      * @param connectionId The id of the connection.
      *
+     * @param profileId The id of the profile owning the connection.
      * @returns A promise resolving to the details of the requested connection or undefined, if no connection with the
      *          given identifier exists.
      */
-    public async getDbConnection(connectionId: number): Promise<IConnectionDetails | undefined> {
+    public async getDbConnection(connectionId: number, profileId?: number): Promise<IConnectionDetails | undefined> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsGetDbConnection,
-            parameters: { args: { dbConnectionId: connectionId } },
+            parameters: { args: { dbConnectionId: connectionId, profileId } },
         });
 
         return response.result;
@@ -210,10 +217,42 @@ export class ShellInterfaceDbConnection {
                             description: connection.description,
                             options: connection.options as IShellDictionary,
                             settings: (connection.settings ?? {}) as IShellDictionary,
+                            tags: [],
                         },
                     password,
                 },
             },
+        });
+    }
+
+    /**
+     * Lists the connection tag definitions for the given profile.
+     *
+     * @param profileId The id of the profile.
+     *
+     * @returns A promise resolving to a mapping from tag caption to tag color.
+     */
+    public async listConnectionTags(profileId: number): Promise<Record<string, string>> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsListConnectionTags,
+            parameters: { args: { profileId } },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Updates the connection tag definitions for the given profile.
+     *
+     * @param profileId The id of the profile.
+     * @param tags A mapping from tag caption to tag color.
+     *
+     * @returns A promise which resolves when the request was concluded.
+     */
+    public async updateConnectionTags(profileId: number, tags: Record<string, string>): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsUpdateConnectionTags,
+            parameters: { args: { profileId, tags } },
         });
     }
 

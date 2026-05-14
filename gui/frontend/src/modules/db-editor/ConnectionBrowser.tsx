@@ -39,7 +39,7 @@ import {
     ComponentBase, ComponentPlacement, IComponentProperties, type IComponentState,
 } from "../../components/ui/Component/ComponentBase.js";
 import {
-    ConnectionTile, ConnectionTileType, IConnectionTileProperties,
+    ConnectionTile, ConnectionTileType, IConnectionTileProperties, type IConnectionTileTag,
     type ITileActionOptions,
 } from "../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
@@ -63,6 +63,7 @@ import {
 import { convertErrorToString, uuid, isStandalone } from "../../utilities/helpers.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
+import { ConnectionTags, connectionTagsChangedKey } from "./ConnectionTags.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
 import { startMigrationAssistantWithValidatedPassword } from "./SidebarCommandHandler.js";
 import { appParameters } from "../../supplement/AppParameters.js";
@@ -202,6 +203,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                         caption={root.caption}
                         description={root.details.description}
                         icon={ConnectionBrowser.dbTypeToIconMap.get(root.details.dbType)!}
+                        tags={this.connectionTileTags(root.details)}
                         type={ConnectionTileType.Open}
                         draggable
                         onAction={this.handleTileAction}
@@ -492,16 +494,43 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return Promise.resolve(false);
     };
 
-    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
+    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): boolean => {
         if (entry?.key === "dbEditor.connectionBrowser.showGreeting"
-            || entry?.key === "dbEditor.connectionBrowser.sortFoldersFirst") {
+            || entry?.key === "dbEditor.connectionBrowser.sortFoldersFirst"
+            || entry?.key === connectionTagsChangedKey) {
+            if (entry.key === connectionTagsChangedKey) {
+                ConnectionTags.updateCache(entry.value);
+            }
+
             this.forceUpdate();
 
-            return Promise.resolve(true);
+            return true;
         }
 
-        return Promise.resolve(false);
+        return false;
     };
+
+    private connectionTileTags(details: IConnectionDetails): IConnectionTileTag[] {
+        const tags = details.tags ?? (details.settings?.badge ? [details.settings.badge] : []);
+        if (tags.length === 0) {
+            return [];
+        }
+
+        const badges = ConnectionTags.getCached();
+
+        return tags.flatMap((tag) => {
+            const color = badges[tag];
+            if (typeof color !== "string" || color.length === 0) {
+                return [];
+            }
+
+            return [{
+                caption: tag,
+                backgroundColor: color,
+                foregroundColor: ConnectionTags.foreground(color),
+            }];
+        });
+    }
 
     /**
      * Triggered when one specific or all top level groups need to be refreshed.
@@ -1123,8 +1152,10 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const model = this.dataModel;
         if (model) {
             void model.findConnectionEntryById(details.id, details.folderPath).then((entry) => {
+                return entry ?? model.findConnectionEntryById(details.id);
+            }).then((entry) => {
                 if (entry) {
-                    onUpdateConnection(entry);
+                    onUpdateConnection({ ...entry, details });
                     this.forceUpdate();
                 }
             });

@@ -825,6 +825,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     port: savedState.lastPort,
                 },
                 settings: {},
+                tags: []
             });
         } catch (reason) {
             const message = convertErrorToString(reason);

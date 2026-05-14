@@ -42,6 +42,7 @@ type IShellConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOption
 
 export interface IConnectionSettings {
     defaultEditor?: ConnectionEditorType;
+    badge?: string;
 }
 
 export interface IConnectionDetails<OptionsType = IShellConnectionOptions> {
@@ -69,6 +70,9 @@ export interface IConnectionDetails<OptionsType = IShellConnectionOptions> {
 
     /** Connection specific UI settings. */
     settings?: IConnectionSettings;
+
+    /** User-defined tags assigned to this connection. */
+    tags?: string[];
 
     /** Is MHS (MySQL Heatwave Service) available on this server? */
     heatWaveAvailable?: boolean;

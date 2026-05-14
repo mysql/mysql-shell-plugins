@@ -128,6 +128,7 @@ nullable_bindings = {
             "description",
             "options",
             "settings",
+            "tags",
         ]
     },
     "Mrs": {
@@ -275,6 +276,14 @@ class TypeScriptHelper:
         },
     }
 
+    _interface_params_to_replace = {
+        "IShellDbConnection": {
+            "tags": {
+                "param_type": "string[]",
+            },
+        },
+    }
+
     @classmethod
     def snakify(cls, name: str) -> str:  # cspell:ignore snakify
         """Converts a camel case name to snake case."""
@@ -346,6 +355,20 @@ class TypeScriptHelper:
             ]
 
         return interface_name
+
+    @classmethod
+    def replace_interface_param(
+        cls, interface_name: str, param_name: str, param_type: str
+    ) -> str:
+        """Replaces parameter types for generated interfaces."""
+
+        override = cls._interface_params_to_replace.get(interface_name, {}).get(
+            param_name
+        )
+        if override is not None:
+            param_type = override.get("param_type", param_type)
+
+        return param_type
 
 
 class ProtocolBuilder:
@@ -693,6 +716,9 @@ class TypeScriptInterface:
         for option in self._options:
             param_name, param_type, param_brief = TypeScriptHelper.replace_param(
                 option["name"], option["type"], option["brief"]
+            )
+            param_type = TypeScriptHelper.replace_interface_param(
+                self._name, param_name, param_type
             )
             param_name = TypeScriptHelper.convert_name_to_ts(param_name)
             param_type = TypeScriptHelper.convert_python_type_to_ts(param_type)

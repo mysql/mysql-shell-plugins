@@ -69,6 +69,10 @@ export enum ShellAPIGui {
     GuiDbConnectionsListDbConnections = "gui.dbConnections.list_db_connections",
     /** Get the db_connection */
     GuiDbConnectionsGetDbConnection = "gui.dbConnections.get_db_connection",
+    /** Lists the connection tag definitions for a profile's user. */
+    GuiDbConnectionsListConnectionTags = "gui.dbConnections.list_connection_tags",
+    /** Updates the connection tag definitions for a profile's user. */
+    GuiDbConnectionsUpdateConnectionTags = "gui.dbConnections.update_connection_tags",
     /** Updates the cached server status sysvars for a db_connection. */
     GuiDbConnectionsUpdateServerStatusCache = "gui.dbConnections.update_server_status_cache",
     /** Gets the cached server status sysvars for a db_connection. */
@@ -320,6 +324,8 @@ export interface IShellDbConnection {
     options: IShellDictionary | null;
     /** The additional settings for the given connection */
     settings: IShellDictionary | null;
+    /** The user-defined tags assigned to the connection */
+    tags: string[] | null;
 }
 
 export interface Ilist {}
@@ -346,7 +352,9 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection?: IShellDbConnection; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { args: { profileId: number; folderPathId?: number; }; };
-    [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { args: { dbConnectionId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { args: { dbConnectionId: number; profileId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsListConnectionTags]: { args: { profileId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsUpdateConnectionTags]: { args: { profileId: number; tags: { }; }; };
     [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: { args: { connectionId: number; endpointFingerprint: string; sysvars: Ilist; }; };
     [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { args: { connectionId: number; endpointFingerprint: string; }; };
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: {};
@@ -863,6 +871,8 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { result: IConnectionDetails[]; };
     [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { result: IConnectionDetails; };
+    [ShellAPIGui.GuiDbConnectionsListConnectionTags]: { result: Record<string, string>; };
+    [ShellAPIGui.GuiDbConnectionsUpdateConnectionTags]: {};
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: { result: string[]; };
     [ShellAPIGui.GuiDbConnectionsSetCredential]: {};
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: {};

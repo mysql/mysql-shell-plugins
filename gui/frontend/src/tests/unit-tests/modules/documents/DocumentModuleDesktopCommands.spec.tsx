@@ -75,6 +75,7 @@ import type { AdminPageType } from "../../../../data-models/data-model-types.js"
 import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { ConnectionWorkspace } from "../../../../modules/db-editor/ConnectionWorkspace.js";
+import { ConnectionTags, connectionTagsChangedKey } from "../../../../modules/db-editor/ConnectionTags.js";
 import { DocumentModule } from "../../../../modules/db-editor/DocumentModule.js";
 import { Notebook } from "../../../../modules/db-editor/Notebook.js";
 import { SimpleEditor } from "../../../../modules/db-editor/SimpleEditor.js";
@@ -376,6 +377,77 @@ describe("Document module desktop commands", () => {
         expect(container.querySelector("#documentSelectorNextButton")).toBeFalsy();
         expect(container.querySelector("#documentSelector")).toBeFalsy();
         expect(container.textContent).not.toContain("Editor:");
+
+        unmount();
+    });
+
+    it("updates desktop titlebar tags when connection tag settings change", async () => {
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+            },
+        });
+
+        let tagColors = {
+            DEV: "#c2410c",
+        };
+        vi.spyOn(ConnectionTags, "getCached").mockImplementation(() => {
+            return tagColors;
+        });
+        const updateCacheSpy = vi.spyOn(ConnectionTags, "updateCache");
+
+        const taggedDetails = {
+            ...connectionDetails,
+            tags: ["DEV"],
+        };
+        const sharedConnection = createElectronWorkspaceConnection();
+        sharedConnection.connection.details = taggedDetails;
+        const fakePage = {
+            id: "page-1",
+            caption: taggedDetails.caption,
+            details: taggedDetails,
+        };
+        const fakeConnectionWorkspace = {
+            dataModelEntry: fakePage,
+            connection: sharedConnection.connection,
+            suppressAbout: false,
+        };
+        const moduleRef = createRef<TestDocumentModule>();
+        const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
+
+        await nextRunLoop();
+        const roots = (moduleRef.current as any).connectionsDataModel.roots as unknown[];
+        roots.splice(0, roots.length, sharedConnection.connection);
+        act(() => {
+            moduleRef.current!.setState({
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
+                selectedPage: fakePage.id,
+                selectedWorkspace: "connection:42",
+                loading: false,
+            });
+        });
+        await nextRunLoop();
+
+        let titlebarTag = container.querySelector<HTMLElement>(".desktopWorkspaceSelectorTag");
+        expect(titlebarTag?.textContent).toBe("DEV");
+        expect(titlebarTag?.style.backgroundColor).toBe("rgb(194, 65, 12)");
+        tagColors = {
+            DEV: "#1d4ed8",
+        };
+
+        await act(async () => {
+            await requisitions.execute("settingsChanged", {
+                key: connectionTagsChangedKey,
+                value: tagColors,
+            });
+        });
+        await nextRunLoop();
+
+        titlebarTag = container.querySelector<HTMLElement>(".desktopWorkspaceSelectorTag");
+        expect(updateCacheSpy).toHaveBeenCalledWith(tagColors);
+        expect(titlebarTag?.textContent).toBe("DEV");
+        expect(titlebarTag?.style.backgroundColor).toBe("rgb(29, 78, 216)");
 
         unmount();
     });

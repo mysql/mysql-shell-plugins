@@ -94,6 +94,8 @@ class ShellCommandTask(CommandTask):
                 # Few errors in the shell may be reported as non JSON, usually initialization errors
                 error = {"error": data}
                 data = json.loads(json.dumps(error))
+        if isinstance(data, dict) and "has_data" in data:
+            data["hasData"] = data.pop("has_data")
         self.dispatch_result("PENDING", message="Executing...", data=data)
 
     def complete(self, message=None, data=None):

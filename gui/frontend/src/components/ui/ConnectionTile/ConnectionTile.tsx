@@ -38,6 +38,12 @@ import { Container, ContentAlignment, Orientation } from "../Container/Container
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
 
+export interface IConnectionTileTag {
+    caption: string;
+    backgroundColor: string;
+    foregroundColor: string;
+}
+
 /** The tile type determines the presentation of the tile. */
 export enum ConnectionTileType {
     /** Activates the tile. */
@@ -76,6 +82,7 @@ export interface IConnectionTileProperties extends IComponentProperties {
     description: string;
     type: ConnectionTileType;
     icon: string | Codicon;
+    tags?: IConnectionTileTag[];
 
     onAction?: (action: string, props: IConnectionTileProperties, options: ITileActionOptions) => void;
     onTileReorder?: (draggedTileId: number, props: unknown) => void;
@@ -88,12 +95,13 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
     public constructor(props: IConnectionTileProperties) {
         super(props);
 
-        this.addHandledProperties("tileId", "caption", "description", "type", "icon", "onAction", "onTileReorder");
+        this.addHandledProperties("tileId", "caption", "description", "type", "icon", "tags", "onAction",
+            "onTileReorder");
         this.connectDragEvents();
     }
 
     public render(): ComponentChild {
-        const { tileId, type, icon, caption, description } = this.props;
+        const { tileId, type, icon, caption, description, tags } = this.props;
 
         const className = this.getEffectiveClassNames([
             "connectionTile",
@@ -118,6 +126,26 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
                 >
                     <Label className="tileCaption">{caption}</Label>
                     <Label className="tileDescription">{description}</Label>
+                    {tags && tags.length > 0 &&
+                        <Container
+                            className="tileTags"
+                            orientation={Orientation.LeftToRight}
+                            crossAlignment={ContentAlignment.Center}
+                        >
+                            {tags.map((tag) => {
+                                return <Label
+                                    key={tag.caption}
+                                    className="tileTag"
+                                    style={{
+                                        backgroundColor: tag.backgroundColor,
+                                        color: tag.foregroundColor,
+                                    }}
+                                >
+                                    {tag.caption}
+                                </Label>;
+                            })}
+                        </Container>
+                    }
                 </Container>
                 {showActions &&
                     <>

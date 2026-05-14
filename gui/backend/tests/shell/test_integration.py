@@ -187,7 +187,7 @@ FUNCTIONS
       delete_credential(url)
             Deletes the password of a db_connection url
 
-      get_db_connection(db_connection_id[, be_session])
+      get_db_connection(db_connection_id[, profile_id][, be_session])
             Get the db_connection
 
       get_db_types()
@@ -205,6 +205,9 @@ FUNCTIONS
       list_all(profile_id[, folder_id][, be_session])
             Lists all connections and folder paths for the given profile and
             folder
+
+      list_connection_tags(profile_id[, be_session])
+            Lists the connection tag definitions for a profile's user.
 
       list_credentials()
             Lists the db_connection urls that have a password stored
@@ -239,6 +242,9 @@ FUNCTIONS
 
       test_connection(connection[, password])
             Opens test connection
+
+      update_connection_tags(profile_id, tags[, be_session])
+            Updates the connection tag definitions for a profile's user.
 
       update_db_connection(profile_id, connection_id[, connection][, folder_path_id][, be_session])
             Update the data for a database connection

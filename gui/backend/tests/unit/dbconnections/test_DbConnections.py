@@ -21,8 +21,10 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 from gui_plugin.db_connections import DbConnections
+from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.users import UserManagement
 import config
+import json
 import pytest
 
 
@@ -60,6 +62,122 @@ def validate_connection_row(row):
 def validate_db_type_row(type):
     assert isinstance(type, str)
     assert type in ("MySQL", "Sqlite")
+
+
+def test_connection_tags_round_trip_with_connection_data():
+    user_name = "test_connection_tags_user"
+    user_id = UserManagement.create_user(user_name, "user1", role="User")
+    assert user_id > 0
+    profile = {
+        "name": "Connection tags test profile",
+        "description": "Profile for connection tags tests.",
+        "options": {},
+    }
+    profile_id = UserManagement.add_profile(user_id, profile)
+    assert profile_id > 0
+
+    connection_ids = []
+    try:
+        DbConnections.update_connection_tags(
+            profile_id,
+            {
+                "DEV": "#c2410c",
+                "QA": "#1d4ed8",
+            },
+        )
+        assert DbConnections.list_connection_tags(profile_id) == {
+            "DEV": "#c2410c",
+            "QA": "#1d4ed8",
+        }
+
+        result = DbConnections.add_db_connection(
+            profile_id,
+            {
+                "db_type": "Sqlite",
+                "caption": "Tagged sqlite database",
+                "description": "Tagged sqlite database description",
+                "options": {"db_file": "tests.sqlite3"},
+                "settings": {"defaultEditor": "DB Notebook"},
+                "tags": ["DEV", "QA"],
+            },
+        )
+        connection_ids.append(result[0])
+
+        result = DbConnections.add_db_connection(
+            profile_id,
+            {
+                "db_type": "Sqlite",
+                "caption": "Second tagged sqlite database",
+                "description": "Second tagged sqlite database description",
+                "options": {"db_file": "tests.sqlite3"},
+                "settings": {"defaultEditor": "DB Notebook"},
+                "tags": ["DEV", "QA"],
+            },
+        )
+        connection_ids.append(result[0])
+
+        latest = DbConnections.get_db_connection(connection_ids[0], profile_id)
+        assert latest["tags"] == ["DEV", "QA"]
+        assert latest["settings"]["defaultEditor"] == "DB Notebook"
+
+        listed = DbConnections.list_db_connections(profile_id)
+        listed_connection = next(item for item in listed if item["id"] == connection_ids[0])
+        assert listed_connection["tags"] == ["DEV", "QA"]
+        assert listed_connection["settings"]["defaultEditor"] == "DB Notebook"
+
+        listed_all = DbConnections.list_all(profile_id)
+        listed_all_connection = next(
+            item for item in listed_all if item["type"] == "connection"
+            and item["id"] == connection_ids[0]
+        )
+        assert listed_all_connection["tags"] == ["DEV", "QA"]
+
+        DbConnections.update_db_connection(
+            profile_id,
+            connection_ids[0],
+            {"tags": None},
+        )
+        latest = DbConnections.get_db_connection(connection_ids[0], profile_id)
+        assert latest["tags"] == ["DEV", "QA"]
+
+        DbConnections.update_db_connection(
+            profile_id,
+            connection_ids[0],
+            {
+                "settings": {"defaultEditor": "DB Script"},
+                "tags": ["QA"],
+            },
+        )
+        latest = DbConnections.get_db_connection(connection_ids[0], profile_id)
+        assert latest["tags"] == ["QA"]
+        assert latest["settings"]["defaultEditor"] == "DB Script"
+
+        DbConnections.update_connection_tags(profile_id, {"QA": "#1d4ed8"})
+        for connection_id in connection_ids:
+            latest = DbConnections.get_db_connection(connection_id, profile_id)
+            assert latest["tags"] == ["QA"]
+
+        DbConnections.update_db_connection(
+            profile_id,
+            connection_ids[0],
+            {"tags": []},
+        )
+        latest = DbConnections.get_db_connection(connection_ids[0], profile_id)
+        assert latest["tags"] == []
+    finally:
+        for connection_id in connection_ids:
+            DbConnections.remove_db_connection(profile_id, connection_id)
+        DbConnections.update_connection_tags(profile_id, {})
+        UserManagement.delete_profile(user_id, profile_id)
+
+        groups = UserManagement.list_user_groups(user_id)
+        for group in groups:
+            group_id = group["id"]
+            if group["name"] != user_name:
+                UserManagement.remove_user_from_group(user_id, group_id)
+                if group_id != 1:
+                    UserManagement.remove_user_group(group_id)
+        UserManagement.delete_user(user_name)
 
 
 def test_db_types():
@@ -229,7 +347,12 @@ class TestDbConnectionsSqlite:
             is None
         )
 
-        DbConnections.update_db_connection(1, connection_id, {"settings": "invalid"})
+        db = GuiBackendDb()
+        db.execute(
+            "UPDATE db_connection SET settings=? WHERE id=?",
+            (json.dumps("invalid"), connection_id),
+        )
+        db.close()
 
         assert (
             DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3306")

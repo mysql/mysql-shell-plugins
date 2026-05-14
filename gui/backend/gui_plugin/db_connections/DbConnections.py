@@ -76,6 +76,131 @@ def _normalize_server_status_sysvars(sysvars: list[dict[str, str]]) -> list[dict
     return result
 
 
+def _sanitize_connection_tags(tags):
+    if not isinstance(tags, dict):
+        return {}
+
+    sanitized = {}
+    for caption, color in tags.items():
+        if not isinstance(caption, str) or not isinstance(color, str):
+            continue
+
+        caption = caption.strip()
+        color = color.strip()
+        if caption and color:
+            sanitized[caption] = color
+
+    return sanitized
+
+
+def _get_profile_user_id(db, profile_id):
+    result = db.select("SELECT user_id FROM profile WHERE id=?", (profile_id,))
+    if len(result) == 0:
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            f"No profile found for id {profile_id}.",
+        )
+
+    return result[0]["user_id"]
+
+
+def _get_connection_tag_rows(db, profile_id):
+    user_id = _get_profile_user_id(db, profile_id)
+
+    return db.select(
+        """SELECT id, caption, color
+        FROM tag
+        WHERE user_id=?
+        ORDER BY id""",
+        (user_id,),
+    )
+
+
+def _hydrate_connection_tags(db, profile_id, connection):
+    selected_tags = db.select(
+        """SELECT t.caption
+        FROM db_connection_has_tag dcht
+            JOIN tag t ON dcht.tag_id = t.id
+        WHERE dcht.profile_id=? AND dcht.db_connection_id=?
+        ORDER BY t.id""",
+        (profile_id, connection["id"]),
+    )
+    connection["tags"] = [tag["caption"] for tag in selected_tags]
+
+    return connection
+
+
+def _connection_tags_for_sync(connection):
+    selected_tags = connection.get("tags")
+    if selected_tags is None:
+        settings = connection.get("settings")
+        selected_tags = settings.get("tags") if isinstance(settings, dict) else None
+
+    return selected_tags
+
+
+def _sync_connection_tags(db, profile_id, connection_id, connection):
+    selected_tags = _connection_tags_for_sync(connection)
+    if selected_tags is None:
+        return
+
+    if not isinstance(selected_tags, list):
+        selected_tags = []
+
+    selected_tags = [
+        tag.strip() for tag in selected_tags
+        if isinstance(tag, str) and tag.strip()
+    ]
+    selected_tags = list(dict.fromkeys(selected_tags))
+    tag_ids = {
+        row["caption"]: row["id"]
+        for row in _get_connection_tag_rows(db, profile_id)
+    }
+
+    db.execute(
+        """DELETE FROM db_connection_has_tag
+        WHERE profile_id=? AND db_connection_id=?""",
+        (profile_id, connection_id),
+    )
+    for tag in selected_tags:
+        tag_id = tag_ids.get(tag)
+        if tag_id is not None:
+            db.execute(
+                """INSERT INTO db_connection_has_tag(
+                profile_id, db_connection_id, tag_id)
+                VALUES(?, ?, ?)""",
+                (profile_id, connection_id, tag_id),
+            )
+
+
+def _delete_connection_tag_links(db, user_id, tag_id):
+    db.execute(
+        """DELETE FROM db_connection_has_tag
+        WHERE tag_id=?
+            AND profile_id IN (
+                SELECT id
+                FROM profile
+                WHERE user_id=?
+            )""",
+        (tag_id, user_id),
+    )
+
+
+def _settings_for_storage(connection):
+    raw_settings = connection.get("settings", {})
+    if not isinstance(raw_settings, dict):
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            "The settings parameter must be a dictionary.",
+        )
+
+    settings = dict(raw_settings)
+    settings.pop("tags", None)
+    settings.pop("badge", None)
+
+    return settings
+
+
 @plugin_function("gui.dbConnections.addDbConnection", cli=True, shell=True, web=True)
 def add_db_connection(profile_id, connection, folder_path_id=None, be_session=None):
     """Add a new db_connection and associate the connection with a profile
@@ -103,6 +228,7 @@ def add_db_connection(profile_id, connection, folder_path_id=None, be_session=No
         description (str): A longer description for this connection
         options (dict): The options specific for the current database type
         settings (dict): The additional settings for the given connection
+        tags (list): The user-defined tags assigned to the connection
 
     Returns:
         tuple: A tuple containing (connection_id, folder_path_id, index)
@@ -143,7 +269,7 @@ def add_db_connection(profile_id, connection, folder_path_id=None, be_session=No
                     connection.get("caption", "New Connection"),
                     connection.get("description", ""),
                     json.dumps(connection.get("options", {})),
-                    json.dumps(connection.get("settings", {})),
+                    json.dumps(_settings_for_storage(connection)),
                 ),
             )
 
@@ -164,6 +290,7 @@ def add_db_connection(profile_id, connection, folder_path_id=None, be_session=No
                 VALUES(?, ?, ?, ?)""",
                 (profile_id, connection_id, folder_path_id, index),
             )
+            _sync_connection_tags(db, profile_id, connection_id, connection)
 
     return (connection_id, folder_path_id, index)
 
@@ -198,6 +325,7 @@ def update_db_connection(
         description (str): A longer description for this connection
         options (dict): The options specific for the current database type
         settings (dict): The additional settings for the given connection
+        tags (list): The user-defined tags assigned to the connection
 
     Returns:
         None
@@ -212,31 +340,33 @@ def update_db_connection(
     with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
             if connection is not None:
-                if "db_type" in connection:
+                if connection.get("db_type") is not None:
                     db.execute(
                         "UPDATE db_connection SET db_type=? WHERE id=?",
                         (connection["db_type"], connection_id),
                     )
-                if "caption" in connection:
+                if connection.get("caption") is not None:
                     db.execute(
                         "UPDATE db_connection SET caption=? WHERE id=?",
                         (connection["caption"], connection_id),
                     )
-                if "description" in connection:
+                if connection.get("description") is not None:
                     db.execute(
                         "UPDATE db_connection SET description=? WHERE id=?",
                         (connection["description"], connection_id),
                     )
-                if "options" in connection:
+                if connection.get("options") is not None:
                     db.execute(
                         "UPDATE db_connection SET options=? WHERE id=?",
                         (json.dumps(connection["options"]), connection_id),
                     )
-                if "settings" in connection:
+                if connection.get("settings") is not None:
                     db.execute(
                         "UPDATE db_connection SET settings=? WHERE id=?",
-                        (json.dumps(connection["settings"]), connection_id),
+                        (json.dumps(_settings_for_storage(connection)), connection_id),
                     )
+                if connection.get("tags") is not None:
+                    _sync_connection_tags(db, profile_id, connection_id, connection)
             if folder_path_id is not None:
                 index = db_connections.get_next_connection_index(
                     db, profile_id, folder_path_id
@@ -310,7 +440,7 @@ def list_db_connections(profile_id, folder_path_id=None, be_session=None):
         list: the list of connections
     """
     with BackendDatabase(be_session) as db:
-        return db.select(
+        connections = db.select(
             """SELECT dc.id, p_dc.folder_path_id, dc.caption,
             dc.description, dc.db_type, dc.options, dc.settings, p_dc.`index`
             FROM profile_has_db_connection p_dc
@@ -319,14 +449,19 @@ def list_db_connections(profile_id, folder_path_id=None, be_session=None):
             WHERE p_dc.profile_id = ? AND p_dc.folder_path_id = ?""",
             (profile_id, "1" if folder_path_id is None else folder_path_id),
         )
+        for connection in connections:
+            _hydrate_connection_tags(db, profile_id, connection)
+
+        return connections
 
 
 @plugin_function("gui.dbConnections.getDbConnection", cli=True, shell=True, web=True)
-def get_db_connection(db_connection_id, be_session=None):
+def get_db_connection(db_connection_id, profile_id=None, be_session=None):
     """Get the db_connection
 
     Args:
         db_connection_id (int): The id of the db_connection
+        profile_id (int): The id of the profile, optional
         be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
@@ -334,9 +469,81 @@ def get_db_connection(db_connection_id, be_session=None):
         dict: The db connection
     """
     with BackendDatabase(be_session) as db:
-        return db.select(
+        connection = db.select(
             "SELECT * FROM db_connection WHERE id = ?", (db_connection_id,)
         )[0]
+        if profile_id is not None:
+            _hydrate_connection_tags(db, profile_id, connection)
+
+        return connection
+
+
+@plugin_function("gui.dbConnections.listConnectionTags", cli=True, shell=True, web=True)
+def list_connection_tags(profile_id, be_session=None):
+    """Lists the connection tag definitions for a profile's user.
+
+    Args:
+        profile_id (int): The id of the profile
+        be_session (object): A session to the GUI backend database
+            where the operation will be performed.
+
+    Returns:
+        dict: A mapping from tag caption to tag color.
+    """
+    with BackendDatabase(be_session) as db:
+        return {
+            row["caption"]: row["color"]
+            for row in _get_connection_tag_rows(db, profile_id)
+        }
+
+
+@plugin_function("gui.dbConnections.updateConnectionTags", cli=True, shell=True, web=True)
+def update_connection_tags(profile_id, tags, be_session=None):
+    """Updates the connection tag definitions for a profile's user.
+
+    Args:
+        profile_id (int): The id of the profile
+        tags (dict): A mapping from tag caption to tag color
+        be_session (object): A session to the GUI backend database
+            where the operation will be performed.
+
+    Returns:
+        None
+    """
+    sanitized_tags = _sanitize_connection_tags(tags)
+    with BackendDatabase(be_session) as db:
+        with BackendTransaction(db):
+            user_id = _get_profile_user_id(db, profile_id)
+            existing_tags = {
+                row["caption"]: row["id"]
+                for row in _get_connection_tag_rows(db, profile_id)
+            }
+            removed_tag_ids = [
+                tag_id for caption, tag_id in existing_tags.items()
+                if caption not in sanitized_tags
+            ]
+            for tag_id in removed_tag_ids:
+                _delete_connection_tag_links(db, user_id, tag_id)
+                db.execute("DELETE FROM tag WHERE id=?", (tag_id,))
+
+            next_id_result = db.select("SELECT MAX(id) AS max_id FROM tag")
+            next_id = (next_id_result[0]["max_id"] or 0) + 1
+            for caption, color in sanitized_tags.items():
+                tag_id = existing_tags.get(caption)
+                if tag_id is None:
+                    db.execute(
+                        """INSERT INTO tag(id, user_id, caption, color)
+                        VALUES(?, ?, ?, ?)""",
+                        (next_id, user_id, caption, color),
+                    )
+                    next_id += 1
+                else:
+                    db.execute(
+                        """UPDATE tag
+                        SET color=?
+                        WHERE id=? AND user_id=?""",
+                        (color, tag_id, user_id),
+                    )
 
 
 @plugin_function("gui.dbConnections.updateServerStatusCache", shell=True, web=True)
@@ -784,6 +991,9 @@ def list_all(profile_id, folder_id=None, be_session=None):
                 folder_id if folder_id is not None else 1,
             ),
         )
+        for entry in combined_list:
+            if entry["type"] == "connection":
+                _hydrate_connection_tags(db, profile_id, entry)
 
     return combined_list
 

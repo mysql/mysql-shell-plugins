@@ -409,6 +409,12 @@ export const registerSettings = (): void => {
                 ["MySQL Script", "script", "A single-language script editor (MySQL)"],
             ],
         });
+    registerSetting(
+        "dbEditor.connectionBadges",
+        "Connection Tags",
+        "Stores the connection tag definitions.",
+        "object", {}, true,
+    );
 
     registerSetting(
         "dbEditor.useMinimap",

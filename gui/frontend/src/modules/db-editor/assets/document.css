@@ -178,6 +178,13 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     gap: 10px;
 }
 
+.msg .desktopWorkspaceSelectorHost {
+    min-width: 250px;
+    max-width: 390px;
+    min-height: 0;
+    overflow: hidden;
+}
+
 .msg .desktopWorkspaceTitlebarCenter {
     display: flex;
     align-items: center;
@@ -269,8 +276,9 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
 }
 
 .msg #workspaceSelector {
-    min-width: 250px;
-    max-width: 390px;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
     margin: 0;
     min-height: 44px;
     padding: 0 38px 0 12px;
@@ -318,6 +326,33 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
 
 .msg #workspaceSelector>.container>.container>.label {
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg .desktopWorkspaceSelectorTags {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    gap: 3px;
+    margin: -4px 38px 1px 12px;
+    opacity: 0.6;
+    overflow: hidden;
+}
+
+.msg #workspaceSelector.manualFocus~.desktopWorkspaceSelectorTags {
+    opacity: 0.1;
+}
+
+.msg .desktopWorkspaceSelectorTag {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 56px;
+    padding: 0 4px;
+    border-radius: 999px;
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

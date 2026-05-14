@@ -85,6 +85,7 @@ import {
 import { formatTime } from "../../utilities/string-helpers.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
+import { ConnectionTags, connectionTagsChangedKey } from "./ConnectionTags.js";
 
 import {
     DialogResponseClosure, IDialogRequest, type ISqlUpdateResult, type Mutable,
@@ -453,6 +454,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("socketStateChanged", this.connectionStateChanged);
 
         requisitions.register("showJdvObjectDialog", this.showJdvObjectDialog);
+        requisitions.register("settingsChanged", this.handleSettingsChanged);
+
+        void ConnectionTags.load().then(() => {
+            this.forceUpdate();
+        });
 
         if (this.containerRef.current && !appParameters.inExtension) {
             this.containerRef.current.addEventListener("keydown", this.handleKeyPress);
@@ -523,6 +529,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("socketStateChanged", this.connectionStateChanged);
 
         requisitions.unregister("showJdvObjectDialog", this.showJdvObjectDialog);
+        requisitions.unregister("settingsChanged", this.handleSettingsChanged);
     }
 
     public override componentDidUpdate(_previousProps: {}, previousState: IDocumentModuleState): void {
@@ -964,6 +971,44 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return workspace?.kind === "connection"
             ? workspace.connectionWorkspace?.connection.details ?? workspace.connectionDetails
             : undefined;
+    };
+
+    private getConnectionWorkspaceTags = (connectionDetails?: IConnectionDetails): Array<{
+        caption: string;
+        backgroundColor: string;
+        foregroundColor: string;
+    }> => {
+        const tags = connectionDetails?.tags
+            ?? (connectionDetails?.settings?.badge ? [connectionDetails.settings.badge] : []);
+        if (tags.length === 0) {
+            return [];
+        }
+
+        const badges = ConnectionTags.getCached();
+
+        return tags.flatMap((tag) => {
+            const color = badges[tag];
+            if (typeof color !== "string" || color.length === 0) {
+                return [];
+            }
+
+            return [{
+                caption: tag,
+                backgroundColor: color,
+                foregroundColor: ConnectionTags.foreground(color),
+            }];
+        });
+    };
+
+    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): boolean => {
+        if (entry?.key !== connectionTagsChangedKey) {
+            return false;
+        }
+
+        ConnectionTags.updateCache(entry.value);
+        this.forceUpdate();
+
+        return true;
     };
 
     private getDocumentSidebarMode = (workspace?: Workspace): DocumentSideBarMode => {
@@ -1816,6 +1861,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 : workspaceVisiblePageId;
             const activeWorkspaceConnectionDetails = activeConnectionWorkspace?.connection.details
                 ?? this.getWorkspaceConnectionDetails(activeWorkspace);
+            const activeWorkspaceTags = this.getConnectionWorkspaceTags(activeWorkspaceConnectionDetails);
             const titlebarClassName = [
                 activeWorkspace.kind === "connection" ? "withMetadata" : "",
                 showSidebar ? "sidebarVisible" : "sidebarHidden",
@@ -1957,6 +2003,22 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                 >
                                     {workspaceDropdownItems}
                                 </Dropdown>
+                                {activeWorkspaceTags.length > 0 &&
+                                    <div className="desktopWorkspaceSelectorTags">
+                                        {activeWorkspaceTags.map((tag) => {
+                                            return <span
+                                                key={tag.caption}
+                                                className="desktopWorkspaceSelectorTag"
+                                                style={{
+                                                    backgroundColor: tag.backgroundColor,
+                                                    color: tag.foregroundColor,
+                                                }}
+                                            >
+                                                {tag.caption}
+                                            </span>;
+                                        })}
+                                    </div>
+                                }
                             </Container>
                             <div className="desktopWorkspaceTitlebarCenter">
                                 {statusArea}

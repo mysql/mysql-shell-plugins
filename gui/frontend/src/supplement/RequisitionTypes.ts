@@ -622,7 +622,7 @@ export interface IRequestTypeMap {
     "showDialog": (request: IDialogRequest) => Promise<boolean>;
     "dialogResponse": (response: IDialogResponse) => Promise<boolean>;
 
-    "settingsChanged": (entry?: { key: string; value: unknown; }) => Promise<boolean>;
+    "settingsChanged": (entry?: { key: string; value: unknown; }) => boolean | Promise<boolean>;
     "updateShellPrompt": (values: IShellPromptValues) => Promise<boolean>;
 
     "refreshOciTree": SimpleCallback;

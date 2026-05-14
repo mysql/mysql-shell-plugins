@@ -171,7 +171,7 @@ exports[`MRS User dialog tests > Show MRS User Dialog (snapshot) and escape 1`] 
           Assigned Roles
         </label>
         <div
-          class="msg container fixedScrollbar tagInput dropdown multiSelect"
+          class="msg container fixedScrollbar tagInput dropdown multiSelect valueEditor"
           id="roles"
           style="flex-direction: row; flex-wrap: wrap;"
           tabindex="0"

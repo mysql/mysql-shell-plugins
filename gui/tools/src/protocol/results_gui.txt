@@ -398,6 +398,8 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { result: IConnectionDetails[]; };
     [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { result: IConnectionDetails; };
+    [ShellAPIGui.GuiDbConnectionsListConnectionTags]: { result: Record<string, string>; };
+    [ShellAPIGui.GuiDbConnectionsUpdateConnectionTags]: {};
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: { result: string[]; };
     [ShellAPIGui.GuiDbConnectionsSetCredential]: {};
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: {};
