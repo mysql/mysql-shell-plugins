@@ -172,8 +172,12 @@ test.describe("SQL execution", () => {
         await workbench.markResultGridRowDeleted(1, "label");
         await workbench.applyResultGridChanges();
 
-        await workbench.writeInActiveEditor("SELECT * FROM electron_grid_rows_e2e;");
+        await workbench.writeInActiveEditor([
+            "SELECT id, label, 'after-delete' AS verification",
+            "FROM electron_grid_rows_e2e;",
+        ].join("\n"));
         await workbench.clickMenu(["Run", "Execute"]);
+        await workbench.expectResultGridCellText(0, "verification", "after-delete");
         await expect(page.locator(".resultTabview")).not.toContainText("added-row");
 
         await workbench.writeInActiveEditor(`DROP SCHEMA IF EXISTS ${schema};`);

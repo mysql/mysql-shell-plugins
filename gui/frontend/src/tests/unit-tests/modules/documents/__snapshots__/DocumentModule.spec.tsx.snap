@@ -439,6 +439,18 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xml:space='preserve'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%20id='svg1'%20sodipodi:docname='newFolder.svg'%20inkscape:version='1.4.3%20(0d15f75,%202025-12-25)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%20/%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23ffffff'%20bordercolor='%23000000'%20borderopacity='0.25'%20inkscape:showpageshadow='2'%20inkscape:pageopacity='0.0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23d1d1d1'%20inkscape:zoom='45.254834'%20inkscape:cx='10.61765'%20inkscape:cy='10.529262'%20inkscape:window-width='1642'%20inkscape:window-height='1022'%20inkscape:window-x='1996'%20inkscape:window-y='91'%20inkscape:window-maximized='0'%20inkscape:current-layer='svg1'%20/%3e%3cpath%20d='m%201.5097656,2%20-0.5,0.5%20v%2011%20l%200.5,0.5%20H%209.9550781%20V%2013%20H%201.9902344%20V%207%20H%206.4804687%20L%206.8300781,6.8496094%207.6894531,5.9902344%20H%2014%20v%201.5%20l%20-0.0059,2.5703126%20h%201.015625%20V%203.5%20L%2014.5,3%20H%207.7109375%20L%206.859375,2.1503906%206.5097656,2%20Z%20M%202,3.0097656%20H%206.2890625%20L%207.140625,3.859375%207.5,4.0097656%20H%2014%20L%2013.990234,5%20H%207.4902344%20L%207.140625,5.1503906%206.2792969,6.0097656%20H%202%20Z'%20style='fill-rule:nonzero'%20id='path4'%20/%3e%3cpath%20d='m%2013,11%20h%201%20v%202%20h%202%20v%201%20h%20-2%20v%202%20h%20-1%20v%20-2%20h%20-2%20v%20-1%20h%202%20z'%20id='path5'%20style='clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2'%20/%3e%3c/svg%3e");"
                             />
                           </div>
+                          <div
+                            class="msg button imageOnly"
+                            data-tooltip="More Actions"
+                            id="connectionBrowserActionsButton"
+                            role="button"
+                            tabindex="0"
+                          >
+                            <div
+                              class="msg icon codicon codicon-kebab-horizontal"
+                              data-tooltip="inherit"
+                            />
+                          </div>
                         </div>
                       </div>
                       <div

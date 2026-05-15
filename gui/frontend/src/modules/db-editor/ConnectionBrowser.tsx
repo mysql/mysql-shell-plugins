@@ -60,8 +60,11 @@ import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.j
 import {
     DBType, IConnectionDetails, IFolderPath, type IShellSessionDetails,
 } from "../../supplement/ShellInterface/index.js";
-import { convertErrorToString, uuid, isStandalone } from "../../utilities/helpers.js";
+import {
+    convertErrorToString, isStandalone, loadFileAsText, saveTextAsFile, selectFileInBrowser, uuid,
+} from "../../utilities/helpers.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
+import { ConnectionProcessor } from "../common/ConnectionProcessor.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { ConnectionTags, connectionTagsChangedKey } from "./ConnectionTags.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
@@ -86,6 +89,24 @@ interface IConnectionBrowserState extends IComponentState {
     showMoveToRoot: boolean;
 }
 
+interface IConnectionBrowserExportEntry {
+    dbType: DBType;
+    caption: string;
+    description: string;
+    options: IDictionary;
+    folderPath: string;
+    useSSH?: boolean;
+    useMHS?: boolean;
+    settings?: IConnectionDetails["settings"];
+    tags?: string[];
+}
+
+interface IConnectionBrowserExportFile {
+    version: 1;
+    connectionTags?: Record<string, string>;
+    connections: IConnectionBrowserExportEntry[];
+}
+
 export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties, IConnectionBrowserState> {
     public static override contextType = DocumentContext;
 
@@ -97,6 +118,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     private editorRef = createRef<ConnectionEditor>();
     private connectionActionMenuRef = createRef<Menu>();
     private groupActionMenuRef = createRef<Menu>();
+    private browserActionMenuRef = createRef<Menu>();
     private hostRef = createRef<HTMLDivElement>();
     private currentActionMenuEntry?: ICdmConnectionEntry | ICdmConnectionGroupEntry;
     private actionMenuRequestId = 0;
@@ -340,6 +362,19 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     <MenuItem command={{ title: "Delete Folder…", command: "removeFolder" }}
                         icon={Assets.misc.close2Icon} />
                 </Menu>
+                <Menu
+                    id="connectionBrowserActionMenu"
+                    ref={this.browserActionMenuRef}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleBrowserActionMenuClick}
+                >
+                    <MenuItem command={{ title: "Export Connections...", command: "exportConnections" }} />
+                    <MenuItem command={{ title: "Import Connections...", command: "importConnections" }} />
+                    <MenuItem command={{
+                        title: "Import MySQL Workbench 8 connections file...",
+                        command: "importWorkbenchConnections",
+                    }} />
+                </Menu>
                 <FrontPage
                     id="frontPageContent"
                     showGreeting={Settings.get("dbEditor.connectionBrowser.showGreeting", true)}
@@ -376,6 +411,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                                 }}
                             >
                                 <Icon src={Assets.file.newFolderIcon} data-tooltip="inherit" />
+                            </Button>
+                            <Button
+                                id="connectionBrowserActionsButton"
+                                imageOnly
+                                data-tooltip="More Actions"
+                                onClick={this.handleBrowserActionsClick}
+                            >
+                                <Icon src={Codicon.KebabHorizontal} data-tooltip="inherit" />
                             </Button>
                         </Container>
                         {showBreadcrumb && (
@@ -641,6 +684,44 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         e.stopPropagation();
 
         (e.currentTarget as HTMLElement).classList.remove("dropTarget");
+    };
+
+    private handleBrowserActionsClick = (e: MouseEvent | KeyboardEvent): void => {
+        const targetRect = e instanceof MouseEvent
+            ? new DOMRect(e.clientX, e.clientY, 2, 2)
+            : (e.currentTarget as HTMLElement).getBoundingClientRect();
+
+        this.browserActionMenuRef.current?.open(targetRect, false, {});
+    };
+
+    private handleBrowserActionMenuClick = (props: IMenuItemProperties): boolean => {
+        if (props.children && Children.count(props.children) > 0) {
+            return false;
+        }
+
+        switch (props.command.command) {
+            case "exportConnections": {
+                void this.exportConnections();
+
+                return true;
+            }
+
+            case "importConnections": {
+                void this.importConnections();
+
+                return true;
+            }
+
+            case "importWorkbenchConnections": {
+                void this.importWorkbenchConnections();
+
+                return true;
+            }
+
+            default: {
+                return false;
+            }
+        }
     };
 
     private handleConnectionMenuItemClick = (props: IMenuItemProperties): boolean => {
@@ -926,6 +1007,214 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             this.currentActionMenuEntry = entry;
             this.groupActionMenuRef.current?.open(anchorRect, false);
         }
+    };
+
+    private exportConnections = async (): Promise<void> => {
+        const dataModel = this.dataModel;
+        if (!dataModel) {
+            return;
+        }
+
+        const { currentGroup } = this.state;
+        const basePath = this.connectionGroupPath(currentGroup);
+        const connections = await dataModel.connectionList(basePath);
+        const exportFile: IConnectionBrowserExportFile = {
+            version: 1,
+            connectionTags: ConnectionTags.getCached(),
+            connections: connections.map((connection) => {
+                return this.createConnectionExportEntry(connection.details, basePath);
+            }),
+        };
+
+        saveTextAsFile(JSON.stringify(exportFile, undefined, 4), "mysql-connections.json");
+    };
+
+    private importConnections = async (): Promise<void> => {
+        const dataModel = this.dataModel;
+        if (!dataModel) {
+            return;
+        }
+
+        try {
+            const files = await selectFileInBrowser([".json"], false);
+            if (!files?.length) {
+                return;
+            }
+
+            const content = await loadFileAsText(files[0]);
+            const importedFile = this.parseConnectionExportFile(content);
+            const basePath = this.connectionGroupPath(this.state.currentGroup);
+            if (importedFile.connectionTags) {
+                await ConnectionTags.set({
+                    ...importedFile.connectionTags,
+                    ...ConnectionTags.getCached(),
+                });
+            }
+
+            for (const importedConnection of importedFile.connections) {
+                const details: IConnectionDetails = {
+                    id: -1,
+                    index: -1,
+                    dbType: importedConnection.dbType,
+                    caption: importedConnection.caption,
+                    description: importedConnection.description,
+                    options: importedConnection.options,
+                    folderPath: this.resolveImportedFolderPath(basePath, importedConnection.folderPath),
+                    useSSH: importedConnection.useSSH,
+                    useMHS: importedConnection.useMHS,
+                    settings: importedConnection.settings,
+                    tags: importedConnection.tags,
+                };
+
+                await ConnectionProcessor.addConnection(dataModel.createConnectionEntry(details), dataModel);
+            }
+        } catch (reason) {
+            void requisitions.execute("showError", "Cannot import DB connections: " + convertErrorToString(reason));
+        }
+    };
+
+    private importWorkbenchConnections = async (): Promise<void> => {
+        const dataModel = this.dataModel;
+        if (!dataModel) {
+            return;
+        }
+
+        const files = await selectFileInBrowser([".xml"], false);
+        if (!files?.length) {
+            return;
+        }
+
+        const content = await loadFileAsText(files[0]);
+        await ConnectionProcessor.importMySQLWorkbenchConnections(content, dataModel);
+    };
+
+    private createConnectionExportEntry = (details: IConnectionDetails,
+        basePath: string): IConnectionBrowserExportEntry => {
+        return {
+            dbType: details.dbType,
+            caption: details.caption,
+            description: details.description,
+            options: this.sanitizeForExport(details.options) as IDictionary,
+            folderPath: this.getRelativeFolderPath(details.folderPath ?? "/", basePath),
+            useSSH: details.useSSH,
+            useMHS: details.useMHS,
+            settings: details.settings,
+            tags: details.tags,
+        };
+    };
+
+    private sanitizeForExport = (value: unknown): unknown => {
+        if (Array.isArray(value)) {
+            return value.map((entry) => {
+                return this.sanitizeForExport(entry);
+            });
+        }
+
+        if (value && typeof value === "object") {
+            const sanitized: IDictionary = {};
+            Object.entries(value).forEach(([key, entry]) => {
+                if (!/password|passphrase|secret|token|private.*key|credential/i.test(key)) {
+                    sanitized[key] = this.sanitizeForExport(entry);
+                }
+            });
+
+            return sanitized;
+        }
+
+        return value;
+    };
+
+    private parseConnectionExportFile = (content: string): IConnectionBrowserExportFile => {
+        const parsed = JSON.parse(content) as Partial<IConnectionBrowserExportFile>;
+        if (parsed.version !== 1 || !Array.isArray(parsed.connections)) {
+            throw new Error("Invalid connection export file.");
+        }
+
+        const connections = parsed.connections.map((entry) => {
+            const options = entry.options as unknown;
+            if (typeof entry.caption !== "string"
+                || typeof entry.description !== "string"
+                || !Object.values(DBType).includes(entry.dbType)
+                || !options
+                || typeof options !== "object") {
+                throw new Error("Invalid connection export file.");
+            }
+
+            return {
+                dbType: entry.dbType,
+                caption: entry.caption,
+                description: entry.description,
+                options: options as IDictionary,
+                folderPath: typeof entry.folderPath === "string" ? entry.folderPath : "/",
+                useSSH: entry.useSSH,
+                useMHS: entry.useMHS,
+                settings: entry.settings,
+                tags: Array.isArray(entry.tags)
+                    ? entry.tags.filter((tag) => {
+                        return typeof tag === "string";
+                    })
+                    : undefined,
+            };
+        });
+
+        return {
+            version: 1,
+            connectionTags: this.parseConnectionTagDefinitions(parsed.connectionTags),
+            connections,
+        };
+    };
+
+    private parseConnectionTagDefinitions = (tags: unknown): Record<string, string> | undefined => {
+        if (!tags || typeof tags !== "object" || Array.isArray(tags)) {
+            return undefined;
+        }
+
+        const result: Record<string, string> = {};
+        Object.entries(tags).forEach(([caption, color]) => {
+            const tagCaption = caption.trim();
+            if (tagCaption.length > 0 && typeof color === "string" && color.trim().length > 0) {
+                result[tagCaption] = color.trim();
+            }
+        });
+
+        return result;
+    };
+
+    private getRelativeFolderPath = (folderPath: string, basePath: string): string => {
+        const normalizedFolderPath = this.normalizeFolderPath(folderPath);
+        const normalizedBasePath = this.normalizeFolderPath(basePath);
+        if (normalizedBasePath === "/") {
+            return normalizedFolderPath;
+        }
+
+        if (normalizedFolderPath === normalizedBasePath) {
+            return "/";
+        }
+
+        if (normalizedFolderPath.startsWith(`${normalizedBasePath}/`)) {
+            return normalizedFolderPath.substring(normalizedBasePath.length);
+        }
+
+        return normalizedFolderPath;
+    };
+
+    private resolveImportedFolderPath = (basePath: string, folderPath: string): string => {
+        const normalizedBasePath = this.normalizeFolderPath(basePath);
+        const normalizedFolderPath = this.normalizeFolderPath(folderPath);
+        if (normalizedFolderPath === "/") {
+            return normalizedBasePath;
+        }
+
+        return normalizedBasePath === "/" ? normalizedFolderPath : `${normalizedBasePath}${normalizedFolderPath}`;
+    };
+
+    private normalizeFolderPath = (folderPath: string): string => {
+        const trimmed = folderPath.trim();
+        if (trimmed.length === 0 || trimmed === "/") {
+            return "/";
+        }
+
+        return `/${trimmed.replace(/^\/+|\/+$/g, "")}`;
     };
 
     private getMoveTargetGroups = async (entry: ICdmConnectionEntry): Promise<ICdmConnectionGroupEntry[]> => {

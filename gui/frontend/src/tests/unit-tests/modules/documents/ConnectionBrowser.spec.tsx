@@ -25,14 +25,26 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const helperMocks = vi.hoisted(() => {
+    return {
+        isStandalone: vi.fn(() => {
+            return false;
+        }),
+        loadFileAsText: vi.fn(),
+        saveTextAsFile: vi.fn(),
+        selectFileInBrowser: vi.fn(),
+    };
+});
+
 vi.mock("../../../../utilities/helpers.js", async () => {
     const actual = await vi.importActual("../../../../utilities/helpers.js");
 
     return {
         ...actual,
-        isStandalone: vi.fn(() => {
-            return false;
-        }),
+        isStandalone: helperMocks.isStandalone,
+        loadFileAsText: helperMocks.loadFileAsText,
+        saveTextAsFile: helperMocks.saveTextAsFile,
+        selectFileInBrowser: helperMocks.selectFileInBrowser,
     };
 });
 
@@ -48,7 +60,9 @@ import { appParameters } from "../../../../supplement/AppParameters.js";
 import { Settings } from "../../../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
-import { isStandalone } from "../../../../utilities/helpers.js";
+import { ConnectionProcessor } from "../../../../modules/common/ConnectionProcessor.js";
+import { ConnectionTags } from "../../../../modules/db-editor/ConnectionTags.js";
+import { isStandalone, loadFileAsText, saveTextAsFile, selectFileInBrowser } from "../../../../utilities/helpers.js";
 
 describe("Connection browser tests", (): void => {
     const createGroup = (id: number, caption: string, parent?: Record<string, unknown>) => {
@@ -78,6 +92,28 @@ describe("Connection browser tests", (): void => {
                 index: 0,
                 options: {},
                 folderPath,
+            },
+        };
+    };
+
+    const createConnectionWithDetails = (
+        id: number,
+        caption: string,
+        parent?: Record<string, unknown>,
+        folderPath = "/",
+    ) => {
+        return {
+            ...createConnection(parent, folderPath),
+            id: `connection-entry-${id}`,
+            caption,
+            details: {
+                ...createConnection(parent, folderPath).details,
+                id,
+                caption,
+                options: {
+                    host: `${caption}.example.com`,
+                    password: "secret",
+                },
             },
         };
     };
@@ -183,6 +219,251 @@ describe("Connection browser tests", (): void => {
         expect(path[0].disabled).toBeUndefined();
         expect(path[1].caption).toBe("Projects");
         expect(path[1].disabled).toBe(true);
+    });
+
+    it("renders connection import and export actions with Workbench import last", () => {
+        const browser = createBrowser();
+        const output = browser.render();
+
+        const actionMenu = findVNodeById(output, "connectionBrowserActionMenu");
+        expect(actionMenu?.props.placement).toBe(ComponentPlacement.BottomLeft);
+
+        const menuItems = actionMenu?.props.children as Array<{ props: { command: { title: string; }; }; }>;
+        expect(menuItems.map((item) => {
+            return item.props.command.title;
+        })).toEqual([
+            "Export Connections...",
+            "Import Connections...",
+            "Import MySQL Workbench 8 connections file...",
+        ]);
+    });
+
+    it("opens the connection browser action menu at the click position", () => {
+        const originalDOMRect = globalThis.DOMRect;
+        class TestDOMRect {
+            public left: number;
+            public top: number;
+            public right: number;
+            public bottom: number;
+
+            public constructor(
+                public x = 0,
+                public y = 0,
+                public width = 0,
+                public height = 0,
+            ) {
+                this.left = x;
+                this.top = y;
+                this.right = x + width;
+                this.bottom = y + height;
+            }
+        }
+        vi.stubGlobal("DOMRect", TestDOMRect);
+
+        const browser = createBrowser();
+        const openSpy = vi.fn();
+        (browser as unknown as {
+            browserActionMenuRef: { current: { open: typeof openSpy; }; };
+        }).browserActionMenuRef.current = { open: openSpy };
+
+        try {
+            (browser as unknown as {
+                handleBrowserActionsClick: (e: MouseEvent) => void;
+            }).handleBrowserActionsClick(new MouseEvent("click", { clientX: 42, clientY: 84 }));
+
+            const targetRect = openSpy.mock.calls[0][0] as TestDOMRect;
+            expect(targetRect.x).toBe(42);
+            expect(targetRect.y).toBe(84);
+            expect(targetRect.width).toBe(2);
+            expect(targetRect.height).toBe(2);
+            expect(openSpy).toHaveBeenCalledWith(targetRect, false, {});
+        } finally {
+            vi.stubGlobal("DOMRect", originalDOMRect);
+        }
+    });
+
+    it("routes connection browser action menu commands", () => {
+        const browser = createBrowser();
+        const exportSpy = vi.spyOn(browser as unknown as {
+            exportConnections: () => Promise<void>;
+        }, "exportConnections").mockResolvedValue(undefined);
+        const importSpy = vi.spyOn(browser as unknown as {
+            importConnections: () => Promise<void>;
+        }, "importConnections").mockResolvedValue(undefined);
+        const importWorkbenchSpy = vi.spyOn(browser as unknown as {
+            importWorkbenchConnections: () => Promise<void>;
+        }, "importWorkbenchConnections").mockResolvedValue(undefined);
+
+        const handle = (command: string) => {
+            return (browser as unknown as {
+                handleBrowserActionMenuClick: (props: {
+                    command: { command: string; };
+                    children?: unknown;
+                }) => boolean;
+            }).handleBrowserActionMenuClick({ command: { title: command, command } });
+        };
+
+        expect(handle("exportConnections")).toBe(true);
+        expect(handle("importConnections")).toBe(true);
+        expect(handle("importWorkbenchConnections")).toBe(true);
+        expect(exportSpy).toHaveBeenCalled();
+        expect(importSpy).toHaveBeenCalled();
+        expect(importWorkbenchSpy).toHaveBeenCalled();
+    });
+
+    it("exports the current folder connection subtree to JSON without secrets", async () => {
+        const rootGroup = createGroup(1, "/");
+        const currentGroup = createGroup(2, "Projects", rootGroup);
+        const nestedGroup = createGroup(3, "Archive", currentGroup);
+        const firstConnection = createConnectionWithDetails(42, "Local", currentGroup, "/Projects");
+        const secondConnection = createConnectionWithDetails(43, "Archived", nestedGroup, "/Projects/Archive");
+        firstConnection.details.tags = ["DEV", "QA"];
+        secondConnection.details.tags = ["QA"];
+        vi.spyOn(ConnectionTags, "getCached").mockReturnValue({
+            DEV: "#c2410c",
+            QA: "#1d4ed8",
+        });
+        const browser = createBrowser();
+        const dataModel = {
+            connectionList: vi.fn().mockResolvedValue([firstConnection, secondConnection]),
+        };
+
+        (browser as unknown as {
+            context: unknown;
+            state: unknown;
+            exportConnections: () => Promise<void>;
+        }).context = { connectionsDataModel: dataModel };
+        (browser as unknown as { state: unknown; }).state = {
+            currentGroup,
+            moveTargetGroups: [],
+        };
+
+        await (browser as unknown as {
+            exportConnections: () => Promise<void>;
+        }).exportConnections();
+
+        expect(dataModel.connectionList).toHaveBeenCalledWith("/Projects");
+        expect(saveTextAsFile).toHaveBeenCalledWith(expect.any(String), "mysql-connections.json");
+
+        const [[content]] = vi.mocked(saveTextAsFile).mock.calls as Array<[string, string]>;
+        const exportFile = JSON.parse(content) as {
+            connections: Array<{
+                caption: string;
+                folderPath: string;
+                options: Record<string, unknown>;
+                tags?: string[];
+            }>;
+            connectionTags?: Record<string, string>;
+            version: number;
+        };
+        expect(exportFile).toMatchObject({
+            version: 1,
+            connectionTags: {
+                DEV: "#c2410c",
+                QA: "#1d4ed8",
+            },
+            connections: [{
+                caption: "Local",
+                folderPath: "/",
+                options: { host: "Local.example.com" },
+                tags: ["DEV", "QA"],
+            }, {
+                caption: "Archived",
+                folderPath: "/Archive",
+                options: { host: "Archived.example.com" },
+                tags: ["QA"],
+            }],
+        });
+        expect(content).not.toContain("secret");
+    });
+
+    it("imports exported JSON connections into the current folder", async () => {
+        const rootGroup = createGroup(1, "/");
+        const currentGroup = createGroup(2, "Projects", rootGroup);
+        const browser = createBrowser();
+        const dataModel = {
+            createConnectionEntry: vi.fn((details: unknown) => {
+                return { type: CdmEntityType.Connection, details };
+            }),
+        };
+        const file = new File(["{}"], "connections.json", { type: "application/json" });
+        vi.mocked(selectFileInBrowser).mockResolvedValue([file]);
+        vi.mocked(loadFileAsText).mockResolvedValue(JSON.stringify({
+            version: 1,
+            connections: [{
+                dbType: DBType.MySQL,
+                caption: "Local",
+                description: "",
+                folderPath: "/Archive",
+                options: { host: "localhost" },
+                tags: ["DEV", "QA"],
+            }],
+            connectionTags: {
+                DEV: "#dc2626",
+                QA: "#1d4ed8",
+            },
+        }));
+        vi.spyOn(ConnectionTags, "getCached").mockReturnValue({
+            LOCAL: "#047857",
+            DEV: "#c2410c",
+        });
+        const setTagsSpy = vi.spyOn(ConnectionTags, "set").mockResolvedValue();
+        const addConnectionSpy = vi.spyOn(ConnectionProcessor, "addConnection").mockResolvedValue(undefined);
+
+        (browser as unknown as {
+            context: unknown;
+            state: unknown;
+            importConnections: () => Promise<void>;
+        }).context = { connectionsDataModel: dataModel };
+        (browser as unknown as { state: unknown; }).state = {
+            currentGroup,
+            moveTargetGroups: [],
+        };
+
+        await (browser as unknown as {
+            importConnections: () => Promise<void>;
+        }).importConnections();
+
+        expect(selectFileInBrowser).toHaveBeenCalledWith([".json"], false);
+        expect(dataModel.createConnectionEntry).toHaveBeenCalledWith(expect.objectContaining({
+            id: -1,
+            index: -1,
+            caption: "Local",
+            folderPath: "/Projects/Archive",
+            tags: ["DEV", "QA"],
+        }));
+        expect(setTagsSpy).toHaveBeenCalledWith({
+            LOCAL: "#047857",
+            DEV: "#c2410c",
+            QA: "#1d4ed8",
+        });
+        expect(addConnectionSpy).toHaveBeenCalledWith(expect.objectContaining({
+            details: expect.objectContaining({
+                folderPath: "/Projects/Archive",
+                tags: ["DEV", "QA"],
+            }) as Record<string, unknown>,
+        }), dataModel);
+    });
+
+    it("imports MySQL Workbench 8 connections from the browser action menu", async () => {
+        const browser = createBrowser();
+        const dataModel = {};
+        const file = new File(["<data />"], "connections.xml", { type: "text/xml" });
+        vi.mocked(selectFileInBrowser).mockResolvedValue([file]);
+        vi.mocked(loadFileAsText).mockResolvedValue("<data />");
+        const importSpy = vi.spyOn(ConnectionProcessor, "importMySQLWorkbenchConnections").mockResolvedValue(undefined);
+
+        (browser as unknown as {
+            context: unknown;
+            importWorkbenchConnections: () => Promise<void>;
+        }).context = { connectionsDataModel: dataModel };
+
+        await (browser as unknown as {
+            importWorkbenchConnections: () => Promise<void>;
+        }).importWorkbenchConnections();
+
+        expect(selectFileInBrowser).toHaveBeenCalledWith([".xml"], false);
+        expect(importSpy).toHaveBeenCalledWith("<data />", dataModel);
     });
 
     it("shows the Workbench welcome banner in standalone mode", () => {

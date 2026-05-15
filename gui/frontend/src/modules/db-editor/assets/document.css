@@ -2569,31 +2569,46 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
 }
 
 .msg .connectionBrowser #newConnectionButton,
-.msg .connectionBrowser #newFolderButton {
+.msg .connectionBrowser #newFolderButton,
+.msg .connectionBrowser #connectionBrowserActionsButton {
     min-width: 0;
     margin: 0;
     width: 28px;
     height: 28px;
     padding: 0;
-    background-color: var(--button-secondaryBackground);
-    border-color: var(--button-border);
+    background-color: transparent;
+    border-color: transparent;
     transition: background-color 0.15s ease-in, border-color 0.15s ease-in;
 }
 
 .msg .connectionBrowser #newConnectionButton:hover,
 .msg .connectionBrowser #newFolderButton:hover,
+.msg .connectionBrowser #connectionBrowserActionsButton:hover,
 .msg .connectionBrowser #newConnectionButton:focus,
-.msg .connectionBrowser #newFolderButton:focus {
+.msg .connectionBrowser #newFolderButton:focus,
+.msg .connectionBrowser #connectionBrowserActionsButton:focus {
     background-color: var(--button-hoverBackground);
     border-color: var(--button-hoverBackground);
 }
 
 .msg .connectionBrowser #newConnectionButton>.icon,
-.msg .connectionBrowser #newFolderButton>.icon {
+.msg .connectionBrowser #newFolderButton>.icon,
+.msg .connectionBrowser #connectionBrowserActionsButton>.icon {
     width: 16px;
     height: 16px;
     margin: 0;
+}
+
+.msg .connectionBrowser #newConnectionButton>.icon:not(.codicon),
+.msg .connectionBrowser #newFolderButton>.icon:not(.codicon) {
     background-color: var(--button-secondaryForeground);
+}
+
+.msg .connectionBrowser #connectionBrowserActionsButton>.icon.codicon {
+    background: none;
+    color: var(--button-secondaryForeground);
+    font-size: 16px;
+    line-height: 16px;
 }
 
 .msg .connectionBrowser #newConnectionButton>.icon {
