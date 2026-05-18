@@ -38,6 +38,7 @@ import { requisitions } from "../../../../../supplement/Requisitions.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
 import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
 import { ColumnComponentMock } from "../../../__mocks__/ColumnComponentMock.js";
+import { RowComponentMock } from "../../../__mocks__/RowComponentMock.js";
 import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 import type { Menu } from "../../../../../components/ui/Menu/Menu.js";
 
@@ -191,7 +192,7 @@ describe("Result View Tests", (): void => {
         unmount();
     });
 
-    it("does not reload unchanged rows after status-only updates", async () => {
+    it("reloads rows after status-only updates when not editing", async () => {
         const resultSet = createResultSet("123", [{ id: 1 }]);
         const viewRef = createRef<ResultView>();
         const { rerender, unmount } = render(
@@ -221,7 +222,7 @@ describe("Result View Tests", (): void => {
         );
         await nextRunLoop();
 
-        expect(addDataSpy).not.toHaveBeenCalled();
+        expect(addDataSpy).toHaveBeenCalledWith(resultSet.data, true);
 
         addDataSpy.mockRestore();
         unmount();
@@ -1284,6 +1285,69 @@ describe("Result View Tests", (): void => {
         expect(cancel).toHaveBeenCalledWith(undefined);
         expect(onFieldEdited).not.toHaveBeenCalled();
         expect(onFieldEditCancel).toHaveBeenCalledWith(0, "name", undefined, false);
+
+        unmount();
+    });
+
+    it("ignores a missing replacement cell after finishing an edit", async () => {
+        const columns: IColumnInfo[] = [createColumn("name", "name")];
+        const cell = new CellComponentMock();
+        cell.fieldType = "name";
+        cell.value = "old";
+        assignColumn(cell, columns[0]);
+        cell.row.getPosition = () => {
+            return 1;
+        };
+
+        const replacementRow = new RowComponentMock();
+        replacementRow.getCell = vi.fn(() => {
+            return false;
+        });
+
+        const viewRef = createRef<TestResultView>();
+        const { unmount } = render(
+            <TestResultView
+                ref={viewRef}
+                resultSet={{
+                    type: "resultSet",
+                    sql: "select 1",
+                    resultId: "missing-replacement-cell",
+                    columns,
+                    updatable: true,
+                    fullTableName: "test",
+                    data: {
+                        rows: [{ name: "old" }],
+                        currentPage: 0,
+                    },
+                }}
+                editModeActive={true}
+                editable={true}
+                onFieldEdited={vi.fn().mockResolvedValue(undefined)}
+            />,
+        );
+
+        const input = document.createElement("input");
+        input.value = "new";
+        const success = vi.fn();
+        const cancel = vi.fn();
+        const internals = viewRef.current! as unknown as IResultViewInternals;
+        (viewRef.current as unknown as {
+            gridRef: { current: { getRows: () => RowComponentMock[]; setData: () => Promise<void>; }; };
+        })
+            .gridRef.current = {
+                getRows: () => {
+                    return [replacementRow];
+                },
+                setData: vi.fn().mockResolvedValue(undefined),
+            };
+
+        internals.cellEditing(cell);
+        internals.handleBlurEvent(cell, success, cancel, { target: input } as unknown as FocusEvent);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 150);
+        });
+
+        expect(replacementRow.getCell).toHaveBeenCalledWith("name");
 
         unmount();
     });

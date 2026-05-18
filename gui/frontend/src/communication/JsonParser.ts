@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -324,6 +324,7 @@ export class JsonParser {
     private scanString(quote: number): string {
         let result = "";
         let start = this.#currentPosition;
+        let closed = false;
 
         while (true) {
             if (this.#currentPosition >= this.#input.length) {
@@ -335,6 +336,7 @@ export class JsonParser {
             if (ch === quote) {
                 result += this.#input.substring(start, this.#currentPosition);
                 ++this.#currentPosition;
+                closed = true;
                 break;
             }
 
@@ -403,19 +405,36 @@ export class JsonParser {
 
                     case 0x75: { // u
                         const ch3 = this.scanHexDigits(4);
-                        if (ch3 >= 0) {
-                            // Note: there's no need to check for surrogate pairs. TS will handle it.
-                            if (ch3 < 0x10000) {
-                                result += String.fromCharCode(ch3);
-                            } else {
-                                result += String.fromCodePoint(ch3);
+                        if (ch3 < 0) {
+                            throw new Error("Invalid unicode escape.");
+                        }
+
+                        if (ch3 >= 0xD800 && ch3 <= 0xDBFF) {
+                            if (this.#input.codePointAt(this.#currentPosition) !== 0x5C
+                                || this.#input.codePointAt(this.#currentPosition + 1) !== 0x75) {
+                                throw new Error("Invalid unicode surrogate pair.");
                             }
+
+                            this.#currentPosition += 2;
+                            const lowSurrogate = this.scanHexDigits(4);
+                            if (lowSurrogate < 0xDC00 || lowSurrogate > 0xDFFF) {
+                                throw new Error("Invalid unicode surrogate pair.");
+                            }
+
+                            result += String.fromCodePoint(
+                                ((ch3 - 0xD800) * 0x400) + (lowSurrogate - 0xDC00) + 0x10000);
+                        } else if (ch3 >= 0xDC00 && ch3 <= 0xDFFF) {
+                            throw new Error("Invalid unicode surrogate pair.");
+                        } else {
+                            result += String.fromCharCode(ch3);
                         }
 
                         break;
                     }
 
-                    default:
+                    default: {
+                        throw new Error("Invalid escape sequence.");
+                    }
                 }
 
                 start = this.#currentPosition;
@@ -423,14 +442,13 @@ export class JsonParser {
             }
 
             if (ch >= 0 && ch <= 0x1f) {
-                if (this.isLineBreak(ch)) {
-                    result += this.#input.substring(start, this.#currentPosition);
-                    start = this.#currentPosition;
-
-                    break;
-                }
+                throw new Error("Invalid control character in string.");
             }
             ++this.#currentPosition;
+        }
+
+        if (!closed) {
+            throw new Error("Unterminated string.");
         }
 
         return result;

@@ -128,9 +128,9 @@ function array_contains() {
 
 function resolve_electron_version() {
     node -e '
-const version = require("./package.json").devDependencies.electron;
+const version = require("./package.json").dependencies.electron;
 if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
-    console.error(`ERROR: Expected devDependencies.electron to be an exact version, got ${version}`);
+    console.error(`ERROR: Expected dependencies.electron to be an exact version, got ${version}`);
     process.exit(1);
 }
 process.stdout.write(version);

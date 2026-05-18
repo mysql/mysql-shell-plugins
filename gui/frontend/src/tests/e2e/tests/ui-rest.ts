@@ -284,7 +284,7 @@ describe("MYSQL REST SERVICE", () => {
             }
         });
 
-        it.skip("Upgrade MRS version", async () => {
+        it("Upgrade MRS version", async () => {
             try {
                 await Misc.deleteRestSchema(globalConn.caption!);
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
@@ -470,7 +470,7 @@ describe("MYSQL REST SERVICE", () => {
 
         });
 
-        it.skip("Browse the MySQL REST Service Documentation", async () => {
+        it("Browse the MySQL REST Service Documentation", async () => {
             let browserTabs: string[] = [];
             try {
                 await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.browseRESTDocs);

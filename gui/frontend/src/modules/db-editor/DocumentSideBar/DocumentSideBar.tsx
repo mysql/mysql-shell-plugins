@@ -188,6 +188,7 @@ interface IDocumentSideBarProperties extends IComponentProperties {
     savedSectionState?: Map<string, IDocumentSideBarSectionState>;
 
     sidebarMode?: DocumentSideBarMode;
+    activeWorkspaceConnection?: ICdmConnectionEntry;
     activeWorkspaceConnectionId?: number;
 
     overviewId: string;
@@ -333,7 +334,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         };
 
         this.addHandledProperties("selectedOpenDocument", "markedSchema", "savedSectionState", "sidebarMode",
-            "activeWorkspaceConnectionId", "overviewId",
+            "activeWorkspaceConnection", "activeWorkspaceConnectionId", "overviewId",
             "onSelectConnectionItem", "onSelectDocumentItem", "onChangeItem", "onSaveState",
             "onConnectionTreeCommand", "onDocumentTreeCommand", "onOciTreeCommand",
         );
@@ -387,7 +388,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             return undefined;
         }
 
-        return connection.state.payload?.showSystemSchemas === true;
+        return connection.state?.payload?.showSystemSchemas === true;
     };
 
     public override componentDidUpdate(prevProps: IDocumentSideBarProperties): void {
@@ -419,12 +420,16 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             }
         }
 
-        const { markedSchema, selectedOpenDocument, sidebarMode = "classic", activeWorkspaceConnectionId } = this.props;
+        const {
+            activeWorkspaceConnection, activeWorkspaceConnectionId, markedSchema, selectedOpenDocument,
+            sidebarMode = "classic",
+        } = this.props;
 
         // Check for data model changes and update our trees.
         this.updateTreesFromContext();
 
         if (prevProps.sidebarMode !== sidebarMode
+            || prevProps.activeWorkspaceConnection !== activeWorkspaceConnection
             || prevProps.activeWorkspaceConnectionId !== activeWorkspaceConnectionId) {
             this.schemaSearchLoadedConnectionId = undefined;
 
@@ -718,10 +723,19 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     }
 
     private getActiveWorkspaceConnectionEntry = (): ICdmConnectionEntry | undefined => {
-        const { activeWorkspaceConnectionId } = this.props;
+        const { activeWorkspaceConnection, activeWorkspaceConnectionId } = this.props;
+        const activeWorkspaceConnectionMatches = activeWorkspaceConnection
+            && (activeWorkspaceConnectionId === undefined
+                || activeWorkspaceConnection.details.id === activeWorkspaceConnectionId);
+        if (activeWorkspaceConnection
+            && activeWorkspaceConnectionMatches
+            && activeWorkspaceConnection.state !== undefined) {
+            return activeWorkspaceConnection;
+        }
+
         const context = this.context as DocumentContextType | undefined;
         if (!context || activeWorkspaceConnectionId === undefined) {
-            return undefined;
+            return activeWorkspaceConnectionMatches ? activeWorkspaceConnection : undefined;
         }
 
         const findConnection = (
@@ -741,7 +755,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             return undefined;
         };
 
-        return findConnection(context.connectionsDataModel.roots);
+        return findConnection(context.connectionsDataModel.roots)
+            ?? (activeWorkspaceConnectionMatches ? activeWorkspaceConnection : undefined);
     };
 
     private ensureWorkspaceConnectionReady = async (): Promise<void> => {
@@ -751,7 +766,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
 
         const connection = this.getActiveWorkspaceConnectionEntry();
-        if (!connection || connection.state.initialized) {
+        if (!connection || connection.state?.initialized !== false) {
             return;
         }
 
@@ -1209,9 +1224,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         connection: ICdmConnectionEntry,
         filterValue: string,
     ): IConnectionTreeItem[] => {
-        const schemaEntries = connection.state.payload?.showSystemSchemas
-            ? connection.schemaEntries
-            : connection.schemaEntries.filter((entry) => {
+        const allSchemaEntries = connection.schemaEntries ?? [];
+        const schemaEntries = connection.state?.payload?.showSystemSchemas
+            ? allSchemaEntries
+            : allSchemaEntries.filter((entry) => {
                 return !systemSchemas.has(entry.caption);
             });
         const normalizedFilter = filterValue.trim().toLowerCase();
@@ -2942,6 +2958,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const dataModelEntry = entry.dataModelEntry;
         if (dataModelEntry.type === CdmEntityType.Schema && entry.qualifiedName.name === markedSchema
             && !entry.dataModelEntry.state.isLeaf && !entry.dataModelEntry.state.expandedOnce) {
+            entry.dataModelEntry.state.expanded = true;
             setTimeout(() => {
                 row.treeExpand();
             }, 100);

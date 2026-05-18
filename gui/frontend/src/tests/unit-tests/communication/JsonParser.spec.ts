@@ -49,7 +49,7 @@ describe("JsonParser", () => {
         });
     });
 
-    it.skip("Invalid JSON", () => { // Not all invalid cases are covered. Need to investigate further.
+    it("Invalid JSON", () => { // Not all invalid cases are covered. Need to investigate further.
         const fileList = readdirSync("./data/json/reject/");
         fileList.forEach((file) => {
             const json = readFileSync(`./data/json/reject/${file}`, { encoding: "utf-8" });

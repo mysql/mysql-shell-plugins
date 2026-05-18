@@ -199,7 +199,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         // Get the initial values to allow computing changes on each query step.
         // But first check if the user has access to the performance_schema.
-        props.backend?.execute("select * from performance_schema.log_status").then(() => {
+        props.backend?.executeService("select * from performance_schema.log_status").then(() => {
             this.hasPSAccess = true;
             void this.queryAndUpdate();
         }).catch(() => {

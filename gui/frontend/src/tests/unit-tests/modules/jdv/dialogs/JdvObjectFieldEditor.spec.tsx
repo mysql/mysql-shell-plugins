@@ -604,7 +604,7 @@ describe("JDV Object field editor tests", () => {
         await backend.execute("CREATE DATABASE IF NOT EXISTS jdv_test");
     });
 
-    it.skip("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [create JDV]", async () => {
+    it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [create JDV]", async () => {
         const schemasWithTables = await createJdvData(backend);
         const values: IJdvObjectFieldEditorData = {
             jdvSchema: "jdv_test",
@@ -655,7 +655,7 @@ describe("JDV Object field editor tests", () => {
         unmount();
     });
 
-    it.skip("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async () => {
+    it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async () => {
         const schemasWithTables = await createJdvData(backend);
         const exampleDDL = createJdvExampleDDL();
         await backend.execute(exampleDDL);

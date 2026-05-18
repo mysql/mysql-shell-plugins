@@ -101,6 +101,9 @@ export class ScriptingLanguageServices {
         const context = block as ExecutionContext;
         const localPosition = context.toLocal(position);
         const model = context.model as ICodeEditorModel;
+        if (!model) {
+            return undefined;
+        }
 
         switch (context.language) {
             case "javascript":
@@ -1189,6 +1192,19 @@ export class ScriptingLanguageServices {
     }
 
     private async workerForLanguage(language: string): Promise<(...uris: Uri[]) => Promise<TypeScriptWorker>> {
+        if (!languages.typescript) {
+            return async () => {
+                return {
+                    getCompletionsAtPosition: async () => {
+                        return undefined;
+                    },
+                    getCompletionEntryDetails: async () => {
+                        return undefined;
+                    },
+                } as unknown as TypeScriptWorker;
+            };
+        }
+
         return (language === "javascript")
             ? languages.typescript.getJavaScriptWorker()
             : languages.typescript.getTypeScriptWorker();

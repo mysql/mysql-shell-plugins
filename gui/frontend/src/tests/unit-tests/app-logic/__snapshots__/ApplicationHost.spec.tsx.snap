@@ -553,13 +553,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                 />
               </svg>
             </div>
-            <label
-              class="msg label"
-              data-tooltip="expand"
-              id="progressMessageId"
-            >
-              
-            </label>
           </div>
         </div>
       </div>
@@ -1121,13 +1114,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                 />
               </svg>
             </div>
-            <label
-              class="msg label"
-              data-tooltip="expand"
-              id="progressMessageId"
-            >
-              
-            </label>
           </div>
         </div>
       </div>
@@ -1689,13 +1675,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                 />
               </svg>
             </div>
-            <label
-              class="msg label"
-              data-tooltip="expand"
-              id="progressMessageId"
-            >
-              
-            </label>
           </div>
         </div>
       </div>
@@ -2257,13 +2236,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                 />
               </svg>
             </div>
-            <label
-              class="msg label"
-              data-tooltip="expand"
-              id="progressMessageId"
-            >
-              
-            </label>
           </div>
         </div>
       </div>
@@ -2925,13 +2897,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                 />
               </svg>
             </div>
-            <label
-              class="msg label"
-              data-tooltip="expand"
-              id="progressMessageId"
-            >
-              
-            </label>
           </div>
         </div>
       </div>

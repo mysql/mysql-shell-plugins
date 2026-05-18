@@ -218,9 +218,14 @@ describe("ShellInterfaceDb Tests", () => {
         vi.mocked(MessageScheduler.get.sendRequest).mockClear();
 
         const editor = new ShellInterfaceSqlEditor();
+        const sendInteractiveRequestSpy = vi.spyOn(editor.interactive, "sendInteractiveRequest").mockResolvedValue({
+            result: {
+                moduleSessionId: "interactiveSessionId",
+            },
+        });
         await editor.startServiceSession("adminOnly", testConnection.id);
 
-        expect(MessageScheduler.get.sendRequest).toHaveBeenCalledWith(expect.objectContaining({
+        expect(sendInteractiveRequestSpy).toHaveBeenCalledWith(expect.objectContaining({
             requestType: ShellAPIGui.GuiDbStartSession,
             parameters: { args: { connection: testConnection.id } },
         }));
@@ -228,7 +233,7 @@ describe("ShellInterfaceDb Tests", () => {
         await editor.closeSession();
         expect(MessageScheduler.get.sendRequest).toHaveBeenLastCalledWith(expect.objectContaining({
             requestType: ShellAPIGui.GuiDbCloseSession,
-            parameters: { args: { moduleSessionId: "testSessionId" } },
+            parameters: { args: { moduleSessionId: "interactiveSessionId" } },
         }));
     });
 

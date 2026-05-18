@@ -90,7 +90,12 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     public async startServiceSession(id: string, connection: number | IShellDbConnection): Promise<void> {
         this.clearWorkspaceCaches();
         this.serviceOnlySession = true;
-        await super.startSession(id, connection);
+        this.moduleSessionLookupId = `dbSession.${id}`;
+        const response = await this.interactive.sendInteractiveRequest({
+            requestType: ShellAPIGui.GuiDbStartSession,
+            parameters: { args: { connection } },
+        });
+        webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
     }
 

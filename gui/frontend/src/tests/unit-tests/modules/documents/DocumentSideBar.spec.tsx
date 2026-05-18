@@ -29,6 +29,7 @@ import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
 import { DocumentSideBar } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
+import { RowComponentMock } from "../../__mocks__/RowComponentMock.js";
 
 describe("DocumentSideBar", () => {
     const createTreeState = (overrides: Record<string, unknown> = {}) => {
@@ -299,5 +300,27 @@ describe("DocumentSideBar", () => {
         expect(host.classList.contains("marked")).toBe(true);
         expect(host.querySelector(".icon")?.classList.contains("markedSchemaIcon")).toBe(true);
         expect(host.querySelector("#mainCaption")?.classList.contains("markedSchemaPill")).toBe(false);
+    });
+
+    it("persists auto-expansion of the current schema across schema refresh", () => {
+        const { connection } = createConnectionTree();
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "sakila",
+            overviewId: "overview",
+            sidebarMode: "electronConnection",
+            activeWorkspaceConnectionId: 42,
+            onConnectionTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+
+        const schema = (connection.schemaEntries as Array<Record<string, unknown>>)[0];
+        schema.state = createTreeState();
+        const treeItem = (sideBar as any).buildWorkspaceConnectionTreeItem(schema);
+        const row = new RowComponentMock(treeItem as never);
+
+        expect((sideBar as any).isConnectionTreeRowExpanded(row)).toBe(true);
+        expect((schema.state as { expanded: boolean; }).expanded).toBe(true);
     });
 });

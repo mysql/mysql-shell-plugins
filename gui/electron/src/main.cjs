@@ -50,6 +50,41 @@ const isBundledRuntime = fs.existsSync(bundledFrontendBuildDir) && fs.existsSync
 const frontendBuildDir = isBundledRuntime ? bundledFrontendBuildDir : path.resolve(__dirname, "../../frontend/build");
 const preloadPath = path.resolve(__dirname, "./preload.cjs");
 const desktopLogPath = path.join(os.homedir(), "Library", "Logs", "MySQL Workbench-electron.log");
+
+const parseCommandLineArguments = (argv) => {
+    const result = {};
+
+    for (let index = 2; index < argv.length; index += 1) {
+        const argument = argv[index];
+        if (!argument.startsWith("--")) {
+            continue;
+        }
+
+        const option = argument.slice(2);
+        const equalsIndex = option.indexOf("=");
+        if (equalsIndex >= 0) {
+            result[option.slice(0, equalsIndex)] = option.slice(equalsIndex + 1);
+            continue;
+        }
+
+        const next = argv[index + 1];
+        if (next && !next.startsWith("--")) {
+            result[option] = next;
+            index += 1;
+        } else {
+            result[option] = "true";
+        }
+    }
+
+    return result;
+};
+
+const commandLineArguments = parseCommandLineArguments(process.argv);
+const explicitUserDataDir = commandLineArguments["electron-user-data-dir"];
+if (typeof explicitUserDataDir === "string" && explicitUserDataDir.length > 0) {
+    app.setPath("userData", path.resolve(explicitUserDataDir));
+}
+
 const windowStatePath = path.join(app.getPath("userData"), "window-state.json");
 const recentFilesPath = path.join(app.getPath("userData"), "recent-files.json");
 
@@ -238,35 +273,6 @@ const installNavigationGuards = (webContents) => {
     });
 };
 
-const parseCommandLineArguments = (argv) => {
-    const result = {};
-
-    for (let index = 2; index < argv.length; index += 1) {
-        const argument = argv[index];
-        if (!argument.startsWith("--")) {
-            continue;
-        }
-
-        const option = argument.slice(2);
-        const equalsIndex = option.indexOf("=");
-        if (equalsIndex >= 0) {
-            result[option.slice(0, equalsIndex)] = option.slice(equalsIndex + 1);
-            continue;
-        }
-
-        const next = argv[index + 1];
-        if (next && !next.startsWith("--")) {
-            result[option] = next;
-            index += 1;
-        } else {
-            result[option] = "true";
-        }
-    }
-
-    return result;
-};
-
-const commandLineArguments = parseCommandLineArguments(process.argv);
 const rendererDevUrl = process.env.ELECTRON_RENDERER_URL ?? commandLineArguments["renderer-url"];
 const rendererEntryUrl = rendererDevUrl ? new URL("/", rendererDevUrl).toString() : "app://renderer/index.html";
 const isRendererDevMode = Boolean(rendererDevUrl);

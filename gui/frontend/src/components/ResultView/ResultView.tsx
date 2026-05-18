@@ -2084,7 +2084,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
                 // Since the actual rowComponent will be replaced internally by tabulator, store the row position
                 const rowPos = cell.getRow().getPosition();
-                const col = cell.getColumn();
+                const field = cell.getColumn().getField();
                 if (rowPos) {
                     // Wait till the table has been updated
                     setTimeout(() => {
@@ -2092,7 +2092,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         const rows = this.gridRef.current?.getRows();
                         if (rows && rows.length >= rowPos) {
                             // Get the correct cell and focus it
-                            rows[rowPos - 1].getCell(col).getElement().focus();
+                            const newCell = rows[rowPos - 1].getCell(field);
+                            if (newCell) {
+                                newCell.getElement().focus();
+                            }
                         }
                     }, 100);
                 }

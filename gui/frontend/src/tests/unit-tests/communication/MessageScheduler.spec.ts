@@ -42,8 +42,16 @@ class MockWebSocket {
         }
     }
 
+    public connect(): void {
+        this.readyState = this.OPEN;
+    }
+
     public close(): void {
         this.readyState = 3;
+    }
+
+    public send(): void {
+        // No-op.
     }
 }
 
@@ -54,10 +62,10 @@ class TestMessageScheduler extends MessageScheduler {
         return new TestMessageScheduler();
     }
 
-    protected override createWebSocket(target: URL, _options: IConnectionOptions): WebSocket {
+    protected override createConnection(target: URL, _options: IConnectionOptions): ReturnType<MessageScheduler["createConnection"]> {
         this.target = new URL(target);
 
-        return new MockWebSocket() as WebSocket;
+        return new MockWebSocket() as ReturnType<MessageScheduler["createConnection"]>;
     }
 }
 

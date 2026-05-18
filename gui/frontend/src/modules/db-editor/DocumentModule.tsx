@@ -1654,6 +1654,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 : visiblePageId ?? "";
         const activeSidebarWorkspace = this.getResolvedSelectedWorkspace();
         const documentSidebarMode = this.getDocumentSidebarMode(activeSidebarWorkspace);
+        const activeWorkspaceConnection = documentSidebarMode === "electronConnection"
+            ? this.getActiveWorkspaceConnectionEntry()
+            : undefined;
         const activeWorkspaceConnectionId = activeSidebarWorkspace.kind === "connection"
             ? activeSidebarWorkspace.connectionId
             : undefined;
@@ -1938,6 +1941,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     markedSchema={activeConnectionTab?.connection.currentSchema ?? ""}
                     savedSectionState={sidebarState}
                     sidebarMode={documentSidebarMode}
+                    activeWorkspaceConnection={activeWorkspaceConnection}
                     activeWorkspaceConnectionId={activeWorkspaceConnectionId}
                     overviewId={this.documentDataModel.overview.id}
                     onSaveState={this.handleSaveExplorerState}

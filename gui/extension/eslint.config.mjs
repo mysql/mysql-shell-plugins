@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,7 +37,7 @@ export default tslint.config(
     ...tslint.configs.stylisticTypeChecked,
     jsdoc.configs["flat/recommended"],
     {
-        ignores: ["**/generated/*", "tests/e2e/tests"],
+        ignores: ["**/generated/*"],
     },
     {
         plugins: {

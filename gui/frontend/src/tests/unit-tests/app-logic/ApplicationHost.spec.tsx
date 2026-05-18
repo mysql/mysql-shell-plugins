@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { act, fireEvent, render } from "@testing-library/preact";
+import { act, cleanup, fireEvent, render } from "@testing-library/preact";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../../utilities/helpers.js", async () => {
@@ -59,6 +59,7 @@ describe("Application host tests", () => {
     });
 
     afterEach(() => {
+        cleanup();
         Reflect.deleteProperty(window, "electronHost");
     });
 

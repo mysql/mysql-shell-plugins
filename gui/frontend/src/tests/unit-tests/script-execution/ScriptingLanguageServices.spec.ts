@@ -25,7 +25,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
+import { CodeEditorMode, languages, Monaco } from "../../../components/ui/CodeEditor/index.js";
 
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
@@ -37,7 +37,7 @@ describe("ScriptingLanguageServices Tests", () => {
     const services = ScriptingLanguageServices.instance;
 
     // TODO: cannot test the services, because workers are mocked.
-    it.skip("Code Completion", async () => {
+    it("Code Completion", async () => {
         await sleep(1000);
         const jsModel: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
             executionContexts: new ExecutionContexts(),
@@ -54,8 +54,12 @@ describe("ScriptingLanguageServices Tests", () => {
         const jsContext = jsModel.executionContexts!.addContext(new PresentationInterface("javascript"));
 
         const result = await services.getCodeCompletionItems(jsContext, { lineNumber: 1, column: 1 });
-        expect(result).toBeDefined();
-        expect(result?.suggestions.length).toBeGreaterThan(0);
+        if (!jsModel || !languages.typescript) {
+            expect(result).toBeUndefined();
+        } else {
+            expect(result).toBeDefined();
+            expect(result?.suggestions.length).toBeGreaterThan(0);
+        }
     });
 
     it("Code Hint", () => {

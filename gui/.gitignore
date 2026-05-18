@@ -60,6 +60,9 @@ electron/packaging/electron
 electron/packaging/mysql-shell-staging
 
 # e2e testing
+electron/test-reports
+electron/test-results
+electron/tests/e2e/execution
 frontend/src/tests/e2e/screenshots
 frontend/src/tests/e2e/attachScreenshots.js
 frontend/src/tests/e2e/test-report.html

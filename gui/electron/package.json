@@ -1,12 +1,17 @@
 {
-    "name": "mysql-shell-gui-electron-poc",
+    "name": "mysql-workbench",
     "private": true,
-    "description": "Electron proof of concept host for the full MySQL Shell Workbench frontend.",
+    "description": "MySQL Workbench based on MySQL Shell and Electron",
     "main": "src/main.cjs",
     "scripts": {
         "build:frontend": "npm --prefix ../frontend run build",
         "electron:dev:vite": "bash ./scripts/run_vite_dev.sh",
         "electron:dev": "npm run build:frontend && electron src/main.cjs",
+        "e2e-tests-setup": "bash ../../scripts/python tests/e2e/setup_e2e.py --execution_mode=setup",
+        "e2e-tests-run": "playwright test -c playwright.config.ts",
+        "e2e-tests-teardown": "bash ../../scripts/python tests/e2e/setup_e2e.py --execution_mode=teardown",
+        "e2e-tests-setup-and-run": "bash ./scripts/e2e_tests_setup_and_run.sh",
+        "e2e-tests-ui": "playwright test -c playwright.config.ts --ui",
         "package:desktop": "bash ./scripts/package_desktop.sh",
         "package:desktop:darwin-arm64": "bash ./scripts/package_desktop.sh darwin-arm64",
         "package:desktop:darwin-x64": "bash ./scripts/package_desktop.sh darwin-x64",
@@ -15,6 +20,9 @@
         "package:desktop:linux-x64": "bash ./scripts/package_desktop.sh linux-x64"
     },
     "devDependencies": {
-        "electron": "41.3.0"
+        "@playwright/test": "1.56.1"
+    },
+    "dependencies": {
+        "electron": "42.4.1"
     }
 }
