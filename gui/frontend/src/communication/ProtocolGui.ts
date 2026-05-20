@@ -217,6 +217,8 @@ export enum ShellAPIGui {
     GuiSqlEditorRollbackTransaction = "gui.sqlEditor.rollback_transaction",
     /** Executes the given SQL. */
     GuiSqlEditorExecute = "gui.sqlEditor.execute",
+    /** Generates an SVG visual explain plan for the given SQL statement. */
+    GuiSqlEditorVisualExplain = "gui.sqlEditor.visual_explain",
     /** Stops the query that is currently executing. */
     GuiSqlEditorKillQuery = "gui.sqlEditor.kill_query",
     /** Kills the database session that is currently executing. */
@@ -427,6 +429,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorCommitTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorRollbackTransaction]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize?: number; featureId?: string; }; }; };
+    [ShellAPIGui.GuiSqlEditorVisualExplain]: { args: { moduleSessionId: string; sql: string; options: { analyze?: boolean; compact?: boolean; darkMode?: boolean; layout?: string; plan?: string; showDescription?: boolean; showQuery?: boolean; }; }; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorKillSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { args: { moduleSessionId: string; }; };
@@ -577,6 +580,12 @@ export interface IDbEditorResultSetData {
     columns?: ITableColumn[];
     totalRowCount?: number;
     rowsAffected?: number;
+}
+
+export interface IVisualExplainData {
+    svg: string;
+    plan?: string;
+    executionTime?: number;
 }
 
 /**
@@ -918,6 +927,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState; };
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
+    [ShellAPIGui.GuiSqlEditorVisualExplain]: { result: IVisualExplainData; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: {};
     [ShellAPIGui.GuiSqlEditorKillSession]: {};
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { result: string; };
@@ -1009,6 +1019,7 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,
     ShellAPIGui.GuiSqlEditorExecute,
+    ShellAPIGui.GuiSqlEditorVisualExplain,
     ShellAPIGui.GuiDbGetCatalogObjectNames,
     ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;

@@ -22,8 +22,11 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import json
+import time
+import gui_plugin.core.dbms.DbMySQLSessionCommon as common
 import gui_plugin.core.Error as Error
-from gui_plugin.core.dbms.DbSessionTasks import BaseObjectTask, DbQueryTask
+import gui_plugin.core.Logger as logger
+from gui_plugin.core.dbms.DbSessionTasks import BaseObjectTask, DbQueryTask, DbTask
 from gui_plugin.core.Error import MSGException
 
 
@@ -40,6 +43,57 @@ class MySQLOneFieldTask(DbQueryTask):
             data = row[0]
 
         self.dispatch_result("PENDING", data=data)
+
+
+class MySQLVisualExplainTask(DbTask):
+    def __init__(self, session, task_id=None, sql="", result_queue=None, result_callback=None, options=None):
+        super().__init__(session, task_id, result_queue=result_queue,
+                         result_callback=result_callback, options=options)
+        self.sql = sql
+
+    def run(self):
+        from util_plugin.visual.exported import render_explain_plan
+
+        self.session.clear_stats()
+        self._start_time = time.time()
+
+        plan = self.options.get("plan", None)
+        if plan is None:
+            version = self.session.data[common.MySQLData.VERSION_INFO]
+            major, minor, _ = version.split(".", 2)
+            if int(major) < 8 or int(major) == 8 and int(minor) < 3:
+                raise RuntimeError("This feature requires a MySQL server version 8.3 or newer.")
+
+            analyze = self.options.get("analyze", False)
+            plan = self.session.execute_thread(
+                f"EXPLAIN {'ANALYZE ' if analyze else ''}FORMAT=JSON {self.sql}", None).fetch_one()[0]
+
+        compact = self.options.get("compact", False)
+        svg = render_explain_plan(
+            plan,
+            "-",
+            compact=compact,
+            dark_mode=self.options.get("dark_mode", False),
+            show_description=self.options.get("show_description", not compact),
+            show_query=self.options.get("show_query", False),
+            layout=self.options.get("layout", "bottomUp"),
+            compact_joins=self.options.get("compact_joins", False),
+            css=self.options.get("css", None),
+        )
+        self._execution_time = time.time() - self._start_time
+
+        return {
+            "svg": svg,
+            "plan": plan,
+            "execution_time": self._execution_time,
+        }
+
+    def do_execute(self):
+        try:
+            self.dispatch_result("PENDING", data=self.run())
+        except Exception as e:
+            logger.exception(e)
+            self.dispatch_result("ERROR", message=str(e))
 
 
 class MySQLBaseObjectTask(BaseObjectTask):

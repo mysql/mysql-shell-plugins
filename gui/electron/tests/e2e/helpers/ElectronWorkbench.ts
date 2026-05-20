@@ -440,6 +440,15 @@ export class ElectronWorkbench {
         return this.page.locator(".resultHost").last();
     }
 
+    public async clickResultActionMenuItem(menuPath: string[]): Promise<void> {
+        await this.page.keyboard.press("Escape");
+        await this.installNativeMenuInterceptor();
+        await this.clearNativeMenuRequest();
+
+        await this.page.locator(".resultHost #showActionMenu").last().click();
+        await this.selectNativeMenuPath(menuPath);
+    }
+
     public async resultGridCell(rowIndex: number, columnTitle: string): Promise<Locator> {
         const field = await this.resultGridColumnField(columnTitle);
         const row = rowIndex === -1

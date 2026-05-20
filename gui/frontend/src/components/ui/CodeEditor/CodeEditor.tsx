@@ -439,6 +439,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
         requisitions.unregister("editorExecute", this.executeContext);
+        requisitions.unregister("editorVisualExplain", this.visualExplain);
         requisitions.unregister("editorFind", this.executeFind);
         requisitions.unregister("editorFormat", this.executeFormat);
         requisitions.unregister("editorSelectStatement", this.handleSelectStatement);
@@ -948,13 +949,57 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             },
         }));
 
+        this.disposables.push(editor.addAction({
+            id: "explainStatement",
+            label: "Explain Statement",
+            contextMenuGroupId: "2_execution",
+            contextMenuOrder: 5,
+            precondition,
+            run: () => {
+                this.doExecuteContext({ atCaret: true, advance: true, asText: true, explain: true });
+            },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "explainAnalyzeStatement",
+            label: "Explain Analyze Statement",
+            contextMenuGroupId: "2_execution",
+            contextMenuOrder: 6,
+            precondition,
+            run: () => {
+                this.doExecuteContext({ atCaret: true, advance: true, asText: true, explainAnalyze: true });
+            },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "visualExplainStatement",
+            label: "Visual Explain Statement",
+            contextMenuGroupId: "3_execution",
+            contextMenuOrder: 1,
+            precondition,
+            run: () => {
+                this.doVisualExplain({});
+            },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "visualExplainAnalyzeStatement",
+            label: "Visual Explain Analyze Statement",
+            contextMenuGroupId: "3_execution",
+            contextMenuOrder: 2,
+            precondition,
+            run: () => {
+                this.doVisualExplain({ visualExplainAnalyze: true });
+            },
+        }));
+
         if (appParameters.inExtension) {
             this.disposables.push(editor.addAction({
                 id: "executeOnHost",
                 label: "Execute on all visible DB Notebooks",
                 keybindings: [KeyMod.Alt | KeyMod.CtrlCmd | KeyCode.Enter],
                 contextMenuGroupId: "2_execution",
-                contextMenuOrder: 5,
+                contextMenuOrder: 7,
                 precondition,
                 run: () => {
                     const options = { atCaret: false, advance: true, asText: false };
@@ -1262,6 +1307,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
         requisitions.register("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
         requisitions.register("editorExecute", this.executeContext);
+        requisitions.register("editorVisualExplain", this.visualExplain);
         requisitions.register("editorFind", this.executeFind);
         requisitions.register("editorFormat", this.executeFormat);
         requisitions.register("editorSelectStatement", this.handleSelectStatement);
@@ -1618,18 +1664,23 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                             if (this.handleInternalCommand(index) === "unhandled") {
                                 const { onScriptExecution } = this.props;
 
-                                let position: IPosition | undefined = options.atCaret
+                                const statementSource = options.explain || options.explainAnalyze
+                                    ? this.extractStatementExecutionSource(context)
+                                    : undefined;
+                                let position: IPosition | undefined = options.atCaret && !statementSource
                                     ? editor.getPosition() ?? undefined
                                     : undefined;
                                 if (position) {
                                     position = context.toLocal(position);
-
                                 }
 
                                 const executionOptions = {
                                     forceSecondaryEngine: options.forceSecondaryEngine,
-                                    source: position,
+                                    source: statementSource?.source ?? position,
+                                    sourceText: statementSource?.sourceText,
                                     asText: options.asText,
+                                    ...(options.explain ? { explain: true } : {}),
+                                    ...(options.explainAnalyze ? { explainAnalyze: true } : {}),
                                     is3rdLanguage: options.is3rdLanguage,
                                 };
 
@@ -1644,6 +1695,66 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                                 });
 
                             }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * Extracts explicit selected SQL or the caret position used to resolve the current SQL statement.
+     *
+     * @param context The execution context that owns the editor position.
+     *
+     * @returns A script execution source for one SQL statement.
+     */
+    private extractStatementExecutionSource(context: ExecutionContext): Pick<IScriptExecutionOptions,
+    "source" | "sourceText"> {
+        const editor = this.backend;
+        const model = this.model;
+        const selection = editor?.getSelection();
+        const sourceText = editor && model && selection && !selection.isEmpty()
+            ? model.getValueInRange(selection, Monaco.EndOfLinePreference.LF).trim()
+            : undefined;
+
+        if (sourceText) {
+            return { sourceText };
+        }
+
+        const position = editor?.getPosition();
+
+        return { source: position ? context.toLocal(position) : undefined };
+    }
+
+    /**
+     * Generates a visual explain result for the selected SQL or the statement at the caret.
+     *
+     * @param options Options to control the execution.
+     */
+    private doVisualExplain(options: IEditorCommonExecutionOptions): void {
+        const { onScriptExecution } = this.props;
+
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const index = this.currentBlockIndex;
+            if (index > -1) {
+                const context = model.executionContexts?.contextAt(index);
+                if (context?.isSQLLike) {
+                    void context.canClose().then((canClose) => {
+                        if (canClose) {
+                            requisitions.executeRemote("editorChanged", undefined);
+
+                            const statementSource = this.extractStatementExecutionSource(context);
+
+                            void onScriptExecution?.(context, {
+                                ...options,
+                                ...statementSource,
+                                visualExplain: true,
+                            }).then(() => {
+                                editor.focus();
+                            });
                         }
                     });
                 }
@@ -2180,6 +2291,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 advance: advance ?? terminalMode,
                 forceSecondaryEngine: options.forceSecondaryEngine,
                 asText: options.asText,
+                ...(options.explain ? { explain: true } : {}),
+                ...(options.explainAnalyze ? { explainAnalyze: true } : {}),
                 is3rdLanguage: options.is3rdLanguage,
             });
         editor?.focus();
@@ -2201,6 +2314,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 atCaret: true,
                 advance: advance ?? terminalMode,
             });
+        editor?.focus();
+
+        return Promise.resolve(true);
+    };
+
+    private visualExplain = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
+        const editor = this.backend;
+
+        this.doVisualExplain(options);
         editor?.focus();
 
         return Promise.resolve(true);

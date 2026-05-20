@@ -32,9 +32,10 @@ import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { EditorLanguage, IScriptRequest } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
-import {
+import { LoadingState } from "./index.js";
+import type {
     IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions, IResultSet, IResultSetRows,
-    IResultSets, LoadingState,
+    IResultSets, IVisualExplainOptions,
 } from "./index.js";
 
 import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.js";
@@ -94,6 +95,7 @@ export class PresentationInterface {
     public onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
     public updateRowsForResultId?: (resultSet: IResultSet) => Promise<void>;
     public onRollbackChanges?: (resultSet: IResultSet) => Promise<void>;
+    public onImageResultOptionsChange?: (resultSet: IResultSet, options: IVisualExplainOptions) => Promise<void>;
     public resultPageChangeHandler?: (resultId: string, currentPage: number, sql: string, currentSet?: number) => void;
 
     public externalTextModel?: Monaco.ITextModel;
@@ -426,7 +428,7 @@ export class PresentationInterface {
             // Empty results in sets are shown as text. This is already covered in the output field.
             // So simply filter out empty result sets.
             data.sets = data.sets.filter((set) => {
-                return set.data.rows.length > 0;
+                return set.viewType === "image" || set.data.rows.length > 0;
             });
         }
         this.resultData = data;
@@ -462,7 +464,7 @@ export class PresentationInterface {
 
             // Execution is finished if either we have execution info (and no result data so far) or we got
             // a chat result with an answer.
-            if (!this.resultData && "executionInfo" in data) {
+            if (!this.resultData && "executionInfo" in data && data.executionInfo) {
                 this.changeLoadingState(LoadingState.Idle);
             } else if (data.type === "chat" && "answer" in data && data.answer !== "") {
                 this.changeLoadingState(LoadingState.Idle);
@@ -534,6 +536,9 @@ export class PresentationInterface {
                                 data,
                                 updatable: dataOptions.updatable ?? false,
                                 fullTableName: dataOptions.fullTableName ?? "",
+                                viewType: data.viewType,
+                                image: data.image,
+                                caption: data.caption,
                             }],
                         };
                     }
@@ -577,6 +582,9 @@ export class PresentationInterface {
                                 if (data.columns && data.columns.length > 0) {
                                     resultSet.columns = data.columns;
                                 }
+                                resultSet.viewType = data.viewType ?? resultSet.viewType;
+                                resultSet.image = data.image ?? resultSet.image;
+                                resultSet.caption = data.caption ?? resultSet.caption;
 
                                 resultSet.data.currentPage = data.currentPage;
                                 resultSet.data.hasMoreRows = data.hasMoreRows;
@@ -605,6 +613,9 @@ export class PresentationInterface {
                                         data,
                                         updatable: dataOptions.updatable ?? false,
                                         fullTableName: dataOptions.fullTableName ?? "",
+                                        viewType: data.viewType,
+                                        image: data.image,
+                                        caption: data.caption,
                                     });
                                 }
                             }
@@ -628,6 +639,9 @@ export class PresentationInterface {
                                         data,
                                         updatable: dataOptions.updatable ?? false,
                                         fullTableName: dataOptions.fullTableName ?? "",
+                                        viewType: data.viewType,
+                                        image: data.image,
+                                        caption: data.caption,
                                     }],
                                     output: this.resultData.text,
                                 };
@@ -649,6 +663,9 @@ export class PresentationInterface {
                                     data,
                                     updatable: dataOptions.updatable ?? false,
                                     fullTableName: dataOptions.fullTableName ?? "",
+                                    viewType: data.viewType,
+                                    image: data.image,
+                                    caption: data.caption,
                                 }],
                             };
 
@@ -962,6 +979,7 @@ export class PresentationInterface {
             return;
         }
 
+        const requestedManualHeight = options?.manualHeight;
         options = Object.assign({}, {
             currentSet: this.currentSet,
             manualHeight: this.currentHeight,
@@ -1007,6 +1025,9 @@ export class PresentationInterface {
                         updateRowsForResultId={this.updateRowsForResultId}
                         onRollbackChanges={this.rollbackChanges}
                         onRemoveResult={this.handleRemoveResult}
+                        onImageResultOptionsChange={this.onImageResultOptionsChange
+                            ? this.changeImageResultOptions
+                            : undefined}
                         upperCaseKeywords={upperCaseKeywords}
                         toggleOptions={{
                             showMaximizeButton: this.showMaximizeButton(),
@@ -1066,6 +1087,9 @@ export class PresentationInterface {
                     updateRowsForResultId={this.updateRowsForResultId}
                     onRollbackChanges={this.rollbackChanges}
                     onRemoveResult={this.handleRemoveResult}
+                    onImageResultOptionsChange={this.onImageResultOptionsChange
+                        ? this.changeImageResultOptions
+                        : undefined}
                     upperCaseKeywords={upperCaseKeywords}
                     toggleOptions={{
                         showMaximizeButton: this.showMaximizeButton(),
@@ -1142,6 +1166,10 @@ export class PresentationInterface {
                 );
             }
         }
+
+        if (requestedManualHeight !== undefined) {
+            this.updateRenderTarget(requestedManualHeight);
+        }
     }
 
     private handleResultPageChange = (resultId: string, currentPage: number, sql: string,
@@ -1183,6 +1211,11 @@ export class PresentationInterface {
         void this.onRollbackChanges?.(resultSet).then(() => {
             this.renderResults();
         });
+    };
+
+    private changeImageResultOptions = async (resultSet: IResultSet,
+        options: IVisualExplainOptions): Promise<void> => {
+        await this.onImageResultOptionsChange?.(resultSet, options);
     };
 
     private handleRemoveResult = (resultId: string): void => {

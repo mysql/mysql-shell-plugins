@@ -42,6 +42,10 @@ export type DesktopCommandId =
     "run.execute" |
     "run.executeCurrent" |
     "run.executeAsText" |
+    "run.explain" |
+    "run.explainAnalyze" |
+    "run.visualExplain" |
+    "run.visualExplainAnalyze" |
     "run.stop" |
     "run.stopOnError" |
     "run.autoCommit" |

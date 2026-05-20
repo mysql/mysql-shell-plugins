@@ -263,7 +263,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
           <div
             class="msg container fixedScrollbar splitHost"
             id="connectionDetailsHost"
-            style="flex-direction: row; justify-content: stretch; width: 430px; left: 320px;"
+            style="flex-direction: row; justify-content: stretch; width: 300px; left: 320px;"
           >
             <div
               class="msg container fixedScrollbar"
@@ -603,7 +603,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
           <div
             class="msg container fixedScrollbar splitHost"
             id="connectionDetailsHost"
-            style="flex-direction: row; justify-content: stretch; width: 430px; left: 320px;"
+            style="flex-direction: row; justify-content: stretch; width: 300px; left: 320px;"
           >
             <div
               class="msg container fixedScrollbar"

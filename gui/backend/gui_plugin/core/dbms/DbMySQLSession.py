@@ -47,6 +47,7 @@ from gui_plugin.core.dbms.DbMySQLSessionTasks import (
     MySQLJdvTableColumnsWithReferencesTask,
     MySQLJdvViewInfoTask,
     MySQLJdvObjectFieldsWithReferencesTask,
+    MySQLVisualExplainTask,
 )
 from gui_plugin.core.dbms.DbSession import (
     DbSession,
@@ -140,6 +141,7 @@ class DbMysqlSession(DbSession):
     def _initialize_setup_tasks(self):
         return [
             SetupTasks.SessionInfoTask(self),
+            SetupTasks.ExplainJsonFormatVersionTask(self),
             SetupTasks.HeatWaveCheckTask(self),
             SetupTasks.BastionHandlerTask(
                 self, lambda message: self._message_callback("PENDING", "", message)
@@ -401,11 +403,13 @@ class DbMysqlSession(DbSession):
         last_insert_id = None
         try:
             last_insert_id = resultset.get_auto_increment_value()
-        finally:
-            return {
-                "last_insert_id": last_insert_id,
-                "rows_affected": resultset.get_affected_items_count(),
-            }
+        except Exception:
+            pass
+
+        return {
+            "last_insert_id": last_insert_id,
+            "rows_affected": resultset.get_affected_items_count(),
+        }
 
     def info(self):
         ret_val = {}
@@ -544,6 +548,15 @@ class DbMysqlSession(DbSession):
             )
         else:
             self.execute("SET AUTOCOMMIT=?", (state,))
+
+    def visual_explain(self, sql, callback=None, options=None):
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLVisualExplainTask(self, task_id=task_id,
+                                                 sql=sql, result_callback=callback, options=options))
+        else:
+            return MySQLVisualExplainTask(self, sql=sql, result_callback=callback, options=options).run()
 
     def get_objects_types(self):
         return self._supported_types

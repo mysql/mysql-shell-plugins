@@ -2254,6 +2254,8 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 .msg#shellEditorHost .renderTarget .textHost {
     flex: 1 1 auto;
+    min-width: 0;
+    overflow: auto;
 }
 
 .msg#shellEditorHost .renderTarget>.textHost>.label[data-lang] {
@@ -2264,7 +2266,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     flex: 0 0 auto;
     height: auto;
     padding-left: 0;
-    white-space: pre-wrap;
+    white-space: pre;
 }
 
 .msg#shellEditorHost .resultText,
@@ -2287,7 +2289,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 .msg#shellEditorHost .resultText .label,
 .msg#shellEditorHost .resultText .error {
-    white-space: pre-wrap;
+    white-space: pre;
     height: 100%;
 
     overflow: auto;

@@ -29,8 +29,14 @@ import { DialogHost } from "../../app-logic/DialogHost.js";
 import {
     defaultValues, DialogResponseClosure, DialogType, IColumnInfo, IStatusInfo, MessageType, type ISqlUpdateResult,
 } from "../../app-logic/general-types.js";
-import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
+import { defaultVisualExplainOptions } from "../../script-execution/index.js";
+import type {
+    IImageResultData, IResultSet, IResultSetRows, IResultSets, IVisualExplainOptions, VisualExplainLayout,
+} from "../../script-execution/index.js";
 import { Assets } from "../../supplement/Assets.js";
+import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { saveBlobAsFile } from "../../utilities/helpers.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { Button } from "../ui/Button/Button.js";
 import { Codicon } from "../ui/Codicon.js";
@@ -47,10 +53,19 @@ import { SQLPreview } from "../ui/SQLPreview/SQLPreview.js";
 import { ITabPosition, ITabviewPage, TabPosition, Tabview } from "../ui/Tabview/Tabview.js";
 import { Toolbar } from "../ui/Toolbar/Toolbar.js";
 import { ActionOutput } from "./ActionOutput.js";
+import { ImageResultView } from "./ImageResultView.js";
 import { QueryBuilder } from "./QueryBuilder.js";
 import { defaultCellValue } from "./ResultCellValue.js";
 import { IStatusTextPosition, ResultStatus } from "./ResultStatus.js";
 import { IResultCellChange, ResultRowChanges, ResultView } from "./ResultView.js";
+
+const defaultImageZoom = 1;
+const minImageZoom = 0.25;
+const maxImageZoom = 4;
+const imageZoomStep = 0.25;
+
+type VisualExplainDetailsLevel = "minimal" | "medium" | "full";
+type VisualExplainLayoutMode = VisualExplainLayout;
 
 /** All the current changes for a result set. */
 interface IEditingInfo {
@@ -128,6 +143,8 @@ interface IResultTabViewProperties extends IComponentProperties {
     onRollbackChanges?: (resultSet: IResultSet) => void;
 
     onRemoveResult?: (resultId: string) => void;
+
+    onImageResultOptionsChange?: (resultSet: IResultSet, options: IVisualExplainOptions) => Promise<void>;
 }
 
 interface IResultTabViewState extends IComponentState {
@@ -175,7 +192,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         this.addHandledProperties("resultSets", "contextId", "currentSet",
             "upperCaseKeywords", "toggleOptions", "layoutOptions", "connectionToggle",
-            "hideTabs", "onResultPageChange", "onSelectTab");
+            "hideTabs", "onResultPageChange", "onSelectTab", "onImageResultOptionsChange");
     }
 
     public static override getDerivedStateFromProps(newProps: IResultTabViewProperties,
@@ -208,7 +225,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     public render(): ComponentChild {
         const { resultSets, contextId, hideTabs, toggleOptions } = this.props;
         const { toolbarLocation, tabPosition, statusTextPosition } = this.mergedLayoutOptions;
-        const { showMaximizeButton, showMaximized } = toggleOptions ?? {};
+        const { showMaximized } = toggleOptions ?? {};
         const { currentResultSet, connectionToggle } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
@@ -231,18 +248,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             });
         }
 
-        const toggleStateButton = <Button
-            id="toggleStateButton"
-            imageOnly={true}
-            data-tooltip="Maximize Result Tab"
-            onClick={toggleOptions?.handleResultToggle.bind(this, this.state.currentResultSet)}
-        >
-            <Icon
-                src={showMaximized ? Assets.toolbar.normalizeIcon : Assets.toolbar.maximizeIcon}
-                data-tooltip="inherit"
-            />
-        </Button>;
-
         const currentEditingInfo = this.editingInfo.get(currentResultSet?.resultId ?? "");
         const editModeActive = currentEditingInfo !== undefined;
 
@@ -262,15 +267,17 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             }
 
             if (!showMaximized || resultSet === currentResultSet) {
-                let caption;
-                if (resultSet.index !== undefined) {
-                    caption = `Result #${resultSet.index + 1}`;
-                } else {
-                    caption = `Result #${index + 1}`;
-                }
+                let caption = resultSet.caption;
+                if (!caption) {
+                    if (resultSet.index !== undefined) {
+                        caption = `Result #${resultSet.index + 1}`;
+                    } else {
+                        caption = `Result #${index + 1}`;
+                    }
 
-                if (resultSet.subIndex !== undefined) {
-                    caption += `.${resultSet.subIndex + 1}`;
+                    if (resultSet.subIndex !== undefined) {
+                        caption += `.${resultSet.subIndex + 1}`;
+                    }
                 }
 
                 let content;
@@ -281,6 +288,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                             errors={editingInfo.errors}
                             onStatementClick={this.handleStatementClick}
                         />
+                    );
+                } else if (resultSet.viewType === "image") {
+                    content = (
+                        <ImageResultView resultSet={resultSet} zoom={resultSet.image?.zoom} />
                     );
                 } else {
                     content = (
@@ -305,7 +316,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 pages.push({
                     id: resultSet.resultId,
                     caption,
-                    auxiliary: showMaximizeButton === "tab" && toggleStateButton,
                     content,
                     canClose: true,
                 });
@@ -331,6 +341,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         const gotError = statusInfo && statusInfo.type === MessageType.Error;
         const gotResponse = statusInfo && statusInfo.type === MessageType.Response;
+        const imageResultActive = currentResultSet?.viewType === "image";
+        const imageResultToolbar = imageResultActive && currentResultSet
+            ? this.renderImageResultToolbar(currentResultSet)
+            : undefined;
 
         const editButtonTooltip = updatable ? (editModeActive ? "Editing" : "Start Editing") : "Data not editable";
         const previewActive = currentEditingInfo?.previewActive === true;
@@ -338,7 +352,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const resultStatus = statusInfo && (
             <ResultStatus statusInfo={statusInfo} statusTextPosition={statusTextPosition}>
                 {
-                    !gotError && !gotResponse && <Toolbar dropShadow={false} >
+                    !gotError && !gotResponse && (imageResultToolbar ?? <Toolbar dropShadow={false} >
                         {connectionToggle ?? null}
                         <Label className="autoHide">View:</Label>
                         <Container
@@ -444,8 +458,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                             <Icon src={Assets.toolbar.refreshIcon2} data-tooltip="inherit" />
                         </Button>
                         <Divider id="editSeparator" vertical={true} />
-                        {showMaximizeButton === "statusBar" && toggleStateButton}
-                        {showMaximizeButton === "statusBar" && <Divider vertical={true} />}
                         <Button
                             id="showActionMenu"
                             imageOnly={true}
@@ -454,7 +466,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                         >
                             <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
                         </Button>
-                    </Toolbar>}
+                    </Toolbar>)}
             </ResultStatus>
         );
 
@@ -486,29 +498,461 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleActionMenuItemClick}
                 >
-                    <MenuItem
-                        id="closeMenuItem"
-                        command={{ title: "Close Result Set", command: "closeMenuItem" }}
-                    />
-                    <MenuItem
-                        id="separator1"
-                        command={{ title: "-", command: "" }}
-                        disabled
-                    />
-                    <MenuItem
-                        id="exportMenuItem"
-                        command={{ title: "Export Result Set", command: "exportMenuItem" }}
-                        disabled
-                    />
-                    <MenuItem
-                        id="importMenuItem"
-                        command={{ title: "Import Result Set", command: "importMenuItem" }}
-                        disabled
-                    />
+                    {this.renderActionMenuItems()}
                 </Menu>
 
             </Container >
         );
+    }
+
+    private renderImageResultToolbar(resultSet: IResultSet): ComponentChild {
+        const { connectionToggle } = this.state;
+        const { onImageResultOptionsChange } = this.props;
+        const options = this.getVisualExplainOptions(resultSet);
+        const layoutMode = this.getVisualExplainLayoutMode(options);
+        const detailsLevel = this.getVisualExplainDetailsLevel(options);
+        const imageZoom = this.getImageZoom(resultSet.image);
+
+        return (
+            <Toolbar dropShadow={false} >
+                {connectionToggle ?? null}
+                <Label className="autoHide">Layout:</Label>
+                <Container
+                    className="visualExplainLayoutSelector visualExplainSegmentedSelector"
+                    orientation={Orientation.LeftToRight}
+                    role="radiogroup"
+                    data-tooltip="Visual Explain Layout"
+                >
+                    <Button
+                        id="visualExplainLayoutTopDownButton"
+                        className={this.getVisualExplainLayoutButtonClassName(layoutMode, "topDown")}
+                        imageOnly={true}
+                        disabled={!onImageResultOptionsChange}
+                        data-tooltip="Top-Down Layout"
+                        role="radio"
+                        aria-checked={layoutMode === "topDown"}
+                        onClick={this.setVisualExplainLayoutMode}
+                    >
+                        <Icon src={Codicon.TypeHierarchySuper} data-tooltip="inherit" />
+                    </Button>
+                    <Button
+                        id="visualExplainLayoutBottomUpButton"
+                        className={this.getVisualExplainLayoutButtonClassName(layoutMode, "bottomUp")}
+                        imageOnly={true}
+                        disabled={!onImageResultOptionsChange}
+                        data-tooltip="Bottom-Up Layout"
+                        role="radio"
+                        aria-checked={layoutMode === "bottomUp"}
+                        onClick={this.setVisualExplainLayoutMode}
+                    >
+                        <Icon src={Codicon.TypeHierarchySub} data-tooltip="inherit" />
+                    </Button>
+                </Container>
+                <Label className="visualExplainDetailsLabel">Details:</Label>
+                <Container
+                    className="visualExplainDetailsSelector visualExplainSegmentedSelector"
+                    orientation={Orientation.LeftToRight}
+                    role="radiogroup"
+                    data-tooltip="Visual Explain Details"
+                >
+                    <Button
+                        id="visualExplainDetailsMinimalButton"
+                        className={this.getVisualExplainDetailsButtonClassName(detailsLevel, "minimal")}
+                        disabled={!onImageResultOptionsChange}
+                        data-tooltip="Minimal Details"
+                        role="radio"
+                        aria-checked={detailsLevel === "minimal"}
+                        onClick={this.setVisualExplainDetailsLevel}
+                    >
+                        Minimal
+                    </Button>
+                    <Button
+                        id="visualExplainDetailsMediumButton"
+                        className={this.getVisualExplainDetailsButtonClassName(detailsLevel, "medium")}
+                        disabled={!onImageResultOptionsChange}
+                        data-tooltip="Medium Details"
+                        role="radio"
+                        aria-checked={detailsLevel === "medium"}
+                        onClick={this.setVisualExplainDetailsLevel}
+                    >
+                        Medium
+                    </Button>
+                    <Button
+                        id="visualExplainDetailsFullButton"
+                        className={this.getVisualExplainDetailsButtonClassName(detailsLevel, "full")}
+                        disabled={!onImageResultOptionsChange}
+                        data-tooltip="Full Details"
+                        role="radio"
+                        aria-checked={detailsLevel === "full"}
+                        onClick={this.setVisualExplainDetailsLevel}
+                    >
+                        Full
+                    </Button>
+                </Container>
+                <Divider vertical={true} />
+                <Button
+                    id="visualExplainZoomOutButton"
+                    imageOnly={true}
+                    disabled={imageZoom <= minImageZoom}
+                    data-tooltip="Zoom Out"
+                    onClick={this.zoomImageResultOut}
+                >
+                    <Icon src={Codicon.ZoomOut} data-tooltip="inherit" />
+                </Button>
+                <Button
+                    id="visualExplainResetZoomButton"
+                    imageOnly={true}
+                    disabled={imageZoom === defaultImageZoom}
+                    data-tooltip="Reset Zoom"
+                    onClick={this.resetImageResultZoom}
+                >
+                    <Icon src={Codicon.ScreenNormal} data-tooltip="inherit" />
+                </Button>
+                <Button
+                    id="visualExplainZoomInButton"
+                    imageOnly={true}
+                    disabled={imageZoom >= maxImageZoom}
+                    data-tooltip="Zoom In"
+                    onClick={this.zoomImageResultIn}
+                >
+                    <Icon src={Codicon.ZoomIn} data-tooltip="inherit" />
+                </Button>
+                <Divider vertical={true} />
+                <Button
+                    id="showActionMenu"
+                    imageOnly={true}
+                    data-tooltip="Show Action Menu"
+                    onClick={this.showActionMenu}
+                >
+                    <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
+                </Button>
+            </Toolbar>
+        );
+    }
+
+    private renderActionMenuItems(): ComponentChild[] {
+        if (this.state.currentResultSet?.viewType === "image") {
+            const showMinimap = this.state.currentResultSet.image?.showMinimap !== false;
+
+            return [
+                <MenuItem
+                    id="closeMenuItem"
+                    command={{ title: "Close Result Set", command: "closeMenuItem" }}
+                />,
+                <MenuItem
+                    id="separator1"
+                    command={{ title: "-", command: "" }}
+                    disabled
+                />,
+                <MenuItem
+                    id="toggleMinimapMenuItem"
+                    command={{ title: "Show Minimap", command: "toggleMinimapMenuItem" }}
+                    checked={showMinimap}
+                />,
+                <MenuItem
+                    id="separator2"
+                    command={{ title: "-", command: "" }}
+                    disabled
+                />,
+                <MenuItem
+                    id="saveImageMenuItem"
+                    command={{ title: "Save Image...", command: "saveImageMenuItem" }}
+                    disabled={!this.state.currentResultSet.image?.data}
+                />,
+            ];
+        }
+
+        return [
+            <MenuItem
+                id="closeMenuItem"
+                command={{ title: "Close Result Set", command: "closeMenuItem" }}
+            />,
+            <MenuItem
+                id="separator1"
+                command={{ title: "-", command: "" }}
+                disabled
+            />,
+            <MenuItem
+                id="exportMenuItem"
+                command={{ title: "Export Result Set", command: "exportMenuItem" }}
+                disabled
+            />,
+            <MenuItem
+                id="importMenuItem"
+                command={{ title: "Import Result Set", command: "importMenuItem" }}
+                disabled
+            />,
+        ];
+    }
+
+    private getVisualExplainOptions(resultSet: IResultSet): IVisualExplainOptions {
+        const options = {
+            ...defaultVisualExplainOptions,
+            ...resultSet.image?.visualExplainOptions,
+        };
+        options.layout ??= options.topDown ? "topDown" : "bottomUp";
+
+        return options;
+    }
+
+    private getVisualExplainLayoutMode(options: IVisualExplainOptions): VisualExplainLayoutMode {
+        return options.layout ?? (options.topDown ? "topDown" : "bottomUp");
+    }
+
+    private getVisualExplainDetailsLevel(options: IVisualExplainOptions): VisualExplainDetailsLevel {
+        if (options.compact) {
+            return "minimal";
+        }
+
+        return options.showDescription ? "full" : "medium";
+    }
+
+    private getVisualExplainDetailsButtonClassName(
+        currentLevel: VisualExplainDetailsLevel,
+        buttonLevel: VisualExplainDetailsLevel,
+    ): string {
+        return currentLevel === buttonLevel ? "visualExplainDetailsButton active" : "visualExplainDetailsButton";
+    }
+
+    private getVisualExplainLayoutButtonClassName(
+        currentMode: VisualExplainLayoutMode,
+        buttonMode: VisualExplainLayoutMode,
+    ): string {
+        return currentMode === buttonMode ? "visualExplainLayoutButton active" : "visualExplainLayoutButton";
+    }
+
+    private setVisualExplainLayoutMode = (
+        _e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>,
+    ): void => {
+        const { currentResultSet } = this.state;
+
+        if (!currentResultSet) {
+            return;
+        }
+
+        const options = this.getVisualExplainOptions(currentResultSet);
+        let layout: VisualExplainLayoutMode = "bottomUp";
+        switch (props.id) {
+            case "visualExplainLayoutTopDownButton": {
+                layout = "topDown";
+                break;
+            }
+
+            default:
+        }
+
+        this.updateVisualExplainOptions({
+            ...options,
+            layout,
+            topDown: layout === "topDown",
+        });
+    };
+
+    private setVisualExplainDetailsLevel = (
+        _e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>,
+    ): void => {
+        const { currentResultSet } = this.state;
+
+        if (!currentResultSet) {
+            return;
+        }
+
+        const options = this.getVisualExplainOptions(currentResultSet);
+        let compact = false;
+        let showDescription = true;
+
+        switch (props.id) {
+            case "visualExplainDetailsMinimalButton": {
+                compact = true;
+                showDescription = false;
+                break;
+            }
+
+            case "visualExplainDetailsMediumButton": {
+                showDescription = false;
+                break;
+            }
+
+            case "visualExplainDetailsFullButton": {
+                break;
+            }
+
+            default: {
+                return;
+            }
+        }
+
+        this.updateVisualExplainOptions({
+            ...options,
+            compact,
+            showDescription,
+        });
+    };
+
+    private toggleImageMinimap = (): void => {
+        const { currentResultSet } = this.state;
+
+        if (!currentResultSet?.image) {
+            return;
+        }
+
+        currentResultSet.image.showMinimap = currentResultSet.image.showMinimap === false;
+        this.setState({ currentResultSet });
+    };
+
+    private zoomImageResultOut = (): void => {
+        this.changeImageResultZoom(-imageZoomStep);
+    };
+
+    private zoomImageResultIn = (): void => {
+        this.changeImageResultZoom(imageZoomStep);
+    };
+
+    private resetImageResultZoom = (): void => {
+        const { currentResultSet } = this.state;
+
+        if (!currentResultSet?.image) {
+            return;
+        }
+
+        currentResultSet.image.zoom = defaultImageZoom;
+        this.setState({ currentResultSet });
+    };
+
+    private changeImageResultZoom = (delta: number): void => {
+        const { currentResultSet } = this.state;
+
+        if (!currentResultSet?.image) {
+            return;
+        }
+
+        currentResultSet.image.zoom = this.clampImageZoom(this.getImageZoom(currentResultSet.image) + delta);
+        this.setState({ currentResultSet });
+    };
+
+    private getImageZoom = (image?: IImageResultData): number => {
+        return this.clampImageZoom(image?.zoom ?? defaultImageZoom);
+    };
+
+    private clampImageZoom = (zoom: number): number => {
+        return Math.min(maxImageZoom, Math.max(minImageZoom, zoom));
+    };
+
+    private saveImageResult = (): void => {
+        const { currentResultSet } = this.state;
+
+        if (!currentResultSet?.image?.data) {
+            return;
+        }
+
+        const image = currentResultSet.image;
+        const saveData = this.getImageSaveData(image);
+        const fileName = this.getImageFileName(currentResultSet);
+
+        if (hasElectronHostBridge()) {
+            requisitions.executeRemote("saveFile", {
+                title: "Save Rendered Image",
+                saveLabel: "Save",
+                default: fileName,
+                filters: this.getImageFileFilters(image.mimeType),
+                content: saveData.content,
+                encoding: saveData.encoding,
+            });
+
+            return;
+        }
+
+        saveBlobAsFile(new Blob([saveData.blobContent], { type: saveData.mimeType }), fileName);
+    };
+
+    private getImageSaveData(image: IImageResultData): {
+        blobContent: BlobPart;
+        content: string;
+        encoding: "utf8" | "base64";
+        mimeType: string;
+    } {
+        const match = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(image.data);
+
+        if (!match) {
+            return {
+                blobContent: image.data,
+                content: image.data,
+                encoding: "utf8",
+                mimeType: image.mimeType,
+            };
+        }
+
+        const mimeType = match[1] || image.mimeType;
+        const payload = match[3];
+        if (match[2]) {
+            const binary = atob(payload);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; ++i) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            return {
+                blobContent: bytes,
+                content: payload,
+                encoding: "base64",
+                mimeType,
+            };
+        }
+
+        const content = decodeURIComponent(payload);
+
+        return {
+            blobContent: content,
+            content,
+            encoding: "utf8",
+            mimeType,
+        };
+    }
+
+    private getImageFileName(resultSet: IResultSet): string {
+        const image = resultSet.image;
+        const caption = image?.caption ?? resultSet.caption ?? "visual-explain";
+        const baseName = caption.trim().toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") || "visual-explain";
+
+        return `${baseName}.${this.getImageFileExtension(image?.mimeType)}`;
+    }
+
+    private getImageFileExtension(mimeType?: string): string {
+        switch (mimeType?.split(";")[0].toLowerCase()) {
+            case "image/svg+xml":
+                return "svg";
+            case "image/png":
+                return "png";
+            case "image/jpeg":
+                return "jpg";
+            case "image/gif":
+                return "gif";
+            case "image/webp":
+                return "webp";
+            default:
+                return "img";
+        }
+    }
+
+    private getImageFileFilters(mimeType?: string): Record<string, string[]> {
+        const extension = this.getImageFileExtension(mimeType);
+
+        return {
+            "Image Files": [extension],
+            "All Files": ["*"],
+        };
+    }
+
+    private updateVisualExplainOptions(options: IVisualExplainOptions): void {
+        const { currentResultSet } = this.state;
+
+        if (currentResultSet) {
+            void this.props.onImageResultOptionsChange?.(currentResultSet, options);
+        }
     }
 
     /**
@@ -637,6 +1081,16 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             }
 
             case "importMenuItem": {
+                break;
+            }
+
+            case "saveImageMenuItem": {
+                this.saveImageResult();
+                break;
+            }
+
+            case "toggleMinimapMenuItem": {
+                this.toggleImageMinimap();
                 break;
             }
 

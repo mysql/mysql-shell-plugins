@@ -33,6 +33,8 @@
         }
     },
     "progressBar.track": "$editorZone.background",
+    "resultView.background": "$editor.background",
+    "resultView.foreground": "$editor.foreground",
     "resultView.headerBackground": {
         "baseColorKey": "editor.background",
         "colorAdjustment": {

@@ -12,7 +12,7 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
       <div
         class="msg divider vertical sash"
         id="pane0Sash"
-        style="--thickness: 4px; left: 247px;"
+        style="--thickness: 4px; left: -3px;"
       />
     </div>
     <div
@@ -21,7 +21,7 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
       <div
         class="msg container fixedScrollbar splitHost"
         id="pane0Host"
-        style="flex-direction: row; justify-content: stretch; width: 250px; left: 0px;"
+        style="flex-direction: row; justify-content: stretch; width: 0px; left: 0px;"
       >
         <div
           class="msg container fixedScrollbar accordion"
@@ -62,12 +62,12 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
               <div
                 class="msg divider horizontal sash"
                 id="documentSectionSash"
-                style="--thickness: 4px; top: 197px;"
+                style="--thickness: 4px; top: 67px;"
               />
               <div
                 class="msg divider horizontal sash"
                 id="connectionSectionSash"
-                style="--thickness: 4px; top: 297px;"
+                style="--thickness: 4px; top: 167px;"
               />
             </div>
             <div
@@ -76,7 +76,7 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
               <div
                 class="msg container fixedScrollbar splitHost"
                 id="documentSectionHost"
-                style="flex-direction: column; justify-content: stretch; height: 200px; top: 0px;"
+                style="flex-direction: column; justify-content: stretch; height: 70px; top: 0px;"
               >
                 <div
                   class="msg container fixedScrollbar section expanded"
@@ -124,7 +124,7 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
               <div
                 class="msg container fixedScrollbar splitHost stretch"
                 id="connectionSectionHost"
-                style="flex-direction: column; justify-content: stretch; height: 100px; top: 200px;"
+                style="flex-direction: column; justify-content: stretch; height: 100px; top: 70px;"
               >
                 <div
                   class="msg container fixedScrollbar section expanded"
@@ -192,7 +192,7 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
               <div
                 class="msg container fixedScrollbar splitHost stretch"
                 id="ociSectionHost"
-                style="flex-direction: column; justify-content: stretch; height: 22px; top: 300px;"
+                style="flex-direction: column; justify-content: stretch; height: 22px; top: 170px;"
               >
                 <div
                   class="msg container fixedScrollbar section"
@@ -258,7 +258,7 @@ exports[`Document module tests > Test DocumentModule instantiation 1`] = `
       <div
         class="msg container fixedScrollbar splitHost stretch"
         id="pane1Host"
-        style="flex-direction: row; justify-content: stretch; width: 500px; left: 250px;"
+        style="flex-direction: row; justify-content: stretch; width: 500px; left: 0px;"
       >
         <div
           class="msg container fixedScrollbar"

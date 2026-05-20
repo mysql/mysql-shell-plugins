@@ -613,6 +613,9 @@ export class ExecutionContext implements IExecutionContext {
                     // queries are updatable, like simple SELECT * FROM table_name.
                     set.updatable = value.updatable ?? false;
                     set.fullTableName = value.fullTableName ?? "";
+                    set.viewType = value.viewType;
+                    set.image = value.image;
+                    set.caption = value.caption;
 
                     if (value.columns) {
                         // Columns are set only for the first entry of a result.

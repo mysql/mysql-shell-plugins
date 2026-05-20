@@ -31,19 +31,19 @@
     height: 100%;
 }
 
-.msg.resultHost:not(.dropTarget) > .content {
+.msg.resultHost:not(.dropTarget)>.content {
     background: transparent;
 }
 
-.msg.codeEditor .zoneHost .renderTarget > .divider {
+.msg.codeEditor .zoneHost .renderTarget>.divider {
     cursor: ns-resize;
 }
 
-.msg.codeEditor .zoneHost .renderTarget > .divider.minimum {
+.msg.codeEditor .zoneHost .renderTarget>.divider.minimum {
     cursor: s-resize;
 }
 
-.msg.codeEditor .zoneHost .renderTarget > .divider.maximum {
+.msg.codeEditor .zoneHost .renderTarget>.divider.maximum {
     cursor: n-resize;
 }
 
@@ -60,12 +60,113 @@
     flex: 1 1 auto;
 }
 
+.msg.resultHost .imageResultView {
+    position: relative;
+    overflow: auto;
+    align-items: flex-start;
+    padding: 0 50px;
+    background-color: var(--resultView-background);
+    cursor: grab;
+}
+
+.msg.resultHost .imageResultView.panning {
+    cursor: grabbing;
+}
+
+.msg.resultHost .imageResultViewImage {
+    display: block;
+    max-width: none;
+    width: auto;
+    height: auto;
+}
+
+.msg.resultHost .imageResultViewSvg {
+    display: inline-block;
+}
+
+.msg.resultHost .imageResultViewSvg>svg {
+    display: block;
+    max-width: none;
+}
+
+.msg.resultHost .imageResultViewEmpty {
+    padding: 12px;
+    color: var(--resultView-foreground);
+}
+
+.msg.resultHost .imageResultViewMinimap {
+    position: absolute;
+    z-index: 10;
+    overflow: visible;
+    box-sizing: border-box;
+    border: 1px solid color-mix(in srgb, var(--editorWidget-border) 82%, transparent);
+    background-color: color-mix(in srgb, var(--resultView-background) 90%, transparent);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.32);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.msg.resultHost .imageResultViewMinimap:active {
+    cursor: grabbing;
+}
+
+.msg.resultHost .imageResultViewMinimapImage {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+.msg.resultHost .imageResultViewMinimapViewport {
+    position: absolute;
+    box-sizing: border-box;
+    border: 1px solid var(--focusBorder);
+    background-color: color-mix(in srgb, var(--focusBorder) 22%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--resultView-background) 75%, transparent);
+    pointer-events: none;
+}
+
+.msg.resultHost .imageResultViewMinimapHeatmapLegend {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    height: 28px;
+    color: var(--resultView-foreground);
+    font: 9px var(--msg-monospace-font-family);
+    pointer-events: none;
+}
+
+.msg.resultHost .imageResultViewMinimapHeatmapGradient {
+    height: 6px;
+    border: 1px solid color-mix(in srgb, var(--resultView-background) 74%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--editorWidget-border) 60%, transparent);
+}
+
+.msg.resultHost .imageResultViewMinimapHeatmapCaption {
+    padding-bottom: 2px;
+    text-align: center;
+    text-shadow: 0 1px 2px var(--resultView-background);
+    pointer-events: none;
+}
+
+.msg.resultHost .imageResultViewMinimapHeatmapLabels {
+    display: flex;
+    justify-content: space-between;
+    text-shadow: 0 1px 2px var(--resultView-background);
+    pointer-events: none;
+}
+
 .msg.resultHost .resultTabview .outputHost,
 .msg.codeEditor .zoneHost .renderTarget .outputHost {
     flex: 1;
     background: var(--editorZone-background);
     margin-top: 4px;
     margin-right: 4px;
+    min-width: 0;
+    overflow: auto;
 }
 
 .msg.outputHost .commandIndex,
@@ -75,7 +176,7 @@
     margin-right: 3px;
 }
 
-.msg.resultHost .resultTabview .outputHost > .labelHost {
+.msg.resultHost .resultTabview .outputHost>.labelHost {
     min-height: 1.3em;
 }
 
@@ -152,7 +253,7 @@
     padding-top: 3px;
 }
 
-.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .iconHost > .icon {
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .iconHost>.icon {
     background-color: var(--badge-foreground);
     height: 13px;
     mask-position: 0;
@@ -183,12 +284,12 @@
     min-height: 0;
 }
 
-.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .dropdown > label {
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .dropdown>label {
     font-size: 1rem;
     margin-left: 2px;
 }
 
-.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost > label {
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost>label {
     width: 100%;
     height: 100%;
 }
@@ -247,13 +348,14 @@
 .zoneHost .resultText:not(.error, .warning, .success, .log) {
     /* background-color: var(--editorZone-background); */
     color: var(--resultZone-foreground);
-    white-space: pre-wrap;
+    white-space: pre;
     cursor: text;
     user-select: text;
 }
 
 .msg .resultText.actionLabel,
 .zoneHost .resultText.text {
+    text-wrap: nowrap !important;
     white-space: pre;
     flex: 1;
 }
@@ -262,7 +364,7 @@
 .zoneHost .resultText.text.error,
 .msg .resultText.actionLabel.warning,
 .zoneHost .resultText.text.warning {
-    white-space: pre-wrap;
+    white-space: pre;
     flex: 1;
 }
 
@@ -270,13 +372,14 @@
     display: flex;
     gap: 2px;
     flex-direction: row;
+    min-width: max-content;
 }
 
-.msg .actionOutput .actionRow > .label > .span {
+.msg .actionOutput .actionRow>.label>.span {
     padding-left: 2px;
 }
 
-.msg.resultHost .resultText > .label {
+.msg.resultHost .resultText>.label {
     overflow: auto;
     flex: 1 1 auto;
 }
@@ -293,18 +396,19 @@
     color: var(--resultStatus-foreground);
 }
 
-.msg.resultHost .resultStatus > .label {
+.msg.resultHost .resultStatus>.label {
     flex: 1 1 auto;
 
     margin: 2px 8px 2px 4px;
     align-self: center;
 }
 
-.msg.resultHost .resultStatus .toolbar > .button {
+.msg.resultHost .resultStatus .toolbar .button.msg.button {
     padding: 0;
     margin: 0 4px;
 
-    background: none;
+    background-color: transparent;
+    border-color: transparent;
 
     align-items: center;
 
@@ -319,10 +423,100 @@
     margin: 0 4px;
 }
 
-.msg.resultHost .resultStatus .toolbar > .button > .icon {
+.msg.resultHost .resultStatus .toolbar .segmentedButton > .button {
+    margin: 0;
+    padding: 2px 3px;
+
+    border: none;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+}
+
+.msg.resultHost .resultStatus .toolbar .segmentedButton > .button + .button {
+    border-left: 1px solid var(--button-border);
+}
+
+.msg.resultHost .resultStatus .toolbar .segmentedButton > .button:first-child {
+    border-radius: 3px 0 0 3px;
+}
+
+.msg.resultHost .resultStatus .toolbar .segmentedButton > .button:last-child {
+    border-radius: 0 3px 3px 0;
+}
+
+.msg.resultHost .resultStatus .toolbar .segmentedButton > .button.selected {
+    background-color: var(--button-defaultBackground);
+    box-shadow: inset 0 -2px 0 var(--focusBorder), inset 0 0 0 1px var(--focusBorder);
+}
+
+.msg.resultHost .resultStatus .toolbar .segmentedButton > .button.selected > .icon {
+    background-color: var(--button-defaultForeground);
+}
+
+.msg.resultHost .resultStatus .toolbar .button.msg.button:not(.disabled):hover,
+.msg.resultHost .resultStatus .toolbar .button.msg.button:not(.disabled):active {
+    background-color: var(--button-hoverBackground);
+}
+
+.msg.resultHost .resultStatus .toolbar .button.msg.button.disabled {
+    background-color: transparent;
+    color: var(--disabledForeground);
+}
+
+.msg.resultHost .resultStatus .toolbar .button.msg.button.disabled>.icon:not(.codicon) {
+    background-color: var(--disabledForeground);
+}
+
+.msg.resultHost .resultStatus .toolbar .button.msg.button.active {
+    background-color: var(--button-hoverBackground);
+}
+
+.msg.resultHost .resultStatus .toolbar .visualExplainDetailsLabel {
+    margin: 0 2px 0 6px;
+    font-family: var(--msg-standard-font-family);
+}
+
+.msg.resultHost .resultStatus .toolbar .visualExplainSegmentedSelector {
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 20px;
+    margin: 0 4px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--resultStatus-foreground) 34%, transparent);
+    border-radius: 3px;
+    background-color: transparent;
+}
+
+.msg.resultHost .resultStatus .toolbar .visualExplainSegmentedSelector .button.msg.button {
+    width: auto;
+    min-width: 44px;
+    height: 20px;
+    margin: 0;
+    padding: 0 7px;
+    border: none;
+    border-radius: 0;
+    font-family: var(--msg-standard-font-family);
+    font-size: 0.9em;
+}
+
+.msg.resultHost .resultStatus .toolbar .visualExplainLayoutSelector .button.msg.button {
+    min-width: 26px;
+    width: 26px;
+    padding: 0;
+}
+
+.msg.resultHost .resultStatus .toolbar .visualExplainSegmentedSelector .button.msg.button:not(:last-child) {
+    border-right: 1px solid color-mix(in srgb, var(--resultStatus-foreground) 28%, transparent);
+}
+
+.msg.resultHost .resultStatus .toolbar .button>.icon {
     width: 18px;
     height: 18px;
+}
 
+.msg.resultHost .resultStatus .toolbar .button>.icon:not(.codicon) {
     background-color: var(--resultStatus-foreground);
 }
 
@@ -342,7 +536,12 @@
     color: var(--resultStatus-foreground);
 }
 
-.msg.resultHost .resultStatus .toolbar > .label {
+.msg.resultHost .resultStatus .toolbar .button>.icon.codicon,
+.zoneHost .resultStatus .toolbar .button>.icon.codicon {
+    background-color: transparent;
+}
+
+.msg.resultHost .resultStatus .toolbar>.label {
     margin: 0 4px;
     font-family: var(--msg-standard-font-family);
 }
@@ -416,7 +615,7 @@
     cursor: pointer;
 }
 
-.msg.dbModuleTabview .renderTarget .resultStatus > .message {
+.msg.dbModuleTabview .renderTarget .resultStatus>.message {
     padding: 0 0 0 4px;
     border: none;
     border-radius: 0;
@@ -431,9 +630,9 @@
 
 .msg.connectionWorkspaceHost .resultHost .copyButton,
 .msg.dbModuleTabview .standaloneScriptHost .resultHost .copyButton,
-.zoneHost > .renderTarget > .resultHost .copyButton,
-.zoneHost > .renderTarget > .outputHost .copyButton,
-#resultPaneHost > .renderTarget >.resultHost .copyButton {
+.zoneHost>.renderTarget>.resultHost .copyButton,
+.zoneHost>.renderTarget>.outputHost .copyButton,
+#resultPaneHost>.renderTarget>.resultHost .copyButton {
     display: none;
     position: absolute;
     align-self: flex-end;
@@ -449,13 +648,13 @@
 
 .msg.connectionWorkspaceHost .resultHost:hover .copyButton,
 .msg.dbModuleTabview .standaloneScriptHost .resultHost:hover .copyButton,
-.zoneHost > .renderTarget > .resultHost:hover .copyButton,
-.zoneHost > .renderTarget > .outputHost:hover .copyButton,
-#resultPaneHost > .renderTarget >.resultHost .copyButton {
+.zoneHost>.renderTarget>.resultHost:hover .copyButton,
+.zoneHost>.renderTarget>.outputHost:hover .copyButton,
+#resultPaneHost>.renderTarget>.resultHost .copyButton {
     display: block;
 }
 
-.resultHost > .resultTabview .resultView .actionHost {
+.resultHost>.resultTabview .resultView .actionHost {
     display: none;
     position: absolute;
     align-self: flex-end;
@@ -466,11 +665,11 @@
     z-index: 1;
 }
 
-.resultHost > .resultTabview .resultView:hover .actionHost {
+.resultHost>.resultTabview .resultView:hover .actionHost {
     display: flex;
 }
 
-.resultHost > .resultTabview .resultView:hover .actionHost .icon {
+.resultHost>.resultTabview .resultView:hover .actionHost .icon {
     width: 12px;
     height: 12px;
 }
@@ -488,6 +687,6 @@
 }
 
 /** Field editor related rules. */
-.msg#fieldEditor > .valueEditDialog textarea {
+.msg#fieldEditor>.valueEditDialog textarea {
     min-height: 300px;
 }

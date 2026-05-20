@@ -638,6 +638,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
             }
 
             // Copy over the final sizes to our layout info.
+            this.fitComputedSizesToContainer(computedSizes, totalSize);
             computedSizes.forEach((value: number, index: number) => {
                 this.paneData[index].currentSize = value;
                 this.paneData[index].startSize = value;
@@ -645,6 +646,38 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
 
             this.applyLayout();
         }
+    };
+
+    private fitComputedSizesToContainer = (computedSizes: number[], totalSize: number): void => {
+        let overflow = computedSizes.reduce((sum, value) => {
+            return sum + value;
+        }, 0) - totalSize;
+
+        if (overflow <= 0) {
+            return;
+        }
+
+        const shrinkPanes = (predicate: (paneData: IPanePositionData) => boolean): void => {
+            for (let index = computedSizes.length - 1; index >= 0 && overflow > 0; --index) {
+                const paneData = this.paneData[index];
+                if (!predicate(paneData)) {
+                    continue;
+                }
+
+                const shrinkableSize = Math.max(0, computedSizes[index] - paneData.minSize);
+                const shrinkSize = Math.min(shrinkableSize, overflow);
+                computedSizes[index] -= shrinkSize;
+                overflow -= shrinkSize;
+            }
+        };
+
+        // Fixed panes can carry restored/manual sizes that no longer fit after a window resize.
+        shrinkPanes((paneData) => {
+            return !paneData.stretch;
+        });
+        shrinkPanes((paneData) => {
+            return paneData.stretch;
+        });
     };
 
     private applyLayout = (): void => {

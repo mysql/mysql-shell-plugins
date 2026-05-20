@@ -2136,10 +2136,17 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const offline = activeWorkspace.connectionWorkspace?.connection.isOffline === true;
         const activeConnectionPage = activeWorkspace.connectionWorkspace?.dataModelEntry ?? this.getSelectedConnectionPageEntry();
         const hasActiveConnectionPage = activeConnectionPage !== undefined && !offline;
+        const activeConnectionDetails = activeWorkspace.connectionWorkspace?.connection.details ?? activeConnectionPage?.details;
         const activeType = executionContext?.activeType;
         const area = activeType === "notebook" ? "block" : "script";
-        const selectionText = desktopRunState?.canExecuteSubparts ? "the selection or " : "";
-        const hasAlternateRunActions = desktopRunState?.canExecuteSubparts ?? false;
+        const canExecuteSubparts = desktopRunState?.canExecuteSubparts ?? false;
+        const selectionText = canExecuteSubparts ? "the selection or " : "";
+        const activeConnectionDbType = activeConnectionDetails?.dbType ?? DBType.MySQL;
+        const canVisualExplain = (desktopRunState?.canExecute ?? false)
+            && (executionContext?.editorExecutionContext?.isSQLLike
+                ?? canExecuteSubparts)
+            && activeConnectionDbType === DBType.MySQL;
+        const hasAlternateRunActions = canExecuteSubparts || canVisualExplain;
         const isStopping = this.isDesktopWorkspaceStopping(activeWorkspace.id);
         const isBusy = isStopping || desktopRunState?.canStop === true;
         const primaryRunTooltip = activeType === "notebook"
@@ -2204,7 +2211,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                 placement={ComponentPlacement.BottomCenter}
                                 onItemClick={this.handleDesktopTitlebarRunMenuItemClick}
                             >
-                                {hasAlternateRunActions &&
+                                {canExecuteSubparts &&
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteItem"
                                         command={{ title: "Run Script", command: "run.execute" }}
@@ -2222,7 +2229,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                         disabled={!desktopRunState.canExecute}
                                     />
                                 }
-                                {hasAlternateRunActions &&
+                                {canExecuteSubparts &&
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteAsTextItem"
                                         command={{ title: "Run (Results as Text)", command: "run.executeAsText" }}
@@ -2231,7 +2238,52 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                         disabled={!desktopRunState.canExecute}
                                     />
                                 }
-                                {hasAlternateRunActions && executionContext?.activeConnectionState?.heatWaveEnabled &&
+                                {canExecuteSubparts && canVisualExplain &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExplainSeparator"
+                                        command={{ title: "-", command: "" }}
+                                    />
+                                }
+                                {canVisualExplain &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExplainItem"
+                                        command={{ title: "Explain", command: "run.explain" }}
+                                        title="Execute the selection or current statement with explain"
+                                        icon={Assets.toolbar.executeExplainIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {canVisualExplain &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunExplainAnalyzeItem"
+                                        command={{ title: "Explain Analyze", command: "run.explainAnalyze" }}
+                                        title="Execute the selection or current statement with explain analyze"
+                                        icon={Assets.toolbar.executeExplainIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {canVisualExplain &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunVisualExplainItem"
+                                        command={{ title: "Visual Explain", command: "run.visualExplain" }}
+                                        title="Generate a visual explain plan for the selection or current statement"
+                                        icon={Assets.toolbar.executeExplainIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {canVisualExplain &&
+                                    <MenuItem
+                                        id="desktopTitlebarRunVisualExplainAnalyzeItem"
+                                        command={{
+                                            title: "Visual Explain Analyze",
+                                            command: "run.visualExplainAnalyze",
+                                        }}
+                                        title="Execute the selection or current statement with visual explain analyze"
+                                        icon={Assets.toolbar.executeExplainIcon}
+                                        disabled={!desktopRunState.canExecute}
+                                    />
+                                }
+                                {canExecuteSubparts && executionContext?.activeConnectionState?.heatWaveEnabled &&
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteHeatWaveItem"
                                         command={{ title: "Run on HeatWave", command: "run.executeHeatWave" }}
@@ -2240,7 +2292,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                         disabled={!desktopRunState.canExecute}
                                     />
                                 }
-                                {hasAlternateRunActions && executionContext?.activeConnectionState?.heatWaveEnabled &&
+                                {canExecuteSubparts && executionContext?.activeConnectionState?.heatWaveEnabled &&
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteCurrentHeatWaveItem"
                                         command={{ title: "Run Current on HeatWave", command: "run.executeCurrentHeatWave" }}
@@ -2520,6 +2572,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 break;
             }
 
+            case "run.explain": {
+                void this.executeDesktopCommand("run.explain");
+                break;
+            }
+
+            case "run.explainAnalyze": {
+                void this.executeDesktopCommand("run.explainAnalyze");
+                break;
+            }
+
+            case "run.visualExplain": {
+                void this.executeDesktopCommand("run.visualExplain");
+                break;
+            }
+
+            case "run.visualExplainAnalyze": {
+                void this.executeDesktopCommand("run.visualExplainAnalyze");
+                break;
+            }
+
             case "run.executeHeatWave": {
                 void this.runDesktopExecution({
                     advance: true,
@@ -2692,13 +2764,16 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         asText: boolean;
         forceSecondaryEngine: boolean;
         atCaret?: boolean;
+        explain?: boolean;
+        explainAnalyze?: boolean;
     }): Promise<boolean> => {
         const executionContext = this.getActiveDesktopExecutionContext();
         if (!executionContext) {
             return false;
         }
 
-        if (options.atCaret && executionContext.desktopRunState?.canExecuteSubparts !== true) {
+        if (options.atCaret && executionContext.desktopRunState?.canExecuteSubparts !== true
+            && !options.explain && !options.explainAnalyze) {
             return false;
         }
 
@@ -2708,8 +2783,32 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             advance: options.advance,
             forceSecondaryEngine: options.forceSecondaryEngine,
             asText: options.asText,
+            ...(options.explain ? { explain: true } : {}),
+            ...(options.explainAnalyze ? { explainAnalyze: true } : {}),
             is3rdLanguage: executionContext.activeDocumentState?.state?.model.is3rdLanguage,
         });
+    };
+
+    private runDesktopVisualExplain = async (analyze = false): Promise<boolean> => {
+        const executionContext = this.getActiveDesktopExecutionContext();
+        const canVisualExplain = executionContext?.editorExecutionContext?.isSQLLike
+            ?? executionContext?.desktopRunState?.canExecuteSubparts ?? false;
+        const activeWorkspaceConnection = this.getActiveWorkspaceConnectionEntry();
+        const activeConnectionDetails = activeWorkspaceConnection?.details ?? this.getSelectedConnectionPageEntry()?.details;
+        const activeConnectionDbType = activeConnectionDetails?.dbType ?? DBType.MySQL;
+
+        if (!executionContext || !canVisualExplain || activeConnectionDbType !== DBType.MySQL) {
+            return false;
+        }
+
+        this.setDesktopWorkspaceStopping(this.getResolvedSelectedWorkspaceId(), false);
+
+        const options = {
+            is3rdLanguage: executionContext.activeDocumentState?.state?.model.is3rdLanguage,
+            ...(analyze ? { visualExplainAnalyze: true } : {}),
+        };
+
+        return requisitions.execute("editorVisualExplain", options);
     };
 
     private handleDesktopRunStateChanged = (): void => {
@@ -5848,7 +5947,8 @@ EXAMPLES
         const hasActiveConnectionPage = this.getSelectedConnectionPageEntry() !== undefined && !isOfflineWorkspace;
         const activeDesktopDocumentType = selectedConnectionWorkspaceRef?.getActiveDesktopDocumentType();
         const canUseEditorViewCommands = activeDesktopDocumentType !== undefined && !isOfflineWorkspace;
-        const desktopRunState = this.getActiveDesktopExecutionContext()?.desktopRunState;
+        const activeDesktopExecutionContext = this.getActiveDesktopExecutionContext();
+        const desktopRunState = activeDesktopExecutionContext?.desktopRunState;
         const canRecallPreviousCommand = activeDesktopDocumentType === "notebook"
             && (selectedConnectionWorkspaceRef?.canNavigateHistory(true) ?? false);
         const canRecallNextCommand = activeDesktopDocumentType === "notebook"
@@ -5858,6 +5958,12 @@ EXAMPLES
         const softWrapEnabled = Settings.get("editor.wordWrap", "off") === "on";
         const isMac = navigator.userAgent.includes("Macintosh");
         const activeWorkspaceConnection = this.getActiveWorkspaceConnectionEntry();
+        const activeConnectionDetails = activeWorkspaceConnection?.details ?? this.getSelectedConnectionPageEntry()?.details;
+        const activeConnectionDbType = activeConnectionDetails?.dbType ?? DBType.MySQL;
+        const canVisualExplain = (desktopRunState?.canExecute ?? false)
+            && (activeDesktopExecutionContext?.editorExecutionContext?.isSQLLike
+                ?? desktopRunState?.canExecuteSubparts ?? false)
+            && activeConnectionDbType === DBType.MySQL;
         const sidebarShowSystemSchemas = this.sideBarRef.current?.getActiveWorkspaceSystemSchemasState();
         const canUseActiveMySQLConnection = !isOfflineWorkspace && (sidebarShowSystemSchemas !== undefined
             || activeWorkspaceConnection?.details.dbType === DBType.MySQL);
@@ -5979,6 +6085,22 @@ EXAMPLES
                 && (desktopRunState?.canExecute ?? false)
                 && (desktopRunState?.canExecuteSubparts ?? false),
             accelerator: "Alt+Enter",
+        }, {
+            id: "run.explain",
+            label: "Explain",
+            enabled: canVisualExplain,
+        }, {
+            id: "run.explainAnalyze",
+            label: "Explain Analyze",
+            enabled: canVisualExplain,
+        }, {
+            id: "run.visualExplain",
+            label: "Visual Explain",
+            enabled: canVisualExplain,
+        }, {
+            id: "run.visualExplainAnalyze",
+            label: "Visual Explain Analyze",
+            enabled: canVisualExplain,
         }, {
             id: "run.stop",
             label: "Stop",
@@ -6153,6 +6275,44 @@ EXAMPLES
                     asText: true,
                     forceSecondaryEngine: false,
                 });
+            }
+
+            case "run.explain": {
+                const executionContext = this.getActiveDesktopExecutionContext();
+                if (!executionContext) {
+                    return false;
+                }
+
+                return this.runDesktopExecution({
+                    atCaret: true,
+                    advance: false,
+                    asText: true,
+                    forceSecondaryEngine: false,
+                    explain: true,
+                });
+            }
+
+            case "run.explainAnalyze": {
+                const executionContext = this.getActiveDesktopExecutionContext();
+                if (!executionContext) {
+                    return false;
+                }
+
+                return this.runDesktopExecution({
+                    atCaret: true,
+                    advance: false,
+                    asText: true,
+                    forceSecondaryEngine: false,
+                    explainAnalyze: true,
+                });
+            }
+
+            case "run.visualExplain": {
+                return this.runDesktopVisualExplain();
+            }
+
+            case "run.visualExplainAnalyze": {
+                return this.runDesktopVisualExplain(true);
             }
 
             case "run.stop": {

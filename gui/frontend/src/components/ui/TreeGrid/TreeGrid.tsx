@@ -126,6 +126,9 @@ export interface ITreeGridOptions {
     /** Enforce the rowHeight to the given number in pixel */
     rowHeight?: number;
 
+    /** Selects the vertical row renderer. Use "basic" for rows taller than the viewport. */
+    renderVertical?: "basic" | "virtual";
+
     /** Ensures the first selected row is visible */
     scrollToFirstSelected?: boolean;
 }
@@ -236,7 +239,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     public override getSnapshotBeforeUpdate(): IDictionary {
         return {
-            currentTop: (this.tabulator?.rowManager as IDictionary).scrollTop ?? 0,
+            currentTop: (this.tabulator?.rowManager as IDictionary | undefined)?.scrollTop ?? 0,
         };
     }
 
@@ -442,7 +445,20 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
         switch (action) {
             case SetDataAction.Replace: {
+                const tabulator = table as Tabulator | undefined;
+                const rowManager = tabulator?.rowManager as IDictionary | undefined;
+                const columnManager = tabulator?.columnManager as IDictionary | undefined;
+                const rowElement = rowManager?.element as HTMLElement | undefined;
+                const scrollTop = rowElement?.scrollTop;
+                const scrollLeft = rowElement?.scrollLeft;
+
                 await table?.replaceData(data as Array<{}>);
+
+                if (rowElement && scrollTop !== undefined && scrollLeft !== undefined) {
+                    rowElement.scrollTop = scrollTop;
+                    (rowManager?.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
+                    (columnManager?.scrollHorizontal as ((pos: number) => void) | undefined)?.(scrollLeft);
+                }
 
                 break;
             }
@@ -707,7 +723,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             rowContextMenu,
 
             autoResize: true,
-            renderVertical: "virtual",
+            renderVertical: options?.renderVertical ?? "virtual",
 
             layoutColumnsOnNewData: options?.layoutColumnsOnNewData ?? true,
             resizableRows: options?.resizableRows,

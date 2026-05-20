@@ -310,6 +310,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             }
         });
 
+        if (this.currentHeight && this.zoneInfo) {
+            this.zoneInfo.zone.heightInPx = this.currentHeight;
+        }
+
         if (this.zoneInfo?.zoneId === "") {
             this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.zoneInfo!.zoneId = changeAccessor.addZone(this.zoneInfo!.zone);

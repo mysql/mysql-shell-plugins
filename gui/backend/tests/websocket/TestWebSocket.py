@@ -182,6 +182,27 @@ class TWebSocket:
 
     session_scripts = {}
 
+    @staticmethod
+    def _clear_test_credentials(command: str, connection_options: dict) -> None:
+        uri = (
+            f"{connection_options['user']}@"
+            f"{connection_options['host']}:{connection_options['portStr']}"
+        )
+        subprocess.run(
+            [
+                command,
+                "--disable-builtin-plugins",
+                "--js",
+                "-e",
+                (
+                    f"const uri = {json.dumps(uri)};"
+                    "if (shell.listCredentials().includes(uri)) "
+                    "shell.deleteCredential(uri);"
+                ),
+            ],
+            check=False,
+        )
+
     def __init__(self, token=None, logger=None, script_reader=read_script):
         # Cleanup the user table
         self._last_module_session_id = None
@@ -228,6 +249,11 @@ class TWebSocket:
                 "hasCredentialManager": credential_manager.returncode == 0,
             }
         )
+
+        if self.tokens["hasCredentialManager"]:
+            for connection in config.Config.get_instance().database_connections:
+                self._clear_test_credentials(command, connection["options"])
+
         self._last_response = None
 
         self._story_stack = []

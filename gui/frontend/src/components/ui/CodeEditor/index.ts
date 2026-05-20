@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -128,8 +128,23 @@ export interface IScriptExecutionOptions {
      */
     source?: IPosition;
 
+    /** Explicit SQL source text to execute instead of deriving it from an editor position. */
+    sourceText?: string;
+
     /** When true render the query and the result as plain text. */
     asText?: boolean;
+
+    /** When true execute the statement with EXPLAIN. */
+    explain?: boolean;
+
+    /** When true execute the statement with EXPLAIN ANALYZE. */
+    explainAnalyze?: boolean;
+
+    /** When true execute the statement as a visual explain request. */
+    visualExplain?: boolean;
+
+    /** When true execute the visual explain request with EXPLAIN ANALYZE. */
+    visualExplainAnalyze?: boolean;
 
     errorCallback?: (errorMessage: string) => Promise<void>;
     is3rdLanguage?: boolean;

@@ -144,6 +144,36 @@ export const updateWideColumnsCache = (columnsCache: Map<string, number>, result
     });
 };
 
+export const hasTallCellContent = (
+    resultSet: IResultSet,
+    minLines = 20,
+    minLength = 4000,
+): boolean => {
+    const isTallValue = (value: unknown): boolean => {
+        let text: string;
+
+        if (typeof value === "string") {
+            text = value;
+        } else if (value != null && typeof value === "object") {
+            try {
+                text = JSON.stringify(value, undefined, 2);
+            } catch {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        return text.length >= minLength || text.split("\n", minLines).length >= minLines;
+    };
+
+    return resultSet.data.rows.some((columnValues) => {
+        return Object.values(columnValues).some((value) => {
+            return isTallValue(value);
+        });
+    });
+};
+
 const iconHostClassName = "iconHost data";
 
 export interface IResultViewProperties extends IComponentProperties {
@@ -281,6 +311,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             alternatingRowBackgrounds: false,
             selectionType: SelectionType.Multi,
             resizableRows: true,
+            renderVertical: hasTallCellContent(resultSet) ? "basic" : "virtual",
         };
 
         const executionInfo = resultSet.data.executionInfo;

@@ -31,7 +31,9 @@ import type { CellComponent, EmptyCallback, ValueBooleanCallback, ValueVoidCallb
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/general-types.js";
-import { ResultView, getWideColumns, updateWideColumnsCache } from "../../../../../components/ResultView/ResultView.js";
+import {
+    ResultView, getWideColumns, hasTallCellContent, updateWideColumnsCache,
+} from "../../../../../components/ResultView/ResultView.js";
 import { defaultCellValue } from "../../../../../components/ResultView/ResultCellValue.js";
 import { Assets } from "../../../../../supplement/Assets.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
@@ -225,6 +227,34 @@ describe("Result View Tests", (): void => {
         expect(addDataSpy).toHaveBeenCalledWith(resultSet.data, true);
 
         addDataSpy.mockRestore();
+        unmount();
+    });
+
+    it("uses basic vertical rendering for result sets with tall cell content", async () => {
+        const viewRef = createRef<ResultView>();
+        const resultSet = createResultSet("123", [{
+            id: 1,
+            explain: Object.fromEntries(Array.from({ length: 24 }, (_value, index) => {
+                return [`line_${index}`, true];
+            })),
+        }]);
+
+        const { unmount } = render(
+            <ResultView
+                ref={viewRef}
+                resultSet={resultSet}
+                editModeActive={false}
+                editable={false}
+            />,
+        );
+
+        await nextRunLoop();
+
+        expect(hasTallCellContent(resultSet)).toBe(true);
+        expect((viewRef.current as unknown as {
+            gridRef: { current?: { props: { options: { renderVertical?: string; }; }; }; };
+        }).gridRef.current?.props.options.renderVertical).toBe("basic");
+
         unmount();
     });
 
@@ -2212,7 +2242,7 @@ describe("Result View Tests", (): void => {
             },
         });
 
-        render(
+        const { unmount } = render(
             <TestResultView
                 ref={viewRef}
                 resultSet={{
@@ -2281,6 +2311,7 @@ describe("Result View Tests", (): void => {
         expect(clipboardSpy).toHaveBeenCalledWith("'Animal'");
 
         clipboardSpy.mockRestore();
+        unmount();
     });
 });
 

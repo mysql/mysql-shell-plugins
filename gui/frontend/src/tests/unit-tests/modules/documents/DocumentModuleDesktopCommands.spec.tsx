@@ -2298,6 +2298,7 @@ describe("Document module desktop commands", () => {
                 "editorFind",
                 "editorExecuteSelectedOrAll",
                 "editorExecute",
+                "editorVisualExplain",
                 "editorLoadNotebook",
             ].includes(requestType);
         });
@@ -2368,6 +2369,76 @@ describe("Document module desktop commands", () => {
             forceSecondaryEngine: false,
             asText: false,
             is3rdLanguage: undefined,
+        });
+        await nextRunLoop();
+
+        await act(async () => {
+            fireEvent.click(container.querySelector("#desktopTitlebarRunButton .splitButtonTrigger")!);
+        });
+        await nextRunLoop();
+        expect(document.getElementById("desktopTitlebarRunExecuteAsTextItem")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarRunExplainSeparator")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarRunExplainItem")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarRunExplainAnalyzeItem")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarRunVisualExplainItem")).toBeTruthy();
+        expect(document.getElementById("desktopTitlebarRunVisualExplainAnalyzeItem")).toBeTruthy();
+
+        await act(async () => {
+            fireEvent.click(document.getElementById("desktopTitlebarRunExplainItem")!);
+        });
+        expect(requisitionSpy).toHaveBeenCalledWith("editorExecute", {
+            advance: false,
+            forceSecondaryEngine: false,
+            asText: true,
+            explain: true,
+            is3rdLanguage: undefined,
+        });
+        await nextRunLoop();
+
+        await act(async () => {
+            fireEvent.click(container.querySelector("#desktopTitlebarRunButton .splitButtonTrigger")!);
+        });
+        await nextRunLoop();
+        expect(document.getElementById("desktopTitlebarRunExplainAnalyzeItem")).toBeTruthy();
+
+        await act(async () => {
+            fireEvent.click(document.getElementById("desktopTitlebarRunExplainAnalyzeItem")!);
+        });
+        expect(requisitionSpy).toHaveBeenCalledWith("editorExecute", {
+            advance: false,
+            forceSecondaryEngine: false,
+            asText: true,
+            explainAnalyze: true,
+            is3rdLanguage: undefined,
+        });
+        await nextRunLoop();
+
+        await act(async () => {
+            fireEvent.click(container.querySelector("#desktopTitlebarRunButton .splitButtonTrigger")!);
+        });
+        await nextRunLoop();
+        expect(document.getElementById("desktopTitlebarRunVisualExplainItem")).toBeTruthy();
+
+        await act(async () => {
+            fireEvent.click(document.getElementById("desktopTitlebarRunVisualExplainItem")!);
+        });
+        expect(requisitionSpy).toHaveBeenCalledWith("editorVisualExplain", {
+            is3rdLanguage: undefined,
+        });
+        await nextRunLoop();
+
+        await act(async () => {
+            fireEvent.click(container.querySelector("#desktopTitlebarRunButton .splitButtonTrigger")!);
+        });
+        await nextRunLoop();
+        expect(document.getElementById("desktopTitlebarRunVisualExplainAnalyzeItem")).toBeTruthy();
+
+        await act(async () => {
+            fireEvent.click(document.getElementById("desktopTitlebarRunVisualExplainAnalyzeItem")!);
+        });
+        expect(requisitionSpy).toHaveBeenCalledWith("editorVisualExplain", {
+            is3rdLanguage: undefined,
+            visualExplainAnalyze: true,
         });
         await nextRunLoop();
 
@@ -2489,9 +2560,14 @@ describe("Document module desktop commands", () => {
             items: expect.arrayContaining([
                 expect.objectContaining({ label: "Run Current Statement" }),
                 expect.objectContaining({ label: "Run (Results as Text)" }),
+                expect.objectContaining({ label: "Explain" }),
+                expect.objectContaining({ label: "Explain Analyze" }),
+                expect.objectContaining({ label: "Visual Explain" }),
+                expect.objectContaining({ label: "Visual Explain Analyze" }),
             ]),
         }));
 
+        vi.useRealTimers();
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
         runState.canStop = true;
@@ -2794,6 +2870,10 @@ describe("Document module desktop commands", () => {
             items: expect.arrayContaining([
                 expect.objectContaining({ label: "Run Current Statement" }),
                 expect.objectContaining({ label: "Run (Results as Text)" }),
+                expect.objectContaining({ label: "Explain" }),
+                expect.objectContaining({ label: "Explain Analyze" }),
+                expect.objectContaining({ label: "Visual Explain" }),
+                expect.objectContaining({ label: "Visual Explain Analyze" }),
             ]),
         }));
 
@@ -2973,6 +3053,10 @@ describe("Document module desktop commands", () => {
         expect(initialState.find((entry) => entry.id === "run.execute")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "run.executeCurrent")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "run.executeAsText")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "run.explain")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "run.explainAnalyze")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "run.visualExplain")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "run.visualExplainAnalyze")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "run.stop")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "run.stopOnError")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "run.autoCommit")?.enabled).toBe(false);
@@ -3065,6 +3149,7 @@ describe("Document module desktop commands", () => {
                 "editorFind",
                 "editorExecuteSelectedOrAll",
                 "editorExecute",
+                "editorVisualExplain",
                 "editorToggleStopExecutionOnError",
                 "editorToggleAutoCommit",
             ].includes(requestType);
@@ -3086,6 +3171,10 @@ describe("Document module desktop commands", () => {
         expect(desktopFileState.find((entry) => entry.id === "run.execute")?.enabled).toBe(true);
         expect(desktopFileState.find((entry) => entry.id === "run.executeCurrent")?.enabled).toBe(true);
         expect(desktopFileState.find((entry) => entry.id === "run.executeAsText")?.enabled).toBe(true);
+        expect(desktopFileState.find((entry) => entry.id === "run.explain")?.enabled).toBe(true);
+        expect(desktopFileState.find((entry) => entry.id === "run.explainAnalyze")?.enabled).toBe(true);
+        expect(desktopFileState.find((entry) => entry.id === "run.visualExplain")?.enabled).toBe(true);
+        expect(desktopFileState.find((entry) => entry.id === "run.visualExplainAnalyze")?.enabled).toBe(true);
         expect(desktopFileState.find((entry) => entry.id === "run.stop")?.enabled).toBe(false);
         expect(desktopFileState.find((entry) => entry.id === "run.stopOnError")?.checked).toBe(true);
         expect(desktopFileState.find((entry) => entry.id === "run.autoCommit")?.checked).toBe(false);
@@ -3110,6 +3199,10 @@ describe("Document module desktop commands", () => {
                     expect.objectContaining({ id: "run.execute", enabled: true }),
                     expect.objectContaining({ id: "run.executeCurrent", enabled: true }),
                     expect.objectContaining({ id: "run.executeAsText", enabled: true }),
+                    expect.objectContaining({ id: "run.explain", enabled: true }),
+                    expect.objectContaining({ id: "run.explainAnalyze", enabled: true }),
+                    expect.objectContaining({ id: "run.visualExplain", enabled: true }),
+                    expect.objectContaining({ id: "run.visualExplainAnalyze", enabled: true }),
                     expect.objectContaining({ id: "run.stop", enabled: false }),
                     expect.objectContaining({ id: "run.stopOnError", enabled: true, checked: true }),
                     expect.objectContaining({ id: "run.autoCommit", enabled: true, checked: false }),
@@ -3185,6 +3278,35 @@ describe("Document module desktop commands", () => {
             forceSecondaryEngine: false,
             asText: true,
             is3rdLanguage: undefined,
+        });
+
+        expect(await desktopCommandRegistry.execute("run.explain")).toBe(true);
+        expect(requisitionSpy).toHaveBeenCalledWith("editorExecute", {
+            advance: false,
+            forceSecondaryEngine: false,
+            asText: true,
+            explain: true,
+            is3rdLanguage: undefined,
+        });
+
+        expect(await desktopCommandRegistry.execute("run.explainAnalyze")).toBe(true);
+        expect(requisitionSpy).toHaveBeenCalledWith("editorExecute", {
+            advance: false,
+            forceSecondaryEngine: false,
+            asText: true,
+            explainAnalyze: true,
+            is3rdLanguage: undefined,
+        });
+
+        expect(await desktopCommandRegistry.execute("run.visualExplain")).toBe(true);
+        expect(requisitionSpy).toHaveBeenCalledWith("editorVisualExplain", {
+            is3rdLanguage: undefined,
+        });
+
+        expect(await desktopCommandRegistry.execute("run.visualExplainAnalyze")).toBe(true);
+        expect(requisitionSpy).toHaveBeenCalledWith("editorVisualExplain", {
+            is3rdLanguage: undefined,
+            visualExplainAnalyze: true,
         });
 
         expect(await desktopCommandRegistry.execute("run.stop")).toBe(true);

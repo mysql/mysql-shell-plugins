@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -53,9 +53,10 @@ def render_explain_plan(plan: Union[str, dict], path: str, **kwargs):
 
     Keyword Args:
         compact (bool): enables compact mode, showing only essential information in smaller footprint (default false)]
+        darkMode (bool): renders with colors suitable for a dark background (default false)
+        layout (str): layout mode, one of topDown or bottomUp
         showDescription (bool): whether to show long descriptions for each operation (default true)
         showQuery (bool): display the SQL statement being explained (default true)
-        topDown (bool): display operations executed first at the top (default true)
         css (str): CSS data to be embedded in the image instead of the default one
         debug (int): show debug information (default 0)
     """
@@ -83,9 +84,10 @@ def do_explain(sql: str, path: str, **kwargs):
     Keyword Args:
         analyze (bool): executes EXPLAIN ANALYZE instead of regular EXPLAIN (default false)
         compact (bool): enables compact mode, showing only essential information in smaller footprint (default false)]
+        darkMode (bool): renders with colors suitable for a dark background (default false)
+        layout (str): layout mode, one of topDown or bottomUp
         showDescription (bool): whether to show long descriptions for each operation (default true)
         showQuery (bool): display the SQL statement being explained (default true)
-        topDown (bool): display operations executed first at the top (default true)
         css (str): CSS data to be embedded in the image instead of the default one
         debug (bool): show debug information
     """

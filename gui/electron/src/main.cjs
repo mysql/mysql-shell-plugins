@@ -588,6 +588,30 @@ const showSaveDialog = async (browserWindow, options) => {
     }]);
 };
 
+const saveFile = async (browserWindow, payload) => {
+    if (typeof payload?.content !== "string") {
+        throw new Error("saveFile requires string content.");
+    }
+
+    const result = await dialog.showSaveDialog(browserWindow, {
+        defaultPath: typeof payload?.default === "string" && payload.default.length > 0 ? payload.default : undefined,
+        buttonLabel: typeof payload?.saveLabel === "string" ? payload.saveLabel : undefined,
+        title: typeof payload?.title === "string" ? payload.title : undefined,
+        filters: toDialogFilters(payload?.filters),
+    });
+
+    if (result.canceled || !result.filePath) {
+        return;
+    }
+
+    await fs.promises.writeFile(
+        result.filePath,
+        payload.content,
+        payload?.encoding === "base64" ? "base64" : "utf8",
+    );
+    addRecentFile(browserWindow, result.filePath);
+};
+
 const buildScriptDialogFilters = (language) => {
     switch (language) {
         case "mysql":
@@ -1614,6 +1638,14 @@ const handleHostMessage = (browserWindow, message) => {
             break;
         }
 
+        case "saveFile": {
+            void saveFile(browserWindow, message.data).catch((error) => {
+                appendDesktopLog(`saveFile failed: ${error.stack ?? error.message}`);
+                void dialog.showErrorBox("Save Failed", error.message);
+            });
+            break;
+        }
+
         case "editorSaveNotebook": {
             void saveNotebook(browserWindow, message.data).catch((error) => {
                 appendDesktopLog(`editorSaveNotebook failed: ${error.stack ?? error.message}`);
@@ -1861,6 +1893,11 @@ const createMenu = () => {
                 accelerator: "Alt+Enter",
             }),
             createDesktopCommandMenuItem("run.stop", "Stop"),
+            { type: "separator" },
+            createDesktopCommandMenuItem("run.explain", "Explain"),
+            createDesktopCommandMenuItem("run.explainAnalyze", "Explain Analyze"),
+            createDesktopCommandMenuItem("run.visualExplain", "Visual Explain"),
+            createDesktopCommandMenuItem("run.visualExplainAnalyze", "Visual Explain Analyze"),
             { type: "separator" },
             createDesktopCommandMenuItem("run.stopOnError", "Stop on Error", { type: "checkbox" }),
             createDesktopCommandMenuItem("run.autoCommit", "Auto-commit", { type: "checkbox" }),

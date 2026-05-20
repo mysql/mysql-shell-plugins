@@ -419,7 +419,10 @@ FUNCTIONS
             Requests to change the auto-commit status for this module.
 
       set_current_schema(session, schema_name)
-            Requests to change the current schema for this module."""
+            Requests to change the current schema for this module.
+
+      visual_explain(session, sql[, options])
+            Generates an SVG visual explain plan for the given SQL statement."""
 
     assert (
         help_text == mysqlsh.globals.gui.sql_editor.help()

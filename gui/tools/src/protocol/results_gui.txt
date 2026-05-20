@@ -106,6 +106,12 @@ export interface IDbEditorResultSetData {
     rowsAffected?: number;
 }
 
+export interface IVisualExplainData {
+    svg: string;
+    plan?: string;
+    executionTime?: number;
+}
+
 /**
  * The members of this record come with pascal case naming, which is not processed by our snake-to-camel
  * case processing. So for now we define this with the original names here, until this is fixed.
@@ -445,6 +451,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState; };
     [ShellAPIGui.GuiSqlEditorReconnect]: {};
     [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
+    [ShellAPIGui.GuiSqlEditorVisualExplain]: { result: IVisualExplainData; };
     [ShellAPIGui.GuiSqlEditorKillQuery]: {};
     [ShellAPIGui.GuiSqlEditorKillSession]: {};
     [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { result: string; };
@@ -525,6 +532,7 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,
     ShellAPIGui.GuiSqlEditorExecute,
+    ShellAPIGui.GuiSqlEditorVisualExplain,
     ShellAPIGui.GuiDbGetCatalogObjectNames,
     ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ import sys
 from typing import Optional
 import re
 import pathlib
+import xml.etree.ElementTree as ET
 import mysqlsh
 import pytest
 
@@ -218,10 +219,174 @@ def test_render_explain_plan(tmp_path, explain_review, explain_ignore_style):
         )
 
     check_one("compact", compact=1)
-    check_one("showDescription", showDescription=0)
-    check_one("showQuery", showQuery=0)
-    check_one("topDown", topDown=0)
+    check_one("showDescription", show_description=0)
+    check_one("showQuery", show_query=0)
+    check_one("bottomUp", layout="bottomUp")
     check_one("css", css="hello world")
+
+
+def test_render_explain_plan_source_identity_in_title():
+    compact = render_explain_plan(
+        (input_path / "select_city.json").read_text(),
+        "-",
+        compact=True,
+        show_query=False,
+    )
+    detailed = render_explain_plan(
+        (input_path / "select_city.json").read_text(),
+        "-",
+        show_query=False,
+    )
+    index = render_explain_plan(
+        (input_path / "select_city_country_id.json").read_text(),
+        "-",
+        show_query=False,
+    )
+
+    table_caption = '<tspan class="caption" x="0" dy="12">Table</tspan>'
+    assert table_caption not in compact
+    assert table_caption not in detailed
+    assert '<tspan class="access_type_text" x="0" dy="14">table scan</tspan>' in compact
+    assert ">city</tspan>" in compact
+    assert '<tspan class="access_type_text" x="0" dy="14">table scan</tspan>' in detailed
+    assert '<tspan class="source_table_name" x="0" dy="14">sakila.city</tspan>' in detailed
+    assert '<tspan class="access_type_text" x="0" dy="14">index_lookup</tspan>' in index
+    assert '<tspan class="source_table_name" x="0" dy="14">sakila.city</tspan>' in index
+    assert ">idx_fk_country_id</tspan>" in index
+
+
+def test_render_explain_plan_annotations_include_displayed_fields():
+    detailed = render_explain_plan(
+        (input_path / "select_city_country_id.json").read_text(),
+        "-",
+        show_query=False,
+    )
+
+    assert 'data-access_type="index"' in detailed
+    assert 'data-estimated_total_cost="2.2"' in detailed
+    assert 'data-table_name="city"' in detailed
+    assert 'data-schema_name="sakila"' in detailed
+    assert 'data-index_name="idx_fk_country_id"' in detailed
+    assert 'data-index_access_type="index_lookup"' in detailed
+    assert 'data-operation="Index lookup on city using idx_fk_country_id' in detailed
+    assert 'data-used_columns="city_id, city, country_id, last_update"' in detailed
+    assert 'data-lookup_condition="country_id = 4"' in detailed
+
+    filtered = render_explain_plan(
+        (input_path / "select_city_filter.json").read_text(),
+        "-",
+        show_query=False,
+    )
+
+    assert 'data-operation="Filter:' in filtered
+    assert "data-condition=" in filtered
+    assert 'data-estimated_rows="600.0"' in filtered
+
+    compact = render_explain_plan(
+        (input_path / "select_city_country_id.json").read_text(),
+        "-",
+        compact=True,
+        show_query=False,
+    )
+
+    assert 'data-access_type="index"' in compact
+    assert 'data-estimated_total_cost="2.2"' in compact
+    assert 'data-table_name="city"' in compact
+    assert 'data-index_name="idx_fk_country_id"' in compact
+    assert 'data-index_access_type="index_lookup"' in compact
+    assert 'data-operation="Index lookup on city using idx_fk_country_id' in compact
+    assert "data-schema_name=" not in compact
+    assert "data-used_columns=" not in compact
+    assert "data-lookup_condition=" not in compact
+
+
+def test_render_explain_plan_sales_by_film_category_select_star():
+    plan = json.loads((input_path / "sales_by_film_category.json").read_text())
+    plan["query"] = "SELECT * FROM sakila.sales_by_film_category"
+
+    actual = render_explain_plan(json.dumps(plan), "-", show_query=True)
+    ET.fromstring(actual)
+
+    assert 'data-operation="Table scan on sales_by_film_category"' in actual
+    assert 'data-table_name="sales_by_film_category"' in actual
+    assert 'data-operation="Table scan on &lt;temporary&gt;"' in actual
+    assert 'data-table_name="&lt;temporary&gt;"' in actual
+    assert 'data-operation="Table scan on <temporary>"' not in actual
+    assert 'data-table_name="<temporary>"' not in actual
+    assert ">&lt;temporary&gt;</tspan>" in actual
+    assert '<g transform="translate(0.0 2200.0)" class="query_box">' in actual
+    assert ">SELECT</tspan>" in actual
+    assert ">sakila</tspan>" in actual
+    assert ">sales_by_film_category</tspan>" in actual
+
+
+def test_render_explain_plan_bottom_up_single_input_nodes_align_vertically():
+    actual = render_explain_plan(
+        (input_path / "sales_by_film_category.json").read_text(),
+        "-",
+        layout="bottomUp",
+        compact=True,
+        show_description=False,
+    )
+    arrow_widths_by_operation = {}
+    for match in re.finditer(r'<polygon class="arrow" points="([^"]+)"', actual):
+        operations = list(
+            re.finditer(r'data-operation="([^"]+)"', actual[: match.start()])
+        )
+        assert operations
+
+        operation = operations[-1].group(1)
+        arrow = match.group(1)
+        values = [float(value) for value in arrow.split()]
+        xs = values[0::2]
+        arrow_widths_by_operation[operation] = max(xs) - min(xs)
+
+    assert arrow_widths_by_operation["Materialize"] <= 20
+    assert arrow_widths_by_operation["Table scan on &lt;temporary&gt;"] <= 20
+
+
+def test_render_explain_plan_compact_joins_reduces_chained_join_height():
+    plan = (input_path / "sales_by_film_category.json").read_text()
+
+    regular = render_explain_plan(
+        plan,
+        "-",
+        layout="bottomUp",
+        compact=True,
+        show_description=False,
+    )
+    compact_joins = render_explain_plan(
+        plan,
+        "-",
+        layout="bottomUp",
+        compact=True,
+        compact_joins=True,
+        show_description=False,
+    )
+
+    def height(svg: str) -> float:
+        match = re.search(r'<svg[^>]*height="([^"]+)"', svg)
+        assert match
+
+        return float(match.group(1))
+
+    assert height(compact_joins) < height(regular)
+
+
+def test_render_explain_plan_dark_mode_css():
+    actual = render_explain_plan(
+        (input_path / "select_1.json").read_text(), "-", dark_mode=True
+    )
+
+    assert ".box_body { fill: #172033; stroke: #475569; }" in actual
+    assert ".box_header { stroke: #0b122030; }" in actual
+    assert ".text, .subtext, .code_text, .bold_text { fill: #d6deea; }" in actual
+
+    custom = render_explain_plan(
+        (input_path / "select_1.json").read_text(), "-", dark_mode=True, css="hello world"
+    )
+    assert "hello world" in custom
+    assert "#172033" not in custom
 
 
 def test_render_explain_plan_paths(tmp_path, explain_review, explain_ignore_style):
@@ -337,7 +502,11 @@ def test_render_explain_plan_return(tmp_path, explain_review, explain_ignore_sty
 
 
 def test_explain(tmp_path, explain_review, explain_ignore_style):
-    mysqlsh.globals.shell.connect("root:@localhost")
+    try:
+        mysqlsh.globals.shell.connect("root:@localhost")
+    except DBError as e:
+        pytest.skip(f"MySQL server is not available on localhost:3306: {e}")
+
     session = mysqlsh.globals.session
 
     version = session.run_sql("select @@version").fetch_one()[0]

@@ -40,6 +40,32 @@ class TestSqlQueryExecutor extends SqlQueryExecutor {
 }
 
 describe("SqlQueryExecutor tests", (): void => {
+    it("runs explicit SQL source text as a single statement", async () => {
+        const executor = new SqlQueryExecutor(undefined, { backend: {} } as never);
+        const getExecutableStatements = vi.fn();
+        const getStatementAtPosition = vi.fn();
+        const context = {
+            clearResult: vi.fn().mockResolvedValue(undefined),
+            getExecutableStatements,
+            getStatementAtPosition,
+        } as unknown as SQLExecutionContext;
+        const executeQuery = vi.spyOn(executor, "executeQuery").mockResolvedValue();
+
+        await executor.runSQLCode(context, {
+            asText: true,
+            explain: true,
+            sourceText: "  select 2;  ",
+        }, 100, true, false, "tab-1");
+
+        expect(executeQuery).toHaveBeenCalledWith(context, 0, 0, 100, {
+            asText: true,
+            explain: true,
+            sourceText: "  select 2;  ",
+        }, "select 2;", undefined, "tab-1");
+        expect(getExecutableStatements).not.toHaveBeenCalled();
+        expect(getStatementAtPosition).not.toHaveBeenCalled();
+    });
+
     it("delivers queued timed results and cleans up the timer", async () => {
         const executor = new TestSqlQueryExecutor();
         const addResultData = vi.fn().mockResolvedValue(undefined);
@@ -63,8 +89,8 @@ describe("SqlQueryExecutor tests", (): void => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2100-10-12T09:09:09Z"));
         try {
-            executor.addTimedResult(context, firstResult, options);
-            executor.addTimedResult(context, secondResult, options);
+            void executor.addTimedResult(context, firstResult, options);
+            void executor.addTimedResult(context, secondResult, options);
 
             expect(executor.resultTimers.size).toBe(1);
 

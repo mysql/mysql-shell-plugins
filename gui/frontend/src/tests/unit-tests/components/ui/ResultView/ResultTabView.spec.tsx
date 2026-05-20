@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
+import { fireEvent, render } from "@testing-library/preact";
 import { createRef } from "preact";
 import { describe, expect, it, vi } from "vitest";
 
@@ -32,6 +32,7 @@ import { DBDataType, MessageType } from "../../../../../app-logic/general-types.
 import { IResultTabViewToggleOptions, ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
 import { defaultCellValue, isDefaultCellValue } from "../../../../../components/ResultView/ResultCellValue.js";
 import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
+import * as helpers from "../../../../../utilities/helpers.js";
 import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 
 const handleResultToggle = (_?: IResultSet) => { /**/ };
@@ -71,6 +72,10 @@ interface IResultTabViewInternals {
     onFieldEdited: (row: number, field: string, newValue: unknown, previousValue: unknown) => Promise<void>;
     onToggleRowDeletionMarks: (rows: number[]) => void;
 }
+
+const decodeDataUriPayload = (source: string): string => {
+    return decodeURIComponent(source.slice(source.indexOf(",") + 1));
+};
 
 describe("Result Tabview Tests", (): void => {
 
@@ -629,6 +634,879 @@ describe("Result Tabview Tests", (): void => {
         unmount();
     });
 
+    it("renders image result sets without grid controls", () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\" />",
+                            caption: "Visual Explain",
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                            executionInfo: {
+                                text: "OK, visual explain generated",
+                            },
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        expect(container.querySelector(".imageResultViewImage")).toBeTruthy();
+        expect(container.querySelector("#viewStyleDropDown")).toBeFalsy();
+        expect(container.textContent).toContain("Visual Explain");
+
+        unmount();
+    });
+
+    it("scrolls image result sets to the right when requested", () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"10\" />",
+                            caption: "Visual Explain",
+                            scrollToRight: true,
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 250 });
+
+        fireEvent.load(container.querySelector(".imageResultViewImage")!);
+
+        expect(imageResultView.scrollLeft).toBe(750);
+
+        unmount();
+    });
+
+    it("shows the image minimap when the rendered image fits in the display area", async () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"320\" height=\"240\" />",
+                            caption: "Visual Explain",
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 500 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 300 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 500 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 300 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 320 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 240 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        const minimap = container.querySelector(".imageResultViewMinimap") as HTMLDivElement;
+        const viewport = container.querySelector(".imageResultViewMinimapViewport") as HTMLDivElement;
+        expect(minimap).toBeTruthy();
+        expect(viewport.style.width).toBe(minimap.style.width);
+        expect(viewport.style.height).toBe(minimap.style.height);
+
+        unmount();
+    });
+
+    it("keeps the minimap on the left with the viewport at the right when image results scroll right", async () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"400\" />",
+                            caption: "Visual Explain",
+                            scrollToRight: true,
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 250 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 200 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        const minimap = container.querySelector(".imageResultViewMinimap") as HTMLDivElement;
+        const viewport = container.querySelector(".imageResultViewMinimapViewport") as HTMLDivElement;
+        expect(imageResultView.scrollLeft).toBe(750);
+        expect(minimap.style.left).toBe("762px");
+        expect(Number.parseFloat(minimap.style.left) - imageResultView.scrollLeft).toBe(12);
+        expect(viewport.style.left).toBe("165px");
+
+        unmount();
+    });
+
+    it("uses the image minimap to select the visible viewport", async () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"400\" />",
+                            caption: "Visual Explain",
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 250 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 200 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        const minimap = container.querySelector(".imageResultViewMinimap") as HTMLDivElement;
+        expect(minimap).toBeTruthy();
+        Object.defineProperty(minimap, "getBoundingClientRect", {
+            configurable: true,
+            value: () => {
+                return {
+                    left: 0,
+                    top: 0,
+                    right: 220,
+                    bottom: 88,
+                    width: 220,
+                    height: 88,
+                    x: 0,
+                    y: 0,
+                    toJSON: () => { /**/ },
+                };
+            },
+        });
+
+        fireEvent.mouseDown(minimap, { clientX: 110, clientY: 44 });
+        fireEvent.mouseUp(document, { clientX: 110, clientY: 44 });
+
+        expect(imageResultView.scrollLeft).toBe(375);
+        expect(imageResultView.scrollTop).toBe(100);
+
+        unmount();
+    });
+
+    it("colors the visual explain minimap by estimated cost", async () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="400">
+                                <g data-estimated_total_cost="0.25"><rect class="box_body" width="100" height="50" /></g>
+                                <g data-estimated_total_cost="100" data-operation="Index lookup on actor using idx_actor_last_name" data-table_name="sakila.actor" data-index_name="idx_actor_last_name" data-access_type="index">
+                                    <rect class="box_body" width="100" height="50" />
+                                </g>
+                            </svg>`,
+                            caption: "Visual Explain",
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 250 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 200 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        const minimapImage = container.querySelector(".imageResultViewMinimapImage") as HTMLImageElement;
+        const minimapSvg = decodeDataUriPayload(minimapImage.getAttribute("src")!);
+        expect(minimapSvg).toContain("data-estimated_total_cost=\"0.25\"");
+        expect(minimapSvg).toContain("data-estimated_total_cost=\"100\"");
+        expect(minimapSvg).toContain("fill=\"#2dc937\"");
+        expect(minimapSvg).toContain("fill=\"#641220\"");
+        expect(minimapSvg).not.toContain("fill=\"#f0f0f0\"");
+        expect(minimapSvg).not.toContain("<title>");
+        expect(minimapSvg).not.toContain("data-color_for_cost");
+        const gradient = container.querySelector(".imageResultViewMinimapHeatmapGradient") as HTMLDivElement;
+        expect(gradient).toBeTruthy();
+        expect(gradient.style.background).toContain("#2dc937");
+        expect(gradient.style.background).toContain("#641220");
+        const annotatedNode = container.querySelector(
+            ".imageResultViewSvg [data-estimated_total_cost=\"100\"]",
+        ) as SVGGElement;
+        expect(annotatedNode.getAttribute("data-tooltip")).toBe(
+            "Index lookup on actor using idx_actor_last_name\n\n"
+            + "Estimated Total Cost: 100\nAccess Type: index\nTable Name: sakila.actor\nIndex Name: idx_actor_last_name",
+        );
+        expect(annotatedNode.querySelector("rect")?.getAttribute("data-tooltip")).toBe("inherit");
+        const legend = container.querySelector(".imageResultViewMinimapHeatmapLegend") as HTMLDivElement;
+        expect(legend.firstElementChild?.classList.contains("imageResultViewMinimapHeatmapCaption")).toBe(true);
+        expect(legend.firstElementChild?.textContent).toBe("Total est. cost");
+        const labels = container.querySelector(".imageResultViewMinimapHeatmapLabels") as HTMLDivElement;
+        expect(labels.textContent).toBe("0100");
+
+        unmount();
+    });
+
+    it("drags the image minimap inside the image result view", async () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"400\" />",
+                            caption: "Visual Explain",
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 500 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 300 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        const minimap = container.querySelector(".imageResultViewMinimap") as HTMLDivElement;
+        expect(minimap.style.left).toBe("12px");
+        expect(minimap.style.top).toBe("12px");
+
+        fireEvent.mouseDown(minimap, { clientX: 100, clientY: 50 });
+        fireEvent.mouseMove(document, { clientX: 200, clientY: 100 });
+        await nextRunLoop();
+        fireEvent.mouseUp(document, { clientX: 200, clientY: 100 });
+
+        expect(minimap.style.left).toBe("112px");
+        expect(minimap.style.top).toBe("62px");
+
+        unmount();
+    });
+
+    it("pans the image result viewport by dragging the display area", async () => {
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [{
+                        type: "resultSet",
+                        sql: "select 1",
+                        resultId: "image-result",
+                        columns: [],
+                        updatable: false,
+                        fullTableName: "",
+                        viewType: "image",
+                        image: {
+                            mimeType: "image/svg+xml",
+                            data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"400\" />",
+                            caption: "Visual Explain",
+                        },
+                        caption: "Visual Explain",
+                        data: {
+                            rows: [],
+                            currentPage: 0,
+                            hasMoreRows: false,
+                        },
+                    }],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 500 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 200 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        imageResultView.scrollLeft = 300;
+        imageResultView.scrollTop = 80;
+        fireEvent.mouseDown(imageResultView, { clientX: 100, clientY: 100 });
+        fireEvent.mouseMove(document, { clientX: 40, clientY: 70 });
+        await nextRunLoop();
+        fireEvent.mouseUp(document, { clientX: 40, clientY: 70 });
+
+        expect(imageResultView.scrollLeft).toBe(360);
+        expect(imageResultView.scrollTop).toBe(110);
+
+        unmount();
+    });
+
+    it("toggles the image minimap from the action menu", async () => {
+        const onImageResultOptionsChange = vi.fn().mockResolvedValue(undefined);
+        const resultSet: IResultSet = {
+            type: "resultSet",
+            sql: "select 1",
+            resultId: "image-result",
+            columns: [],
+            updatable: false,
+            fullTableName: "",
+            viewType: "image",
+            image: {
+                mimeType: "image/svg+xml",
+                data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"400\" />",
+                caption: "Visual Explain",
+            },
+            caption: "Visual Explain",
+            data: {
+                rows: [],
+                currentPage: 0,
+                hasMoreRows: false,
+                executionInfo: {
+                    text: "OK, visual explain generated",
+                },
+            },
+        };
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [resultSet],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+                onImageResultOptionsChange={onImageResultOptionsChange}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 500 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 300 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        const toggleMinimapFromMenu = async (): Promise<void> => {
+            fireEvent.click(container.querySelector("#showActionMenu")!);
+            await nextProcessTick();
+
+            const toggleMinimapMenuItem = document.getElementById("toggleMinimapMenuItem")!;
+            expect(toggleMinimapMenuItem.textContent).toContain("Show Minimap");
+            fireEvent.click(toggleMinimapMenuItem);
+            await nextProcessTick();
+            await nextRunLoop();
+        };
+
+        expect(container.querySelector(".imageResultViewMinimap")).toBeTruthy();
+        expect(container.querySelector("#visualExplainMinimapButton")).toBeNull();
+
+        await toggleMinimapFromMenu();
+
+        expect(container.querySelector(".imageResultViewMinimap")).toBeFalsy();
+        expect(resultSet.image?.showMinimap).toBe(false);
+        expect(onImageResultOptionsChange).not.toHaveBeenCalled();
+
+        await toggleMinimapFromMenu();
+
+        expect(container.querySelector(".imageResultViewMinimap")).toBeTruthy();
+        expect(resultSet.image?.showMinimap).toBe(true);
+        expect(onImageResultOptionsChange).not.toHaveBeenCalled();
+
+        unmount();
+    });
+
+    it("zooms visual explain image results from the bottom toolbar", async () => {
+        const resultSet: IResultSet = {
+            type: "resultSet",
+            sql: "select 1",
+            resultId: "image-result",
+            columns: [],
+            updatable: false,
+            fullTableName: "",
+            viewType: "image",
+            image: {
+                mimeType: "image/svg+xml",
+                data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"400\" />",
+                caption: "Visual Explain",
+            },
+            caption: "Visual Explain",
+            data: {
+                rows: [],
+                currentPage: 0,
+                hasMoreRows: false,
+                executionInfo: {
+                    text: "OK, visual explain generated",
+                },
+            },
+        };
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [resultSet],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const imageResultView = container.querySelector(".imageResultView") as HTMLDivElement;
+        const image = container.querySelector(".imageResultViewImage") as HTMLImageElement;
+        const zoomOutButton = container.querySelector("#visualExplainZoomOutButton") as HTMLButtonElement;
+        const resetZoomButton = container.querySelector("#visualExplainResetZoomButton") as HTMLButtonElement;
+        const zoomInButton = container.querySelector("#visualExplainZoomInButton") as HTMLButtonElement;
+        Object.defineProperty(imageResultView, "scrollWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(imageResultView, "scrollHeight", { configurable: true, value: 400 });
+        Object.defineProperty(imageResultView, "clientWidth", { configurable: true, value: 500 });
+        Object.defineProperty(imageResultView, "clientHeight", { configurable: true, value: 300 });
+        Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(image, "naturalHeight", { configurable: true, value: 400 });
+
+        fireEvent.load(image);
+        await nextRunLoop();
+
+        expect(zoomOutButton.getAttribute("data-tooltip")).toBe("Zoom Out");
+        expect(resetZoomButton.getAttribute("data-tooltip")).toBe("Reset Zoom");
+        expect(zoomInButton.getAttribute("data-tooltip")).toBe("Zoom In");
+        expect(zoomOutButton.classList.contains("disabled")).toBe(false);
+        expect(resetZoomButton.classList.contains("disabled")).toBe(true);
+        expect(zoomInButton.classList.contains("disabled")).toBe(false);
+        expect((container.querySelector(".imageResultViewMinimapViewport") as HTMLDivElement).style.width).toBe("110px");
+
+        fireEvent.click(zoomInButton);
+        await nextRunLoop();
+
+        expect(resultSet.image?.zoom).toBe(1.25);
+        expect(resetZoomButton.classList.contains("disabled")).toBe(false);
+        expect((container.querySelector(".imageResultViewMinimapViewport") as HTMLDivElement).style.width).toBe("88px");
+
+        fireEvent.click(resetZoomButton);
+        await nextRunLoop();
+
+        expect(resultSet.image?.zoom).toBe(1);
+        expect(resetZoomButton.classList.contains("disabled")).toBe(true);
+        expect((container.querySelector(".imageResultViewMinimapViewport") as HTMLDivElement).style.width).toBe("110px");
+
+        resultSet.image!.zoom = 0.25;
+        fireEvent.click(zoomOutButton);
+        await nextRunLoop();
+
+        expect(resultSet.image?.zoom).toBe(0.25);
+        expect(zoomOutButton.classList.contains("disabled")).toBe(true);
+
+        unmount();
+    });
+
+    it("toggles visual explain image options from the bottom toolbar", () => {
+        const onImageResultOptionsChange = vi.fn().mockResolvedValue(undefined);
+        const resultSet: IResultSet = {
+            type: "resultSet",
+            sql: "select 1",
+            resultId: "image-result",
+            columns: [],
+            updatable: false,
+            fullTableName: "",
+            viewType: "image",
+            image: {
+                mimeType: "image/svg+xml",
+                data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\" />",
+                caption: "Visual Explain",
+                scrollToRight: true,
+            },
+            caption: "Visual Explain",
+            data: {
+                rows: [],
+                currentPage: 0,
+                hasMoreRows: false,
+                executionInfo: {
+                    text: "OK, visual explain generated",
+                },
+            },
+        };
+
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [resultSet],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+                onImageResultOptionsChange={onImageResultOptionsChange}
+            />,
+        );
+
+        const topDownButton = container.querySelector("#visualExplainLayoutTopDownButton")!;
+        const bottomUpButton = container.querySelector("#visualExplainLayoutBottomUpButton")!;
+        const minimalButton = container.querySelector("#visualExplainDetailsMinimalButton")!;
+        const mediumButton = container.querySelector("#visualExplainDetailsMediumButton")!;
+        const fullButton = container.querySelector("#visualExplainDetailsFullButton")!;
+
+        expect(topDownButton.classList.contains("active")).toBe(false);
+        expect(bottomUpButton.classList.contains("active")).toBe(true);
+        expect(topDownButton.getAttribute("aria-checked")).toBe("false");
+        expect(bottomUpButton.getAttribute("aria-checked")).toBe("true");
+        expect(container.querySelector("#visualExplainCompactButton")).toBeNull();
+        expect(container.querySelector("#visualExplainDescriptionButton")).toBeNull();
+        expect(minimalButton.classList.contains("active")).toBe(false);
+        expect(mediumButton.classList.contains("active")).toBe(true);
+        expect(fullButton.classList.contains("active")).toBe(false);
+        expect(minimalButton.getAttribute("aria-checked")).toBe("false");
+        expect(mediumButton.getAttribute("aria-checked")).toBe("true");
+        expect(fullButton.getAttribute("aria-checked")).toBe("false");
+
+        fireEvent.click(topDownButton);
+        expect(onImageResultOptionsChange).toHaveBeenCalledWith(resultSet, {
+            analyze: false,
+            compact: false,
+            darkMode: false,
+            layout: "topDown",
+            showQuery: false,
+            showDescription: false,
+            topDown: true,
+        });
+
+        fireEvent.click(bottomUpButton);
+        expect(onImageResultOptionsChange).toHaveBeenCalledWith(resultSet, {
+            analyze: false,
+            compact: false,
+            darkMode: false,
+            layout: "bottomUp",
+            showQuery: false,
+            showDescription: false,
+            topDown: false,
+        });
+
+        fireEvent.click(minimalButton);
+        expect(onImageResultOptionsChange).toHaveBeenCalledWith(resultSet, {
+            analyze: false,
+            compact: true,
+            darkMode: false,
+            layout: "bottomUp",
+            showQuery: false,
+            showDescription: false,
+            topDown: false,
+        });
+
+        fireEvent.click(mediumButton);
+        expect(onImageResultOptionsChange).toHaveBeenCalledWith(resultSet, {
+            analyze: false,
+            compact: false,
+            darkMode: false,
+            layout: "bottomUp",
+            showQuery: false,
+            showDescription: false,
+            topDown: false,
+        });
+
+        fireEvent.click(fullButton);
+        expect(onImageResultOptionsChange).toHaveBeenCalledWith(resultSet, {
+            analyze: false,
+            compact: false,
+            darkMode: false,
+            layout: "bottomUp",
+            showQuery: false,
+            showDescription: true,
+            topDown: false,
+        });
+
+        unmount();
+    });
+
+    it("toggles visual explain minimap from the action menu", async () => {
+        const resultSet: IResultSet = {
+            type: "resultSet",
+            sql: "select 1",
+            resultId: "image-result",
+            columns: [],
+            updatable: false,
+            fullTableName: "",
+            viewType: "image",
+            image: {
+                mimeType: "image/svg+xml",
+                data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\" />",
+                caption: "Visual Explain",
+                visualExplainOptions: {
+                    analyze: false,
+                    compact: false,
+                    darkMode: false,
+                    layout: "bottomUp",
+                    showQuery: false,
+                    showDescription: true,
+                    topDown: false,
+                },
+            },
+            caption: "Visual Explain",
+            data: {
+                rows: [],
+                currentPage: 0,
+                hasMoreRows: false,
+                executionInfo: {
+                    text: "OK, visual explain generated",
+                },
+            },
+        };
+
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [resultSet],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        fireEvent.click(container.querySelector("#showActionMenu")!);
+        await nextProcessTick();
+
+        const toggleMinimapMenuItem = document.getElementById("toggleMinimapMenuItem")!;
+        fireEvent.click(toggleMinimapMenuItem);
+
+        expect(resultSet.image?.showMinimap).toBe(false);
+
+        unmount();
+    });
+
+    it("saves visual explain image from the action menu", async () => {
+        const saveBlobAsFileSpy = vi.spyOn(helpers, "saveBlobAsFile").mockImplementation(() => {
+            // Prevent the test from creating a browser download link.
+        });
+        const resultSet: IResultSet = {
+            type: "resultSet",
+            sql: "select 1",
+            resultId: "image-result",
+            columns: [],
+            updatable: false,
+            fullTableName: "",
+            viewType: "image",
+            image: {
+                mimeType: "image/svg+xml",
+                data: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\" />",
+                caption: "Visual Explain",
+            },
+            caption: "Visual Explain",
+            data: {
+                rows: [],
+                currentPage: 0,
+                hasMoreRows: false,
+                executionInfo: {
+                    text: "OK, visual explain generated",
+                },
+            },
+        };
+
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [resultSet],
+                }}
+                contextId="ec123"
+                hideTabs="never"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        expect(container.querySelector("#visualExplainSaveImageButton")).toBeNull();
+
+        fireEvent.click(container.querySelector("#showActionMenu")!);
+        await nextProcessTick();
+
+        const items = document.getElementsByClassName("menuItem");
+        expect(items).toHaveLength(5);
+        expect(document.getElementById("toggleMinimapMenuItem")?.textContent).toContain("Show Minimap");
+        expect(document.getElementById("saveImageMenuItem")?.textContent).toContain("Save Image...");
+        expect(document.getElementById("saveImageMenuItem")?.classList.contains("disabled")).toBe(false);
+
+        fireEvent.click(document.getElementById("saveImageMenuItem")!);
+        await nextProcessTick();
+
+        expect(saveBlobAsFileSpy).toHaveBeenCalledTimes(1);
+        expect(saveBlobAsFileSpy.mock.calls[0][0]).toBeInstanceOf(Blob);
+        expect(saveBlobAsFileSpy.mock.calls[0][0].type).toBe("image/svg+xml");
+        expect(saveBlobAsFileSpy.mock.calls[0][1]).toBe("visual-explain.svg");
+
+        saveBlobAsFileSpy.mockRestore();
+        unmount();
+    });
+
     it("Update Data", async () => {
         const viewRef = createRef<ResultTabView>();
         const { container, unmount, rerender } = render(
@@ -858,7 +1736,7 @@ describe("Result Tabview Tests", (): void => {
 
         // Select the second result set.
         const tabs = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
-        expect(tabs).toHaveLength(5);
+        expect(tabs).toHaveLength(3);
 
         let found = false;
         for (const tab of tabs) {
@@ -891,39 +1769,15 @@ describe("Result Tabview Tests", (): void => {
         expect(toolbars).toHaveLength(1);
 
         const buttons = container.getElementsByClassName("button");
-        expect(buttons).toHaveLength(14);
+        expect(buttons).toHaveLength(12);
 
         const dividers = container.getElementsByClassName("divider");
         expect(dividers).toHaveLength(3);
 
         // Click all buttons:
 
-        // View selector.
-        const viewSelector = container.querySelector('[role="radiogroup"][aria-label="View"]');
-        expect(viewSelector).toBeDefined();
-        expect(viewSelector?.classList.contains("segmentedButton")).toBe(true);
-
-        let button = buttons.namedItem("viewGridButton") as HTMLButtonElement;
-        expect(button).toBeDefined();
-        expect(button.getAttribute("role")).toBe("radio");
-        expect(button.getAttribute("aria-checked")).toBe("true");
-        expect(button.tabIndex).toBe(0);
-        expect(button.getAttribute("data-tooltip")).toBe("Data Grid");
-        expect(button.classList.contains("selected")).toBe(true);
-        expect(button.classList.contains("default")).toBe(true);
-
-        button = buttons.namedItem("viewPreviewButton") as HTMLButtonElement;
-        expect(button).toBeDefined();
-        expect(button.getAttribute("role")).toBe("radio");
-        expect(button.getAttribute("aria-checked")).toBe("false");
-        expect(button.getAttribute("aria-disabled")).toBe("true");
-        expect(button.tabIndex).toBe(-1);
-        expect(button.getAttribute("data-tooltip")).toBe("Preview Changes as SQL");
-        expect(button.classList.contains("selected")).toBe(false);
-        expect(button.classList.contains("disabled")).toBe(true);
-
         // Previous page.
-        button = buttons.namedItem("previousPageButton") as HTMLButtonElement;
+        let button = buttons.namedItem("previousPageButton") as HTMLButtonElement;
         expect(button).toBeDefined();
         expect(button.getAttribute("data-tooltip")).toBe("Previous Page");
         expect(button.classList.contains("disabled")).toBe(false);
@@ -971,11 +1825,7 @@ describe("Result Tabview Tests", (): void => {
         expect(button.classList.contains("disabled")).toBe(false);
         expect(button.getAttribute("data-tooltip")).toBe("Refresh");
 
-        // Maximize.
-        button = buttons.namedItem("toggleStateButton") as HTMLButtonElement;
-        expect(button).toBeDefined();
-        expect(button.classList.contains("disabled")).toBe(false); // The button is not disabled, but does nothing yet.
-        expect(button.getAttribute("data-tooltip")).toBe("Maximize Result Tab");
+        expect(buttons.namedItem("toggleStateButton")).toBeNull();
 
         // Menu.
         button = buttons.namedItem("showActionMenu") as HTMLButtonElement;
@@ -999,132 +1849,6 @@ describe("Result Tabview Tests", (): void => {
         // TODO: check for the success of the activations, once action handling is implemented.
         (items[2] as HTMLButtonElement).click();
         (items[3] as HTMLButtonElement).click();
-
-        unmount();
-    });
-
-    it("uses radio button behavior for the view selector", async () => {
-        const resultSets: IResultSets = {
-            type: "resultSets",
-            sets: [{
-                type: "resultSet",
-                sql: "select 1",
-                resultId: "123",
-                columns: [],
-                updatable: true,
-                fullTableName: "",
-                data: {
-                    rows: [],
-                    currentPage: 0,
-                    hasMoreRows: false,
-                    executionInfo: {
-                        text: "All fine",
-                    },
-                },
-            }],
-        };
-
-        const { container, unmount } = render(
-            <ResultTabView
-                currentSet={1}
-                resultSets={resultSets}
-                contextId="ec123"
-                hideTabs="single"
-                toggleOptions={toggleOptions}
-            />,
-        );
-
-        const buttons = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
-        const editButton = buttons.namedItem("editButton") as HTMLButtonElement;
-        editButton.click();
-        await nextRunLoop();
-
-        const gridButton = buttons.namedItem("viewGridButton") as HTMLButtonElement;
-        const previewButton = buttons.namedItem("viewPreviewButton") as HTMLButtonElement;
-        expect(gridButton.getAttribute("aria-checked")).toBe("true");
-        expect(gridButton.classList.contains("selected")).toBe(true);
-        expect(gridButton.tabIndex).toBe(0);
-        expect(previewButton.getAttribute("aria-checked")).toBe("false");
-        expect(previewButton.classList.contains("selected")).toBe(false);
-        expect(previewButton.classList.contains("disabled")).toBe(false);
-        expect(previewButton.tabIndex).toBe(-1);
-
-        gridButton.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-        await nextRunLoop();
-
-        expect(gridButton.getAttribute("aria-checked")).toBe("false");
-        expect(gridButton.classList.contains("selected")).toBe(false);
-        expect(gridButton.tabIndex).toBe(-1);
-        expect(previewButton.getAttribute("aria-checked")).toBe("true");
-        expect(previewButton.classList.contains("selected")).toBe(true);
-        expect(previewButton.tabIndex).toBe(0);
-
-        previewButton.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
-        await nextRunLoop();
-
-        expect(gridButton.getAttribute("aria-checked")).toBe("true");
-        expect(gridButton.classList.contains("selected")).toBe(true);
-        expect(gridButton.tabIndex).toBe(0);
-        expect(previewButton.getAttribute("aria-checked")).toBe("false");
-        expect(previewButton.classList.contains("selected")).toBe(false);
-        expect(previewButton.tabIndex).toBe(-1);
-
-        unmount();
-    });
-
-    it("updates the toolbar when deleting a row is the first edit", async () => {
-        const resultSet: IResultSet = {
-            type: "resultSet",
-            sql: "select * from test",
-            resultId: "delete-first-edit",
-            columns: [{
-                title: "id",
-                field: "id",
-                dataType: { type: DBDataType.Bigint },
-                inPK: true,
-                nullable: false,
-                autoIncrement: false,
-            }],
-            updatable: true,
-            fullTableName: "test",
-            data: {
-                rows: [{ id: 1 }],
-                currentPage: 0,
-                executionInfo: {
-                    text: "All fine",
-                },
-            },
-        };
-
-        const viewRef = createRef<ResultTabView>();
-        const { container, unmount } = render(
-            <ResultTabView
-                ref={viewRef}
-                currentSet={1}
-                resultSets={{
-                    type: "resultSets",
-                    sets: [resultSet],
-                }}
-                contextId="ec123"
-                hideTabs="single"
-                toggleOptions={toggleOptions}
-            />,
-        );
-
-        const buttons = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
-        let applyButton = buttons.namedItem("applyButton") as HTMLButtonElement;
-        expect(applyButton.classList.contains("disabled")).toBe(true);
-
-        const internals = viewRef.current! as unknown as IResultTabViewInternals;
-        internals.onToggleRowDeletionMarks([0]);
-        await nextRunLoop();
-
-        applyButton = buttons.namedItem("applyButton") as HTMLButtonElement;
-        expect(applyButton.classList.contains("disabled")).toBe(false);
-
-        const info = internals.editingInfo.get("delete-first-edit");
-        expect(info).toBeDefined();
-        expect(info!.rowChanges[0].deleted).toBe(true);
 
         unmount();
     });

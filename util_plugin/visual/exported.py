@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -31,12 +31,16 @@ from util_plugin.visual import explain
 def render_explain_plan(plan: Union[str, dict], path: str, **options):
     opt = explain.DrawOptions()
     opt.show_description = options.get(
-        "showDescription", not options.get("compact", False)
+        "show_description", not options.get("compact", False)
     )
     opt.detailed = not options.get("compact", False)
-    opt.show_query = options.get("showQuery", True)
+    opt.show_query = options.get("show_query", True)
     opt.css = options.get("css", None)
-    opt.top_down = options.get("topDown", True)
+    if opt.css is None and options.get("dark_mode", False):
+        opt.css = explain.k_svg_dark_style
+    opt.layout = options.get("layout", "topDown")
+    opt.top_down = opt.layout == "topDown"
+    opt.compact_chained_joins = options.get("compact_joins", False)
     opt.debug = options.get("debug", 0)
 
     if isinstance(plan, str):

@@ -44,6 +44,22 @@ class SessionInfoTask(DbSessionSetupTask):
         self.define_data(common.MySQLData.SQL_MODE, result[3])
 
 
+class ExplainJsonFormatVersionTask(DbSessionSetupTask):
+    def __init__(self, session, progress_cb=None) -> None:
+        super().__init__(session, progress_cb)
+
+    def on_connected(self):
+        if not self.has_data(common.MySQLData.VERSION_INFO):
+            return
+
+        version = self.get_data(common.MySQLData.VERSION_INFO)
+        major, minor, _ = version.split(".", 2)
+        if int(major) < 8 or int(major) == 8 and int(minor) < 3:
+            return
+
+        self.execute("SET SESSION explain_json_format_version=2")
+
+
 class HeatWaveCheckTask(DbSessionSetupTask):
     _OPT = "disable-heat-wave-check"
 

@@ -154,4 +154,55 @@ describe("Standalone presentation interface tests", (): void => {
         presentation.dispose();
         targetElement.remove();
     });
+
+    it("keeps image result sets with no rows when restoring results", () => {
+        const host = {
+            setState: vi.fn(),
+        } as unknown as ScriptEditor;
+        const targetElement = document.createElement("div");
+        document.body.append(targetElement);
+
+        const presentation = new StandalonePresentationInterface("mysql");
+        presentation.onMount({ current: targetElement }, host);
+        presentation.context = {
+            id: "ctx-1",
+        } as never;
+        presentation.activate({
+            getModel: () => null,
+        } as never);
+
+        presentation.setResult({
+            type: "resultSets",
+            sets: [{
+                type: "resultSet",
+                resultId: "image-result",
+                fullTableName: "",
+                sql: "select 1",
+                updatable: false,
+                columns: [],
+                viewType: "image",
+                image: {
+                    mimeType: "image/svg+xml",
+                    data: "<svg id=\"mysqlVisualExplain\" xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\">" +
+                        "<g data-estimated_total_cost=\"1\"><rect width=\"10\" height=\"10\" /></g></svg>",
+                    caption: "Visual Explain",
+                },
+                caption: "Visual Explain",
+                data: {
+                    rows: [],
+                    currentPage: 0,
+                    executionInfo: {
+                        type: MessageType.Info,
+                        text: "OK, visual explain generated",
+                    },
+                },
+            }],
+        });
+
+        expect(targetElement.querySelector(".imageResultView")).toBeTruthy();
+        expect(targetElement.querySelector("svg#mysqlVisualExplain")).toBeTruthy();
+
+        presentation.dispose();
+        targetElement.remove();
+    });
 });

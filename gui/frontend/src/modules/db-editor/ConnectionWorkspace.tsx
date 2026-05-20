@@ -30,8 +30,11 @@ import ts, { ScriptTarget } from "typescript";
 
 import type { IMarkdownString } from "monaco-editor/esm/vs/editor/editor.api.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
+import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
-import { IDictionary, IServicePasswordRequest, MessageType } from "../../app-logic/general-types.js";
+import {
+    DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest, MessageType,
+} from "../../app-logic/general-types.js";
 import {
     ITableColumn, type IDbEditorResultSetData, type ISqlEditorHistoryEntry,
 } from "../../communication/ProtocolGui.js";
@@ -2035,6 +2038,37 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         }
     };
 
+    private confirmExplainAnalyze = async (): Promise<boolean> => {
+        if (!Settings.get("editor.confirmVisualExplainAnalyze", true)) {
+            return true;
+        }
+
+        const response = await DialogHost.showDialog({
+            id: "explainAnalyzeConfirmDialog",
+            type: DialogType.Confirm,
+            parameters: {
+                title: "Execute Statement",
+                prompt: "Explain Analyze will actually execute the selected statement to collect runtime statistics.",
+                accept: "Run",
+                refuse: "Cancel",
+                default: "Cancel",
+                checkboxId: "doNotAskAgain",
+                checkboxCaption: "Do not ask again",
+            },
+        });
+
+        if (response.closure !== DialogResponseClosure.Accept) {
+            return false;
+        }
+
+        if (response.data?.doNotAskAgain === true) {
+            Settings.set("editor.confirmVisualExplainAnalyze", false);
+            Settings.saveSettings();
+        }
+
+        return true;
+    };
+
     /**
      * Handles all incoming execution requests from the editors.
      *
@@ -2176,7 +2210,26 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
             case "sql":
             case "mysql": {
-                await this.runSQLCode(context as SQLExecutionContext, options);
+                if (options.explainAnalyze && !options.visualExplainAnalyze &&
+                    !await this.confirmExplainAnalyze()) {
+                    return false;
+                }
+
+                if (options.visualExplainAnalyze && !await this.confirmExplainAnalyze()) {
+                    return false;
+                }
+
+                const sqlContext = context as SQLExecutionContext;
+                sqlContext.presentation.onImageResultOptionsChange = (resultSet, visualExplainOptions) => {
+                    return this.sqlQueryExecutor.updateVisualExplain(sqlContext, resultSet, visualExplainOptions,
+                        this.props.id);
+                };
+
+                if (options.visualExplain) {
+                    await this.sqlQueryExecutor.runVisualExplain(sqlContext, options, this.props.id);
+                } else {
+                    await this.runSQLCode(sqlContext, options);
+                }
 
                 break;
             }

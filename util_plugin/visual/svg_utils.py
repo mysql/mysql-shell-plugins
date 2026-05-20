@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,26 @@
 
 import svg
 from enum import Enum
+from html import escape as html_escape
 from typing import List, Tuple
+
+
+def escape_svg_text(value) -> str:
+    if value is None:
+        return ""
+    return svg.escape(str(value))
+
+
+def escape_svg_attribute(value) -> str:
+    if value is None:
+        return ""
+    return html_escape(str(value), quote=True)
+
+
+def escape_svg_data_attributes(data: dict | None) -> dict | None:
+    if data is None:
+        return None
+    return {key: escape_svg_attribute(value) for key, value in data.items()}
 
 
 class ArrowStyle(Enum):

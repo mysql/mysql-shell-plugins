@@ -42,6 +42,7 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import type { ISqlTransactionChangeDetails } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import type { IOpenDocumentState } from "./ConnectionWorkspace.js";
 import { IToolbarItems } from "./index.js";
@@ -60,6 +61,9 @@ interface IDocumentToolbarProperties extends IComponentProperties {
 
     /** The editor language, if the document is a notebook or script. */
     language: string;
+
+    /** The active connection database type. */
+    dbType?: DBType;
 
     backend?: ShellInterfaceSqlEditor;
     onDesktopRunStateChanged?: () => void;
@@ -110,6 +114,7 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
         };
 
         this.addHandledProperties("toolbarItems", "activeDocument", "heatWaveEnabled", "documentState", "language",
+            "dbType",
             "backend", "onDesktopRunStateChanged");
     }
 
@@ -187,11 +192,12 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
     }
 
     public render(): ComponentChild {
-        const { toolbarItems, language, heatWaveEnabled } = this.props;
+        const { toolbarItems, language, heatWaveEnabled, dbType } = this.props;
         const { canExecute, canStop, canExecuteSubparts, currentEditor } = this.state;
 
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "the selection or " : "";
+        const canVisualExplain = canExecuteSubparts && (dbType ?? DBType.MySQL) === DBType.MySQL;
 
         const is3rdLanguage = currentEditor?.state?.model.is3rdLanguage;
 
@@ -274,6 +280,42 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                         <Icon src={Assets.toolbar.executePrintTextIcon} data-tooltip="inherit" />
                     </Button>,
                 );
+
+                if (canVisualExplain) {
+                    executionItems.push(
+                        <Button
+                            key="visualExplain"
+                            data-tooltip="Generate a visual explain plan for the selection or current statement"
+                            imageOnly={true}
+                            disabled={!canExecute}
+                            onClick={
+                                () => {
+                                    void requisitions.execute("editorVisualExplain", { is3rdLanguage });
+                                }
+                            }
+                        >
+                            <Icon src={Assets.toolbar.executeExplainIcon} data-tooltip="inherit" />
+                        </Button>,
+                    );
+                    executionItems.push(
+                        <Button
+                            key="visualExplainAnalyze"
+                            data-tooltip="Execute the selection or current statement with visual explain analyze"
+                            imageOnly={true}
+                            disabled={!canExecute}
+                            onClick={
+                                () => {
+                                    void requisitions.execute("editorVisualExplain", {
+                                        is3rdLanguage,
+                                        visualExplainAnalyze: true,
+                                    });
+                                }
+                            }
+                        >
+                            <Icon src={Assets.toolbar.executeExplainIcon} data-tooltip="inherit" />
+                        </Button>,
+                    );
+                }
 
                 if (heatWaveEnabled) {
                     executionItems.push(

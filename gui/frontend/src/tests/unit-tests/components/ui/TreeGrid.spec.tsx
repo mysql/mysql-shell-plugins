@@ -325,6 +325,50 @@ describe("TreeGrid tests", (): void => {
         unmount();
     });
 
+    it("preserves scroll position when replacing data", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const { unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "col1" }]}
+                tableData={[{ id: "1", col1: "a" }]}
+            />,
+        );
+
+        const table = await gridRef.current!.table;
+        const tabulator = table as unknown as {
+            replaceData: (data: Array<Record<string, unknown>>) => Promise<void>;
+            rowManager: { element: HTMLElement; scrollHorizontal?: (pos: number) => void; };
+            columnManager: { scrollHorizontal?: (pos: number) => void; };
+        };
+        const rowElement = document.createElement("div");
+        const rowScrollHorizontal = vi.fn();
+        const columnScrollHorizontal = vi.fn();
+
+        rowElement.scrollTop = 180;
+        rowElement.scrollLeft = 45;
+        tabulator.rowManager.element = rowElement;
+        tabulator.rowManager.scrollHorizontal = rowScrollHorizontal;
+        tabulator.columnManager.scrollHorizontal = columnScrollHorizontal;
+
+        const replaceDataSpy = vi.spyOn(tabulator, "replaceData").mockImplementation(() => {
+            rowElement.scrollTop = 0;
+            rowElement.scrollLeft = 0;
+
+            return Promise.resolve();
+        });
+
+        await gridRef.current!.setData([{ id: "1", col1: "b" }], SetDataAction.Replace);
+
+        expect(replaceDataSpy).toHaveBeenCalledWith([{ id: "1", col1: "b" }]);
+        expect(rowElement.scrollTop).toBe(180);
+        expect(rowScrollHorizontal).toHaveBeenCalledWith(45);
+        expect(columnScrollHorizontal).toHaveBeenCalledWith(45);
+
+        replaceDataSpy.mockRestore();
+        unmount();
+    });
+
     it("preserves resized column widths when data is refreshed", async () => {
         const gridRef = createRef<TreeGrid>();
         const columns = [

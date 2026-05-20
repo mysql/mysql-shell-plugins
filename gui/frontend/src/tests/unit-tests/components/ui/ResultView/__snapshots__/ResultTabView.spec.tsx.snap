@@ -156,7 +156,7 @@ exports[`Result Tabview Tests > Tabview With Result Sets 1`] = `
               </span>
             </div>
             <div
-              class="msg button tabItem hasAuxillary selected"
+              class="msg button tabItem selected"
               draggable="true"
               id="123"
               role="button"
@@ -168,26 +168,9 @@ exports[`Result Tabview Tests > Tabview With Result Sets 1`] = `
               >
                 Result #1
               </span>
-              <span
-                id="auxillary"
-              >
-                <div
-                  class="msg button imageOnly"
-                  data-tooltip="Maximize Result Tab"
-                  id="toggleStateButton"
-                  role="button"
-                  tabindex="0"
-                >
-                  <div
-                    class="msg icon"
-                    data-tooltip="inherit"
-                    style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-94)'%3e%3cg%20id='Maximize'%20transform='matrix(1,0,0,1,-33,1)'%3e%3cpath%20d='M389.327,99L385.093,103.234C384.899,103.428%20384.899,103.743%20385.093,103.937L385.098,103.941C385.292,104.135%20385.606,104.135%20385.8,103.941L390,99.742L390,101.5C390,101.776%20390.224,102%20390.5,102C390.776,102%20391,101.776%20391,101.5L391,98.664C391.055,98.492%20391.015,98.296%20390.879,98.16L390.874,98.156C390.83,98.111%20390.779,98.077%20390.725,98.053C390.657,98.019%20390.581,98%20390.501,98L387.499,98C387.224,98%20387,98.224%20387,98.499L387,98.501C387,98.776%20387.224,99%20387.499,99L389.327,99Z'%20style='fill:rgb(34,34,36);'/%3e%3cpath%20d='M379,103L380,103L380,97.537C380,97.241%20380.241,97%20380.537,97L391.463,97C391.759,97%20392,97.241%20392,97.537L392,108.463C392,108.759%20391.759,109%20391.463,109L386,109L386,110L391.923,110C392.517,110%20393,109.517%20393,108.923L393,97.077C393,96.483%20392.517,96%20391.923,96L380.077,96C379.483,96%20379,96.483%20379,97.077L379,103Z'%20style='fill:rgb(34,34,36);'/%3e%3cg%20transform='matrix(1,0,0,1,-37,-35)'%3e%3cpath%20d='M422,139.944C422,139.429%20421.581,139.01%20421.066,139.01L416.934,139.01C416.419,139.01%20416,139.429%20416,139.944L416,144.075C416,144.591%20416.419,145.01%20416.934,145.01L421.066,145.01C421.581,145.01%20422,144.591%20422,144.075L422,139.944ZM421,140.313C421,140.14%20420.86,140%20420.687,140L417.313,140C417.14,140%20417,140.14%20417,140.313L417,143.687C417,143.86%20417.14,144%20417.313,144L420.687,144C420.86,144%20421,143.86%20421,143.687L421,140.313Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                  />
-                </div>
-              </span>
             </div>
             <div
-              class="msg button tabItem hasAuxillary"
+              class="msg button tabItem"
               draggable="true"
               id="456"
               role="button"
@@ -198,23 +181,6 @@ exports[`Result Tabview Tests > Tabview With Result Sets 1`] = `
                 data-tooltip="inherit"
               >
                 Result #2
-              </span>
-              <span
-                id="auxillary"
-              >
-                <div
-                  class="msg button imageOnly"
-                  data-tooltip="Maximize Result Tab"
-                  id="toggleStateButton"
-                  role="button"
-                  tabindex="0"
-                >
-                  <div
-                    class="msg icon"
-                    data-tooltip="inherit"
-                    style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-340,-94)'%3e%3cg%20id='Maximize'%20transform='matrix(1,0,0,1,-33,1)'%3e%3cpath%20d='M389.327,99L385.093,103.234C384.899,103.428%20384.899,103.743%20385.093,103.937L385.098,103.941C385.292,104.135%20385.606,104.135%20385.8,103.941L390,99.742L390,101.5C390,101.776%20390.224,102%20390.5,102C390.776,102%20391,101.776%20391,101.5L391,98.664C391.055,98.492%20391.015,98.296%20390.879,98.16L390.874,98.156C390.83,98.111%20390.779,98.077%20390.725,98.053C390.657,98.019%20390.581,98%20390.501,98L387.499,98C387.224,98%20387,98.224%20387,98.499L387,98.501C387,98.776%20387.224,99%20387.499,99L389.327,99Z'%20style='fill:rgb(34,34,36);'/%3e%3cpath%20d='M379,103L380,103L380,97.537C380,97.241%20380.241,97%20380.537,97L391.463,97C391.759,97%20392,97.241%20392,97.537L392,108.463C392,108.759%20391.759,109%20391.463,109L386,109L386,110L391.923,110C392.517,110%20393,109.517%20393,108.923L393,97.077C393,96.483%20392.517,96%20391.923,96L380.077,96C379.483,96%20379,96.483%20379,97.077L379,103Z'%20style='fill:rgb(34,34,36);'/%3e%3cg%20transform='matrix(1,0,0,1,-37,-35)'%3e%3cpath%20d='M422,139.944C422,139.429%20421.581,139.01%20421.066,139.01L416.934,139.01C416.419,139.01%20416,139.429%20416,139.944L416,144.075C416,144.591%20416.419,145.01%20416.934,145.01L421.066,145.01C421.581,145.01%20422,144.591%20422,144.075L422,139.944ZM421,140.313C421,140.14%20420.86,140%20420.687,140L417.313,140C417.14,140%20417,140.14%20417,140.313L417,143.687C417,143.86%20417.14,144%20417.313,144L420.687,144C420.86,144%20421,143.86%20421,143.687L421,140.313Z'%20style='fill:rgb(34,34,36);'/%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
-                  />
-                </div>
               </span>
             </div>
           </div>

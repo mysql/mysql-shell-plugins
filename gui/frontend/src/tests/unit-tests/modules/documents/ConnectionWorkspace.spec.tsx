@@ -29,9 +29,12 @@ import { render } from "@testing-library/preact";
 import { createRef, type RefObject } from "preact";
 import { afterAll, beforeAll, describe, expect, it, vi, type Mock } from "vitest";
 
+import { DialogHost } from "../../../../app-logic/DialogHost.js";
 import { StoreType } from "../../../../app-logic/ApplicationDB.js";
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
-import type { IServicePasswordRequest } from "../../../../app-logic/general-types.js";
+import {
+    DialogResponseClosure, DialogType, type IServicePasswordRequest,
+} from "../../../../app-logic/general-types.js";
 import type { IMdsChatData } from "../../../../communication/ProtocolMds.js";
 import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco, type IScriptExecutionOptions } from "../../../../components/ui/CodeEditor/index.js";
@@ -55,8 +58,11 @@ import {
 } from "../../../../script-execution/SQLExecutionContext.js";
 import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
-import type { IEditorExtendedExecutionOptions, IOpenFileDialogResult } from "../../../../supplement/RequisitionTypes.js";
+import type {
+    IEditorExtendedExecutionOptions, IOpenFileDialogResult,
+} from "../../../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
+import { Settings } from "../../../../supplement/Settings/Settings.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
@@ -84,6 +90,7 @@ class TestConnectionWorkspace extends ConnectionWorkspace {
     public declare notebookRef: RefObject<Notebook>;
     public declare scriptRef: RefObject<ScriptEditor>;
     public declare scriptWaiting: boolean;
+    public declare sqlQueryExecutor: SqlQueryExecutor;
 
     public declare findActiveEditor: () => IOpenDocumentState | undefined;
     public declare findOpenEditor: (editorId?: string) => IOpenDocumentState | undefined;
@@ -557,6 +564,7 @@ describe("DBConnectionWorkspace tests", (): void => {
                 code: "select 1",
                 language: "mysql",
                 clearResult: vi.fn().mockResolvedValue(undefined),
+                presentation: {},
             } as unknown as SQLExecutionContext;
         };
 
@@ -572,6 +580,151 @@ describe("DBConnectionWorkspace tests", (): void => {
             expect(addExecutionHistoryEntry).not.toHaveBeenCalled();
         } finally {
             connection.backend.addExecutionHistoryEntry = originalAddExecutionHistoryEntry;
+        }
+    });
+
+    it("confirms Visual Explain Analyze before executing it", async () => {
+        const showDialogSpy = vi.spyOn(DialogHost, "showDialog");
+        const saveSettingsSpy = vi.spyOn(Settings, "saveSettings").mockReturnValue();
+        const document = {
+            id: "script-visual-explain-analyze",
+            caption: "Script",
+            type: OdmEntityType.Script,
+            language: "mysql",
+        } as IOpenDocumentState["document"];
+        const tab = new TestConnectionWorkspace({
+            connection,
+            savedState: {
+                ...savedState,
+                activeEntry: document.id,
+                documentStates: [{
+                    ...edState,
+                    document,
+                }],
+            },
+            workerPool: wp,
+            showAbout: false,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        });
+        const visualExplainSpy = vi.spyOn(tab.sqlQueryExecutor, "runVisualExplain").mockResolvedValue();
+        const createContext = (id: string): SQLExecutionContext => {
+            return {
+                id,
+                code: "select 1",
+                language: "mysql",
+                clearResult: vi.fn().mockResolvedValue(undefined),
+                presentation: {},
+            } as unknown as SQLExecutionContext;
+        };
+
+        try {
+            Settings.set("editor.confirmVisualExplainAnalyze", true);
+            showDialogSpy.mockResolvedValueOnce({
+                id: "explainAnalyzeConfirmDialog",
+                type: DialogType.Confirm,
+                closure: DialogResponseClosure.Decline,
+            });
+
+            expect(await tab.handleExecution(createContext("declined"), {
+                visualExplain: true,
+                visualExplainAnalyze: true,
+            })).toBe(false);
+            expect(visualExplainSpy).not.toHaveBeenCalled();
+
+            showDialogSpy.mockResolvedValueOnce({
+                id: "visualExplainAnalyzeConfirmDialog",
+                type: DialogType.Confirm,
+                closure: DialogResponseClosure.Accept,
+                data: { doNotAskAgain: true },
+            });
+
+            expect(await tab.handleExecution(createContext("accepted"), {
+                visualExplain: true,
+                visualExplainAnalyze: true,
+            })).toBe(true);
+            expect(visualExplainSpy).toHaveBeenCalledTimes(1);
+            const dialogRequest = showDialogSpy.mock.lastCall?.[0];
+            expect(dialogRequest?.id).toBe("explainAnalyzeConfirmDialog");
+            expect(dialogRequest?.type).toBe(DialogType.Confirm);
+            expect(dialogRequest?.parameters?.checkboxId).toBe("doNotAskAgain");
+            expect(dialogRequest?.parameters?.checkboxCaption).toBe("Do not ask again");
+            expect(saveSettingsSpy).toHaveBeenCalledTimes(1);
+
+            await tab.handleExecution(createContext("suppressed"), {
+                visualExplain: true,
+                visualExplainAnalyze: true,
+            });
+
+            expect(visualExplainSpy).toHaveBeenCalledTimes(2);
+            expect(showDialogSpy).toHaveBeenCalledTimes(2);
+        } finally {
+            Settings.set("editor.confirmVisualExplainAnalyze", true);
+            visualExplainSpy.mockRestore();
+            showDialogSpy.mockRestore();
+            saveSettingsSpy.mockRestore();
+        }
+    });
+
+    it("confirms Explain Analyze and shares the Visual Explain Analyze setting", async () => {
+        const showDialogSpy = vi.spyOn(DialogHost, "showDialog");
+        const saveSettingsSpy = vi.spyOn(Settings, "saveSettings").mockReturnValue();
+        const document = {
+            id: "script-explain-analyze",
+            caption: "Script",
+            type: OdmEntityType.Script,
+            language: "mysql",
+        } as IOpenDocumentState["document"];
+        const tab = new TestConnectionWorkspace({
+            connection,
+            savedState: {
+                ...savedState,
+                activeEntry: document.id,
+                documentStates: [{
+                    ...edState,
+                    document,
+                }],
+            },
+            workerPool: wp,
+            showAbout: false,
+            toolbarItems: { navigation: [], execution: [], editor: [], auxiliary: [] },
+        });
+        const runSQLCodeSpy = vi.spyOn(tab, "runSQLCode").mockResolvedValue();
+        const visualExplainSpy = vi.spyOn(tab.sqlQueryExecutor, "runVisualExplain").mockResolvedValue();
+        const context = {
+            id: "explain-analyze-context",
+            code: "select 1",
+            language: "mysql",
+            clearResult: vi.fn().mockResolvedValue(undefined),
+            presentation: {},
+        } as unknown as SQLExecutionContext;
+
+        try {
+            Settings.set("editor.confirmVisualExplainAnalyze", true);
+            showDialogSpy.mockResolvedValueOnce({
+                id: "explainAnalyzeConfirmDialog",
+                type: DialogType.Confirm,
+                closure: DialogResponseClosure.Accept,
+                data: { doNotAskAgain: true },
+            });
+
+            expect(await tab.handleExecution(context, { explainAnalyze: true })).toBe(true);
+            expect(runSQLCodeSpy).toHaveBeenCalledOnce();
+            expect(showDialogSpy).toHaveBeenCalledOnce();
+            expect(showDialogSpy.mock.lastCall?.[0].id).toBe("explainAnalyzeConfirmDialog");
+            expect(saveSettingsSpy).toHaveBeenCalledOnce();
+
+            expect(await tab.handleExecution(context, {
+                visualExplain: true,
+                visualExplainAnalyze: true,
+            })).toBe(true);
+            expect(visualExplainSpy).toHaveBeenCalledOnce();
+            expect(showDialogSpy).toHaveBeenCalledOnce();
+        } finally {
+            Settings.set("editor.confirmVisualExplainAnalyze", true);
+            runSQLCodeSpy.mockRestore();
+            visualExplainSpy.mockRestore();
+            showDialogSpy.mockRestore();
+            saveSettingsSpy.mockRestore();
         }
     });
 

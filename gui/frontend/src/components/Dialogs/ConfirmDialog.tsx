@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,6 +35,7 @@ import { Dialog } from "../ui/Dialog/Dialog.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { Label } from "../ui/Label/Label.js";
 import { Button } from "../ui/Button/Button.js";
+import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox.js";
 
 /** Possible buttons to show. Only fields with a value also show a button. */
 export interface IConfirmDialogButtons {
@@ -54,6 +55,8 @@ interface IConfirmDialogState extends IComponentState {
     buttons: IConfirmDialogButtons;
     values?: IDictionary;
     description?: string[];
+    checkboxCaption?: string;
+    checkboxId?: string;
 }
 
 export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConfirmDialogState> {
@@ -70,7 +73,7 @@ export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConf
     }
 
     public render(): ComponentChild {
-        const { title, message, buttons, description } = this.state;
+        const { title, message, buttons, description, checkboxCaption, checkboxId, values } = this.state;
 
         const className = this.getEffectiveClassNames(["confirmDialog"]);
         let dialogContent = null;
@@ -97,6 +100,12 @@ export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConf
                         className="description">
                         {descriptionLabels}
                     </Container>
+                    {checkboxCaption && checkboxId && <Checkbox
+                        id={checkboxId}
+                        caption={checkboxCaption}
+                        checkState={values?.[checkboxId] === true ? CheckState.Checked : CheckState.Unchecked}
+                        onChange={this.handleCheckboxChange}
+                    />}
                 </Container>;
         }
 
@@ -153,11 +162,25 @@ export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConf
     }
 
     public show(message: ComponentChild, buttons: IConfirmDialogButtons, title?: string, description?: string[],
-        values?: IDictionary): void {
-        this.setState({ title, message, buttons, values, description }, () => {
+        values?: IDictionary, checkboxId?: string, checkboxCaption?: string): void {
+        this.setState({ title, message, buttons, values, description, checkboxId, checkboxCaption }, () => {
             return this.dialogRef.current?.open({ closeOnEscape: true });
         });
     }
+
+    private handleCheckboxChange = (checkState: CheckState, props: Readonly<IComponentProperties>): void => {
+        if (!props.id) {
+            return;
+        }
+
+        const { values } = this.state;
+        this.setState({
+            values: {
+                ...values,
+                [props.id]: checkState === CheckState.Checked,
+            },
+        });
+    };
 
     private handleActionClick = (e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;

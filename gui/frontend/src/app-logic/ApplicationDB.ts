@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,7 @@
 
 import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
+import type { IVisualExplainOptions } from "../script-execution/index.js";
 import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import { IColumnInfo, IDictionary, IStatusInfo } from "./general-types.js";
@@ -67,6 +68,23 @@ export interface IDocumentResultData {
 
     /** If the data set was derived from a single table, this field contains its fully qualified name. */
     fullTableName?: string;
+
+    /** Optional presentation override for non-tabular result sets. */
+    viewType?: "grid" | "image";
+
+    /** Payload for image result views. */
+    image?: {
+        mimeType: string;
+        data: string;
+        caption?: string;
+        scrollToRight?: boolean;
+        showMinimap?: boolean;
+        visualExplainPlan?: string;
+        visualExplainOptions?: IVisualExplainOptions;
+    };
+
+    /** Optional tab caption override. */
+    caption?: string;
 }
 
 interface IShellModuleResultData {

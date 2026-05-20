@@ -367,6 +367,14 @@ export const registerSettings = (): void => {
         "execution continues with the next statement.", "boolean",
         false, false);
     registerSetting(
+        "editor.confirmVisualExplainAnalyze",
+        "Confirm Visual Explain Analyze",
+        "Ask for confirmation before running Visual Explain Analyze.",
+        "boolean",
+        true,
+        false,
+    );
+    registerSetting(
         "editor.showMinimap",
         "Show the Minimap",
         "Determines if code editors should show a minimap, instead of the plain scrollbar, for better navigation.",

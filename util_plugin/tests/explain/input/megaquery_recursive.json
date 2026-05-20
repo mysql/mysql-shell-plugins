@@ -1,0 +1,458 @@
+{
+  "query": "with recursive `rental_dates` as (/* select#2 */ select min(`sakila`.`rental`.`rental_date`) AS `rental_date` from `sakila`.`rental` union all /* select#3 */ select (`rental_dates`.`rental_date` + interval 1 day) AS `DATE_ADD(rental_date, INTERVAL 1 DAY)` from `rental_dates` where (`rental_dates`.`rental_date` < (/* select#4 */ select max(`sakila`.`rental`.`rental_date`) from `sakila`.`rental`))), `active_customers` as (/* select#5 */ select `c`.`customer_id` AS `customer_id`,`c`.`first_name` AS `first_name`,`c`.`last_name` AS `last_name` from `sakila`.`customer` `c` where exists(/* select#6 */ select 1 from `sakila`.`rental` `r` where ((`r`.`customer_id` = `c`.`customer_id`) and (`r`.`return_date` is null)))), `high_value_customers` as (/* select#7 */ select `sakila`.`payment`.`customer_id` AS `customer_id` from `sakila`.`payment` group by `sakila`.`payment`.`customer_id` having (sum(`sakila`.`payment`.`amount`) > 200)), `joined_customers` as (/* select#8 */ select `ac`.`customer_id` AS `customer_id`,`ac`.`first_name` AS `first_name`,`ac`.`last_name` AS `last_name` from `active_customers` `ac` join `high_value_customers` `hc` where (`ac`.`customer_id` = `hc`.`customer_id`)), `film_union` as (/* select#9 */ select `f`.`film_id` AS `film_id`,`f`.`title` AS `title`,'PG' AS `rating_source`,`f`.`metadata` AS `metadata`,`f`.`release_year` AS `release_year` from `sakila`.`film` `f` where (`f`.`rating` = 'PG') union all /* select#10 */ select `f`.`film_id` AS `film_id`,`f`.`title` AS `title`,'PG-13' AS `rating_source`,`f`.`metadata` AS `metadata`,`f`.`release_year` AS `release_year` from `sakila`.`film` `f` where (`f`.`rating` = 'PG-13')) /* select#1 */ select `jc`.`first_name` AS `first_name`,`jc`.`last_name` AS `last_name`,`f`.`title` AS `title`,json_unquote(json_extract(`f`.`metadata`,'$.length_category')) AS `length_category`,rank() OVER (PARTITION BY `jc`.`customer_id` ORDER BY `f`.`title` )  AS `film_rank`,sum(`p`.`amount`) OVER (PARTITION BY `jc`.`customer_id` )  AS `total_payment`,(/* select#11 */ select count(0) from `sakila`.`rental` `r2` where ((`r2`.`customer_id` = `jc`.`customer_id`) and (`r2`.`rental_date` > <cache>((now() - interval 6 month))))) AS `rentals_last_6mo` from `joined_customers` `jc` join `sakila`.`payment` `p` join `sakila`.`rental` `r` join `sakila`.`inventory` `i` join `film_union` `f` where ((`jc`.`customer_id` = `p`.`customer_id`) and (`jc`.`customer_id` = `r`.`customer_id`) and (`r`.`inventory_id` = `i`.`inventory_id`) and (`i`.`film_id` = `f`.`film_id`) and (`f`.`release_year` = 1900) and exists(/* select#12 */ select 1 from `sakila`.`store` `s` where (`s`.`store_id` = `i`.`store_id`)) and not exists(/* select#13 */ select 1 from `sakila`.`staff` `st` where ((`st`.`store_id` = `i`.`store_id`) and (`st`.`active` = 0)))) order by `jc`.`last_name`,`f`.`title` limit 25",
+  "query_plan": {
+    "limit": 25,
+    "limit_offset": 0,
+    "inputs": [
+      {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "inputs": [
+                              {
+                                "operation": "Table scan on jc",
+                                "table_name": "jc",
+                                "access_type": "table",
+                                "used_columns": [
+                                  "customer_id",
+                                  "first_name",
+                                  "last_name"
+                                ],
+                                "estimated_rows": 10.0,
+                                "estimated_total_cost": 2.5,
+                                "inputs": [
+                                  {
+                                    "cte": true,
+                                    "operation": "Materialize CTE joined_customers",
+                                    "access_type": "materialize",
+                                    "estimated_rows": 10.0,
+                                    "estimated_total_cost": 48.5,
+                                    "estimated_first_row_cost": 48.5,
+                                    "inputs": [
+                                      {
+                                        "operation": "Nested loop inner join",
+                                        "access_type": "join",
+                                        "join_type": "inner join",
+                                        "join_algorithm": "nested_loop",
+                                        "estimated_rows": 10.0,
+                                        "estimated_total_cost": 48.5,
+                                        "inputs": [
+                                          {
+                                            "operation": "Table scan on ac",
+                                            "table_name": "ac",
+                                            "access_type": "table",
+                                            "used_columns": [
+                                              "customer_id",
+                                              "first_name",
+                                              "last_name"
+                                            ],
+                                            "estimated_rows": 20.0,
+                                            "estimated_total_cost": 2.5,
+                                            "inputs": [
+                                              {
+                                                "cte": true,
+                                                "operation": "Materialize CTE active_customers",
+                                                "access_type": "materialize",
+                                                "estimated_rows": 20.0,
+                                                "estimated_total_cost": 22.5,
+                                                "estimated_first_row_cost": 22.5,
+                                                "inputs": [
+                                                  {
+                                                    "operation": "Filter: exists(select #6)",
+                                                    "access_type": "filter",
+                                                    "condition": "exists(select #6)",
+                                                    "filter_columns": [
+                                                      "c.customer_id"
+                                                    ],
+                                                    "estimated_rows": 20.0,
+                                                    "estimated_total_cost": 22.5,
+                                                    "inputs": [
+                                                      {
+                                                        "operation": "Table scan on c",
+                                                        "table_name": "customer",
+                                                        "access_type": "table",
+                                                        "schema_name": "sakila",
+                                                        "alias": "c",
+                                                        "used_columns": [
+                                                          "customer_id",
+                                                          "first_name",
+                                                          "last_name"
+                                                        ],
+                                                        "estimated_rows": 599.0,
+                                                        "estimated_total_cost": 20.0
+                                                      },
+                                                      {
+                                                        "heading": "Select #6 (subquery in condition; dependent)",
+                                                        "subquery": true,
+                                                        "subquery_location": "condition",
+                                                        "operation": "Index lookup on r using idx_fk_customer_id (customer_id = c.customer_id)",
+                                                        "table_name": "rental",
+                                                        "access_type": "index",
+                                                        "schema_name": "sakila",
+                                                        "alias": "r",
+                                                        "index_name": "idx_fk_customer_id",
+                                                        "index_access_type": "index_lookup",
+                                                        "key_columns": [
+                                                          "customer_id"
+                                                        ],
+                                                        "lookup_condition": "customer_id = c.customer_id",
+                                                        "used_columns": [
+                                                          "customer_id",
+                                                          "return_date"
+                                                        ],
+                                                        "estimated_rows": 26.7,
+                                                        "estimated_total_cost": 8.0
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "operation": "Table scan on hc",
+                                            "table_name": "hc",
+                                            "access_type": "table",
+                                            "used_columns": [
+                                              "customer_id"
+                                            ],
+                                            "estimated_rows": 15.0,
+                                            "estimated_total_cost": 2.5,
+                                            "inputs": [
+                                              {
+                                                "cte": true,
+                                                "operation": "Materialize CTE high_value_customers",
+                                                "access_type": "materialize",
+                                                "estimated_rows": 15.0,
+                                                "estimated_total_cost": 24.0,
+                                                "estimated_first_row_cost": 24.0,
+                                                "inputs": [
+                                                  {
+                                                    "operation": "Filter: (sum(payment.amount) > 200)",
+                                                    "access_type": "filter",
+                                                    "condition": "(sum(payment.amount) > 200)",
+                                                    "filter_columns": [],
+                                                    "estimated_rows": 15.0,
+                                                    "estimated_total_cost": 24.0,
+                                                    "inputs": [
+                                                      {
+                                                        "operation": "Aggregate using temporary table",
+                                                        "access_type": "temp_table_aggregate",
+                                                        "estimated_rows": 599.0,
+                                                        "estimated_total_cost": 22.0,
+                                                        "inputs": [
+                                                          {
+                                                            "operation": "Table scan on payment",
+                                                            "table_name": "payment",
+                                                            "access_type": "table",
+                                                            "schema_name": "sakila",
+                                                            "used_columns": [
+                                                              "customer_id",
+                                                              "amount"
+                                                            ],
+                                                            "estimated_rows": 16049.0,
+                                                            "estimated_total_cost": 18.5
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "operation": "Index lookup on p using idx_fk_customer_id (customer_id = jc.customer_id)",
+                                "table_name": "payment",
+                                "access_type": "index",
+                                "schema_name": "sakila",
+                                "alias": "p",
+                                "index_name": "idx_fk_customer_id",
+                                "index_access_type": "index_lookup",
+                                "key_columns": [
+                                  "customer_id"
+                                ],
+                                "lookup_condition": "customer_id = jc.customer_id",
+                                "used_columns": [
+                                  "customer_id",
+                                  "amount"
+                                ],
+                                "estimated_rows": 26.0,
+                                "estimated_total_cost": 12.0
+                              }
+                            ],
+                            "operation": "Nested loop inner join",
+                            "access_type": "join",
+                            "join_type": "inner join",
+                            "join_algorithm": "nested_loop",
+                            "estimated_rows": 260.0,
+                            "estimated_total_cost": 60.5
+                          },
+                          {
+                            "operation": "Index lookup on r using idx_fk_customer_id (customer_id = jc.customer_id)",
+                            "table_name": "rental",
+                            "access_type": "index",
+                            "schema_name": "sakila",
+                            "alias": "r",
+                            "index_name": "idx_fk_customer_id",
+                            "index_access_type": "index_lookup",
+                            "key_columns": [
+                              "customer_id"
+                            ],
+                            "lookup_condition": "customer_id = jc.customer_id",
+                            "used_columns": [
+                              "inventory_id",
+                              "customer_id"
+                            ],
+                            "estimated_rows": 26.7,
+                            "estimated_total_cost": 18.0
+                          }
+                        ],
+                        "operation": "Nested loop inner join",
+                        "access_type": "join",
+                        "join_type": "inner join",
+                        "join_algorithm": "nested_loop",
+                        "estimated_rows": 6942.0,
+                        "estimated_total_cost": 88.5
+                      },
+                      {
+                        "operation": "Single-row index lookup on i using PRIMARY (inventory_id = r.inventory_id)",
+                        "table_name": "inventory",
+                        "access_type": "index",
+                        "schema_name": "sakila",
+                        "alias": "i",
+                        "index_name": "PRIMARY",
+                        "index_access_type": "index_lookup",
+                        "key_columns": [
+                          "inventory_id"
+                        ],
+                        "lookup_condition": "inventory_id = r.inventory_id",
+                        "used_columns": [
+                          "inventory_id",
+                          "film_id",
+                          "store_id"
+                        ],
+                        "estimated_rows": 1.0,
+                        "estimated_total_cost": 10.0
+                      }
+                    ],
+                    "operation": "Nested loop inner join",
+                    "access_type": "join",
+                    "join_type": "inner join",
+                    "join_algorithm": "nested_loop",
+                    "estimated_rows": 6942.0,
+                    "estimated_total_cost": 128.5
+                  },
+                  {
+                    "operation": "Table scan on f",
+                    "table_name": "f",
+                    "access_type": "table",
+                    "used_columns": [
+                      "film_id",
+                      "title",
+                      "metadata",
+                      "release_year"
+                    ],
+                    "estimated_rows": 2.0,
+                    "estimated_total_cost": 2.5,
+                    "inputs": [
+                      {
+                        "cte": true,
+                        "operation": "Union all materialize",
+                        "access_type": "materialize",
+                        "estimated_rows": 2.0,
+                        "estimated_total_cost": 30.0,
+                        "estimated_first_row_cost": 30.0,
+                        "inputs": [
+                          {
+                            "operation": "Filter: (f.rating = 'PG')",
+                            "access_type": "filter",
+                            "condition": "(f.rating = 'PG')",
+                            "filter_columns": [
+                              "f.rating"
+                            ],
+                            "estimated_rows": 1.0,
+                            "estimated_total_cost": 15.0,
+                            "inputs": [
+                              {
+                                "operation": "Table scan on f",
+                                "table_name": "film",
+                                "access_type": "table",
+                                "schema_name": "sakila",
+                                "alias": "f",
+                                "used_columns": [
+                                  "film_id",
+                                  "title",
+                                  "rating",
+                                  "metadata",
+                                  "release_year"
+                                ],
+                                "estimated_rows": 1000.0,
+                                "estimated_total_cost": 15.0
+                              }
+                            ]
+                          },
+                          {
+                            "operation": "Filter: (f.rating = 'PG-13')",
+                            "access_type": "filter",
+                            "condition": "(f.rating = 'PG-13')",
+                            "filter_columns": [
+                              "f.rating"
+                            ],
+                            "estimated_rows": 1.0,
+                            "estimated_total_cost": 15.0,
+                            "inputs": [
+                              {
+                                "operation": "Table scan on f",
+                                "table_name": "film",
+                                "access_type": "table",
+                                "schema_name": "sakila",
+                                "alias": "f",
+                                "used_columns": [
+                                  "film_id",
+                                  "title",
+                                  "rating",
+                                  "metadata",
+                                  "release_year"
+                                ],
+                                "estimated_rows": 1000.0,
+                                "estimated_total_cost": 15.0
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "operation": "Nested loop inner join",
+                "access_type": "join",
+                "join_type": "inner join",
+                "join_algorithm": "nested_loop",
+                "estimated_rows": 100.0,
+                "estimated_total_cost": 168.5
+              },
+              {
+                "heading": "Select #12 (subquery in condition; dependent)",
+                "subquery": true,
+                "subquery_location": "condition",
+                "operation": "Single-row index lookup on s using PRIMARY (store_id = i.store_id)",
+                "table_name": "store",
+                "access_type": "index",
+                "schema_name": "sakila",
+                "alias": "s",
+                "index_name": "PRIMARY",
+                "index_access_type": "index_lookup",
+                "key_columns": [
+                  "store_id"
+                ],
+                "lookup_condition": "store_id = i.store_id",
+                "used_columns": [
+                  "store_id"
+                ],
+                "estimated_rows": 1.0,
+                "estimated_total_cost": 1.0
+              },
+              {
+                "heading": "Select #13 (subquery in condition; dependent)",
+                "subquery": true,
+                "subquery_location": "condition",
+                "operation": "Index lookup on st using idx_fk_store_id (store_id = i.store_id)",
+                "table_name": "staff",
+                "access_type": "index",
+                "schema_name": "sakila",
+                "alias": "st",
+                "index_name": "idx_fk_store_id",
+                "index_access_type": "index_lookup",
+                "key_columns": [
+                  "store_id"
+                ],
+                "lookup_condition": "store_id = i.store_id",
+                "used_columns": [
+                  "store_id",
+                  "active"
+                ],
+                "estimated_rows": 2.0,
+                "estimated_total_cost": 1.5
+              }
+            ],
+            "operation": "Filter: ((f.release_year = 1900) and exists(select #12) and not exists(select #13))",
+            "access_type": "filter",
+            "condition": "((f.release_year = 1900) and exists(select #12) and not exists(select #13))",
+            "filter_columns": [
+              "f.release_year",
+              "i.store_id"
+            ],
+            "estimated_rows": 10.0,
+            "estimated_total_cost": 170.0
+          }
+        ],
+        "operation": "Window aggregate with buffering: rank() OVER (PARTITION BY jc.customer_id ORDER BY f.title), sum(p.amount) OVER (PARTITION BY jc.customer_id)",
+        "access_type": "window",
+        "buffering": true,
+        "functions": [
+          "rank() OVER (PARTITION BY jc.customer_id ORDER BY f.title)",
+          "sum(p.amount) OVER (PARTITION BY jc.customer_id)"
+        ],
+        "estimated_rows": 10.0,
+        "estimated_total_cost": 172.0,
+        "inputs_from_select_list": [
+          {
+            "heading": "Select #11 (subquery in projection; dependent)",
+            "subquery": true,
+            "subquery_location": "projection",
+            "operation": "Index lookup on r2 using idx_fk_customer_id (customer_id = jc.customer_id)",
+            "table_name": "rental",
+            "access_type": "index",
+            "schema_name": "sakila",
+            "alias": "r2",
+            "index_name": "idx_fk_customer_id",
+            "index_access_type": "index_lookup",
+            "key_columns": [
+              "customer_id"
+            ],
+            "lookup_condition": "customer_id = jc.customer_id",
+            "used_columns": [
+              "customer_id",
+              "rental_date"
+            ],
+            "estimated_rows": 26.7,
+            "estimated_total_cost": 8.0
+          }
+        ]
+      }
+    ],
+    "operation": "Sort: jc.last_name, f.title",
+    "access_type": "sort",
+    "sort_fields": [
+      "jc.last_name",
+      "f.title"
+    ],
+    "estimated_rows": 10.0,
+    "estimated_total_cost": 174.0
+      }
+    ],
+    "operation": "Limit: 25 row(s)",
+    "access_type": "limit",
+    "estimated_rows": 25.0,
+    "estimated_total_cost": 174.0,
+    "estimated_first_row_cost": 174.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

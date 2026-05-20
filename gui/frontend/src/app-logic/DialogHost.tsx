@@ -306,12 +306,21 @@ export class DialogHost extends ComponentBase {
      *   - parameters.refuse Optional text for the refuse button (default: "Cancel").
      *   - parameters.alternative Optional text for the accept button (no default).
      *   - parameters.default Optional text for the button that should be auto focused.
+     *   - parameters.checkboxId Optional id for a checkbox value in the response data.
+     *   - parameters.checkboxCaption Optional text for the checkbox.
+     *   - parameters.checkboxChecked Optional initial checkbox value.
      *   - request.data: A dictionary that is forwarded to the response handler.
      *
      * @param request The request with the data for the dialog.
      */
     private runConfirmDialog = (request: IDialogRequest): void => {
         this.#focusedElements.push(document.activeElement);
+
+        const checkboxId = request.parameters?.checkboxId as string | undefined;
+        const data: IDictionary = { id: request.id, ...request.data, type: request.type };
+        if (checkboxId) {
+            data[checkboxId] = request.parameters?.checkboxChecked === true;
+        }
 
         this.#confirmDialogRef.current?.show(
             request.parameters?.prompt as string | undefined ?? "",
@@ -323,7 +332,9 @@ export class DialogHost extends ComponentBase {
             },
             request.parameters?.title as string,
             request.description,
-            { id: request.id, ...request.data, type: request.type },
+            data,
+            checkboxId,
+            request.parameters?.checkboxCaption as string | undefined,
         );
     };
 

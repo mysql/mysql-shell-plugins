@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -81,6 +81,9 @@
 .msg.toolbar .icon {
     flex: 0 0 24px;
     height: 24px;
+}
+
+.msg.toolbar .icon:not(.codicon) {
     background-color: var(--icon-foreground);
 }
 
@@ -88,17 +91,27 @@
     flex: 0 0 24px;
 }
 
-.msg.toolbar .button > .icon {
+.msg.toolbar .button.msg.button {
+    border: none;
+    background-color: transparent;
+}
+
+.msg.toolbar .button>.icon,
+.msg.toolbar .button.disabled>.icon {
     background-color: initial;
 }
 
-.msg.toolbar .button {
-    border: none;
-    background: transparent;
+.msg.toolbar .button.msg.button.disabled {
+    background-color: transparent;
 }
 
-.msg.toolbar .button.disabled > .icon {
-    background-color: var(--button-secondaryHoverBackground) !important;
+.msg.toolbar .button.msg.button:not(.disabled):hover,
+.msg.toolbar .button.msg.button:not(.disabled):active {
+    background-color: var(--button-hoverBackground);
+}
+
+.msg.toolbar .button>.image {
+    background-color: transparent;
 }
 
 .msg.toolbar .divider {

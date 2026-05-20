@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,10 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import svg
-from svg import escape
 from enum import Enum
 from typing import Optional, List, Any, Tuple
+
+from .svg_utils import escape_svg_text
 
 debug = 0
 
@@ -679,7 +680,9 @@ class Text(Widget):
                 else:
                     sx = None
                     sdy = None
-                tspan_list.append(svg.TSpan(text=escape(text), x=sx, dy=sdy, **attr))
+                tspan_list.append(
+                    svg.TSpan(text=escape_svg_text(text), x=sx, dy=sdy, **attr)
+                )
         return svg.G(elements=[svg.Text(y=0, elements=tspan_list, class_=style)])
 
     def layout(self):
@@ -742,7 +745,12 @@ class Badge(Widget):
                     height=self._badge_height,
                     class_=[self.style],
                 ),
-                svg.Text(x=size.w / 2, y=12, text=self.text, class_=[self.text_style]),
+                svg.Text(
+                    x=size.w / 2,
+                    y=12,
+                    text=escape_svg_text(self.text),
+                    class_=[self.text_style],
+                ),
             ],
         )
 
@@ -844,7 +852,7 @@ class InfoCard(Frame):
                 svg.Text(
                     x=self.left_padding + 5,
                     y=20,
-                    text=self.title,
+                    text=escape_svg_text(self.title),
                     fill="white",
                     style="font: 12px sans-serif; alignment-baseline: bottom;",
                 ),

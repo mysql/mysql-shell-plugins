@@ -238,11 +238,11 @@ def execute(session, sql, params=None, options=None):
         sql (str): The sql command to execute.
         params (list): The parameters for the sql command.
         options (dict): A dictionary that holds additional options, e.g.
-            {"row_packet_size": -1}
+            {"rowPacketSize": -1}
 
     Allowed options for options:
-        row_packet_size (int): The pack size for each result segment
-        feature_id (str): The id of an tracked feature to be sent with the
+        rowPacketSize (int): The pack size for each result segment
+        featureId (str): The id of an tracked feature to be sent with the
           executed statement.
 
     Returns:
@@ -251,6 +251,32 @@ def execute(session, sql, params=None, options=None):
     session = db_backend.get_db_session(session)
 
     return session.execute(sql=sql, params=params, options=options)
+
+
+@plugin_function("gui.sqlEditor.visualExplain", shell=True, web=True)
+def visual_explain(session, sql, options=None):
+    """Generates an SVG visual explain plan for the given SQL statement.
+
+    Args:
+        session (object): The session used to execute the operation
+        sql (str): The SQL statement to explain.
+        options (dict): Visual explain rendering options.
+
+    Allowed options for options:
+        analyze (bool): Run EXPLAIN ANALYZE instead of EXPLAIN.
+        compact (bool): Render the plan with minimal node details.
+        darkMode (bool): Render the plan with dark mode colors.
+        layout (str): The plan layout, either "topDown" or "bottomUp".
+        plan (str): Existing JSON explain plan to render instead of executing SQL.
+        showDescription (bool): Include operation descriptions in nodes.
+        showQuery (bool): Include the query text in the rendered image.
+
+    Returns:
+        dict: The visual explain SVG payload.
+    """
+    session = db_backend.get_db_session(session)
+
+    return session.visual_explain(sql=sql, options=options or {})
 
 
 @plugin_function("gui.sqlEditor.killQuery", shell=False, web=True)

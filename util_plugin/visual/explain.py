@@ -28,7 +28,7 @@ import typing
 from textwrap import dedent
 import math
 import re
-from mysqlsh import mysql
+from mysqlsh import mysql  # type: ignore
 from . import widgets
 from .widgets import (
     Point,
@@ -44,15 +44,20 @@ from .widgets import (
     Icon,
     TextJustification,
 )
-from .svg_utils import make_bendy_arrow, make_varrow, make_harrow
+from .svg_utils import (
+    escape_svg_data_attributes,
+    escape_svg_text,
+    make_bendy_arrow,
+    make_harrow,
+    make_varrow,
+)
 
 k_svg_style = """
-/* defaults */
-* { pointer-events: none; }
-
 .caption { font: 10px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #aaa; stroke: transparent; }
 
 .title { font: 11px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #fff; stroke: transparent; }
+.access_type_text { font-size: 10px; font-style: italic; }
+.source_table_name { font-weight: bold; }
 .text { font: 11px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #555; stroke: transparent; }
 .subtext { font: 11px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #555; stroke: transparent; }
 .code_text { font: 10px monospace; text-anchor: start; alignment-baseline: bottom; fill: #555; stroke: transparent; }
@@ -60,6 +65,7 @@ k_svg_style = """
 .bold_text { font: bold 11px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #555; stroke: transparent; }
 
 .join_text { font: bold 11px sans-serif; text-anchor: middle; alignment-baseline: bottom; fill: #fff; stroke: transparent; }
+.join_access_type_text { font: bold italic 10px sans-serif; text-anchor: middle; alignment-baseline: bottom; fill: #fff; stroke: transparent; }
 .join_subtext { font: 11px sans-serif; text-anchor: middle; alignment-baseline: bottom; fill: #444; stroke: transparent; }
 .bold_join_subtext { font: bold 11px sans-serif; text-anchor: middle; alignment-baseline: bottom; fill: #444; stroke: transparent; }
 
@@ -68,7 +74,6 @@ k_svg_style = """
 .description { stroke: #f0f0f0; fill: #f0f0f0; }
 .description_text { font: 9px sans-serif; text-anchor: start; alignment-baseline: bottom; fill: #888; stroke: transparent; }
 
-.box_header { pointer-events: visiblePainted; }
 .box_body { fill: #fff; stroke: #ccc; }
 .box_content {}
 
@@ -179,81 +184,109 @@ k_svg_style = """
 .result_text { font: bold 11px sans-serif; fill: #eeeeee; text-anchor: middle; alignment-baseline: middle; }
 
 .arrow { stroke: transparent; fill: #aaa; }
-
-.minimap_frame { stroke: #bbb; fill: #fff; filter: drop-shadow(3px 5px 2px rgb(0 0 0 0.4)); }
 """
 
-k_svg_script = r"""
-// <![CDATA[
-document.boxHeightExpanded = {};
+k_svg_dark_style = k_svg_style + """
 
-const toggleBox = (e) => {
-        // Get the parent and child-elements that we want to manipulate
-        const group = e.parentElement;
-        const boxBody = group.getElementsByClassName("box_body")[0];
-        const boxContent = group.getElementsByClassName("box_content")[0];
-        const expandTriangle = group.getElementsByClassName("expand_triangle")[0];
-        const nestedContent = group.parentElement.getElementsByClassName("box_nested_content")
-            ? group.parentElement.getElementsByClassName("box_nested_content")[0] : undefined;
-        if (boxContent.getAttribute("visibility") !== "collapse") {
-            // Hide the content
-            boxContent.setAttribute("visibility", "collapse");
-            // Flip the expandTriangle
-            expandTriangle.setAttribute("transform", "scale(1, -1) translate(235 -15)");
+/* dark mode overrides */
+svg { color-scheme: dark; }
 
-            // Remember the expanded height of the box, then collapse it
-            const originalHeight = boxBody.getAttribute("height");
-            let subContentTranslateX = 0;
-            let subContentTranslateY = 0;
+.caption { fill: #8b9bb0; }
 
-            if (nestedContent) {
-                const transform = nestedContent.getAttribute("transform");
-                const translateRegex = /translate\(\s*(\d*(\.\d*)?)\s+(\d*(\.\d*)?)\s*\)/gm;
-                const matches = translateRegex.exec(transform);
-                if (matches) {
-                    subContentTranslateX = parseFloat(matches[1]);
-                    subContentTranslateY = parseFloat(matches[3]);
+.title { fill: #f8fafc; }
+.text, .subtext, .code_text, .bold_text { fill: #d6deea; }
+.join_subtext, .bold_join_subtext { fill: #d6deea; }
 
-                    nestedContent.setAttribute("transform",
-                        `translate(${subContentTranslateX} ${subContentTranslateY - (originalHeight - 25)})`);
-                }
-            }
+.subheading { stroke: #334155; fill: #1f2937; }
+.subheading_text { fill: #d6deea; }
+.description { stroke: #334155; fill: #172033; }
+.description_text { fill: #9aa8bd; }
 
-            document.boxHeightExpanded[boxBody.id] = {
-                originalHeight,
-                subContentTranslateX,
-                subContentTranslateY,
-            };
-            boxBody.setAttribute("height", "25");
-        } else {
-            // Show the content
-            boxContent.setAttribute("visibility", "visible");
-            // Restore the expandTriangle orientation
-            expandTriangle.setAttribute("transform", "scale(1 1) translate(235 7)");
-            boxBody.setAttribute("height", document.boxHeightExpanded[boxBody.id].originalHeight);
-            if (nestedContent) {
-                nestedContent.setAttribute("transform",
-                    `translate(${document.boxHeightExpanded[boxBody.id].subContentTranslateX} ${document.boxHeightExpanded[boxBody.id].subContentTranslateY})`);
-            }
-        }
-};
+.box_body { fill: #172033; stroke: #475569; }
+.box_header { stroke: #0b122030; }
+.query_box { fill: #0f172a; }
+.cost_box { stroke: #334155; fill: #0f172a; }
+.subquery_heading { fill: #263244; stroke: #334155; }
+.subquery_text { fill: #d6deea; }
+.subquery_box { stroke: #64748b; }
 
-// Collapse all boxes in the beginning
-Array.prototype.map.call(document.getElementsByClassName("box_header"), (box) => {
-    toggleBox(box);
-});
+.total_rows_text,
+.total_rows_text_v,
+.total_rows_text_vflip,
+.join_phase { fill: #94a3b8; }
 
-// Add a global event listener for all mouseup events. This will only be triggered for classes that have
-// pointer-events set, as all other pointer-events have been disabled with * { pointer-events: none; }
-document.addEventListener("mouseup", (e) => {
-    // Check if the event happened on an element with the box_header class name
-    if (e.target.getAttribute("class") === "box_header") {
-        toggleBox(e.target);
-    }
-});
- ]]>
+/* sql */
+.identifier { fill: #cbd5e1; }
+.comment { fill: #7f8ea3; }
+.string { fill: #f0b47d; }
+.number { fill: #75d6d0; }
+.keyword { fill: #8ab4ff; }
+.operator { fill: #e8c77b; }
+
+/* index access types */
+.index_index_lookup { fill: #3f8f5f; stroke: #74c69d; }
+.index_index_scan { fill: #d68a4a; stroke: #8f532b; }
+.index_index_range_scan { fill: #d8b85c; stroke: #826d22; }
+.index_pushed_join_ref { fill: #cfae61; stroke: #31826f; }
+.index_multi_range_read { fill: #c1b64c; stroke: #776b20; }
+.index_index_skip_scan { fill: #d68a4a; stroke: #8f532b; }
+.index_group_index_skip_scan { fill: #d68a4a; stroke: #8f532b; }
+.index_dynamic_index_range_scan { fill: #c1b64c; stroke: #776b20; }
+
+.index_text, .index_subtext,
+.source_text, .source_subtext, .source_subtext2,
+.rows_fetched_before_execution_text { fill: #f1f5f9; }
+
+/* other source types */
+.source { stroke: #94a3b8; fill: #334155; }
+.materialize_information_schema { stroke: #5ea1bf; fill: #315d72; }
+.rows_fetched_before_execution { stroke: #6b9abc; fill: #315d72; }
+.zero_rows { stroke: #9ca3af; fill: #4b5563; }
+
+/* join types */
+.nested_loop { fill: #8a4770; }
+.nested_loop_text, .hash_text, .batch_key_access_text { fill: #f8fafc; }
+.hash { fill: #407d84; }
+.batch_key_access { fill: #3a6f78; }
+
+/* operation types */
+.filter, .sort, .limit, .window, .aggregate, .append,
+.temp_table_aggregate, .stream, .remove_duplicates_from_groups {
+    stroke: #b8a64e;
+    fill: #4d4828;
+}
+.temp_table_aggregate_text,
+.remove_duplicates_from_groups_text,
+.operation_text,
+.operation_subtext,
+.operation_subtext2 { fill: #f1f5f9; }
+
+/* materialize */
+.materialize { stroke: #b087d7; fill: #604d82; }
+.materialize_text, .materialize_subtext { fill: #f1f5f9; }
+
+/* update types */
+.update { stroke: #7aa2ff; fill: #415ea8; }
+.insert { stroke: #7aa2ff; fill: #415ea8; }
+.insert_values { stroke: #7aa2ff; fill: #415ea8; }
+.replace_values { stroke: #70c17c; fill: #437849; }
+.delete_rows { stroke: #dc7373; fill: #8e3f3f; }
+.update_body { fill: #172033; stroke: #475569; }
+.update_text { fill: #f1f5f9; }
+
+/* badges */
+.badge { fill: #475569; }
+.engine_badge { fill: #3b7c97; }
+
+/* other */
+.table { stroke: #dc7373; fill: #744149; }
+.table_secondary { stroke: #72c7cf; fill: #346f75; }
+.table_frame, .subquery_frame { stroke: #64748b; }
+.result { stroke: #64748b30; fill: #475569; }
+.result_head { stroke: #64748b30; fill: #334155; }
+
+.arrow { fill: #7f8ea3; }
 """
-
 
 def warn(*args):
     print(*args)
@@ -342,10 +375,6 @@ def highlight_sql(sql: str) -> List[Tuple[str, dict]]:
     return result
 
 
-def snake_case_to_text(s) -> str:
-    return " ".join([w.capitalize() for w in s.split("_")])
-
-
 class InvalidExplainPlan(Exception):
     # when plan has operation = <not executable by iterator executor>
     pass
@@ -354,7 +383,7 @@ class InvalidExplainPlan(Exception):
 def make_text(x, y, text, **kwargs):
     elements = []
     for line in text.split("\n"):
-        elements.append(svg.Text(text=line, x=x, y=y, **kwargs))
+        elements.append(svg.Text(text=escape_svg_text(line), x=x, y=y, **kwargs))
         y += 15
     return svg.G(elements=elements)
 
@@ -379,6 +408,7 @@ def validate_type(type_hint, value):
 
 class BaseExplainWidget(VBox):
     operation: str = ""
+    annotations: dict | None = None
 
     def __init__(self, owner: "node", compact=False, top_anchor_margin=0, **kwargs):
         elem_id = f'{owner.access_type or "node"}_{owner._owner.get_id_serial()}'
@@ -411,6 +441,15 @@ class BaseExplainWidget(VBox):
     @property
     def bottom_right(self) -> Point:
         return Point(self.right_anchor.x, self.bottom_anchor.y)
+
+    def set_annotations(self, data: dict):
+        self.annotations = data
+
+    def _make_annotated_group(self, elements: list[svg.Element]) -> svg.G:
+        return svg.G(
+            elements=elements,
+            data=escape_svg_data_attributes(self.annotations),
+        )
 
     def add_text(self, text, style="text", bold=False, end=False, **kwargs):
         raise NotImplementedError()
@@ -506,9 +545,7 @@ class BaseExplainWidget(VBox):
 
         est_rows_text = f"{'' if isinstance(estimated_rows, str) else '~'}{format_rows(estimated_rows, compact=self.compact)}"
         if actual_rows is not None:
-            actual_rows_text = (
-                f"{format_rows(actual_rows, compact=self.compact)} (actual)"
-            )
+            actual_rows_text = f"{format_rows(actual_rows, compact=self.compact)}"
         else:
             actual_rows_text = None
         elems = []
@@ -518,7 +555,7 @@ class BaseExplainWidget(VBox):
                 svg.Text(
                     x=from_point.x + from_widget.owner._arrow_width / 2 + 6,
                     y=from_point.y + yoffset,
-                    text=est_rows_text,
+                    text=escape_svg_text(est_rows_text),
                     class_=[
                         "total_rows_text_vflip" if flipped else "total_rows_text_v"
                     ],
@@ -529,7 +566,17 @@ class BaseExplainWidget(VBox):
                     svg.Text(
                         x=from_point.x - from_widget.owner._arrow_width / 2 - 6,
                         y=from_point.y + yoffset,
-                        text=actual_rows_text,
+                        text=escape_svg_text(actual_rows_text),
+                        class_=[
+                            "total_rows_text_vflip" if flipped else "total_rows_text_v"
+                        ],
+                    )
+                )
+                elems.append(
+                    svg.Text(
+                        x=from_point.x - from_widget.owner._arrow_width / 2 - 16,
+                        y=from_point.y + yoffset,
+                        text="(actual)",
                         class_=[
                             "total_rows_text_vflip" if flipped else "total_rows_text_v"
                         ],
@@ -540,7 +587,7 @@ class BaseExplainWidget(VBox):
                 svg.Text(
                     x=p.x,
                     y=p.y - from_widget.owner._arrow_width / 2 - 2,
-                    text=est_rows_text,
+                    text=escape_svg_text(est_rows_text),
                     class_=["total_rows_text"],
                 )
             )
@@ -549,7 +596,7 @@ class BaseExplainWidget(VBox):
                     svg.Text(
                         x=p.x,
                         y=p.y + from_widget.owner._arrow_width / 2 + 2,
-                        text=actual_rows_text,
+                        text=escape_svg_text(actual_rows_text),
                         class_=["total_rows_text"],
                     )
                 )
@@ -588,7 +635,7 @@ class BaseExplainWidget(VBox):
                 svg.Circle(cx=self.right_anchor.x, cy=self.right_anchor.y, r=2),
             ]
 
-        return svg.G(elements=[super().do_draw()] + extras)
+        return svg.G(elements=list(filter(None, [super().do_draw()])) + extras)
 
 
 class JoinWidget(BaseExplainWidget):
@@ -607,7 +654,11 @@ class JoinWidget(BaseExplainWidget):
         self._inner_box = VBox(top_padding=15, fixed_height=self._symbol_height)
         self.add(self._inner_box, fill=True)
         self._inner_box.add(
-            Text(self.title, justify=TextJustification.Center, style="join_text")
+            Text(
+                self.title,
+                justify=TextJustification.Center,
+                style="join_access_type_text",
+            )
         )
 
     @property
@@ -709,7 +760,7 @@ class JoinWidget(BaseExplainWidget):
                 svg.Text(
                     x=pos.x,
                     y=pos.y - yoffset,
-                    text=tag,
+                    text=escape_svg_text(tag),
                     class_=["join_phase"],
                 )
             )
@@ -725,19 +776,19 @@ class JoinWidget(BaseExplainWidget):
                 cy=y + self._symbol_height / 2,
                 r=self._symbol_height / 2,
                 class_=[self.style],
-                opacity="90%",
+                opacity=0.9,
             ),
             svg.Circle(
                 cx=x + self._symbol_width - self._symbol_height / 2,
                 cy=y + self._symbol_height / 2,
                 r=self._symbol_height / 2,
                 class_=[self.style],
-                opacity="90%",
+                opacity=0.9,
             ),
             super().do_draw(),
         ] + self._draw_join_phases()
 
-        return svg.G(elements=elements)
+        return self._make_annotated_group(elements)
 
 
 class ResultWidget(BaseExplainWidget):
@@ -781,8 +832,8 @@ class ResultWidget(BaseExplainWidget):
                 )
             )
 
-        return svg.G(
-            elements=elements
+        return self._make_annotated_group(
+            elements
             + [
                 svg.Line(
                     x1=self._symbol_width / 3,
@@ -817,10 +868,11 @@ class ExplainWidget(BaseExplainWidget):
         heading=None,
         description=None,
         icon=None,
-        style=None,
-        body_style=None,
+        style: Optional[str] = None,
+        body_style: Optional[str] = None,
         always_show_description=False,
         compact=False,
+        box_radius=5,
         **kwargs,
     ) -> None:
         super().__init__(owner=owner, spacing=1, compact=compact, **kwargs)
@@ -828,8 +880,9 @@ class ExplainWidget(BaseExplainWidget):
         kwargs.pop("top_anchor_margin", None)
 
         self.title = title
-        self.header_style = style
+        self.header_style = style or "box_header"
         self.body_style = body_style or "box_body"
+        self.box_radius = box_radius
         if icon and not compact:
             self._title_box = HBox(
                 left_padding=4,
@@ -851,7 +904,10 @@ class ExplainWidget(BaseExplainWidget):
                 fixed_height=21,
                 spacing=4,
             )
-        self._title_box.add(Text(self.title, style="title"))
+        title_text = Text(self._title_with_access_type_style(), style="title")
+        if self._title_has_multiple_lines():
+            title_text._line_height = 16
+        self._title_box.add(title_text)
         self._title_box.add(VSeparator(), expand=True)
         self.add(self._title_box, fill=True)
 
@@ -885,6 +941,33 @@ class ExplainWidget(BaseExplainWidget):
             fixed_width=self.symbol_width,
         )
         content_group.add(self._box)
+
+    def _title_has_multiple_lines(self) -> bool:
+        if isinstance(self.title, list):
+            return any("\n" in text for text, _ in self.title)
+        return "\n" in self.title
+
+    def _title_with_access_type_style(self):
+        if isinstance(self.title, list):
+            if not self.title:
+                return self.title
+            title = self.title.copy()
+            text, attributes = title[0]
+            attributes = attributes.copy()
+            attributes["class_"] = self._append_css_class(
+                attributes.get("class_"), "access_type_text"
+            )
+            title[0] = (text, attributes)
+            return title
+
+        return [(self.title, {"class_": "access_type_text"})]
+
+    def _append_css_class(self, class_value, class_name: str):
+        if not class_value:
+            return class_name
+        if isinstance(class_value, list):
+            return class_value + [class_name]
+        return f"{class_value} {class_name}"
 
     def make_subheading(self, text, style, text_style):
         frame = Frame(
@@ -927,61 +1010,89 @@ class ExplainWidget(BaseExplainWidget):
         size = self.size
         title_height = self._title_box.min_size.h + self.top_padding
 
-        expander = []
-        if self.owner._owner.options.dynamic:
-            expander.append(
-                svg.Polygon(
-                    class_=["expand_triangle"],
-                    points=[0, 7, 5, 0, 10, 7],
-                    fill="white",
-                    transform=f"translate({size.w-20} 7)",
-                )
-            )
-
         pos = Point()
-        return svg.G(
-            elements=[
-                svg.Rect(
-                    x=pos.x,
-                    y=pos.y,
-                    rx=5,
-                    width=size.w,
-                    height=size.h,
-                    stroke_width=1,
-                    class_=[self.body_style],
-                ),
-                svg.Path(
-                    d=[
-                        svg.M(pos.x, pos.y + title_height),
-                        svg.l(size.w, 0),
-                        svg.l(0, -(title_height - 5)),
-                        svg.a(5, 5, 0, False, False, -5, -5),
-                        svg.l(-(size.w - 10), 0),
-                        svg.a(5, 5, 0, False, False, -5, 5),
-                        svg.Z(),
-                    ],
-                    class_=[self.header_style],
-                    stroke_width=1,
-                ),
-                svg.Path(
-                    d=[
-                        svg.M(pos.x + 1, pos.y + title_height - 1),
-                        svg.l(size.w - 2, 0),
-                        svg.l(0, -(title_height - 6)),
-                        svg.a(5, 5, 0, False, False, -4, -4),
-                        svg.l(-(size.w - 10), 0),
-                        svg.a(5, 5, 0, False, False, -4, 4),
-                        svg.Z(),
-                    ],
-                    fill="transparent",
-                    stroke="#eeeeee",
-                    stroke_width=0.5,
-                    class_=["box_header"],
-                ),
-                super().do_draw(),
-            ]
-            + expander,
-        )
+        box_radius = self.box_radius
+        inset_radius = max(box_radius - 1, 0)
+        elements: list[svg.Element] = [
+            # Outer box and border
+            svg.Rect(
+                x=pos.x,
+                y=pos.y,
+                rx=box_radius,
+                width=size.w,
+                height=size.h,
+                stroke_width=1,
+                class_=[self.body_style],
+            ),
+            # Filled header with rounded top corners
+            svg.Path(
+                d=[
+                    svg.M(pos.x, pos.y + title_height),
+                    svg.l(size.w, 0),
+                    svg.l(0, -(title_height - box_radius)),
+                    svg.a(
+                        box_radius,
+                        box_radius,
+                        0,
+                        False,
+                        False,
+                        -box_radius,
+                        -box_radius,
+                    ),
+                    svg.l(-(size.w - (2 * box_radius)), 0),
+                    svg.a(
+                        box_radius,
+                        box_radius,
+                        0,
+                        False,
+                        False,
+                        -box_radius,
+                        box_radius,
+                    ),
+                    svg.Z(),
+                ],
+                class_=[self.header_style],
+                stroke_width=1,
+            ),
+            # Inset header highlight
+            svg.Path(
+                d=[
+                    svg.M(pos.x + 1, pos.y + title_height - 1),
+                    svg.l(size.w - 2, 0),
+                    svg.l(0, -(title_height - box_radius - 1)),
+                    svg.a(
+                        box_radius,
+                        box_radius,
+                        0,
+                        False,
+                        False,
+                        -inset_radius,
+                        -inset_radius,
+                    ),
+                    svg.l(-(size.w - 2 - (2 * inset_radius)), 0),
+                    svg.a(
+                        box_radius,
+                        box_radius,
+                        0,
+                        False,
+                        False,
+                        -inset_radius,
+                        inset_radius,
+                    ),
+                    svg.Z(),
+                ],
+                fill="transparent",
+                stroke="#eeeeee",
+                stroke_width=0.5,
+                class_=["box_header"],
+            ),
+        ]
+        content = super().do_draw()
+        if content:
+            # Nested title, headings, and body rows.
+            elements.append(content)
+
+        return self._make_annotated_group(elements)
 
 
 class SubqueryGrid(Grid):
@@ -995,14 +1106,20 @@ class SubqueryGrid(Grid):
         )
         self.heading = heading
 
-    def do_draw(self) -> Optional[svg.Element]:
+    def do_draw(self) -> svg.G:
         size = self.size
+        content = super().do_draw()
         return svg.G(
             elements=[
                 svg.Rect(
                     x=0, y=0, width=size.w, height=24, class_=["subquery_heading"]
                 ),
-                svg.Text(x=8, y=18, text=self.heading, class_=["subquery_text"]),
+                svg.Text(
+                    x=8,
+                    y=18,
+                    text=escape_svg_text(self.heading),
+                    class_=["subquery_text"],
+                ),
                 svg.Rect(
                     x=0,
                     y=0,
@@ -1010,8 +1127,8 @@ class SubqueryGrid(Grid):
                     height=size.h,
                     class_=["subquery_box"],
                 ),
-                super().do_draw(),
-            ]
+                content,
+            ],
         )
 
 
@@ -1037,10 +1154,8 @@ class DrawOptions:
     show_query = True
     compact_chained_joins = False
     top_down = True
-    css = None
-    dynamic = False
-    minimap: Optional[Tuple[int, int, int, int]] = None
-
+    layout = "topDown"
+    css: Optional[str] = None
 
 class Explain:
     unknown_operation_keys = set()
@@ -1054,7 +1169,7 @@ class Explain:
     ):
         self.analyze = explain_analyze
         self.options = options
-        self.query = explain.get("query")
+        self.query: Optional[str] = typing.cast(Optional[str], explain.get("query"))
         # json_schema_version was introduced in 9.2
         if "json_schema_version" not in explain:
             schema_version = 100
@@ -1062,7 +1177,9 @@ class Explain:
             major, minor = explain["json_schema_version"].split(".", 2)
             schema_version = int(major) * 100 + int(minor)
 
-        self.query_type = explain.get("query_type")
+        self.query_type: str = (
+            typing.cast(Optional[str], explain.get("query_type")) or ""
+        )
 
         # 9.2 added a new query_plan block and added versioning, starting at 2.0
         if schema_version < 200:
@@ -1071,12 +1188,6 @@ class Explain:
                 del query_plan["query"]
         else:
             query_plan = explain["query_plan"]
-
-        # cost estimate below this value are painted in gray
-        self.ignored_cost_cutoff = 1.0
-        self.min_cost = None
-        self.max_cost = None
-        self._analyze_plan(query_plan)
 
         if self.query_type == "select":
             self.query_plan = QueryPlan(self, None, {"inputs": [query_plan]})
@@ -1094,90 +1205,34 @@ class Explain:
         self._element_id_serial += 1
         return self._element_id_serial
 
-    def _analyze_plan(self, plan: dict):
-        cost = plan.get("estimated_total_cost", None)
-        if isinstance(cost, float):
-            self.min_cost = (
-                min(self.min_cost, cost) if self.min_cost is not None else cost
-            )
-            self.max_cost = (
-                max(self.max_cost, cost) if self.max_cost is not None else cost
-            )
-        for c in plan.get("inputs", []):
-            self._analyze_plan(c)
-        for c in plan.get("inputs_from_select_list", []):
-            self._analyze_plan(c)
-
-    def _color_for_cost(self, cost: Optional[Union[str, float]]) -> str:
-        def hex_to_rgb(hex_color):
-            hex_color = hex_color.lstrip("#")
-            return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
-
-        def rgb_to_hex(rgb_color):
-            return "#{:02x}{:02x}{:02x}".format(*rgb_color)
-
-        def interpolate_colors(color1, color2, fraction):
-            r = int(color1[0] + (color2[0] - color1[0]) * fraction)
-            g = int(color1[1] + (color2[1] - color1[1]) * fraction)
-            b = int(color1[2] + (color2[2] - color1[2]) * fraction)
-            return (r, g, b)
-
-        def percentage_to_rgb(percentage: float):
-            colors = [
-                "#ffb07f",
-                "#e98d6b",
-                "#e3685c",
-                "#d14a61",
-                "#b13c6c",
-                "#8f3371",
-                "#6c2b6d",
-            ]
-            rgb_colors = [hex_to_rgb(color) for color in colors]
-
-            index = int(percentage * (len(colors) - 1))
-            fraction = (percentage * (len(colors) - 1)) % 1
-
-            if index >= len(colors) - 1:
-                return rgb_colors[-1]
-            else:
-                return rgb_to_hex(
-                    interpolate_colors(
-                        rgb_colors[index], rgb_colors[index + 1], fraction
-                    )
-                )
-
-        if not isinstance(cost, float):
-            return "#f0f0f0"
-
-        if cost < self.ignored_cost_cutoff:
-            return "#f0f0f0"
-
-        if self.max_cost is None:
-            return "#f0f0f0"
-
-        return percentage_to_rgb(
-            math.log10(cost) / (self.max_cost - self.ignored_cost_cutoff)
-        )
-
     def adjust_nodes(self, w):
         node = w.user_data
         if not node:
             return
 
         # align this node to the parent node of the child group
-        if node._main_inputs:
-            c = node._main_inputs[-1]
+        main_inputs = node._main_inputs
+        if main_inputs:
+            c = main_inputs[-1]
             assert node._container
             assert not c._container or isinstance(c._container, Grid)
 
             child_offset = node._container.from_absolute(
-                c._symbol.to_absolute(c._symbol.top_anchor)
+                c._symbol.to_absolute(
+                    c._symbol.bottom_anchor
+                    if node._owner.options.top_down
+                    else c._symbol.top_anchor
+                )
             )
-            node._symbol._pos.x = child_offset.x - node._symbol.size.w / 2
+            parent_anchor = (
+                node._symbol.top_anchor
+                if node._owner.options.top_down
+                else node._symbol.bottom_anchor
+            )
+            node._symbol._pos.x = child_offset.x - parent_anchor.x
 
     def _make_icons(self):
-        return svg.Defs(
-            elements=[
+        icons = [
                 svg.Symbol(
                     id="filtericon",
                     elements=[
@@ -1258,61 +1313,21 @@ class Explain:
                 svg.Symbol(
                     id="aggregateicon",
                     elements=[
-                        svg.Circle(
-                            cx=8,
-                            cy=5,
-                            r=3,
-                            stroke_width=1,
+                        svg.Path(
+                            d=[
+                                svg.M(15, 4),
+                                svg.L(15, 2),
+                                svg.L(3, 2),
+                                svg.L(9, 9),
+                                svg.L(3, 16),
+                                svg.L(15, 16),
+                                svg.L(15, 14)
+                            ],
+                            stroke_width=2,
                             stroke="white",
+                            stroke_linecap="square",
+                            stroke_linejoin="miter",
                             fill="transparent",
-                        ),
-                        svg.Circle(
-                            cx=2,
-                            cy=15,
-                            r=2,
-                            stroke_width=1,
-                            stroke="white",
-                            fill="transparent",
-                        ),
-                        svg.Circle(
-                            cx=8,
-                            cy=15,
-                            r=2,
-                            stroke_width=1,
-                            stroke="white",
-                            fill="transparent",
-                        ),
-                        svg.Circle(
-                            cx=14,
-                            cy=15,
-                            r=2,
-                            stroke_width=1,
-                            stroke="white",
-                            fill="transparent",
-                        ),
-                        svg.Line(
-                            x1=8,
-                            y1=8,
-                            x2=4,
-                            y2=13,
-                            stroke_width=1,
-                            stroke="white",
-                        ),
-                        svg.Line(
-                            x1=8,
-                            y1=8,
-                            x2=8,
-                            y2=13,
-                            stroke_width=1,
-                            stroke="white",
-                        ),
-                        svg.Line(
-                            x1=8,
-                            y1=8,
-                            x2=12,
-                            y2=13,
-                            stroke_width=1,
-                            stroke="white",
                         ),
                     ],
                 ),
@@ -1320,7 +1335,20 @@ class Explain:
                     id="streamicon",
                     elements=[
                         svg.Polygon(
-                            points=[0, 6, 5, 1, 10, 6, 10, 20, 6, 15, 0, 20],
+                            points=[
+                                0,
+                                6,
+                                5,
+                                1,
+                                10,
+                                6,
+                                10,
+                                20,
+                                6,
+                                15,
+                                0,
+                                20,
+                            ],
                             stroke="white",
                             fill="white",
                         )
@@ -1347,12 +1375,13 @@ class Explain:
                         ),
                     ],
                 ),
-            ]
-        )
+        ]
 
-    def _draw_extras(self, size: Size):
+        return svg.Defs(elements=icons) # type: ignore
+
+    def _draw_extras(self, size: Size) -> Tuple[list[svg.Element], Size]:
         extra_size = Size(0, 0)
-        elems = []
+        elems: list[svg.Element] = []
         if self.options.show_query and self.query:
             frame = Frame(
                 top_padding=10,
@@ -1366,120 +1395,40 @@ class Explain:
             frame.set_content(w)
             frame.set_pos(Point(0, size.h + 60))
             frame.layout()
-            elems.append(frame.draw())
+            elem = frame.draw()
+            if elem:
+                elems.append(elem)
             extra_size.w = max(extra_size.w, w.size.w)
             extra_size.h = max(extra_size.h, w.size.h)
         return elems, extra_size
 
-    def _draw_minimap(self, size: Size, scale: float) -> svg.SVG:
-        def draw_recursive(n: node):
-            elements = []
-            if isinstance(n._symbol, JoinWidget):
-                top_anchor = n._symbol.to_absolute(n._symbol.top_anchor)
-                bottom_anchor = n._symbol.to_absolute(n._symbol.bottom_anchor)
-                r = (bottom_anchor.y - top_anchor.y) * scale / 2
-                elements += [
-                    svg.Circle(
-                        cx=top_anchor.x * scale - r / 2,
-                        cy=top_anchor.y * scale + r / 2,
-                        r=r,
-                        stroke="transparent",
-                        fill=n._cost_color,
-                    ),
-                    svg.Circle(
-                        cx=top_anchor.x * scale + r / 2,
-                        cy=top_anchor.y * scale + r / 2,
-                        r=r,
-                        stroke="transparent",
-                        fill=n._cost_color,
-                    ),
-                ]
-            else:
-                top_left = n._symbol.to_absolute(n._symbol.top_left)
-                bottom_right = n._symbol.to_absolute(n._symbol.bottom_right)
-                elements.append(
-                    svg.Rect(
-                        x=top_left.x * scale,
-                        y=top_left.y * scale,
-                        width=(bottom_right.x - top_left.x) * scale,
-                        height=(bottom_right.y - top_left.y) * scale,
-                        stroke="transparent",
-                        fill=self._color_for_cost(n.estimated_total_cost),
-                    )
-                )
-            for c in n._main_inputs:
-                elements += draw_recursive(c)
-            for c in n._extra_inputs:
-                elements += draw_recursive(c)
-            return elements
-
-        elements = draw_recursive(self.query_plan)
-
-        return svg.G(
-            elements=[
-                svg.Rect(
-                    x=0, y=0, width=size.w, height=size.h, class_=["minimap_frame"]
-                ),
-            ]
-            + elements
-        )
-
     def render_svg(self) -> svg.SVG:
-        style = [svg.Style(text=self.options.css or k_svg_style)]
-        if self.options.dynamic:
-            script = [svg.Script(text=k_svg_script)]
-        else:
-            script = []
+        elements: list[svg.Element] = [svg.Style(text=self.options.css or k_svg_style)]
         defs = self._make_icons()
+        elements.append(defs)
         assert self.query_plan._container
         self.query_plan._container.layout()
 
         min_size = self.query_plan._container.min_size
         self.query_plan._container.traverse(lambda x: None, self.adjust_nodes)
-        elem = self.query_plan._container.draw()
+        elem = typing.cast(Optional[svg.G], self.query_plan._container.draw())
 
         extra_elems, extra_size = self._draw_extras(min_size)
-
-        if self.options.minimap:
-            x, y, w, h = self.options.minimap
-            ratio = min_size.w / min_size.h
-            if min_size.w > min_size.h:
-                adjusted_w = w
-                adjusted_h = h * ratio
-            else:
-                adjusted_w = w * ratio
-                adjusted_h = h
-
-            if x < 0:
-                x = min_size.w + x
-            if y < 0:
-                y = min_size.h + y
-
-            minimap = self._draw_minimap(
-                Size(adjusted_w, adjusted_h), adjusted_w / min_size.w
-            )
-            minimap.transform = f"translate({x} {y})"
-            extra_elems.append(minimap)
 
         total_width = max(min_size.w, extra_size.w) + 100
         total_height = min_size.h + 100 + extra_size.h
 
         if elem:
-            elem.transform = f"translate(50 50)"
+            elem.transform = [svg.Translate(50, 50)]
+            elements.append(elem)
 
-            return svg.SVG(
-                id="mysqlVisualExplain",
-                width=total_width,
-                height=total_height,
-                elements=style + [defs, elem] + extra_elems + script,
-            )
-        else:
-            return svg.SVG(
-                id="mysqlVisualExplain",
-                width=total_width,
-                height=total_height,
-                elements=style + [defs] + extra_elems + script,
-            )
+        elements.extend(extra_elems)
+        return svg.SVG(
+            id="mysqlVisualExplain",
+            width=total_width,
+            height=total_height,
+            elements=elements,
+        )
 
 
 def make_node(owner: Explain, parent: Optional["node"], explain: dict):
@@ -1610,7 +1559,7 @@ class node:
 
         self._symbol = self._make_symbol()
 
-        self._cost_color = self._owner._color_for_cost(self.estimated_total_cost)
+        self._symbol.set_annotations(self._displayed_annotations())
 
         self._add_cost_estimate()
         self._add_cost_actual()
@@ -1666,12 +1615,19 @@ class node:
                 children_row = 1
                 parent_row = 0
 
+            main_inputs = self._main_inputs
+            compact_chained_join = (
+                chained_join and self._owner.options.compact_chained_joins
+            )
+            previous_join_input = main_inputs[0] if compact_chained_join else None
+
             col = 0
-            for child in self._main_inputs:
-                if chained_join and 0:
+            for child in main_inputs:
+                if child is previous_join_input:
+                    row_span = 2 if parent_row == 0 else 1
                     self._container.put(
-                        row=children_row,
-                        row_span=2,
+                        row=parent_row,
+                        row_span=row_span,
                         column=col,
                         w=child._container or child._symbol,
                     )
@@ -1682,7 +1638,7 @@ class node:
                         w=child._container or child._symbol,
                     )
                 col += 1
-            if self._main_inputs:
+            if main_inputs:
                 col -= 1
 
             self._container.put(row=parent_row, column=col, w=self._symbol)
@@ -1702,6 +1658,150 @@ class node:
                     style="box_nested_content",
                 )
                 self._container.put(row=0, column=0, w=self._symbol)
+
+    def _annotation_value(self, value):
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, list):
+            return ", ".join([str(item) for item in value])
+        return str(value)
+
+    def _add_annotation(
+        self, annotations: dict, key: str, value, *, include_empty=False
+    ):
+        if value is None:
+            return
+        if isinstance(value, list) and not value and not include_empty:
+            return
+        annotations[key] = self._annotation_value(value)
+
+    def _displayed_annotations(self) -> dict:
+        annotations = {}
+        compact = self._symbol.compact
+        detailed = not compact
+
+        self._add_annotation(annotations, "access_type", self.access_type)
+
+        if isinstance(self._symbol, ExplainWidget) or isinstance(
+            self._symbol, JoinWidget
+        ):
+            self._add_annotation(
+                annotations,
+                "estimated_total_cost",
+                self.estimated_total_cost
+                if self.estimated_total_cost is not None
+                else "n/a",
+            )
+            if detailed:
+                self._add_annotation(
+                    annotations,
+                    "estimated_first_row_cost",
+                    self.estimated_first_row_cost,
+                )
+
+                if self.actual_loops is not None or self.actual_rows is not None:
+                    self._add_annotation(annotations, "actual_loops", self.actual_loops)
+                    self._add_annotation(
+                        annotations,
+                        "actual_first_row_ms",
+                        self.actual_first_row_ms,
+                    )
+                    self._add_annotation(
+                        annotations,
+                        "actual_last_row_ms",
+                        self.actual_last_row_ms,
+                    )
+
+        if self._parent and (
+            self.estimated_rows is not None or self.actual_rows is not None
+        ):
+            self._add_annotation(
+                annotations,
+                "estimated_rows",
+                self.estimated_rows if self.estimated_rows is not None else "n/a",
+            )
+            self._add_annotation(annotations, "actual_rows", self.actual_rows)
+
+        if self.heading:
+            self._add_annotation(annotations, "heading", self.heading)
+        if self.operation:
+            self._add_annotation(annotations, "operation", self.operation)
+
+        if isinstance(self, source):
+            if self.table_name:
+                self._add_annotation(annotations, "table_name", self.table_name)
+                if detailed:
+                    self._add_annotation(annotations, "schema_name", self.schema_name)
+                    self._add_annotation(annotations, "alias", self.alias)
+            self._add_annotation(annotations, "secondary_engine", self.secondary_engine)
+            self._add_annotation(annotations, "index_name", self.index_name)
+            if detailed:
+                if hasattr(self, "used_columns"):
+                    self._add_annotation(
+                        annotations,
+                        "used_columns",
+                        self.used_columns,
+                        include_empty=True,
+                    )
+                self._add_annotation(
+                    annotations, "lookup_condition", self.lookup_condition
+                )
+                self._add_annotation(
+                    annotations,
+                    "pushed_index_condition",
+                    self.pushed_index_condition,
+                )
+                if self.cacheable:
+                    self._add_annotation(annotations, "cacheable", self.cacheable)
+
+        if isinstance(self, Index):
+            self._add_annotation(
+                annotations, "index_access_type", self.index_access_type
+            )
+            if detailed and self.covering:
+                self._add_annotation(annotations, "covering", self.covering)
+
+        if isinstance(self, Join):
+            self._add_annotation(annotations, "join_type", self.join_type)
+            self._add_annotation(annotations, "join_algorithm", self.join_algorithm)
+            self._add_annotation(
+                annotations, "semijoin_strategy", self.semijoin_strategy
+            )
+            if detailed:
+                self._add_annotation(
+                    annotations,
+                    "hash_condition",
+                    getattr(self, "hash_condition", None),
+                )
+
+        if detailed:
+            if isinstance(self, Filter):
+                self._add_annotation(annotations, "condition", self.condition)
+            if isinstance(self, Sort):
+                self._add_annotation(
+                    annotations,
+                    "sort_fields",
+                    getattr(self, "sort_fields", None),
+                )
+            if isinstance(self, Aggregate) or isinstance(self, Window):
+                self._add_annotation(
+                    annotations,
+                    "functions",
+                    getattr(self, "functions", None),
+                )
+            if isinstance(self, Limit):
+                self._add_annotation(annotations, "limit_offset", self.limit_offset)
+                self._add_annotation(annotations, "limit", self.limit)
+            if isinstance(self, ZeroRows):
+                self._add_annotation(
+                    annotations,
+                    "zero_rows_cause",
+                    self.zero_rows_cause,
+                )
+            if isinstance(self, DeleteRows):
+                self._add_annotation(annotations, "tables", self.tables)
+
+        return annotations
 
     def _add_cost_estimate(self):
         if isinstance(self._symbol, BaseExplainWidget):
@@ -1736,10 +1836,6 @@ class node:
                     frame = Frame(
                         draw_background=True,
                         style="cost_box",
-                        # background_args={
-                        #     "stroke": self._cost_color,
-                        #     "stroke_width": 1,
-                        # },
                     )
                     frame.set_content(grid)
                     self._symbol.add_widget(frame)
@@ -1876,36 +1972,45 @@ class source(node):
     def _style(self):
         return self.access_type
 
-    def _make_symbol(self, **kwargs) -> BaseExplainWidget:
-        widget = ExplainWidget(
-            self,
-            self._caption
-            + (f" ({self.heading})" if self.heading and not self.subquery else ""),
-            description=self.operation,
-            style=self._style,
-            compact=not self._owner.options.detailed,
-            top_anchor_margin=(
-                30 if self.subquery and not self._owner.options.top_down else 0
-            ),
-            **kwargs,
-        )
-
+    def _source_title(self, compact: bool):
+        title = [(self._caption, {})]
         if self.table_name:
-            if getattr(self, "alias", None) and not widget.compact:
+            if getattr(self, "alias", None) and not compact:
                 alias = f" ({self.alias})"
             else:
                 alias = ""
-            if getattr(self, "schema_name", None) and not widget.compact:
+            if getattr(self, "schema_name", None) and not compact:
                 table_name = f"{self.schema_name}.{self.table_name}{alias}"
             else:
                 table_name = f"{self.table_name}{alias}"
-            widget.add_text(caption("Table") + [table_name], style="bold_text")
+            title.append(("\n" + table_name, {"class_": "source_table_name"}))
+        if self.index_name:
+            title.append(("\n" + self.index_name, {}))
+
+        if self.heading and not self.subquery:
+            text, attributes = title[-1]
+            title[-1] = (text + f" ({self.heading})", attributes)
+        return title
+
+    def _make_symbol(self, **kwargs) -> BaseExplainWidget:
+        compact = not self._owner.options.detailed
+        widget = ExplainWidget(
+            self,
+            self._source_title(compact),
+            description=self.operation,
+            style=self._style,
+            compact=compact,
+            top_anchor_margin=(
+                30 if self.subquery and not self._owner.options.top_down else 0
+            ),
+            box_radius=1,
+            **kwargs,
+        )
+
         if self.secondary_engine:
             assert isinstance(widget, ExplainWidget)
             widget.add_badge(self.secondary_engine, style="engine_badge")
             widget.add_text(caption("Secondary Engine") + [self.secondary_engine])
-        if self.index_name:
-            widget.add_text(caption("Index") + [self.index_name], style="bold_text")
         if hasattr(self, "used_columns") and not widget.compact:
             widget.add_text(
                 caption("Used Columns") + not_code(", ".join(self.used_columns))
@@ -1924,7 +2029,7 @@ class source(node):
 
 class update(node):
     @property
-    def _caption(self):
+    def _caption(self) -> str:
         return self.access_type or self._owner.query_type
 
     @property
@@ -1971,6 +2076,7 @@ class operation(node):
             top_anchor_margin=(
                 30 if self.subquery and not self._owner.options.top_down else 0
             ),
+            box_radius=8,
             **kwargs,
         )
         return widget
@@ -2034,6 +2140,10 @@ class Join(node):
 class Filter(operation):
     _icon = "filtericon"
 
+    @property
+    def _caption(self) -> str:
+        return super()._caption
+
     def _make_symbol(self, **kwargs) -> BaseExplainWidget:
         w = super()._make_symbol(**kwargs)
         if not w.compact:
@@ -2050,7 +2160,7 @@ class Sort(operation):
     @property
     def _caption(self) -> str:
         # unlike in format v1, if there's a sort in v2, then it's a filesort
-        return "filesort"
+        return "ORDER BY (filesort)"
 
     def _make_symbol(self, **kwargs) -> BaseExplainWidget:
         w = super()._make_symbol(**kwargs)
@@ -2066,8 +2176,11 @@ class Aggregate(operation):
     _icon = "aggregateicon"
 
     @property
-    def _style(self):
-        return f"{self.access_type}{' (group by)' if getattr(self, 'group_by', False) else ''}"
+    def _caption(self) -> str:
+        if getattr(self, 'group_by', False):
+            return "GROUP BY"
+        else:
+            return f"{self.access_type}"
 
     def _make_symbol(self, **kwargs) -> BaseExplainWidget:
         w = super()._make_symbol(**kwargs)
@@ -2320,7 +2433,9 @@ if __name__ == "__main__":
         help="Show descriptions",
     )
     parser.add_argument(
-        "-t", "--top-down", help="Display from top to down", default=False
+        "--layout",
+        choices=["topDown", "bottomUp"],
+        help="Display layout",
     )
     parser.add_argument("--css", help="Path to css file to embed")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -2350,9 +2465,8 @@ if __name__ == "__main__":
         options.debug = args.debug
         options.show_description = not args.description
         options.detailed = not args.compact
-        options.top_down = args.top_down
-        # options.minimap = (10, 10, 200, 200)
-        options.minimap = None
+        options.layout = args.layout or options.layout
+        options.top_down = options.layout == "topDown"
         if args.css:
             options.css = open(args.css).read()
 

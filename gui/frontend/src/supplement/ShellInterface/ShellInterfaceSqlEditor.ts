@@ -28,8 +28,9 @@ import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
-    IShellDbConnection, ISqlEditorHistoryEntry,
+    IShellDbConnection, ISqlEditorHistoryEntry, IVisualExplainData,
 } from "../../communication/ProtocolGui.js";
+import { defaultVisualExplainOptions, type IVisualExplainOptions } from "../../script-execution/index.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
@@ -284,6 +285,36 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
             });
 
             return result;
+        }
+    }
+
+    /**
+     * Generates a visual explain SVG for the given SQL statement.
+     *
+     * @param sql The SQL statement to explain.
+     *
+     * @returns A promise resolving to the SVG payload or undefined if no session is open.
+     */
+    public async visualExplain(sql: string,
+        options: IVisualExplainOptions = defaultVisualExplainOptions): Promise<IVisualExplainData | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiSqlEditorVisualExplain,
+                parameters: {
+                    args: {
+                        moduleSessionId,
+                        sql,
+                        options,
+                    },
+                },
+            });
+
+            for (const entry of response) {
+                if (entry.result?.svg) {
+                    return entry.result;
+                }
+            }
         }
     }
 

@@ -64,22 +64,22 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
           <div
             class="msg divider horizontal sash disabled"
             id="docsSectionSash"
-            style="--thickness: 4px; top: 392px;"
+            style="--thickness: 4px; top: 352px;"
           />
           <div
             class="msg divider horizontal sash disabled"
             id="modelSectionSash"
-            style="--thickness: 4px; top: 468px;"
+            style="--thickness: 4px; top: 428px;"
           />
           <div
             class="msg divider horizontal sash disabled"
             id="advancedModelSectionSash"
-            style="--thickness: 4px; top: 484px;"
+            style="--thickness: 4px; top: 444px;"
           />
           <div
             class="msg divider horizontal sash disabled"
             id="promptSectionSash"
-            style="--thickness: 4px; top: 500px;"
+            style="--thickness: 4px; top: 460px;"
           />
         </div>
         <div
@@ -247,7 +247,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
           <div
             class="msg container fixedScrollbar splitHost"
             id="docsSectionHost"
-            style="flex-direction: column; justify-content: stretch; height: 120px; top: 275px;"
+            style="flex-direction: column; justify-content: stretch; height: 80px; top: 275px;"
           >
             <div
               class="msg container fixedScrollbar section expanded"
@@ -292,7 +292,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
           <div
             class="msg container fixedScrollbar splitHost"
             id="modelSectionHost"
-            style="flex-direction: column; justify-content: stretch; height: 76px; top: 395px;"
+            style="flex-direction: column; justify-content: stretch; height: 76px; top: 355px;"
           >
             <div
               class="msg container fixedScrollbar section expanded"
@@ -358,7 +358,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
           <div
             class="msg container fixedScrollbar splitHost"
             id="advancedModelSectionHost"
-            style="flex-direction: column; justify-content: stretch; height: 16px; top: 471px;"
+            style="flex-direction: column; justify-content: stretch; height: 16px; top: 431px;"
           >
             <div
               class="msg container fixedScrollbar section"
@@ -532,7 +532,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
           <div
             class="msg container fixedScrollbar splitHost"
             id="promptSectionHost"
-            style="flex-direction: column; justify-content: stretch; height: 16px; top: 487px;"
+            style="flex-direction: column; justify-content: stretch; height: 16px; top: 447px;"
           >
             <div
               class="msg container fixedScrollbar section"
@@ -591,7 +591,7 @@ exports[`ChatOptions > Standard Rendering (snapshot) 1`] = `
           <div
             class="msg container fixedScrollbar splitHost"
             id="languageSectionHost"
-            style="flex-direction: column; justify-content: stretch; height: 16px; top: 503px;"
+            style="flex-direction: column; justify-content: stretch; height: 16px; top: 463px;"
           >
             <div
               class="msg container fixedScrollbar section"

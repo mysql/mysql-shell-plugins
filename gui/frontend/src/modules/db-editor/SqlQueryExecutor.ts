@@ -24,13 +24,18 @@
  */
 
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
-import { DBDataType, IColumnInfo, ISqlUpdateResult, IStatusInfo, MessageType } from "../../app-logic/general-types.js";
+import {
+    DBDataType, IColumnInfo, IDictionary, ISqlUpdateResult, IStatusInfo, MessageType,
+} from "../../app-logic/general-types.js";
 import type { IGetColumnsMetadataItem } from "../../communication/ProtocolGui.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { QueryType, type IStatement } from "../../parsing/parser-common.js";
-import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../script-execution/index.js";
+import { defaultVisualExplainOptions } from "../../script-execution/index.js";
+import type {
+    IExecutionResult, IImageResultData, IResponseDataOptions, IResultSet, ITextResultEntry, IVisualExplainOptions,
+} from "../../script-execution/index.js";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import {
@@ -40,13 +45,23 @@ import type { IColumnDetails } from "../../supplement/RequisitionTypes.js";
 import type { DBType } from "../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { clearIntervalAsync, setIntervalAsync, type SetIntervalAsyncTimer } from "../../utilities/AsyncInterval.js";
-import { uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, uuid } from "../../utilities/helpers.js";
 import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
 import { IQueryExecutionOptions } from "./ConnectionWorkspace.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
 const leadingLineBreaksRegExp = new RegExp(`^\\s*\\n+`);
+const defaultResultHeight = 352;
+const visualExplainResultHeight = 704;
+const visualExplainResultPadding = 120;
+
+interface ITimedResult {
+    data: IExecutionResult;
+    options: IResponseDataOptions;
+    resolve: () => void;
+    reject: (reason?: unknown) => void;
+}
 
 const columnNameKey = (name: string): string => {
     return name.toLowerCase();
@@ -54,7 +69,7 @@ const columnNameKey = (name: string): string => {
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
-    results: Array<[IExecutionResult, IResponseDataOptions]>;
+    results: ITimedResult[];
 }
 
 interface IRunSqlCodeResult {
@@ -156,7 +171,9 @@ export class SqlQueryExecutor {
         let jsCreateStatementStr = "";
         let errorStatementStr = "";
 
-        if (options.source) {
+        if (options.sourceText) {
+            await this.executeQuery(context, 0, 0, pageSize, options, options.sourceText.trim(), undefined, tabId);
+        } else if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
 
             await this.executeQuery(context, 0, 0, pageSize, options, sql ?? "", undefined, tabId);
@@ -218,6 +235,250 @@ export class SqlQueryExecutor {
     };
 
     /**
+     * Runs the current SQL statement through the backend visual explain renderer and shows the generated image as
+     * a result set tab.
+     *
+     * @param context The context with the code to explain.
+     * @param options Content and details for script execution.
+     * @param tabId An optional tab identifier for persisted result data.
+     */
+    public runVisualExplain = async (context: SQLExecutionContext, options: IScriptExecutionOptions,
+        tabId = ""): Promise<void> => {
+        const connection = this.#connection;
+
+        if (!connection?.backend) {
+            return;
+        }
+
+        let sql = options.sourceText?.trim();
+        if (!sql && options.source) {
+            sql = (await context.getStatementAtPosition(options.source))?.text.trim();
+        }
+
+        const analyze = options.visualExplainAnalyze ?? false;
+        const caption = analyze ? "Visual Explain Analyze" : "Visual Explain";
+        const actionLabel = analyze ? "visual explain analyze" : "visual explain";
+
+        if (!sql) {
+            await context.clearResult();
+            await context.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Info,
+                    content: `No SQL statement selected for ${actionLabel}.`,
+                    language: "ansi",
+                }],
+                executionInfo: { text: "" },
+            }, { resultId: "" });
+
+            return;
+        }
+
+        await context.clearResult();
+        context.executionStarts();
+
+        const resultId = uuid();
+        try {
+            const visualExplainOptions = { ...defaultVisualExplainOptions, analyze };
+            const { rows, status, image } = await this.createVisualExplainResult(sql, visualExplainOptions);
+
+            await ApplicationDB.db.add("documentResultData", {
+                tabId,
+                resultId,
+                rows,
+                columns: [],
+                executionInfo: status,
+                hasMoreRows: false,
+                currentPage: 0,
+                index: 0,
+                sql,
+                viewType: "image",
+                image,
+                caption,
+            });
+
+            await context.addResultData({
+                type: "resultSetRows",
+                rows,
+                columns: [],
+                executionInfo: status,
+                hasMoreRows: false,
+                currentPage: 0,
+                viewType: "image",
+                image,
+                caption,
+            }, {
+                resultId,
+                index: 0,
+                sql,
+            }, {
+                currentSet: 1,
+                manualHeight: this.getVisualExplainResultHeight(image),
+            }, QueryType.Select);
+        } catch (reason) {
+            await context.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Error,
+                    index: 0,
+                    content: convertErrorToString(reason),
+                    language: "ansi",
+                }],
+                executionInfo: { text: "" },
+            }, {
+                resultId,
+                index: 0,
+                sql,
+            });
+        }
+    };
+
+    /**
+     * Re-runs visual explain for an existing image result set after its render options changed.
+     *
+     * @param context The context that owns the result set.
+     * @param resultSet The image result set to update.
+     * @param options The visual explain render options to use.
+     * @param tabId An optional tab identifier for persisted result data.
+     */
+    public updateVisualExplain = async (context: SQLExecutionContext, resultSet: IResultSet,
+        options: IVisualExplainOptions, tabId = ""): Promise<void> => {
+        const connection = this.#connection;
+        const sql = resultSet.sql.trim();
+
+        if (!connection?.backend || !sql) {
+            return;
+        }
+
+        try {
+            const resultId = resultSet.resultId;
+            const index = resultSet.index ?? 0;
+            const visualExplainOptions = { ...defaultVisualExplainOptions, ...options };
+            const { rows, status, image } = await this.createVisualExplainResult(sql, visualExplainOptions,
+                resultSet.image?.visualExplainPlan);
+
+            await ApplicationDB.removeDataByResultIds(StoreType.Document, [resultId]);
+            await ApplicationDB.db.add("documentResultData", {
+                tabId,
+                resultId,
+                rows,
+                columns: [],
+                executionInfo: status,
+                hasMoreRows: false,
+                currentPage: 0,
+                index,
+                sql,
+                viewType: "image",
+                image,
+                caption: image.caption,
+            });
+
+            await context.addResultData({
+                type: "resultSetRows",
+                rows,
+                columns: [],
+                executionInfo: status,
+                hasMoreRows: false,
+                currentPage: 0,
+                viewType: "image",
+                image,
+                caption: image.caption,
+            }, {
+                resultId,
+                index,
+                sql,
+                replaceData: true,
+            }, {
+                currentSet: context.presentation.currentSet,
+                manualHeight: context.presentation.currentHeight ?? this.getVisualExplainResultHeight(image),
+            }, QueryType.Select);
+        } catch (reason) {
+            await context.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Error,
+                    index: resultSet.index ?? 0,
+                    content: convertErrorToString(reason),
+                    language: "ansi",
+                }],
+                executionInfo: { text: "" },
+            }, {
+                resultId: resultSet.resultId,
+                index: resultSet.index ?? 0,
+                sql,
+            });
+        }
+    };
+
+    private createVisualExplainResult = async (sql: string, options: IVisualExplainOptions,
+        sourcePlan?: string): Promise<{ rows: IDictionary[]; status: IStatusInfo; image: IImageResultData; }> => {
+        const connection = this.#connection;
+
+        if (!connection?.backend) {
+            throw new Error("No backend connection is available for visual explain.");
+        }
+
+        const visualExplainOptions = {
+            ...defaultVisualExplainOptions,
+            ...options,
+            darkMode: this.isAppInDarkMode(),
+        };
+        const analyze = visualExplainOptions.analyze === true;
+        const caption = analyze ? "Visual Explain Analyze" : "Visual Explain";
+        const statusLabel = analyze ? "visual explain analyze" : "visual explain";
+        const startTime = Date.now();
+        const backendOptions = sourcePlan
+            ? { ...visualExplainOptions, plan: sourcePlan }
+            : visualExplainOptions;
+        const visualExplain = await connection.backend.visualExplain(sql, backendOptions);
+        const executionTime = visualExplain?.executionTime ?? ((Date.now() - startTime) / 1000);
+        const svg = visualExplain?.svg;
+
+        if (!svg) {
+            throw new Error("The visual explain renderer did not return an image.");
+        }
+
+        const status: IStatusInfo = {
+            text: `OK, ${statusLabel} generated in ${formatTime(executionTime)}`,
+        };
+        const rows: IDictionary[] = [];
+        const image: IImageResultData = {
+            mimeType: "image/svg+xml",
+            data: svg,
+            caption,
+            scrollToRight: visualExplainOptions.topDown === false,
+            visualExplainPlan: visualExplain?.plan ?? sourcePlan,
+            visualExplainOptions,
+        };
+
+        return { rows, status, image };
+    };
+
+    private isAppInDarkMode(): boolean {
+        return document.body.getAttribute("theme") === "dark";
+    }
+
+    private getVisualExplainResultHeight(image: IImageResultData): number {
+        const imageHeight = this.getSvgImageLength(image.data, "height");
+        if (imageHeight === undefined) {
+            return visualExplainResultHeight;
+        }
+
+        return Math.min(visualExplainResultHeight, Math.max(defaultResultHeight, imageHeight + visualExplainResultPadding));
+    }
+
+    private getSvgImageLength(svg: string, attribute: "height" | "width"): number | undefined {
+        const match = svg.match(new RegExp(`<svg\\b[^>]*\\s${attribute}=["']([^"']+)["']`, "i"));
+        if (!match) {
+            return undefined;
+        }
+
+        const value = Number.parseFloat(match[1]!);
+
+        return Number.isFinite(value) ? value : undefined;
+    }
+
+    /**
      * Executes a single query. The query is amended with a LIMIT clause, if the given count is > 0 (the page size)
      * and no other top level LIMIT clause already exists.
      *
@@ -245,7 +506,22 @@ export class SqlQueryExecutor {
         if (connection) {
             // Extract embedded parameters.
             const services = ScriptingLanguageServices.instance;
-            const queryType = await services.determineQueryType(context, sql);
+            const sourceSql = sql;
+            let queryType = await services.determineQueryType(context, sql);
+            if (options.explain || options.explainAnalyze) {
+                if (queryType === QueryType.ExplainStatement) {
+                    if (options.explainAnalyze && !/^\s*explain\s+analyze\b/i.test(sql)) {
+                        sql = sql.replace(/^\s*explain\b/i, "explain analyze");
+                    } else if (options.explain && !/^\s*explain\s+(?:format\s*=\s*tree|analyze)\b/i.test(sql)) {
+                        sql = sql.replace(/^\s*explain\b/i, "explain format=tree");
+                    }
+                } else {
+                    sql = `${options.explainAnalyze ? "explain analyze" : "explain format=tree"} ${sql}`;
+                }
+
+                queryType = await services.determineQueryType(context, sql);
+            }
+            const showAsText = options.asText === true;
 
             const actualParams: string[] = [];
 
@@ -290,7 +566,7 @@ export class SqlQueryExecutor {
                     explicitPaging: result.changed,
                     currentPage: page,
                     oldResultId,
-                    showAsText: options.asText ?? false,
+                    showAsText,
                     updatable: result.updatable,
                     fullTableName: result.fullTableName,
                     pkColumns,
@@ -299,7 +575,7 @@ export class SqlQueryExecutor {
             } else {
                 await this.doExecution({
                     query: sql,
-                    original: sql,
+                    original: sourceSql,
                     queryType,
                     params: actualParams,
                     context,
@@ -307,7 +583,7 @@ export class SqlQueryExecutor {
                     explicitPaging: false,
                     currentPage: page,
                     oldResultId,
-                    showAsText: options.asText ?? false,
+                    showAsText,
                     updatable: false,
                     errorCallback: options.errorCallback,
                 }, pageSize, tabId);
@@ -324,32 +600,52 @@ export class SqlQueryExecutor {
      * @param options Additional details for the execution.
      */
     public addTimedResult(context: SQLExecutionContext, data: IExecutionResult,
-        options: IResponseDataOptions): void {
-        const resultTimer = this.resultTimers.get(options.resultId);
-        if (!resultTimer) {
-            // Create the timer, if it doesn't exist.
-            const newTimer: IResultTimer = {
-                timer: setIntervalAsync(async (id: string) => {
-                    const resultTimer = this.resultTimers.get(id);
-                    if (resultTimer) {
-                        const pendingResult = resultTimer.results.shift();
-                        if (pendingResult) {
-                            await context.addResultData(pendingResult[0], pendingResult[1], { showIndexes: true });
-                        } else {
-                            // No results left. Stop the timer.
-                            void clearIntervalAsync(resultTimer.timer).then(() => {
-                                this.resultTimers.delete(id);
-                            });
+        options: IResponseDataOptions): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const queuedResult: ITimedResult = { data, options, resolve, reject };
+            const resultTimer = this.resultTimers.get(options.resultId);
+            if (!resultTimer) {
+                // Create the timer, if it doesn't exist.
+                const newTimer: IResultTimer = {
+                    timer: setIntervalAsync(async (id: string) => {
+                        const resultTimer = this.resultTimers.get(id);
+                        if (resultTimer) {
+                            const pendingResult = resultTimer.results.shift();
+                            if (pendingResult) {
+                                try {
+                                    await context.addResultData(pendingResult.data, pendingResult.options,
+                                        { showIndexes: true });
+                                    pendingResult.resolve();
+                                } catch (reason) {
+                                    pendingResult.reject(reason);
+                                }
+                            } else {
+                                // No results left. Stop the timer.
+                                void clearIntervalAsync(resultTimer.timer).then(() => {
+                                    this.resultTimers.delete(id);
+                                });
+                            }
                         }
-                    }
-                }, 20, options.resultId),
+                    }, 20, options.resultId),
 
-                results: [[data, options]],
-            };
+                    results: [queuedResult],
+                };
 
-            this.resultTimers.set(options.resultId, newTimer);
-        } else {
-            resultTimer.results.push([data, options]);
+                this.resultTimers.set(options.resultId, newTimer);
+            } else {
+                resultTimer.results.push(queuedResult);
+            }
+        });
+    }
+
+    private async cancelTimedResult(resultId: string): Promise<void> {
+        const resultTimer = this.resultTimers.get(resultId);
+        if (resultTimer) {
+            this.resultTimers.delete(resultId);
+            resultTimer.results.splice(0).forEach((pendingResult) => {
+                pendingResult.resolve();
+            });
+            await clearIntervalAsync(resultTimer.timer);
         }
     }
 
@@ -660,6 +956,10 @@ export class SqlQueryExecutor {
             subIndex = 0;
         }
         let exceptionThrown;
+        const timedResultPromises: Array<Promise<void>> = [];
+        const addTimedResult = (data: IExecutionResult, dataOptions: IResponseDataOptions): void => {
+            timedResultPromises.push(this.addTimedResult(options.context, data, dataOptions));
+        };
 
         try {
             // Prepare the execution (storage, UI).
@@ -754,6 +1054,7 @@ export class SqlQueryExecutor {
                     }
                 }
                 const rows = convertRows(columns, data.result.rows);
+                const executionInfo = resultSummary ? status : undefined;
 
                 if (options.showAsText) {
                     let query = options.query.trim();
@@ -764,14 +1065,18 @@ export class SqlQueryExecutor {
 
                     content += this.convertResultSetToText(rows, columns, setColumns, resultSummary, status);
 
-                    this.addTimedResult(options.context, {
+                    const textResult: IExecutionResult = {
                         type: "text",
-                        executionInfo: resultSummary ? status : undefined,
                         text: [{
                             type: MessageType.Text,
                             content,
                         }],
-                    }, {
+                    };
+                    if (executionInfo) {
+                        textResult.executionInfo = executionInfo;
+                    }
+
+                    addTimedResult(textResult, {
                         resultId,
                         index: options.index,
                         sql: options.original,
@@ -783,7 +1088,7 @@ export class SqlQueryExecutor {
                         resultId,
                         rows,
                         columns: setColumns ? columns : undefined,
-                        executionInfo: resultSummary ? status : undefined,
+                        executionInfo,
                         totalRowCount: resultSummary ? rowCount : undefined,
                         hasMoreRows,
                         currentPage: options.currentPage,
@@ -800,7 +1105,7 @@ export class SqlQueryExecutor {
                         type: "resultSetRows",
                         rows,
                         columns: setColumns ? columns : undefined,
-                        executionInfo: resultSummary ? status : undefined,
+                        executionInfo,
                         totalRowCount: resultSummary ? rowCount : undefined,
                         hasMoreRows,
                         currentPage: options.currentPage,
@@ -846,10 +1151,8 @@ export class SqlQueryExecutor {
         } catch (reason) {
             exceptionThrown = reason;
 
-            const resultTimer = this.resultTimers.get(resultId);
-            if (resultTimer) {
-                await clearIntervalAsync(resultTimer.timer);
-                this.resultTimers.delete(resultId);
+            if (this.resultTimers.has(resultId)) {
+                await this.cancelTimedResult(resultId);
             }
 
             let type = MessageType.Error;
@@ -929,7 +1232,7 @@ export class SqlQueryExecutor {
                 await options.errorCallback(content);
             }
 
-            this.addTimedResult(options.context, {
+            addTimedResult({
                 type: "text",
                 text: [{
                     type,
@@ -955,6 +1258,10 @@ export class SqlQueryExecutor {
 
                 default:
             }
+        }
+
+        if (timedResultPromises.length > 0) {
+            await Promise.all(timedResultPromises);
         }
 
         if (exceptionThrown !== undefined) {

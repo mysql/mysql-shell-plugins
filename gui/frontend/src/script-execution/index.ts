@@ -147,6 +147,41 @@ interface IResultSetContent {
     executionInfo?: IStatusInfo;
 }
 
+export type ResultViewType = "grid" | "image";
+export type VisualExplainLayout = "topDown" | "bottomUp";
+
+export interface IVisualExplainOptions {
+    analyze?: boolean;
+    compact?: boolean;
+    darkMode?: boolean;
+    layout?: VisualExplainLayout;
+    plan?: string;
+    showDescription?: boolean;
+    showQuery?: boolean;
+    topDown?: boolean;
+}
+
+export const defaultVisualExplainOptions: IVisualExplainOptions = {
+    analyze: false,
+    compact: false,
+    darkMode: false,
+    showQuery: false,
+    showDescription: false,
+    layout: "bottomUp",
+    topDown: false,
+};
+
+export interface IImageResultData {
+    mimeType: string;
+    data: string;
+    caption?: string;
+    scrollToRight?: boolean;
+    showMinimap?: boolean;
+    zoom?: number;
+    visualExplainPlan?: string;
+    visualExplainOptions?: IVisualExplainOptions;
+}
+
 export interface IResultSet {
     type: "resultSet";
 
@@ -179,6 +214,15 @@ export interface IResultSet {
     columns: IColumnInfo[];
 
     data: IResultSetContent;
+
+    /** Optional presentation override for non-tabular result sets. */
+    viewType?: ResultViewType;
+
+    /** Payload for image result views. */
+    image?: IImageResultData;
+
+    /** Optional tab caption override. */
+    caption?: string;
 }
 
 export interface IResultSets {
@@ -195,6 +239,9 @@ export interface IResultSetRows extends IResultSetContent {
 
     totalRowCount?: number;
     columns?: IColumnInfo[];
+    viewType?: ResultViewType;
+    image?: IImageResultData;
+    caption?: string;
 }
 
 export interface IGraphResult {

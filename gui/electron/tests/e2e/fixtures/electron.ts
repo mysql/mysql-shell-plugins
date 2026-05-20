@@ -64,6 +64,7 @@ interface IElectronOptions {
 }
 
 type SlowMoPatchTarget = Record<string | symbol, unknown>;
+type ElectronLaunchOptions = NonNullable<Parameters<typeof electron.launch>[0]>;
 
 const parseSlowMo = (): number | undefined => {
     if (!slowMoValue) {
@@ -329,40 +330,61 @@ const installPluginLinks = async (mysqlshRuntimeDir: string): Promise<void> => {
     }
 };
 
+export const createElectronLaunchOptions = async (
+    testInfo: TestInfo,
+    environmentOverrides: Record<string, string | undefined>,
+): Promise<ElectronLaunchOptions> => {
+    const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
+    const electronUserDataDir = testInfo.outputPath("electron-user-data");
+    const mysqlshRuntimeDir = isPackagedAppMode ? undefined : resolveMysqlShellRuntimeDir();
+    await mkdir(shellUserConfigDir, { recursive: true });
+    await mkdir(electronUserDataDir, { recursive: true });
+
+    if (mysqlshRuntimeDir) {
+        validateMysqlShellRuntimeDir(mysqlshRuntimeDir);
+        await installPluginLinks(mysqlshRuntimeDir);
+    }
+
+    return {
+        executablePath: resolveElectronExecutablePath(),
+        args: createLaunchArguments(testInfo),
+        env: createLaunchEnvironment(shellUserConfigDir, mysqlshRuntimeDir, environmentOverrides),
+        timeout: 60000,
+    };
+};
+
+export const launchElectronApp = async (
+    testInfo: TestInfo,
+    environmentOverrides: Record<string, string | undefined> = {},
+): Promise<ElectronApplication> => {
+    return electron.launch(await createElectronLaunchOptions(testInfo, environmentOverrides));
+};
+
+export const closeElectronApp = async (electronApp: ElectronApplication): Promise<void> => {
+    const closePromise = electronApp.waitForEvent("close", { timeout: 15000 }).catch(() => {
+        // The runner can already have closed the application after a startup failure.
+    });
+
+    await electronApp.evaluate(({ app }) => {
+        app.exit(0);
+    }).catch(async () => {
+        await electronApp.close().catch(() => {
+            // The application may already have exited.
+        });
+    });
+    await closePromise;
+};
+
 export const test = base.extend<IElectronFixtures & IElectronOptions>({
     electronLaunchEnvironment: [{}, { option: true }],
 
     electronApp: async ({ electronLaunchEnvironment }, use, testInfo) => {
-        const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
-        const electronUserDataDir = testInfo.outputPath("electron-user-data");
-        const mysqlshRuntimeDir = isPackagedAppMode ? undefined : resolveMysqlShellRuntimeDir();
-        await mkdir(shellUserConfigDir, { recursive: true });
-        await mkdir(electronUserDataDir, { recursive: true });
-
-        if (mysqlshRuntimeDir) {
-            validateMysqlShellRuntimeDir(mysqlshRuntimeDir);
-            await installPluginLinks(mysqlshRuntimeDir);
-        }
-
-        const launchOptions = {
-            executablePath: resolveElectronExecutablePath(),
-            args: createLaunchArguments(testInfo),
-            env: createLaunchEnvironment(shellUserConfigDir, mysqlshRuntimeDir, electronLaunchEnvironment),
-            timeout: 60000,
-        };
-
-        const electronApp = await electron.launch(launchOptions);
+        const electronApp = await launchElectronApp(testInfo, electronLaunchEnvironment);
 
         try {
             await use(electronApp);
         } finally {
-            await electronApp.evaluate(({ app }) => {
-                app.exit(0);
-            }).catch(async () => {
-                await electronApp.close().catch(() => {
-                    // The runner can already have closed the application after a startup failure.
-                });
-            });
+            await closeElectronApp(electronApp);
         }
     },
 

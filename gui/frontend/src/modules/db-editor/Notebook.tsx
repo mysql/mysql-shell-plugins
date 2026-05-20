@@ -265,6 +265,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                         ref={this.#toolbarRef}
                         toolbarItems={toolbarItems}
                         language="msg"
+                        dbType={dbType}
                         activeDocument={savedState.activeEntry}
                         heatWaveEnabled={savedState.heatWaveEnabled}
                         documentState={savedState.documentStates}

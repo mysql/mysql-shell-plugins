@@ -187,6 +187,45 @@ class TestSessionInfoTask:
             assert False, f"Unexpected Error Happened: {str(e)}"
 
 
+class TestExplainJsonFormatVersionTask:
+    def test_connection_supported_version(self):
+        try:
+            options = {"scheme": "mysql"}
+            on_connect_options = options.copy()
+            data = {common.MySQLData.VERSION_INFO: "8.3.0"}
+            session = MockDbSession(
+                Tasks.ExplainJsonFormatVersionTask,
+                True,
+                options,
+                on_connect_options,
+                data,
+                known_data=data,
+                expected_queries=[
+                    (("SET SESSION explain_json_format_version=2", None), MockResult([]))
+                ],
+            )
+            session.reconnect()
+        except Exception as e:
+            assert False, f"Unexpected Error Happened: {str(e)}"
+
+    def test_connection_unsupported_version(self):
+        try:
+            options = {"scheme": "mysql"}
+            on_connect_options = options.copy()
+            data = {common.MySQLData.VERSION_INFO: "8.0.30"}
+            session = MockDbSession(
+                Tasks.ExplainJsonFormatVersionTask,
+                True,
+                options,
+                on_connect_options,
+                data,
+                known_data=data,
+            )
+            session.reconnect()
+        except Exception as e:
+            assert False, f"Unexpected Error Happened: {str(e)}"
+
+
 class TestHeatWaveCheckTask:
     def test_initialization(self):
         try:

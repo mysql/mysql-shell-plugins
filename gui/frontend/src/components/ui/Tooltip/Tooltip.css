@@ -46,6 +46,7 @@
     overflow: auto;
     pointer-events: none;
     z-index: 20;
+    white-space: pre-line;
 }
 
 .msg.tooltip:not(.expand) {

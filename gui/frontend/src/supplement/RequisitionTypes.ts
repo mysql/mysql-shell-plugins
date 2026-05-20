@@ -183,6 +183,14 @@ export interface ISaveDialogOptions {
     title?: string;
 }
 
+export interface ISaveFileOptions extends ISaveDialogOptions {
+    /** The file content to save. */
+    content: string;
+
+    /** Encoding used for the content. Defaults to UTF-8 text. */
+    encoding?: "utf8" | "base64";
+}
+
 /** The structure describing the files the user selected when running the open dialog in the application host. */
 export interface IOpenFileDialogResult {
     resourceId: string;
@@ -205,6 +213,21 @@ export interface IEditorCommonExecutionOptions {
 
     /** When true render the query and the result as plain text. */
     asText?: boolean;
+
+    /** Explicit SQL source text to execute instead of deriving it from an editor position. */
+    sourceText?: string;
+
+    /** When true execute the statement with EXPLAIN. */
+    explain?: boolean;
+
+    /** When true execute the statement with EXPLAIN ANALYZE. */
+    explainAnalyze?: boolean;
+
+    /** When true execute the statement as a visual explain request. */
+    visualExplain?: boolean;
+
+    /** When true execute the visual explain request with EXPLAIN ANALYZE. */
+    visualExplainAnalyze?: boolean;
 
     /** Any additional named parameters for placeholders in the code. */
     params?: Array<[string, string]>;
@@ -469,6 +492,8 @@ export interface IRequestTypeMap {
     "showOpenDialogWithRead": (options: IOpenDialogOptions) => Promise<boolean>;
     /** Used only within the extension, to show open dialog which only selects a chosen file. */
     "showSaveDialog": (options: ISaveDialogOptions) => Promise<boolean>;
+    /** Used only within the desktop host, to save provided content to a user-selected file. */
+    "saveFile": (options: ISaveFileOptions) => Promise<boolean>;
 
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
 
@@ -479,6 +504,7 @@ export interface IRequestTypeMap {
     "editorExecuteSelectedOrAll": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecute": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecuteCurrent": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
+    "editorVisualExplain": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecuteOnHost": (options: IEditorExtendedExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
