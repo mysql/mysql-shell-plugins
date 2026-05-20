@@ -496,11 +496,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             return null;
         }
 
-        const documentSectionState = savedSectionState?.get("documentSection") ?? {};
-        const connectionSectionState = savedSectionState?.get("connectionSection") ?? {};
-        const schemasSectionState = savedSectionState?.get("schemasSection") ?? {};
-        const administrationSectionState = savedSectionState?.get("administrationSection") ?? {};
-        const ociSectionState = savedSectionState?.get("ociSection") ?? {};
+        const documentSectionState = this.getSectionState(savedSectionState, "documentSection", sidebarMode);
+        const connectionSectionState = this.getSectionState(savedSectionState, "connectionSection", sidebarMode);
+        const schemasSectionState = this.getSectionState(savedSectionState, "schemasSection", sidebarMode);
+        const administrationSectionState = this.getSectionState(savedSectionState, "administrationSection", sidebarMode);
+        const ociSectionState = this.getSectionState(savedSectionState, "ociSection", sidebarMode);
         const schemasSectionExpanded = schemasSectionState.expanded ?? true;
         const ociSectionExpanded = ociSectionState.expanded ?? false;
         const homeConnectionTreeItems = sidebarMode === "electronHome"
@@ -601,7 +601,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 id: "connectionSection",
                 caption: "CONNECTIONS",
                 stretch: true,
-                expanded: connectionSectionState.expanded,
+                expanded: connectionSectionState.expanded ?? true,
                 initialSize: connectionSectionState.size ?? 260,
                 resizable: true,
                 minSize: 100,
@@ -2976,7 +2976,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         if (this.isElectronHomeSidebar()) {
             if (entry.dataModelEntry.type === CdmEntityType.ConnectionGroup && !entry.dataModelEntry.state.expandedOnce) {
                 entry.dataModelEntry.state.expandedOnce = true;
-                void this.updateConnectionTreeItems();
+                void this.refreshHomeConnectionGroupTreeEntries(entry.dataModelEntry);
             }
 
             return;
@@ -3009,6 +3009,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
 
         return entry.dataModelEntry.state.expanded;
+    };
+
+    private refreshHomeConnectionGroupTreeEntries = async (entry: ICdmConnectionGroupEntry): Promise<void> => {
+        await this.refreshConnectionEntry(entry, this.connectionSectionRef);
+        await this.updateConnectionTreeItems();
     };
 
     private handleConnectionTreeRowContext = (event: Event, row: RowComponent): void => {
@@ -3379,13 +3384,28 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
     };
 
+    private getSectionState = (
+        savedSectionState: Map<string, IDocumentSideBarSectionState> | undefined,
+        sectionId: string,
+        sidebarMode: DocumentSideBarMode,
+    ): IDocumentSideBarSectionState => {
+        return savedSectionState?.get(this.sectionStateKey(sectionId, sidebarMode))
+            ?? (sidebarMode === "classic" ? savedSectionState?.get(sectionId) : undefined)
+            ?? {};
+    };
+
+    private sectionStateKey = (sectionId: string, sidebarMode = this.props.sidebarMode ?? "classic"): string => {
+        return `${sidebarMode}.${sectionId}`;
+    };
+
     private handleSectionExpand = (props: IAccordionProperties, sectionId: string, expanded: boolean): void => {
         const { onSaveState, savedSectionState = new Map<string, IDocumentSideBarSectionState>() } = this.props;
+        const stateKey = this.sectionStateKey(sectionId);
 
-        const sectionState = savedSectionState.get(sectionId) ?? {};
+        const sectionState = savedSectionState.get(stateKey) ?? {};
         sectionState.expanded = expanded;
 
-        savedSectionState.set(sectionId, sectionState);
+        savedSectionState.set(stateKey, sectionState);
 
         onSaveState?.(savedSectionState);
     };
@@ -3395,10 +3415,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         const newMap = savedSectionState ? new Map(savedSectionState) : new Map<string, IDocumentSideBarSectionState>();
         info.forEach((value) => {
-            const sectionState = newMap.get(value.id) ?? {};
+            const stateKey = this.sectionStateKey(value.id);
+            const sectionState = newMap.get(stateKey) ?? {};
             sectionState.size = value.currentSize;
 
-            newMap.set(value.id, sectionState);
+            newMap.set(stateKey, sectionState);
         });
 
         onSaveState?.(newMap);

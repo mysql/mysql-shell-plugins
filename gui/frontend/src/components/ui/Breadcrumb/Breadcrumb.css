@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -63,6 +63,41 @@
     border-radius: 0;
     border: none;
     color: inherit;
+}
+
+.msg.breadcrumb.connectionBrowserBreadcrumb {
+    gap: 4px;
+}
+
+.msg.breadcrumb.connectionBrowserBreadcrumb > .breadcrumbItem {
+    min-width: 0;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: var(--breadcrumb-background);
+}
+
+.msg.breadcrumb.connectionBrowserBreadcrumb > .breadcrumbItem.disabled {
+    cursor: default;
+    pointer-events: none;
+}
+
+.msg.breadcrumb.connectionBrowserBreadcrumb > .breadcrumbItem:not(.disabled):hover,
+.msg.breadcrumb.connectionBrowserBreadcrumb > .breadcrumbItem:not(.disabled):focus {
+    background-color: color-mix(in srgb, currentColor 16%, var(--breadcrumb-background));
+}
+
+.msg.breadcrumb.connectionBrowserBreadcrumb > .separator {
+    color: #9da1a8;
+    background-color: transparent;
+    pointer-events: none;
+    user-select: none;
+}
+
+.msg.breadcrumb.connectionBrowserBreadcrumb > .separator:last-child {
+    display: none;
 }
 
 .msg.breadcrumb > .separator {

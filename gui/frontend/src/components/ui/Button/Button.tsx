@@ -113,6 +113,13 @@ export class Button extends ComponentBase<IButtonProperties> {
     }
 
     protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+        if (this.props.disabled) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            return false;
+        }
+
         switch (type) {
             case MouseEventType.Down: {
                 const { focusOnClick } = this.props;
@@ -149,6 +156,13 @@ export class Button extends ComponentBase<IButtonProperties> {
     }
 
     protected override handleKeyboardEvent(type: KeyboardEventType, e: KeyboardEvent): boolean {
+        if (this.props.disabled) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            return false;
+        }
+
         if (type === KeyboardEventType.Down && (e.key === KeyboardKeys.Enter || e.key === KeyboardKeys.Space)) {
             const { requestType } = this.props;
             e.preventDefault();

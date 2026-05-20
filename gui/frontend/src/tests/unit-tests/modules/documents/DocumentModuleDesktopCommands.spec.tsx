@@ -1186,6 +1186,7 @@ describe("Document module desktop commands", () => {
             options: {
                 user: "shell",
                 host: "user-db.internal",
+                port: 3308,
             },
             versionComment: "User MySQL",
         };
@@ -1194,6 +1195,7 @@ describe("Document module desktop commands", () => {
             options: {
                 user: "service",
                 host: "service-db.internal",
+                port: 4407,
             },
             versionComment: "Service MySQL",
         };
@@ -1245,7 +1247,7 @@ describe("Document module desktop commands", () => {
             });
         });
 
-        expect(container.querySelector("#desktopStatusArea")?.textContent).toContain("shell@user-db.internal");
+        expect(container.querySelector("#desktopStatusArea")?.textContent).toContain("shell@user-db.internal:3308");
         expect(container.querySelector("#desktopStatusArea")?.textContent).not.toContain("service@service-db.internal");
         expect(container.querySelector(".desktopStatusConnectionInfo")?.getAttribute("data-tooltip")).toBeNull();
         expect(container.querySelector(".desktopStatusPrimary")?.getAttribute("data-tooltip")).toBe("expand");
@@ -1266,7 +1268,7 @@ describe("Document module desktop commands", () => {
             await nextRunLoop();
         });
 
-        expect(container.querySelector("#desktopStatusArea")?.textContent).toContain("service@service-db.internal");
+        expect(container.querySelector("#desktopStatusArea")?.textContent).toContain("service@service-db.internal:4407");
         expect(container.querySelector("#desktopStatusArea")?.textContent).not.toContain("shell@user-db.internal");
         expect(container.querySelector("#desktopStatusConnectionInfoIndicator")?.textContent)
             .toBe("Conn: U:20 S:21");

@@ -2527,6 +2527,26 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     min-width: 10px;
 }
 
+.msg .connectionBrowser .breadcrumb.connectionBrowserBreadcrumb .breadcrumbItem {
+    height: 22px;
+    min-width: 0;
+    width: max-content;
+    margin: 0;
+    padding: 0 6px;
+    border-radius: 3px;
+    line-height: 22px;
+}
+
+.msg .connectionBrowser .breadcrumb .separator {
+    font-size: 1rem;
+}
+
+.msg .connectionBrowser .breadcrumb.connectionBrowserBreadcrumb .separator {
+    height: 22px;
+    padding: 0 4px;
+    line-height: 22px;
+}
+
 .msg .connectionBrowser .breadcrumb .breadcrumbItem:hover {
     background: var(--button-background);
 }

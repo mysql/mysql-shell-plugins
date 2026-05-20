@@ -25,13 +25,57 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
+import {
+    CdmEntityType, type ICdmConnectionEntry, type ICdmConnectionGroupEntry,
+} from "../../../../data-models/ConnectionDataModel.js";
 import { DocumentSideBar } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import { RowComponentMock } from "../../__mocks__/RowComponentMock.js";
 
 describe("DocumentSideBar", () => {
+    interface IAccordionSectionTestData {
+        id: string;
+        expanded?: boolean;
+    }
+
+    interface IRenderedNode {
+        props: {
+            id?: string;
+            children?: unknown;
+            sections?: IAccordionSectionTestData[];
+        };
+    }
+
+    interface IConnectionTreeItemTestData {
+        id: string;
+        dataModelEntry: ICdmConnectionEntry | ICdmConnectionGroupEntry;
+        caption: string;
+        children?: IConnectionTreeItemTestData[];
+    }
+
+    interface ITestDocumentSideBar {
+        buildHomeConnectionTreeItem(entry: ICdmConnectionEntry | ICdmConnectionGroupEntry): IConnectionTreeItemTestData;
+        handleConnectionTreeRowExpanded(row: RowComponentMock): void;
+        handleSectionExpand(props: unknown, sectionId: string, expanded: boolean): void;
+    }
+
+    const isRenderedNode = (value: unknown): value is IRenderedNode => {
+        return typeof value === "object" && value !== null && "props" in value;
+    };
+
+    const getAccordionSections = (sideBar: DocumentSideBar) => {
+        const result = sideBar.render();
+        const children = isRenderedNode(result) && Array.isArray(result.props.children)
+            ? result.props.children
+            : [isRenderedNode(result) ? result.props.children : undefined];
+        const accordion = children.find((child): child is IRenderedNode => {
+            return isRenderedNode(child) && child.props.id === "documentSideBar";
+        });
+
+        return accordion?.props.sections ?? [];
+    };
+
     const createTreeState = (overrides: Record<string, unknown> = {}) => {
         return {
             isLeaf: false,
@@ -322,5 +366,115 @@ describe("DocumentSideBar", () => {
 
         expect((sideBar as any).isConnectionTreeRowExpanded(row)).toBe(true);
         expect((schema.state as { expanded: boolean; }).expanded).toBe(true);
+    });
+
+    it("shows the home connection section by default", () => {
+        const { connection } = createConnectionTree();
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "",
+            overviewId: "overview",
+            sidebarMode: "electronHome",
+            onConnectionTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+
+        (sideBar as unknown as { context: DocumentContextType; }).context = createContext(connection);
+
+        const connectionSection = getAccordionSections(sideBar).find((section) => {
+            return section.id === "connectionSection";
+        });
+
+        expect(connectionSection?.expanded).toBe(true);
+    });
+
+    it("loads Home sidebar group contents on first expansion", async () => {
+        const { connection } = createConnectionTree();
+        const groupEntries: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry> = [];
+        const group = {
+            id: "group-projects",
+            caption: "Projects",
+            type: CdmEntityType.ConnectionGroup,
+            entries: groupEntries,
+            state: createTreeState(),
+            folderPath: { id: 2, caption: "Projects", index: 0 },
+            getChildren: () => {
+                return group.entries;
+            },
+            refresh: vi.fn().mockImplementation(() => {
+                group.entries.push(connection as unknown as ICdmConnectionEntry);
+
+                return Promise.resolve(true);
+            }),
+        } as unknown as ICdmConnectionGroupEntry;
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "",
+            overviewId: "overview",
+            sidebarMode: "electronHome",
+            onConnectionTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+
+        (sideBar as unknown as { context: DocumentContextType; }).context = createContext(group);
+
+        const testSideBar = sideBar as unknown as ITestDocumentSideBar;
+        const treeItem = testSideBar.buildHomeConnectionTreeItem(group);
+        const row = new RowComponentMock(treeItem as unknown as ConstructorParameters<typeof RowComponentMock>[0]);
+        testSideBar.handleConnectionTreeRowExpanded(row);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
+        expect(group.refresh).toHaveBeenCalled();
+        expect((group.state as { expandedOnce: boolean; }).expandedOnce).toBe(true);
+        expect(group.entries).toEqual([connection]);
+    });
+
+    it("keeps sidebar expansion state isolated by workspace type", () => {
+        const { connection } = createConnectionTree();
+        const savedSectionState = new Map([
+            ["classic.connectionSection", { expanded: false }],
+        ]);
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "",
+            overviewId: "overview",
+            sidebarMode: "electronHome",
+            savedSectionState,
+            onConnectionTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+
+        (sideBar as unknown as { context: DocumentContextType; }).context = createContext(connection);
+
+        const connectionSection = getAccordionSections(sideBar).find((section) => {
+            return section.id === "connectionSection";
+        });
+
+        expect(connectionSection?.expanded).toBe(true);
+    });
+
+    it("stores sidebar expansion state under the workspace type", () => {
+        const onSaveState = vi.fn();
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "",
+            overviewId: "overview",
+            sidebarMode: "electronHome",
+            onSaveState,
+            onConnectionTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+
+        (sideBar as unknown as ITestDocumentSideBar).handleSectionExpand({}, "connectionSection", true);
+
+        const savedState = onSaveState.mock.calls[0][0] as Map<string, { expanded?: boolean; }>;
+        expect(savedState.get("electronHome.connectionSection")?.expanded).toBe(true);
+        expect(savedState.has("connectionSection")).toBe(false);
     });
 });

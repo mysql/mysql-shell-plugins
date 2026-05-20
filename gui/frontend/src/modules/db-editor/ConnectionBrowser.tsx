@@ -214,26 +214,26 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
         });
 
-        // Generate a string version of the folder path.
-        let folderPath = "";
+        const showBreadcrumb = currentGroup !== undefined || currentList.some((entry) => {
+            return entry.type === CdmEntityType.ConnectionGroup;
+        });
         const path: IBreadCrumbSegment[] = [];
         let runner = currentGroup;
         while (runner) {
-            path.unshift({ id: runner.folderPath.id, caption: runner.caption + " / ", selected: false });
-            if (folderPath.length > 0) {
-                folderPath = "/" + folderPath;
+            if (runner.folderPath.id !== 1 && runner.folderPath.caption !== "/") {
+                path.unshift({
+                    id: runner.folderPath.id,
+                    caption: runner.caption,
+                    selected: false,
+                });
             }
-            folderPath = runner.caption + folderPath;
 
             runner = runner.parent;
         }
 
-        if (path.length === 0) {
-            path.unshift({ id: 1, caption: "/", selected: false });
-        }
-        const showBreadcrumb = currentGroup !== undefined || this.roots.some((entry) => {
-            return entry.type === CdmEntityType.ConnectionGroup;
-        });
+        path.unshift({ id: 1, caption: "Home", selected: false });
+        const currentSegment = path[path.length - 1];
+        currentSegment.disabled = true;
 
         // If toolbar items are given, render a toolbar with them.
         const toolbar = showToolbar
@@ -378,10 +378,15 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                                 <Icon src={Assets.file.newFolderIcon} data-tooltip="inherit" />
                             </Button>
                         </Container>
-                        {showBreadcrumb && <Breadcrumb
-                            path={path}
-                            onSelect={this.handleSelectPath}
-                        />}
+                        {showBreadcrumb && (
+                            <Breadcrumb
+                                id="connectionBrowserBreadcrumb"
+                                className="connectionBrowserBreadcrumb"
+                                path={path}
+                                separator=">"
+                                onSelect={this.handleSelectPath}
+                            />
+                        )}
                     </Container>
                     <Container
                         innerRef={this.hostRef}
@@ -559,6 +564,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
     private handleCloseGreeting = (): void => {
         Settings.set("dbEditor.connectionBrowser.showGreeting", false);
+        Settings.saveSettings(true);
     };
 
     private dbFileDropped = async (fileName: string): Promise<boolean> => {

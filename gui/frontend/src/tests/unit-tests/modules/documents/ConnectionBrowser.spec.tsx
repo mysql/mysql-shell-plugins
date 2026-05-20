@@ -45,6 +45,7 @@ import { DocumentContext, type DocumentContextType } from "../../../../modules/d
 import { ui } from "../../../../app-logic/UILayer.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
+import { Settings } from "../../../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import { isStandalone } from "../../../../utilities/helpers.js";
@@ -160,6 +161,30 @@ describe("Connection browser tests", (): void => {
         unmount();
     });
 
+    it("disables the current breadcrumb segment", () => {
+        const rootGroup = createGroup(1, "/");
+        const currentGroup = createGroup(2, "Projects", rootGroup);
+        const browser = createBrowser();
+        (browser as unknown as { state: unknown; }).state = {
+            currentGroup,
+            moveTargetGroups: [],
+            showMoveToRoot: false,
+        };
+
+        const output = browser.render();
+        const breadcrumb = findVNodeById(output, "connectionBrowserBreadcrumb");
+        const path = breadcrumb?.props.path as Array<{
+            caption: string;
+            className?: string;
+            disabled?: boolean;
+        }>;
+
+        expect(path[0].caption).toBe("Home");
+        expect(path[0].disabled).toBeUndefined();
+        expect(path[1].caption).toBe("Projects");
+        expect(path[1].disabled).toBe(true);
+    });
+
     it("shows the Workbench welcome banner in standalone mode", () => {
         vi.mocked(isStandalone).mockReturnValue(false);
         Object.defineProperty(window, "electronHost", {
@@ -180,6 +205,19 @@ describe("Connection browser tests", (): void => {
 
         expect(getByText("Welcome to MySQL Workbench")).toBeTruthy();
         unmount();
+    });
+
+    it("persists the Home welcome panel dismissal", () => {
+        const settingsSetSpy = vi.spyOn(Settings, "set");
+        const saveSettingsSpy = vi.spyOn(Settings, "saveSettings").mockImplementation(() => { /** No-op. */ });
+        const browser = createBrowser();
+
+        (browser as unknown as {
+            handleCloseGreeting: () => void;
+        }).handleCloseGreeting();
+
+        expect(settingsSetSpy).toHaveBeenCalledWith("dbEditor.connectionBrowser.showGreeting", false);
+        expect(saveSettingsSpy).toHaveBeenCalledWith(true);
     });
 
     it("anchors tile action menus to the right edge of the tile button", () => {

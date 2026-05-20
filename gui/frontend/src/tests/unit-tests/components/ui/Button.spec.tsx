@@ -95,6 +95,23 @@ describe("Button component tests", (): void => {
         unmount();
     });
 
+    it("does not activate disabled buttons from mouse clicks", async () => {
+        const buttonClick = vi.fn();
+        const { unmount, getByRole } = render(
+            <Button disabled onClick={buttonClick}>
+                Test button
+            </Button>,
+        );
+
+        await act(() => {
+            fireEvent.click(getByRole("button"));
+        });
+
+        expect(buttonClick).not.toHaveBeenCalled();
+
+        unmount();
+    });
+
     it("Test button commands", () => {
         let clicked = false;
         const buttonClick = (): Promise<boolean> => {
@@ -113,7 +130,7 @@ describe("Button component tests", (): void => {
         expect(clicked).toEqual(false);
         const button = getByRole("button");
         void act(() => {
-            return button.click();
+            button.click();
         });
 
         requisitions.unregister("editorCommit");
