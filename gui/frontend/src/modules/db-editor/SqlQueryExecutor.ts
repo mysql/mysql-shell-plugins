@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async";
-
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import { DBDataType, IColumnInfo, ISqlUpdateResult, IStatusInfo, MessageType } from "../../app-logic/general-types.js";
 import type { IGetColumnsMetadataItem } from "../../communication/ProtocolGui.js";
@@ -41,6 +39,7 @@ import {
 import type { IColumnDetails } from "../../supplement/RequisitionTypes.js";
 import type { DBType } from "../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { clearIntervalAsync, setIntervalAsync, type SetIntervalAsyncTimer } from "../../utilities/AsyncInterval.js";
 import { uuid } from "../../utilities/helpers.js";
 import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
 import { IQueryExecutionOptions } from "./ConnectionTab.js";

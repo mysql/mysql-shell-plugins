@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import cx from "classnames";
 import { ComponentChild, createRef } from "preact";
 
 import type { Command } from "../../../data-models/data-model-types.js";
+import { classNames } from "../../../utilities/css-helpers.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
 import { Codicon } from "../Codicon.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
@@ -80,7 +80,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties,
             this.classFromProperty(expanded, "expanded"),
         ]);
 
-        const contentClassName = cx([
+        const contentClassName = classNames([
             "content",
             this.classFromProperty(dimmed, "dimmed")],
         );

@@ -29,7 +29,6 @@
         "anser": "2.3.2",
         "antlr4-c3": "3.4.4",
         "antlr4ng": "3.0.16",
-        "classnames": "2.5.1",
         "color": "5.0.0",
         "d3": "7.9.0",
         "idb": "8.0.3",
@@ -37,7 +36,6 @@
         "pixi-viewport": "6.0.3",
         "pixi.js": "8.13.2",
         "preact": "10.29.1",
-        "set-interval-async": "3.0.3",
         "tabulator-tables": "6.3.1",
         "ws": "8.18.3"
     },

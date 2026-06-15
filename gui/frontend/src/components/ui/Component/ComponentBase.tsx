@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,10 +26,10 @@
 import "./ComponentBase.css";
 
 import { Component, ComponentChildren } from "preact";
-import cx from "classnames";
+import { CSSProperties } from "preact/compat";
 
 import { IDictionary } from "../../../app-logic/general-types.js";
-import { CSSProperties } from "preact/compat";
+import { classNames } from "../../../utilities/css-helpers.js";
 
 /**
  * Not all components support different sizes, but many do.
@@ -295,7 +295,7 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
     protected getEffectiveClassNames(base: Array<string | undefined>): string {
         const { className } = this.props;
 
-        return cx(
+        return classNames(
             "msg",
             base,
             className?.replace("msg ", ""), // Avoid duplicate msg class name in derived components.

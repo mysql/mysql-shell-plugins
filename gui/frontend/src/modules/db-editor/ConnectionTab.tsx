@@ -26,7 +26,6 @@
 import "./assets/document.css";
 
 import { ComponentChild, createRef } from "preact";
-import { SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async/dynamic";
 import ts, { ScriptTarget } from "typescript";
 
 import { IMarkdownString } from "monaco-editor";
@@ -74,6 +73,7 @@ import {
 import {
     convertErrorToString, getConnectionInfoFromDetails, resolvePageSize, saveTextAsFile, selectFileInBrowser, uuid,
 } from "../../utilities/helpers.js";
+import { clearIntervalAsync, type SetIntervalAsyncTimer } from "../../utilities/AsyncInterval.js";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";

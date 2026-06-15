@@ -24,7 +24,6 @@
  */
 
 import { ComponentChild, createRef } from "preact";
-import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from "set-interval-async/dynamic";
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB.js";
 import {
@@ -53,6 +52,7 @@ import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterface
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { EditorLanguage, convertRows, generateColumnInfo } from "../../supplement/index.js";
+import { clearIntervalAsync, setIntervalAsync, type SetIntervalAsyncTimer } from "../../utilities/AsyncInterval.js";
 import { convertErrorToString, flattenObject, uuid } from "../../utilities/helpers.js";
 import { unquote } from "../../utilities/string-helpers.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";

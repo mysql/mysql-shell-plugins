@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import { render } from "@testing-library/preact";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { editor as Monaco } from "monaco-editor";
 import { createRef } from "preact";
@@ -312,6 +312,7 @@ describe("Shell tab tests", (): void => {
             expect(tabRef.current).toBeDefined();
 
             const executionContext = {
+                addResultData: vi.fn().mockResolvedValue(undefined),
                 clearResult: async () => { /**/ },
                 code: "SELECT 1;",
                 language: "sql",
@@ -324,10 +325,23 @@ describe("Shell tab tests", (): void => {
 
             expect(tabRef.current!.resultTimers.size).toBe(0);
 
-            tabRef.current!.addTimedResult(executionContext as ExecutionContext,
-                executionResult as IExecutionResult, "1");
+            vi.useRealTimers();
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date("2100-10-12T09:09:09Z"));
+            try {
+                tabRef.current!.addTimedResult(executionContext as unknown as ExecutionContext,
+                    executionResult as IExecutionResult, "1");
 
-            expect(tabRef.current!.resultTimers.size).toBe(1);
+                expect(tabRef.current!.resultTimers.size).toBe(1);
+
+                await vi.advanceTimersByTimeAsync(50);
+                expect(executionContext.addResultData).toHaveBeenCalledWith(executionResult, { resultId: "1" });
+
+                await vi.advanceTimersByTimeAsync(50);
+                expect(tabRef.current!.resultTimers.size).toBe(0);
+            } finally {
+                vi.useRealTimers();
+            }
 
             unmount();
         });
