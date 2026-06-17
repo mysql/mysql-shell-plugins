@@ -271,11 +271,28 @@ executable, do not start the Vite renderer server, and let the app load its
 bundled frontend and MySQL Shell payload. On macOS the variable may point to
 the `.app` bundle; on Windows and Linux it should point to the executable.
 
+To keep Electron from stealing focus while tests run:
+
+```sh
+cd gui/electron
+ELECTRON_E2E_BACKGROUND=1 npm run e2e-tests-setup-and-run
+```
+
+This creates the Electron test window hidden. For packaged-app tests, rebuild
+the package after this change so the packaged `main.cjs` understands the
+background flag. If a full package already exists, quick packaging is enough:
+
+```sh
+bash ./scripts/package_desktop.sh darwin-arm64 --quick
+```
+
 The setup script deploys a local MySQL sandbox and writes runtime configuration
 under `gui/electron/tests/e2e/execution`. Teardown kills and deletes the sandbox.
 
 Useful test environment variables:
 
+- `ELECTRON_E2E_BACKGROUND`: set to `1` or `true` to keep the Electron test
+  window hidden.
 - `ELECTRON_E2E_PACKAGED_APP`: packaged app bundle or executable used by tests.
 - `ELECTRON_E2E_MYSQLSH`, then `MYSQLSH`: mysqlsh executable precedence.
 - `ELECTRON_E2E_MYSQL_PORT`, then `MYSQL_PORT`: sandbox MySQL port precedence.

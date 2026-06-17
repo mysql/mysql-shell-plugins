@@ -147,6 +147,10 @@ const createLaunchArguments = (testInfo: TestInfo): string[] => {
         shellUserConfigDir,
     ];
 
+    if (process.env.ELECTRON_E2E_BACKGROUND === "1" || process.env.ELECTRON_E2E_BACKGROUND === "true") {
+        args.push("--electron-e2e-background");
+    }
+
     if (isPackagedAppMode) {
         return args;
     }

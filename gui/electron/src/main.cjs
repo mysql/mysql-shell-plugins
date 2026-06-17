@@ -56,7 +56,7 @@ const desktopLogPath = path.join(os.homedir(), "Library", "Logs", "MySQL Workben
 const parseCommandLineArguments = (argv) => {
     const result = {};
 
-    for (let index = 2; index < argv.length; index += 1) {
+    for (let index = 1; index < argv.length; index += 1) {
         const argument = argv[index];
         if (!argument.startsWith("--")) {
             continue;
@@ -82,6 +82,9 @@ const parseCommandLineArguments = (argv) => {
 };
 
 const commandLineArguments = parseCommandLineArguments(process.argv);
+const shouldUseHiddenE2EWindow = commandLineArguments["electron-e2e-background"] === "true"
+    || process.env.ELECTRON_E2E_BACKGROUND === "1"
+    || process.env.ELECTRON_E2E_BACKGROUND === "true";
 const explicitUserDataDir = commandLineArguments["electron-user-data-dir"];
 if (typeof explicitUserDataDir === "string" && explicitUserDataDir.length > 0) {
     app.setPath("userData", path.resolve(explicitUserDataDir));
@@ -1629,6 +1632,7 @@ const createWindow = async () => {
         height: restoredWindowState.height,
         minWidth: 1100,
         minHeight: 760,
+        show: !shouldUseHiddenE2EWindow,
         title: appName,
         backgroundColor: nativeTheme.shouldUseDarkColors ? "#181818" : "#f6f8fa",
         ...(process.platform === "darwin"
