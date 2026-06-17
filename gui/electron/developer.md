@@ -257,11 +257,26 @@ cd gui/electron
 npm run e2e-tests-ui
 ```
 
+To run the same tests against a packaged desktop app instead of the source
+Electron entrypoint:
+
+```sh
+cd gui/electron
+ELECTRON_E2E_PACKAGED_APP="packaging/desktop-packages/darwin-arm64/MySQL Workbench.app" \
+  npm run e2e-tests-setup-and-run
+```
+
+When `ELECTRON_E2E_PACKAGED_APP` is set, the tests launch the packaged app
+executable, do not start the Vite renderer server, and let the app load its
+bundled frontend and MySQL Shell payload. On macOS the variable may point to
+the `.app` bundle; on Windows and Linux it should point to the executable.
+
 The setup script deploys a local MySQL sandbox and writes runtime configuration
 under `gui/electron/tests/e2e/execution`. Teardown kills and deletes the sandbox.
 
 Useful test environment variables:
 
+- `ELECTRON_E2E_PACKAGED_APP`: packaged app bundle or executable used by tests.
 - `ELECTRON_E2E_MYSQLSH`, then `MYSQLSH`: mysqlsh executable precedence.
 - `ELECTRON_E2E_MYSQL_PORT`, then `MYSQL_PORT`: sandbox MySQL port precedence.
 - `ELECTRON_E2E_VITE_HOST`: renderer dev server host, default `127.0.0.1`.

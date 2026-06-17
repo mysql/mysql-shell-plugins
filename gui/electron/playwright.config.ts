@@ -28,6 +28,13 @@ const { defineConfig } = require("@playwright/test");
 const host = process.env.ELECTRON_E2E_VITE_HOST ?? "127.0.0.1";
 const port = process.env.ELECTRON_E2E_VITE_PORT ?? "5174";
 const rendererUrl = process.env.ELECTRON_E2E_RENDERER_URL ?? `http://${host}:${port}/`;
+const usePackagedApp = Boolean(process.env.ELECTRON_E2E_PACKAGED_APP);
+const webServer = usePackagedApp ? undefined : {
+    command: `npm --prefix ../frontend run run-vite:dev-server -- --host ${host} --port ${port} --strictPort`,
+    url: rendererUrl,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+};
 
 module.exports = defineConfig({
     testDir: "./tests/e2e",
@@ -61,10 +68,5 @@ module.exports = defineConfig({
         trace: "retain-on-failure",
         video: "retain-on-failure",
     },
-    webServer: {
-        command: `npm --prefix ../frontend run run-vite:dev-server -- --host ${host} --port ${port} --strictPort`,
-        url: rendererUrl,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120000,
-    },
+    ...(webServer ? { webServer } : {}),
 });

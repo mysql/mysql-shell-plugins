@@ -28,7 +28,7 @@ import { _electron as electron, type ElectronApplication } from "playwright";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { mkdir, symlink } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 
 import { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
 
@@ -48,6 +48,8 @@ const pluginSourceDirs = new Map([
 const rendererHost = process.env.ELECTRON_E2E_VITE_HOST ?? "127.0.0.1";
 const rendererPort = process.env.ELECTRON_E2E_VITE_PORT ?? "5174";
 const rendererUrl = process.env.ELECTRON_E2E_RENDERER_URL ?? `http://${rendererHost}:${rendererPort}/`;
+const packagedAppPath = process.env.ELECTRON_E2E_PACKAGED_APP;
+const isPackagedAppMode = Boolean(packagedAppPath);
 const slowMoValue = process.env.ELECTRON_E2E_SLOWMO ?? process.env.ELECTRON_E2E_SLOW_MO;
 const slowMoPatchedMethods = Symbol("electronE2ESlowMoPatchedMethods");
 
@@ -139,14 +141,21 @@ const createLaunchArguments = (testInfo: TestInfo): string[] => {
     const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
     const electronUserDataDir = testInfo.outputPath("electron-user-data");
     const args = [
-        join(electronRoot, "src", "main.cjs"),
-        "--renderer-url",
-        rendererUrl,
         "--electron-user-data-dir",
         electronUserDataDir,
         "--mysqlsh-user-config-home",
         shellUserConfigDir,
     ];
+
+    if (isPackagedAppMode) {
+        return args;
+    }
+
+    args.unshift(
+        join(electronRoot, "src", "main.cjs"),
+        "--renderer-url",
+        rendererUrl,
+    );
 
     const mysqlshBinary = process.env.ELECTRON_E2E_MYSQLSH ?? process.env.MYSQLSH;
     if (mysqlshBinary) {
@@ -156,7 +165,39 @@ const createLaunchArguments = (testInfo: TestInfo): string[] => {
     return args;
 };
 
+const resolveMacAppBundleExecutable = (bundlePath: string): string => {
+    const plistPath = join(bundlePath, "Contents", "Info.plist");
+    const macOsDir = join(bundlePath, "Contents", "MacOS");
+
+    if (existsSync(plistPath)) {
+        const plist = readFileSync(plistPath, "utf8");
+        const executableMatch = /<key>CFBundleExecutable<\/key>\s*<string>([^<]+)<\/string>/.exec(plist);
+        if (executableMatch?.[1]) {
+            return join(macOsDir, executableMatch[1]);
+        }
+    }
+
+    return join(macOsDir, basename(bundlePath, ".app"));
+};
+
+const resolvePackagedAppExecutablePath = (appPath: string): string => {
+    const resolvedAppPath = resolve(appPath);
+    const executablePath = process.platform === "darwin" && resolvedAppPath.endsWith(".app")
+        ? resolveMacAppBundleExecutable(resolvedAppPath)
+        : resolvedAppPath;
+
+    if (!existsSync(executablePath)) {
+        throw new Error(`The packaged Electron app executable does not exist: ${executablePath}`);
+    }
+
+    return executablePath;
+};
+
 const resolveElectronExecutablePath = (): string => {
+    if (packagedAppPath) {
+        return resolvePackagedAppExecutablePath(packagedAppPath);
+    }
+
     const explicitPath = process.env.ELECTRON_E2E_ELECTRON_EXECUTABLE ?? process.env.ELECTRON_EXECUTABLE_PATH;
     if (explicitPath) {
         return explicitPath;
@@ -189,6 +230,30 @@ const resolveElectronExecutablePath = (): string => {
     }
 };
 
+const createLaunchEnvironment = (shellUserConfigDir: string): NodeJS.ProcessEnv => {
+    const launchEnv: NodeJS.ProcessEnv = {
+        ...process.env,
+        MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
+    };
+
+    if (isPackagedAppMode) {
+        delete launchEnv.ELECTRON_RENDERER_URL;
+
+        return launchEnv;
+    }
+
+    const mysqlshGuiExtraArgs = [
+        "--disable-builtin-plugins",
+        process.env.MYSQLSH_GUI_EXTRA_ARGS,
+    ].filter(Boolean).join(" ");
+
+    return {
+        ...launchEnv,
+        ELECTRON_RENDERER_URL: rendererUrl,
+        MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs,
+    };
+};
+
 const installPluginLinks = async (shellUserConfigDir: string): Promise<void> => {
     const pluginsDir = join(shellUserConfigDir, "plugins");
     await mkdir(pluginsDir, { recursive: true });
@@ -209,24 +274,15 @@ export const test = base.extend<IElectronFixtures>({
         const electronUserDataDir = testInfo.outputPath("electron-user-data");
         await mkdir(shellUserConfigDir, { recursive: true });
         await mkdir(electronUserDataDir, { recursive: true });
-        await installPluginLinks(shellUserConfigDir);
 
-        const mysqlshGuiExtraArgs = [
-            "--disable-builtin-plugins",
-            process.env.MYSQLSH_GUI_EXTRA_ARGS,
-        ].filter(Boolean).join(" ");
-
-        const launchEnv: NodeJS.ProcessEnv = {
-            ...process.env,
-            ELECTRON_RENDERER_URL: rendererUrl,
-            MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
-            MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs,
-        };
+        if (!isPackagedAppMode) {
+            await installPluginLinks(shellUserConfigDir);
+        }
 
         const launchOptions = {
             executablePath: resolveElectronExecutablePath(),
             args: createLaunchArguments(testInfo),
-            env: launchEnv,
+            env: createLaunchEnvironment(shellUserConfigDir),
             timeout: 60000,
         };
 
