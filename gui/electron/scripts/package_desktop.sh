@@ -36,6 +36,9 @@ TARGET_FILTER=""
 DOWNLOAD_ELECTRON=0
 MYSQLSH_TREE_PATH=""
 QUICK_MODE=0
+STAGE_MYSQLSH_ONLY=0
+ARTIFACT_MODE=0
+ZIP_MODE=0
 
 function usage() {
     cat <<EOF
@@ -45,21 +48,32 @@ darwin-arm64, darwin-x64, win32-x64, linux-arm64, linux-x64
 Usage: package_desktop.sh [single-platform] [--download-electron]
                           [--mysqlsh-tree <path>]
                           [--quick]
+                          [--artifacts]
+                          [--zip]
 
 Defaults:
-- MySQL Shell packages: ../extension/packaging/mysql-shell/<archive>
-- Electron cache:    packaging/electron/<platform>
+- MySQL Shell packages: packaging/mysql-shell/<archive>
+- Electron cache:    packaging/electron/<platform> when present, otherwise
+                     electron-builder downloads Electron
 - Plugins source:    this repository checkout
 
 MySQL Shell tree override:
 - --mysqlsh-tree <path> may point either to a single unpacked mysqlsh tree
   (requires selecting a single platform) or to a directory with per-platform
   subdirectories such as <path>/darwin-arm64, <path>/linux-x64, etc.
+- When --mysqlsh-tree points to a single unpacked tree and no platform is
+  selected, the script stages that tree for the host platform and stops. This
+  prepares the runtime used by scripts/run_electron_dev.sh.
 
 Quick update:
 - --quick requires a single platform and an existing packaged desktop bundle.
 - It only refreshes the app payload inside the existing package instead of
   rebuilding the full runtime bundle.
+
+Artifacts:
+- --artifacts also creates installer and package artifacts under
+  packaging/desktop-artifacts/<platform>.
+- --zip creates ZIP archive artifacts under packaging/desktop-artifacts/<platform>.
 
 Environment:
 - ELECTRON_VERSION
@@ -76,6 +90,14 @@ while [ $# -gt 0 ]; do
             ;;
         --quick)
             QUICK_MODE=1
+            shift
+            ;;
+        --artifacts)
+            ARTIFACT_MODE=1
+            shift
+            ;;
+        --zip)
+            ZIP_MODE=1
             shift
             ;;
         --mysqlsh-tree)
@@ -126,6 +148,36 @@ function array_contains() {
     return 1
 }
 
+function resolve_host_platform() {
+    local system_name
+    local machine_name
+
+    system_name="$(uname -s)"
+    machine_name="$(uname -m)"
+
+    case "$system_name:$machine_name" in
+        Darwin:arm64)
+            echo "darwin-arm64"
+            ;;
+        Darwin:x86_64)
+            echo "darwin-x64"
+            ;;
+        Linux:aarch64|Linux:arm64)
+            echo "linux-arm64"
+            ;;
+        Linux:x86_64|Linux:amd64)
+            echo "linux-x64"
+            ;;
+        MINGW*:x86_64|MSYS*:x86_64|CYGWIN*:x86_64)
+            echo "win32-x64"
+            ;;
+        *)
+            echo "ERROR: Unsupported host platform: $system_name $machine_name" >&2
+            return 1
+            ;;
+    esac
+}
+
 function resolve_electron_version() {
     node -e '
 const version = require("./package.json").dependencies.electron;
@@ -136,6 +188,12 @@ if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
 process.stdout.write(version);
 '
 }
+
+if [ -z "$TARGET_FILTER" ] && [ -n "$MYSQLSH_TREE_PATH" ] \
+    && [ -e "$MYSQLSH_TREE_PATH/bin" ] && [ -e "$MYSQLSH_TREE_PATH/lib" ] && [ -e "$MYSQLSH_TREE_PATH/share" ]; then
+    TARGET_FILTER="$(resolve_host_platform)"
+    STAGE_MYSQLSH_ONLY=1
+fi
 
 if [ -n "$TARGET_FILTER" ] && ! array_contains "$TARGET_FILTER" "${SUPPORTED_PLATFORMS[@]}"; then
     echo "ERROR: Unsupported platform '$TARGET_FILTER'."
@@ -149,14 +207,25 @@ if [ "$QUICK_MODE" -eq 1 ] && [ -z "$TARGET_FILTER" ]; then
     exit 1
 fi
 
+if [ "$QUICK_MODE" -eq 1 ] && [ "$ARTIFACT_MODE" -eq 1 ]; then
+    echo "ERROR: --quick cannot be combined with --artifacts."
+    usage
+    exit 1
+fi
+
+if [ "$QUICK_MODE" -eq 1 ] && [ "$ZIP_MODE" -eq 1 ]; then
+    echo "ERROR: --quick cannot be combined with --zip."
+    usage
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ELECTRON_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-EXTENSION_DIR="$(cd "$ELECTRON_DIR/../extension" && pwd)"
 STRIP_MYSQLSH_TREE_SCRIPT="$SCRIPT_DIR/strip_mysqlsh_tree.sh"
 
 cd "$ELECTRON_DIR"
 
-MYSQL_SHELL_CACHE_ROOT="$EXTENSION_DIR/packaging/mysql-shell"
+MYSQL_SHELL_CACHE_ROOT="$ELECTRON_DIR/packaging/mysql-shell"
 ELECTRON_CACHE_ROOT="$ELECTRON_DIR/packaging/electron"
 MYSQL_SHELL_STAGING_ROOT="$ELECTRON_DIR/packaging/mysql-shell-staging"
 
@@ -554,21 +623,35 @@ for platform in "${TARGETS[@]}"; do
 
     strip_mysqlsh_tree "$shell_dir"
 
-    if [ ! -d "$electron_dir" ]; then
-        if [ "$DOWNLOAD_ELECTRON" -eq 1 ]; then
-            download_electron_for_platform "$platform" "$ELECTRON_VERSION"
-        else
-            echo "ERROR: Missing Electron runtime for $platform at $electron_dir"
-            echo "Use --download-electron to fetch it or provide the unpacked runtime there."
-            exit 1
-        fi
+    if [ "$STAGE_MYSQLSH_ONLY" -eq 1 ]; then
+        echo "MySQL Shell runtime staged for $platform at $shell_dir"
+        continue
+    fi
+
+    if [ ! -d "$electron_dir" ] && [ "$DOWNLOAD_ELECTRON" -eq 1 ]; then
+        download_electron_for_platform "$platform" "$ELECTRON_VERSION"
+    elif [ ! -d "$electron_dir" ]; then
+        echo "No cached Electron runtime for $platform at $electron_dir"
+        echo "electron-builder will download Electron $ELECTRON_VERSION if needed."
     else
         echo "Using cached Electron runtime for $platform at $electron_dir"
     fi
 done
 
+if [ "$STAGE_MYSQLSH_ONLY" -eq 1 ]; then
+    echo "Completed MySQL Shell staging. Use npm run electron:dev:vite to launch with this runtime."
+    exit 0
+fi
+
 TARGETS_CSV="$(IFS=,; echo "${TARGETS[*]}")"
+PACKAGE_ARGS=(--targets="$TARGETS_CSV")
+if [ "$ARTIFACT_MODE" -eq 1 ]; then
+    PACKAGE_ARGS+=(--artifacts)
+fi
+if [ "$ZIP_MODE" -eq 1 ]; then
+    PACKAGE_ARGS+=(--zip)
+fi
 
 echo "Packaging Electron desktop runtime for: $TARGETS_CSV"
 MYSQL_SHELL_STAGING_ROOT="$MYSQL_SHELL_STAGING_ROOT" \
-node --experimental-strip-types ./scripts/package_desktop.ts --targets="$TARGETS_CSV"
+node --experimental-strip-types ./scripts/package_desktop.ts "${PACKAGE_ARGS[@]}"

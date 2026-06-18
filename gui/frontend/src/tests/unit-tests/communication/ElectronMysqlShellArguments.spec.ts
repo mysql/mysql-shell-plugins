@@ -32,7 +32,7 @@ const {
     buildMysqlShellArguments,
     parseMysqlShellExtraArguments,
 } = require("../../../../../electron/src/mysqlsh-arguments.cjs") as {
-    buildMysqlShellArguments: (options: { isRendererDevMode: boolean; extraArguments?: string[]; }) => string[];
+    buildMysqlShellArguments: (options?: { extraArguments?: string[]; }) => string[];
     parseMysqlShellExtraArguments: (value?: string) => string[];
 };
 
@@ -46,7 +46,6 @@ describe("Electron mysqlsh argument helpers", () => {
 
     it("adds extra mysqlsh options before the Python bridge command", () => {
         expect(buildMysqlShellArguments({
-            isRendererDevMode: false,
             extraArguments: ["--log-level=debug", "--trace-proto"],
         })).toEqual([
             "--disable-plugins",
@@ -58,11 +57,9 @@ describe("Electron mysqlsh argument helpers", () => {
         ]);
     });
 
-    it("disables built-in plugins for Vite renderer dev mode", () => {
-        expect(buildMysqlShellArguments({
-            isRendererDevMode: true,
-        })).toEqual([
-            "--disable-builtin-plugins",
+    it("loads builtin plugins from the configured runtime", () => {
+        expect(buildMysqlShellArguments()).toEqual([
+            "--disable-plugins",
             "--py",
             "-e",
             "import gui_plugin as gui; gui.start.desktop_bridge()",

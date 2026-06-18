@@ -24,8 +24,8 @@
  */
 
 const { spawnSync } = require("child_process");
-const { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } = require("fs");
-const { join, resolve } = require("path");
+const { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } = require("fs");
+const { basename, dirname, join, resolve } = require("path");
 
 class Logger {
 
@@ -62,18 +62,32 @@ const desktopProductName = "MySQL Workbench";
 const desktopBundleStem = "MySQL Workbench";
 const desktopPackageName = "mysql-workbench";
 const desktopBundleIdentifier = "com.oracle.mysqlworkbench";
+const desktopPackageAuthor = {
+    name: "Oracle and/or its affiliates",
+};
+const desktopPackageHomepage = "https://www.mysql.com/products/workbench/";
+const desktopPackageLicense = "GPL-2.0";
 const electronFolder = resolve(__dirname, "..");
 const guiFolder = resolve(electronFolder, "..");
 const frontEndFolder = join(guiFolder, "frontend");
-const extensionFolder = join(guiFolder, "extension");
 const buildFolder = join(frontEndFolder, "build");
-const outputFolder = join(electronFolder, "output");
+const tempPackageFolder = join(electronFolder, "packaging", "temp");
 const packagedDesktopFolder = join(electronFolder, "packaging", "desktop-packages");
-const shellCacheFolder = resolve(process.env.MYSQL_SHELL_STAGING_ROOT ?? join(extensionFolder, "packaging", "mysql-shell"));
+const packagedArtifactsFolder = join(electronFolder, "packaging", "desktop-artifacts");
+const shellCacheFolder = resolve(process.env.MYSQL_SHELL_STAGING_ROOT ?? join(electronFolder, "packaging", "mysql-shell-staging"));
 const electronCacheFolder = join(electronFolder, "packaging", "electron");
+const electronBuilderCacheFolder = join(electronFolder, "packaging", "electron-builder-cache");
 const electronSourceFolder = join(electronFolder, "src");
 const electronImagesFolder = join(electronFolder, "images");
 const desktopIconIcns = join(electronImagesFolder, "app-icon.icns");
+const desktopIconIco = join(electronImagesFolder, "app-icon.ico");
+const desktopIconPng = join(electronImagesFolder, "app-icon.png");
+const electronBuilderExecutable = join(
+    electronFolder,
+    "node_modules",
+    ".bin",
+    process.platform === "win32" ? "electron-builder.cmd" : "electron-builder",
+);
 const pluginSourceFolders = new Map([
     ["gui_plugin", join(guiFolder, "backend", "gui_plugin")],
     ["mds_plugin", resolve(guiFolder, "..", "mds_plugin")],
@@ -83,8 +97,7 @@ const pluginSourceFolders = new Map([
     ["migration_plugin", resolve(guiFolder, "..", "migration_plugin")],
 ]);
 const packageJson = require(join(electronFolder, "package.json"));
-const extensionPackageJson = require(join(extensionFolder, "package.json"));
-const desktopPackageVersion = extensionPackageJson.version ?? packageJson.version;
+const desktopPackageVersion = packageJson.version;
 
 if (typeof desktopPackageVersion !== "string" || desktopPackageVersion.length === 0) {
     throw new Error("Could not determine the desktop package version.");
@@ -103,7 +116,7 @@ const executeTask = (cmd, message) => {
 };
 
 const parseArguments = (argv) => {
-    const result = { targets: [], quick: false };
+    const result = { targets: [], quick: false, artifacts: false, zip: false };
 
     for (let index = 2; index < argv.length; index += 1) {
         const argument = argv[index];
@@ -135,6 +148,16 @@ const parseArguments = (argv) => {
             continue;
         }
 
+        if (argument === "--artifacts") {
+            result.artifacts = true;
+            continue;
+        }
+
+        if (argument === "--zip") {
+            result.zip = true;
+            continue;
+        }
+
         throw new Error(`Unknown argument '${argument}'.`);
     }
 
@@ -146,6 +169,14 @@ const parseArguments = (argv) => {
         if (!supportedPlatforms.includes(target)) {
             throw new Error(`Unsupported target '${target}'.`);
         }
+    }
+
+    if (result.quick && result.artifacts) {
+        throw new Error("--quick cannot be combined with --artifacts.");
+    }
+
+    if (result.quick && result.zip) {
+        throw new Error("--quick cannot be combined with --zip.");
     }
 
     return result;
@@ -160,33 +191,23 @@ const resetDirectory = (folder) => {
     mkdirSync(folder, { recursive: true });
 };
 
-const copyDirectoryContents = (source, target) => {
-    ensureDirectory(target);
-
-    for (const entry of readdirSync(source)) {
-        cpSync(join(source, entry), join(target, entry), {
-            recursive: true,
-            force: true,
-            dereference: false,
-        });
+const copyMacBundle = (sourceBundle, targetBundle) => {
+    const result = spawnSync("/usr/bin/ditto", [sourceBundle, targetBundle], { stdio: "inherit" });
+    if (result.status !== 0) {
+        throw new Error(`Could not copy ${sourceBundle} to ${targetBundle}.`);
     }
 };
 
-const copyElectronRuntime = (target, source, destination) => {
-    resetDirectory(destination);
-
+const copyPackagedRuntime = (target, source, destination) => {
     if (target.startsWith("darwin")) {
-        const sourceBundle = join(source, "Electron.app");
-        if (!existsSync(sourceBundle)) {
-            throw new Error(`Could not find Electron.app in ${source}`);
-        }
-
-        cpSync(sourceBundle, join(destination, "Electron.app"), { recursive: true, force: true });
+        resetDirectory(destination);
+        copyMacBundle(source, join(destination, basename(source)));
 
         return;
     }
 
-    copyDirectoryContents(source, destination);
+    resetDirectory(destination);
+    cpSync(source, destination, { recursive: true, force: true });
 };
 
 const findPythonPluginFolder = (shellFolder) => {
@@ -226,16 +247,11 @@ const buildAppManifest = () => {
         productName: desktopProductName,
         version: desktopPackageVersion,
         description: packageJson.description,
+        author: desktopPackageAuthor,
+        homepage: desktopPackageHomepage,
+        license: desktopPackageLicense,
         main: "src/main.cjs",
     }, null, 4);
-};
-
-const getResourcesDirectory = (target, targetOutputFolder) => {
-    if (target.startsWith("darwin")) {
-        return join(targetOutputFolder, "Electron.app", "Contents", "Resources");
-    }
-
-    return join(targetOutputFolder, "resources");
 };
 
 const getPackagedResourcesDirectory = (target, targetOutputFolder) => {
@@ -244,6 +260,239 @@ const getPackagedResourcesDirectory = (target, targetOutputFolder) => {
     }
 
     return join(targetOutputFolder, "resources");
+};
+
+const getTargetBuildOptions = (target) => {
+    if (target === "darwin-arm64") {
+        return { platform: "mac", arch: "arm64" };
+    }
+
+    if (target === "darwin-x64") {
+        return { platform: "mac", arch: "x64" };
+    }
+
+    if (target === "win32-x64") {
+        return { platform: "win", arch: "x64" };
+    }
+
+    if (target === "linux-arm64") {
+        return { platform: "linux", arch: "arm64" };
+    }
+
+    if (target === "linux-x64") {
+        return { platform: "linux", arch: "x64" };
+    }
+
+    throw new Error(`Unsupported target '${target}'.`);
+};
+
+const getElectronBuilderTargets = (target, options) => {
+    const targets = [
+        "dir",
+    ];
+
+    if (options.zip) {
+        targets.push("zip");
+    }
+
+    if (!options.artifacts) {
+        return targets;
+    }
+
+    if (target.startsWith("darwin")) {
+        targets.push("dmg");
+
+        return targets;
+    }
+
+    if (target.startsWith("win32")) {
+        targets.push("msi");
+
+        return targets;
+    }
+
+    targets.push("deb", "rpm");
+
+    return targets;
+};
+
+const buildElectronBuilderConfig = (target, outputFolder, packageOptions) => {
+    const targets = getElectronBuilderTargets(target, packageOptions);
+    const config = {
+        appId: desktopBundleIdentifier,
+        productName: desktopProductName,
+        executableName: desktopBundleStem,
+        copyright: "Copyright (c) 2026, Oracle and/or its affiliates.",
+        electronVersion: packageJson.dependencies.electron,
+        asar: false,
+        npmRebuild: false,
+        nodeGypRebuild: false,
+        directories: {
+            output: outputFolder,
+        },
+        files: [
+            "**/*",
+        ],
+        artifactName: `${desktopPackageName}-${desktopPackageVersion}-${target}.\${ext}`,
+        mac: {
+            target: targets,
+            category: "public.app-category.developer-tools",
+            icon: desktopIconIcns,
+            identity: null,
+        },
+        dmg: {
+            sign: false,
+        },
+        win: {
+            target: targets,
+            icon: desktopIconIco,
+            signExecutable: false,
+        },
+        linux: {
+            target: targets,
+            category: "Development",
+            icon: desktopIconPng,
+            maintainer: desktopPackageAuthor.name,
+            vendor: desktopPackageAuthor.name,
+            synopsis: desktopProductName,
+            description: packageJson.description,
+        },
+        deb: {
+            packageName: desktopPackageName,
+        },
+        rpm: {
+            packageName: desktopPackageName,
+        },
+    };
+
+    const runtimeSourceFolder = join(electronCacheFolder, target);
+    if (existsSync(runtimeSourceFolder)) {
+        config.electronDist = runtimeSourceFolder;
+    }
+
+    return JSON.stringify(config, null, 4);
+};
+
+const findEntry = (folder, predicate) => {
+    for (const entry of readdirSync(folder)) {
+        const fullPath = join(folder, entry);
+        const stats = statSync(fullPath);
+
+        if (predicate(fullPath, entry, stats)) {
+            return fullPath;
+        }
+
+        if (stats.isDirectory()) {
+            const match = findEntry(fullPath, predicate);
+            if (match) {
+                return match;
+            }
+        }
+    }
+
+    return undefined;
+};
+
+const findBuiltPackageRoot = (target, outputFolder) => {
+    if (target.startsWith("darwin")) {
+        const appBundle = findEntry(outputFolder, (_fullPath, entry, stats) => {
+            return stats.isDirectory() && entry === `${desktopBundleStem}.app`;
+        });
+        if (!appBundle) {
+            throw new Error(`Could not find ${desktopBundleStem}.app under ${outputFolder}`);
+        }
+
+        return appBundle;
+    }
+
+    if (target.startsWith("win32")) {
+        const executable = findEntry(outputFolder, (_fullPath, entry, stats) => {
+            return stats.isFile() && entry === `${desktopBundleStem}.exe`;
+        });
+        if (!executable) {
+            throw new Error(`Could not find ${desktopBundleStem}.exe under ${outputFolder}`);
+        }
+
+        return dirname(executable);
+    }
+
+    const executable = findEntry(outputFolder, (_fullPath, entry, stats) => {
+        return stats.isFile() && entry === desktopBundleStem;
+    });
+    if (!executable) {
+        throw new Error(`Could not find ${desktopBundleStem} under ${outputFolder}`);
+    }
+
+    return dirname(executable);
+};
+
+const copyArtifactFiles = (sourceFolder, targetFolder) => {
+    const artifactExtensions = new Set([
+        ".deb",
+        ".dmg",
+        ".msi",
+        ".rpm",
+        ".zip",
+    ]);
+    const artifacts = [];
+
+    const collect = (folder) => {
+        for (const entry of readdirSync(folder)) {
+            const fullPath = join(folder, entry);
+            const stats = statSync(fullPath);
+
+            if (stats.isDirectory()) {
+                collect(fullPath);
+                continue;
+            }
+
+            for (const extension of artifactExtensions) {
+                if (entry.endsWith(extension)) {
+                    artifacts.push(fullPath);
+                    break;
+                }
+            }
+        }
+    };
+
+    collect(sourceFolder);
+    if (artifacts.length === 0) {
+        throw new Error(`No desktop artifacts were generated under ${sourceFolder}`);
+    }
+
+    resetDirectory(targetFolder);
+    for (const artifact of artifacts) {
+        cpSync(artifact, join(targetFolder, basename(artifact)), { force: true });
+    }
+};
+
+const runElectronBuilder = (target, appFolder, configPath, packageOptions) => {
+    const targetOptions = getTargetBuildOptions(target);
+    const args = [
+        `--projectDir=${appFolder}`,
+        `--config=${configPath}`,
+        `--${targetOptions.platform}`,
+        `--${targetOptions.arch}`,
+        "--publish=never",
+    ];
+
+    if (!packageOptions.artifacts && !packageOptions.zip) {
+        args.push("--dir");
+    }
+
+    const result = spawnSync(electronBuilderExecutable, args, {
+        stdio: "inherit",
+        env: {
+            ...process.env,
+            CSC_IDENTITY_AUTO_DISCOVERY: "false",
+            ELECTRON_BUILDER_CACHE: electronBuilderCacheFolder,
+        },
+    });
+
+    if (result.status !== 0) {
+        console.log(result.error);
+        throw new Error(`electron-builder failed for ${target}`);
+    }
 };
 
 const prepareShellBundle = (target, appFolder) => {
@@ -297,78 +546,6 @@ const installAppImages = (appFolder) => {
     cpSync(electronImagesFolder, imagesTargetFolder, { recursive: true, force: true });
 };
 
-const renamePackagedApp = (target, targetFolder) => {
-    if (target.startsWith("win32")) {
-        const windowsExecutablePath = join(targetFolder, "electron.exe");
-        const renamedWindowsExecutablePath = join(targetFolder, `${desktopBundleStem}.exe`);
-
-        if (existsSync(windowsExecutablePath)) {
-            rmSync(renamedWindowsExecutablePath, { force: true });
-            renameSync(windowsExecutablePath, renamedWindowsExecutablePath);
-        }
-
-        return;
-    }
-
-    if (target.startsWith("linux")) {
-        const linuxExecutablePath = join(targetFolder, "electron");
-        const renamedLinuxExecutablePath = join(targetFolder, desktopBundleStem);
-
-        if (existsSync(linuxExecutablePath)) {
-            rmSync(renamedLinuxExecutablePath, { force: true });
-            renameSync(linuxExecutablePath, renamedLinuxExecutablePath);
-        }
-
-        return;
-    }
-
-    if (!target.startsWith("darwin")) {
-        return;
-    }
-
-    const appBundlePath = join(targetFolder, "Electron.app");
-    const renamedBundlePath = join(targetFolder, `${desktopBundleStem}.app`);
-
-    if (existsSync(appBundlePath)) {
-        rmSync(renamedBundlePath, { recursive: true, force: true });
-        renameSync(appBundlePath, renamedBundlePath);
-    }
-};
-
-const replacePlistStringValue = (plistContents, key, value) => {
-    const pattern = new RegExp(`(<key>${key}</key>\\s*<string>)([^<]*)(</string>)`);
-
-    if (!pattern.test(plistContents)) {
-        throw new Error(`Could not find ${key} in the macOS app bundle Info.plist.`);
-    }
-
-    return plistContents.replace(pattern, `$1${value}$3`);
-};
-
-const updateMacBundleMetadata = (targetFolder) => {
-    const plistPath = join(targetFolder, `${desktopBundleStem}.app`, "Contents", "Info.plist");
-    if (!existsSync(plistPath)) {
-        throw new Error(`Could not find Info.plist at ${plistPath}`);
-    }
-
-    let plistContents = readFileSync(plistPath, "utf8");
-    plistContents = replacePlistStringValue(plistContents, "CFBundleDisplayName", desktopBundleStem);
-    plistContents = replacePlistStringValue(plistContents, "CFBundleName", desktopBundleStem);
-    plistContents = replacePlistStringValue(plistContents, "CFBundleIdentifier", desktopBundleIdentifier);
-    plistContents = replacePlistStringValue(plistContents, "CFBundleShortVersionString", desktopPackageVersion);
-    plistContents = replacePlistStringValue(plistContents, "CFBundleVersion", desktopPackageVersion);
-    writeFileSync(plistPath, plistContents);
-};
-
-const installMacBundleIcon = (targetFolder) => {
-    if (!existsSync(desktopIconIcns)) {
-        throw new Error(`Could not find macOS app icon at ${desktopIconIcns}`);
-    }
-
-    const iconTargetPath = join(targetFolder, `${desktopBundleStem}.app`, "Contents", "Resources", "electron.icns");
-    cpSync(desktopIconIcns, iconTargetPath, { force: true });
-};
-
 const installAppPayload = (target, appFolder, includeShellBundle) => {
     if (includeShellBundle) {
         resetDirectory(appFolder);
@@ -395,34 +572,29 @@ const installAppPayload = (target, appFolder, includeShellBundle) => {
     }
 };
 
-const packageTarget = (target) => {
-    const runtimeSourceFolder = join(electronCacheFolder, target);
-    if (!existsSync(runtimeSourceFolder)) {
-        throw new Error(`Missing Electron runtime for ${target} at ${runtimeSourceFolder}`);
-    }
-
+const packageTarget = (target, packageOptions) => {
     const targetOutputFolder = join(packagedDesktopFolder, target);
-    const targetStagingFolder = join(outputFolder, target);
-    copyElectronRuntime(target, runtimeSourceFolder, targetStagingFolder);
+    const targetArtifactFolder = join(packagedArtifactsFolder, target);
+    const targetStagingFolder = join(tempPackageFolder, target);
+    const appFolder = join(targetStagingFolder, "app");
+    const builderOutputFolder = join(targetStagingFolder, "builder-output");
+    const builderConfigPath = join(targetStagingFolder, "electron-builder.json");
 
-    const resourcesFolder = getResourcesDirectory(target, targetStagingFolder);
-    if (!existsSync(resourcesFolder)) {
-        throw new Error(`Could not locate Electron resources directory for ${target} at ${resourcesFolder}`);
-    }
-
-    const appFolder = join(resourcesFolder, "app");
+    resetDirectory(targetStagingFolder);
     installAppPayload(target, appFolder, true);
+    writeFileSync(builderConfigPath, buildElectronBuilderConfig(target, builderOutputFolder, packageOptions));
+    runElectronBuilder(target, appFolder, builderConfigPath, packageOptions);
 
-    rmSync(targetOutputFolder, { recursive: true, force: true });
     ensureDirectory(packagedDesktopFolder);
-    cpSync(targetStagingFolder, targetOutputFolder, { recursive: true, force: true });
-    renamePackagedApp(target, targetOutputFolder);
-    if (target.startsWith("darwin")) {
-        updateMacBundleMetadata(targetOutputFolder);
-        installMacBundleIcon(targetOutputFolder);
+    copyPackagedRuntime(target, findBuiltPackageRoot(target, builderOutputFolder), targetOutputFolder);
+    if (packageOptions.artifacts || packageOptions.zip) {
+        copyArtifactFiles(builderOutputFolder, targetArtifactFolder);
     }
 
     Logger.success(`Created desktop package for ${target} in ${targetOutputFolder}`);
+    if (packageOptions.artifacts || packageOptions.zip) {
+        Logger.success(`Created desktop artifacts for ${target} in ${targetArtifactFolder}`);
+    }
 };
 
 const quickPackageTarget = (target) => {
@@ -460,8 +632,11 @@ process.chdir(electronFolder);
 
 if (!options.quick) {
     Logger.info("Clearing the desktop packaging output...");
-    rmSync(outputFolder, { recursive: true, force: true });
+    rmSync(tempPackageFolder, { recursive: true, force: true });
     rmSync(packagedDesktopFolder, { recursive: true, force: true });
+    if (options.artifacts || options.zip) {
+        rmSync(packagedArtifactsFolder, { recursive: true, force: true });
+    }
     Logger.done();
 }
 
@@ -470,7 +645,7 @@ for (const target of options.targets) {
     if (options.quick) {
         quickPackageTarget(target);
     } else {
-        packageTarget(target);
+        packageTarget(target, options);
     }
     Logger.done();
 }

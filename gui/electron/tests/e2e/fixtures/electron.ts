@@ -27,7 +27,7 @@ import { test as base, expect, type Page, type TestInfo } from "@playwright/test
 import { _electron as electron, type ElectronApplication } from "playwright";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { mkdir, symlink } from "node:fs/promises";
+import { lstat, mkdir, readlink, rm, symlink } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 
 import { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
@@ -75,6 +75,40 @@ const parseSlowMo = (): number | undefined => {
 };
 
 const slowMo = parseSlowMo();
+
+const resolveHostPlatform = (): string => {
+    if (process.platform === "darwin") {
+        return process.arch === "arm64" ? "darwin-arm64" : "darwin-x64";
+    }
+
+    if (process.platform === "linux") {
+        return process.arch === "arm64" ? "linux-arm64" : "linux-x64";
+    }
+
+    if (process.platform === "win32" && process.arch === "x64") {
+        return "win32-x64";
+    }
+
+    throw new Error(`Unsupported Electron e2e host platform: ${process.platform}-${process.arch}`);
+};
+
+const resolveMysqlShellRuntimeDir = (): string => {
+    return process.env.ELECTRON_MYSQLSH_RUNTIME_DIR
+        ?? join(electronRoot, "packaging", "mysql-shell-staging", resolveHostPlatform());
+};
+
+const validateMysqlShellRuntimeDir = (runtimeDir: string): void => {
+    const mysqlshBinary = join(runtimeDir, "bin", process.platform === "win32" ? "mysqlsh.exe" : "mysqlsh");
+    const pluginsDir = join(runtimeDir, "lib", "mysqlsh", "plugins");
+
+    if (!existsSync(mysqlshBinary)) {
+        throw new Error(`Missing e2e MySQL Shell runtime binary: ${mysqlshBinary}`);
+    }
+
+    if (!existsSync(pluginsDir)) {
+        throw new Error(`Missing e2e MySQL Shell builtin plugin directory: ${pluginsDir}`);
+    }
+};
 
 const waitForSlowMo = (delay: number): Promise<void> => {
     return new Promise((resolvePromise) => {
@@ -161,11 +195,6 @@ const createLaunchArguments = (testInfo: TestInfo): string[] => {
         rendererUrl,
     );
 
-    const mysqlshBinary = process.env.ELECTRON_E2E_MYSQLSH ?? process.env.MYSQLSH;
-    if (mysqlshBinary) {
-        args.push("--mysqlsh", mysqlshBinary);
-    }
-
     return args;
 };
 
@@ -234,7 +263,10 @@ const resolveElectronExecutablePath = (): string => {
     }
 };
 
-const createLaunchEnvironment = (shellUserConfigDir: string): NodeJS.ProcessEnv => {
+const createLaunchEnvironment = (
+    shellUserConfigDir: string,
+    mysqlshRuntimeDir: string | undefined,
+): NodeJS.ProcessEnv => {
     const launchEnv: NodeJS.ProcessEnv = {
         ...process.env,
         MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
@@ -246,29 +278,34 @@ const createLaunchEnvironment = (shellUserConfigDir: string): NodeJS.ProcessEnv 
         return launchEnv;
     }
 
-    const mysqlshGuiExtraArgs = [
-        "--disable-builtin-plugins",
-        process.env.MYSQLSH_GUI_EXTRA_ARGS,
-    ].filter(Boolean).join(" ");
+    const mysqlshGuiExtraArgs = process.env.MYSQLSH_GUI_EXTRA_ARGS ?? "";
 
     return {
         ...launchEnv,
         ELECTRON_RENDERER_URL: rendererUrl,
-        MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs,
+        ELECTRON_MYSQLSH_RUNTIME_DIR: mysqlshRuntimeDir,
+        ...(mysqlshGuiExtraArgs.length > 0 ? { MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs } : {}),
     };
 };
 
-const installPluginLinks = async (shellUserConfigDir: string): Promise<void> => {
-    const pluginsDir = join(shellUserConfigDir, "plugins");
-    await mkdir(pluginsDir, { recursive: true });
+const installPluginLinks = async (mysqlshRuntimeDir: string): Promise<void> => {
+    const pluginsDir = join(mysqlshRuntimeDir, "lib", "mysqlsh", "plugins");
 
     for (const [pluginName, sourceDir] of pluginSourceDirs) {
-        await symlink(sourceDir, join(pluginsDir, pluginName), process.platform === "win32" ? "junction" : "dir")
-            .catch((error: NodeJS.ErrnoException) => {
-                if (error.code !== "EEXIST") {
-                    throw error;
-                }
-            });
+        const targetDir = join(pluginsDir, pluginName);
+        try {
+            const targetStats = await lstat(targetDir);
+            if (targetStats.isSymbolicLink() && resolve(pluginsDir, await readlink(targetDir)) === sourceDir) {
+                continue;
+            }
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+                throw error;
+            }
+        }
+
+        await rm(targetDir, { recursive: true, force: true });
+        await symlink(sourceDir, targetDir, process.platform === "win32" ? "junction" : "dir");
     }
 };
 
@@ -276,17 +313,19 @@ export const test = base.extend<IElectronFixtures>({
     electronApp: async ({}, use, testInfo) => {
         const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
         const electronUserDataDir = testInfo.outputPath("electron-user-data");
+        const mysqlshRuntimeDir = isPackagedAppMode ? undefined : resolveMysqlShellRuntimeDir();
         await mkdir(shellUserConfigDir, { recursive: true });
         await mkdir(electronUserDataDir, { recursive: true });
 
-        if (!isPackagedAppMode) {
-            await installPluginLinks(shellUserConfigDir);
+        if (mysqlshRuntimeDir) {
+            validateMysqlShellRuntimeDir(mysqlshRuntimeDir);
+            await installPluginLinks(mysqlshRuntimeDir);
         }
 
         const launchOptions = {
             executablePath: resolveElectronExecutablePath(),
             args: createLaunchArguments(testInfo),
-            env: createLaunchEnvironment(shellUserConfigDir),
+            env: createLaunchEnvironment(shellUserConfigDir, mysqlshRuntimeDir),
             timeout: 60000,
         };
 

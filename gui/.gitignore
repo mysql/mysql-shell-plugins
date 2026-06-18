@@ -54,8 +54,10 @@ extension/router
 extension/*.vsix
 
 # Electron desktop packaging artifacts
+electron/.dev
 electron/output
 electron/packaging/desktop-packages
+electron/packaging/desktop-artifacts
 electron/packaging/electron
 electron/packaging/mysql-shell-staging
 

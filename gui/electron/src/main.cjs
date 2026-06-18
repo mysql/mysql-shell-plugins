@@ -24,7 +24,6 @@
  */
 
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
 
@@ -51,7 +50,6 @@ const isBundledRuntime = fs.existsSync(bundledFrontendBuildDir) && fs.existsSync
 const frontendBuildDir = isBundledRuntime ? bundledFrontendBuildDir : path.resolve(__dirname, "../../frontend/build");
 const preloadPath = path.resolve(__dirname, "./preload.cjs");
 const fileViewerPreloadPath = path.resolve(__dirname, "./file-viewer-preload.cjs");
-const desktopLogPath = path.join(os.homedir(), "Library", "Logs", "MySQL Workbench-electron.log");
 
 const parseCommandLineArguments = (argv) => {
     const result = {};
@@ -82,6 +80,10 @@ const parseCommandLineArguments = (argv) => {
 };
 
 const commandLineArguments = parseCommandLineArguments(process.argv);
+const explicitMysqlShellRuntimeDir = commandLineArguments["mysqlsh-runtime-dir"] ?? process.env.ELECTRON_MYSQLSH_RUNTIME_DIR;
+const mysqlshRuntimeDir = explicitMysqlShellRuntimeDir
+    ? path.resolve(explicitMysqlShellRuntimeDir)
+    : (isBundledRuntime ? bundledShellDir : undefined);
 const shouldUseHiddenE2EWindow = commandLineArguments["electron-e2e-background"] === "true"
     || process.env.ELECTRON_E2E_BACKGROUND === "1"
     || process.env.ELECTRON_E2E_BACKGROUND === "true";
@@ -92,11 +94,13 @@ if (typeof explicitUserDataDir === "string" && explicitUserDataDir.length > 0) {
 
 const windowStatePath = path.join(app.getPath("userData"), "window-state.json");
 const recentFilesPath = path.join(app.getPath("userData"), "recent-files.json");
+const desktopLogPath = path.join(app.getPath("userData"), "MySQL Workbench-electron.log");
 
 const appendDesktopLog = (message) => {
     const line = `[${new Date().toISOString()}] ${message}\n`;
 
     try {
+        fs.mkdirSync(path.dirname(desktopLogPath), { recursive: true });
         fs.appendFileSync(desktopLogPath, line);
     } catch (_error) {
         // Best-effort logging only.
@@ -132,7 +136,10 @@ const needsBundledRuntimeStartupWorkaround = isBundledRuntime
     && macAppBundlePath !== undefined
     && !hasValidMacCodeSignature(macAppBundlePath);
 
-appendDesktopLog(`startup isBundledRuntime=${isBundledRuntime} frontendBuildDir=${frontendBuildDir}`);
+appendDesktopLog(
+    `startup isBundledRuntime=${isBundledRuntime} mysqlshRuntimeDir=${mysqlshRuntimeDir ?? ""} ` +
+    `frontendBuildDir=${frontendBuildDir}`,
+);
 
 if (needsBundledRuntimeStartupWorkaround) {
     // The bundled runtime layout is also used by locally assembled, unsigned app
@@ -410,14 +417,14 @@ const resolveShellUserConfigDir = () => {
 const shellUserConfigDir = resolveShellUserConfigDir();
 
 const resolveMysqlShellBinary = () => {
-    if (isBundledRuntime) {
-        const binary = path.join(bundledShellDir, "bin", process.platform === "win32" ? "mysqlsh.exe" : "mysqlsh");
-        appendDesktopLog(`using bundled mysqlsh at ${binary}`);
-
-        return binary;
+    if (!mysqlshRuntimeDir) {
+        throw new Error("No MySQL Shell runtime configured. Set ELECTRON_MYSQLSH_RUNTIME_DIR.");
     }
 
-    return commandLineArguments.mysqlsh ?? process.env.MYSQLSH ?? "mysqlsh";
+    const binary = path.join(mysqlshRuntimeDir, "bin", process.platform === "win32" ? "mysqlsh.exe" : "mysqlsh");
+    appendDesktopLog(`using mysqlsh runtime at ${binary}`);
+
+    return binary;
 };
 
 const buildApplicationData = () => {
@@ -782,7 +789,6 @@ class DesktopBackendBridge {
 
         const mysqlshBinary = resolveMysqlShellBinary();
         const mysqlshArguments = buildMysqlShellArguments({
-            isRendererDevMode,
             extraArguments: parseMysqlShellExtraArguments(process.env.MYSQLSH_GUI_EXTRA_ARGS),
         });
         const startupErrors = [];
@@ -1830,8 +1836,6 @@ ipcMain.on("electron-backend-send", (event, payload) => {
 
     backendBridge.send(payload);
 });
-
-app.setName(appName);
 
 app.whenReady().then(async () => {
     appendDesktopLog("app.whenReady");

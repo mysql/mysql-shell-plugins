@@ -1,26 +1,41 @@
 {
     "name": "mysql-workbench",
+    "productName": "MySQL Workbench",
+    "version": "26.7.0",
     "private": true,
     "description": "MySQL Workbench based on MySQL Shell and Electron",
     "main": "src/main.cjs",
     "scripts": {
         "build:frontend": "npm --prefix ../frontend run build",
-        "electron:dev:vite": "bash ./scripts/run_vite_dev.sh",
-        "electron:dev": "npm run build:frontend && electron src/main.cjs",
+        "electron:dev:vite": "bash ./scripts/run_electron_dev.sh",
+        "electron:dev": "npm run build:frontend && bash ./scripts/run_electron_dev.sh --built-renderer",
         "e2e-tests-setup": "bash ../../scripts/python tests/e2e/setup_e2e.py --execution_mode=setup",
         "e2e-tests-run": "playwright test -c playwright.config.ts",
         "e2e-tests-teardown": "bash ../../scripts/python tests/e2e/setup_e2e.py --execution_mode=teardown",
         "e2e-tests-setup-and-run": "bash ./scripts/e2e_tests_setup_and_run.sh",
         "e2e-tests-ui": "playwright test -c playwright.config.ts --ui",
-        "package:desktop": "bash ./scripts/package_desktop.sh",
-        "package:desktop:darwin-arm64": "bash ./scripts/package_desktop.sh darwin-arm64",
-        "package:desktop:darwin-x64": "bash ./scripts/package_desktop.sh darwin-x64",
-        "package:desktop:win32-x64": "bash ./scripts/package_desktop.sh win32-x64",
-        "package:desktop:linux-arm64": "bash ./scripts/package_desktop.sh linux-arm64",
-        "package:desktop:linux-x64": "bash ./scripts/package_desktop.sh linux-x64"
+        "package": "bash ./scripts/package_desktop.sh",
+        "package:darwin-arm64": "bash ./scripts/package_desktop.sh darwin-arm64",
+        "package:darwin-x64": "bash ./scripts/package_desktop.sh darwin-x64",
+        "package:win32-x64": "bash ./scripts/package_desktop.sh win32-x64",
+        "package:linux-arm64": "bash ./scripts/package_desktop.sh linux-arm64",
+        "package:linux-x64": "bash ./scripts/package_desktop.sh linux-x64",
+        "package:artifacts": "bash ./scripts/package_desktop.sh --artifacts",
+        "package:artifacts:darwin-arm64": "bash ./scripts/package_desktop.sh darwin-arm64 --artifacts",
+        "package:artifacts:darwin-x64": "bash ./scripts/package_desktop.sh darwin-x64 --artifacts",
+        "package:artifacts:win32-x64": "bash ./scripts/package_desktop.sh win32-x64 --artifacts",
+        "package:artifacts:linux-arm64": "bash ./scripts/package_desktop.sh linux-arm64 --artifacts",
+        "package:artifacts:linux-x64": "bash ./scripts/package_desktop.sh linux-x64 --artifacts",
+        "package:zip": "bash ./scripts/package_desktop.sh --zip",
+        "package:zip:darwin-arm64": "bash ./scripts/package_desktop.sh darwin-arm64 --zip",
+        "package:zip:darwin-x64": "bash ./scripts/package_desktop.sh darwin-x64 --zip",
+        "package:zip:win32-x64": "bash ./scripts/package_desktop.sh win32-x64 --zip",
+        "package:zip:linux-arm64": "bash ./scripts/package_desktop.sh linux-arm64 --zip",
+        "package:zip:linux-x64": "bash ./scripts/package_desktop.sh linux-x64 --zip"
     },
     "devDependencies": {
-        "@playwright/test": "1.56.1"
+        "@playwright/test": "1.56.1",
+        "electron-builder": "26.15.3"
     },
     "dependencies": {
         "electron": "42.4.1"

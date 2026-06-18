@@ -20,8 +20,10 @@ Shell plugins, and a bundled MySQL Shell runtime.
 - `gui/electron/packaging/mysql-shell-staging/<platform>`: staged and stripped
   MySQL Shell tree cache.
 - `gui/electron/packaging/desktop-packages/<platform>`: final packaged MySQL
-  Workbench output.
-- `gui/electron/output/<platform>`: temporary packaging output.
+  Workbench unpacked app output.
+- `gui/electron/packaging/desktop-artifacts/<platform>`: optional ZIP, DMG,
+  MSI, DEB, and RPM artifact outputs.
+- `gui/electron/packaging/temp/<platform>`: temporary packaging output.
 
 Supported package targets are:
 
@@ -47,9 +49,8 @@ The Electron dependency in `gui/electron/package.json` must be an exact version,
 not a semver range. The packaging script uses that version unless
 `ELECTRON_VERSION` is set in the environment.
 
-For running MySQL Workbench, `mysqlsh` must be available either on `PATH`,
-through the `MYSQLSH` environment variable, or through the Electron host's
-`--mysqlsh` command-line argument.
+For repository launches, MySQL Workbench requires a staged MySQL Shell runtime.
+Packaged apps use the runtime bundled in the app payload.
 
 ## Development Launch
 
@@ -65,7 +66,23 @@ This script:
 
 1. Starts the frontend Vite dev server from `gui/frontend`.
 2. Waits for the renderer URL to become available.
-3. Launches `gui/electron/src/main.cjs` with Electron.
+3. Refreshes builtin plugin symlinks under
+   `gui/electron/packaging/mysql-shell-staging/<host-platform>/lib/mysqlsh/plugins`.
+4. Launches `gui/electron/src/main.cjs` with Electron and points it at the
+   staged MySQL Shell runtime.
+
+The staged MySQL Shell runtime must already exist. Prepare it from a local Shell
+build tree before starting the Vite workflow:
+
+```sh
+cd gui/electron
+bash ./scripts/package_desktop.sh --mysqlsh-tree=/path/to/mysql-shell-tree/
+```
+
+See [MySQL Shell Inputs](#mysql-shell-inputs) for the staging layout and input
+tree requirements. The Vite dev workflow keeps the Shell home in Electron app
+data; plugin code is loaded from the staged runtime's builtin plugin directory,
+where entries are symlinks back to this checkout.
 
 Useful environment variables:
 
@@ -73,25 +90,21 @@ Useful environment variables:
 - `VITE_PORT`: Vite port, default `5173`.
 - `ELECTRON_RENDERER_URL`: renderer URL loaded by Electron. Defaults to
   `http://${VITE_HOST}:${VITE_PORT}/`.
-- `MYSQLSH`: mysqlsh executable used by the Electron host.
+- `ELECTRON_MYSQLSH_PLATFORM`: platform staging directory used by the Vite
+  workflow. Defaults to the detected host platform, such as `darwin-arm64`.
 - `MYSQLSH_GUI_EXTRA_ARGS`: extra arguments passed to the mysqlsh backend.
 
-For a production-renderer local run:
-
-```sh
-cd gui/electron
-npm run electron:dev
-```
-
-This builds the shared frontend first with `npm --prefix ../frontend run build`,
-then starts Electron with `src/main.cjs`.
+`npm run electron:dev` builds the shared frontend first with
+`npm --prefix ../frontend run build`, then starts Electron with `src/main.cjs`.
+Use `npm run electron:dev:vite` for repository development so the staged runtime
+is resolved automatically.
 
 ## Full Desktop Packaging
 
 Run a package target from `gui/electron`:
 
 ```sh
-npm run package:desktop:darwin-arm64
+npm run package:darwin-arm64
 ```
 
 or call the packaging script directly:
@@ -111,16 +124,20 @@ The full packaging flow is:
    `gui/electron/packaging/mysql-shell-staging/<platform>`.
 4. Strip the staged MySQL Shell tree with
    `gui/electron/scripts/strip_mysqlsh_tree.sh`.
-5. Resolve the unpacked Electron runtime under
-   `gui/electron/packaging/electron/<platform>`, or download it when
-   `--download-electron` is used.
+5. Use the unpacked Electron runtime under
+   `gui/electron/packaging/electron/<platform>` when present, download it when
+   `--download-electron` is used, or let electron-builder download it.
 6. Run `gui/electron/scripts/package_desktop.ts`.
 7. Ensure the frontend build is current with
    `npm --prefix gui/frontend run build-if-needed`.
-8. Copy the Electron runtime, Electron source, frontend build, images, bundled
-   MySQL Shell tree, and plugins into the MySQL Workbench payload.
-9. Rename the executable to `MySQL Workbench`.
-10. On macOS, update bundle metadata and install the MySQL Workbench icon.
+8. Stage the Electron source, frontend build, images, and bundled MySQL Shell
+   tree into the MySQL Workbench payload. Plugin entries in the payload are
+   replaced with copied plugin sources from this checkout, so a dev staging tree
+   may use plugin symlinks while packaged apps contain real plugin directories.
+9. Invoke electron-builder with the `dir` target to create an unpacked desktop
+   package and normalize the result back to the existing output directory. When
+   `--artifacts` is used, electron-builder also creates the platform
+   distributable artifacts.
 
 Final output is written to:
 
@@ -134,47 +151,126 @@ For macOS the final bundle is:
 gui/electron/packaging/desktop-packages/<platform>/MySQL Workbench.app
 ```
 
+## Distributable Artifacts
+
+Archive and installer packaging is opt-in. It keeps the unpacked package output
+above and also writes platform artifact files under:
+
+```text
+gui/electron/packaging/desktop-artifacts/<platform>
+```
+
+Run ZIP packaging from `gui/electron`:
+
+```sh
+npm run package:zip:darwin-arm64
+```
+
+or call the packaging script directly:
+
+```sh
+bash ./scripts/package_desktop.sh darwin-arm64 --zip
+```
+
+Run installer/package artifact packaging from `gui/electron`:
+
+```sh
+npm run package:artifacts:darwin-arm64
+```
+
+or call the packaging script directly:
+
+```sh
+bash ./scripts/package_desktop.sh darwin-arm64 --artifacts
+```
+
+ZIP mode produces `.zip` archives for all platforms.
+
+Artifact mode produces:
+
+- macOS: `.dmg`
+- Windows: `.msi`
+- Linux: `.deb` and `.rpm`
+
+Use `--zip --artifacts` together to produce both ZIP archives and platform
+installer/package artifacts in one run.
+
+Artifact packages are unsigned local build outputs. Code signing,
+notarization, and release publishing are not enabled by this script.
+
 ## MySQL Shell Inputs
 
 By default, `package_desktop.sh` looks for MySQL Shell packages under:
 
 ```text
-gui/extension/packaging/mysql-shell
+gui/electron/packaging/mysql-shell
 ```
 
 The simplest cache names are:
 
 ```text
-gui/extension/packaging/mysql-shell/darwin-arm64.tar.gz
-gui/extension/packaging/mysql-shell/darwin-x64.tar.gz
-gui/extension/packaging/mysql-shell/win32-x64.zip
-gui/extension/packaging/mysql-shell/linux-arm64.tar.gz
-gui/extension/packaging/mysql-shell/linux-x64.tar.gz
+gui/electron/packaging/mysql-shell/darwin-arm64.tar.gz
+gui/electron/packaging/mysql-shell/darwin-x64.tar.gz
+gui/electron/packaging/mysql-shell/win32-x64.zip
+gui/electron/packaging/mysql-shell/linux-arm64.tar.gz
+gui/electron/packaging/mysql-shell/linux-x64.tar.gz
 ```
 
 Official MySQL Shell archive names are also accepted when they match the target
 platform.
 
-To use an unpacked MySQL Shell tree instead of an archive:
+### Preparing the Staging Directory
+
+For repository development, prepare the MySQL Shell staging directory from one
+unpacked Shell install tree. The input tree must contain `bin`, `lib`, and
+`share`; `libexec` is copied when present. A local Shell build installed under
+`bld/usr/local` already has this shape.
+
+Run the staging command from `gui/electron`:
 
 ```sh
-bash ./scripts/package_desktop.sh darwin-arm64 --mysqlsh-tree /path/to/mysqlsh
+bash ./scripts/package_desktop.sh --mysqlsh-tree=/path/to/mysql-shell-tree/
 ```
 
-When `--mysqlsh-tree` points to a single tree, exactly one package target must be
-selected. For multiple targets, pass a directory containing per-platform trees:
+With no package target, `package_desktop.sh` detects the host platform, stages
+the tree under:
+
+```text
+gui/electron/packaging/mysql-shell-staging/<host-platform>
+```
+
+and exits before Electron packaging starts. For example, on Apple Silicon macOS
+the runtime path is:
+
+```text
+gui/electron/packaging/mysql-shell-staging/darwin-arm64
+```
+
+The resulting staging directory is the Shell runtime used by
+`npm run electron:dev:vite`. When Vite starts, `run_electron_dev.sh` validates that
+the staged tree has `bin/mysqlsh` and `lib/mysqlsh/plugins`, then refreshes the
+builtin plugin entries there as symlinks to this checkout.
+
+To package with an unpacked MySQL Shell tree instead of only preparing the dev
+staging directory, select the package target:
+
+```sh
+bash ./scripts/package_desktop.sh darwin-arm64 --mysqlsh-tree=/path/to/mysqlsh
+```
+
+For multiple package targets, pass a directory containing per-platform trees:
 
 ```text
 /path/to/mysqlsh-trees/darwin-arm64
 /path/to/mysqlsh-trees/linux-x64
 ```
 
-Each tree must contain `bin`, `lib`, and `share`. `libexec` is copied when it is
-present.
+Each per-platform tree must contain `bin`, `lib`, and `share`. `libexec` is
+copied when it is present.
 
 ## Electron Runtime Inputs
 
-The script expects an unpacked Electron runtime at:
+The script can use an unpacked Electron runtime at:
 
 ```text
 gui/electron/packaging/electron/<platform>
@@ -188,6 +284,9 @@ bash ./scripts/package_desktop.sh darwin-arm64 --download-electron
 
 Downloaded Electron zip files are cached under `gui/electron/packaging/electron`
 and extracted into the corresponding platform directory.
+
+If that cache is absent, electron-builder downloads the Electron runtime for
+the version declared in `gui/electron/package.json`.
 
 ## Quick Packaging
 
@@ -294,7 +393,8 @@ Useful test environment variables:
 - `ELECTRON_E2E_BACKGROUND`: set to `1` or `true` to keep the Electron test
   window hidden.
 - `ELECTRON_E2E_PACKAGED_APP`: packaged app bundle or executable used by tests.
-- `ELECTRON_E2E_MYSQLSH`, then `MYSQLSH`: mysqlsh executable precedence.
+- `ELECTRON_E2E_MYSQLSH`, then `MYSQLSH`: mysqlsh executable precedence for
+  sandbox setup utilities.
 - `ELECTRON_E2E_MYSQL_PORT`, then `MYSQL_PORT`: sandbox MySQL port precedence.
 - `ELECTRON_E2E_VITE_HOST`: renderer dev server host, default `127.0.0.1`.
 - `ELECTRON_E2E_VITE_PORT`: renderer dev server port, default `5174`.
@@ -381,19 +481,15 @@ The payload contains:
 - `images`: MySQL Workbench desktop images.
 - `shell`: stripped MySQL Shell tree with bundled plugins.
 
-The package version comes from `gui/extension/package.json` when present, with
-`gui/electron/package.json` as the fallback.
+The package version comes from `gui/electron/package.json`.
 
 ## Troubleshooting
 
-Missing Electron runtime:
+Electron download issues:
 
-```text
-ERROR: Missing Electron runtime for <platform>
-```
-
-Use `--download-electron` or unpack the Electron runtime into
-`gui/electron/packaging/electron/<platform>`.
+Use `--download-electron` to prefill `gui/electron/packaging/electron/<platform>`
+or unpack the Electron runtime there. Otherwise electron-builder downloads and
+caches Electron during packaging.
 
 Missing MySQL Shell archive:
 
@@ -401,7 +497,7 @@ Missing MySQL Shell archive:
 ERROR: Missing MySQL Shell archive for <platform>
 ```
 
-Place a matching archive under `gui/extension/packaging/mysql-shell`, or use
+Place a matching archive under `gui/electron/packaging/mysql-shell`, or use
 `--mysqlsh-tree`.
 
 Quick mode fails with missing package:
@@ -419,8 +515,9 @@ Frontend changes are not visible in a packaged MySQL Workbench bundle:
 - For dev mode, prefer `npm run electron:dev:vite` so the renderer comes from
   Vite.
 
-Code signing, notarization, installers, and archive creation are not handled by
-the current packaging scripts. The output is an unpacked MySQL Workbench
-bundle/runtime directory.
+Code signing, notarization, and release publishing are not enabled by the
+current packaging scripts. The default output is an unpacked MySQL Workbench
+bundle/runtime directory produced by electron-builder. Use `--artifacts` to
+also produce DMG, MSI, DEB, or RPM files, or `--zip` to produce ZIP archives.
 
 Copyright &copy; 2026, Oracle and/or its affiliates.
