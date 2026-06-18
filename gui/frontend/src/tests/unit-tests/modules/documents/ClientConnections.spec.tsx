@@ -67,6 +67,14 @@ const clientConnectionsGlobalStatusQuery = expect.stringMatching(
     /^show global status where VARIABLE_NAME in \('Aborted_clients', 'Aborted_connects', /,
 );
 
+const waitForConnectionListResizeSettled = async (container: HTMLElement): Promise<void> => {
+    await waitFor(() => {
+        const connectionList = container.querySelector("#connectionList");
+
+        expect(connectionList?.classList.contains("resizing")).toBe(false);
+    });
+};
+
 class TestClientConnections extends ClientConnections {
     public testUpdateValues = async (): Promise<void> => {
         // @ts-expect-error, because we are accessing a private method.
@@ -210,6 +218,7 @@ describe("Client connections module tests", (): void => {
         );
 
         await nextRunLoop();
+        await waitForConnectionListResizeSettled(container);
 
         expect(container).toMatchSnapshot("ClientConnections1");
 
@@ -218,6 +227,7 @@ describe("Client connections module tests", (): void => {
         });
 
         await nextRunLoop();
+        await waitForConnectionListResizeSettled(container);
         expect(container).toMatchSnapshot("ClientConnections2");
 
         unmount();

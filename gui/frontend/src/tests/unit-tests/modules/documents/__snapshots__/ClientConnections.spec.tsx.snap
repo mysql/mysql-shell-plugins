@@ -178,7 +178,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
         </div>
       </section>
       <div
-        class="msg splitContainer resizing"
+        class="msg splitContainer"
         id="connectionList"
       >
         <div
@@ -518,7 +518,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
         </div>
       </section>
       <div
-        class="msg splitContainer resizing"
+        class="msg splitContainer"
         id="connectionList"
       >
         <div

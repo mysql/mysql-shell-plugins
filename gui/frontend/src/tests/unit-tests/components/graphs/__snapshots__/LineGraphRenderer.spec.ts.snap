@@ -71,7 +71,7 @@ exports[`LineGraphRenderer Tests > Base Rendering 2`] = `
           fill="currentColor"
           x="-9"
         >
-          0
+          0.000000
         </text>
       </g>
       <text

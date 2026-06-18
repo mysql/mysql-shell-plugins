@@ -344,7 +344,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with no task items 1`
     panes={
       [
         {
-          "content": <k>
+          "content": <S>
             <Container
               className="objectStorageBrowser mainPanel"
               crossAlignment="stretch"
@@ -413,7 +413,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with no task items 1`
                 src={10}
               />
             </Container>
-          </k>,
+          </S>,
           "id": "objectStoreBrowserForNewLoadTask",
           "minSize": 300,
           "resizable": true,
@@ -422,7 +422,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with no task items 1`
         },
         {
           "collapsed": false,
-          "content": <k>
+          "content": <S>
             <Container
               className="loadingTaskPreview mainPanel"
               crossAlignment="stretch"
@@ -602,7 +602,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with no task items 1`
                 </Container>
               </Container>
             </Container>
-          </k>,
+          </S>,
           "id": "newLoadTask",
           "initialSize": 380,
           "minSize": 380,
@@ -629,7 +629,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task items 1`] =
     panes={
       [
         {
-          "content": <k>
+          "content": <S>
             <Container
               className="objectStorageBrowser mainPanel"
               crossAlignment="stretch"
@@ -698,7 +698,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task items 1`] =
                 src={10}
               />
             </Container>
-          </k>,
+          </S>,
           "id": "objectStoreBrowserForNewLoadTask",
           "minSize": 300,
           "resizable": true,
@@ -707,7 +707,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task items 1`] =
         },
         {
           "collapsed": false,
-          "content": <k>
+          "content": <S>
             <Container
               className="loadingTaskPreview mainPanel"
               crossAlignment="stretch"
@@ -887,7 +887,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task items 1`] =
                 </Container>
               </Container>
             </Container>
-          </k>,
+          </S>,
           "id": "newLoadTask",
           "initialSize": 380,
           "minSize": 380,
@@ -914,7 +914,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task schedule er
     panes={
       [
         {
-          "content": <k>
+          "content": <S>
             <Container
               className="objectStorageBrowser mainPanel"
               crossAlignment="stretch"
@@ -983,7 +983,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task schedule er
                 src={10}
               />
             </Container>
-          </k>,
+          </S>,
           "id": "objectStoreBrowserForNewLoadTask",
           "minSize": 300,
           "resizable": true,
@@ -992,7 +992,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task schedule er
         },
         {
           "collapsed": false,
-          "content": <k>
+          "content": <S>
             <Container
               className="loadingTaskPreview mainPanel"
               crossAlignment="stretch"
@@ -1172,7 +1172,7 @@ exports[`LakehouseNavigator tests > Test getLoadTabContent with task schedule er
                 </Container>
               </Container>
             </Container>
-          </k>,
+          </S>,
           "id": "newLoadTask",
           "initialSize": 380,
           "minSize": 380,
@@ -2013,18 +2013,18 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with files for uplo
                 mainAlignment="center"
                 orientation="column"
               >
-                <k>
+                <S>
                   <Label
                     caption="• Add files for upload"
                     className="addFilesLbl"
                     onClick={[Function]}
                   />
-                </k>
-                <k>
+                </S>
+                <S>
                   <Label
                     caption="• Select a target in the Object Storage Browser"
                   />
-                </k>
+                </S>
                 <Label
                   caption="• Click the Start File Upload button"
                 />
@@ -2078,7 +2078,7 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with files for uplo
           "snap": true,
         },
         {
-          "content": <k>
+          "content": <S>
             <Container
               className="separator"
               crossAlignment="center"
@@ -2147,7 +2147,7 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with files for uplo
                 />
               </Container>
             </Container>
-          </k>,
+          </S>,
           "id": "objectStoreBrowserForFileUpload",
           "minSize": 300,
           "snap": false,
@@ -2226,18 +2226,18 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with no files for u
                 mainAlignment="center"
                 orientation="column"
               >
-                <k>
+                <S>
                   <Label
                     caption="• Add files for upload"
                     className="addFilesLbl"
                     onClick={[Function]}
                   />
-                </k>
-                <k>
+                </S>
+                <S>
                   <Label
                     caption="• Select a target in the Object Storage Browser"
                   />
-                </k>
+                </S>
                 <Label
                   caption="• Click the Start File Upload button"
                 />
@@ -2291,7 +2291,7 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with no files for u
           "snap": true,
         },
         {
-          "content": <k>
+          "content": <S>
             <Container
               className="separator"
               crossAlignment="center"
@@ -2360,7 +2360,7 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with no files for u
                 />
               </Container>
             </Container>
-          </k>,
+          </S>,
           "id": "objectStoreBrowserForFileUpload",
           "minSize": 300,
           "snap": false,
@@ -2439,18 +2439,18 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with upload error 1
                 mainAlignment="center"
                 orientation="column"
               >
-                <k>
+                <S>
                   <Label
                     caption="• Add files for upload"
                     className="addFilesLbl"
                     onClick={[Function]}
                   />
-                </k>
-                <k>
+                </S>
+                <S>
                   <Label
                     caption="• Select a target in the Object Storage Browser"
                   />
-                </k>
+                </S>
                 <Label
                   caption="• Click the Start File Upload button"
                 />
@@ -2504,7 +2504,7 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with upload error 1
           "snap": true,
         },
         {
-          "content": <k>
+          "content": <S>
             <Container
               className="separator"
               crossAlignment="center"
@@ -2573,7 +2573,7 @@ exports[`LakehouseNavigator tests > Test getUploadTabContent with upload error 1
                 />
               </Container>
             </Container>
-          </k>,
+          </S>,
           "id": "objectStoreBrowserForFileUpload",
           "minSize": 300,
           "snap": false,
