@@ -57,4 +57,15 @@ describe("Electron mysqlsh argument helpers", () => {
             "import gui_plugin as gui; gui.start.desktop_bridge()",
         ]);
     });
+
+    it("disables built-in plugins for Vite renderer dev mode", () => {
+        expect(buildMysqlShellArguments({
+            isRendererDevMode: true,
+        })).toEqual([
+            "--disable-builtin-plugins",
+            "--py",
+            "-e",
+            "import gui_plugin as gui; gui.start.desktop_bridge()",
+        ]);
+    });
 });

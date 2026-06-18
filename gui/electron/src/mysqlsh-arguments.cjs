@@ -68,7 +68,7 @@ const parseMysqlShellExtraArguments = (value) => {
 
 const buildMysqlShellArguments = ({ isRendererDevMode, extraArguments = [] }) => {
     return [
-        ...(isRendererDevMode ? [] : ["--disable-plugins"]),
+        ...(isRendererDevMode ? ["--disable-builtin-plugins"] : ["--disable-plugins"]),
         ...extraArguments,
         "--py",
         "-e",

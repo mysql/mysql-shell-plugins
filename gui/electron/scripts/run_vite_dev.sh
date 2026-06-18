@@ -31,6 +31,7 @@ FRONTEND_DIR="$(cd "$ELECTRON_DIR/../frontend" && pwd)"
 VITE_HOST="${VITE_HOST:-127.0.0.1}"
 VITE_PORT="${VITE_PORT:-5173}"
 ELECTRON_RENDERER_URL="${ELECTRON_RENDERER_URL:-http://${VITE_HOST}:${VITE_PORT}/}"
+MYSQLSH_USER_CONFIG_HOME="${MYSQLSH_USER_CONFIG_HOME:-$HOME/.mysqlsh}"
 
 vite_pid=""
 
@@ -70,4 +71,4 @@ vite_pid=$!
 wait_for_vite "$ELECTRON_RENDERER_URL"
 
 cd "$ELECTRON_DIR"
-ELECTRON_RENDERER_URL="$ELECTRON_RENDERER_URL" ./node_modules/.bin/electron src/main.cjs "$@"
+ELECTRON_RENDERER_URL="$ELECTRON_RENDERER_URL" MYSQLSH_USER_CONFIG_HOME="$MYSQLSH_USER_CONFIG_HOME" ./node_modules/.bin/electron src/main.cjs "$@"
