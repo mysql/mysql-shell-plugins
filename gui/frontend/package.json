@@ -23,7 +23,6 @@
         "e2e-tests-execute": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py --execution_mode=execute",
         "e2e-tests-teardown": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py --execution_mode=teardown",
         "e2e-tests-setup-and-run": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py",
-        "e2e-tests-run-migration": "tsx src/tests/e2e/migration_assistant/lib/setup/setupPluginsAndRun.ts",
         "e2e-tests-run": "vitest --no-watch --no-coverage -c e2e.vitest.config.ts"
     },
     "dependencies": {
@@ -88,7 +87,7 @@
         "terser": "5.43.1",
         "ts-node": "10.9.2",
         "tsx": "4.19.4",
-        "typescript": "5.8.3",
+        "typescript": "^5.8.3",
         "typescript-eslint": "8.34.1",
         "vite": "6.4.2",
         "vite-plugin-monaco-editor": "1.1.0",

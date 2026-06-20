@@ -395,6 +395,8 @@ Useful test environment variables:
 - `ELECTRON_E2E_PACKAGED_APP`: packaged app bundle or executable used by tests.
 - `ELECTRON_E2E_MYSQLSH`, then `MYSQLSH`: mysqlsh executable precedence for
   sandbox setup utilities.
+- `ELECTRON_E2E_MYSQLD_PATH`, then `MYSQLD_PATH`: mysqld executable or MySQL
+  installation root used for sandbox deployment.
 - `ELECTRON_E2E_MYSQL_PORT`, then `MYSQL_PORT`: sandbox MySQL port precedence.
 - `ELECTRON_E2E_VITE_HOST`: renderer dev server host, default `127.0.0.1`.
 - `ELECTRON_E2E_VITE_PORT`: renderer dev server port, default `5174`.

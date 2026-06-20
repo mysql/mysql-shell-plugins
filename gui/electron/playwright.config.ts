@@ -29,6 +29,7 @@ const host = process.env.ELECTRON_E2E_VITE_HOST ?? "127.0.0.1";
 const port = process.env.ELECTRON_E2E_VITE_PORT ?? "5174";
 const rendererUrl = process.env.ELECTRON_E2E_RENDERER_URL ?? `http://${host}:${port}/`;
 const usePackagedApp = Boolean(process.env.ELECTRON_E2E_PACKAGED_APP);
+const includeMigrationTests = process.env.ELECTRON_E2E_INCLUDE_MIGRATION === "1";
 const webServer = usePackagedApp ? undefined : {
     command: `npm --prefix ../frontend run run-vite:dev-server -- --host ${host} --port ${port} --strictPort`,
     url: rendererUrl,
@@ -53,6 +54,7 @@ module.exports = defineConfig({
         {
             name: "electron",
             testMatch: /specs\/.*\.spec\.ts/,
+            ...(!includeMigrationTests ? { testIgnore: /specs\/migration-assistant\.spec\.ts/ } : {}),
             dependencies: ["warmup"],
         },
     ],

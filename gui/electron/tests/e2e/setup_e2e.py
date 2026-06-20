@@ -75,6 +75,10 @@ def mysqlsh_executable() -> str:
     return os.environ.get("ELECTRON_E2E_MYSQLSH") or os.environ.get("MYSQLSH") or "mysqlsh"
 
 
+def mysqld_path() -> str | None:
+    return os.environ.get("ELECTRON_E2E_MYSQLD_PATH") or os.environ.get("MYSQLD_PATH")
+
+
 def load_json(path: pathlib.Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as file:
         return json.load(file)  # type: ignore[no-any-return]
@@ -130,15 +134,20 @@ def mysql_server_info(connection: str, env: Dict[str, str]) -> Tuple[str, str]:
 
 
 def deploy_sandbox(port: str, password: str, env: Dict[str, str]) -> None:
+    server_path = mysqld_path()
     SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
-    run_mysqlsh([
+    command = [
         "--",
         "dba",
         "deploy-sandbox-instance",
         port,
         f"--password={password}",
         f"--sandbox-dir={SANDBOX_DIR}",
-    ], env)
+    ]
+    if server_path:
+        command.append(f"--mysqld-path={server_path}")
+
+    run_mysqlsh(command, env)
 
 
 def delete_sandbox(port: str, env: Dict[str, str]) -> None:

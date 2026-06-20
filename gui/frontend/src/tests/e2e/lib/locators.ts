@@ -266,7 +266,7 @@ export const dbConnectionOverview = {
             item: By.css(".menuItem label"),
         },
         newNotebook: By.id("tileNewNotebookAction"),
-        newScript: By.id("tileNewScriptAction"),
+        migrationAssistant: By.id("tileMigrationAssistantAction"),
         contextMenu: By.css(".noArrow.menu"),
     },
     group: {

@@ -183,6 +183,16 @@
 
 .msg.connectionTile .tileDescription {
     font-size: 0.8rem;
+
+    scrollbar-width: thin;
+}
+
+.msg.connectionTile .tileDescription::-webkit-scrollbar {
+    height: 4px;
+}
+
+.msg.connectionTile .tileDescription::-webkit-scrollbar-thumb {
+    border-radius: 2px;
 }
 
 .msg.connectionTile.secondary .label {

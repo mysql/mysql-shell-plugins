@@ -25,6 +25,7 @@ CREATE DATABASE IF NOT EXISTS `sakila`;
 USE `sakila`;
 
 DROP TABLE IF EXISTS `film`;
+DROP TABLE IF EXISTS `migration_missing_pk`;
 DROP TABLE IF EXISTS `actor`;
 
 CREATE TABLE `actor` (
@@ -53,3 +54,11 @@ CREATE TABLE `film` (
 INSERT INTO `film` (`film_id`, `title`, `description`, `release_year`, `last_update`) VALUES
   (1, 'ACADEMY DINOSAUR', 'A dinosaur documentary', 2006, '2006-02-15 05:03:42'),
   (2, 'ACE GOLDFINGER', 'A database test fixture film', 2006, '2006-02-15 05:03:42');
+
+CREATE TABLE `migration_missing_pk` (
+  `source_id` int NOT NULL,
+  `description` varchar(128) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+INSERT INTO `migration_missing_pk` (`source_id`, `description`) VALUES
+  (1, 'Migration compatibility fixture without a primary key');

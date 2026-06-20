@@ -30,6 +30,9 @@ ELECTRON_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 setup_started=0
 teardown_done=0
 
+export DB_ROOT_PASSWORD='Sakila1!'
+export MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS=1
+
 function teardown() {
     if [ "$setup_started" -eq 1 ] && [ "$teardown_done" -eq 0 ]; then
         teardown_done=1

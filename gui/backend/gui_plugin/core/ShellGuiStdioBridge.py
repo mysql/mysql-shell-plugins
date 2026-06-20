@@ -40,6 +40,7 @@ import gui_plugin.core.Logger as logger
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
 from gui_plugin.core.Db import GuiBackendDb
 from gui_plugin.core.Filtering import FilterExpire, LogFilter
+from gui_plugin.core.PluginCommandMocks import send_plugin_command_mock_response
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.core.dbms.DbMySQLSession import DbSession
@@ -494,6 +495,11 @@ class ShellGuiStdioBridge:
             cmd = json_msg.get("command")
             if not cmd:
                 raise Exception("No command given. Please provide the command.")
+
+            if send_plugin_command_mock_response(cmd, request_id, self):
+                result = None
+
+                return
 
             args = json_msg.get("args", {})
             kwargs = json_msg.get("kwargs", {})

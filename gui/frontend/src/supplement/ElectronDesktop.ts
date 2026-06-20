@@ -60,6 +60,7 @@ export interface IElectronHostBridge {
     showNativeMenu?: (request: IElectronNativeMenuRequest) => Promise<void>;
     closeNativeMenu?: (requestId: string) => Promise<void>;
     setNativeMenuHandler?: (handler: (event: IElectronNativeMenuEvent) => void) => void;
+    canStartMigrationAssistant?: () => Promise<{ allowed: boolean; message?: string; }>;
 }
 
 export interface IElectronDesktopBackend {
@@ -90,5 +91,5 @@ export const hasElectronNativeMenuBridge = (): boolean => {
     const host = typeof window === "undefined" ? undefined : window.electronHost;
 
     return typeof host?.showNativeMenu === "function"
-        && typeof host?.setNativeMenuHandler === "function";
+        && typeof host.setNativeMenuHandler === "function";
 };

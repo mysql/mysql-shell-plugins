@@ -182,12 +182,12 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
                     <Icon src={Assets.misc.newNotebookIcon} data-tooltip="inherit" />
                 </Button>
                 <Button
-                    id="tileNewScriptAction"
-                    data-tooltip="Create New Script"
+                    id="tileMigrationAssistantAction"
+                    data-tooltip="Start MySQL Cloud Migration Assistant"
                     imageOnly
                     onClick={this.handleActionClick}
                 >
-                    <Icon src={Assets.misc.newScriptIcon} data-tooltip="inherit" />
+                    <Icon src={Codicon.CloudUpload} data-tooltip="inherit" />
                 </Button>
             </>
         );
@@ -270,8 +270,8 @@ export class ConnectionTile extends ComponentBase<IConnectionTileProperties> {
                 break;
             }
 
-            case "tileNewScriptAction": {
-                onAction?.("open", this.props, { newTab: e.metaKey || e.altKey, editor: "script" });
+            case "tileMigrationAssistantAction": {
+                onAction?.("msg.startMySQLCloudMigrationAssistant", this.props, {});
 
                 break;
             }

@@ -94,7 +94,7 @@
     ],
     "ignoreWords": [
         "DATETIME",
-        "DBROOTPASSWORD",
+        "DB_ROOT_PASSWORD",
         "Divs",
         "E2ETESTS",
         "GEOMCOLLECTION",

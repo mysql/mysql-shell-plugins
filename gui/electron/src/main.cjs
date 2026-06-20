@@ -307,6 +307,7 @@ const buildRendererUrl = (pathAndSearch = "/") => {
 };
 const rendererEntryUrl = buildRendererUrl("/");
 const fileViewerEntryUrl = buildRendererUrl("/index.html?view=fileViewer");
+const migrationAssistantEntryUrl = buildRendererUrl("/index.html?subApp=migration");
 const isRendererDevMode = Boolean(rendererDevUrl);
 const rendererTrustedOrigin = isRendererDevMode ? new URL(rendererEntryUrl).origin : undefined;
 
@@ -765,17 +766,63 @@ const buildHostThemeData = () => {
 
 class DesktopBackendBridge {
     constructor(mainWindow) {
-        this.mainWindow = mainWindow;
+        this.windows = new Set([mainWindow]);
         this.process = undefined;
         this.connectPromise = undefined;
         this.bufferedMessages = [];
         this.pendingStdout = "";
+        this.latestWebSessionMessage = undefined;
+        this.windowByRequestId = new Map();
         this.ready = false;
+    }
+
+    addWindow(browserWindow) {
+        this.windows.add(browserWindow);
+    }
+
+    removeWindow(browserWindow) {
+        this.windows.delete(browserWindow);
+
+        for (const [requestId, requestWindow] of this.windowByRequestId) {
+            if (requestWindow === browserWindow) {
+                this.windowByRequestId.delete(requestId);
+            }
+        }
+    }
+
+    sendToWindows(channel, payload) {
+        for (const browserWindow of this.windows) {
+            if (!browserWindow.isDestroyed()) {
+                browserWindow.webContents.send(channel, payload);
+            }
+        }
+    }
+
+    sendToRequestWindow(parsed, line) {
+        const requestId = parsed.request_id;
+        if (typeof requestId !== "string") {
+            return false;
+        }
+
+        const browserWindow = this.windowByRequestId.get(requestId);
+        if (!browserWindow || browserWindow.isDestroyed()) {
+            this.windowByRequestId.delete(requestId);
+
+            return false;
+        }
+
+        browserWindow.webContents.send("electron-backend-message", line);
+
+        if (isBackendTerminalResponse(parsed)) {
+            this.windowByRequestId.delete(requestId);
+        }
+
+        return true;
     }
 
     async connect() {
         if (this.ready && this.process && !this.process.killed) {
-            return [];
+            return this.latestWebSessionMessage ? [this.latestWebSessionMessage] : [];
         }
 
         if (this.connectPromise) {
@@ -832,8 +879,8 @@ class DesktopBackendBridge {
                 }
                 this.ready = false;
 
-                if (!backendProcess.killed && this.mainWindow && !this.mainWindow.isDestroyed()) {
-                    this.mainWindow.webContents.send("electron-backend-close");
+                if (!backendProcess.killed) {
+                    this.sendToWindows("electron-backend-close");
                 }
 
                 if (!this.bufferedMessages.length) {
@@ -877,8 +924,12 @@ class DesktopBackendBridge {
                     }
 
                     if (this.ready) {
-                        if (!this.mainWindow.isDestroyed()) {
-                            this.mainWindow.webContents.send("electron-backend-message", line);
+                        if ("session_uuid" in parsed && parsed.session_uuid !== undefined) {
+                            this.latestWebSessionMessage = line;
+                        }
+
+                        if (!this.sendToRequestWindow(parsed, line)) {
+                            this.sendToWindows("electron-backend-message", line);
                         }
                     } else {
                         this.bufferedMessages.push(line);
@@ -897,6 +948,8 @@ class DesktopBackendBridge {
         this.ready = false;
         this.bufferedMessages = [];
         this.pendingStdout = "";
+        this.latestWebSessionMessage = undefined;
+        this.windowByRequestId.clear();
 
         if (!currentProcess || currentProcess.killed) {
             return;
@@ -905,9 +958,18 @@ class DesktopBackendBridge {
         currentProcess.kill();
     }
 
-    send(payload) {
+    send(payload, browserWindow) {
         if (!this.process || this.process.killed) {
             throw new Error("The mysqlsh desktop bridge is not running.");
+        }
+
+        try {
+            const parsed = JSON.parse(payload);
+            if (typeof parsed.request_id === "string") {
+                this.windowByRequestId.set(parsed.request_id, browserWindow);
+            }
+        } catch (_error) {
+            // Invalid payloads are still passed through so the backend can report the protocol error.
         }
 
         this.process.stdin.write(`${payload}\n`);
@@ -932,6 +994,11 @@ class DesktopBackendBridge {
 
 let mainWindow;
 let backendBridge;
+let migrationAssistantWindow;
+const commandLineArgumentsByWebContents = new WeakMap();
+const privilegedRendererWindows = new Set();
+let runningMigrationWindow;
+const migrationClosePromptWindows = new WeakSet();
 let desktopCommandState = new Map();
 let isShuttingDown = false;
 let isQuitting = false;
@@ -940,6 +1007,101 @@ const approvedWindowCloseByWindow = new WeakSet();
 const windowCloseCheckByWindow = new WeakSet();
 const pendingWindowCloseRequests = new Map();
 let nextWindowCloseRequestId = 0;
+
+const registerPrivilegedRendererWindow = (browserWindow) => {
+    const { webContents } = browserWindow;
+    privilegedRendererWindows.add(browserWindow);
+    browserWindow.on("closed", () => {
+        privilegedRendererWindows.delete(browserWindow);
+        commandLineArgumentsByWebContents.delete(webContents);
+        backendBridge?.removeWindow(browserWindow);
+    });
+};
+
+const getCommandLineArgumentsForWindow = (browserWindow) => {
+    return commandLineArgumentsByWebContents.get(browserWindow.webContents) ?? commandLineArguments;
+};
+
+const isBackendTerminalResponse = (message) => {
+    const requestStateType = message?.request_state?.type;
+
+    return requestStateType === "OK" || requestStateType === "ERROR" || requestStateType === "CANCELLED";
+};
+
+const getRunningMigrationWindow = () => {
+    if (runningMigrationWindow?.isDestroyed()) {
+        runningMigrationWindow = undefined;
+    }
+
+    return runningMigrationWindow;
+};
+
+const migrationIsRunning = () => {
+    return getRunningMigrationWindow() !== undefined;
+};
+
+const getMigrationAssistantStartStatus = () => {
+    if (migrationIsRunning()) {
+        return {
+            allowed: false,
+            message: "A migration is currently running. Stop it before starting another migration.",
+        };
+    }
+
+    if (migrationAssistantWindow && !migrationAssistantWindow.isDestroyed()) {
+        return {
+            allowed: false,
+            message: "Migration Assistant is already open. Close it before starting another migration.",
+        };
+    }
+
+    return { allowed: true };
+};
+
+const showMigrationRunningMessage = (browserWindow, detail) => {
+    const runningWindow = getRunningMigrationWindow();
+    const parentWindow = runningWindow ?? browserWindow;
+    runningWindow?.show();
+    runningWindow?.focus();
+
+    if (!parentWindow || parentWindow.isDestroyed() || migrationClosePromptWindows.has(parentWindow)) {
+        return;
+    }
+
+    migrationClosePromptWindows.add(parentWindow);
+    void dialog.showMessageBox(parentWindow, {
+        type: "warning",
+        buttons: ["OK"],
+        defaultId: 0,
+        title: "Migration Running",
+        message: "A migration is currently running.",
+        detail,
+    }).finally(() => {
+        migrationClosePromptWindows.delete(parentWindow);
+    });
+};
+
+const showMigrationAssistantAlreadyOpenMessage = (browserWindow) => {
+    migrationAssistantWindow?.show();
+    migrationAssistantWindow?.focus();
+
+    const parentWindow = migrationAssistantWindow ?? browserWindow;
+    if (!parentWindow || parentWindow.isDestroyed() || migrationClosePromptWindows.has(parentWindow)) {
+        return;
+    }
+
+    migrationClosePromptWindows.add(parentWindow);
+    void dialog.showMessageBox(parentWindow, {
+        type: "warning",
+        buttons: ["OK"],
+        defaultId: 0,
+        title: "Migration Assistant Open",
+        message: "The Migration Assistant is already open.",
+        detail: "Close the current Migration Assistant window before starting another migration.",
+    }).finally(() => {
+        migrationClosePromptWindows.delete(parentWindow);
+    });
+};
 
 const finishPendingQuit = () => {
     if (!isQuitting) {
@@ -1044,12 +1206,77 @@ const proceedWithWindowClose = (browserWindow) => {
     browserWindow.close();
 };
 
-const forwardThemeToRenderer = () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-        return;
-    }
+const allowNativeWindowClose = (browserWindow) => {
+    // The frontend's browser-oriented beforeunload handler is useful in a tab,
+    // but native desktop windows must be allowed to close.
+    browserWindow.webContents.on("will-prevent-unload", (event) => {
+        event.preventDefault();
+    });
+};
 
-    sendHostMessage(mainWindow, "hostThemeChange", buildHostThemeData());
+const preventCloseWhileMigrationRuns = (browserWindow) => {
+    browserWindow.on("close", (event) => {
+        if (getRunningMigrationWindow() !== browserWindow) {
+            return;
+        }
+
+        event.preventDefault();
+        showMigrationRunningMessage(browserWindow, "Stop the migration before closing this window.");
+    });
+};
+
+const requestMigrationAssistantWindowCloseApproval = (browserWindow) => {
+    browserWindow.on("close", (event) => {
+        if (getRunningMigrationWindow() === browserWindow) {
+            return;
+        }
+
+        if (approvedWindowCloseByWindow.has(browserWindow)) {
+            approvedWindowCloseByWindow.delete(browserWindow);
+
+            return;
+        }
+
+        event.preventDefault();
+
+        if (windowCloseCheckByWindow.has(browserWindow)) {
+            return;
+        }
+
+        windowCloseCheckByWindow.add(browserWindow);
+        void requestWindowCloseApproval(browserWindow).then((allow) => {
+            windowCloseCheckByWindow.delete(browserWindow);
+
+            if (browserWindow.isDestroyed()) {
+                return;
+            }
+
+            if (!allow) {
+                appendDesktopLog("migration assistant window close canceled by renderer");
+
+                return;
+            }
+
+            approvedWindowCloseByWindow.add(browserWindow);
+            browserWindow.close();
+        }).catch((error) => {
+            windowCloseCheckByWindow.delete(browserWindow);
+            appendDesktopLog(`migration assistant window close approval failed: ${error.stack ?? error.message}`);
+
+            if (!browserWindow.isDestroyed()) {
+                approvedWindowCloseByWindow.add(browserWindow);
+                browserWindow.close();
+            }
+        });
+    });
+};
+
+const forwardThemeToRenderer = () => {
+    for (const browserWindow of privilegedRendererWindows) {
+        if (!browserWindow.isDestroyed()) {
+            sendHostMessage(browserWindow, "hostThemeChange", buildHostThemeData());
+        }
+    }
 };
 
 const requestDesktopCommandState = (browserWindow) => {
@@ -1222,6 +1449,92 @@ const invokeDesktopCommand = (id) => withMainWindow((browserWindow) => {
     sendHostMessage(browserWindow, "executeDesktopCommand", { id });
 });
 
+const buildMigrationSourceArguments = (details = {}) => {
+    const options = details.options ?? {};
+    const source = {
+        name: details.caption ?? "",
+        user: options.user ?? "",
+        host: options.host ?? options.socket ?? "",
+        port: String(options.port ?? 3306),
+        id: String(details.id ?? ""),
+    };
+    if (typeof details.password === "string") {
+        source.password = details.password;
+    }
+
+    const migrate = Buffer.from(JSON.stringify(source), "utf8").toString("base64");
+
+    return {
+        ...commandLineArguments,
+        subApp: "migration",
+        migrate,
+    };
+};
+
+const openMigrationAssistantWindow = (details, requesterWindow) => {
+    if (migrationAssistantWindow?.isDestroyed() || migrationAssistantWindow?.webContents.isDestroyed()) {
+        migrationAssistantWindow = undefined;
+    }
+
+    const startStatus = getMigrationAssistantStartStatus();
+    if (!startStatus.allowed) {
+        if (migrationIsRunning()) {
+            showMigrationRunningMessage(requesterWindow, "Stop the migration before starting another one.");
+        } else {
+            showMigrationAssistantAlreadyOpenMessage(requesterWindow);
+        }
+
+        return;
+    }
+
+    const migrationArguments = buildMigrationSourceArguments(details);
+    const browserWindow = new BrowserWindow({
+        width: 1200,
+        height: 860,
+        minWidth: 900,
+        minHeight: 700,
+        title: "MySQL Cloud Migration Assistant",
+        backgroundColor: nativeTheme.shouldUseDarkColors ? "#181818" : "#f6f8fa",
+        ...(process.platform === "darwin"
+            ? {
+                titleBarStyle: "hiddenInset",
+            }
+            : { icon: desktopIconPath }),
+        trafficLightPosition: { x: 10, y: 10 },
+        webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: false,
+            preload: preloadPath,
+            sandbox: false,
+        },
+    });
+    migrationAssistantWindow = browserWindow;
+
+    registerPrivilegedRendererWindow(browserWindow);
+    backendBridge?.addWindow(browserWindow);
+    commandLineArgumentsByWebContents.set(browserWindow.webContents, migrationArguments);
+    installNavigationGuards(browserWindow.webContents);
+    allowNativeWindowClose(browserWindow);
+    preventCloseWhileMigrationRuns(browserWindow);
+    requestMigrationAssistantWindowCloseApproval(browserWindow);
+
+    browserWindow.webContents.on("did-finish-load", () => {
+        forwardThemeToRenderer();
+    });
+
+    browserWindow.on("closed", () => {
+        clearPendingWindowCloseRequests(browserWindow);
+        if (runningMigrationWindow === browserWindow) {
+            runningMigrationWindow = undefined;
+        }
+        if (migrationAssistantWindow === browserWindow) {
+            migrationAssistantWindow = undefined;
+        }
+    });
+
+    void browserWindow.loadURL(migrationAssistantEntryUrl);
+};
+
 const createDesktopCommandMenuItem = (id, label, options = {}) => {
     const command = getDesktopCommand(options.stateId ?? id);
 
@@ -1246,7 +1559,8 @@ const handleHostMessage = (browserWindow, message) => {
 
     switch (message.command) {
         case "getCommandLineArguments": {
-            sendHostMessage(browserWindow, "setCommandLineArguments", JSON.stringify(commandLineArguments));
+            sendHostMessage(browserWindow, "setCommandLineArguments",
+                JSON.stringify(getCommandLineArgumentsForWindow(browserWindow)));
             break;
         }
 
@@ -1262,6 +1576,11 @@ const handleHostMessage = (browserWindow, message) => {
 
         case "migrationAssistantMounted": {
             forwardThemeToRenderer();
+            break;
+        }
+
+        case "startMigrationAssistant": {
+            openMigrationAssistantWindow(message.data, browserWindow);
             break;
         }
 
@@ -1328,11 +1647,15 @@ const handleHostMessage = (browserWindow, message) => {
         }
 
         case "migrationStarted": {
+            runningMigrationWindow = browserWindow;
             browserWindow.setTitle(`${appName} - Running`);
             break;
         }
 
         case "migrationStopped": {
+            if (runningMigrationWindow === browserWindow) {
+                runningMigrationWindow = undefined;
+            }
             browserWindow.setTitle(appName);
             break;
         }
@@ -1344,7 +1667,7 @@ const handleHostMessage = (browserWindow, message) => {
 
 const getTrustedIpcWindow = (event, channel) => {
     const browserWindow = BrowserWindow.fromWebContents(event.sender);
-    if (!browserWindow || browserWindow !== mainWindow) {
+    if (!browserWindow || !privilegedRendererWindows.has(browserWindow)) {
         return undefined;
     }
 
@@ -1661,6 +1984,7 @@ const createWindow = async () => {
     }
 
     mainWindow = new BrowserWindow(browserWindowOptions);
+    registerPrivilegedRendererWindow(mainWindow);
     installNavigationGuards(mainWindow.webContents);
     mainWindow.webContents.setZoomFactor(restoredWindowState.zoomFactor);
 
@@ -1688,11 +2012,7 @@ const createWindow = async () => {
         appendDesktopLog(`renderer console level=${level} source=${sourceId}:${line} message=${message}`);
     });
 
-    // The frontend's browser-oriented beforeunload handler is useful in a tab,
-    // but it should not block native desktop close and quit actions.
-    mainWindow.webContents.on("will-prevent-unload", (event) => {
-        event.preventDefault();
-    });
+    allowNativeWindowClose(mainWindow);
 
     mainWindow.on("closed", () => {
         const browserWindow = mainWindow;
@@ -1713,6 +2033,16 @@ const createWindow = async () => {
     mainWindow.on("close", (event) => {
         const browserWindow = mainWindow;
         persistWindowState(browserWindow);
+
+        if (migrationIsRunning()) {
+            event.preventDefault();
+            if (isQuitting) {
+                isQuitting = false;
+            }
+            showMigrationRunningMessage(browserWindow, "Stop the migration before closing MySQL Workbench.");
+
+            return;
+        }
 
         if (approvedWindowCloseByWindow.has(browserWindow)) {
             approvedWindowCloseByWindow.delete(browserWindow);
@@ -1803,6 +2133,22 @@ ipcMain.handle("electron-host-close-native-menu", async (event, requestId) => {
     closeNativeMenu(browserWindow, requestId);
 });
 
+ipcMain.handle("electron-host-can-start-migration-assistant", async (event) => {
+    const browserWindow = getTrustedIpcWindow(event, "electron-host-can-start-migration-assistant");
+    if (!browserWindow) {
+        return {
+            allowed: false,
+            message: "Cannot start Migration Assistant from this window.",
+        };
+    }
+
+    if (migrationAssistantWindow?.isDestroyed() || migrationAssistantWindow?.webContents.isDestroyed()) {
+        migrationAssistantWindow = undefined;
+    }
+
+    return getMigrationAssistantStartStatus();
+});
+
 ipcMain.handle("electron-file-viewer-read", async (event, request) => {
     return fileViewerHost.read(event, request);
 });
@@ -1820,7 +2166,14 @@ ipcMain.handle("electron-backend-connect", async (event) => {
 });
 
 ipcMain.handle("electron-backend-disconnect", async (event) => {
-    if (!getTrustedIpcWindow(event, "electron-backend-disconnect")) {
+    const browserWindow = getTrustedIpcWindow(event, "electron-backend-disconnect");
+    if (!browserWindow) {
+        return;
+    }
+
+    if (browserWindow !== mainWindow) {
+        backendBridge?.removeWindow(browserWindow);
+
         return;
     }
 
@@ -1830,11 +2183,12 @@ ipcMain.handle("electron-backend-disconnect", async (event) => {
 });
 
 ipcMain.on("electron-backend-send", (event, payload) => {
-    if (!getTrustedIpcWindow(event, "electron-backend-send") || !backendBridge) {
+    const browserWindow = getTrustedIpcWindow(event, "electron-backend-send");
+    if (!browserWindow || !backendBridge) {
         return;
     }
 
-    backendBridge.send(payload);
+    backendBridge.send(payload, browserWindow);
 });
 
 app.whenReady().then(async () => {

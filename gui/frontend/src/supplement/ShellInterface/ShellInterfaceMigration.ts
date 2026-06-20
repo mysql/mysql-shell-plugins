@@ -25,6 +25,7 @@
 
 import { MigrationSubAppLogger } from "../../app-logic/MigrationSubApp/MigrationSubAppLogger.js";
 import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
+import type { ShellDictionaryType } from "../../communication/Protocol.js";
 import {
     ShellAPIMigration,
     IMigrationSteps,
@@ -41,10 +42,10 @@ import {
 
 export type ProjectsData = IProjectData[];
 
-export type PlanUpdateEntry = {
-  id: string | number; // The required element
-  [key: string]: any;  // Allows any other string keys with any values
-};
+export interface PlanUpdateEntry {
+    [key: string]: ShellDictionaryType | ShellDictionaryType[];
+    id: string | number; // The required element
+}
 
 export class ShellInterfaceMigration {
 
@@ -106,7 +107,7 @@ export class ShellInterfaceMigration {
 
     public async signIn(signUp?: boolean,
         callback?: DataCallback<ShellAPIMigration.MigrationOciSignIn>): Promise<void> {
-        const response = await MessageScheduler.get.sendRequest({
+        await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMigration.MigrationOciSignIn,
             parameters: {
                 args: { signUp }
@@ -230,6 +231,15 @@ export class ShellInterfaceMigration {
         this.log(response.result);
 
         return response.result;
+    }
+
+    public async closeProject(id: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMigration.MigrationCloseProject,
+            parameters: {
+                args: { id },
+            },
+        });
     }
 
     private extractUniqueKeys(configs: object[]) {

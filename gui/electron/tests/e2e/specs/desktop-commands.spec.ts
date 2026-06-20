@@ -74,10 +74,7 @@ test.describe("Desktop command integration", () => {
 
         const connection = localMySQLConnection("E2E Electron Commands");
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
 
         await workbench.waitForMenuItem(["File", "Save As..."], { enabled: true });
         await workbench.waitForMenuItem(["View", "Developer", "Toggle Communication Debugger"], { enabled: true });
@@ -108,10 +105,7 @@ test.describe("Desktop command integration", () => {
 
         const connection = localMySQLConnection("E2E Electron Admin Pages");
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
 
         await workbench.clickMenu(["Database", "Server Status"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#serverStatusOverview"), "Server Status");
@@ -132,10 +126,7 @@ test.describe("Desktop command integration", () => {
             password: "dummy",
         };
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
         await workbench.waitForSchemasTreeReady();
 
         await expect.poll(() => {

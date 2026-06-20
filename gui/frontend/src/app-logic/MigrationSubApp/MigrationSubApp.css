@@ -25,10 +25,14 @@
 
 .migration-sub-app {
     background: var(--background);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    padding: 15px;
+    gap: 12px;
     height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 28px 0 12px 15px;
     user-select: text;
 }
 
@@ -78,6 +82,11 @@
     grid-template-columns: auto auto 200px !important;
 }
 
+.migration-sub-app .header,
+.migration-sub-app .footer {
+    padding-right: 15px;
+}
+
 .migration-sub-app .source-info .icon {
     background: var(--icon-foreground);
 }
@@ -89,7 +98,17 @@
 
 .migration-sub-app .content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    scrollbar-color: var(--scrollbarSlider-background) transparent;
+}
+
+.migration-sub-app .content::-webkit-scrollbar {
+    background-color: transparent;
+}
+
+.migration-sub-app .content::-webkit-scrollbar-corner {
+    background-color: transparent;
 }
 
 .migration-sub-app .accordion .section {
@@ -101,9 +120,9 @@
 }
 
 .migration-sub-app .footer {
-    padding-top: 15px;
+    padding-top: 0;
     flex-shrink: 0;
-    padding-right: 0;
+    padding-right: 15px;
 }
 
 .migration-sub-app .migration-navigation {
@@ -136,7 +155,7 @@
 .tiles {
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 40px;
+    margin-bottom: 28px;
 }
 
 .tile {
@@ -207,6 +226,24 @@
 
 .migration-sub-app .form #steps.accordion .content {
     padding-right: 20px;
+}
+
+.migration-sub-app .form {
+    align-items: start;
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.migration-sub-app .form #steps {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+}
+
+.migration-sub-app .form .database-diagram {
+    grid-column: 2;
+    grid-row: 1;
 }
 
 .form .accordion .content p {

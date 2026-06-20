@@ -38,9 +38,7 @@ test.describe("Open editors", () => {
 
         const connection = localMySQLConnection("E2E Electron Editors");
         await workbench.createMySQLConnection(connection);
-        const tile = page.locator("#tilesHost .connectionTile", { hasText: connection.caption });
-        await tile.locator("#tileNewScriptAction").click({ force: true });
-        await workbench.expectTabAfterPassword(/^Untitled\.sql$/, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, /^Untitled\.sql$/);
         await expect(page.locator(".monaco-editor")).toBeVisible();
 
         await workbench.clickMenu(["File", "New SQL Script"]);
@@ -58,10 +56,7 @@ test.describe("Open editors", () => {
         await writeFile(scriptPath, "SELECT 'electron-open';\n", "utf8");
 
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
         await workbench.stubOpenDialog([scriptPath]);
 
         await workbench.clickMenu(["File", "Open..."]);
@@ -74,10 +69,7 @@ test.describe("Open editors", () => {
 
         const connection = localMySQLConnection("E2E Electron Find Script");
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(/^Untitled\.sql$/, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, /^Untitled\.sql$/);
 
         await workbench.clickMenu(["Edit", "Find"]);
 
@@ -89,10 +81,7 @@ test.describe("Open editors", () => {
 
         const connection = localMySQLConnection("E2E Electron Close Script");
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(/^Untitled\.sql$/, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, /^Untitled\.sql$/);
 
         await workbench.clickMenu(["File", "Close Tab"]);
 
@@ -105,10 +94,7 @@ test.describe("Open editors", () => {
         const connection = localMySQLConnection("E2E Electron Save Script");
         const scriptPath = join(testInfo.outputDir, "saved-script.sql");
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
         await workbench.writeInActiveEditor("SELECT 'electron-save-as' AS saved_value;\n");
         await workbench.expectEditorText("electron-save-as");
         await workbench.stubSaveDialog(scriptPath);

@@ -255,6 +255,21 @@ html.themeSwitch *:after {
     white-space: nowrap;
 }
 
+/* Keep scrollbar tracks unobtrusive by default. */
+.msg {
+    scrollbar-color: var(--scrollbarSlider-background) transparent;
+}
+
+.msg::-webkit-scrollbar,
+.msg ::-webkit-scrollbar {
+    background-color: transparent;
+}
+
+.msg::-webkit-scrollbar-corner,
+.msg ::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
 /* Special styles for macOS auto disappearing scroll bars. */
 .msg .fixedScrollbar {
     overflow: auto;

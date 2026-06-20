@@ -1496,29 +1496,48 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const optionalMenuItems: ComponentChild[] = [];
         if (webSession.runMode !== RunMode.SingleServer) {
             optionalMenuItems.push(
-                <MenuItem command={{ title: "Edit DB Connection...", command: "msg.editConnection" }} />,
-                <MenuItem command={{ title: "Duplicate this DB Connection...", command: "msg.duplicateConnection" }} />,
-                <MenuItem command={{ title: "Delete DB Connection...", command: "msg.removeConnection" }} />,
-                <MenuItem command={{ title: "-", command: "" }} disabled />,
+                <MenuItem command={{ title: "-", command: "" }} disabled key="edit-separator" />,
                 <MenuItem
-                    command={{
-                        title: "Open New MySQL Shell Console for this Connection",
-                        command: "msg.newSessionUsingConnection",
-                    }} />,
-                <MenuItem command={{ title: "-", command: "" }} disabled />,
+                    command={{ title: "Edit Connection…", command: "msg.editConnection" }}
+                    icon={Assets.misc.editIcon}
+                    key="edit"
+                />,
+                <MenuItem
+                    command={{ title: "Duplicate Connection…", command: "msg.duplicateConnection" }}
+                    icon={Assets.misc.cloneIcon}
+                    key="duplicate"
+                />,
             );
 
             if ((this.props.sidebarMode ?? "classic") === "classic") {
-                optionalMenuItems.splice(3, 0,
-                    <MenuItem command={{ title: "-", command: "" }} disabled />,
+                optionalMenuItems.push(
+                    <MenuItem command={{ title: "-", command: "" }} disabled key="system-schemas-separator" />,
                     <MenuItem
                         id="showSystemSchemas"
                         command={{
                             title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
                         }}
+                        key="showSystemSchemas"
                     />,
                 );
             }
+
+            optionalMenuItems.push(
+                <MenuItem command={{ title: "-", command: "" }} disabled key="session-separator" />,
+                <MenuItem
+                    command={{
+                        title: "Open New MySQL Shell Console for this Connection",
+                        command: "msg.newSessionUsingConnection",
+                    }}
+                    icon={Codicon.Terminal}
+                    key="shell"
+                />,
+                <MenuItem command={{ title: "-", command: "" }} disabled key="delete-separator" />,
+                <MenuItem
+                    command={{ title: "Delete Connection…", command: "msg.removeConnection" }}
+                    key="delete"
+                />,
+            );
         }
 
         const copyToClipboardMenuItems = () => (
@@ -1576,9 +1595,30 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     customCommand={this.handleConnectionTreeContextMenuCustomCommand}
                     isItemDisabled={this.isConnectionMenuItemDisabled}
                 >
-                    <MenuItem command={{ title: "Open New Database Connection", command: "msg.openConnection" }} />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{
+                        title: "Start MySQL Cloud Migration Assistant",
+                        command: "msg.startMySQLCloudMigrationAssistant",
+                    }} icon={Codicon.CloudUpload} />
+                    <MenuItem
+                        command={{
+                            title: "Connect with New SQL Script",
+                            command: "msg.openConnection",
+                            arguments: ["script"],
+                        }}
+                        icon={Codicon.CloudUpload}
+                    />
+                    <MenuItem
+                        command={{
+                            title: "Connect with New Notebook",
+                            command: "msg.openConnection",
+                            arguments: ["notebook"],
+                        }}
+                        icon={Codicon.CloudUpload}
+                    />
                     {optionalMenuItems}
+                    {isClassicSidebar &&
+                        <MenuItem command={{ title: "-", command: "" }} disabled />
+                    }
                     {isClassicSidebar &&
                         <MenuItem
                             command={{ title: "Browse the MySQL REST Service Documentation", command: "msg.mrs.docs" }}

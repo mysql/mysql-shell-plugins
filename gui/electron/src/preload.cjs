@@ -56,6 +56,9 @@ contextBridge.exposeInMainWorld("electronHost", {
     setNativeMenuHandler: (handler) => {
         nativeMenuHandler = handler;
     },
+    canStartMigrationAssistant: () => {
+        return ipcRenderer.invoke("electron-host-can-start-migration-assistant");
+    },
 });
 
 ipcRenderer.on("electron-host-message", (_event, message) => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -144,6 +144,32 @@ export class ShellInterfaceDbConnection {
         });
 
         return response.result;
+    }
+
+    /**
+     * Tests whether a database connection can be opened.
+     *
+     * @param connection The connection id or connection details to validate.
+     * @param password The password to use for validation.
+     */
+    public async testConnection(connection: number | IConnectionDetails, password?: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsTestConnection,
+            parameters: {
+                args: {
+                    connection: typeof connection === "number"
+                        ? connection
+                        : {
+                            dbType: connection.dbType,
+                            caption: connection.caption,
+                            description: connection.description,
+                            options: connection.options as IShellDictionary,
+                            settings: (connection.settings ?? {}) as IShellDictionary,
+                        },
+                    password,
+                },
+            },
+        });
     }
 
     /**

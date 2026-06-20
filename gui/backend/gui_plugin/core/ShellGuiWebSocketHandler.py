@@ -45,6 +45,7 @@ from gui_plugin.core.dbms.DbMySQLSession import DbSession
 from gui_plugin.core.HTTPWebSocketsHandler import HTTPWebSocketsHandler
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.modules.ModuleSession import ModuleSession
+from gui_plugin.core.PluginCommandMocks import send_plugin_command_mock_response
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
@@ -697,6 +698,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     f"This user account has no privileges to "
                     f"execute the command {cmd}"
                 )
+
+            if send_plugin_command_mock_response(cmd, request_id, self):
+                result = None
+
+                return
 
             # Argument need to be passed in a dict using the argument names as
             # the keys

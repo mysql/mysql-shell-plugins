@@ -30,12 +30,14 @@ vi.mock("../../../../utilities/helpers.js", async () => {
 
     return {
         ...actual,
-        isStandalone: vi.fn(() => false),
+        isStandalone: vi.fn(() => {
+            return false;
+        }),
     };
 });
 
 import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser.js";
-import { render } from "@testing-library/preact";
+import { render, waitFor } from "@testing-library/preact";
 import { DialogResponseClosure } from "../../../../app-logic/general-types.js";
 import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase.js";
 import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
@@ -344,7 +346,7 @@ describe("Connection browser tests", (): void => {
         const secondEntry = createConnection(archiveGroup, "/Archive");
         const browser = createBrowser();
 
-        let resolveFirstGroups: (groups: unknown[]) => void = () => { };
+        let resolveFirstGroups: (groups: unknown[]) => void = vi.fn();
         const firstGroups = new Promise<unknown[]>((resolve) => {
             resolveFirstGroups = resolve;
         });
@@ -451,11 +453,82 @@ describe("Connection browser tests", (): void => {
         const handled = (browser as unknown as {
             handleConnectionMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
         }).handleConnectionMenuItemClick({
-            command: { title: "Remove Connection…", command: "remove" },
+            command: { title: "Delete Connection…", command: "remove" },
         });
 
         expect(handled).toBe(true);
         expect(confirmSpy).toHaveBeenCalledWith(entry);
+    });
+
+    it.each([
+        ["open:script", "script"],
+        ["open:notebook", "notebook"],
+    ] as const)("routes tile menu %s commands to a new %s editor", (command, initialEditor) => {
+        const rootGroup = createGroup(1, "/");
+        const sourceGroup = createGroup(2, "Source", rootGroup);
+        const entry = createConnection(sourceGroup, "/Source");
+        const browser = createBrowser();
+        const executeSpy = vi.spyOn(requisitions, "execute").mockResolvedValue(true);
+        const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
+
+        (browser as unknown as {
+            currentActionMenuEntry: unknown;
+            handleConnectionMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
+        }).currentActionMenuEntry = entry;
+
+        const handled = (browser as unknown as {
+            handleConnectionMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
+        }).handleConnectionMenuItemClick({
+            command: { title: command, command },
+        });
+
+        expect(handled).toBe(true);
+        expect(executeSpy).toHaveBeenCalledWith("openConnectionTab", {
+            connection: entry,
+            force: true,
+            initialEditor,
+        });
+        expect(executeRemoteSpy).toHaveBeenCalledWith("selectConnectionTab", { connectionId: 42 });
+    });
+
+    it("routes the migration assistant menu command through the Electron host", async () => {
+        const rootGroup = createGroup(1, "/");
+        const sourceGroup = createGroup(2, "Source", rootGroup);
+        const entry = createConnection(sourceGroup, "/Source");
+        const browser = createBrowser();
+        const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
+        vi.spyOn(ui, "requestPassword").mockResolvedValue("secret");
+        vi.spyOn(ShellInterface.dbConnections, "testConnection").mockResolvedValue(true);
+
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+                setMessageHandler: vi.fn(),
+            },
+        });
+
+        (browser as unknown as {
+            currentActionMenuEntry: unknown;
+            handleConnectionMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
+        }).currentActionMenuEntry = entry;
+
+        const handled = (browser as unknown as {
+            handleConnectionMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
+        }).handleConnectionMenuItemClick({
+            command: {
+                title: "Start MySQL Cloud Migration Assistant",
+                command: "msg.startMySQLCloudMigrationAssistant",
+            },
+        });
+
+        expect(handled).toBe(true);
+        await waitFor(() => {
+            expect(executeRemoteSpy).toHaveBeenCalledWith("startMigrationAssistant", {
+                ...entry.details,
+                password: "secret",
+            });
+        });
     });
 
     it("deletes a folder recursively after confirmation", async () => {
@@ -538,12 +611,12 @@ describe("Connection browser tests", (): void => {
         const browser = createBrowser();
         const dataModel = {
             roots: [sourceGroup],
-            groupFromPath: vi.fn().mockImplementation(async (path: string) => {
+            groupFromPath: vi.fn().mockImplementation((path: string) => {
                 if (path === "/Source/folder") {
-                    return newGroup;
+                    return Promise.resolve(newGroup);
                 }
 
-                return rootGroup;
+                return Promise.resolve(rootGroup);
             }),
         };
 

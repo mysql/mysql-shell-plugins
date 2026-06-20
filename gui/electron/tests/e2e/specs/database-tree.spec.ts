@@ -23,21 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { Page } from "@playwright/test";
-
 import { test, expect } from "../fixtures/electron.js";
 import type { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
 import { localMySQLConnection } from "../helpers/testConfig.js";
 
 const untitledSqlScriptTab = /^Untitled(?:-\d+)?\.sql$/;
 
-const openSqlScript = async (page: Page, workbench: ElectronWorkbench, caption: string) => {
+const openSqlScript = async (workbench: ElectronWorkbench, caption: string) => {
     const connection = localMySQLConnection(caption);
     await workbench.createMySQLConnection(connection);
-    await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-        .locator("#tileNewScriptAction")
-        .click({ force: true });
-    await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+    await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
     await workbench.settlePasswordPrompts(connection.password, 10000);
     await workbench.waitForSchemasTreeReady();
 
@@ -53,7 +48,7 @@ test.describe("Database sidebar tree", () => {
     test("expands connection schemas and tables", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron DB Tree Expand");
+        await openSqlScript(workbench, "E2E Electron DB Tree Expand");
 
         await expect(workbench.schemaTreeEntry("sakila")).toBeVisible({ timeout: 30000 });
         await expandSakilaTables(workbench);
@@ -62,7 +57,7 @@ test.describe("Database sidebar tree", () => {
     test("toggles system schema visibility from the native View menu", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron DB Tree System Schemas");
+        await openSqlScript(workbench, "E2E Electron DB Tree System Schemas");
 
         await expect(workbench.schemaTreeEntry("mysql")).toHaveCount(0);
 
@@ -80,7 +75,7 @@ test.describe("Database sidebar tree", () => {
         await workbench.waitForShell();
         await workbench.installClipboardMock();
 
-        await openSqlScript(page, workbench, "E2E Electron DB Tree Copy");
+        await openSqlScript(workbench, "E2E Electron DB Tree Copy");
         await expandSakilaTables(workbench);
 
         await workbench.clearClipboard();
@@ -99,7 +94,7 @@ test.describe("Database sidebar tree", () => {
     test("creates a table SELECT from the tree context menu", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron DB Tree Select Rows");
+        await openSqlScript(workbench, "E2E Electron DB Tree Select Rows");
         await expandSakilaTables(workbench);
 
         await workbench.selectSchemaTreeAction("actor", ["Select Rows"]);

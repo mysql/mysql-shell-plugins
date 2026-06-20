@@ -341,6 +341,12 @@ export class ElectronWorkbench {
         await this.selectTileMenuAction(this.connectionTile(caption), menuPath);
     }
 
+    public async openSqlScriptFromConnectionTile(caption: string, password: string,
+        label: string | RegExp = /^Untitled(?:-\d+)?\.sql$/): Promise<void> {
+        await this.selectConnectionTileAction(caption, ["Connect with New SQL Script"]);
+        await this.expectTabAfterPassword(label, password);
+    }
+
     public async selectGroupTileAction(caption: string, menuPath: string[]): Promise<void> {
         await this.selectTileMenuAction(this.connectionTile(caption), menuPath);
     }

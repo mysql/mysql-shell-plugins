@@ -59,6 +59,10 @@ interface IElectronFixtures {
     workbench: ElectronWorkbench;
 }
 
+interface IElectronOptions {
+    electronLaunchEnvironment: Record<string, string | undefined>;
+}
+
 type SlowMoPatchTarget = Record<string | symbol, unknown>;
 
 const parseSlowMo = (): number | undefined => {
@@ -266,6 +270,7 @@ const resolveElectronExecutablePath = (): string => {
 const createLaunchEnvironment = (
     shellUserConfigDir: string,
     mysqlshRuntimeDir: string | undefined,
+    environmentOverrides: Record<string, string | undefined>,
 ): NodeJS.ProcessEnv => {
     const launchEnv: NodeJS.ProcessEnv = {
         ...process.env,
@@ -275,17 +280,32 @@ const createLaunchEnvironment = (
     if (isPackagedAppMode) {
         delete launchEnv.ELECTRON_RENDERER_URL;
 
-        return launchEnv;
+        return applyEnvironmentOverrides(launchEnv, environmentOverrides);
     }
 
     const mysqlshGuiExtraArgs = process.env.MYSQLSH_GUI_EXTRA_ARGS ?? "";
 
-    return {
+    return applyEnvironmentOverrides({
         ...launchEnv,
         ELECTRON_RENDERER_URL: rendererUrl,
         ELECTRON_MYSQLSH_RUNTIME_DIR: mysqlshRuntimeDir,
         ...(mysqlshGuiExtraArgs.length > 0 ? { MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs } : {}),
-    };
+    }, environmentOverrides);
+};
+
+const applyEnvironmentOverrides = (
+    environment: NodeJS.ProcessEnv,
+    overrides: Record<string, string | undefined>,
+): NodeJS.ProcessEnv => {
+    for (const [key, value] of Object.entries(overrides)) {
+        if (value === undefined) {
+            delete environment[key];
+        } else {
+            environment[key] = value;
+        }
+    }
+
+    return environment;
 };
 
 const installPluginLinks = async (mysqlshRuntimeDir: string): Promise<void> => {
@@ -309,8 +329,10 @@ const installPluginLinks = async (mysqlshRuntimeDir: string): Promise<void> => {
     }
 };
 
-export const test = base.extend<IElectronFixtures>({
-    electronApp: async ({}, use, testInfo) => {
+export const test = base.extend<IElectronFixtures & IElectronOptions>({
+    electronLaunchEnvironment: [{}, { option: true }],
+
+    electronApp: async ({ electronLaunchEnvironment }, use, testInfo) => {
         const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
         const electronUserDataDir = testInfo.outputPath("electron-user-data");
         const mysqlshRuntimeDir = isPackagedAppMode ? undefined : resolveMysqlShellRuntimeDir();
@@ -325,7 +347,7 @@ export const test = base.extend<IElectronFixtures>({
         const launchOptions = {
             executablePath: resolveElectronExecutablePath(),
             args: createLaunchArguments(testInfo),
-            env: createLaunchEnvironment(shellUserConfigDir, mysqlshRuntimeDir),
+            env: createLaunchEnvironment(shellUserConfigDir, mysqlshRuntimeDir, electronLaunchEnvironment),
             timeout: 60000,
         };
 

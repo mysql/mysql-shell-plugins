@@ -283,15 +283,15 @@ export class E2ETests {
      */
     public static setup = (): void => {
 
-        if (!process.env.DBROOTPASSWORD) {
-            throw new Error("Please define the env:DBROOTPASSWORD");
+        if (!process.env.DB_ROOT_PASSWORD) {
+            throw new Error("Please define the env:DB_ROOT_PASSWORD");
         }
 
         this.checkMySql();
         this.setShellBinary();
 
         const installMLE = (port: string): void => {
-            const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${port}`;
+            const connUri = `root:${process.env.DB_ROOT_PASSWORD}@localhost:${port}`;
             this.runShellCommand([
                 connUri,
                 "--sql",
@@ -307,7 +307,7 @@ export class E2ETests {
                 "dba",
                 "deploy-sandbox-instance",
                 port,
-                `--password=${process.env.DBROOTPASSWORD}`,
+                `--password=${process.env.DB_ROOT_PASSWORD}`,
                 `--sandbox-dir=${this.mysqlSandboxDir}`,
             ]);
             E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${port}`);
@@ -323,7 +323,7 @@ export class E2ETests {
 
             for (const file of sqlFiles) {
                 this.runShellCommand([
-                    `root:${process.env.DBROOTPASSWORD}@localhost:${port}`, "--file",
+                    `root:${process.env.DB_ROOT_PASSWORD}@localhost:${port}`, "--file",
                     file,
                 ]);
             }
@@ -332,7 +332,7 @@ export class E2ETests {
 
         const installMRS = (port: string): void => {
             this.runShellCommand([
-                `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
+                `root:${process.env.DB_ROOT_PASSWORD}@localhost:${port}`,
                 "--py", "-e", "mrs.configure()",
             ]);
             E2ELogger.success(`MRS was configured successfully on port ${port}`);

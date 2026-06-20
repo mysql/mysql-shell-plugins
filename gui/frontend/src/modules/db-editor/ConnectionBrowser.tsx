@@ -64,6 +64,7 @@ import { convertErrorToString, uuid, isStandalone } from "../../utilities/helper
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
+import { startMigrationAssistantWithValidatedPassword } from "./SidebarCommandHandler.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
@@ -278,6 +279,19 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     placement={ComponentPlacement.BottomRight}
                     onItemClick={this.handleConnectionMenuItemClick}
                 >
+                    <MenuItem command={{
+                        title: "Start MySQL Cloud Migration Assistant",
+                        command: "msg.startMySQLCloudMigrationAssistant",
+                    }} icon={Codicon.CloudUpload} />
+                    <MenuItem command={{
+                        title: "Connect with New SQL Script",
+                        command: "open:script",
+                    }} icon={Codicon.CloudUpload} />
+                    <MenuItem command={{
+                        title: "Connect with New Notebook",
+                        command: "open:notebook",
+                    }} icon={Codicon.CloudUpload} />
+                    <MenuItem command={{ title: "-", command: "" }} />
                     <MenuItem command={{ title: "Edit Connection…", command: "edit" }}
                         icon={Assets.misc.editIcon} />
                     <MenuItem
@@ -306,16 +320,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} />
                     <MenuItem command={{
-                        title: "Start MySQL Cloud Migration Assistant",
-                        command: "msg.startMySQLCloudMigrationAssistant",
-                    }} icon={Codicon.CloudUpload} />
-                    <MenuItem command={{ title: "-", command: "" }} />
-                    <MenuItem command={{
                         title: "Open New MySQL Shell Console for this Connection",
                         command: "msg.newSessionUsingConnection",
                     }} icon={Codicon.Terminal} />
                     <MenuItem command={{ title: "-", command: "" }} />
-                    <MenuItem id="remove" command={{ title: "Remove Connection…", command: "remove" }} />
+                    <MenuItem id="remove" command={{ title: "Delete Connection…", command: "remove" }} />
                 </Menu>
                 <Menu
                     id="groupTileActionMenu"
@@ -357,7 +366,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                                 id="newFolderButton"
                                 imageOnly
                                 data-tooltip="New Folder"
-                                onClick={this.handleNewFolderClick}
+                                onClick={() => {
+                                    void this.handleNewFolderClick();
+                                }}
                             >
                                 <Icon src={Assets.file.newFolderIcon} data-tooltip="inherit" />
                             </Button>
@@ -732,16 +743,21 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 break;
             }
 
-            case "open": {
+            case "open":
+            case "open:script":
+            case "open:notebook": {
                 // In the standalone/Electron frontend, match the sidebar behavior and always
                 // open a fresh connection page for notebook/script actions.
                 const forceNewTab = !appParameters.inExtension || options?.newTab === true;
+                const initialEditor = action === "open:script"
+                    ? "script"
+                    : action === "open:notebook" ? "notebook" : options?.editor ?? "notebook";
 
                 void requisitions.execute("openConnectionTab",
                     {
                         connection: entry,
                         force: forceNewTab,
-                        initialEditor: options?.editor ?? "notebook",
+                        initialEditor,
                     });
 
                 // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
@@ -761,11 +777,10 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "msg.startMySQLCloudMigrationAssistant": {
-                // TODO(rennox): Temporary, later should be updated to embedded
-                if (appParameters.inExtension) {
-                    void requisitions.executeRemote("startMigrationAssistant", entry.details);
+                if (appParameters.inExtension || hasElectronHostBridge()) {
+                    void startMigrationAssistantWithValidatedPassword(entry.details);
                 } else {
-                    ui.showErrorMessage("Not implemented.", {});
+                    void ui.showErrorMessage("Not implemented.", {});
                 }
                 break;
             }
@@ -815,7 +830,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
 
         let description: string[] = [];
-        let prompt = `Are you sure you want to remove the folder "${entry.caption}", including all its ` +
+        const prompt = `Are you sure you want to remove the folder "${entry.caption}", including all its ` +
             `contents? This operation cannot be reverted!`;
         let groupString = "";
         if (flatList.groups.length > 1) {

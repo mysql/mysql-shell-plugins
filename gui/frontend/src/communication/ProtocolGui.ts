@@ -53,6 +53,10 @@ export enum ShellAPIGui {
     GuiCoreInstallShellWebCertificate = "gui.core.install_shell_web_certificate",
     /** Removes the MySQL Shell GUI webserver certificate */
     GuiCoreRemoveShellWebCertificate = "gui.core.remove_shell_web_certificate",
+    /** Sets test-only plugin command mock rules. */
+    GuiCoreSetPluginCommandMocks = "gui.core.set_plugin_command_mocks",
+    /** Clears test-only plugin command mock rules. */
+    GuiCoreClearPluginCommandMocks = "gui.core.clear_plugin_command_mocks",
     /** Add a new db_connection and associate the connection with a profile */
     GuiDbConnectionsAddDbConnection = "gui.dbConnections.add_db_connection",
     /** Update the data for a database connection */
@@ -325,6 +329,8 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: { kwargs?: IShellGuiCoreIsShellWebCertificateInstalledKwargs; };
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: { kwargs?: IShellGuiCoreInstallShellWebCertificateKwargs; };
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
+    [ShellAPIGui.GuiCoreSetPluginCommandMocks]: { args: { rules: { }; }; };
+    [ShellAPIGui.GuiCoreClearPluginCommandMocks]: {};
     [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection?: IShellDbConnection; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
@@ -955,6 +961,8 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreCreateFile]: { result: string; };
     [ShellAPIGui.GuiCoreValidatePath]: { result: string; };
     [ShellAPIGui.GuiCoreDeleteFile]: {};
+    [ShellAPIGui.GuiCoreSetPluginCommandMocks]: { result: boolean; };
+    [ShellAPIGui.GuiCoreClearPluginCommandMocks]: { result: boolean; };
     [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
     [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
 }

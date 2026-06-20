@@ -23,21 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { Page } from "@playwright/test";
-
 import { test, expect } from "../fixtures/electron.js";
 import type { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
 import { localMySQLConnection } from "../helpers/testConfig.js";
 
 const untitledSqlScriptTab = /^Untitled(?:-\d+)?\.sql$/;
 
-const openSqlScript = async (page: Page, workbench: ElectronWorkbench, caption: string) => {
+const openSqlScript = async (workbench: ElectronWorkbench, caption: string) => {
     const connection = localMySQLConnection(caption);
     await workbench.createMySQLConnection(connection);
-    await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-        .locator("#tileNewScriptAction")
-        .click({ force: true });
-    await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+    await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
 
     return connection;
 };
@@ -46,7 +41,7 @@ test.describe.skip("MySQL REST Service desktop smoke", () => {
     test("opens MRS configuration from the native Database menu", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron MRS Configuration");
+        await openSqlScript(workbench, "E2E Electron MRS Configuration");
         await workbench.clickMenu(["Database", "Configure MySQL REST Service"]);
 
         const mrsDialog = page.locator(".valueEditDialog, .confirmDialog, .dialogHost", {

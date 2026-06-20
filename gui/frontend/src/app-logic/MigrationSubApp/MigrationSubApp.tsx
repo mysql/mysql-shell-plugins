@@ -53,6 +53,7 @@ import {
     SubStepId,
     WorkStatus
 } from "../../communication/ProtocolMigration.js";
+import type { IShellDictionary } from "../../communication/Protocol.js";
 import { ICompartment as IOriginalCompartment } from "../../communication/index.js";
 import { AboutBox } from "../../components/ui/AboutBox/AboutBox.js";
 import { Button } from "../../components/ui/Button/Button.js";
@@ -82,6 +83,7 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInteractiveInterface } from "../../supplement/ShellInterface/ShellInteractiveInterface.js";
 import { ShellInterfaceMhs } from "../../supplement/ShellInterface/ShellInterfaceMhs.js";
 import {
+    type PlanUpdateEntry,
     ProjectsData,
     ShellInterfaceMigration
 } from "../../supplement/ShellInterface/ShellInterfaceMigration.js";
@@ -822,6 +824,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         requisitions.register("setCommandLineArguments", this.setCommandLineArguments);
         requisitions.register("setApplicationData", this.setApplicationData);
         requisitions.register("showAbout", this.showAbout);
+        requisitions.register("desktopWindowCloseRequested", this.handleDesktopWindowCloseRequested);
         requisitions.executeRemote("migrationAssistantMounted", undefined);
 
         void this.onLoad().then(() => {
@@ -853,6 +856,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         requisitions.unregister("setCommandLineArguments", this.setCommandLineArguments);
         requisitions.unregister("setApplicationData", this.setApplicationData);
         requisitions.unregister("showAbout", this.showAbout);
+        requisitions.unregister("desktopWindowCloseRequested", this.handleDesktopWindowCloseRequested);
         this.migrationChecks.stop();
     }
 
@@ -1032,7 +1036,9 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         let stepsState: IMigrationPlanState[] | undefined = await this.refreshFromBackend();
 
         if (this.passwordNeeded(stepsState)) {
-            const submittedState = await this.requestForPassword();
+            const submittedState = this.state.databaseSource.password !== undefined
+                ? await this.submitSourcePassword(this.state.databaseSource.password)
+                : await this.requestForPassword();
             stepsState = Array.isArray(submittedState) ? submittedState : undefined;
         }
 
@@ -1399,7 +1405,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         return stepsState;
     }
 
-    private async doPlanUpdate(configs: Array<{ id: SubStepId, values?: object; }>) {
+    private async doPlanUpdate(configs: PlanUpdateEntry[]) {
         let stepsState: IMigrationPlanState[] | undefined;
 
         this.log(`About to call planUpdate with `, configs);
@@ -1444,7 +1450,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         }
 
         const json = this.beReq.generateBackendRequest(SubStepId.MIGRATION_CHECKS, this.state, controls);
-        const values = JSON.parse(json) as object;
+        const values = JSON.parse(json) as IShellDictionary;
 
         return this.doPlanUpdateSubStep(SubStepId.MIGRATION_CHECKS, values);
     }
@@ -1531,7 +1537,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             json = this.beReq.generateBackendRequest(subStepId, this.state);
         }
 
-        const values = JSON.parse(json) as object;
+        const values = JSON.parse(json) as IShellDictionary;
         const configs = [
             {
                 id: subStepId,
@@ -1757,6 +1763,32 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             this.setState({ backendRequestInProgress: false, backendRequestStatusMessage: undefined });
         }
     }
+
+    private handleDesktopWindowCloseRequested = async (
+        details?: { requestId?: string; },
+    ): Promise<boolean> => {
+        const requestId = details?.requestId;
+        if (typeof requestId !== "string" || requestId.length === 0) {
+            return false;
+        }
+
+        try {
+            this.migrationChecks.stop();
+            const projectId = this.state.project?.id;
+            if (projectId) {
+                await this.migration.closeProject(projectId);
+            }
+        } catch (e) {
+            console.error(e);
+            const message = convertErrorToString(e);
+            ui.showErrorMessage(`Failed to close migration project: ${message}`, {});
+        } finally {
+            this.migrationChecks.stop();
+            requisitions.executeRemote("desktopWindowCloseResponse", { requestId, allow: true });
+        }
+
+        return true;
+    };
 
     private updateWorkStatus(tiles: IStepTile[], workStatus: IWorkStatusInfo): Promise<void> {
         return new Promise((resolve) => {
@@ -4042,10 +4074,12 @@ Migration Assistant.`}
                     const migrationSource = atob(migrationSourceBase64);
 
                     const migrationData = JSON.parse(migrationSource) as Partial<IDatabaseSource>;
+                    const sanitizedMigrationData = { ...migrationData };
+                    delete sanitizedMigrationData.password;
 
                     const state: Pick<IMigrationAppState,
                         "migrationSource" | "databaseSource" | "formGroupValues"> = {
-                        migrationSource,
+                        migrationSource: JSON.stringify(sanitizedMigrationData),
                         databaseSource: { ...databaseSource },
                         formGroupValues: { ...formGroupValues },
                     };
@@ -4064,10 +4098,16 @@ Migration Assistant.`}
                     if ("id" in migrationData && migrationData.id) {
                         state.databaseSource.id = migrationData.id;
                     }
+                    if (typeof migrationData.password === "string") {
+                        state.databaseSource.password = migrationData.password;
+                    }
 
                     const sourceUri = this.getSourceUri(state.databaseSource);
                     if (sourceUri) {
                         state.formGroupValues.sourceUri = sourceUri;
+                    }
+                    if (typeof migrationData.password === "string") {
+                        state.formGroupValues.password = migrationData.password;
                     }
 
                     if (Object.keys(state).length) {
@@ -5341,6 +5381,12 @@ Migration Assistant.`}
             ui.showInformationMessage(message, { modal: true });
             throw new AbortError(message);
         }
+
+        return this.submitSourcePassword(password);
+    }
+
+    private async submitSourcePassword(password: string): Promise<IMigrationPlanState[] | undefined> {
+        const sourceUri = this.getSourceUri();
 
         await this.updateState({
             formGroupValues: {

@@ -53,7 +53,7 @@ test.describe("Database connection overview", () => {
         })).toBeVisible();
     });
 
-    test("edits, duplicates, and removes MySQL connections from tile actions", async ({ page, workbench }) => {
+    test("edits, duplicates, and deletes MySQL connections from tile actions", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
         const connection = localMySQLConnection("E2E Electron CRUD");
@@ -79,7 +79,7 @@ test.describe("Database connection overview", () => {
         await workbench.expectNoConnectionTile(duplicateCaption);
         await workbench.expectConnectionTile(editedCaption);
 
-        await workbench.selectConnectionTileAction(editedCaption, ["Remove Connection…"]);
+        await workbench.selectConnectionTileAction(editedCaption, ["Delete Connection…"]);
         await workbench.acceptConfirmDialog();
         await workbench.expectNoConnectionTile(editedCaption);
         await workbench.expectConnectionTile(connection.caption);

@@ -31,15 +31,18 @@ import {
     DialogResponseClosure, DialogType, LibraryDialogType, type IDialogRequest
 
 } from "../../app-logic/general-types.js";
+import { appParameters } from "../../supplement/AppParameters.js";
+import type { IMySQLConnectionOptions } from "../../communication/MySQL.js";
 import { IJdvViewInfo } from "../../communication/ProtocolGui.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
 import {
-    CdmEntityType, ICdmJdvEntry, cdmDbEntityTypes, cdbDbEntityTypeName, type ConnectionDataModel, type ConnectionDataModelEntry,
+    CdmEntityType, cdmDbEntityTypes, cdbDbEntityTypeName, type ConnectionDataModel,
+    type ConnectionDataModelEntry,
     type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmLibraryEntry, type ICdmRestAuthAppEntry,
     type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry,
     type ICdmRestUserEntry, type ICdmRoutineEntry,
-    type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry, type ConnectionDataModelNoGroupEntry,
+    type ICdmTableEntry, type ICdmViewEntry, type ConnectionDataModelNoGroupEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type {
     IOciDmBastion, IOciDmCompartment, IOciDmDbSystem, IOciDmProfile, OciDataModelEntry,
@@ -47,11 +50,12 @@ import type {
 import { type OpenDocumentDataModelEntry } from "../../data-models/OpenDocumentDataModel.js";
 import type { Command } from "../../data-models/data-model-types.js";
 import type { IEditorExtendedExecutionOptions, IConnectionInfo } from "../../supplement/RequisitionTypes.js";
+import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import type { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
+import type { IConnectionDetails, IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, getConnectionInfoFromDetails, sleep, uuid } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber, quoteObjectName } from "../../utilities/string-helpers.js";
@@ -60,6 +64,63 @@ import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../mrs/types.js";
 import type { ISideBarCommandResult, QualifiedName } from "./index.js";
+
+type IMigrationConnectionDetails = IConnectionDetails & {
+    password?: string;
+};
+
+const getMigrationSourceUri = (details: IConnectionDetails): string => {
+    const options = details.options as Partial<IMySQLConnectionOptions>;
+    const user = String(options.user ?? "");
+    const host = String(options.host ?? options.socket ?? "");
+    const port = String(options.port ?? 3306);
+
+    return `${user}@${host}:${port}`;
+};
+
+export const startMigrationAssistantWithValidatedPassword = async (
+    details: IConnectionDetails,
+): Promise<boolean> => {
+    if (hasElectronHostBridge()) {
+        const startStatus = await window.electronHost?.canStartMigrationAssistant?.();
+        if (startStatus?.allowed === false) {
+            void ui.showErrorMessage(startStatus.message ?? "Migration Assistant cannot be started.", {});
+
+            return false;
+        }
+    }
+
+    const options = details.options as Partial<IMySQLConnectionOptions>;
+    const user = String(options.user ?? "");
+    const password = await ui.requestPassword({
+        requestId: `migrationAssistant.${details.id}`,
+        caption: "Start MySQL Cloud Migration Assistant",
+        service: getMigrationSourceUri(details),
+        user,
+    });
+
+    if (password === undefined) {
+        return false;
+    }
+
+    try {
+        await ShellInterface.dbConnections.testConnection(details.id, password);
+    } catch (e) {
+        const message = convertErrorToString(e);
+        ui.showErrorMessage(`Connection Error: ${message}`, {});
+
+        return false;
+    }
+
+    const migrationDetails: IMigrationConnectionDetails = {
+        ...details,
+        password,
+    };
+
+    requisitions.executeRemote("startMigrationAssistant", migrationDetails);
+
+    return true;
+};
 
 /** Centralized handling of commands send from the DB editor sidebar to the DB editor module. */
 export class SidebarCommandHandler {
@@ -147,6 +208,18 @@ export class SidebarCommandHandler {
 
                                 success = await requisitions.execute("job",
                                     [{ requestType: "openSession", parameter: details }]);
+                            }
+
+                            break;
+                        }
+
+                        case "msg.startMySQLCloudMigrationAssistant": {
+                            if (entry.type === CdmEntityType.Connection) {
+                                if (appParameters.inExtension || hasElectronHostBridge()) {
+                                    success = await startMigrationAssistantWithValidatedPassword(entry.details);
+                                } else {
+                                    void ui.showErrorMessage("Not implemented.", {});
+                                }
                             }
 
                             break;
@@ -907,7 +980,6 @@ export class SidebarCommandHandler {
                             break;
                         }
 
-
                         case "msg.copyNameToEditor":
                         case "msg.copyNameToClipboard": {
                             if (command.command === "msg.copyNameToClipboard") {
@@ -938,18 +1010,21 @@ export class SidebarCommandHandler {
 
                         case "msg.copyCreateStatementWithDelimitersToClipboard":
                         case "msg.copyCreateStatementWithDelimitersToEditor": {
-                            const toClipboard = command.command === "msg.copyCreateStatementWithDelimitersToClipboard";
-                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo, toClipboard, true);
+                            const toClipboard = command.command
+                                === "msg.copyCreateStatementWithDelimitersToClipboard";
+                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo,
+                                toClipboard, true);
                             break;
                         }
 
                         case "msg.copyDropCreateStatementWithDelimitersToClipboard":
                         case "msg.copyDropCreateStatementWithDelimitersToEditor": {
-                            const toClipboard = command.command === "msg.copyDropCreateStatementWithDelimitersToClipboard";
-                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo, toClipboard, true, true);
+                            const toClipboard = command.command
+                                === "msg.copyDropCreateStatementWithDelimitersToClipboard";
+                            success = await this.handleCopyCreateStatement(entry, pageId, connectionInfo,
+                                toClipboard, true, true);
                             break;
                         }
-
 
                         case "msg.mrs.addSchema": {
                             if (this.mrsHubRef.current) {
@@ -1201,8 +1276,8 @@ export class SidebarCommandHandler {
                     }
 
                     let description: string[] = [];
-                    let prompt = `Are you sure you want to remove the folder "${entry?.caption}", including all its ` +
-                        `contents? This operation cannot be reverted!`;
+                    const prompt = `Are you sure you want to remove the folder "${entry?.caption}", including all ` +
+                        "its contents? This operation cannot be reverted!";
                     let groupString = "";
                     if (flatList.groups.length > 1) {
                         groupString = formatWithNumber("subfolder", flatList.groups.length - 1);
@@ -1637,7 +1712,8 @@ export class SidebarCommandHandler {
         return true;
     }
 
-    private async handleCopyCreateStatement(entry: ConnectionDataModelNoGroupEntry, pageId: string | undefined, connectionInfo: IConnectionInfo, toClipboard=true, withDelimiter=false, withDrop=false) {
+    private async handleCopyCreateStatement(entry: ConnectionDataModelNoGroupEntry, pageId: string | undefined,
+        connectionInfo: IConnectionInfo, toClipboard = true, withDelimiter = false, withDrop = false) {
         const sql = await this.connectionDataModel.getCreateSqlScript(entry, withDelimiter, withDrop, false, true);
 
         let success = false;
@@ -1658,6 +1734,7 @@ export class SidebarCommandHandler {
                 { requestType: "editorInsertText", parameter: sql },
             ]);
         }
+
         return success;
     }
 

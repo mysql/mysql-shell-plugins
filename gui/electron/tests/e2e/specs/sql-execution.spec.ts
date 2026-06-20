@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { Page } from "@playwright/test";
-
 import { test, expect } from "../fixtures/electron.js";
 import type { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
 import { localMySQLConnection, quoteIdentifier, uniqueSchemaName } from "../helpers/testConfig.js";
@@ -32,13 +30,10 @@ import { localMySQLConnection, quoteIdentifier, uniqueSchemaName } from "../help
 const untitledSqlScriptTab = /^Untitled(?:-\d+)?\.sql$/;
 const untitledNotebookTab = /^Untitled(?:-\d+)?\.mysql-notebook$/;
 
-const openSqlScript = async (page: Page, workbench: ElectronWorkbench, caption: string) => {
+const openSqlScript = async (workbench: ElectronWorkbench, caption: string) => {
     const connection = localMySQLConnection(caption);
     await workbench.createMySQLConnection(connection);
-    await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-        .locator("#tileNewScriptAction")
-        .click({ force: true });
-    await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+    await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
 
     return connection;
 };
@@ -57,10 +52,7 @@ test.describe("SQL execution", () => {
 
         const connection = localMySQLConnection("E2E Electron SQL Execution");
         await workbench.createMySQLConnection(connection);
-        await page.locator("#tilesHost .connectionTile", { hasText: connection.caption })
-            .locator("#tileNewScriptAction")
-            .click({ force: true });
-        await workbench.expectTabAfterPassword(untitledSqlScriptTab, connection.password);
+        await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
         await workbench.insertInActiveEditor("SELECT 'electron-run-menu' AS message;");
 
         await workbench.clickMenu(["Run", "Execute"]);
@@ -71,7 +63,7 @@ test.describe("SQL execution", () => {
     test("renders SQL script result sets in the result grid", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron Result Grid");
+        await openSqlScript(workbench, "E2E Electron Result Grid");
         await workbench.insertInActiveEditor("SELECT 42 AS e2e_number, 'electron-grid' AS e2e_label;");
 
         await workbench.clickMenu(["Run", "Execute"]);
@@ -86,7 +78,7 @@ test.describe("SQL execution", () => {
     test("renders representative result-grid column types", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron Result Grid Types");
+        await openSqlScript(workbench, "E2E Electron Result Grid Types");
         await workbench.insertInActiveEditor([
             "SELECT",
             "  42 AS int_value,",
@@ -109,7 +101,7 @@ test.describe("SQL execution", () => {
         await workbench.waitForShell();
 
         const schema = quoteIdentifier(uniqueSchemaName(testInfo));
-        await openSqlScript(page, workbench, "E2E Electron Result Grid Commit");
+        await openSqlScript(workbench, "E2E Electron Result Grid Commit");
         await workbench.insertInActiveEditor([
             ...createScratchSchemaSql(schema),
             "DROP TABLE IF EXISTS electron_grid_commit_e2e;",
@@ -135,7 +127,7 @@ test.describe("SQL execution", () => {
         await workbench.waitForShell();
 
         const schema = quoteIdentifier(uniqueSchemaName(testInfo));
-        await openSqlScript(page, workbench, "E2E Electron Result Grid Discard");
+        await openSqlScript(workbench, "E2E Electron Result Grid Discard");
         await workbench.insertInActiveEditor([
             ...createScratchSchemaSql(schema),
             "DROP TABLE IF EXISTS electron_grid_discard_e2e;",
@@ -159,7 +151,7 @@ test.describe("SQL execution", () => {
         await workbench.waitForShell();
 
         const schema = quoteIdentifier(uniqueSchemaName(testInfo));
-        await openSqlScript(page, workbench, "E2E Electron Result Grid Rows");
+        await openSqlScript(workbench, "E2E Electron Result Grid Rows");
         await workbench.insertInActiveEditor([
             ...createScratchSchemaSql(schema),
             "DROP TABLE IF EXISTS electron_grid_rows_e2e;",
@@ -192,7 +184,7 @@ test.describe("SQL execution", () => {
         await workbench.waitForShell();
         await workbench.installClipboardMock();
 
-        await openSqlScript(page, workbench, "E2E Electron Result Grid Clipboard");
+        await openSqlScript(workbench, "E2E Electron Result Grid Clipboard");
         await workbench.insertInActiveEditor([
             "SELECT 1 AS id, 'copy-one' AS label",
             "UNION ALL",
@@ -217,7 +209,7 @@ test.describe("SQL execution", () => {
     test("executes the SQL statement at the caret from the native Run menu", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron Current Statement");
+        await openSqlScript(workbench, "E2E Electron Current Statement");
         await workbench.insertInActiveEditor([
             "SELECT 'electron-current-first' AS current_value;",
             "SELECT 'electron-current-second' AS current_value;",
@@ -232,7 +224,7 @@ test.describe("SQL execution", () => {
     test("renders SQL script results as text from the native Run menu", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
-        await openSqlScript(page, workbench, "E2E Electron Text Results");
+        await openSqlScript(workbench, "E2E Electron Text Results");
         await workbench.insertInActiveEditor("SELECT 'electron-text-result' AS text_value;");
 
         await workbench.clickMenu(["Run", "Execute with Results as Text"]);

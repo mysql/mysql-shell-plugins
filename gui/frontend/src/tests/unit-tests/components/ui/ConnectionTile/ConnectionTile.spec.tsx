@@ -26,7 +26,9 @@
 import { fireEvent, render } from "@testing-library/preact";
 import { describe, expect, it, vi } from "vitest";
 
-import { ConnectionTile, ConnectionTileType } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
+import {
+    ConnectionTile, ConnectionTileType, type IConnectionTileProperties, type ITileActionOptions,
+} from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Assets } from "../../../../../supplement/Assets.js";
 import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
 
@@ -41,6 +43,12 @@ describe("ConnectionTile component tests", (): void => {
         options: {},
     };
 
+    type ConnectionTileAction = (
+        action: string,
+        props: IConnectionTileProperties,
+        options: ITileActionOptions,
+    ) => void;
+
     it("Test ConnectionTile output (Snapshot)", () => {
         const { container, unmount } = render(
             <ConnectionTile
@@ -49,7 +57,7 @@ describe("ConnectionTile component tests", (): void => {
                 caption={details.caption}
                 description={details.description}
                 type={ConnectionTileType.Open}
-                icon={Assets.file.mysqlIcon as string}
+                icon={Assets.file.mysqlIcon}
 
             />,
         );
@@ -66,19 +74,19 @@ describe("ConnectionTile component tests", (): void => {
                 caption={"Folder"}
                 description={"Connection Group"}
                 type={ConnectionTileType.Group}
-                icon={Assets.file.folderIcon as string}
+                icon={Assets.file.folderIcon}
             />,
         );
 
         expect(container.querySelector("#tileMoreActionsAction")).toBeTruthy();
         expect(container.querySelector("#tileNewNotebookAction")).toBeNull();
-        expect(container.querySelector("#tileNewScriptAction")).toBeNull();
+        expect(container.querySelector("#tileMigrationAssistantAction")).toBeNull();
 
         unmount();
     });
 
-    it("passes a point anchor when opening the menu with a mouse click", () => {
-        const onAction = vi.fn();
+    it("opens the migration assistant from the connection tile quick action", () => {
+        const onAction = vi.fn<ConnectionTileAction>();
         const { container, unmount } = render(
             <ConnectionTile
                 id="tile3"
@@ -86,34 +94,49 @@ describe("ConnectionTile component tests", (): void => {
                 caption={details.caption}
                 description={details.description}
                 type={ConnectionTileType.Open}
-                icon={Assets.file.mysqlIcon as string}
+                icon={Assets.file.mysqlIcon}
                 onAction={onAction}
             />,
         );
 
-        const button = container.querySelector("#tileMoreActionsAction") as HTMLElement;
+        const button = container.querySelector<HTMLElement>("#tileMigrationAssistantAction")!;
+        fireEvent.click(button);
+
+        expect(onAction).toHaveBeenCalledTimes(1);
+        const [action, props, options] = onAction.mock.calls[0];
+        expect(action).toBe("msg.startMySQLCloudMigrationAssistant");
+        expect(props.tileId).toBe("3");
+        expect(options).toStrictEqual({});
+
+        unmount();
+    });
+
+    it("passes a point anchor when opening the menu with a mouse click", () => {
+        const onAction = vi.fn<ConnectionTileAction>();
+        const { container, unmount } = render(
+            <ConnectionTile
+                id="tile3"
+                tileId={"3"}
+                caption={details.caption}
+                description={details.description}
+                type={ConnectionTileType.Open}
+                icon={Assets.file.mysqlIcon}
+                onAction={onAction}
+            />,
+        );
+
+        const button = container.querySelector<HTMLElement>("#tileMoreActionsAction")!;
         fireEvent.click(button, { clientX: 123, clientY: 456 });
 
         expect(onAction).toHaveBeenCalledTimes(1);
-        expect(onAction).toHaveBeenCalledWith(
-            "menu",
-            expect.objectContaining({ tileId: "3" }),
-            expect.objectContaining({
-                target: button,
-                anchorRect: expect.objectContaining({
-                    x: 123,
-                    y: 456,
-                    width: 2,
-                    height: 2,
-                }),
-            }),
-        );
-
-        const options = onAction.mock.calls[0][2] as { anchorRect: DOMRect; };
-        expect(options.anchorRect.x).toBe(123);
-        expect(options.anchorRect.y).toBe(456);
-        expect(options.anchorRect.width).toBe(2);
-        expect(options.anchorRect.height).toBe(2);
+        const [action, props, options] = onAction.mock.calls[0];
+        expect(action).toBe("menu");
+        expect(props.tileId).toBe("3");
+        expect(options.target).toBe(button);
+        expect(options.anchorRect?.x).toBe(123);
+        expect(options.anchorRect?.y).toBe(456);
+        expect(options.anchorRect?.width).toBe(2);
+        expect(options.anchorRect?.height).toBe(2);
 
         unmount();
     });

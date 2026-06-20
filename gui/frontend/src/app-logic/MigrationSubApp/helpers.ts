@@ -37,6 +37,7 @@ export interface IDatabaseSource {
     port: string;
     user: string;
     id: string;
+    password?: string;
 }
 
 export const generateWbCmdLineArgs = (databaseSourceJson: string) => {

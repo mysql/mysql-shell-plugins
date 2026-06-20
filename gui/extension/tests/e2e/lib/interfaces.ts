@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,7 +32,7 @@ export interface ITestConfig {
     OCI_QA_COMPARTMENT_PATH: string;
     TEST_RESOURCES_PATH: string;
     CODE_VERSION: string;
-    DBROOTPASSWORD: string;
+    DB_ROOT_PASSWORD: string;
     OCI_E2E_USER: string;
     OCI_E2E_FINGERPRINT: string;
     OCI_E2E_TENANCY: string;
