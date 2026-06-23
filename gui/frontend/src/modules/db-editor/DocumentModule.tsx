@@ -104,6 +104,7 @@ import {
     CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
     type ICdmConnectionGroupEntry,
 } from "../../data-models/ConnectionDataModel.js";
+import { adminPageDefinitions } from "../../data-models/AdminPageDefinitions.js";
 import type { AdminPageType, Command } from "../../data-models/data-model-types.js";
 import {
     OciDataModel, type IOciDmBastion, type IOciDmCompartment, type IOciDmComputeInstance, type IOciDmDbSystem,
@@ -246,28 +247,6 @@ const homeWorkspaceId = "__workspace_home__";
 const generalWorkspaceId = "__workspace_general__";
 const debuggerWorkspaceId = "__workspace_debugger__";
 const debuggerWorkspacePageId = "__workspace_debugger_page__";
-
-const databaseAdministrationCommands: Array<{
-    pageType: AdminPageType;
-    id: DesktopCommandId;
-    label: string;
-}> = [{
-    pageType: "serverStatus",
-    id: "database.admin.serverStatus",
-    label: "Server Status",
-}, {
-    pageType: "clientConnections",
-    id: "database.admin.clientConnections",
-    label: "Client Connections",
-}, {
-    pageType: "performanceDashboard",
-    id: "database.admin.performanceDashboard",
-    label: "Performance Dashboard",
-}, {
-    pageType: "lakehouseNavigator",
-    id: "database.admin.lakehouseNavigator",
-    label: "Lakehouse Navigator",
-}];
 
 export interface IDocumentModuleState {
     /** All currently open connection tabs. */
@@ -2626,8 +2605,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private handleUpdateConnection = (entry: ICdmConnectionEntry): void => {
         void this.connectionsDataModel.groupFromPath(entry.details.folderPath).then((group) => {
-            const id = group.folderPath.id;
-            ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, entry.details, id).then(() => {
+            const currentFolderId = entry.parent?.folderPath.id ?? 1;
+            const targetFolderId = group.folderPath.id;
+            const folderPathId = currentFolderId === targetFolderId ? undefined : targetFolderId;
+            ShellInterface.dbConnections.updateDbConnection(
+                webSession.currentProfileId, entry.details, folderPathId,
+            ).then(() => {
                 // Connection groups may have changed.
                 void entry.parent?.refresh?.(); // Old parent.
                 requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath);
@@ -3344,7 +3327,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             if (connection.details.settings?.defaultEditor) {
                 useNotebook = connection.details.settings.defaultEditor === ConnectionEditorType.DbNotebook;
             } else {
-                useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+                useNotebook = Settings.get("dbEditor.defaultEditor", "script") === "notebook";
             }
 
             // Get the execution history entries for this connection, but only fetch the first 30 chars of the code
@@ -5629,13 +5612,13 @@ EXAMPLES
             ?? (activeWorkspaceConnection?.state?.payload?.showSystemSchemas === true);
         const availableAdministrationPages = activeWorkspaceConnection?.adminEntry?.pages ?? [];
         const communicationDebuggerAvailable = this.isElectronWorkspaceLayout() && webSession.runMode === RunMode.LocalUser;
-        const administrationCommands = databaseAdministrationCommands.map(({ pageType, id, label }) => {
+        const administrationCommands = adminPageDefinitions.map(({ pageType, desktopCommandId, label }) => {
             const page = availableAdministrationPages.find((candidate) => {
                 return candidate.pageType === pageType;
             });
 
             return {
-                id,
+                id: desktopCommandId,
                 label: page?.caption ?? label,
                 enabled: page !== undefined,
             };
@@ -5758,8 +5741,8 @@ EXAMPLES
     };
 
     private executeDesktopCommand = async (id: DesktopCommandId): Promise<boolean> => {
-        const administrationCommand = databaseAdministrationCommands.find((command) => {
-            return command.id === id;
+        const administrationCommand = adminPageDefinitions.find((definition) => {
+            return definition.desktopCommandId === id;
         });
         if (administrationCommand) {
             return this.openActiveAdministrationPage(administrationCommand.pageType);

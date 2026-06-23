@@ -374,18 +374,6 @@ export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, I
                     requestType="showChatOptions"
                 >
                     <Icon src={Assets.lakehouse.chatOptionsIcon} id="ChatOptionsButton" data-tooltip="inherit" />
-                </Button>,
-                <Button
-                    key="editorLakehouseNavigatorButton"
-                    data-tooltip="Open Lakehouse Navigator"
-                    imageOnly={true}
-                    requestType="showLakehouseNavigator"
-                >
-                    <Icon
-                        src={Assets.lakehouse.navigatorIcon}
-                        id="lakehouseNavigatorButton"
-                        data-tooltip="inherit"
-                    />
                 </Button>);
         }
 

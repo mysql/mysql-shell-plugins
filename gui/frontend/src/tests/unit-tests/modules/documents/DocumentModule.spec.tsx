@@ -838,8 +838,45 @@ EXAMPLES
             .mockResolvedValueOnce();
 
         moduleRef.current!.handleUpdateConnection(entry);
-        await nextProcessTick();
-        expect(updateDbConnection).toHaveBeenCalledWith(webSession.currentProfileId, entry.details, expect.any(Number));
+        await vi.waitFor(() => {
+            expect(updateDbConnection).toHaveBeenCalledWith(webSession.currentProfileId, entry.details, undefined);
+        });
+
+        updateDbConnection.mockRestore();
+        unmount();
+    });
+
+    it("passes a folder id when updating a connection moves it to another folder", async () => {
+        const moduleRef = createRef<TestDocumentModule>();
+        const { unmount } = render(
+            <TestDocumentModule ref={moduleRef} />,
+        );
+
+        await nextRunLoop();
+        expect(moduleRef.current).toBeDefined();
+
+        const testAddMySQLConnection: IConnectionDetails = {
+            id: -1,
+            dbType: DBType.MySQL,
+            caption: "DocumentModule Test Connection 99",
+            description: "DocumentModule Test MyQSL Connection",
+            options,
+            folderPath: "/",
+            index: -1,
+        };
+        const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
+        await dataModel.groupFromPath("/Archive");
+        entry.details.folderPath = "/Archive";
+
+        const updateDbConnection = vi.spyOn(ShellInterface.dbConnections, "updateDbConnection")
+            .mockResolvedValueOnce();
+
+        moduleRef.current!.handleUpdateConnection(entry);
+        await vi.waitFor(() => {
+            expect(updateDbConnection).toHaveBeenCalledWith(
+                webSession.currentProfileId, entry.details, expect.any(Number),
+            );
+        });
 
         updateDbConnection.mockRestore();
         unmount();

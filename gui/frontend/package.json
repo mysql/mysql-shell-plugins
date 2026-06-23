@@ -16,7 +16,7 @@
         "build-win-with-maps": "pwsh scripts/production-build.ps1 true && tsc -p tsconfig.json",
         "type-check": "tsc -p tsconfig.json",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\" --fix --ignore-pattern 'src/tests/e2e/**'",
-        "unit-tests": "vitest run --no-watch --no-coverage",
+        "unit-tests": "bash ./scripts/unit_tests_setup_and_run.sh",
         "update-snapshots": "vitest run --no-watch --no-coverage -u",
         "clear:node-modules": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings",
         "e2e-tests-setup": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py --execution_mode=setup",

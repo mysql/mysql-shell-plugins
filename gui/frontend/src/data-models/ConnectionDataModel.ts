@@ -34,7 +34,7 @@ import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, type IConnectionDetails, type IFolderPath } from "../supplement/ShellInterface/index.js";
-import { RunMode, webSession, type ILoginCredentials } from "../supplement/WebSession.js";
+import { webSession, type ILoginCredentials } from "../supplement/WebSession.js";
 import { convertErrorToString, partition, uuid } from "../utilities/helpers.js";
 import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
 import { ConnectionEntryImpl } from "./ConnectionEntryImpl.js";
@@ -713,7 +713,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 options: {},
             };
 
-            const connection = new ConnectionEntryImpl(details.caption, details, this, false);
+            const connection = new ConnectionEntryImpl(details.caption, details, this);
             this.rootGroup.entries.push(connection);
         } else {
             this.rootGroup.refresh = () => {
@@ -1135,7 +1135,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @returns The new connection entry.
      */
     public createConnectionEntry(details: IConnectionDetails): ICdmConnectionEntry {
-        return new ConnectionEntryImpl(details.caption, details, this, webSession.runMode !== RunMode.SingleServer);
+        return new ConnectionEntryImpl(details.caption, details, this);
     }
 
     /**
@@ -3135,7 +3135,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
                 }
 
                 if (newEntry.type === "connection") { // A connection (details actually).
-                    const connectionEntry = new ConnectionEntryImpl(newEntry.caption, newEntry, this, true);
+                    const connectionEntry = new ConnectionEntryImpl(newEntry.caption, newEntry, this);
                     connectionEntry.parent = group;
                     newGroupEntries.push(connectionEntry);
                     actions.push({ action: "add", entry: connectionEntry });

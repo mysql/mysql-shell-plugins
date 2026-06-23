@@ -1,0 +1,31 @@
+[
+    {
+        "pageType": "serverStatus",
+        "desktopCommandId": "database.admin.serverStatus",
+        "label": "Server Status",
+        "command": "msg.showServerStatus",
+        "commandTitle": "Show Server Status"
+    },
+    {
+        "pageType": "clientConnections",
+        "desktopCommandId": "database.admin.clientConnections",
+        "label": "Client Connections",
+        "command": "msg.showClientConnections",
+        "commandTitle": "Show Client Connections"
+    },
+    {
+        "pageType": "performanceDashboard",
+        "desktopCommandId": "database.admin.performanceDashboard",
+        "label": "Performance Dashboard",
+        "command": "msg.showPerformanceDashboard",
+        "commandTitle": "Show Performance Dashboard"
+    },
+    {
+        "pageType": "lakehouseNavigator",
+        "desktopCommandId": "database.admin.lakehouseNavigator",
+        "label": "Lakehouse Navigator",
+        "command": "msg.showLakehouseNavigator",
+        "commandTitle": "Show Lakehouse Navigator",
+        "requires": "heatWave"
+    }
+]

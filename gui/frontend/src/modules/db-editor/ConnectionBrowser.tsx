@@ -229,6 +229,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         if (path.length === 0) {
             path.unshift({ id: 1, caption: "/", selected: false });
         }
+        const showBreadcrumb = currentGroup !== undefined || this.roots.some((entry) => {
+            return entry.type === CdmEntityType.ConnectionGroup;
+        });
 
         // If toolbar items are given, render a toolbar with them.
         const toolbar = showToolbar
@@ -373,10 +376,10 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                                 <Icon src={Assets.file.newFolderIcon} data-tooltip="inherit" />
                             </Button>
                         </Container>
-                        <Breadcrumb
+                        {showBreadcrumb && <Breadcrumb
                             path={path}
                             onSelect={this.handleSelectPath}
-                        />
+                        />}
                     </Container>
                     <Container
                         innerRef={this.hostRef}
@@ -751,7 +754,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 const forceNewTab = !appParameters.inExtension || options?.newTab === true;
                 const initialEditor = action === "open:script"
                     ? "script"
-                    : action === "open:notebook" ? "notebook" : options?.editor ?? "notebook";
+                    : action === "open:notebook" ? "notebook" : options?.editor ?? "default";
 
                 void requisitions.execute("openConnectionTab",
                     {

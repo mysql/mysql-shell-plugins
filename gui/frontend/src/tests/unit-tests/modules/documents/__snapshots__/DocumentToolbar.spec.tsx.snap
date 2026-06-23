@@ -61,19 +61,6 @@ exports[`DocumentToolbar tests > Test DocumentToolbar instantiation (HeatWave) 1
       />
     </div>
     <div
-      class="msg button imageOnly"
-      data-tooltip="Open Lakehouse Navigator"
-      role="button"
-      tabindex="0"
-    >
-      <div
-        class="msg icon"
-        data-tooltip="inherit"
-        id="lakehouseNavigatorButton"
-        style="mask-image: url("/src/assets/images/lakehouseNavigator.svg");"
-      />
-    </div>
-    <div
       class="expander"
     />
     <div

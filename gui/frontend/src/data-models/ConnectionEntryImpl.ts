@@ -36,6 +36,7 @@ import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
 import { convertErrorToString, isShellPromptResult, uuid } from "../utilities/helpers.js";
+import { adminPageDefinitions, isAdminPageAvailable } from "./AdminPageDefinitions.js";
 import {
     CdmEntityType, ICdmAdminEntry, ICdmConnectionEntry, ICdmRestRootEntry, ICdmSchemaEntry,
     type ConnectionDataModelEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
@@ -71,8 +72,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     #parent?: ICdmConnectionGroupEntry;
     #currentSchema = "";
 
-    public constructor(name: string, details: IConnectionDetails, updater: ICdmAccessManager,
-        private showLakehouseNavigator: boolean) {
+    public constructor(name: string, details: IConnectionDetails, updater: ICdmAccessManager) {
         this.caption = name;
         this.details = details;
         this.accessManager = updater;
@@ -193,16 +193,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     }
 
     public async duplicate(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager,
-            this.showLakehouseNavigator);
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager);
         await newEntry.initialize();
 
         return newEntry;
     }
 
     public async duplicateServiceOnly(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager,
-            this.showLakehouseNavigator);
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager);
         await newEntry.initializeServiceOnly();
 
         return newEntry;
@@ -510,87 +508,18 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
      * @param parent The parent admin entry.
      */
     private addAdminSections(parent: ICdmAdminEntry): void {
-        const serverStatusCommand = {
-            title: "Show Server Status",
-            command: "msg.showServerStatus",
+        adminPageDefinitions.forEach((definition) => {
+            if (!isAdminPageAvailable(definition, this.details)) {
+                return;
+            }
 
-            // The first argument is undefined to show the page on the currently selected connection.
-            arguments: [undefined, "Server Status"] as unknown[],
-        };
-
-        const serverStatusPage: ICdmAdminPageEntry = {
-            parent,
-            id: uuid(),
-            type: CdmEntityType.AdminPage,
-            state: {
-                isLeaf: true,
-                initialized: true,
-                expanded: true,
-                expandedOnce: true,
-            },
-            caption: "Server Status",
-            pageType: "serverStatus",
-            command: serverStatusCommand,
-            connection: parent.parent,
-        };
-        serverStatusCommand.arguments.push(serverStatusPage);
-
-        const clientConnectionsCommand = {
-            title: "Show Client Connections",
-            command: "msg.showClientConnections",
-            arguments: [undefined, "Client Connections"] as unknown[],
-        };
-
-        const clientConnectionsPage: ICdmAdminPageEntry = {
-            parent,
-            id: uuid(),
-            type: CdmEntityType.AdminPage,
-            state: {
-                isLeaf: true,
-                initialized: true,
-                expanded: true,
-                expandedOnce: true,
-            },
-            caption: "Client Connections",
-            pageType: "clientConnections",
-            command: clientConnectionsCommand,
-            connection: parent.parent,
-        };
-        clientConnectionsCommand.arguments.push(clientConnectionsPage);
-
-        const performanceDashboardCommand = {
-            title: "Show Performance Dashboard",
-            command: "msg.showPerformanceDashboard",
-            arguments: [undefined, "Performance Dashboard"] as unknown[],
-        };
-
-        const performanceDashboardPage: ICdmAdminPageEntry = {
-            parent,
-            id: uuid(),
-            type: CdmEntityType.AdminPage,
-            state: {
-                isLeaf: true,
-                initialized: true,
-                expanded: true,
-                expandedOnce: true,
-            },
-            caption: "Performance Dashboard",
-            pageType: "performanceDashboard",
-            command: performanceDashboardCommand,
-            connection: parent.parent,
-        };
-        performanceDashboardCommand.arguments.push(performanceDashboardPage);
-
-        parent.pages.push(serverStatusPage, clientConnectionsPage, performanceDashboardPage);
-
-        if (this.showLakehouseNavigator) {
-            const lakehouseNavigatorCommand = {
-                title: "Show Lakehouse Navigator",
-                command: "msg.showLakehouseNavigator",
-                arguments: [undefined, "Lakehouse Navigator"] as unknown[],
+            const command = {
+                title: definition.commandTitle,
+                command: definition.command,
+                // The first argument is undefined to show the page on the currently selected connection.
+                arguments: [undefined, definition.label] as unknown[],
             };
-
-            const lakehouseNavigatorPage: ICdmAdminPageEntry = {
+            const page: ICdmAdminPageEntry = {
                 parent,
                 id: uuid(),
                 type: CdmEntityType.AdminPage,
@@ -600,17 +529,17 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                     expanded: true,
                     expandedOnce: true,
                 },
-                caption: "Lakehouse Navigator",
-                pageType: "lakehouseNavigator",
-                command: lakehouseNavigatorCommand,
+                caption: definition.label,
+                pageType: definition.pageType,
+                command,
                 connection: parent.parent,
                 getChildren: () => {
                     return [];
                 },
             };
-            lakehouseNavigatorCommand.arguments.push(lakehouseNavigatorPage);
+            command.arguments.push(page);
 
-            parent.pages.push(lakehouseNavigatorPage);
-        }
+            parent.pages.push(page);
+        });
     }
 }

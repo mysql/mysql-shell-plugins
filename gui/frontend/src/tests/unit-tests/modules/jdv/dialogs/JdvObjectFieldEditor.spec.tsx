@@ -49,6 +49,7 @@ class JdvObjectFieldEditorMock extends JdvObjectFieldEditor {
 describe("JDV Object field editor tests", () => {
     let launcher: MySQLShellLauncher;
     let backend: ShellInterfaceSqlEditor;
+    let backendInitialized = false;
 
     const createEmptyJdvViewInfoObject = (): IJdvViewInfo => {
         return {
@@ -126,6 +127,23 @@ describe("JDV Object field editor tests", () => {
             parent,
             validators: new Map(),
         };
+    };
+
+    const createMockBackend = (): ShellInterfaceSqlEditor => {
+        return {
+            getSchemaObjectNames: () => {
+                return Promise.resolve([]);
+            },
+            getTableObjectNames: () => {
+                return Promise.resolve(["pk"]);
+            },
+            getJdvTableColumnsWithReferences: () => {
+                return Promise.resolve([]);
+            },
+            getJdvObjectFieldsWithReferences: () => {
+                return Promise.resolve([]);
+            },
+        } as unknown as ShellInterfaceSqlEditor;
     };
 
     const createJdvExampleDDL = (): string => {
@@ -565,7 +583,7 @@ describe("JDV Object field editor tests", () => {
             return createEmptyJdvViewInfoObject();
         };
         values ??= createEmptyFieldEditorMountValuesData();
-        backend ??= await createBackend();
+        backend ??= createMockBackend();
         schemasWithTables ??= {};
 
         const editorRef = createRef<JdvObjectFieldEditorMock>();
@@ -587,397 +605,411 @@ describe("JDV Object field editor tests", () => {
         return { unmount, editorRef, values, backend };
     };
 
-    beforeAll(async () => {
-        registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(true, true, "DEBUG2", "JdvObjectFieldEditorTests");
-    });
-
-    afterAll(async () => {
-        await backend.execute("DROP DATABASE IF EXISTS jdv_test");
-        await backend.closeSession();
-        await launcher.exitProcess();
-    });
-
-    beforeEach(async () => {
-        backend = await createBackend();
-        await backend.execute("DROP DATABASE IF EXISTS jdv_test");
-        await backend.execute("CREATE DATABASE IF NOT EXISTS jdv_test");
-    });
-
-    it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [create JDV]", async () => {
-        const schemasWithTables = await createJdvData(backend);
-        const values: IJdvObjectFieldEditorData = {
-            jdvSchema: "jdv_test",
-            defaultJdvName: "customer_jdv",
-            createView: true,
-            jdvViewInfo: {
-                id: "",
-                name: "customer_jdv",
-                schema: "jdv_test",
-                rootTableName: "customer",
-                rootTableSchema: "jdv_test",
-            },
-            jdvObjects: [],
-            rootJdvObjectId: undefined,
-            currentTreeItems: [],
-        };
-        const { unmount, editorRef } = await doMount(values, backend, schemasWithTables, () => {
-            return values.jdvViewInfo;
+    describe("backend-backed field editor tests", () => {
+        beforeAll(async () => {
+            registerUiLayer(uiLayerMock);
+            launcher = await setupShellForTests(true, true, "DEBUG2", "JdvObjectFieldEditorTests");
         });
 
-        const data = editorRef.current!.props.values as IJdvObjectFieldEditorData;
-        expect(data.jdvObjects).toHaveLength(1);
-        expect(data.currentTreeItems).toHaveLength(5);
-
-        const columnItems = data.currentTreeItems.filter((item) => {
-            return item.field.dbColumn;
-        });
-        expect(columnItems).toHaveLength(2);
-        for (const columnItem of columnItems) {
-            if (columnItem.field.dbColumn?.isPrimary) {
-                expect(columnItem.field.selected).toBe(true);
-                expect(columnItem.field.jsonKeyname).toEqual("_id");
-                expect(columnItem.validators.get(JdvObjectFieldValidatorType.Column)).toBeDefined();
-            } else {
-                expect(columnItem.field.selected).toBe(false);
-                expect(columnItem.field.jsonKeyname).toEqual(columnItem.field.dbColumn?.dbName);
+        afterAll(async () => {
+            if (backendInitialized) {
+                await backend.execute("DROP DATABASE IF EXISTS jdv_test");
+                await backend.closeSession();
             }
-        }
 
-        const referenceItems = data.currentTreeItems.filter((item) => {
-            return item.field.objectReference;
-        });
-        expect(referenceItems).toHaveLength(1);
-        expect(referenceItems[0].field.selected).toBe(false);
-        expect(referenceItems[0].field.jsonKeyname).toEqual(referenceItems[0].field.objectReference?.referencedTable);
-        expect(referenceItems[0].children).toHaveLength(1);
-
-        unmount();
-    });
-
-    it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async () => {
-        const schemasWithTables = await createJdvData(backend);
-        const exampleDDL = createJdvExampleDDL();
-        await backend.execute(exampleDDL);
-
-        const jdvViewInfo = await backend.getJdvViewInfo("jdv_test", "customer_orders_jdv");
-        if (jdvViewInfo.objects) {
-            jdvViewInfo.objects[0].storedFields = createJdvExampleStoredFields("0");
-            jdvViewInfo.objects[1].storedFields = createJdvExampleStoredFields("1");
-        }
-
-        const values: IJdvObjectFieldEditorData = {
-            jdvSchema: jdvViewInfo.schema,
-            defaultJdvName: jdvViewInfo.name,
-            createView: false,
-            jdvViewInfo: {
-                id: "",
-                name: jdvViewInfo.name,
-                schema: jdvViewInfo.schema,
-                rootTableName: jdvViewInfo.rootTableName,
-                rootTableSchema: jdvViewInfo.rootTableSchema,
-                objects: jdvViewInfo.objects,
-            },
-            jdvObjects: [],
-            rootJdvObjectId: undefined,
-            currentTreeItems: [],
-        };
-        const { unmount, editorRef } = await doMount(values, backend, schemasWithTables, () => {
-            return values.jdvViewInfo;
+            await launcher.exitProcess();
         });
 
-        const data = editorRef.current!.props.values as IJdvObjectFieldEditorData;
-        expect(data.jdvObjects).toHaveLength(2);
-        expect(data.currentTreeItems).toHaveLength(5);
-
-        const usernameItem = data.currentTreeItems.find((item) => {
-            return item.field.dbName === "username";
+        beforeEach(async () => {
+            backend = await createBackend();
+            backendInitialized = true;
+            await backend.execute("DROP DATABASE IF EXISTS jdv_test");
+            await backend.execute("CREATE DATABASE IF NOT EXISTS jdv_test");
         });
-        expect(usernameItem).toBeDefined();
-        expect(usernameItem?.field.selected).toBe(true);
-        expect(usernameItem?.field.jsonKeyname).toEqual("user");
 
-        const orderItem = data.currentTreeItems.find((item) => {
-            return item.field.dbName === "jdv_test.order";
+        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [create JDV]", async () => {
+            const schemasWithTables = await createJdvData(backend);
+            const values: IJdvObjectFieldEditorData = {
+                jdvSchema: "jdv_test",
+                defaultJdvName: "customer_jdv",
+                createView: true,
+                jdvViewInfo: {
+                    id: "",
+                    name: "customer_jdv",
+                    schema: "jdv_test",
+                    rootTableName: "customer",
+                    rootTableSchema: "jdv_test",
+                },
+                jdvObjects: [],
+                rootJdvObjectId: undefined,
+                currentTreeItems: [],
+            };
+            const { unmount, editorRef } = await doMount(values, backend, schemasWithTables, () => {
+                return values.jdvViewInfo;
+            });
+
+            const data = editorRef.current!.props.values as IJdvObjectFieldEditorData;
+            expect(data.jdvObjects).toHaveLength(1);
+            expect(data.currentTreeItems).toHaveLength(5);
+
+            const columnItems = data.currentTreeItems.filter((item) => {
+                return item.field.dbColumn;
+            });
+            expect(columnItems).toHaveLength(2);
+            for (const columnItem of columnItems) {
+                if (columnItem.field.dbColumn?.isPrimary) {
+                    expect(columnItem.field.selected).toBe(true);
+                    expect(columnItem.field.jsonKeyname).toEqual("_id");
+                    expect(columnItem.validators.get(JdvObjectFieldValidatorType.Column)).toBeDefined();
+                } else {
+                    expect(columnItem.field.selected).toBe(false);
+                    expect(columnItem.field.jsonKeyname).toEqual(columnItem.field.dbColumn?.dbName);
+                }
+            }
+
+            const referenceItems = data.currentTreeItems.filter((item) => {
+                return item.field.objectReference;
+            });
+            expect(referenceItems).toHaveLength(1);
+            expect(referenceItems[0].field.selected).toBe(false);
+            expect(referenceItems[0].field.jsonKeyname).toEqual(
+                referenceItems[0].field.objectReference?.referencedTable);
+            expect(referenceItems[0].children).toHaveLength(1);
+
+            unmount();
         });
-        expect(orderItem).toBeDefined();
-        expect(orderItem?.field.selected).toBe(true);
-        expect(orderItem?.field.jsonKeyname).toEqual("purchases");
-        expect(orderItem?.expanded).toBe(true);
-        expect(orderItem?.children).toHaveLength(5);
 
-        unmount();
-    });
+        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async () => {
+            const schemasWithTables = await createJdvData(backend);
+            const exampleDDL = createJdvExampleDDL();
+            await backend.execute(exampleDDL);
 
-    it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [invalid root table]", async () => {
-        const schemasWithTables: Record<string, string[]> = {};
+            const jdvViewInfo = await backend.getJdvViewInfo("jdv_test", "customer_orders_jdv");
+            if (jdvViewInfo.objects) {
+                jdvViewInfo.objects[0].storedFields = createJdvExampleStoredFields("0");
+                jdvViewInfo.objects[1].storedFields = createJdvExampleStoredFields("1");
+            }
 
-        // root table with no primary key
-        await backend.execute("CREATE TABLE IF NOT EXISTS jdv_test.product_rating (" +
+            const values: IJdvObjectFieldEditorData = {
+                jdvSchema: jdvViewInfo.schema,
+                defaultJdvName: jdvViewInfo.name,
+                createView: false,
+                jdvViewInfo: {
+                    id: "",
+                    name: jdvViewInfo.name,
+                    schema: jdvViewInfo.schema,
+                    rootTableName: jdvViewInfo.rootTableName,
+                    rootTableSchema: jdvViewInfo.rootTableSchema,
+                    objects: jdvViewInfo.objects,
+                },
+                jdvObjects: [],
+                rootJdvObjectId: undefined,
+                currentTreeItems: [],
+            };
+            const { unmount, editorRef } = await doMount(values, backend, schemasWithTables, () => {
+                return values.jdvViewInfo;
+            });
+
+            const data = editorRef.current!.props.values as IJdvObjectFieldEditorData;
+            expect(data.jdvObjects).toHaveLength(2);
+            expect(data.currentTreeItems).toHaveLength(5);
+
+            const usernameItem = data.currentTreeItems.find((item) => {
+                return item.field.dbName === "username";
+            });
+            expect(usernameItem).toBeDefined();
+            expect(usernameItem?.field.selected).toBe(true);
+            expect(usernameItem?.field.jsonKeyname).toEqual("user");
+
+            const orderItem = data.currentTreeItems.find((item) => {
+                return item.field.dbName === "jdv_test.order";
+            });
+            expect(orderItem).toBeDefined();
+            expect(orderItem?.field.selected).toBe(true);
+            expect(orderItem?.field.jsonKeyname).toEqual("purchases");
+            expect(orderItem?.expanded).toBe(true);
+            expect(orderItem?.children).toHaveLength(5);
+
+            unmount();
+        });
+
+        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [invalid root table]", async () => {
+            const schemasWithTables: Record<string, string[]> = {};
+
+            // root table with no primary key
+            await backend.execute("CREATE TABLE IF NOT EXISTS jdv_test.product_rating (" +
             "rating TINYINT UNSIGNED DEFAULT 0 CHECK (rating BETWEEN 0 AND 5))");
-        schemasWithTables.jdv_test = ["product_rating"];
-        const values1: IJdvObjectFieldEditorData = {
-            jdvSchema: "jdv_test",
-            defaultJdvName: "product_rating_jdv",
-            createView: true,
-            jdvViewInfo: {
-                id: "",
-                name: "product_rating_jdv",
-                schema: "jdv_test",
-                rootTableName: "product_rating",
-                rootTableSchema: "jdv_test",
-            },
-            jdvObjects: [],
-            rootJdvObjectId: undefined,
-            currentTreeItems: [],
-        };
+            schemasWithTables.jdv_test = ["product_rating"];
+            const values1: IJdvObjectFieldEditorData = {
+                jdvSchema: "jdv_test",
+                defaultJdvName: "product_rating_jdv",
+                createView: true,
+                jdvViewInfo: {
+                    id: "",
+                    name: "product_rating_jdv",
+                    schema: "jdv_test",
+                    rootTableName: "product_rating",
+                    rootTableSchema: "jdv_test",
+                },
+                jdvObjects: [],
+                rootJdvObjectId: undefined,
+                currentTreeItems: [],
+            };
 
-        const { unmount, editorRef } = await doMount(values1, backend, schemasWithTables, () => {
-            return values1.jdvViewInfo;
-        });
+            const { unmount, editorRef } = await doMount(values1, backend, schemasWithTables, () => {
+                return values1.jdvViewInfo;
+            });
 
-        let data = editorRef.current!.props.values as IJdvObjectFieldEditorData;
-        expect(data.currentTreeItems).toHaveLength(1);
-        expect(data.currentTreeItems[0].validators.size).toEqual(1);
-        expect(data.currentTreeItems[0].validators.get(JdvObjectFieldValidatorType.Table)).toEqual({
-            invalid: true,
-            message: "Table has no primary key.",
-            additionalMessage: `Table jdv_test.product_rating is not valid: `,
-        });
-        let errors = JdvObjectFieldEditor.validateJdvObjectFields(data);
-        expect(errors).toHaveLength(1);
+            let data = editorRef.current!.props.values as IJdvObjectFieldEditorData;
+            expect(data.currentTreeItems).toHaveLength(1);
+            expect(data.currentTreeItems[0].validators.size).toEqual(1);
+            expect(data.currentTreeItems[0].validators.get(JdvObjectFieldValidatorType.Table)).toEqual({
+                invalid: true,
+                message: "Table has no primary key.",
+                additionalMessage: `Table jdv_test.product_rating is not valid: `,
+            });
+            let errors = JdvObjectFieldEditor.validateJdvObjectFields(data);
+            expect(errors).toHaveLength(1);
 
-        unmount();
+            unmount();
 
-        // root table with composite primary key
-        await backend.execute("CREATE TABLE IF NOT EXISTS jdv_test.delivery_info (" +
+            // root table with composite primary key
+            await backend.execute("CREATE TABLE IF NOT EXISTS jdv_test.delivery_info (" +
             "id INT NOT NULL," +
             "purchase_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
             "PRIMARY KEY (id, purchase_date))");
-        schemasWithTables.jdv_test = ["delivery_info"];
-        const values2: IJdvObjectFieldEditorData = {
-            jdvSchema: "jdv_test",
-            defaultJdvName: "delivery_info_jdv",
-            createView: true,
-            jdvViewInfo: {
-                id: "",
-                name: "delivery_info_jdv",
-                schema: "jdv_test",
-                rootTableName: "delivery_info",
-                rootTableSchema: "jdv_test",
-            },
-            jdvObjects: [],
-            rootJdvObjectId: undefined,
-            currentTreeItems: [],
-        };
+            schemasWithTables.jdv_test = ["delivery_info"];
+            const values2: IJdvObjectFieldEditorData = {
+                jdvSchema: "jdv_test",
+                defaultJdvName: "delivery_info_jdv",
+                createView: true,
+                jdvViewInfo: {
+                    id: "",
+                    name: "delivery_info_jdv",
+                    schema: "jdv_test",
+                    rootTableName: "delivery_info",
+                    rootTableSchema: "jdv_test",
+                },
+                jdvObjects: [],
+                rootJdvObjectId: undefined,
+                currentTreeItems: [],
+            };
 
-        const { unmount: unmount2, editorRef: editorRef2 } = await doMount(values2, backend, schemasWithTables, () => {
-            return values2.jdvViewInfo;
+            const { unmount: unmount2, editorRef: editorRef2 } = await doMount(values2, backend, schemasWithTables,
+                () => {
+                    return values2.jdvViewInfo;
+                });
+
+            data = editorRef2.current!.props.values as IJdvObjectFieldEditorData;
+            expect(data.currentTreeItems).toHaveLength(1);
+            expect(data.currentTreeItems[0].validators.size).toEqual(1);
+            expect(data.currentTreeItems[0].validators.get(JdvObjectFieldValidatorType.Table)).toEqual({
+                invalid: true,
+                message: "Table has composite primary key.",
+                additionalMessage: `Table jdv_test.delivery_info is not valid: `,
+            });
+            errors = JdvObjectFieldEditor.validateJdvObjectFields(data);
+            expect(errors).toHaveLength(1);
+
+            unmount2();
         });
-
-        data = editorRef2.current!.props.values as IJdvObjectFieldEditorData;
-        expect(data.currentTreeItems).toHaveLength(1);
-        expect(data.currentTreeItems[0].validators.size).toEqual(1);
-        expect(data.currentTreeItems[0].validators.get(JdvObjectFieldValidatorType.Table)).toEqual({
-            invalid: true,
-            message: "Table has composite primary key.",
-            additionalMessage: `Table jdv_test.delivery_info is not valid: `,
-        });
-        errors = JdvObjectFieldEditor.validateJdvObjectFields(data);
-        expect(errors).toHaveLength(1);
-
-        unmount2();
     });
 
-    it("JdvObjectFieldEditor test validateJdvObjectFieldTreeItem [unsupported columns]", async () => {
-        const { unmount, editorRef } = await doMount();
-        let treeItem;
-
-        treeItem = createColumnTreeItem("jsonKeyname1", {
-            dbName: "col1",
-            datatype: "json",
-            isPrimary: false,
-            isGenerated: false,
-            notNull: false,
-        });
-        treeItem.field.selected = true;
-
-        await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
-        expect(treeItem.validators.size).toEqual(1);
-        expect(treeItem.field.selected).toBe(false);
-        expect(treeItem.validators.get(JdvObjectFieldValidatorType.Column)).toEqual({
-            unsupported: true,
-            message: `Column datatype 'json' is not supported.`,
+    describe("local field editor validation tests", () => {
+        beforeAll(() => {
+            registerUiLayer(uiLayerMock);
         });
 
-        treeItem = createColumnTreeItem("jsonKeyname1", {
-            dbName: "col1",
-            datatype: "string",
-            isPrimary: false,
-            isGenerated: true,
-            notNull: false,
-        });
-        treeItem.field.selected = true;
-        await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
-        expect(treeItem.validators.size).toEqual(1);
-        expect(treeItem.field.selected).toBe(false);
-        expect(treeItem.validators.get(JdvObjectFieldValidatorType.Column)).toEqual({
-            unsupported: true,
-            message: `Generated columns are not supported.`,
+        it("JdvObjectFieldEditor test validateJdvObjectFieldTreeItem [unsupported columns]", async () => {
+            const { unmount, editorRef } = await doMount();
+            let treeItem;
+
+            treeItem = createColumnTreeItem("jsonKeyname1", {
+                dbName: "col1",
+                datatype: "json",
+                isPrimary: false,
+                isGenerated: false,
+                notNull: false,
+            });
+            treeItem.field.selected = true;
+
+            await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
+            expect(treeItem.validators.size).toEqual(1);
+            expect(treeItem.field.selected).toBe(false);
+            expect(treeItem.validators.get(JdvObjectFieldValidatorType.Column)).toEqual({
+                unsupported: true,
+                message: `Column datatype 'json' is not supported.`,
+            });
+
+            treeItem = createColumnTreeItem("jsonKeyname1", {
+                dbName: "col1",
+                datatype: "string",
+                isPrimary: false,
+                isGenerated: true,
+                notNull: false,
+            });
+            treeItem.field.selected = true;
+            await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
+            expect(treeItem.validators.size).toEqual(1);
+            expect(treeItem.field.selected).toBe(false);
+            expect(treeItem.validators.get(JdvObjectFieldValidatorType.Column)).toEqual({
+                unsupported: true,
+                message: `Generated columns are not supported.`,
+            });
+
+            unmount();
         });
 
-        unmount();
-    });
-
-    it("JdvObjectFieldEditor test validateJdvObjectFieldTreeItem [invalid json keyname]", async () => {
-        const { unmount, editorRef } = await doMount();
+        it("JdvObjectFieldEditor test validateJdvObjectFieldTreeItem [invalid json keyname]", async () => {
+            const { unmount, editorRef } = await doMount();
 
         // empty value
-        let treeItem = createColumnTreeItem("");
-        await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
-        expect(treeItem.validators.size).toEqual(1);
-        expect(treeItem.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
-            invalid: true,
-            message: `Key name cannot be empty.`,
-            additionalMessage: `Json keyname for schema.table1.col1 is not valid: `,
-        });
+            let treeItem = createColumnTreeItem("");
+            await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
+            expect(treeItem.validators.size).toEqual(1);
+            expect(treeItem.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
+                invalid: true,
+                message: `Key name cannot be empty.`,
+                additionalMessage: `Json keyname for schema.table1.col1 is not valid: `,
+            });
 
         // invalid value for column item
-        treeItem = createColumnTreeItem("_metadata");
-        await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
-        expect(treeItem.validators.size).toEqual(1);
-        expect(treeItem.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
-            invalid: true,
-            message: `Cannot use _metadata as json key.`,
-            additionalMessage: `Json keyname for schema.table1.col1 is not valid: `,
-        });
+            treeItem = createColumnTreeItem("_metadata");
+            await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
+            expect(treeItem.validators.size).toEqual(1);
+            expect(treeItem.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
+                invalid: true,
+                message: `Cannot use _metadata as json key.`,
+                additionalMessage: `Json keyname for schema.table1.col1 is not valid: `,
+            });
 
         // invalid value for reference item
-        treeItem = createReferenceTreeItem("");
-        await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
-        expect(treeItem.validators.size).toEqual(1);
-        expect(treeItem.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
-            invalid: true,
-            message: `Key name cannot be empty.`,
-            additionalMessage: `Json keyname for schema.table1 is not valid: `,
-        });
+            treeItem = createReferenceTreeItem("");
+            await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
+            expect(treeItem.validators.size).toEqual(1);
+            expect(treeItem.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
+                invalid: true,
+                message: `Key name cannot be empty.`,
+                additionalMessage: `Json keyname for schema.table1 is not valid: `,
+            });
 
         // after fixing the invalid value
-        treeItem.field.jsonKeyname = "jsonKeyname1";
-        await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
-        expect(treeItem.validators.size).toEqual(0);
+            treeItem.field.jsonKeyname = "jsonKeyname1";
+            await editorRef.current!.validateJdvObjectFieldTreeItem(treeItem);
+            expect(treeItem.validators.size).toEqual(0);
 
         // columns with duplicate json key names
-        const colTreeItem1 = createColumnTreeItem("dupKeyname", {
-            dbName: "col1",
-            datatype: "string",
-            isPrimary: false,
-            isGenerated: false,
-            notNull: false,
-        }, treeItem);
-
-        const colTreeItem2 = createColumnTreeItem("dupKeyname", {
-            dbName: "col2",
-            datatype: "string",
-            isPrimary: false,
-            isGenerated: false,
-            notNull: false,
-        }, treeItem);
-
-        treeItem.children = [colTreeItem1, colTreeItem2];
-        await editorRef.current!.validateJdvObjectFieldTreeItem(colTreeItem1);
-        expect(colTreeItem1.validators.size).toEqual(1);
-        expect(colTreeItem1.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
-            invalid: true,
-            message: `Cannot use duplicate json keys in the same table.`,
-            additionalMessage: `Json keyname for schema.table1.col1 is not valid: `,
-            kwargs: { dupKeyname: "dupKeyname" },
-        });
-        expect(colTreeItem2.validators.size).toEqual(1);
-
-        colTreeItem2.field.jsonKeyname = "uniqueKeyname";
-        await editorRef.current!.validateJdvObjectFieldTreeItem(colTreeItem2);
-        expect(colTreeItem1.validators.size).toEqual(0);
-        expect(colTreeItem2.validators.size).toEqual(0);
-
-        unmount();
-    });
-
-    it("JdvObjectFieldEditor test validateJdvObjectFieldTreeItem [invalid link]", async () => {
-        const { unmount, editorRef } = await doMount();
-
-        // test validator empty if link is valid
-        const parentTreeItem = createReferenceTreeItem("ref1", "1");
-        const childTreeItem = createReferenceTreeItem("ref2", "2");
-
-        parentTreeItem.children = [
-            createColumnTreeItem("pk", {
-                dbName: "pk",
-                datatype: "string",
-                isPrimary: true,
-                isGenerated: false,
-                notNull: false,
-            }),
-            createColumnTreeItem("col1"),
-            childTreeItem,
-        ];
-
-        childTreeItem.children = [
-            createColumnTreeItem("pk", {
-                dbName: "pk",
-                datatype: "string",
-                isPrimary: true,
-                isGenerated: false,
-                notNull: false,
-            }),
-            createColumnTreeItem("fk1", {
-                dbName: "fk1",
+            const colTreeItem1 = createColumnTreeItem("dupKeyname", {
+                dbName: "col1",
                 datatype: "string",
                 isPrimary: false,
                 isGenerated: false,
                 notNull: false,
-            }),
-        ];
-        childTreeItem.parent = parentTreeItem;
+            }, treeItem);
 
-        await editorRef.current!.validateJdvObjectFieldTreeItem(childTreeItem);
-        expect(childTreeItem.validators.size).toEqual(0);
+            const colTreeItem2 = createColumnTreeItem("dupKeyname", {
+                dbName: "col2",
+                datatype: "string",
+                isPrimary: false,
+                isGenerated: false,
+                notNull: false,
+            }, treeItem);
+
+            treeItem.children = [colTreeItem1, colTreeItem2];
+            await editorRef.current!.validateJdvObjectFieldTreeItem(colTreeItem1);
+            expect(colTreeItem1.validators.size).toEqual(1);
+            expect(colTreeItem1.validators.get(JdvObjectFieldValidatorType.JsonKeyName)).toEqual({
+                invalid: true,
+                message: `Cannot use duplicate json keys in the same table.`,
+                additionalMessage: `Json keyname for schema.table1.col1 is not valid: `,
+                kwargs: { dupKeyname: "dupKeyname" },
+            });
+            expect(colTreeItem2.validators.size).toEqual(1);
+
+            colTreeItem2.field.jsonKeyname = "uniqueKeyname";
+            await editorRef.current!.validateJdvObjectFieldTreeItem(colTreeItem2);
+            expect(colTreeItem1.validators.size).toEqual(0);
+            expect(colTreeItem2.validators.size).toEqual(0);
+
+            unmount();
+        });
+
+        it("JdvObjectFieldEditor test validateJdvObjectFieldTreeItem [invalid link]", async () => {
+            const { unmount, editorRef } = await doMount();
+
+        // test validator empty if link is valid
+            const parentTreeItem = createReferenceTreeItem("ref1", "1");
+            const childTreeItem = createReferenceTreeItem("ref2", "2");
+
+            parentTreeItem.children = [
+                createColumnTreeItem("pk", {
+                    dbName: "pk",
+                    datatype: "string",
+                    isPrimary: true,
+                    isGenerated: false,
+                    notNull: false,
+                }),
+                createColumnTreeItem("col1"),
+                childTreeItem,
+            ];
+
+            childTreeItem.children = [
+                createColumnTreeItem("pk", {
+                    dbName: "pk",
+                    datatype: "string",
+                    isPrimary: true,
+                    isGenerated: false,
+                    notNull: false,
+                }),
+                createColumnTreeItem("fk1", {
+                    dbName: "fk1",
+                    datatype: "string",
+                    isPrimary: false,
+                    isGenerated: false,
+                    notNull: false,
+                }),
+            ];
+            childTreeItem.parent = parentTreeItem;
+
+            await editorRef.current!.validateJdvObjectFieldTreeItem(childTreeItem);
+            expect(childTreeItem.validators.size).toEqual(0);
 
         // test columns not selected
-        childTreeItem.field.objectReference = {
-            kind: "1:n",
-            baseColumn: "",
-            referencedColumn: "",
-            referencedTable: "table1",
-            referencedSchema: "schema",
-        };
-        await editorRef.current!.validateJdvObjectFieldTreeItem(childTreeItem);
-        expect(childTreeItem.validators.size).toEqual(1);
-        expect(childTreeItem.field.objectReference.kind).toEqual("");
-        expect(childTreeItem.validators.get(JdvObjectFieldValidatorType.ObjectReference)).toEqual({
-            invalid: true,
-            message: "Parent and child columns must be selected.",
-            additionalMessage: `Link between schema.table1 and schema.table1 is not valid: `,
-        });
+            childTreeItem.field.objectReference = {
+                kind: "1:n",
+                baseColumn: "",
+                referencedColumn: "",
+                referencedTable: "table1",
+                referencedSchema: "schema",
+            };
+            await editorRef.current!.validateJdvObjectFieldTreeItem(childTreeItem);
+            expect(childTreeItem.validators.size).toEqual(1);
+            expect(childTreeItem.field.objectReference.kind).toEqual("");
+            expect(childTreeItem.validators.get(JdvObjectFieldValidatorType.ObjectReference)).toEqual({
+                invalid: true,
+                message: "Parent and child columns must be selected.",
+                additionalMessage: `Link between schema.table1 and schema.table1 is not valid: `,
+            });
 
         // test selected columns are not primary
-        childTreeItem.field.objectReference = {
-            kind: "1:n",
-            baseColumn: "col1",
-            referencedColumn: "fk1",
-            referencedTable: "table1",
-            referencedSchema: "schema",
-        };
-        await editorRef.current!.validateJdvObjectFieldTreeItem(childTreeItem);
-        expect(childTreeItem.validators.size).toEqual(1);
-        expect(childTreeItem.field.objectReference.kind).toEqual("");
-        expect(childTreeItem.validators.get(JdvObjectFieldValidatorType.ObjectReference)).toEqual({
-            invalid: true,
-            message: "The primary key for at least one of the two tables must be selected.",
-            additionalMessage: `Link between schema.table1 and schema.table1 is not valid: `,
-        });
+            childTreeItem.field.objectReference = {
+                kind: "1:n",
+                baseColumn: "col1",
+                referencedColumn: "fk1",
+                referencedTable: "table1",
+                referencedSchema: "schema",
+            };
+            await editorRef.current!.validateJdvObjectFieldTreeItem(childTreeItem);
+            expect(childTreeItem.validators.size).toEqual(1);
+            expect(childTreeItem.field.objectReference.kind).toEqual("");
+            expect(childTreeItem.validators.get(JdvObjectFieldValidatorType.ObjectReference)).toEqual({
+                invalid: true,
+                message: "The primary key for at least one of the two tables must be selected.",
+                additionalMessage: `Link between schema.table1 and schema.table1 is not valid: `,
+            });
 
-        unmount();
+            unmount();
+        });
     });
 
     it("JdvObjectFieldEditor test buildDataMappingViewSql", () => {

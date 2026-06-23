@@ -139,8 +139,6 @@
 .msg.settingsEditor #settingsTreeHost .tabulator-row.tabulator-selected .tabulator-cell {
     background: none;
     color: var(--settings-headerForeground);
-    font-weight: 800;
-    ;
 }
 
 .msg.settingsEditor #settingsTreeHost .tabulator:focus-within .tabulator-row.tabulator-selected .tabulator-cell {

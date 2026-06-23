@@ -41,6 +41,7 @@ import { render, waitFor } from "@testing-library/preact";
 import { DialogResponseClosure } from "../../../../app-logic/general-types.js";
 import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase.js";
 import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
+import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { ui } from "../../../../app-logic/UILayer.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
@@ -87,6 +88,25 @@ describe("Connection browser tests", (): void => {
             onUpdateConnection: vi.fn(),
             onRemoveConnection: vi.fn(),
         });
+    };
+
+    const renderBrowserWithRoots = (roots: unknown[]) => {
+        const dataModel = {
+            roots,
+            subscribe: vi.fn(),
+            unsubscribe: vi.fn(),
+        };
+
+        return render(
+            <DocumentContext.Provider value={{ connectionsDataModel: dataModel } as DocumentContextType}>
+                <ConnectionBrowser
+                    toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+                    onAddConnection={vi.fn()}
+                    onUpdateConnection={vi.fn()}
+                    onRemoveConnection={vi.fn()}
+                />
+            </DocumentContext.Provider>,
+        );
     };
 
     const findVNodeById = (node: unknown, id: string): {
@@ -173,6 +193,20 @@ describe("Connection browser tests", (): void => {
         expect(groupMenu?.props.placement).toBe(ComponentPlacement.BottomRight);
     });
 
+    it("hides the breadcrumb when no connection groups exist", () => {
+        const { container, unmount } = renderBrowserWithRoots([createConnection()]);
+
+        expect(container.querySelector(".breadcrumb")).toBeNull();
+        unmount();
+    });
+
+    it("shows the breadcrumb when connection groups exist", () => {
+        const { container, unmount } = renderBrowserWithRoots([createGroup(2, "Projects")]);
+
+        expect(container.querySelector(".breadcrumb")).toBeTruthy();
+        unmount();
+    });
+
     it("forces a new connection tab for tile actions outside the extension", () => {
         const executeSpy = vi.spyOn(requisitions, "execute").mockResolvedValue(true);
         const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
@@ -200,6 +234,23 @@ describe("Connection browser tests", (): void => {
             initialEditor: "script",
         });
         expect(executeRemoteSpy).toHaveBeenCalledWith("selectConnectionTab", { connectionId: 42 });
+    });
+
+    it("uses the configured default editor for plain connection tile clicks", () => {
+        const executeSpy = vi.spyOn(requisitions, "execute").mockResolvedValue(true);
+        vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
+        const browser = createBrowser();
+        const entry = createConnection();
+
+        (browser as unknown as {
+            doHandleTileAction: (action: string, entry: unknown, options?: unknown) => void;
+        }).doHandleTileAction("open", entry, {});
+
+        expect(executeSpy).toHaveBeenCalledWith("openConnectionTab", {
+            connection: entry,
+            force: true,
+            initialEditor: "default",
+        });
     });
 
     it("treats only non-root connections as movable back to root", () => {

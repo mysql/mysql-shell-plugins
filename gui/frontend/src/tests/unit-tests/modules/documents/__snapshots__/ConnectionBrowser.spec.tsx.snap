@@ -125,19 +125,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
               />
             </div>
           </div>
-          <div
-            class="msg container fixedScrollbar breadcrumb"
-            style="flex-direction: row;"
-          >
-            <div
-              class="msg button breadcrumbItem"
-              id="1"
-              role="button"
-              tabindex="0"
-            >
-              /
-            </div>
-          </div>
         </div>
         <div
           class="msg container fixedScrollbar"

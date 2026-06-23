@@ -565,6 +565,9 @@ const installAppPayload = (target, appFolder, includeShellBundle) => {
     cpSync(electronSourceFolder, join(appFolder, "src"), { recursive: true, force: true });
     ensureDirectory(join(appFolder, "frontend"));
     cpSync(buildFolder, join(appFolder, "frontend", "build"), { recursive: true, force: true });
+    ensureDirectory(join(appFolder, "frontend", "src", "data-models"));
+    cpSync(join(frontEndFolder, "src", "data-models", "admin-pages.json"),
+        join(appFolder, "frontend", "src", "data-models", "admin-pages.json"));
     installAppImages(appFolder);
 
     if (includeShellBundle) {

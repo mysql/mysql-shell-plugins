@@ -476,6 +476,7 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
  *                     to trigger authentication and waits until a profile is loaded. If false, the caller has to take
  *                     care of that.
  * @param logLevel The log level to use. Only relevant if showOutput is true.
+ * @param context Test context name used when copying MySQL Shell logs.
  *
  * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
  */
@@ -548,7 +549,7 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
                         console.warn(`⚠️  No MySQL Shell log found at ${shellLogPath}`);
                     }
                 } else {
-                 console.log("No context provided, skipping MySQL Shell log copy.");   
+                    console.log("No context provided, skipping MySQL Shell log copy.");
                 }
 
                 try {
@@ -609,12 +610,15 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
  * @returns a set of DB credentials for tests.
  */
 export const getDbCredentials = (): ITestDbCredentials => {
+    const environment = process.env as Record<string, string | undefined>;
+    const testConfig = globalThis.testConfig as Record<string, string | undefined> | undefined;
+
     return {
-        // cspell:ignore DBUSERNAME DBPASSWORD DBHOST DBPORT
-        userName: process.env.DBUSERNAME ?? "root",
-        password: process.env.DBPASSWORD ?? "",
-        host: process.env.DBHOST ?? "localhost",
-        port: process.env.DBPORT ? parseInt(process.env.DBPORT, 10) : 3306,
+        // cspell:ignore DBUSERNAME DBPASSWORD DBHOST DBPORT DBUSERNAME1 DBUSERNAME1PWD
+        userName: environment.DBUSERNAME ?? testConfig?.DBUSERNAME1 ?? "root",
+        password: environment.DBPASSWORD ?? testConfig?.DBUSERNAME1PWD ?? "",
+        host: environment.DBHOST ?? "localhost",
+        port: parseInt(environment.DBPORT ?? testConfig?.MYSQL_PORT ?? "3306", 10),
     };
 };
 
@@ -1133,7 +1137,8 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
     });
 };
 
-export const createJdvData = async (backend: ShellInterfaceSqlEditor, schema:string = "jdv_test"): Promise<Record<string, string[]>> => {
+export const createJdvData = async (backend: ShellInterfaceSqlEditor,
+    schema = "jdv_test"): Promise<Record<string, string[]>> => {
     const schemasWithTables: Record<string, string[]> = {};
 
     schemasWithTables[schema] = ["customer", "order"];

@@ -50,6 +50,10 @@ const isBundledRuntime = fs.existsSync(bundledFrontendBuildDir) && fs.existsSync
 const frontendBuildDir = isBundledRuntime ? bundledFrontendBuildDir : path.resolve(__dirname, "../../frontend/build");
 const preloadPath = path.resolve(__dirname, "./preload.cjs");
 const fileViewerPreloadPath = path.resolve(__dirname, "./file-viewer-preload.cjs");
+const adminPageDefinitionsPath = isBundledRuntime
+    ? path.join(appRootDir, "frontend", "src", "data-models", "admin-pages.json")
+    : path.resolve(__dirname, "../../frontend/src/data-models/admin-pages.json");
+const adminPageDefinitions = require(adminPageDefinitionsPath);
 
 const parseCommandLineArguments = (argv) => {
     const result = {};
@@ -1865,10 +1869,9 @@ const createMenu = () => {
     const databaseMenu = {
         label: "Database",
         submenu: [
-            createDesktopCommandStateMenuItem("database.admin.serverStatus", "Server Status"),
-            createDesktopCommandStateMenuItem("database.admin.clientConnections", "Client Connections"),
-            createDesktopCommandStateMenuItem("database.admin.performanceDashboard", "Performance Dashboard"),
-            createDesktopCommandStateMenuItem("database.admin.lakehouseNavigator", "Lakehouse Navigator"),
+            ...adminPageDefinitions.map((definition) => {
+                return createDesktopCommandStateMenuItem(definition.desktopCommandId, definition.label);
+            }),
             { type: "separator" },
             createDesktopCommandStateMenuItem("database.mrs.configure", "Configure MySQL REST Service"),
             {

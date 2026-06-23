@@ -50,16 +50,15 @@ import { Label } from "../../components/ui/Label/Label.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { CdmEntityType } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { ConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
-import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { DocumentContext, type DocumentContextType } from "./index.js";
 
 const editorHeading = "Database Connection Configuration";
+const globalDefaultEditor = "Default";
 
 interface ILiveUpdateField {
     value: string;
@@ -494,9 +493,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         /* eslint-enabled @typescript-eslint/naming-convention */
                     };
 
-                    details.settings = {
-                        defaultEditor: generalSection.defaultEditor.value as ConnectionEditorType,
-                    };
+                    const defaultEditor = generalSection.defaultEditor.value;
+                    details.settings = defaultEditor === globalDefaultEditor
+                        ? {}
+                        : { defaultEditor: defaultEditor as ConnectionEditorType };
                 }
 
                 if (data?.createNew) {
@@ -540,13 +540,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         const description = "A new Database Connection";
 
-        let defaultEditor = ConnectionEditorType.DbNotebook;
-        if (webSession.runMode === RunMode.SingleServer) {
-            // In single server mode take the default editor from the settings.
-            defaultEditor = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook"
-                ? ConnectionEditorType.DbNotebook
-                : ConnectionEditorType.DbScript;
-        } else if (details?.settings?.defaultEditor) {
+        let defaultEditor = globalDefaultEditor;
+        if (details?.settings?.defaultEditor) {
             defaultEditor = details.settings.defaultEditor;
         }
 
@@ -562,9 +557,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 port: 3306,
                 scheme: MySQLConnectionScheme.MySQL,
             },
-            settings: {
-                defaultEditor,
-            },
+            settings: {},
             folderPath: currentPath,
             index: -1,
         };
@@ -637,8 +630,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     type: "choice",
                     caption: "Default Editor:",
                     value: defaultEditor,
-                    choices: [ConnectionEditorType.DbNotebook, ConnectionEditorType.DbScript],
-                    description: "Choose between a modern notebook interface or a traditional script editor",
+                    choices: [globalDefaultEditor, ConnectionEditorType.DbNotebook, ConnectionEditorType.DbScript],
+                    description: "Choose the global default or override it for this connection",
                     horizontalSpan: 3,
                 },
                 folderPath: {
