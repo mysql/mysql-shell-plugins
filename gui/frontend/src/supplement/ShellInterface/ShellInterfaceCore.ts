@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,6 +28,16 @@ import { ShellAPIGui } from "../../communication/ProtocolGui.js";
 import { IBackendInformation } from "./index.js";
 
 import { filterInt } from "../../utilities/string-helpers.js";
+
+export type LocalConnectionEndpointProbeKind = "tcp" | "socket" | "pipe";
+export type LocalConnectionEndpointProbeStatus = "available" | "unavailable" | "unknown";
+
+export interface ILocalConnectionEndpointProbeResult {
+    kind: LocalConnectionEndpointProbeKind;
+    status: LocalConnectionEndpointProbeStatus;
+    target: string;
+    message?: string;
+}
 
 export class ShellInterfaceCore {
     /**
@@ -117,6 +127,26 @@ export class ShellInterfaceCore {
             requestType: ShellAPIGui.GuiCoreCreateFile,
             parameters: { args: { path } },
         });
+    }
+
+    public async probeLocalConnectionEndpoint(
+        kind: LocalConnectionEndpointProbeKind,
+        target: string,
+        port?: number,
+    ): Promise<ILocalConnectionEndpointProbeResult> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiCoreProbeLocalConnectionEndpoint,
+            parameters: { args: { kind, target, port } },
+        });
+
+        const result = response.result;
+
+        return {
+            kind: result.kind as LocalConnectionEndpointProbeKind,
+            status: result.status as LocalConnectionEndpointProbeStatus,
+            target: String(result.target),
+            message: result.message === undefined ? undefined : String(result.message),
+        };
     }
 
     /**

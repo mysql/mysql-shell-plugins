@@ -87,7 +87,7 @@
     "administration.overviewAccent": "$textLink.foreground",
     "administration.selectionBorder": "$list.focusOutline",
     "administration.statusForeground": "$button.foreground",
-    "administration.statusSuccessBackground": "$charts.green",
+    "administration.statusSuccessBackground": "$statusBarItem.okBackground",
     "administration.statusWarningBackground": "$statusBarItem.warningBackground",
     "administration.statusWarningForeground": "$statusBarItem.warningForeground",
     "administration.statusErrorBackground": "$statusBarItem.errorBackground",

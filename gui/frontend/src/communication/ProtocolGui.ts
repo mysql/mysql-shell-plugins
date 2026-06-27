@@ -43,6 +43,8 @@ export enum ShellAPIGui {
     GuiCoreCreateFile = "gui.core.create_file",
     /** Validates the specified path. */
     GuiCoreValidatePath = "gui.core.validate_path",
+    /** Checks if a local database endpoint appears to be available. */
+    GuiCoreProbeLocalConnectionEndpoint = "gui.core.probe_local_connection_endpoint",
     /** Deletes a file specified by the path. */
     GuiCoreDeleteFile = "gui.core.delete_file",
     /** Returns information about backend */
@@ -67,6 +69,10 @@ export enum ShellAPIGui {
     GuiDbConnectionsListDbConnections = "gui.dbConnections.list_db_connections",
     /** Get the db_connection */
     GuiDbConnectionsGetDbConnection = "gui.dbConnections.get_db_connection",
+    /** Updates the cached server status sysvars for a db_connection. */
+    GuiDbConnectionsUpdateServerStatusCache = "gui.dbConnections.update_server_status_cache",
+    /** Gets the cached server status sysvars for a db_connection. */
+    GuiDbConnectionsGetServerStatusCache = "gui.dbConnections.get_server_status_cache",
     /** Get the list of db_types */
     GuiDbConnectionsGetDbTypes = "gui.dbConnections.get_db_types",
     /** Set the password of a db_connection url */
@@ -316,6 +322,10 @@ export interface IShellDbConnection {
     settings: IShellDictionary | null;
 }
 
+export interface Ilist {}
+
+export interface IAny {}
+
 export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -324,6 +334,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreListFiles]: { args: { path?: string; }; };
     [ShellAPIGui.GuiCoreCreateFile]: { args: { path: string; }; };
     [ShellAPIGui.GuiCoreValidatePath]: { args: { path: string; }; };
+    [ShellAPIGui.GuiCoreProbeLocalConnectionEndpoint]: { args: { kind: string; target: string; port?: number | null; }; };
     [ShellAPIGui.GuiCoreDeleteFile]: { args: { path: string; }; };
     [ShellAPIGui.GuiCoreGetBackendInformation]: {};
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: { kwargs?: IShellGuiCoreIsShellWebCertificateInstalledKwargs; };
@@ -336,6 +347,8 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { args: { profileId: number; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { args: { dbConnectionId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: { args: { connectionId: number; endpointFingerprint: string; sysvars: Ilist; }; };
+    [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { args: { connectionId: number; endpointFingerprint: string; }; };
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: {};
     [ShellAPIGui.GuiDbConnectionsSetCredential]: { args: { url: string; password: string; }; };
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: { args: { url: string; }; };
@@ -962,9 +975,12 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreListFiles]: { result: string[]; };
     [ShellAPIGui.GuiCoreCreateFile]: { result: string; };
     [ShellAPIGui.GuiCoreValidatePath]: { result: string; };
+    [ShellAPIGui.GuiCoreProbeLocalConnectionEndpoint]: { result: IShellDictionary; };
     [ShellAPIGui.GuiCoreDeleteFile]: {};
     [ShellAPIGui.GuiCoreSetPluginCommandMocks]: { result: boolean; };
     [ShellAPIGui.GuiCoreClearPluginCommandMocks]: { result: boolean; };
+    [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: {};
+    [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { result: Record<string, IAny> | null; };
     [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
     [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
 }

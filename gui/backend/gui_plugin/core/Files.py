@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+import socket
 import sqlite3
 from typing import Tuple, Optional
 from pathlib import Path, PurePath
@@ -215,6 +216,81 @@ def validate_path(path: str, _user_id: Optional[int] = None) -> str:
         )
 
     return return_path
+
+
+@plugin_function("gui.core.probeLocalConnectionEndpoint", shell=False, web=True)
+def probe_local_connection_endpoint(
+    kind: str, target: str, port: Optional[int] = None
+) -> dict:
+    """Checks if a local database endpoint appears to be available.
+
+    Args:
+        kind (str): The endpoint kind. Valid values are "tcp", "socket", and "pipe".
+        target (str): The hostname or path to probe.
+        port (int): The TCP port to probe.
+
+    Returns:
+        dict: The advisory probe result.
+    """
+
+    if kind == "tcp":
+        if port is None:
+            return {
+                "kind": kind,
+                "status": "unknown",
+                "target": target,
+                "message": "TCP probe requires a port.",
+            }
+
+        try:
+            with socket.create_connection((target, port), timeout=0.5):
+                return {
+                    "kind": kind,
+                    "status": "available",
+                    "target": f"{target}:{port}",
+                }
+        except (ConnectionRefusedError, TimeoutError, OSError) as reason:
+            return {
+                "kind": kind,
+                "status": "unavailable",
+                "target": f"{target}:{port}",
+                "message": str(reason),
+            }
+        except Exception as reason:  # pylint: disable=broad-except
+            return {
+                "kind": kind,
+                "status": "unknown",
+                "target": f"{target}:{port}",
+                "message": str(reason),
+            }
+
+    if kind in ("socket", "pipe"):
+        try:
+            if os.path.exists(target) and os.access(target, os.R_OK):
+                return {"kind": kind, "status": "available", "target": target}
+
+            return {"kind": kind, "status": "unavailable", "target": target}
+        except OSError as reason:
+            return {
+                "kind": kind,
+                "status": "unavailable",
+                "target": target,
+                "message": str(reason),
+            }
+        except Exception as reason:  # pylint: disable=broad-except
+            return {
+                "kind": kind,
+                "status": "unknown",
+                "target": target,
+                "message": str(reason),
+            }
+
+    return {
+        "kind": kind,
+        "status": "unknown",
+        "target": target,
+        "message": f"Unsupported endpoint kind: {kind}.",
+    }
 
 
 @plugin_function("gui.core.deleteFile", shell=False, web=True)

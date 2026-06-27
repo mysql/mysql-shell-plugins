@@ -177,6 +177,13 @@ export enum CdmEntityType {
     MrsRouterService,
 }
 
+export interface IConnectionOfflineProbe {
+    kind: "tcp" | "socket" | "pipe";
+    status: "available" | "unavailable" | "unknown";
+    target: string;
+    message?: string;
+}
+
 /** All DM types that represent a database object (can be handled with standard MySQL DDL). */
 export const cdmDbEntityTypes = new Set<CdmEntityType>([
     CdmEntityType.Schema,
@@ -600,6 +607,12 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
     /** The server-side ID of the service/admin connection for this transient workspace entry. */
     readonly serviceConnectionId?: number;
 
+    /** Indicates if this entry represents an offline administration workspace. */
+    isOffline: boolean;
+
+    /** Best-effort local endpoint probe captured when offline administration mode was opened. */
+    offlineProbe?: IConnectionOfflineProbe;
+
     /**
      * After opening an editor session, this entries tracks the current schema in that connection and can be used
      * to set the current schema of the connection.
@@ -623,6 +636,9 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
 
     /** Opens only this connection's DB service session. */
     initializeServiceOnly(callback?: ProgressCallback): Promise<boolean>;
+
+    /** Initializes this entry for offline administration pages without opening a DB session. */
+    initializeOffline(probe?: IConnectionOfflineProbe): boolean;
 }
 
 /** Connections can be grouped together and this is the entry for such groups. */

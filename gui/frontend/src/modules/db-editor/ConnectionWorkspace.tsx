@@ -85,9 +85,10 @@ import { ClientConnections, type IClientConnectionsSavedState } from "./ClientCo
 import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
 import { Notebook } from "./Notebook.js";
+import { offlineProbeStatusText } from "./OfflineAdministration.js";
 import { PerformanceDashboard } from "./PerformanceDashboard.js";
 import { ScriptEditor } from "./ScriptEditor.js";
-import { ServerStatus } from "./ServerStatus.js";
+import { type RunStatus, ServerStatus } from "./ServerStatus.js";
 import { SqlQueryExecutor } from "./SqlQueryExecutor.js";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
@@ -427,7 +428,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         requisitions.register("sqlTransactionChanged", this.handleTransactionChanged);
 
         const { id, connection } = this.props;
-        if (connection) {
+        if (connection && !connection.isOffline) {
             requisitions.executeRemote("sqlSetCurrentSchema",
                 {
                     id: id ?? "", schema: connection.currentSchema,
@@ -437,13 +438,15 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         }
 
         this.notebookRef.current?.focus();
-        void this.refreshAutoCommitState();
+        if (!connection?.isOffline) {
+            void this.refreshAutoCommitState();
 
-        // Update the cachedMrsServiceSdk for the first time
-        void this.updateMrsServiceSdkCache();
+            // Update the cachedMrsServiceSdk for the first time
+            void this.updateMrsServiceSdkCache();
 
-        // Check if HeatWave GenAI Chat is available
-        void this.getGenAiStatus();
+            // Check if HeatWave GenAI Chat is available
+            void this.getGenAiStatus();
+        }
     }
 
     public override componentWillUnmount(): void {
@@ -483,7 +486,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     public override componentDidUpdate(prevProps: IConnectionWorkspaceProperties): void {
         const { id, connection } = this.props;
 
-        if (connection) {
+        if (connection && !connection.isOffline) {
             const details = connection.details;
             if (connection !== prevProps.connection) {
                 this.sqlQueryExecutor.connection = connection;
@@ -591,6 +594,10 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     };
 
     private refreshAutoCommitState = async (): Promise<void> => {
+        if (this.props.connection?.isOffline) {
+            return;
+        }
+
         if (!this.getActiveDesktopDocumentType()) {
             return;
         }
@@ -612,6 +619,10 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     };
 
     private handleTransactionChanged = async (_details?: ISqlTransactionChangeDetails): Promise<boolean> => {
+        if (this.props.connection?.isOffline) {
+            return false;
+        }
+
         await this.refreshAutoCommitState();
 
         return true;
@@ -712,10 +723,18 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                     case OdmEntityType.AdminPage: {
                         this.notebookRef.current = null;
                         this.scriptRef.current = null;
+                        const offline = connection.isOffline;
+                        const runStatus: RunStatus = offline ? "offline" : "running";
+                        const offlineProbeStatus = offline
+                            ? offlineProbeStatusText(connection.offlineProbe)
+                            : undefined;
                         switch (activeEditor.document.pageType) {
                             case "serverStatus": {
                                 document = <ServerStatus
                                     backend={connection.backend}
+                                    connectionDetails={connection.details}
+                                    runStatus={runStatus}
+                                    offlineProbeStatus={offlineProbeStatus}
                                     toolbarItems={toolbarItems}
                                 />;
 
@@ -1889,6 +1908,10 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     private updateMrsServiceSdkCache = async (): Promise<boolean> => {
         const { connection } = this.props;
 
+        if (connection?.isOffline) {
+            return false;
+        }
+
         if (connection) {
             // Check if there is an current MRS Service set and if so, get the corresponding MRSruntime SDK
             // for that MRS Service
@@ -2001,6 +2024,10 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
     private getGenAiStatus = async () => {
         const { connection } = this.props;
+
+        if (connection?.isOffline) {
+            return;
+        }
 
         if (connection?.backend.moduleSessionId) {
             const genAiStatus = await connection.backend.mhs.getMdsGetGenAiStatus(connection.backend.moduleSessionId);

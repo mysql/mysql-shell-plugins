@@ -45,9 +45,9 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             </div>
           </div>
           <div
-            class="serverStatusState stopped"
+            class="serverStatusState running"
           >
-            Stopped
+            running
           </div>
         </div>
         <div
@@ -77,9 +77,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="serverStatusSummaryValue"
               data-testid="runningSince"
             >
-              <strong>
-                none
-              </strong>
+              <strong />
             </div>
           </div>
           <div
@@ -360,16 +358,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="errorLog"
               style="flex-direction: row;"
-            >
-              <span
-                class="serverStatusBoolean none"
-              >
-                none
-              </span>
-              <span>
-                none
-              </span>
-            </div>
+            />
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
               style="flex-direction: row;"
@@ -380,16 +369,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="generalLog"
               style="flex-direction: row;"
-            >
-              <span
-                class="serverStatusBoolean none"
-              >
-                none
-              </span>
-              <span>
-                none
-              </span>
-            </div>
+            />
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
               style="flex-direction: row;"
@@ -400,16 +380,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="slowQueryLog"
               style="flex-direction: row;"
-            >
-              <span
-                class="serverStatusBoolean none"
-              >
-                none
-              </span>
-              <span>
-                none
-              </span>
-            </div>
+            />
           </div>
         </div>
         <div
@@ -763,7 +734,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
           <div
             class="serverStatusState running"
           >
-            Running
+            running
           </div>
         </div>
         <div
@@ -793,9 +764,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="serverStatusSummaryValue"
               data-testid="runningSince"
             >
-              <strong>
-                none
-              </strong>
+              <strong />
             </div>
           </div>
           <div
@@ -1076,16 +1045,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="errorLog"
               style="flex-direction: row;"
-            >
-              <span
-                class="serverStatusBoolean none"
-              >
-                none
-              </span>
-              <span>
-                none
-              </span>
-            </div>
+            />
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
               style="flex-direction: row;"
@@ -1096,16 +1056,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="generalLog"
               style="flex-direction: row;"
-            >
-              <span
-                class="serverStatusBoolean none"
-              >
-                none
-              </span>
-              <span>
-                none
-              </span>
-            </div>
+            />
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
               style="flex-direction: row;"
@@ -1116,16 +1067,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="slowQueryLog"
               style="flex-direction: row;"
-            >
-              <span
-                class="serverStatusBoolean none"
-              >
-                none
-              </span>
-              <span>
-                none
-              </span>
-            </div>
+            />
           </div>
         </div>
         <div

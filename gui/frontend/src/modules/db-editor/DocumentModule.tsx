@@ -133,6 +133,9 @@ import { ConnectionDataModelListener } from "./ConnectionDataModelListener.js";
 import type { IDesktopRunState } from "./DocumentToolbar.js";
 import { ISchemaDiagramPersistentState, SchemaDiagramDesigner } from "./DiagramDesigner/SchemaDiagramDesigner.js";
 import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
+import {
+    isClientConnectionError, isLocalOfflineConnectionCandidate, localServerProbeFromBackend,
+} from "./OfflineAdministration.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
 import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
@@ -2068,8 +2071,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     ): ComponentChild => {
         const executionContext = this.getActiveDesktopExecutionContext(activeConnectionState, activeDocumentState);
         const desktopRunState = executionContext?.desktopRunState;
+        const offline = activeWorkspace.connectionWorkspace?.connection.isOffline === true;
         const activeConnectionPage = activeWorkspace.connectionWorkspace?.dataModelEntry ?? this.getSelectedConnectionPageEntry();
-        const hasActiveConnectionPage = activeConnectionPage !== undefined;
+        const hasActiveConnectionPage = activeConnectionPage !== undefined && !offline;
         const activeType = executionContext?.activeType;
         const area = activeType === "notebook" ? "block" : "script";
         const selectionText = desktopRunState?.canExecuteSubparts ? "the selection or " : "";
@@ -2247,7 +2251,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         }
 
         const workspaceTarget = this.formatConnectionWorkspaceTarget(connectionDetails);
-        const workspaceVersion = this.formatConnectionWorkspaceVersion(connectionDetails);
         const showConnectionInfo = Settings.get("editor.showConnectionInfo", false);
         const connectionInfo = showConnectionInfo
             ? this.formatConnectionInfo(activeConnectionWorkspace?.connection)
@@ -2255,6 +2258,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const connectionInfoBadge = showConnectionInfo
             ? this.formatConnectionInfoBadge(activeConnectionWorkspace?.connection)
             : undefined;
+        const offline = activeConnectionWorkspace?.connection.isOffline === true;
+        const workspaceVersion = offline ? undefined : this.formatConnectionWorkspaceVersion(connectionDetails);
         const executionContext = this.getActiveDesktopExecutionContext(activeConnectionState, activeDocumentState);
         const activeWorkspaceId = this.getResolvedSelectedWorkspaceId();
         const isStopping = this.isDesktopWorkspaceStopping(activeWorkspaceId);
@@ -2301,7 +2306,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                             />
                             <Label
                                 className="desktopStatusSecondary"
-                                caption={workspaceVersion ?? ""}
+                                caption={offline ? "OFFLINE" : workspaceVersion ?? ""}
                             />
                         </Container>
                     </Container>
@@ -2340,29 +2345,32 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                             />
                         }
                     </Container>
-                    <Container
-                        className="desktopStatusIndicators"
-                        orientation={Orientation.LeftToRight}
-                        fixedScrollbars={false}
-                    >
-                        <div
-                            id="desktopStatusTransactionIndicator"
-                            className={`desktopStatusIndicator ${transactionOpen || autoCommit
-                                ? "desktopStatusIndicatorActive"
-                                : "desktopStatusIndicatorInactive"}`}
-                            data-tooltip={transactionStatusTooltip}>
-                            {transactionStatusCaption}
-                        </div>
-                        {connectionInfoBadge &&
+                    {!offline &&
+                        <Container
+                            className="desktopStatusIndicators"
+                            orientation={Orientation.LeftToRight}
+                            fixedScrollbars={false}
+                        >
                             <div
-                                id="desktopStatusConnectionInfoIndicator"
-                                className="desktopStatusIndicator desktopStatusConnectionInfoIndicator"
-                                data-tooltip={connectionInfo}
+                                id="desktopStatusTransactionIndicator"
+                                className={`desktopStatusIndicator ${transactionOpen || autoCommit
+                                    ? "desktopStatusIndicatorActive"
+                                    : "desktopStatusIndicatorInactive"}`}
+                                data-tooltip={transactionStatusTooltip}
                             >
-                                {connectionInfoBadge}
+                                {transactionStatusCaption}
                             </div>
-                        }
-                    </Container>
+                            {connectionInfoBadge &&
+                                <div
+                                    id="desktopStatusConnectionInfoIndicator"
+                                    className="desktopStatusIndicator desktopStatusConnectionInfoIndicator"
+                                    data-tooltip={connectionInfo}
+                                >
+                                    {connectionInfoBadge}
+                                </div>
+                            }
+                        </Container>
+                    }
                 </Container>
             </Container>
         );
@@ -3352,7 +3360,20 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     this.serviceOnlyConnectionPages.delete(pageId);
                 }
             } catch (error) {
-                void ui.showErrorMessage(convertErrorToString(error), {});
+                if (!serviceOnly && this.shouldOpenOfflineAdministrationWorkspace(entry, error)) {
+                    const probe = await localServerProbeFromBackend(entry.details, (kind, target, port) => {
+                        return ShellInterface.core.probeLocalConnectionEndpoint(kind, target, port);
+                    });
+                    const offlineEntry = this.connectionsDataModel.createConnectionEntry(entry.details);
+                    offlineEntry.initializeOffline(probe);
+                    const pageId = uuid();
+
+                    this.serviceOnlyConnectionPages.add(pageId);
+                    await this.addConnectionWorkspace(offlineEntry, suppressAbout, "none", pageId);
+                    selectedPage = this.openOfflineServerStatusPage(offlineEntry, pageId);
+                } else {
+                    void ui.showErrorMessage(convertErrorToString(error), {});
+                }
             } finally {
                 this.hideProgress(true);
             }
@@ -3369,6 +3390,57 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         // Always return true to indicated we handled the request.
         return true;
     };
+
+    private shouldOpenOfflineAdministrationWorkspace(entry: ICdmConnectionEntry, error: unknown): boolean {
+        return this.isElectronWorkspaceLayout()
+            && this.getResolvedSelectedWorkspaceId() === homeWorkspaceId
+            && isLocalOfflineConnectionCandidate(entry.details)
+            && isClientConnectionError(error);
+    }
+
+    private openOfflineServerStatusPage(connection: ICdmConnectionEntry, pageId: string): string | undefined {
+        const page = connection.adminEntry?.pages.find((candidate) => {
+            return candidate.pageType === "serverStatus";
+        });
+
+        if (!page) {
+            this.serviceOnlyConnectionPages.delete(pageId);
+
+            return undefined;
+        }
+
+        const workspace = this.state.connectionWorkspaces.find((candidate) => {
+            return candidate.dataModelEntry.id === pageId;
+        });
+
+        if (!workspace) {
+            this.serviceOnlyConnectionPages.delete(pageId);
+
+            return undefined;
+        }
+
+        const document = this.documentDataModel.openDocument(undefined, {
+            type: OdmEntityType.AdminPage,
+            parameters: {
+                id: `${page.id}__${pageId}`,
+                pageId,
+                connection: connection.details,
+                caption: page.caption,
+                pageType: page.pageType,
+            },
+        });
+
+        if (!document) {
+            this.serviceOnlyConnectionPages.delete(pageId);
+
+            return undefined;
+        }
+
+        this.handleSelectItem({ pageId: workspace.dataModelEntry.id, document });
+        this.servicePagesByConnection.set(connection.details.id, workspace.dataModelEntry.id);
+
+        return pageId;
+    }
 
     /**
      * Creates a new connection workspace page and initializes the saved state for it.
@@ -3417,7 +3489,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             // Get the execution history entries for this connection, but only fetch the first 30 chars of the code
             // for preview purposes
-            const executionHistory = await connection.backend.getExecutionHistoryEntries(connection.details.id, 30);
+            const executionHistory = connection.isOffline
+                ? []
+                : await connection.backend.getExecutionHistoryEntries(connection.details.id, 30);
 
             let type: LeafDocumentType;
             if (initialEditor === "default") {
@@ -4591,7 +4665,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 }
             }
         } else {
-            const connection = entry.connection;
+            const connection = entry.connection ?? (entry as ICdmConnectionEntry);
             const connectionId = connection.details.id;
             const pageId = this.resolveLatestPageId(connection);
 
@@ -5331,23 +5405,30 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 let pageId = this.resolveServiceConnectionPageId(entry.connection);
 
-                await this.showPage({
-                    connectionId,
-                    pageId,
-                    editor: "none",
-                    createNewWorkspace: false,
-                    serviceOnly: true,
-                });
+                if (entry.connection.isOffline) {
+                    pageId ??= this.state.connectionWorkspaces.find((candidate) => {
+                        return candidate.connection.details.id === connectionId
+                            && this.isServiceConnectionPage(candidate.dataModelEntry.id);
+                    })?.dataModelEntry.id;
+                } else {
+                    await this.showPage({
+                        connectionId,
+                        pageId,
+                        editor: "none",
+                        createNewWorkspace: false,
+                        serviceOnly: true,
+                    });
 
-                // But now it surely exists, either from the admin page map or from the freshly opened page.
-                pageId = this.resolveServiceConnectionPageId(entry.connection);
+                    // But now it surely exists, either from the admin page map or from the freshly opened page.
+                    pageId = this.resolveServiceConnectionPageId(entry.connection);
+                }
 
                 const tab = this.state.connectionWorkspaces.find((tab) => {
                     return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.details.id === connectionId);
                 });
 
                 if (!tab || !pageId) {
-                    break;
+                    return;
                 }
 
                 const document = this.documentDataModel.openDocument(undefined, {
@@ -5700,9 +5781,11 @@ EXAMPLES
 
     private getDesktopCommandState = (): IDesktopCommandDescriptor[] => {
         const selectedConnectionWorkspaceRef = this.getSelectedConnectionWorkspaceRef();
-        const hasActiveConnectionPage = this.getSelectedConnectionPageEntry() !== undefined;
+        const activeConnectionWorkspace = this.getActiveConnectionWorkspace();
+        const isOfflineWorkspace = activeConnectionWorkspace?.connection.isOffline === true;
+        const hasActiveConnectionPage = this.getSelectedConnectionPageEntry() !== undefined && !isOfflineWorkspace;
         const activeDesktopDocumentType = selectedConnectionWorkspaceRef?.getActiveDesktopDocumentType();
-        const canUseEditorViewCommands = activeDesktopDocumentType !== undefined;
+        const canUseEditorViewCommands = activeDesktopDocumentType !== undefined && !isOfflineWorkspace;
         const desktopRunState = this.getActiveDesktopExecutionContext()?.desktopRunState;
         const canRecallPreviousCommand = activeDesktopDocumentType === "notebook"
             && (selectedConnectionWorkspaceRef?.canNavigateHistory(true) ?? false);
@@ -5714,8 +5797,8 @@ EXAMPLES
         const isMac = navigator.userAgent.includes("Macintosh");
         const activeWorkspaceConnection = this.getActiveWorkspaceConnectionEntry();
         const sidebarShowSystemSchemas = this.sideBarRef.current?.getActiveWorkspaceSystemSchemasState();
-        const canUseActiveMySQLConnection = sidebarShowSystemSchemas !== undefined
-            || activeWorkspaceConnection?.details.dbType === DBType.MySQL;
+        const canUseActiveMySQLConnection = !isOfflineWorkspace && (sidebarShowSystemSchemas !== undefined
+            || activeWorkspaceConnection?.details.dbType === DBType.MySQL);
         const showSystemSchemas = sidebarShowSystemSchemas
             ?? (activeWorkspaceConnection?.state?.payload?.showSystemSchemas === true);
         const administrationConnection = activeWorkspaceConnection?.adminEntry
@@ -5818,17 +5901,21 @@ EXAMPLES
         }, {
             id: "run.execute",
             label: "Execute",
-            enabled: desktopRunState?.canExecute ?? false,
+            enabled: !isOfflineWorkspace && (desktopRunState?.canExecute ?? false),
             accelerator: "CmdOrCtrl+Enter",
         }, {
             id: "run.executeCurrent",
             label: "Execute One",
-            enabled: (desktopRunState?.canExecute ?? false) && (desktopRunState?.canExecuteSubparts ?? false),
+            enabled: !isOfflineWorkspace
+                && (desktopRunState?.canExecute ?? false)
+                && (desktopRunState?.canExecuteSubparts ?? false),
             accelerator: "Shift+CmdOrCtrl+Enter",
         }, {
             id: "run.executeAsText",
             label: "Execute with Results as Text",
-            enabled: (desktopRunState?.canExecute ?? false) && (desktopRunState?.canExecuteSubparts ?? false),
+            enabled: !isOfflineWorkspace
+                && (desktopRunState?.canExecute ?? false)
+                && (desktopRunState?.canExecuteSubparts ?? false),
             accelerator: "Alt+Enter",
         }, {
             id: "run.stop",

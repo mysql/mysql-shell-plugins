@@ -36,10 +36,21 @@ import { Label } from "../../components/ui/Label/Label.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
 import { appParameters } from "../../supplement/AppParameters.js";
 import { Assets } from "../../supplement/Assets.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import {
+    type IServerStatusSysvar,
+} from "../../supplement/ShellInterface/ShellInterfaceDbConnection.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { calculateTimestampAge } from "../../utilities/time-helpers.js";
+import { localServerEndpointFingerprint } from "./OfflineAdministration.js";
 import { IToolbarItems } from "./index.js";
 
 type TriState = true | false | undefined;
+
+// "offline" means that MySQL cannot be reached, while "stopped" means that
+// MySQL cannot be reached and the local MySQL service was verified as stopped.
+export type RunStatus = "running" | "stopped" | "offline";
 
 interface IServerFeatures {
     semisync?: string;
@@ -110,14 +121,17 @@ interface IServerFirewall {
 
 interface IServerStatusProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
+    connectionDetails?: IConnectionDetails;
+    runStatus: RunStatus;
+    offlineProbeStatus?: string;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
 }
 
 interface IServerStatusState extends IComponentState {
-    runStatus: string;
     dataVersion: number;
+    cacheUpdatedAt?: string;
     serverFeatures: IServerFeatures;
     serverStatus: IServerStatus;
     serverDirectories: IServerDirectories;
@@ -129,11 +143,35 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
     private showWindowsAuth = false;
 
+    private cachedSysvarNames = new Set([
+        "hostname",
+        "bind_address",
+        "bind-address",
+        "admin_address",
+        "admin-address",
+        "admin_port",
+        "admin-port",
+        "socket",
+        "port",
+        "version_compile_os",
+        "version_comment",
+        "version",
+        "basedir",
+        "datadir",
+        "tmpdir",
+        "plugin_dir",
+        "log_output",
+        "general_log",
+        "general_log_file",
+        "log_error",
+        "slow_query_log",
+        "slow_query_log_file",
+    ]);
+
     public constructor(props: IServerStatusProperties) {
         super(props);
 
         this.state = {
-            runStatus: "stopped",
             dataVersion: 0,
             serverStatus: {},
             serverDirectories: {},
@@ -142,7 +180,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             firewall: {},
         };
 
-        this.addHandledProperties("backend", "toolbarItems");
+        this.addHandledProperties("backend", "connectionDetails", "runStatus", "offlineProbeStatus", "toolbarItems");
         this.showWindowsAuth = (typeof os.platform === "function" && os.platform() === "win32"
             && !appParameters.testsRunning);
     }
@@ -155,25 +193,34 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         const { backend } = this.props;
 
         // If we reopen a connection, a new backend is created and we need to refresh the page.
-        if (backend !== prevProps.backend) {
+        if (backend !== prevProps.backend || this.props.runStatus !== prevProps.runStatus
+            || this.props.connectionDetails?.id !== prevProps.connectionDetails?.id) {
             void this.updateValues();
         }
     }
 
     public render(): ComponentChild {
-        const { runStatus, serverStatus } = this.state;
+        const { runStatus } = this.props;
+        const { serverStatus } = this.state;
+        const isRunning = runStatus === "running";
 
         const statusCards: ComponentChild[] = [];
 
         const className = this.getEffectiveClassNames(["serverStatus"]);
-        statusCards.push(this.serverStatus());
-        statusCards.push(this.serverModeStatus());
-        statusCards.push(this.serverDirectories());
-        statusCards.push(this.serverFeatures());
-        statusCards.push(this.serverSsl());
-        statusCards.push(this.firewall());
+        if (!isRunning) {
+            statusCards.push(this.serverStatus(true));
+            statusCards.push(this.serverDirectories(true));
+        } else {
+            statusCards.push(this.serverStatus());
+            statusCards.push(this.serverModeStatus());
+            statusCards.push(this.serverDirectories());
+            statusCards.push(this.serverFeatures());
+            statusCards.push(this.serverSsl());
+            statusCards.push(this.firewall());
+        }
 
-        const statusText = runStatus === "running" ? "Running" : "Stopped";
+        const subtitle = this.props.offlineProbeStatus ?? this.valueOrNone(serverStatus.version);
+        const cacheAge = isRunning ? undefined : this.cacheAge();
 
         return (
             <Container
@@ -205,23 +252,42 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                                 <Container orientation={Orientation.TopDown}>
                                     <h1>Server Status</h1>
                                     <div className="serverStatusVersion" data-testid="version">
-                                        {this.valueOrNone(serverStatus.version)}
+                                        {subtitle}
                                     </div>
                                 </Container>
                             </Container>
                             <div className={`serverStatusState ${runStatus}`}>
-                                {statusText}
+                                {runStatus}
                             </div>
                         </Container>
                         <div className="serverStatusSummary">
                             {this.summaryItem("Host:Port", this.hostPort(serverStatus.host, serverStatus.port))}
-                            {this.summaryItem("Uptime", this.valueOrNone(serverStatus.runningSince), "runningSince")}
+                            {this.summaryItem("Uptime", this.valueOrBlank(serverStatus.runningSince), "runningSince")}
                             {this.summaryItem("InnoDB Redo Log", this.redoLogSummary(),
                                 "redoLogStatus")}
                             {this.summaryItem("Binary Log", this.drawStatusPill(serverStatus.binaryLogStatus),
                                 "binaryLogStatus")}
                         </div>
                     </Container>
+                    {!isRunning && (
+                        <div className="infoBanner serverStatusOfflineBanner" data-testid="offlineServerBanner">
+                            <strong>
+                                {runStatus === "stopped" ? "Stopped server." : "Offline or unreachable server."}
+                            </strong>
+                            <span>
+                                {" No live MySQL connection is available. "}
+                                {cacheAge
+                                    ? <>
+                                        <br/>
+                                        Showing cached server status data from <strong data-testid="cacheAge">
+                                            {cacheAge}</strong>.</>
+                                    : <>
+                                        <br/>
+                                        Cached server status data is not available.
+                                    </>}
+                            </span>
+                        </div>
+                    )}
                     <div id="statusBoxHost">
                         {statusCards}
                     </div>
@@ -236,6 +302,16 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
     private valueOrBlank = (value?: string): ComponentChild => {
         return value && value !== "none" ? value : undefined;
+    };
+
+    private cacheAge = (): string | undefined => {
+        const { cacheUpdatedAt } = this.state;
+        const age = cacheUpdatedAt ? calculateTimestampAge(cacheUpdatedAt) : undefined;
+        if (age) {
+            return age + " ago";
+        } else {
+            return age;
+        }
     };
 
     private hostPort = (host?: string, port?: string): string => {
@@ -278,7 +354,16 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         ];
     };
 
-    private statusSection = (id: string, title: string, fields: ComponentChild[]): ComponentChild => {
+    private optionalFieldRow = (id: string, label: string, value: ComponentChild): ComponentChild[] => {
+        return value === undefined ? [] : this.fieldRow(id, label, value);
+    };
+
+    private statusSection = (id: string, title: string, fields: ComponentChild[],
+        omitEmpty = false): ComponentChild => {
+        if (omitEmpty && fields.length === 0) {
+            return undefined;
+        }
+
         return (
             <Container
                 id={id}
@@ -305,19 +390,20 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         );
     };
 
-    private serverStatus = (): ComponentChild => {
+    private serverStatus = (omitEmpty = false): ComponentChild => {
         const { serverStatus } = this.state;
+        const fieldRow = omitEmpty ? this.optionalFieldRow : this.fieldRow;
 
         return this.statusSection("serverSettings", "General", [
-            ...this.fieldRow("host", "Host", this.valueOrBlank(serverStatus.host)),
-            ...this.fieldRow("bindAddress", "Bind Address", this.valueOrBlank(serverStatus.bindAddress)),
-            ...this.fieldRow("socket", "Socket", this.valueOrBlank(serverStatus.socket)),
-            ...this.fieldRow("port", "Port", this.valueOrBlank(serverStatus.port)),
-            ...this.fieldRow("adminAddress", "Admin Address", this.valueOrBlank(serverStatus.adminAddress)),
-            ...this.fieldRow("adminPort", "Admin Port", this.valueOrBlank(serverStatus.adminPort)),
-            ...this.fieldRow("compiledFor", "Compiled For", this.valueOrBlank(serverStatus.compiledFor)),
-            ...this.fieldRow("configFile", "Configuration File", this.valueOrBlank(serverStatus.configFile)),
-        ]);
+            ...fieldRow("host", "Host", this.valueOrBlank(serverStatus.host)),
+            ...fieldRow("bindAddress", "Bind Address", this.valueOrBlank(serverStatus.bindAddress)),
+            ...fieldRow("socket", "Socket", this.valueOrBlank(serverStatus.socket)),
+            ...fieldRow("port", "Port", this.valueOrBlank(serverStatus.port)),
+            ...fieldRow("adminAddress", "Admin Address", this.valueOrBlank(serverStatus.adminAddress)),
+            ...fieldRow("adminPort", "Admin Port", this.valueOrBlank(serverStatus.adminPort)),
+            ...fieldRow("compiledFor", "Compiled For", this.valueOrBlank(serverStatus.compiledFor)),
+            ...fieldRow("configFile", "Configuration File", this.valueOrBlank(serverStatus.configFile)),
+        ], omitEmpty);
     };
 
     private serverModeStatus = (): ComponentChild => {
@@ -375,30 +461,32 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         }
     };
 
-    private serverDirectories = (): ComponentChild => {
+    private serverDirectories = (omitEmpty = false): ComponentChild => {
         const { serverDirectories } = this.state;
+        const fieldRow = omitEmpty ? this.optionalFieldRow : this.fieldRow;
+        const valueOrAvailable = omitEmpty ? this.valueOrBlank : this.valueOrNone;
 
         return this.statusSection("serverDirectories", "Directories and Logs", [
-            ...this.fieldRow("baseDir", "Base Directory", this.valueOrNone(serverDirectories.baseDirectory)),
-            ...this.fieldRow("dataDir", "Data Directory", this.valueOrNone(serverDirectories.dataDirectory)),
-            ...this.fieldRow("pluginsDir", "Plugins Directory", this.valueOrNone(serverDirectories.pluginDirectory)),
-            ...this.fieldRow("tmpDir", "Temp Directory", this.valueOrNone(serverDirectories.tmpDirectory)),
-            ...this.fieldRow("errorLog", "Error Log",
+            ...fieldRow("baseDir", "Base Directory", valueOrAvailable(serverDirectories.baseDirectory)),
+            ...fieldRow("dataDir", "Data Directory", valueOrAvailable(serverDirectories.dataDirectory)),
+            ...fieldRow("pluginsDir", "Plugins Directory", valueOrAvailable(serverDirectories.pluginDirectory)),
+            ...fieldRow("tmpDir", "Temp Directory", valueOrAvailable(serverDirectories.tmpDirectory)),
+            ...fieldRow("errorLog", "Error Log", serverDirectories.errorLog === undefined ? undefined :
                 <>
                     {this.drawBoolean(serverDirectories.errorLog)}
-                    <span>{this.valueOrNone(serverDirectories.errorLogValue)}</span>
+                    <span>{valueOrAvailable(serverDirectories.errorLogValue)}</span>
                 </>),
-            ...this.fieldRow("generalLog", "General Log",
+            ...fieldRow("generalLog", "General Log", serverDirectories.generalLog === undefined ? undefined :
                 <>
                     {this.drawBoolean(serverDirectories.generalLog)}
-                    <span>{this.valueOrNone(serverDirectories.generalLogFile)}</span>
+                    <span>{valueOrAvailable(serverDirectories.generalLogFile)}</span>
                 </>),
-            ...this.fieldRow("slowQueryLog", "Slow Query Log",
+            ...fieldRow("slowQueryLog", "Slow Query Log", serverDirectories.slowQueryLog === undefined ? undefined :
                 <>
                     {this.drawBoolean(serverDirectories.slowQueryLog)}
-                    <span>{this.valueOrNone(serverDirectories.slowQueryLogValue)}</span>
+                    <span>{valueOrAvailable(serverDirectories.slowQueryLogValue)}</span>
                 </>),
-        ]);
+        ], omitEmpty);
     };
 
     private firewall = (): ComponentChild => {
@@ -514,19 +602,134 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         return logOutput.split(",").includes("TABLE") ? "[Stored in database]" : fileValue ?? "none";
     };
 
+    private sysvarsFromValues = (values: Map<string, string>): IServerStatusSysvar[] => {
+        const sysvars: IServerStatusSysvar[] = [];
+        values.forEach((value, name) => {
+            if (this.cachedSysvarNames.has(name)) {
+                sysvars.push({ name, value });
+            }
+        });
+
+        return sysvars;
+    };
+
+    private updateServerStatusCache = async (values: Map<string, string>): Promise<void> => {
+        const { connectionDetails } = this.props;
+        const endpointFingerprint = connectionDetails
+            ? localServerEndpointFingerprint(connectionDetails)
+            : undefined;
+        if (!connectionDetails || !endpointFingerprint) {
+            return;
+        }
+
+        try {
+            await ShellInterface.dbConnections.updateServerStatusCache(
+                connectionDetails.id,
+                endpointFingerprint,
+                this.sysvarsFromValues(values),
+            );
+        } catch {
+            // Cache failures must not affect the live status page.
+        }
+    };
+
+    private cachedValueFrom = (values: Map<string, string>, ...names: string[]): string | undefined => {
+        for (const name of names) {
+            if (values.has(name)) {
+                return values.get(name);
+            }
+        }
+
+        return undefined;
+    };
+
+    private loadCachedServerStatus = async (): Promise<void> => {
+        const { connectionDetails } = this.props;
+        const endpointFingerprint = connectionDetails
+            ? localServerEndpointFingerprint(connectionDetails)
+            : undefined;
+        if (!connectionDetails || !endpointFingerprint) {
+            this.setState({ cacheUpdatedAt: undefined, serverStatus: {}, serverDirectories: {} });
+
+            return;
+        }
+
+        try {
+            const cache = await ShellInterface.dbConnections.getServerStatusCache(
+                connectionDetails.id,
+                endpointFingerprint,
+            );
+            const values = new Map(cache?.sysvars.map((entry) => {
+                return [entry.name, entry.value];
+            }));
+            const serverStatus: IServerStatus = {
+                host: this.cachedValueFrom(values, "hostname"),
+                bindAddress: this.cachedValueFrom(values, "bind_address", "bind-address"),
+                adminAddress: this.cachedValueFrom(values, "admin_address", "admin-address"),
+                adminPort: this.cachedValueFrom(values, "admin_port", "admin-port"),
+                socket: this.cachedValueFrom(values, "socket"),
+                port: this.cachedValueFrom(values, "port"),
+                compiledFor: this.cachedValueFrom(values, "version_compile_os"),
+            };
+            const versionComment = this.cachedValueFrom(values, "version_comment");
+            const version = this.cachedValueFrom(values, "version");
+            if (versionComment || version) {
+                serverStatus.version = `${versionComment ?? "none"} (${version ?? "none"})`;
+            }
+
+            const logOutput = this.cachedValueFrom(values, "log_output") ?? "FILE";
+            const serverDirectories: IServerDirectories = {
+                baseDirectory: this.cachedValueFrom(values, "basedir"),
+                dataDirectory: this.cachedValueFrom(values, "datadir"),
+                tmpDirectory: this.cachedValueFrom(values, "tmpdir"),
+                pluginDirectory: this.cachedValueFrom(values, "plugin_dir"),
+            };
+            const generalLog = this.cachedValueFrom(values, "general_log");
+            if (generalLog !== undefined) {
+                serverDirectories.generalLog = generalLog !== "OFF" && logOutput !== "NONE";
+                serverDirectories.generalLogFile = this.logTarget(serverDirectories.generalLog, logOutput,
+                    this.cachedValueFrom(values, "general_log_file"));
+            }
+
+            const errorLog = this.cachedValueFrom(values, "log_error");
+            if (errorLog !== undefined) {
+                serverDirectories.errorLog = errorLog !== "OFF";
+                serverDirectories.errorLogValue = errorLog;
+            }
+
+            const slowQueryLog = this.cachedValueFrom(values, "slow_query_log");
+            if (slowQueryLog !== undefined) {
+                serverDirectories.slowQueryLog = slowQueryLog !== "OFF" && logOutput !== "NONE";
+                serverDirectories.slowQueryLogValue = this.logTarget(serverDirectories.slowQueryLog, logOutput,
+                    this.cachedValueFrom(values, "slow_query_log_file"));
+            }
+
+            this.setState({
+                cacheUpdatedAt: cache?.updatedAt,
+                serverStatus,
+                serverDirectories,
+                serverFeatures: {},
+                serverSsl: {},
+                firewall: {},
+            });
+        } catch {
+            this.setState({ cacheUpdatedAt: undefined, serverStatus: {}, serverDirectories: {} });
+        }
+    };
+
     private async updateValues(): Promise<void> {
         const { backend } = this.props;
-        if (!backend) {
+        if (this.props.runStatus !== "running") {
+            await this.loadCachedServerStatus();
+
+            return;
+        }
+
+        if (!backend?.executeService) {
             return;
         }
 
         const { serverStatus, serverDirectories, serverFeatures, serverSsl, firewall } = this.state;
-
-        backend.executeService("select 1").then(() => {
-            this.setState({ runStatus: "running" });
-        }).catch(() => {
-            this.setState({ runStatus: "stopped" });
-        });
 
         try {
             let result = await backend.executeService("show variables");
@@ -615,6 +818,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     serverStatus, serverDirectories,
                     serverFeatures, serverSsl, firewall,
                 });
+                void this.updateServerStatusCache(values);
             }
 
             result = await backend.executeService("show global status");
@@ -643,7 +847,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 this.setState({ serverFeatures });
             }
         } catch {
-            this.setState({ runStatus: "stopped" });
+            // The caller owns runStatus; do not infer it from a query failure.
         }
     }
 

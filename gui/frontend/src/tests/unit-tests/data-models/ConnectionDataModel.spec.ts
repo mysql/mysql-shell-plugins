@@ -330,6 +330,23 @@ describe("ConnectionDataModel", () => {
         webSession.profile.id = 1;
     });
 
+    it("creates offline connection duplicates with offline administration pages only", async () => {
+        const connection = dataModel.createConnectionEntry(connectionDetailsMock1[0]);
+
+        const offlineConnection = dataModel.createConnectionEntry(connection.details);
+        offlineConnection.initializeOffline();
+
+        expect(offlineConnection).not.toBe(connection);
+        expect(offlineConnection.details).toBe(connection.details);
+        expect(offlineConnection.isOpen).toBe(false);
+        expect(offlineConnection.isOffline).toBe(true);
+        expect(offlineConnection.schemaEntries).toHaveLength(0);
+        expect(offlineConnection.mrsEntry).toBeUndefined();
+        expect(offlineConnection.adminEntry?.pages.map((page) => {
+            return page.pageType;
+        })).toEqual(["serverStatus"]);
+    });
+
     it("Refreshing entries", async () => {
         // Refresh all children of the connections recursively.
         cdmMockState.haveMockConnectionResponse = true;

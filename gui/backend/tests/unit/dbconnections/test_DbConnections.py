@@ -150,6 +150,94 @@ class TestDbConnectionsSqlite:
         assert latest["description"] == "Altered description"
         assert latest["options"] == {"item": "empty"}
 
+    def test_server_status_cache_roundtrip(self):
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "Sqlite",
+                "caption": "This is a test sqlite3 database",
+                "description": "This is a test sqlite3 database description",
+                "options": {"db_file": "tests.sqlite3"},
+                "settings": {"defaultEditor": "DB Notebook"},
+            },
+        )
+        connection_id = result[0]
+
+        DbConnections.update_server_status_cache(
+            connection_id,
+            "tcp:localhost:3306",
+            [
+                {"name": "hostname", "value": "localhost"},
+                {"name": "datadir", "value": "/usr/local/mysql/data"},
+            ],
+        )
+
+        cache = DbConnections.get_server_status_cache(
+            connection_id, "tcp:localhost:3306"
+        )
+        latest = DbConnections.get_db_connection(connection_id)
+
+        assert cache["endpointFingerprint"] == "tcp:localhost:3306"
+        assert cache["updatedAt"]
+        assert cache["sysvars"] == [
+            {"name": "hostname", "value": "localhost"},
+            {"name": "datadir", "value": "/usr/local/mysql/data"},
+        ]
+        assert latest["settings"]["defaultEditor"] == "DB Notebook"
+
+        DbConnections.remove_db_connection(1, connection_id)
+
+    def test_server_status_cache_endpoint_mismatch(self):
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "Sqlite",
+                "caption": "This is a test sqlite3 database",
+                "description": "This is a test sqlite3 database description",
+                "options": {"db_file": "tests.sqlite3"},
+            },
+        )
+        connection_id = result[0]
+
+        DbConnections.update_server_status_cache(
+            connection_id,
+            "tcp:localhost:3306",
+            [{"name": "hostname", "value": "localhost"}],
+        )
+
+        assert (
+            DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3307")
+            is None
+        )
+
+        DbConnections.remove_db_connection(1, connection_id)
+
+    def test_server_status_cache_missing_and_malformed_settings(self):
+        result = DbConnections.add_db_connection(
+            1,
+            {
+                "db_type": "Sqlite",
+                "caption": "This is a test sqlite3 database",
+                "description": "This is a test sqlite3 database description",
+                "options": {"db_file": "tests.sqlite3"},
+            },
+        )
+        connection_id = result[0]
+
+        assert (
+            DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3306")
+            is None
+        )
+
+        DbConnections.update_db_connection(1, connection_id, {"settings": "invalid"})
+
+        assert (
+            DbConnections.get_server_status_cache(connection_id, "tcp:localhost:3306")
+            is None
+        )
+
+        DbConnections.remove_db_connection(1, connection_id)
+
 
 class TestDbConnectionMySQL:
 

@@ -26,10 +26,7 @@
 import { ui } from "../app-logic/UILayer.js";
 import type { IServicePasswordRequest, Mutable } from "../app-logic/general-types.js";
 import type { IMySQLConnectionOptions } from "../communication/MySQL.js";
-import type {
-    IOpenConnectionData,
-    IShellPasswordFeedbackRequest,
-} from "../communication/ProtocolGui.js";
+import type { IOpenConnectionData } from "../communication/ProtocolGui.js";
 import type { ISqliteConnectionOptions } from "../communication/Sqlite.js";
 import { ShellPromptHandler } from "../modules/common/ShellPromptHandler.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
@@ -40,14 +37,18 @@ import { adminPageDefinitions, isAdminPageAvailable } from "./AdminPageDefinitio
 import {
     CdmEntityType, ICdmAdminEntry, ICdmConnectionEntry, ICdmRestRootEntry, ICdmSchemaEntry,
     type ConnectionDataModelEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
-    type ICdmRestAuthAppGroupEntry, type ICdmRestRouterGroupEntry,
+    type ICdmRestAuthAppGroupEntry, type ICdmRestRouterGroupEntry, type IConnectionOfflineProbe,
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
-import type { ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
+import type { AdminPageType, ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
 
 export type ConnectionReadyCallback = (entry: ICdmConnectionEntry, progress?: ProgressCallback) => void;
 
 const connectionPasswordCache = new Map<number, string>();
+
+const isOpenConnectionData = (value: unknown): value is IOpenConnectionData => {
+    return typeof value === "object" && value !== null && "info" in value;
+};
 
 /** An implementation of the ICdmConnectionEntry. This interface has more tasks than just holding data. */
 export class ConnectionEntryImpl implements ICdmConnectionEntry {
@@ -63,6 +64,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     public mrsEntry?: ICdmRestRootEntry;
     public adminEntry?: ICdmAdminEntry;
+    public isOffline = false;
+    public offlineProbe?: IConnectionOfflineProbe;
 
     private open = false;
     private accessManager: ICdmAccessManager;
@@ -185,7 +188,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             await this.backend.closeSession();
 
             const message = convertErrorToString(reason);
-            const error = new Error(`The connection could not be opened: ${message}`);
+            const error = new Error(`The connection could not be opened: ${message}`, { cause: reason });
 
             throw error;
         }
@@ -217,6 +220,47 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         return children;
     }
 
+    public async initializeServiceOnly(callback?: ProgressCallback): Promise<boolean> {
+        callback?.("Starting DB service session...");
+        await this.backend.startServiceSession(`CDM_${this.id}`, this.details.id,
+            this.cachedConnectionCredentials()?.password);
+
+        this.open = true;
+        (this.state as Mutable<IDataModelEntryState>).initialized = true;
+        callback?.();
+
+        return true;
+    }
+
+    public initializeOffline(probe?: IConnectionOfflineProbe): boolean {
+        this.open = false;
+        this.isOffline = true;
+        this.offlineProbe = probe;
+        this.schemaEntries.length = 0;
+        this.mrsEntry = undefined;
+
+        if (this.details.dbType === DBType.MySQL && !this.adminEntry) {
+            this.adminEntry = {
+                parent: this,
+                id: uuid(),
+                type: CdmEntityType.Admin,
+                state: createDataModelEntryState(false, true),
+                caption: "MySQL Administration",
+                connection: this,
+                pages: [],
+                getChildren: () => {
+                    return this.adminEntry?.pages ?? [];
+                },
+            };
+
+            this.addAdminSections(this.adminEntry, new Set(["serverStatus"]));
+        }
+
+        (this.state as Mutable<IDataModelEntryState>).initialized = true;
+
+        return true;
+    }
+
     /**
      * Opens this connection once all verification was done. Used when opening a connection the first time.
      *
@@ -234,18 +278,22 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         credentials ??= cachedCredentials;
         try {
             await this.backend.openConnection(this.details.id, requestId, credentials, ((response, requestId) => {
-                if (typeof response.result === "string") {
-                    callback?.(response.result);
-                } else if (!isShellPromptResult(response.result) || !ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
-                    requestId, this.backend.interactive, !credentials, {
+                const { result } = response;
+
+                if (typeof result === "string") {
+                    callback?.(result);
+                } else if (!isShellPromptResult(result) || !ShellPromptHandler.handleShellPrompt(
+                    result, requestId, this.backend.interactive, !credentials, {
                         onPasswordAccepted: (password: string, request: IServicePasswordRequest) => {
                             if (!request.service?.startsWith("ssh://")) {
                                 connectionPasswordCache.set(this.details.id, password);
                             }
                         },
                     })) {
-                    // Don't save the password in the backend, if we stored in the frontend.
-                    connectionData = response.result as IOpenConnectionData;
+                    if (isOpenConnectionData(result)) {
+                        // Don't save the password in the backend, if we stored in the frontend.
+                        connectionData = result;
+                    }
                 }
 
                 return Promise.resolve(true);
@@ -306,18 +354,6 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             userName: options.user,
             password,
         };
-    }
-
-    public async initializeServiceOnly(callback?: ProgressCallback): Promise<boolean> {
-        callback?.("Starting DB service session...");
-        await this.backend.startServiceSession(`CDM_${this.id}`, this.details.id,
-            this.cachedConnectionCredentials()?.password);
-
-        this.open = true;
-        (this.state as Mutable<IDataModelEntryState>).initialized = true;
-        callback?.();
-
-        return true;
     }
 
     /**
@@ -506,9 +542,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
      * Creates the static administration section entries and adds them to the parent admin entry.
      *
      * @param parent The parent admin entry.
+     * @param pageTypes Optional page type filter.
      */
-    private addAdminSections(parent: ICdmAdminEntry): void {
+    private addAdminSections(parent: ICdmAdminEntry, pageTypes?: Set<AdminPageType>): void {
         adminPageDefinitions.forEach((definition) => {
+            if (pageTypes && !pageTypes.has(definition.pageType)) {
+                return;
+            }
+
             if (!isAdminPageAvailable(definition, this.details)) {
                 return;
             }

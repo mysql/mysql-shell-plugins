@@ -2470,6 +2470,120 @@ describe("Document module desktop commands", () => {
         unmount();
     });
 
+    it("renders offline connection workspaces as disconnected and disables editor actions", async () => {
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+            },
+        });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
+
+        const moduleRef = createRef<TestDocumentModule>();
+        const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
+
+        await nextRunLoop();
+        expect(moduleRef.current).toBeDefined();
+
+        const offlineDetails = {
+            ...connectionDetails,
+            options: {
+                ...connectionDetails.options,
+                host: "localhost",
+                port: 3306,
+            },
+        };
+        const fakePage = {
+            id: "offline-page-1",
+            caption: offlineDetails.caption,
+            details: offlineDetails,
+        };
+        const fakeConnection = {
+            backend: {},
+            close: vi.fn().mockResolvedValue(undefined),
+            details: offlineDetails,
+            isOpen: false,
+            isOffline: true,
+            currentSchema: "",
+        };
+        const adminPage = {
+            id: "offline-server-status",
+            caption: "Server Status",
+            type: OdmEntityType.AdminPage,
+            pageType: "serverStatus",
+            parent: fakePage,
+            state: {
+                isLeaf: true,
+                initialized: true,
+                expanded: true,
+                expandedOnce: true,
+            },
+            connection: fakeConnection,
+            getChildren: () => {
+                return [];
+            },
+        };
+        const adminEntry = {
+            pages: [adminPage],
+        };
+        Object.assign(fakeConnection, { adminEntry });
+        const fakeConnectionWorkspace = {
+            dataModelEntry: fakePage,
+            connection: fakeConnection,
+            suppressAbout: false,
+        };
+
+        (moduleRef.current as any).connectionPresentation.set(fakePage, createConnectionPresentationState([
+            adminPage,
+        ], adminPage.id));
+
+        await act(async () => {
+            moduleRef.current!.setState({
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
+                selectedPage: fakePage.id,
+                selectedWorkspace: "connection:42",
+                loading: false,
+            });
+        });
+
+        const statusArea = container.querySelector("#desktopStatusArea");
+        expect(statusArea?.textContent).toContain("shell@localhost:3306");
+        expect(statusArea?.textContent).toContain("OFFLINE");
+        expect(statusArea?.textContent).toContain("Disconnected");
+        expect(statusArea?.textContent).not.toContain("MySQL Community Server - GPL");
+        expect(statusArea?.querySelector("#desktopStatusTransactionIndicator")).toBeFalsy();
+
+        const commandState = desktopCommandRegistry.getState();
+        expect(commandState.find((entry) => {
+            return entry.id === "desktop.newScriptTab";
+        })?.enabled).toBe(false);
+        expect(commandState.find((entry) => {
+            return entry.id === "desktop.newNotebookTab";
+        })?.enabled).toBe(false);
+        expect(commandState.find((entry) => {
+            return entry.id === "run.execute";
+        })?.enabled).toBe(false);
+        expect(commandState.find((entry) => {
+            return entry.id === "database.admin.serverStatus";
+        })?.enabled).toBe(true);
+        expect(commandState.find((entry) => {
+            return entry.id === "database.admin.clientConnections";
+        })?.enabled).toBe(false);
+        expect(commandState.find((entry) => {
+            return entry.id === "database.admin.performanceDashboard";
+        })?.enabled).toBe(false);
+        expect(commandState.find((entry) => {
+            return entry.id === "database.admin.lakehouseNavigator";
+        })?.enabled).toBe(false);
+
+        const activateConnectionWorkspaceSpy = vi.spyOn(moduleRef.current as any, "activateConnectionWorkspace");
+        expect(await desktopCommandRegistry.execute("database.admin.serverStatus")).toBe(true);
+        expect(activateConnectionWorkspaceSpy).not.toHaveBeenCalled();
+
+        unmount();
+    });
+
     it("renders numeric auto-commit state as active in the desktop status area", async () => {
         Object.defineProperty(window, "electronHost", {
             configurable: true,
@@ -3807,4 +3921,80 @@ describe("Document module desktop commands", () => {
         expect(module.state.selectedPage).toBe(servicePage.id);
     });
 
+    it("switches offline admin pages through the workspace service connection", async () => {
+        const module = new TestDocumentModule({});
+        const servicePage = {
+            id: "service-page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+        };
+        const openServiceConnection = {
+            details: connectionDetails,
+            isOpen: false,
+            isOffline: true,
+            currentSchema: "",
+        };
+        const selectedAdminConnection = {
+            ...openServiceConnection,
+        };
+        const adminPage = {
+            id: "admin-server-status",
+            caption: "Server Status",
+            type: CdmEntityType.AdminPage,
+            pageType: "serverStatus",
+            connection: selectedAdminConnection,
+            parent: {
+                connection: selectedAdminConnection,
+            },
+        };
+        const openedDocument = {
+            id: "admin-doc-1",
+            caption: "Server Status",
+            type: OdmEntityType.AdminPage,
+            pageType: "serverStatus",
+        };
+
+        module.state = {
+            selectedPage: servicePage.id,
+            selectedWorkspace: "connection:42",
+            connectionWorkspaces: [{
+                dataModelEntry: servicePage,
+                connection: openServiceConnection,
+                suppressAbout: false,
+            }] as never,
+            documentTabs: [],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+        (module as any).connectionPresentation.set(servicePage, createConnectionPresentationState());
+        (module as any).serviceOnlyConnectionPages.add(servicePage.id);
+        vi.spyOn(module as any, "canCurrentTabClose").mockResolvedValue(true);
+        const showPageSpy = vi.spyOn(module as any, "showPage").mockResolvedValue(true);
+        const handleSelectItemSpy = vi.spyOn(module as any, "handleSelectItem").mockImplementation(() => { });
+        const openDocument = vi.fn().mockReturnValue(openedDocument);
+        (module as any).documentDataModel = { openDocument };
+
+        await (module as any).handleConnectionEntrySelection(adminPage);
+
+        expect(showPageSpy).not.toHaveBeenCalled();
+        expect(openDocument).toHaveBeenCalledWith(undefined, expect.objectContaining({
+            type: OdmEntityType.AdminPage,
+            parameters: expect.objectContaining({
+                pageId: servicePage.id,
+                connection: connectionDetails,
+                caption: "Server Status",
+                pageType: "serverStatus",
+            }),
+        }));
+        expect(handleSelectItemSpy).toHaveBeenCalledWith({
+            pageId: servicePage.id,
+            document: openedDocument,
+        });
+    });
 });

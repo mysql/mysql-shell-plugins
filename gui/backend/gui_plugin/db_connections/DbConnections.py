@@ -22,6 +22,8 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import json
+from datetime import datetime, timezone
+from typing import Any, Optional
 
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 
@@ -31,6 +33,47 @@ from gui_plugin.core.Db import BackendDatabase, BackendTransaction
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
+
+
+SERVER_STATUS_CACHE_KEY = "serverStatusCache"
+
+
+def _get_connection_settings(db, connection_id: int) -> dict:
+    result = db.select(
+        "SELECT settings FROM db_connection WHERE id = ?", (connection_id,)
+    )
+    if not result:
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            f"The database connection with id {connection_id} does not exist.",
+        )
+
+    settings = result[0].get("settings")
+    return settings if isinstance(settings, dict) else {}
+
+
+def _normalize_server_status_sysvars(sysvars: list[dict[str, str]]) -> list[dict[str, str]]:
+    if not isinstance(sysvars, list):
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            "The sysvars parameter must be a list.",
+        )
+
+    result = []
+    for sysvar in sysvars:
+        if (
+            not isinstance(sysvar, dict)
+            or not isinstance(sysvar.get("name"), str)
+            or not isinstance(sysvar.get("value"), str)
+        ):
+            raise MSGException(
+                Error.CORE_INVALID_PARAMETER,
+                "Each sysvar must contain string name and value members.",
+            )
+
+        result.append({"name": sysvar["name"], "value": sysvar["value"]})
+
+    return result
 
 
 @plugin_function("gui.dbConnections.addDbConnection", cli=True, shell=True, web=True)
@@ -294,6 +337,94 @@ def get_db_connection(db_connection_id, be_session=None):
         return db.select(
             "SELECT * FROM db_connection WHERE id = ?", (db_connection_id,)
         )[0]
+
+
+@plugin_function("gui.dbConnections.updateServerStatusCache", shell=True, web=True)
+def update_server_status_cache(
+    connection_id: int,
+    endpoint_fingerprint: str,
+    sysvars: list,
+    be_session: Any = None,
+) -> None:
+    """Updates the cached server status sysvars for a db_connection.
+
+    Args:
+        connection_id (int): The id of the db_connection
+        endpoint_fingerprint (str): The local endpoint identity for this cache
+        sysvars (list): A list of {"name": str, "value": str} sysvar entries
+        be_session (object): A session to the GUI backend database
+            where the operation will be performed.
+
+    Returns:
+        None
+    """
+    if not isinstance(endpoint_fingerprint, str) or endpoint_fingerprint.strip() == "":
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            "The endpoint_fingerprint parameter must be a non-empty string.",
+        )
+
+    normalized_sysvars = _normalize_server_status_sysvars(sysvars)
+
+    with BackendDatabase(be_session) as db:
+        with BackendTransaction(db):
+            settings = _get_connection_settings(db, connection_id)
+            settings[SERVER_STATUS_CACHE_KEY] = {
+                "endpointFingerprint": endpoint_fingerprint,
+                "updatedAt": datetime.now(timezone.utc).isoformat(),
+                "sysvars": normalized_sysvars,
+            }
+            db.execute(
+                "UPDATE db_connection SET settings=? WHERE id=?",
+                (json.dumps(settings), connection_id),
+            )
+
+
+@plugin_function("gui.dbConnections.getServerStatusCache", shell=True, web=True)
+def get_server_status_cache(
+    connection_id: int, endpoint_fingerprint: str, be_session: Any = None
+) -> Optional[dict[str, Any]]:
+    """Gets the cached server status sysvars for a db_connection.
+
+    Args:
+        connection_id (int): The id of the db_connection
+        endpoint_fingerprint (str): The local endpoint identity for this cache
+        be_session (object): A session to the GUI backend database
+            where the operation will be performed.
+
+    Returns:
+        The cached server status data, or None if unavailable.
+    """
+    if not isinstance(endpoint_fingerprint, str) or endpoint_fingerprint.strip() == "":
+        return None
+
+    with BackendDatabase(be_session) as db:
+        try:
+            settings = _get_connection_settings(db, connection_id)
+        except MSGException:
+            return None
+
+    cache = settings.get(SERVER_STATUS_CACHE_KEY)
+    if not isinstance(cache, dict):
+        return None
+
+    if cache.get("endpointFingerprint") != endpoint_fingerprint:
+        return None
+
+    sysvars = cache.get("sysvars")
+    if not isinstance(sysvars, list):
+        return None
+
+    try:
+        normalized_sysvars = _normalize_server_status_sysvars(sysvars)
+    except MSGException:
+        return None
+
+    return {
+        "endpointFingerprint": endpoint_fingerprint,
+        "updatedAt": cache.get("updatedAt") if isinstance(cache.get("updatedAt"), str) else "",
+        "sysvars": normalized_sysvars,
+    }
 
 
 @plugin_function("gui.dbConnections.getDbTypes", cli=True, shell=True, web=True)

@@ -260,6 +260,22 @@ html.themeSwitch *:after {
     scrollbar-color: var(--scrollbarSlider-background) transparent;
 }
 
+.msg .infoBanner {
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid color-mix(in srgb, var(--textLink-foreground) 36%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--textLink-foreground) 10%, var(--sideBar-background));
+    color: var(--foreground);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.msg .infoBanner strong {
+    font-weight: 600;
+}
+
 .msg::-webkit-scrollbar,
 .msg ::-webkit-scrollbar {
     background-color: transparent;

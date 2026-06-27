@@ -562,7 +562,7 @@
         "statusBarItem.remoteForeground": "#ffffff",
         "statusBarItem.remoteHoverBackground": "#ffffff1f",
         "statusBarItem.remoteHoverForeground": "#cccccc",
-        "statusBarItem.warningBackground": "#7a6400",
+        "statusBarItem.warningBackground": "#ddb400",
         "statusBarItem.warningForeground": "#ffffff",
         "statusBarItem.warningHoverBackground": "#ffffff1f",
         "statusBarItem.warningHoverForeground": "#cccccc",

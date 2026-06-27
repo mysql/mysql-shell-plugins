@@ -1059,12 +1059,18 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 }
 
 .msg.serverStatus .serverStatusState.running {
-    background-color: var(--administration-statusSuccessBackground, var(--charts-green));
+    background-color: var(--administration-statusSuccessBackground,
+        var(--statusBarItem-okBackground, var(--charts-green)));
 }
 
 .msg.serverStatus .serverStatusState.stopped {
     background-color: var(--administration-statusWarningBackground, var(--statusBarItem-warningBackground));
     color: var(--administration-statusWarningForeground, var(--statusBarItem-warningForeground));
+}
+
+.msg.serverStatus .serverStatusState.offline {
+    background-color: var(--administration-statusErrorBackground, var(--statusBarItem-errorBackground));
+    color: var(--administration-statusErrorForeground, var(--statusBarItem-errorForeground));
 }
 
 .msg.serverStatus .serverStatusSummary {
@@ -1185,7 +1191,8 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 }
 
 .msg.serverStatus .serverStatusBoolean.on {
-    background-color: var(--administration-statusSuccessBackground, var(--charts-green));
+    background-color: var(--administration-statusSuccessBackground,
+        var(--statusBarItem-okBackground, var(--charts-green)));
 }
 
 .msg.serverStatus .serverStatusBoolean.off {

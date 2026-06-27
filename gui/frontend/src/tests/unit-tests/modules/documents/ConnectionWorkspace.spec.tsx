@@ -360,6 +360,49 @@ describe("DBConnectionWorkspace tests", (): void => {
         unmount();
     });
 
+    it("does not run backend startup checks for offline connections", async () => {
+        const offlineConnection = connectionsDataModel.createConnectionEntry(connection.details);
+        offlineConnection.initializeOffline();
+        const setCurrentSchema = vi.spyOn(offlineConnection.backend, "setCurrentSchema");
+        const getCurrentServiceMetadata = vi.spyOn(offlineConnection.backend.mrs, "getCurrentServiceMetadata");
+        const getMdsGetGenAiStatus = vi.spyOn(offlineConnection.backend.mhs, "getMdsGetGenAiStatus");
+        const offlineSavedState: IConnectionPresentationState = {
+            ...savedState,
+            activeEntry: "server-status",
+            documentStates: [
+                {
+                    ...edState,
+                    document: {
+                        id: "server-status",
+                        caption: "Server Status",
+                        type: OdmEntityType.AdminPage,
+                        pageType: "serverStatus",
+                    },
+                },
+            ],
+        };
+
+        const { unmount } = render(
+            <ConnectionWorkspace
+                connection={offlineConnection}
+                savedState={offlineSavedState}
+                workerPool={wp}
+                showAbout={false}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+            />,
+        );
+
+        try {
+            await nextRunLoop();
+
+            expect(setCurrentSchema).not.toHaveBeenCalled();
+            expect(getCurrentServiceMetadata).not.toHaveBeenCalled();
+            expect(getMdsGetGenAiStatus).not.toHaveBeenCalled();
+        } finally {
+            unmount();
+        }
+    });
+
     it("Test editorStopExecution requisition function call", async () => {
         const { unmount } = render(
             <ConnectionWorkspace
