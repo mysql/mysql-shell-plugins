@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,6 +24,9 @@
  */
 
 import { fireEvent, render, waitFor } from "@testing-library/preact";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { cwd } from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import { Label } from "../../../../components/ui/Label/Label.js";
@@ -32,11 +35,33 @@ import * as helpers from "../../../../components/ui/html-helpers.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 import { loremIpsum, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 
+const readFrontendSourceFile = (path: string): string => {
+    let directory = cwd();
+
+    for (let i = 0; i < 8; i++) {
+        const candidate = join(directory, path);
+        if (existsSync(candidate)) {
+            return readFileSync(candidate, "utf-8");
+        }
+
+        directory = dirname(directory);
+    }
+
+    throw new Error(`Unable to find ${path}`);
+};
+
 describe("Tooltip component tests", (): void => {
     const delay = 200;
     const queryTooltipElement = () => {
         return document.querySelector(".msg.tooltip");
     };
+
+    it("preserves whitespace in normal tooltips", () => {
+        const tooltipCss = readFrontendSourceFile("src/components/ui/Tooltip/Tooltip.css");
+        const rule = /\.msg\.tooltip:not\(\.expand\)\s*{(?<body>[^}]*)}/s.exec(tooltipCss)?.groups?.body;
+
+        expect(rule).toContain("white-space: pre-wrap;");
+    });
 
     it("Tooltip from data attribute", async () => {
         const text = "hover me";

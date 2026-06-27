@@ -71,6 +71,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     #parent?: ICdmConnectionGroupEntry;
     #currentSchema = "";
+    #userConnectionId?: number;
+    #serviceConnectionId?: number;
 
     public constructor(name: string, details: IConnectionDetails, updater: ICdmAccessManager) {
         this.caption = name;
@@ -84,6 +86,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     public get isOpen(): boolean {
         return this.open;
+    }
+
+    public get userConnectionId(): number | undefined {
+        return this.#userConnectionId;
+    }
+
+    public get serviceConnectionId(): number | undefined {
+        return this.#serviceConnectionId;
     }
 
     public async close(): Promise<void> {
@@ -192,20 +202,6 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         return true;
     }
 
-    public async duplicate(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager);
-        await newEntry.initialize();
-
-        return newEntry;
-    }
-
-    public async duplicateServiceOnly(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager);
-        await newEntry.initializeServiceOnly();
-
-        return newEntry;
-    }
-
     public getChildren(): ConnectionDataModelEntry[] {
         const children: ConnectionDataModelEntry[] = [];
         if (this.mrsEntry) {
@@ -266,6 +262,9 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             return false;
         }
 
+        this.#userConnectionId = connectionData.info.connectionId;
+        this.#serviceConnectionId = connectionData.info.serviceConnectionId;
+
         if (connectionData.currentSchema) {
             this.#currentSchema = connectionData.currentSchema;
         } else if (this.details.dbType === DBType.MySQL) {
@@ -309,9 +308,10 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         };
     }
 
-    private async initializeServiceOnly(callback?: ProgressCallback): Promise<boolean> {
+    public async initializeServiceOnly(callback?: ProgressCallback): Promise<boolean> {
         callback?.("Starting DB service session...");
-        await this.backend.startServiceSession(`CDM_${this.id}`, this.details.id);
+        await this.backend.startServiceSession(`CDM_${this.id}`, this.details.id,
+            this.cachedConnectionCredentials()?.password);
 
         this.open = true;
         (this.state as Mutable<IDataModelEntryState>).initialized = true;

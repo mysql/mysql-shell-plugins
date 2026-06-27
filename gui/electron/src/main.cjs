@@ -1826,6 +1826,9 @@ const createMenu = () => {
                 type: "checkbox",
                 accelerator: "Alt+Z",
             }),
+            createDesktopCommandMenuItem("view.showConnectionInfo", "Show Connection Info", {
+                type: "checkbox",
+            }),
             { type: "separator" },
             {
                 label: "Schemas",

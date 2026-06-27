@@ -38,11 +38,12 @@ import { CodeEditorMode, Monaco, type IScriptExecutionOptions } from "../../../.
 import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 import { OdmEntityType, OpenDocumentDataModel } from "../../../../data-models/OpenDocumentDataModel.js";
 import {
-    ConnectionTab, IOpenDocumentState, type IConnectionPresentationState, type QueryResult,
-} from "../../../../modules/db-editor/ConnectionTab.js";
+    ConnectionWorkspace, IOpenDocumentState, type IConnectionPresentationState, type QueryResult,
+} from "../../../../modules/db-editor/ConnectionWorkspace.js";
 import { LakehouseNavigatorTab } from "../../../../modules/db-editor/LakehouseNavigator.js";
 import type { Notebook } from "../../../../modules/db-editor/Notebook.js";
 import type { ScriptEditor } from "../../../../modules/db-editor/ScriptEditor.js";
+import { SqlQueryExecutor } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool.js";
 import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
 import type { ExecutionContext } from "../../../../script-execution/ExecutionContext.js";
@@ -67,7 +68,7 @@ import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { mockClassMethods, nextProcessTick, nextRunLoop, setupShellForTests } from "../../test-helpers.js";
 
 // @ts-expect-error, we need access to a private members here.
-class TestConnectionTab extends ConnectionTab {
+class TestConnectionWorkspace extends ConnectionWorkspace {
     declare public static shiftMLEStacktraceLineNumbers: (
         stackTrace: QueryResult, jsStartLine: number) => IStacktraceInfo | undefined;
 
@@ -111,7 +112,7 @@ mockClassMethods(ShellInterfaceSqlEditor, {
     execute: vi.fn(),
 });
 
-describe("DBConnectionTab tests", (): void => {
+describe("DBConnectionWorkspace tests", (): void => {
     let content = `\nprint("typescript");\n\\js\n`;
     content += `\nprint("javascript");\n\\sql\n`;
     content += `\nselect "(my)sql" from dual;\n\\py\n`;
@@ -252,11 +253,11 @@ describe("DBConnectionTab tests", (): void => {
         },
     ];
 
-    const mleStacktraceShiftingFunc = TestConnectionTab.shiftMLEStacktraceLineNumbers;
+    const mleStacktraceShiftingFunc = TestConnectionWorkspace.shiftMLEStacktraceLineNumbers;
 
     beforeAll(async () => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(true, true, "DEBUG2", "ConnectionTabTests");
+        launcher = await setupShellForTests(true, true, "DEBUG2", "ConnectionWorkspaceTests");
     });
 
     afterAll(async () => {
@@ -280,7 +281,7 @@ describe("DBConnectionTab tests", (): void => {
             document: { ...notebookDocumentMock, id: "notebook2" },
             autoExecuteAbout: false,
         };
-        const tab = new TestConnectionTab({
+        const tab = new TestConnectionWorkspace({
             connection,
             savedState: {
                 ...savedState,
@@ -296,7 +297,7 @@ describe("DBConnectionTab tests", (): void => {
         expect(tab.shouldAutoExecuteAbout(secondNotebookState)).toBe(false);
     });
 
-    it("Test DBConnectionTab snapshot", () => {
+    it("Test DBConnectionWorkspace snapshot", () => {
         let nextName = false;
         let nextTimestamp = false;
         expect.addSnapshotSerializer({
@@ -324,7 +325,7 @@ describe("DBConnectionTab tests", (): void => {
         });
 
         const { container, unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -337,9 +338,31 @@ describe("DBConnectionTab tests", (): void => {
         unmount();
     });
 
+    it("updates SQL execution when switching between transient connections for the same saved connection", () => {
+        const secondConnection = connectionsDataModel.createConnectionEntry({ ...connection.details });
+        const connectionSetter = vi.spyOn(SqlQueryExecutor.prototype, "connection", "set");
+        const workspace = (activeConnection: typeof connection) => {
+            return <ConnectionWorkspace
+                connection={activeConnection}
+                savedState={savedState}
+                workerPool={wp}
+                showAbout={false}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+            />;
+        };
+        const { rerender, unmount } = render(workspace(connection));
+
+        rerender(workspace(secondConnection));
+
+        expect(connectionSetter).toHaveBeenCalledWith(secondConnection);
+
+        connectionSetter.mockRestore();
+        unmount();
+    });
+
     it("Test editorStopExecution requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -361,7 +384,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test editorCommit requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -392,7 +415,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test editorRollback requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -420,7 +443,7 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("prefers connection-scoped auto-commit state in desktop run state", () => {
-        const tab = new TestConnectionTab({
+        const tab = new TestConnectionWorkspace({
             connection,
             savedState,
             workerPool: wp,
@@ -452,7 +475,7 @@ describe("DBConnectionTab tests", (): void => {
         const addExecutionHistoryEntry = vi.fn().mockResolvedValue(1);
         connection.backend.addExecutionHistoryEntry = addExecutionHistoryEntry;
 
-        const createTab = (documentType: OdmEntityType.Notebook | OdmEntityType.Script): TestConnectionTab => {
+        const createTab = (documentType: OdmEntityType.Notebook | OdmEntityType.Script): TestConnectionWorkspace => {
             const id = documentType === OdmEntityType.Notebook ? "notebook-history" : "script-history";
             const document = documentType === OdmEntityType.Notebook
                 ? { ...notebookDocumentMock, id }
@@ -463,7 +486,7 @@ describe("DBConnectionTab tests", (): void => {
                     language: "mysql",
                 } as IOpenDocumentState["document"];
 
-            const tab = new TestConnectionTab({
+            const tab = new TestConnectionWorkspace({
                 connection,
                 savedState: {
                     ...savedState,
@@ -515,7 +538,7 @@ describe("DBConnectionTab tests", (): void => {
             executionHistory: [],
             currentExecutionHistoryIndex: 0,
         };
-        const tab = new TestConnectionTab({
+        const tab = new TestConnectionWorkspace({
             connection,
             savedState: historyState,
             workerPool: wp,
@@ -545,7 +568,7 @@ describe("DBConnectionTab tests", (): void => {
             }],
             currentExecutionHistoryIndex: 0,
         };
-        const tab = new TestConnectionTab({
+        const tab = new TestConnectionWorkspace({
             connection,
             savedState: historyState,
             workerPool: wp,
@@ -583,7 +606,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorLoadScript requisition function call", async () => {
         const onLoadScriptMock = vi.fn();
         const onEditorRenameMock = vi.fn();
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
         const openState = {
             document: {
                 id: "id2",
@@ -594,7 +617,7 @@ describe("DBConnectionTab tests", (): void => {
         } as unknown as IOpenDocumentState;
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -631,7 +654,7 @@ describe("DBConnectionTab tests", (): void => {
         const onEditorRenameMock = vi.fn();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -661,7 +684,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test acceptMrsAuthentication requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -696,7 +719,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test cancelMrsAuthentication requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -730,7 +753,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test refreshMrsServiceSdk requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -747,10 +770,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunCode function call with active notebook", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -791,10 +814,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunCode function call without active notebook", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -820,10 +843,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunScript when scriptWaiting is false", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -857,10 +880,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunScript when scriptWaiting is true and scriptRef is current", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -901,10 +924,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunScript when scriptWaiting is true and scriptRef is not current", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -942,7 +965,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test sqlShowDataAtPage requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -986,10 +1009,10 @@ describe("DBConnectionTab tests", (): void => {
         const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockReturnValue(true);
         const onEditorRenameMock = vi.fn();
 
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1062,7 +1085,7 @@ describe("DBConnectionTab tests", (): void => {
         appParameters.embedded = true;
         const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockReturnValue(true);
 
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const firstDocument = documentDataModel.openDocument(undefined, {
             type: OdmEntityType.Notebook,
@@ -1124,7 +1147,7 @@ describe("DBConnectionTab tests", (): void => {
         };
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 caption="details1"
                 connection={connection}
@@ -1166,10 +1189,10 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test editorLoadNotebook updates the notebook title", async () => {
         const onEditorRenameMock = vi.fn();
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1236,10 +1259,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test selectFile preserves create-new notebook intent", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1285,10 +1308,10 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorLoadNotebook with createNew loads into a new notebook", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1398,10 +1421,10 @@ describe("DBConnectionTab tests", (): void => {
         appParameters.embedded = false;
         appParameters.inExtension = false;
 
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1489,13 +1512,13 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test confirmClose allows closing a clean script tab without a confirm dialog", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
         const confirmMock = uiLayerMock.confirm as Mock;
 
         confirmMock.mockClear();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1532,14 +1555,14 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test confirmClose asks before closing a dirty script tab", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
         const confirmMock = uiLayerMock.confirm as Mock;
 
         confirmMock.mockClear();
         confirmMock.mockResolvedValueOnce("Cancel");
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1580,14 +1603,14 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test confirmClose asks before closing a dirty notebook tab", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
         const confirmMock = uiLayerMock.confirm as Mock;
 
         confirmMock.mockClear();
         confirmMock.mockResolvedValueOnce("Discard");
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1631,13 +1654,13 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test confirmClose stops when the notebook refuses to close", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
         const confirmMock = uiLayerMock.confirm as Mock;
 
         confirmMock.mockClear();
 
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}
@@ -1708,7 +1731,7 @@ describe("DBConnectionTab tests", (): void => {
                 },
             },
         } as Partial<IOpenDocumentState> as IOpenDocumentState;
-        const tab = new TestConnectionTab({
+        const tab = new TestConnectionWorkspace({
             connection,
             savedState: {
                 ...savedState,
@@ -1740,7 +1763,7 @@ describe("DBConnectionTab tests", (): void => {
                     documentDataModel,
                 } as DocumentContextType}>
 
-                <ConnectionTab
+                <ConnectionWorkspace
                     id="1"
                     connection={connection}
                     savedState={savedState}
@@ -1756,7 +1779,7 @@ describe("DBConnectionTab tests", (): void => {
 
         expect(result).toBe(true);
         expect(onSelectItemMock).toHaveBeenCalledWith(expect.objectContaining({
-            tabId: "1",
+            pageId: "1",
             document: expect.objectContaining({
                 type: OdmEntityType.AdminPage,
                 caption: "Lakehouse Navigator",
@@ -1770,7 +1793,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test showChatOptions requisition function call", async () => {
         const onChatOptionsChangeMock = vi.fn();
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -1791,7 +1814,7 @@ describe("DBConnectionTab tests", (): void => {
 
     it("Test selectFile requisition function call", async () => {
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -1866,9 +1889,9 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test explainError function", async () => {
-        const tabRef = createRef<TestConnectionTab>();
+        const tabRef = createRef<TestConnectionWorkspace>();
         const { unmount } = render(
-            <ConnectionTab
+            <ConnectionWorkspace
                 ref={tabRef}
                 connection={connection}
                 savedState={savedState}

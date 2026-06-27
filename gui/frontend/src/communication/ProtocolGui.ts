@@ -492,6 +492,8 @@ export interface IShellBackendInformation {
 export interface IOpenConnectionData {
     currentSchema?: string;
     info: {
+        connectionId?: number;
+        serviceConnectionId?: number;
         sqlMode?: string;
         version?: string;
         versionComment?: string;

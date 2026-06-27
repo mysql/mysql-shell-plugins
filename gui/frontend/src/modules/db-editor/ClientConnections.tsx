@@ -83,7 +83,7 @@ interface IClientConnectionsProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
 
     /** The user selected value for refreshs of this page. */
-    // TODO: This should be stored as part of the user's preferences or the persistent state of the connection tab.
+    // TODO: This should be stored as part of the user's preferences or the persistent state of the connection workspace.
     refreshInterval?: number;
 
     savedState?: IClientConnectionsSavedState;

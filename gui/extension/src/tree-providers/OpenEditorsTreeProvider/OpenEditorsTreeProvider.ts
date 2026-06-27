@@ -290,7 +290,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
                 return Promise.resolve(true);
             }
 
-            case "selectConnectionTab": {
+            case "selectConnectionWorkspace": {
                 const response = request.original.parameter as { connectionId: number, pageId?: string; };
 
                 return this.selectItem(request.provider, response.connectionId, undefined, response.pageId);

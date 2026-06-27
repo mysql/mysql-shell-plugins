@@ -1,9 +1,9 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`DBConnectionTab tests > Test DBConnectionTab snapshot 1`] = `
+exports[`DBConnectionWorkspace tests > Test DBConnectionWorkspace snapshot 1`] = `
 <div>
   <div
-    class="msg splitContainer connectionTabHost resizing"
+    class="msg splitContainer connectionWorkspaceHost resizing"
   >
     <div
       class="sashContainer"

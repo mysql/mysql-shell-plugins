@@ -207,7 +207,7 @@ describe("Connection browser tests", (): void => {
         unmount();
     });
 
-    it("forces a new connection tab for tile actions outside the extension", () => {
+    it("forces a new connection workspace for tile actions outside the extension", () => {
         const executeSpy = vi.spyOn(requisitions, "execute").mockResolvedValue(true);
         const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
         appParameters.inExtension = false;
@@ -228,12 +228,12 @@ describe("Connection browser tests", (): void => {
             doHandleTileAction: (action: string, entry: unknown, options?: unknown) => void;
         }).doHandleTileAction("open", entry, { editor: "script" });
 
-        expect(executeSpy).toHaveBeenCalledWith("openConnectionTab", {
+        expect(executeSpy).toHaveBeenCalledWith("openConnectionWorkspace", {
             connection: entry,
-            force: true,
+            createNewWorkspace: true,
             initialEditor: "script",
         });
-        expect(executeRemoteSpy).toHaveBeenCalledWith("selectConnectionTab", { connectionId: 42 });
+        expect(executeRemoteSpy).toHaveBeenCalledWith("selectConnectionWorkspace", { connectionId: 42 });
     });
 
     it("uses the configured default editor for plain connection tile clicks", () => {
@@ -246,9 +246,9 @@ describe("Connection browser tests", (): void => {
             doHandleTileAction: (action: string, entry: unknown, options?: unknown) => void;
         }).doHandleTileAction("open", entry, {});
 
-        expect(executeSpy).toHaveBeenCalledWith("openConnectionTab", {
+        expect(executeSpy).toHaveBeenCalledWith("openConnectionWorkspace", {
             connection: entry,
-            force: true,
+            createNewWorkspace: true,
             initialEditor: "default",
         });
     });
@@ -534,12 +534,12 @@ describe("Connection browser tests", (): void => {
         });
 
         expect(handled).toBe(true);
-        expect(executeSpy).toHaveBeenCalledWith("openConnectionTab", {
+        expect(executeSpy).toHaveBeenCalledWith("openConnectionWorkspace", {
             connection: entry,
-            force: true,
+            createNewWorkspace: true,
             initialEditor,
         });
-        expect(executeRemoteSpy).toHaveBeenCalledWith("selectConnectionTab", { connectionId: 42 });
+        expect(executeRemoteSpy).toHaveBeenCalledWith("selectConnectionWorkspace", { connectionId: 42 });
     });
 
     it("routes the migration assistant menu command through the Electron host", async () => {

@@ -86,14 +86,19 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      * Starts a DB service session without opening the SQL editor user session.
      *
      * This is used by administration pages, which must keep working when the user session is busy or blocked.
+     *
+     * @param id
+     * @param connection
+     * @param password Optional password for the service connection.
      */
-    public async startServiceSession(id: string, connection: number | IShellDbConnection): Promise<void> {
+    public async startServiceSession(id: string, connection: number | IShellDbConnection,
+        password?: string): Promise<void> {
         this.clearWorkspaceCaches();
         this.serviceOnlySession = true;
         this.moduleSessionLookupId = `dbSession.${id}`;
         const response = await this.interactive.sendInteractiveRequest({
             requestType: ShellAPIGui.GuiDbStartSession,
-            parameters: { args: { connection } },
+            parameters: { args: { connection, password } },
         });
         webSession.setModuleSessionId(this.moduleSessionLookupId, response.result.moduleSessionId);
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;

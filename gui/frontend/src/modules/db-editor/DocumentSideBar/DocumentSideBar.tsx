@@ -299,6 +299,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
     private documentTableRef = createRef<TreeGrid>();
     private connectionTableRef = createRef<TreeGrid>();
+
+    private connectionTreeUpdate: Promise<void> = Promise.resolve();
     private schemasTableRef = createRef<TreeGrid>();
     private administrationTableRef = createRef<TreeGrid>();
     private ociTableRef = createRef<TreeGrid>();
@@ -4266,6 +4268,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const [treeItems, changed] = this.updateRootTreeItems(context);
 
         if (changed) {
+            if (this.isElectronConnectionSidebar()) {
+                return;
+            }
+
             void this.updateConnectionTreeItems();
 
             if (this.documentTableRef.current) {
@@ -4928,30 +4934,38 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      * Updates the connection tree items in the connection table (sorted or not).
      */
     private async updateConnectionTreeItems(): Promise<void> {
-        const context = this.context as DocumentContextType | undefined;
-        if (!context || !this.connectionTableRef.current) {
-            return;
-        }
+        const update = async (): Promise<void> => {
+            const context = this.context as DocumentContextType | undefined;
+            if (!context || !this.connectionTableRef.current) {
+                return;
+            }
 
-        if (this.isElectronHomeSidebar()) {
-            await this.connectionTableRef.current.setData(
-                this.getHomeConnectionTreeItems(context.connectionsDataModel.roots),
-                SetDataAction.Replace,
-            );
+            if (this.isElectronHomeSidebar()) {
+                await this.connectionTableRef.current.setData(
+                    this.getHomeConnectionTreeItems(context.connectionsDataModel.roots),
+                    SetDataAction.Replace,
+                );
 
-            return;
-        }
+                return;
+            }
 
-        const { treeItems } = this.state;
+            const { treeItems } = this.state;
 
-        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
-        if (foldersFirst) {
-            const sortedItems = Array.from(treeItems.connectionTreeItems);
-            this.sortConnectionTreeItems(sortedItems);
-            await this.connectionTableRef.current.setData(sortedItems, SetDataAction.Replace);
-        } else {
-            await this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
-        }
+            const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+            if (foldersFirst) {
+                const sortedItems = Array.from(treeItems.connectionTreeItems);
+                this.sortConnectionTreeItems(sortedItems);
+                await this.connectionTableRef.current.setData(sortedItems, SetDataAction.Replace);
+            } else {
+                await this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
+            }
+        };
+
+        const nextUpdate = this.connectionTreeUpdate.then(update, update);
+        this.connectionTreeUpdate = nextUpdate.catch(() => {
+            return undefined;
+        });
+        await nextUpdate;
     }
 
     private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {

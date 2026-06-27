@@ -147,7 +147,7 @@ export interface IAdminPageStates {
  * the title of the editor and others.
  */
 export interface IConnectionPresentationState extends ISavedEditorState {
-    /** The list of documents this tab currently shows (notebooks, script editors and admin pages). */
+    /** The list of documents this workspace currently shows (notebooks, script editors and admin pages). */
     readonly documents: LeafDocumentEntry[];
 
     adminPageStates: IAdminPageStates;
@@ -168,8 +168,8 @@ export interface IConnectionPresentationState extends ISavedEditorState {
 export interface ISelectItemDetails {
     document: LeafDocumentEntry | IOdmStandaloneDocumentEntry | IOdmShellSessionEntry;
 
-    /** The id of this connection tab. */
-    tabId: string,
+    /** The id of this connection workspace page. */
+    pageId: string,
 
     /** For external/broken out scripts only: the script's content. */
     content?: string;
@@ -180,7 +180,7 @@ export interface ISelectItemDetails {
     schemaName?: string;
 }
 
-interface IConnectionTabProperties extends IComponentProperties {
+interface IConnectionWorkspaceProperties extends IComponentProperties {
     /** The caption of this page used in the hosting tabview. */
     caption?: string;
 
@@ -220,7 +220,7 @@ interface IConnectionTabProperties extends IComponentProperties {
     onDesktopRunStateChanged?: () => void;
 }
 
-interface IConnectionTabState extends IComponentState {
+interface IConnectionWorkspaceState extends IComponentState {
     errorMessage?: string;
 
     /** Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode. */
@@ -285,8 +285,8 @@ interface IMrsServiceSdkMetadata {
     schemaMetadataVersion?: string,
 }
 
-/** A tab page for a single connection (managed by the connection host). */
-export class ConnectionTab extends ComponentBase<IConnectionTabProperties, IConnectionTabState> {
+/** A workspace page for a single connection. */
+export class ConnectionWorkspace extends ComponentBase<IConnectionWorkspaceProperties, IConnectionWorkspaceState> {
     private static aboutMessage = `Welcome to the DB Notebook.
 
 Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and TypeScript code blocks.
@@ -327,7 +327,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
     private sqlQueryExecutor: SqlQueryExecutor;
 
-    public constructor(props: IConnectionTabProperties) {
+    public constructor(props: IConnectionWorkspaceProperties) {
         super(props);
 
         this.state = {
@@ -480,12 +480,12 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         requisitions.unregister("sqlTransactionChanged", this.handleTransactionChanged);
     }
 
-    public override componentDidUpdate(prevProps: IConnectionTabProperties): void {
+    public override componentDidUpdate(prevProps: IConnectionWorkspaceProperties): void {
         const { id, connection } = this.props;
 
         if (connection) {
             const details = connection.details;
-            if (details.id !== prevProps.connection?.details.id) {
+            if (connection !== prevProps.connection) {
                 this.sqlQueryExecutor.connection = connection;
                 void this.refreshAutoCommitState();
 
@@ -622,7 +622,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             = this.props;
         const { standaloneMode, genAiStatus } = this.state;
 
-        const className = this.getEffectiveClassNames(["connectionTabHost"]);
+        const className = this.getEffectiveClassNames(["connectionWorkspaceHost"]);
 
         return <DocumentContext.Consumer>{(context) => {
             this.documentDataModel = context?.documentDataModel;
@@ -773,7 +773,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     }
 
     /**
-     * @returns true if this tab can be deactivated/closed, false if not.
+     * @returns true if this workspace can be deactivated/closed, false if not.
      */
     public canClose(): Promise<boolean> {
         // Only if a notebook is active, we need to check if it can be closed.
@@ -977,7 +977,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
             if (script) {
                 onSelectItem?.({
-                    tabId: id ?? "",
+                    pageId: id ?? "",
                     document: script,
                     content: details.content,
                     is3rdLanguage: details.is3rdLanguage,
@@ -1561,7 +1561,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                     const stackTrace: QueryResult = await connection.backend.execute(
                         `SELECT mle_session_state("stack_trace")`) as QueryResult;
 
-                    const updatedStacktrace = ConnectionTab.shiftMLEStacktraceLineNumbers(stackTrace, jsStartLine);
+                    const updatedStacktrace = ConnectionWorkspace.shiftMLEStacktraceLineNumbers(stackTrace, jsStartLine);
 
                     if (updatedStacktrace) {
                         resultData.push({
@@ -2065,7 +2065,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                     await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
                 } else {
                     const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = ConnectionTab.aboutMessage.replaceAll("%modifier%", isMac ? "Cmd" : "Ctrl");
+                    const content = ConnectionWorkspace.aboutMessage.replaceAll("%modifier%", isMac ? "Cmd" : "Ctrl");
                     await context.addResultData({
                         type: "text",
                         text: [{ type: MessageType.Info, content, language: "ansi" }],
@@ -2799,7 +2799,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
         const canClose = await this.canClose();
         if (canClose) {
-            return onSelectItem?.({ tabId: id, document: entry });
+            return onSelectItem?.({ pageId: id, document: entry });
         }
     };
 

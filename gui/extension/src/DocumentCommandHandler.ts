@@ -1538,7 +1538,7 @@ export class DocumentCommandHandler {
                 return this.updateLatestPagesByConnection(response.connection?.id, response.pageId);
             }
 
-            case "selectConnectionTab":
+            case "selectConnectionWorkspace":
             case "selectDocument": {
                 const response = request.original.parameter as { connectionId?: number, pageId?: string; };
 

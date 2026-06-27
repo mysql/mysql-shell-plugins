@@ -751,20 +751,20 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             case "open:notebook": {
                 // In the standalone/Electron frontend, match the sidebar behavior and always
                 // open a fresh connection page for notebook/script actions.
-                const forceNewTab = !appParameters.inExtension || options?.newTab === true;
+                const createNewWorkspace = !appParameters.inExtension || options?.newTab === true;
                 const initialEditor = action === "open:script"
                     ? "script"
                     : action === "open:notebook" ? "notebook" : options?.editor ?? "default";
 
-                void requisitions.execute("openConnectionTab",
+                void requisitions.execute("openConnectionWorkspace",
                     {
                         connection: entry,
-                        force: forceNewTab,
+                        createNewWorkspace,
                         initialEditor,
                     });
 
                 // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
-                requisitions.executeRemote("selectConnectionTab", { connectionId: entry.details.id });
+                requisitions.executeRemote("selectConnectionWorkspace", { connectionId: entry.details.id });
 
                 break;
             }

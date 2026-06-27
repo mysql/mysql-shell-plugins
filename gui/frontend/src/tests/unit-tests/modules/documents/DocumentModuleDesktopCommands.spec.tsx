@@ -74,7 +74,7 @@ import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
 import type { AdminPageType } from "../../../../data-models/data-model-types.js";
 import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
-import { ConnectionTab } from "../../../../modules/db-editor/ConnectionTab.js";
+import { ConnectionWorkspace } from "../../../../modules/db-editor/ConnectionWorkspace.js";
 import { DocumentModule } from "../../../../modules/db-editor/DocumentModule.js";
 import { Notebook } from "../../../../modules/db-editor/Notebook.js";
 import { SimpleEditor } from "../../../../modules/db-editor/SimpleEditor.js";
@@ -310,6 +310,7 @@ describe("Document module desktop commands", () => {
     afterEach(() => {
         Reflect.deleteProperty(window, "electronHost");
         Settings.set("editor.showHidden", false);
+        Settings.set("editor.showConnectionInfo", false);
         Settings.set("editor.wordWrap", "off");
         vi.useRealTimers();
         vi.restoreAllMocks();
@@ -487,8 +488,8 @@ describe("Document module desktop commands", () => {
         const originalEmbedded = appParameters.embedded;
         webSession.runMode = RunMode.LocalUser;
         appParameters.embedded = true;
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
@@ -555,7 +556,7 @@ describe("Document module desktop commands", () => {
                 caption: connectionDetails.caption,
                 details: connectionDetails,
             };
-            const fakeConnectionTab = {
+            const fakeConnectionWorkspace = {
                 dataModelEntry: fakePage,
                 connection: {
                     details: connectionDetails,
@@ -569,7 +570,7 @@ describe("Document module desktop commands", () => {
                 createConnectionPresentationState([], ""));
             await act(async () => {
                 moduleRef.current!.setState({
-                    connectionTabs: [fakeConnectionTab] as never,
+                    connectionWorkspaces: [fakeConnectionWorkspace] as never,
                     selectedPage: fakePage.id,
                     selectedWorkspace: "connection:42",
                     debuggerWorkspaceVisible: true,
@@ -668,7 +669,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -681,7 +682,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedWorkspace: "__workspace_home__",
                 loading: false,
             });
@@ -705,7 +706,7 @@ describe("Document module desktop commands", () => {
         });
         await nextRunLoop();
 
-        expect(moduleRef.current!.state.connectionTabs).toHaveLength(0);
+        expect(moduleRef.current!.state.connectionWorkspaces).toHaveLength(0);
 
         unmount();
     });
@@ -767,8 +768,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
 
@@ -790,7 +791,7 @@ describe("Document module desktop commands", () => {
             language: "mysql",
             parent: fakePage,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -821,7 +822,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -835,8 +836,8 @@ describe("Document module desktop commands", () => {
     });
 
     it("preserves the file name when creating a script document from file", async () => {
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
 
@@ -851,7 +852,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -868,7 +869,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -980,7 +981,7 @@ describe("Document module desktop commands", () => {
             caption: details.caption,
             details,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {
@@ -995,7 +996,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1044,7 +1045,7 @@ describe("Document module desktop commands", () => {
             caption: liveConnectionDetails.caption,
             details: liveConnectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {},
@@ -1061,10 +1062,10 @@ describe("Document module desktop commands", () => {
             caption: liveConnectionDetails.caption,
             connectionId: 42,
             connectionDetails: staleWorkspaceDetails,
-            connectionTab: fakeConnectionTab,
+            connectionWorkspace: fakeConnectionWorkspace,
             pageIds: [fakePage.id],
         }];
-        (moduleRef.current as any).currentTabRef.current = {
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = {
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => ({
                 canExecute: true,
@@ -1078,7 +1079,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1091,15 +1092,16 @@ describe("Document module desktop commands", () => {
         unmount();
     });
 
-    it("updates the desktop status area from the selected connection tab", async () => {
+    it("updates the desktop status area from the selected connection workspace", async () => {
+        Settings.set("editor.showConnectionInfo", true);
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -1133,23 +1135,27 @@ describe("Document module desktop commands", () => {
             caption: serviceConnectionDetails.caption,
             details: serviceConnectionDetails,
         };
-        const userConnectionTab = {
+        const userConnectionWorkspace = {
             dataModelEntry: userPage,
             connection: {
                 backend: {},
                 details: userConnectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                userConnectionId: 18,
+                serviceConnectionId: 19,
             },
             suppressAbout: false,
         };
-        const serviceConnectionTab = {
+        const serviceConnectionWorkspace = {
             dataModelEntry: servicePage,
             connection: {
                 backend: {},
                 details: serviceConnectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                userConnectionId: 20,
+                serviceConnectionId: 21,
             },
             suppressAbout: false,
         };
@@ -1160,7 +1166,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [userConnectionTab, serviceConnectionTab] as never,
+                connectionWorkspaces: [userConnectionWorkspace, serviceConnectionWorkspace] as never,
                 selectedPage: userPage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1169,14 +1175,32 @@ describe("Document module desktop commands", () => {
 
         expect(container.querySelector("#desktopStatusArea")?.textContent).toContain("shell@user-db.internal");
         expect(container.querySelector("#desktopStatusArea")?.textContent).not.toContain("service@service-db.internal");
+        expect(container.querySelector(".desktopStatusConnectionInfo")?.getAttribute("data-tooltip")).toBeNull();
+        expect(container.querySelector(".desktopStatusPrimary")?.getAttribute("data-tooltip")).toBe("expand");
 
+        const indicators = container.querySelector(".desktopStatusIndicators");
+        const connectionInfoIndicator = container.querySelector("#desktopStatusConnectionInfoIndicator");
+        expect(connectionInfoIndicator?.textContent).toBe("Conn: U:18 S:19");
+        expect(connectionInfoIndicator?.getAttribute("data-tooltip"))
+            .toBe("User connection ID: 18\nService connection ID: 19");
+        expect(indicators?.children[0]?.id).toBe("desktopStatusTransactionIndicator");
+        expect(indicators?.children[1]).toBe(connectionInfoIndicator);
+
+        const workspaceProbe = moduleRef.current as unknown as {
+            doSwitchTab: (pageId: string) => void;
+        };
         await act(async () => {
-            (moduleRef.current as any).doSwitchTab(servicePage.id);
+            workspaceProbe.doSwitchTab(servicePage.id);
             await nextRunLoop();
         });
 
         expect(container.querySelector("#desktopStatusArea")?.textContent).toContain("service@service-db.internal");
         expect(container.querySelector("#desktopStatusArea")?.textContent).not.toContain("shell@user-db.internal");
+        expect(container.querySelector("#desktopStatusConnectionInfoIndicator")?.textContent)
+            .toBe("Conn: U:20 S:21");
+        expect(container.querySelector("#desktopStatusConnectionInfoIndicator")?.getAttribute("data-tooltip"))
+            .toBe("User connection ID: 20\nService connection ID: 21");
+        expect(container.querySelector("#desktopStatusTransactionIndicator")?.textContent).toBe("AUTO-COMMIT OFF");
 
         unmount();
     });
@@ -1207,8 +1231,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
 
@@ -1237,7 +1261,7 @@ describe("Document module desktop commands", () => {
             language: "mysql",
             parent: fakePage,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1272,7 +1296,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1293,8 +1317,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -1307,7 +1331,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1334,7 +1358,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1356,8 +1380,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
 
@@ -1386,7 +1410,7 @@ describe("Document module desktop commands", () => {
             language: "mysql",
             parent: fakePage,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1421,7 +1445,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1433,7 +1457,7 @@ describe("Document module desktop commands", () => {
         expect(container.querySelector("#dbModuleTabHost .tabItem#doc-2")).toBeTruthy();
         expect(container.querySelector("#dbModuleTabHost .tabItem.selected#doc-2")).toBeTruthy();
 
-        (moduleRef.current as any).currentTabRef.current = null;
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = null;
 
         await act(async () => {
             fireEvent.click(container.querySelector("#dbModuleTabHost .tabItem#doc-1")!);
@@ -1452,8 +1476,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -1466,7 +1490,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1483,7 +1507,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1504,8 +1528,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -1518,7 +1542,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1535,7 +1559,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1562,8 +1586,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -1576,7 +1600,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1593,7 +1617,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1613,8 +1637,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -1627,7 +1651,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1644,7 +1668,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1654,21 +1678,89 @@ describe("Document module desktop commands", () => {
 
         expect(container.textContent).toContain("ADMINISTRATION");
 
+        const servicePage = {
+            id: "service-page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+        };
+        const serviceConnectionWorkspace = {
+            dataModelEntry: servicePage,
+            connection: {
+                details: connectionDetails,
+                isOpen: true,
+                currentSchema: "",
+            },
+            suppressAbout: false,
+        };
+        (moduleRef.current as any).connectionPresentation.set(servicePage, createConnectionPresentationState());
+        (moduleRef.current as any).serviceOnlyConnectionPages.add(servicePage.id);
+        await act(async () => {
+            moduleRef.current!.setState({
+                connectionWorkspaces: [fakeConnectionWorkspace, serviceConnectionWorkspace] as never,
+            });
+        });
+
         vi.spyOn(moduleRef.current as any, "showPage").mockResolvedValue(true);
-        (moduleRef.current as any).currentTabRef.current = null;
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = null;
 
         await act(async () => {
             await (moduleRef.current as any).handleConnectionEntrySelection(sharedConnection.adminPages[0]);
         });
         await nextRunLoop();
 
-        const connectionState = (moduleRef.current as any).connectionPresentation.get(fakePage);
+        const connectionState = (moduleRef.current as any).connectionPresentation.get(servicePage);
         expect(connectionState.documentStates).toHaveLength(1);
         expect(connectionState.documentStates[0].document.type).toBe(OdmEntityType.AdminPage);
         expect(connectionState.documentStates[0].document.caption).toBe(sharedConnection.adminPages[0].caption);
         expect(connectionState.activeEntry).toBe(connectionState.documentStates[0].document.id);
 
         unmount();
+    });
+
+    it("keeps connection-bound tabs in their owning workspace", () => {
+        const module = new TestDocumentModule({});
+        const firstPage = {
+            id: "page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+        };
+        const secondPage = {
+            id: "page-2",
+            caption: `${connectionDetails.caption} (2)`,
+            details: connectionDetails,
+        };
+
+        module.state.connectionWorkspaces = [{
+            dataModelEntry: firstPage,
+            connection: { details: connectionDetails },
+            suppressAbout: false,
+        }, {
+            dataModelEntry: secondPage,
+            connection: { details: connectionDetails },
+            suppressAbout: false,
+        }] as never;
+        module.state.shellSessionTabs = [{
+            dataModelEntry: {
+                id: "shell-1",
+                caption: `Session to ${connectionDetails.caption}`,
+                details: {
+                    dbConnectionId: connectionDetails.id,
+                },
+            },
+            savedState: {},
+            workspaceId: "connection:42:page-1",
+        }] as never;
+
+        const workspaces = (module as unknown as {
+            getWorkspaces: () => Array<{ id: string; pageIds: string[]; }>;
+        }).getWorkspaces();
+
+        expect(workspaces.find((workspace) => {
+            return workspace.id === "connection:42:page-1";
+        })?.pageIds).toContain("shell-1");
+        expect(workspaces.find((workspace) => {
+            return workspace.id === "connection:42:page-2";
+        })?.pageIds).not.toContain("shell-1");
     });
 
     it("uses unique workspace tab captions and mirrors saved file names", async () => {
@@ -1678,8 +1770,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
 
@@ -1715,7 +1807,7 @@ describe("Document module desktop commands", () => {
             language: "mysql",
             parent: fakePage,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1752,7 +1844,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1785,7 +1877,7 @@ describe("Document module desktop commands", () => {
         await nextRunLoop();
         expect(moduleRef.current).toBeDefined();
 
-        (moduleRef.current as any).currentTabRef.current = {
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = {
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => ({
                 canExecute: true,
@@ -1849,7 +1941,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1861,7 +1953,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: "page-1",
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -1882,8 +1974,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
 
@@ -1905,7 +1997,7 @@ describe("Document module desktop commands", () => {
             language: "mysql",
             parent: fakePage,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -1935,14 +2027,14 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
             });
         });
 
-        (moduleRef.current as any).currentTabRef.current = {
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = {
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => undefined,
         };
@@ -2104,7 +2196,7 @@ describe("Document module desktop commands", () => {
         };
         const killQuerySpy = vi.fn().mockResolvedValue(undefined);
         const killSessionSpy = vi.fn().mockResolvedValue(undefined);
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {
@@ -2120,7 +2212,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: "page-1",
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -2147,7 +2239,7 @@ describe("Document module desktop commands", () => {
             transactionOpen: true,
             stopOnErrors: true,
         };
-        (moduleRef.current as any).currentTabRef.current = {
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = {
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => runState,
         };
@@ -2397,7 +2489,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {
@@ -2412,14 +2504,14 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: "page-1",
                 selectedWorkspace: "connection:42",
                 loading: false,
             });
         });
 
-        (moduleRef.current as any).currentTabRef.current = {
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = {
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => ({
                 canExecute: true,
@@ -2465,7 +2557,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 details: connectionDetails,
@@ -2477,14 +2569,14 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: "page-1",
                 selectedWorkspace: "connection:42",
                 loading: false,
             });
         });
 
-        (moduleRef.current as any).currentTabRef.current = {
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = {
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => ({
                 canExecute: true,
@@ -2527,8 +2619,8 @@ describe("Document module desktop commands", () => {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidUpdate").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
@@ -2564,7 +2656,7 @@ describe("Document module desktop commands", () => {
                 fakeExecutionContext.loadingState = LoadingState.Idle;
             },
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {
@@ -2610,7 +2702,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -2641,7 +2733,7 @@ describe("Document module desktop commands", () => {
         });
 
         expect(killQuerySpy).toHaveBeenCalled();
-        expect((moduleRef.current as any).state.desktopStoppingWorkspaces).toContain("connection:42");
+        expect((moduleRef.current as any).state.desktopStoppingWorkspaces).toContain("connection:42:page-1");
 
         await act(async () => {
             await new Promise<void>((resolve) => {
@@ -2650,7 +2742,7 @@ describe("Document module desktop commands", () => {
         });
 
         expect(fakeExecutionContext.loadingState).toBe(LoadingState.Loading);
-        expect((moduleRef.current as any).state.desktopStoppingWorkspaces).not.toContain("connection:42");
+        expect((moduleRef.current as any).state.desktopStoppingWorkspaces).not.toContain("connection:42:page-1");
 
         unmount();
     });
@@ -2663,8 +2755,8 @@ describe("Document module desktop commands", () => {
                 postMessage,
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidUpdate").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
@@ -2716,7 +2808,7 @@ describe("Document module desktop commands", () => {
             parent: fakePage,
         };
         const killQuerySpy = vi.fn().mockResolvedValue(undefined);
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {
@@ -2750,7 +2842,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: "page-1",
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -2762,22 +2854,22 @@ describe("Document module desktop commands", () => {
         expect(activePageState.find((entry) => entry.id === "desktop.newScriptTab")?.enabled).toBe(true);
         expect(activePageState.find((entry) => entry.id === "desktop.newNotebookTab")?.enabled).toBe(true);
 
-        const selectedConnectionTabRef = (moduleRef.current as any).connectionTabRefs.get(fakePage.id);
-        expect(selectedConnectionTabRef).toBeDefined();
+        const selectedConnectionWorkspaceRef = (moduleRef.current as any).connectionWorkspaceRefs.get(fakePage.id);
+        expect(selectedConnectionWorkspaceRef).toBeDefined();
 
-        const saveActiveDocumentSpy = vi.spyOn(selectedConnectionTabRef, "saveActiveDocument")
+        const saveActiveDocumentSpy = vi.spyOn(selectedConnectionWorkspaceRef, "saveActiveDocument")
             .mockResolvedValue(true);
-        const confirmCloseSpy = vi.spyOn(selectedConnectionTabRef, "confirmClose")
+        const confirmCloseSpy = vi.spyOn(selectedConnectionWorkspaceRef, "confirmClose")
             .mockResolvedValue(true);
-        vi.spyOn(selectedConnectionTabRef, "getActiveDesktopDocumentType").mockReturnValue("script");
-        vi.spyOn(selectedConnectionTabRef, "getDesktopRunState").mockReturnValue({
+        vi.spyOn(selectedConnectionWorkspaceRef, "getActiveDesktopDocumentType").mockReturnValue("script");
+        vi.spyOn(selectedConnectionWorkspaceRef, "getDesktopRunState").mockReturnValue({
             canExecute: true,
             canExecuteSubparts: true,
             canStop: false,
             autoCommit: false,
             stopOnErrors: true,
         });
-        vi.spyOn(selectedConnectionTabRef, "canNavigateHistory").mockImplementation((backwards: boolean) => {
+        vi.spyOn(selectedConnectionWorkspaceRef, "canNavigateHistory").mockImplementation((backwards: boolean) => {
             return backwards;
         });
         const requisitionSpy = vi.spyOn(requisitions, "execute").mockImplementation(async (requestType: string) => {
@@ -2918,7 +3010,7 @@ describe("Document module desktop commands", () => {
 
         expect(await desktopCommandRegistry.execute("file.closeDocument")).toBe(true);
         expect(closeConnectionDocumentSpy).toHaveBeenCalledWith(expect.objectContaining({
-            tab: fakeConnectionTab,
+            workspace: fakeConnectionWorkspace,
             documentState: expect.objectContaining({
                 document: fakeDocument,
             }),
@@ -2932,18 +3024,18 @@ describe("Document module desktop commands", () => {
         unmount();
     });
 
-    it("publishes and routes Database menu commands for the active workspace connection", async () => {
+    it("publishes and routes View and Database menu commands for the active workspace connection", async () => {
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
-        const { unmount } = render(<TestDocumentModule ref={moduleRef} />);
+        const { container, unmount } = render(<TestDocumentModule ref={moduleRef} />);
 
         await nextRunLoop();
         expect(moduleRef.current).toBeDefined();
@@ -2967,6 +3059,8 @@ describe("Document module desktop commands", () => {
                 pageType: "lakehouseNavigator",
             }],
         });
+        sharedConnection.connection.userConnectionId = 31;
+        sharedConnection.connection.serviceConnectionId = 32;
         const roots = (moduleRef.current as any).connectionsDataModel.roots as unknown[];
         roots.splice(0, roots.length, sharedConnection.connection);
 
@@ -2975,7 +3069,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: sharedConnection.connection,
             suppressAbout: false,
@@ -2983,7 +3077,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -2992,6 +3086,12 @@ describe("Document module desktop commands", () => {
 
         const desktopState = desktopCommandRegistry.getState();
         expect(desktopState).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                id: "view.showConnectionInfo",
+                label: "Show Connection Info",
+                enabled: true,
+                checked: false,
+            }),
             expect.objectContaining({
                 id: "database.admin.serverStatus",
                 label: "Server Status",
@@ -3030,6 +3130,18 @@ describe("Document module desktop commands", () => {
             }),
         ]));
 
+        expect(await desktopCommandRegistry.execute("view.showConnectionInfo")).toBe(true);
+        await nextRunLoop();
+        expect(Settings.get("editor.showConnectionInfo", false)).toBe(true);
+        expect(container.querySelector("#desktopStatusConnectionInfoIndicator")?.textContent)
+            .toBe("Conn: U:31 S:32");
+        expect(desktopCommandRegistry.getState()).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                id: "view.showConnectionInfo",
+                checked: true,
+            }),
+        ]));
+
         const selectAdminPageSpy = vi.spyOn(moduleRef.current as any, "handleConnectionEntrySelection")
             .mockResolvedValue(undefined);
         expect(await desktopCommandRegistry.execute("database.admin.lakehouseNavigator")).toBe(true);
@@ -3043,6 +3155,7 @@ describe("Document module desktop commands", () => {
             command: "msg.mrs.configureMySQLRestService",
         }, sharedConnection.connection);
 
+        sideBarCommandSpy.mockClear();
         expect(await desktopCommandRegistry.execute("database.mrs.browseDocs")).toBe(true);
         expect(sideBarCommandSpy).toHaveBeenCalledWith({
             title: "Browse MRS Docs",
@@ -3063,15 +3176,15 @@ describe("Document module desktop commands", () => {
         unmount();
     });
 
-    it("opens administration pages on the existing connection workspace", async () => {
+    it("opens administration pages through a service connection page", async () => {
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
                 postMessage: vi.fn(),
             },
         });
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
 
         const moduleRef = createRef<TestDocumentModule>();
         const { unmount } = render(<TestDocumentModule ref={moduleRef} />);
@@ -3094,7 +3207,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const notebookConnectionTab = {
+        const notebookConnectionWorkspace = {
             dataModelEntry: notebookPage,
             connection: sharedConnection.connection,
             suppressAbout: false,
@@ -3108,14 +3221,14 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [notebookConnectionTab] as never,
+                connectionWorkspaces: [notebookConnectionWorkspace] as never,
                 selectedPage: notebookPage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
             });
         });
         const showPageSpy = vi.spyOn(moduleRef.current as any, "showPage").mockResolvedValue(true);
-        (moduleRef.current as any).currentTabRef.current = null;
+        (moduleRef.current as any).currentConnectionWorkspaceRef.current = null;
 
         await act(async () => {
             await (moduleRef.current as any).handleConnectionEntrySelection(sharedConnection.adminPages[0]);
@@ -3125,15 +3238,15 @@ describe("Document module desktop commands", () => {
         expect(showPageSpy.mock.calls[0][0]).toEqual(expect.objectContaining({
             connectionId: connectionDetails.id,
             editor: "none",
-            force: false,
-            serviceOnly: false,
+            createNewWorkspace: false,
+            serviceOnly: true,
         }));
-        expect(showPageSpy.mock.calls[0][0].pageId).toBe(notebookPage.id);
+        expect(showPageSpy.mock.calls[0][0].pageId).toBeUndefined();
 
         unmount();
     });
 
-    it("reuses normal connection pages for administration pages", () => {
+    it("keeps user and service connection pages separate", () => {
         const module = new TestDocumentModule({});
         const sharedConnection = createElectronWorkspaceConnection({
             adminPages: [{
@@ -3169,7 +3282,7 @@ describe("Document module desktop commands", () => {
         module.state = {
             selectedPage: adminPage.id,
             selectedWorkspace: "connection:42",
-            connectionTabs: [{
+            connectionWorkspaces: [{
                 dataModelEntry: userPage,
                 connection: sharedConnection.connection,
                 suppressAbout: false,
@@ -3194,12 +3307,91 @@ describe("Document module desktop commands", () => {
         (module as any).connectionPresentation.set(adminPage, createConnectionPresentationState(
             [adminDocument], adminDocument.id,
         ));
-        (module as any).latestPagesByConnection.set(sharedConnection.connection.details.id, adminPage.id);
-        (module as any).latestAdministrationPagesByConnection.set(sharedConnection.connection.details.id, adminPage.id);
+        (module as any).serviceOnlyConnectionPages.add(adminPage.id);
+        (module as any).latestPagesByConnection.set(sharedConnection.connection.details.id, userPage.id);
+        (module as any).servicePagesByConnection.set(sharedConnection.connection.details.id, adminPage.id);
 
-        expect((module as any).resolveLatestPageId(sharedConnection.connection)).toBe(adminPage.id);
-        expect((module as any).resolveLatestAdministrationPageId(sharedConnection.connection)).toBe(adminPage.id);
-        expect((module as any).getSelectedUserConnectionTab()?.dataModelEntry.id).toBe(adminPage.id);
+        expect((module as any).resolveLatestPageId(sharedConnection.connection)).toBe(userPage.id);
+        expect((module as any).resolveServiceConnectionPageId(sharedConnection.connection)).toBe(adminPage.id);
+        expect((module as any).getSelectedUserConnectionWorkspace()?.dataModelEntry.id).toBe(userPage.id);
+    });
+
+    it("shares one service page across administration documents and reuses matching documents", async () => {
+        const module = new TestDocumentModule({});
+        const sharedConnection = createElectronWorkspaceConnection({
+            adminPages: [{
+                id: "admin-server-status",
+                caption: "Server Status",
+                pageType: "serverStatus",
+            }, {
+                id: "admin-client-connections",
+                caption: "Client Connections",
+                pageType: "clientConnections",
+            }],
+        });
+        const servicePage = {
+            id: "service-page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+            documents: [],
+        };
+        const serviceConnectionWorkspace = {
+            dataModelEntry: servicePage,
+            connection: sharedConnection.connection,
+            suppressAbout: false,
+        };
+
+        module.state = {
+            selectedPage: servicePage.id,
+            selectedWorkspace: "connection:42",
+            connectionWorkspaces: [serviceConnectionWorkspace] as never,
+            documentTabs: [],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+        (module as any).connectionPresentation.set(servicePage, createConnectionPresentationState());
+        (module as any).serviceOnlyConnectionPages.add(servicePage.id);
+        (module as any).documentDataModel = {
+            openDocument: vi.fn((_provider, data) => {
+                const parameters = data.parameters as { id: string; caption: string; pageType: AdminPageType; };
+                let document = servicePage.documents.find((candidate: { id: string; }) => {
+                    return candidate.id === parameters.id;
+                });
+                if (!document) {
+                    document = {
+                        id: parameters.id,
+                        caption: parameters.caption,
+                        type: OdmEntityType.AdminPage,
+                        pageType: parameters.pageType,
+                        parent: servicePage,
+                    };
+                    servicePage.documents.push(document as never);
+                }
+
+                return document;
+            }),
+        };
+        vi.spyOn(module as any, "showPage").mockResolvedValue(true);
+
+        await (module as any).handleConnectionEntrySelection(sharedConnection.adminPages[0]);
+        await (module as any).handleConnectionEntrySelection(sharedConnection.adminPages[1]);
+        await (module as any).handleConnectionEntrySelection(sharedConnection.adminPages[0]);
+
+        const connectionState = (module as any).connectionPresentation.get(servicePage);
+        expect(connectionState.documentStates).toHaveLength(2);
+        expect(connectionState.documentStates.map((state: { document: { id: string; }; }) => {
+            return state.document.id;
+        })).toEqual([
+            "admin-server-status__service-page-1",
+            "admin-client-connections__service-page-1",
+        ]);
+        expect(connectionState.activeEntry).toBe("admin-server-status__service-page-1");
     });
 
     it("does not reuse a stale script tab ref after switching to a service tab", () => {
@@ -3238,7 +3430,7 @@ describe("Document module desktop commands", () => {
         module.state = {
             selectedPage: servicePage.id,
             selectedWorkspace: "connection:42",
-            connectionTabs: [{
+            connectionWorkspaces: [{
                 dataModelEntry: userPage,
                 connection: sharedConnection.connection,
                 suppressAbout: false,
@@ -3263,7 +3455,7 @@ describe("Document module desktop commands", () => {
         (module as any).connectionPresentation.set(servicePage, createConnectionPresentationState(
             [adminDocument], adminDocument.id,
         ));
-        (module as any).currentTabRef.current = {
+        (module as any).currentConnectionWorkspaceRef.current = {
             props: { id: userPage.id },
             getActiveDesktopDocumentType: () => "script",
             getDesktopRunState: () => ({
@@ -3276,7 +3468,7 @@ describe("Document module desktop commands", () => {
             }),
         };
 
-        expect((module as any).getSelectedConnectionTabRef()).toBeNull();
+        expect((module as any).getSelectedConnectionWorkspaceRef()).toBeNull();
         expect((module as any).getActiveDesktopExecutionContext()).toBeUndefined();
     });
 
@@ -3299,7 +3491,7 @@ describe("Document module desktop commands", () => {
             caption: connectionDetails.caption,
             details: connectionDetails,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 backend: {},
@@ -3319,21 +3511,21 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: "page-1",
                 selectedWorkspace: "connection:42",
                 loading: false,
             });
         });
 
-        const selectedConnectionTabRef = (moduleRef.current as any).connectionTabRefs.get(fakePage.id);
-        expect(selectedConnectionTabRef).toBeDefined();
+        const selectedConnectionWorkspaceRef = (moduleRef.current as any).connectionWorkspaceRefs.get(fakePage.id);
+        expect(selectedConnectionWorkspaceRef).toBeDefined();
 
-        vi.spyOn(selectedConnectionTabRef, "getActiveDesktopDocumentType").mockReturnValue("notebook");
-        vi.spyOn(selectedConnectionTabRef, "canNavigateHistory").mockImplementation((backwards: boolean) => {
+        vi.spyOn(selectedConnectionWorkspaceRef, "getActiveDesktopDocumentType").mockReturnValue("notebook");
+        vi.spyOn(selectedConnectionWorkspaceRef, "canNavigateHistory").mockImplementation((backwards: boolean) => {
             return backwards;
         });
-        const navigateHistorySpy = vi.spyOn(selectedConnectionTabRef, "navigateHistory").mockReturnValue(true);
+        const navigateHistorySpy = vi.spyOn(selectedConnectionWorkspaceRef, "navigateHistory").mockReturnValue(true);
 
         desktopCommandRegistry.notifyHostStateChanged();
 
@@ -3350,8 +3542,8 @@ describe("Document module desktop commands", () => {
     });
 
     it("routes file.close through the close guard", async () => {
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidUpdate").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
@@ -3363,7 +3555,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [{
+                connectionWorkspaces: [{
                     dataModelEntry: {
                         id: "page-1",
                         caption: connectionDetails.caption,
@@ -3394,8 +3586,8 @@ describe("Document module desktop commands", () => {
     });
 
     it("routes file.closeDocument through the document close guard", async () => {
-        vi.spyOn(ConnectionTab.prototype, "componentDidMount").mockImplementation(() => { });
-        vi.spyOn(ConnectionTab.prototype, "componentWillUnmount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentDidMount").mockImplementation(() => { });
+        vi.spyOn(ConnectionWorkspace.prototype, "componentWillUnmount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidMount").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentDidUpdate").mockImplementation(() => { });
         vi.spyOn(ScriptEditor.prototype, "componentWillUnmount").mockImplementation(() => { });
@@ -3417,7 +3609,7 @@ describe("Document module desktop commands", () => {
             language: "mysql",
             parent: fakePage,
         };
-        const fakeConnectionTab = {
+        const fakeConnectionWorkspace = {
             dataModelEntry: fakePage,
             connection: {
                 close: vi.fn().mockResolvedValue(undefined),
@@ -3448,7 +3640,7 @@ describe("Document module desktop commands", () => {
 
         await act(async () => {
             moduleRef.current!.setState({
-                connectionTabs: [fakeConnectionTab] as never,
+                connectionWorkspaces: [fakeConnectionWorkspace] as never,
                 selectedPage: fakePage.id,
                 selectedWorkspace: "connection:42",
                 loading: false,
@@ -3466,7 +3658,7 @@ describe("Document module desktop commands", () => {
         unmount();
     });
 
-    it("uses the connection tab added by showPage when creating a new script", async () => {
+    it("uses the connection workspace added by showPage when creating a new script", async () => {
         const module = new TestDocumentModule({});
         const createdDocument = {
             id: "doc-2",
@@ -3477,7 +3669,7 @@ describe("Document module desktop commands", () => {
         module.state = {
             selectedPage: "page-1",
             selectedWorkspace: "connection:42",
-            connectionTabs: [],
+            connectionWorkspaces: [],
             documentTabs: [],
             shellSessionTabs: [],
             schemaDiagramTabs: [],
@@ -3490,7 +3682,7 @@ describe("Document module desktop commands", () => {
         };
 
         vi.spyOn(module as any, "showPage").mockImplementation(async () => {
-            module.state.connectionTabs = [{
+            module.state.connectionWorkspaces = [{
                 dataModelEntry: {
                     id: "page-1",
                     caption: connectionDetails.caption,
@@ -3523,8 +3715,96 @@ describe("Document module desktop commands", () => {
         }));
         expect(handleSelectItemSpy).toHaveBeenCalledWith({
             document: createdDocument,
-            tabId: "page-1",
+            pageId: "page-1",
             content: "",
         });
     });
+
+    it("reuses the workspace user connection when opening another user tab", async () => {
+        const module = new TestDocumentModule({});
+        const sharedConnection = createElectronWorkspaceConnection();
+        const existingUserConnection = sharedConnection.connection;
+        const userPage = {
+            id: "user-page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+        };
+
+        module.state = {
+            selectedPage: userPage.id,
+            selectedWorkspace: "connection:42",
+            connectionWorkspaces: [{
+                dataModelEntry: userPage,
+                connection: existingUserConnection,
+                suppressAbout: false,
+            }] as never,
+            documentTabs: [],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+        (module as any).connectionPresentation.set(userPage, createConnectionPresentationState());
+        const addConnectionWorkspaceSpy = vi.spyOn(module as any, "addConnectionWorkspace").mockResolvedValue(true);
+        vi.spyOn(module as any, "setStatePromise").mockImplementation((state: Record<string, unknown>) => {
+            module.state = { ...module.state, ...state };
+
+            return Promise.resolve();
+        });
+
+        await (module as any).activateConnectionWorkspace(existingUserConnection, false, false, "script", false);
+
+        expect(addConnectionWorkspaceSpy).not.toHaveBeenCalled();
+        expect(module.state.connectionWorkspaces).toHaveLength(1);
+        expect(module.state.selectedPage).toBe(userPage.id);
+    });
+
+    it("reuses the workspace service connection when opening another admin tab", async () => {
+        const module = new TestDocumentModule({});
+        const sharedConnection = createElectronWorkspaceConnection();
+        const existingServiceConnection = sharedConnection.connection;
+        const servicePage = {
+            id: "service-page-1",
+            caption: connectionDetails.caption,
+            details: connectionDetails,
+        };
+
+        module.state = {
+            selectedPage: servicePage.id,
+            selectedWorkspace: "connection:42",
+            connectionWorkspaces: [{
+                dataModelEntry: servicePage,
+                connection: existingServiceConnection,
+                suppressAbout: false,
+            }] as never,
+            documentTabs: [],
+            shellSessionTabs: [],
+            schemaDiagramTabs: [],
+            sidebarState: new Map(),
+            showSidebar: false,
+            showTabs: true,
+            loading: false,
+            progressMessage: "",
+            overviewId: "overview",
+        };
+        (module as any).connectionPresentation.set(servicePage, createConnectionPresentationState());
+        (module as any).serviceOnlyConnectionPages.add(servicePage.id);
+        const addConnectionWorkspaceSpy = vi.spyOn(module as any, "addConnectionWorkspace").mockResolvedValue(true);
+        vi.spyOn(module as any, "setStatePromise").mockImplementation((state: Record<string, unknown>) => {
+            module.state = { ...module.state, ...state };
+
+            return Promise.resolve();
+        });
+
+        await (module as any).activateConnectionWorkspace(existingServiceConnection, false, false, "none", true);
+
+        expect(addConnectionWorkspaceSpy).not.toHaveBeenCalled();
+        expect(module.state.connectionWorkspaces).toHaveLength(1);
+        expect(module.state.selectedPage).toBe(servicePage.id);
+    });
+
 });

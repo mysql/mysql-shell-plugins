@@ -87,12 +87,17 @@ class SqlEditorModuleSession(DbModuleSession):
             self._db_user_session.reconnect(db_session.connection_options)
 
     def on_user_session_connected(self, db_session):
+        info = db_session.info()
+        if db_session.database_type == "MySQL":
+            info["connection_id"] = db_session.connection_id
+            info["service_connection_id"] = self._db_service_session.connection_id
+
         data = Response.pending(
             "Connection was successfully opened.",
             {
                 "result": {
                     "module_session_id": self._module_session_id,
-                    "info": db_session.info(),
+                    "info": info,
                     "default_schema": db_session.get_default_schema(),
                 }
             },

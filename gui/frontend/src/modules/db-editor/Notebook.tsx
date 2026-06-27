@@ -53,7 +53,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import type { EditorLanguage } from "../../supplement/index.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
-import type { IConnectionPresentationState, IOpenDocumentState } from "./ConnectionTab.js";
+import type { IConnectionPresentationState, IOpenDocumentState } from "./ConnectionWorkspace.js";
 import { DocumentToolbar, type IDesktopRunState } from "./DocumentToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
 import { IToolbarItems } from "./index.js";

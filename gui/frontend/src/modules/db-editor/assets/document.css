@@ -593,6 +593,10 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     text-shadow: none;
 }
 
+.msg .desktopStatusConnectionInfoIndicator {
+    width: auto;
+}
+
 .msg .desktopStatusAreaSecondary {
     align-items: stretch;
     justify-content: center;
@@ -722,13 +726,13 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     margin-left: 4px;
 }
 
-.msg.connectionTabHost {
+.msg.connectionWorkspaceHost {
     flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
 }
 
-.msg.connectionTabHost #documentToolbar #lakehouseNavigatorButton {
+.msg.connectionWorkspaceHost #documentToolbar #lakehouseNavigatorButton {
     flex: 0 0 20px;
 }
 

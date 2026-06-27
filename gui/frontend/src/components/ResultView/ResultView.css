@@ -403,7 +403,7 @@
     mask-repeat: repeat-y;
 }
 
-.msg.connectionTabHost .resultHost .actionOutput {
+.msg.connectionWorkspaceHost .resultHost .actionOutput {
     padding: 2px;
     flex: 1;
     gap: 2px;
@@ -429,7 +429,7 @@
     font-family: var(--msg-monospace-font-family);
 }
 
-.msg.connectionTabHost .resultHost .copyButton,
+.msg.connectionWorkspaceHost .resultHost .copyButton,
 .msg.dbModuleTabview .standaloneScriptHost .resultHost .copyButton,
 .zoneHost > .renderTarget > .resultHost .copyButton,
 .zoneHost > .renderTarget > .outputHost .copyButton,
@@ -447,7 +447,7 @@
     z-index: 1;
 }
 
-.msg.connectionTabHost .resultHost:hover .copyButton,
+.msg.connectionWorkspaceHost .resultHost:hover .copyButton,
 .msg.dbModuleTabview .standaloneScriptHost .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .outputHost:hover .copyButton,

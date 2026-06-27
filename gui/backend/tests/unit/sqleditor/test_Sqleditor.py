@@ -47,6 +47,7 @@ class Parameters:
     _module_session = None
     _module_session_id = None
     _db_connection_id = None
+    _open_connection_info = None
 
 
 @pytest.fixture(scope="module")
@@ -62,6 +63,7 @@ def params():
             or values["request_state"]["msg"] != "Connection was successfully opened."
         ):
             raise Exception("Failed opening connection.")
+        parameters._open_connection_info = values["result"]["info"]
 
     parameters._web_session.register_callback(
         open_connection_cb.request_id, open_connection_cb
@@ -112,6 +114,14 @@ def params():
 
 
 class Test_sql_editor:
+
+    def test_open_connection_returns_cached_connection_ids(self, params):
+        assert isinstance(params._open_connection_info["connection_id"], int)
+        assert isinstance(params._open_connection_info["service_connection_id"], int)
+        assert (
+            params._open_connection_info["connection_id"]
+            != params._open_connection_info["service_connection_id"]
+        )
 
     def test_should_ignore_history_entry_honors_sql_ignore_pattern(self):
         original_pattern = mysqlsh.globals.shell.options["history.sql.ignorePattern"]

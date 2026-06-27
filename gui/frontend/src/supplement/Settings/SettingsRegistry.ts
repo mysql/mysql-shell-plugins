@@ -337,6 +337,14 @@ export const registerSettings = (): void => {
         false,
     );
     registerSetting(
+        "editor.showConnectionInfo",
+        "Connection Information",
+        "Shows the active workspace's user and service connection IDs in the status area.",
+        "boolean",
+        false,
+        false,
+    );
+    registerSetting(
         "editor.dbVersion",
         "MySQL DB Version",
         "The default version to be used for MySQL language support, if no version is available.",

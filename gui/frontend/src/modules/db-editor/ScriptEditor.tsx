@@ -50,7 +50,7 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import type { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
-import type { IOpenDocumentState, ISavedEditorState } from "./ConnectionTab.js";
+import type { IOpenDocumentState, ISavedEditorState } from "./ConnectionWorkspace.js";
 import type { IDesktopRunState } from "./DocumentToolbar.js";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
 import type { IToolbarItems } from "./index.js";

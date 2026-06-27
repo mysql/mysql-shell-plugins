@@ -53,6 +53,7 @@ export type DesktopCommandId =
     "database.mrs.browseDocs" |
     "view.find" |
     "view.toggleSidebar" |
+    "view.showConnectionInfo" |
     "view.schemas.showSystemSchemas" |
     "view.showHiddenCharacters" |
     "view.softWrap";

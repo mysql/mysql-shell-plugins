@@ -758,7 +758,7 @@ export class OpenDocumentDataModel {
     }
 
     /**
-     * Adds a new connection tab to the data model, if it doesn't exist yet.
+     * Adds a new connection workspace to the data model, if it doesn't exist yet.
      *
      * @param provider The provider which hosts the app that contains the document.
      * @param connection If the tab page doesn't exist yet, a new one is created, using this connection record.
@@ -767,7 +767,7 @@ export class OpenDocumentDataModel {
      *
      * @returns The connection page entry which was found or has been created.
      */
-    public addConnectionTab(provider: IWebviewProvider | undefined,
+    public addConnectionWorkspace(provider: IWebviewProvider | undefined,
         connection: IConnectionDetails, pageId: string, caption?: string): IOdmConnectionPageEntry {
         const entry = this.openProvider(provider);
         const pageList = entry?.connectionPages ?? this.#defaultProvider.connectionPages;

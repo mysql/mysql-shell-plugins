@@ -29,7 +29,7 @@ import { MessageType } from "../../../../../app-logic/general-types.js";
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { ICodeEditorModel, IEditorPersistentState } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor/index.js";
-import type { ISavedEditorState } from "../../../../../modules/db-editor/ConnectionTab.js";
+import type { ISavedEditorState } from "../../../../../modules/db-editor/ConnectionWorkspace.js";
 import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
 import { StandalonePresentationInterface } from "../../../../../modules/db-editor/execution/StandalonePresentationInterface.js";
 import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";

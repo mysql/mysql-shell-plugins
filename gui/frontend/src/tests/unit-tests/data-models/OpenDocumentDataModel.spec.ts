@@ -138,7 +138,7 @@ describe("OpenDocumentDataModel", () => {
         expect(provider1).not.toBeUndefined();
 
         let pageId = uuid();
-        const page = dataModel.addConnectionTab(webviewProviderMock1, connectionDetailsMock1[0], pageId);
+        const page = dataModel.addConnectionWorkspace(webviewProviderMock1, connectionDetailsMock1[0], pageId);
         const roots = dataModel.roots;
         expect(roots).toHaveLength(1);
         expect(roots[0]).toMatchObject(expect.objectContaining({
@@ -180,7 +180,7 @@ describe("OpenDocumentDataModel", () => {
         expect(connections).toHaveLength(1);
 
         pageId = uuid();
-        dataModel.addConnectionTab(undefined, connection, pageId);
+        dataModel.addConnectionWorkspace(undefined, connection, pageId);
 
         connections = dataModel.findConnections(webviewProviderMock2, 1);
         expect(connections).toHaveLength(0);

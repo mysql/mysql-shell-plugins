@@ -491,10 +491,15 @@ export class ElectronWorkbench {
 
         for (const [columnTitle, value] of Object.entries(values)) {
             const cell = await this.resultGridCell(-1, columnTitle);
+            await expect(cell).toBeVisible({ timeout: 15000 });
             await cell.evaluate((element: HTMLElement) => {
                 element.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
             });
             const editor = cell.locator("input, textarea").first();
+            if (!await this.waitForVisible(editor, 1000)) {
+                await cell.click({ force: true });
+                await this.page.keyboard.press("Enter");
+            }
             await expect(editor).toBeVisible({ timeout: 15000 });
             await editor.fill(value);
             await this.page.keyboard.press("Enter");

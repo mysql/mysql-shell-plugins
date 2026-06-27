@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "@testing-library/preact";
+import { act, render } from "@testing-library/preact";
 import { type ComponentChild, createRef } from "preact";
 import { afterAll, beforeAll, describe, expect, it, vi, type Mock } from "vitest";
 
@@ -36,12 +36,12 @@ import { ConnectionDataModel, type ICdmConnectionEntry } from "../../../../data-
 import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
 import { ConnectionProcessor } from "../../../../modules/common/ConnectionProcessor.js";
 import {
-    DocumentModule, type IConnectionTab, type IDocumentModuleState,
+    DocumentModule, type IConnectionWorkspacePage, type IDocumentModuleState,
 } from "../../../../modules/db-editor/DocumentModule.js";
 import type { IDocumentSideBarSectionState } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
 import { sendSqlUpdatesFromModel } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
-import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionTab.js";
+import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionWorkspace.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
 import { Assets } from "../../../../supplement/Assets.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
@@ -72,7 +72,7 @@ class TestDocumentModule extends DocumentModule {
     declare public getSidebarInitialSize: () => number;
     declare public getTabCloseIcon: (entry?: IOpenDocumentState) => string | Codicon;
     declare public renderTabCloseButtonContent: (entry?: IOpenDocumentState) => ComponentChild;
-    declare public getConnectionTabIcon: (entry?: { document: { type: number } }) => string;
+    declare public getConnectionWorkspaceIcon: (entry?: { document: { type: number } }) => string;
     public dataModel(): ConnectionDataModel {
         return (this.context as DocumentContextType).connectionsDataModel;
     }
@@ -170,7 +170,7 @@ describe("Document module tests", (): void => {
         const state: IDocumentModuleState = {
             selectedPage: "",
             selectedWorkspace: "__workspace_home__",
-            connectionTabs: [],
+            connectionWorkspaces: [],
             documentTabs: [],
             shellSessionTabs: [],
             schemaDiagramTabs: [],
@@ -200,7 +200,7 @@ describe("Document module tests", (): void => {
         expect(module.getSidebarInitialSize()).toBe(0);
     });
 
-    it("Test DocumentModule adding connection tab", async () => {
+    it("Test DocumentModule adding connection workspace", async () => {
         const moduleRef = createRef<TestDocumentModule>();
         const { unmount } = render(
             <TestDocumentModule ref={moduleRef} />,
@@ -221,7 +221,7 @@ describe("Document module tests", (): void => {
         unmount();
     });
 
-    it("Test DocumentModule function requisitions.openConnectionTab for MySQL", async () => {
+    it("Test DocumentModule function requisitions.openConnectionWorkspace for MySQL", async () => {
         const moduleRef = createRef<TestDocumentModule>();
         const { unmount } = render(
             <TestDocumentModule ref={moduleRef} />,
@@ -235,18 +235,73 @@ describe("Document module tests", (): void => {
 
         const initialSelectedPage = moduleRef.current!.state.selectedPage;
 
-        // Open the same page again, but with force set to true, to add a new tab.
-        await requisitions.execute("openConnectionTab", {
+        // Open the same connection again, requesting a new workspace.
+        await requisitions.execute("openConnectionWorkspace", {
             connection: dataModel.createConnectionEntry(testMySQLConnection),
-            force: true,
+            createNewWorkspace: true,
             initialEditor: "default",
         });
 
         const state = moduleRef.current!.state;
 
         // The selectedPage is expected to change, but its ID (actually now UUID) is generated
-        // within DBEditorModule::activateConnectionTab, so we cannot assert its exact value here.
+        // within DBEditorModule::activateConnectionWorkspace, so we cannot assert its exact value here.
         expect(state.selectedPage).not.toBe(initialSelectedPage);
+        expect(state.connectionWorkspaces).toHaveLength(2);
+        expect(state.connectionWorkspaces[0]?.connection).not.toBe(state.connectionWorkspaces[1]?.connection);
+        expect(state.connectionWorkspaces[0]?.connection.backend)
+            .not.toBe(state.connectionWorkspaces[1]?.connection.backend);
+
+        const firstConnectionId = await state.connectionWorkspaces[0]?.connection.backend
+            .execute("SELECT CONNECTION_ID()");
+        const secondConnectionId = await state.connectionWorkspaces[1]?.connection.backend
+            .execute("SELECT CONNECTION_ID()");
+        expect(firstConnectionId?.rows?.[0]).not.toEqual(secondConnectionId?.rows?.[0]);
+
+        const firstConnection = state.connectionWorkspaces[0]?.connection as ICdmConnectionEntry & {
+            userConnectionId?: number;
+            serviceConnectionId?: number;
+        };
+        const secondConnection = state.connectionWorkspaces[1]?.connection as ICdmConnectionEntry & {
+            userConnectionId?: number;
+            serviceConnectionId?: number;
+        };
+        expect(firstConnection.userConnectionId).toEqual(expect.any(Number));
+        expect(firstConnection.serviceConnectionId).toEqual(expect.any(Number));
+        expect(firstConnection.userConnectionId).not.toBe(firstConnection.serviceConnectionId);
+        expect(firstConnection.userConnectionId).not.toBe(secondConnection.userConnectionId);
+        expect(firstConnection.serviceConnectionId).not.toBe(secondConnection.serviceConnectionId);
+
+        const workspaceProbe = moduleRef.current as unknown as {
+            doSwitchTab: (pageId: string) => void;
+            getActiveConnectionWorkspace: () => { connection: ICdmConnectionEntry; } | undefined;
+        };
+        await act(async () => {
+            workspaceProbe.doSwitchTab(state.connectionWorkspaces[0].dataModelEntry.id);
+            await nextRunLoop();
+        });
+        expect(workspaceProbe.getActiveConnectionWorkspace()?.connection)
+            .toBe(state.connectionWorkspaces[0]?.connection);
+
+        await act(async () => {
+            workspaceProbe.doSwitchTab(state.connectionWorkspaces[1].dataModelEntry.id);
+            await nextRunLoop();
+        });
+        expect(workspaceProbe.getActiveConnectionWorkspace()?.connection)
+            .toBe(state.connectionWorkspaces[1]?.connection);
+
+        const workspaces = (moduleRef.current as unknown as {
+            getWorkspaces: () => Array<{ id: string; kind: string; caption: string; }>;
+        }).getWorkspaces().filter((workspace) => {
+            return workspace.kind === "connection";
+        });
+
+        expect(workspaces.map((workspace) => {
+            return workspace.caption;
+        })).toEqual([testMySQLConnection.caption, `${testMySQLConnection.caption} (2)`]);
+        expect(new Set(workspaces.map((workspace) => {
+            return workspace.id;
+        })).size).toBe(2);
 
         unmount();
     });
@@ -312,8 +367,8 @@ describe("Document module tests", (): void => {
         await requisitions.execute("showPage", { connectionId });
         await requisitions.execute("createNewEditor", newEditorRequest);
 
-        expect(moduleRef.current!.state.connectionTabs).toHaveLength(1);
-        const editorTab = moduleRef.current!.state.connectionTabs[0];
+        expect(moduleRef.current!.state.connectionWorkspaces).toHaveLength(1);
+        const editorTab = moduleRef.current!.state.connectionWorkspaces[0];
 
         expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
 
@@ -355,7 +410,7 @@ describe("Document module tests", (): void => {
         unmount();
     }, 15000);
 
-    it("Test DocumentModule function requisitions.openConnectionTab for Sqlite", async () => {
+    it("Test DocumentModule function requisitions.openConnectionWorkspace for Sqlite", async () => {
         const moduleRef = createRef<TestDocumentModule>();
         const { unmount } = render(
             <TestDocumentModule ref={moduleRef} />,
@@ -384,9 +439,9 @@ describe("Document module tests", (): void => {
             index: -1,
         };
 
-        await requisitions.execute("openConnectionTab", {
+        await requisitions.execute("openConnectionWorkspace", {
             connection: dataModel.createConnectionEntry(testSqliteConnection),
-            force: true,
+            createNewWorkspace: true,
             initialEditor: "default",
         });
         await nextRunLoop();
@@ -511,8 +566,8 @@ EXAMPLES
 
         await requisitions.execute("createNewEditor", newEditorRequest);
 
-        expect(moduleRef.current!.state.connectionTabs).toHaveLength(1);
-        const editorTab = moduleRef.current!.state.connectionTabs[0];
+        expect(moduleRef.current!.state.connectionWorkspaces).toHaveLength(1);
+        const editorTab = moduleRef.current!.state.connectionWorkspaces[0];
 
         expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
 
@@ -521,16 +576,16 @@ EXAMPLES
         unmount();
     });
 
-    it("uses a notebook icon for notebook connection tabs", () => {
+    it("uses a notebook icon for notebook connection workspaces", () => {
         const module = new TestDocumentModule({});
 
-        expect(module.getConnectionTabIcon({
+        expect(module.getConnectionWorkspaceIcon({
             document: { type:  OdmEntityType.Notebook },
         })).toBe(Assets.documents.notebookIcon);
-        expect(module.getConnectionTabIcon({
+        expect(module.getConnectionWorkspaceIcon({
             document: { type:  OdmEntityType.Script },
         })).toBe(Assets.misc.scriptIcon);
-        expect(module.getConnectionTabIcon()).toBe(Assets.misc.scriptIcon);
+        expect(module.getConnectionWorkspaceIcon()).toBe(Assets.misc.scriptIcon);
     });
 
     it("uses a dirty indicator instead of the close icon for unsaved documents", () => {
@@ -650,7 +705,7 @@ EXAMPLES
         module.state = {
             selectedPage: "doc-1",
             selectedWorkspace: "__workspace_general__",
-            connectionTabs: [],
+            connectionWorkspaces: [],
             documentTabs: [{
                 dataModelEntry: {
                     id: "doc-1",
@@ -684,7 +739,7 @@ EXAMPLES
         );
     });
 
-    it("asks before closing a background connection tab with an inactive dirty document", async () => {
+    it("asks before closing a background connection workspace with an inactive dirty document", async () => {
         const module = new TestDocumentModule({});
         const confirmMock = uiLayerMock.confirm as Mock;
         const pageEntry = { id: "page-1" };
@@ -721,9 +776,9 @@ EXAMPLES
         module.state = {
             selectedPage: "other-page",
             selectedWorkspace: "__workspace_home__",
-            connectionTabs: [{
+            connectionWorkspaces: [{
                 dataModelEntry: pageEntry,
-            } as unknown as IConnectionTab],
+            } as unknown as IConnectionWorkspacePage],
             documentTabs: [],
             shellSessionTabs: [],
             schemaDiagramTabs: [],
@@ -752,13 +807,13 @@ EXAMPLES
         );
     });
 
-    it("allows closing the selected shell tab without using the connection tab ref", async () => {
+    it("allows closing the selected shell tab without using the connection workspace ref", async () => {
         const module = new TestDocumentModule({});
 
         module.state = {
             selectedPage: "shell-1",
             selectedWorkspace: "__workspace_general__",
-            connectionTabs: [],
+            connectionWorkspaces: [],
             documentTabs: [],
             shellSessionTabs: [{
                 dataModelEntry: { id: "shell-1" },

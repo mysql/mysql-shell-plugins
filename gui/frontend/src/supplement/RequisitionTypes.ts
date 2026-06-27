@@ -255,7 +255,7 @@ export interface IDebuggerData {
 
 /** The data sent when opening an editor. */
 export interface IDocumentOpenData {
-    /** The id of the page which will host the new document. Can be a connection tab or a standalone tab. */
+    /** The id of the page which will host the new document. Can be a connection workspace or a standalone tab. */
     readonly pageId?: string;
 
     /** Has to be set to allow creating a data model entry for the document, if needed. */
@@ -455,9 +455,13 @@ export interface IRequestTypeMap {
 
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
 
-    /** Used only within the frontend, to open or activate a connection tab for the given connection entry. */
-    "openConnectionTab": (
-        data: { connection: ICdmConnectionEntry; force: boolean; initialEditor: InitialEditor; }) => Promise<boolean>;
+    /** Used only within the frontend, to open or activate a connection workspace for the given connection entry. */
+    "openConnectionWorkspace": (
+        data: {
+            connection: ICdmConnectionEntry;
+            createNewWorkspace: boolean;
+            initialEditor: InitialEditor;
+        }) => Promise<boolean>;
 
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
@@ -632,7 +636,7 @@ export interface IRequestTypeMap {
     /** Triggered when the list of connections has been updated and is now available. */
     "connectionsUpdated": SimpleCallback;
 
-    "selectConnectionTab": (details: { connectionId: number; pageId?: string; }) => Promise<boolean>;
+    "selectConnectionWorkspace": (details: { connectionId: number; pageId?: string; }) => Promise<boolean>;
 
     /** Update extension code blocks. */
     "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;

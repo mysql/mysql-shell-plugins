@@ -43,7 +43,7 @@ import type { ISqlTransactionChangeDetails } from "../../supplement/RequisitionT
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
-import type { IOpenDocumentState } from "./ConnectionTab.js";
+import type { IOpenDocumentState } from "./ConnectionWorkspace.js";
 import { IToolbarItems } from "./index.js";
 import { getNextTransactionOpenState } from "./transactionState.js";
 

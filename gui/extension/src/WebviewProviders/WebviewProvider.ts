@@ -210,7 +210,7 @@ export class WebviewProvider implements IWebviewProvider {
     protected requisitionsCreated(): void {
         if (this.requisitions) {
             this.requisitions.register("settingsChanged", this.updateVscodeSettings);
-            this.requisitions.register("selectConnectionTab", this.selectConnectionTab);
+            this.requisitions.register("selectConnectionWorkspace", this.selectConnectionWorkspace);
             this.requisitions.register("dialogResponse", this.dialogResponse);
             this.requisitions.register("updateStatusBarItem", this.updateStatusBarItem);
             this.requisitions.register("showError", this.showError);
@@ -226,7 +226,7 @@ export class WebviewProvider implements IWebviewProvider {
         }
     }
 
-    private selectConnectionTab = (details: {
+    private selectConnectionWorkspace = (details: {
         connectionId: number, page: string;
         pageId?: string;
     }): Promise<boolean> => {
@@ -234,7 +234,7 @@ export class WebviewProvider implements IWebviewProvider {
         if (this.panel) {
             return requisitions.execute("proxyRequest", {
                 provider: this,
-                original: { requestType: "selectConnectionTab", parameter: details },
+                original: { requestType: "selectConnectionWorkspace", parameter: details },
             });
         }
 

@@ -111,13 +111,12 @@ test.describe("Desktop command integration", () => {
         await workbench.expectVisibleWithoutPassword(page.locator("#serverStatusOverview"), "Server Status");
         await expect(page.locator("#serverStatusOverview")).toContainText("Server Status");
 
-        await workbench.selectTab(untitledSqlScriptTab);
         await workbench.clickMenu(["Database", "Client Connections"]);
-        await workbench.expectVisibleWithoutPassword(page.locator("#clientConnectionsOverview"), "Client Connections");
-        await expect(page.locator("#clientConnectionsOverview")).toContainText("Client Connections");
+        await workbench.expectVisibleWithoutPassword(page.locator("#connectionList"), "Client Connections");
+        await expect(page.locator("#connectionList")).toBeVisible();
     });
 
-    test("reuses the same two server connections for administration pages", async ({ page, workbench }) => {
+    test("reuses the administration server connection", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
         const connection = {
@@ -129,23 +128,24 @@ test.describe("Desktop command integration", () => {
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
         await workbench.waitForSchemasTreeReady();
 
+        let initialConnectionCount = 0;
         await expect.poll(() => {
-            return openConnectionCount(connection);
+            initialConnectionCount = openConnectionCount(connection);
+
+            return initialConnectionCount;
         }, { timeout: 15000 }).toBe(2);
 
         await workbench.clickMenu(["Database", "Server Status"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#serverStatusOverview"), "Server Status");
 
-        await workbench.selectTab(untitledSqlScriptTab);
         await workbench.clickMenu(["Database", "Client Connections"]);
-        await workbench.expectVisibleWithoutPassword(page.locator("#clientConnectionsOverview"), "Client Connections");
+        await workbench.expectVisibleWithoutPassword(page.locator("#connectionList"), "Client Connections");
 
-        await workbench.selectTab(untitledSqlScriptTab);
         await workbench.clickMenu(["Database", "Server Status"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#serverStatusOverview"), "Server Status");
 
         await expect.poll(() => {
             return openConnectionCount(connection);
-        }, { timeout: 15000 }).toBe(2);
+        }, { timeout: 15000 }).toBe(initialConnectionCount + 1);
     });
 });

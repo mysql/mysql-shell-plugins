@@ -223,11 +223,11 @@ describe("ShellInterfaceDb Tests", () => {
                 moduleSessionId: "interactiveSessionId",
             },
         });
-        await editor.startServiceSession("adminOnly", testConnection.id);
+        await editor.startServiceSession("adminOnly", testConnection.id, "dummy");
 
         expect(sendInteractiveRequestSpy).toHaveBeenCalledWith(expect.objectContaining({
             requestType: ShellAPIGui.GuiDbStartSession,
-            parameters: { args: { connection: testConnection.id } },
+            parameters: { args: { connection: testConnection.id, password: "dummy" } },
         }));
 
         await editor.closeSession();

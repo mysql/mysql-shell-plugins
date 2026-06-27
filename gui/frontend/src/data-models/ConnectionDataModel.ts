@@ -594,6 +594,12 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
     /** Indicates if the editor session is open currently. This can change over time. */
     isOpen: boolean;
 
+    /** The server-side ID of the user/editor connection for this transient workspace entry. */
+    readonly userConnectionId?: number;
+
+    /** The server-side ID of the service/admin connection for this transient workspace entry. */
+    readonly serviceConnectionId?: number;
+
     /**
      * After opening an editor session, this entries tracks the current schema in that connection and can be used
      * to set the current schema of the connection.
@@ -612,11 +618,11 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
     /** Closes this connection and frees resources. Call {@link initialize} to open it again. */
     close(): Promise<void>;
 
-    /** Creates a copy of this connection and opens it. */
-    duplicate(): Promise<ICdmConnectionEntry>;
+    /** Opens the user DB connection and refreshes this entry's children. */
+    initialize(callback?: ProgressCallback): Promise<boolean>;
 
-    /** Creates a copy of this connection and opens only its DB service session. */
-    duplicateServiceOnly(): Promise<ICdmConnectionEntry>;
+    /** Opens only this connection's DB service session. */
+    initializeServiceOnly(callback?: ProgressCallback): Promise<boolean>;
 }
 
 /** Connections can be grouped together and this is the entry for such groups. */

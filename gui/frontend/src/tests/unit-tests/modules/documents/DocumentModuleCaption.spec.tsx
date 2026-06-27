@@ -26,7 +26,7 @@
 import { describe, expect, it } from "vitest";
 
 import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
-import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionTab.js";
+import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionWorkspace.js";
 import {
     getDefaultDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex,
 } from "../../../../modules/db-editor/DocumentCaptionHelpers.js";
