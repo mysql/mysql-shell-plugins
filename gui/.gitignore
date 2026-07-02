@@ -60,6 +60,7 @@ electron/packaging/desktop-packages
 electron/packaging/desktop-artifacts
 electron/packaging/electron
 electron/packaging/mysql-shell-staging
+electron/packaging/temp
 
 # e2e testing
 electron/test-reports

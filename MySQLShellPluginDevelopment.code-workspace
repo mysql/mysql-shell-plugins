@@ -101,6 +101,10 @@
             "output": true,
             "util_plugin": true
         },
+        "files.watcherExclude": {
+            "**/gui/electron/packaging/**": true,
+            "**/packaging/**": true
+        },
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "launch": {

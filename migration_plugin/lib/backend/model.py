@@ -23,7 +23,7 @@
 
 from enum import StrEnum, IntEnum
 import enum
-from typing import Optional, Any
+from typing import Optional, Any, Callable, cast
 import json
 import inspect
 from dataclasses import dataclass, field, asdict
@@ -136,7 +136,9 @@ class MigrationMessage(object):
                     else:
                         assert callable(expected_type), expected_type
 
-                        return expected_type(value)
+                        expected_callable = cast(Callable[[Any], Any], expected_type)
+
+                        return expected_callable(value)
                 else:
                     raise Exception(
                         f"Message contains invalid value for '{field}' (only None allowed but value is {value})"
