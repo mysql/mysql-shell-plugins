@@ -1994,31 +1994,33 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                         <div className="desktopWorkspaceTitlebarGrid">
                             <Container className="desktopWorkspaceTitlebarLeft" orientation={Orientation.LeftToRight}>
                                 {!showSidebar && this.renderDesktopSidebarToggle(showSidebar)}
-                                <Dropdown
-                                    ref={this.workspaceSelectorRef}
-                                    id="workspaceSelector"
-                                    selection={activeWorkspace.id}
-                                    variant={DropdownVariant.AiryDropdown}
-                                    onSelect={this.handleWorkspaceSelection}
-                                >
-                                    {workspaceDropdownItems}
-                                </Dropdown>
-                                {activeWorkspaceTags.length > 0 &&
-                                    <div className="desktopWorkspaceSelectorTags">
-                                        {activeWorkspaceTags.map((tag) => {
-                                            return <span
-                                                key={tag.caption}
-                                                className="desktopWorkspaceSelectorTag"
-                                                style={{
-                                                    backgroundColor: tag.backgroundColor,
-                                                    color: tag.foregroundColor,
-                                                }}
-                                            >
-                                                {tag.caption}
-                                            </span>;
-                                        })}
-                                    </div>
-                                }
+                                <Container className="desktopWorkspaceSelectorHost" orientation={Orientation.TopDown}>
+                                    <Dropdown
+                                        ref={this.workspaceSelectorRef}
+                                        id="workspaceSelector"
+                                        selection={activeWorkspace.id}
+                                        variant={DropdownVariant.AiryDropdown}
+                                        onSelect={this.handleWorkspaceSelection}
+                                    >
+                                        {workspaceDropdownItems}
+                                    </Dropdown>
+                                    {activeWorkspaceTags.length > 0 &&
+                                        <div className="desktopWorkspaceSelectorTags">
+                                            {activeWorkspaceTags.map((tag) => {
+                                                return <span
+                                                    key={tag.caption}
+                                                    className="desktopWorkspaceSelectorTag"
+                                                    style={{
+                                                        backgroundColor: tag.backgroundColor,
+                                                        color: tag.foregroundColor,
+                                                    }}
+                                                >
+                                                    {tag.caption}
+                                                </span>;
+                                            })}
+                                        </div>
+                                    }
+                                </Container>
                             </Container>
                             <div className="desktopWorkspaceTitlebarCenter">
                                 {statusArea}

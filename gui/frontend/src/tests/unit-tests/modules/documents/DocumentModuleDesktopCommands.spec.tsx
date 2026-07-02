@@ -432,6 +432,8 @@ describe("Document module desktop commands", () => {
         let titlebarTag = container.querySelector<HTMLElement>(".desktopWorkspaceSelectorTag");
         expect(titlebarTag?.textContent).toBe("DEV");
         expect(titlebarTag?.style.backgroundColor).toBe("rgb(194, 65, 12)");
+        const selectorHost = titlebarTag?.closest(".desktopWorkspaceSelectorHost");
+        expect(selectorHost?.querySelector("#workspaceSelector + .desktopWorkspaceSelectorTags")).toBeTruthy();
         tagColors = {
             DEV: "#1d4ed8",
         };

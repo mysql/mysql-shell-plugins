@@ -336,7 +336,6 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     max-width: 100%;
     gap: 3px;
     margin: -4px 38px 1px 12px;
-    opacity: 0.6;
     overflow: hidden;
 }
 
