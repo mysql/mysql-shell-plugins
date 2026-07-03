@@ -988,21 +988,56 @@ export class MigrationAssistant {
             return true;
         }
 
-        await box.click();
         const popup = this.page.locator(popupSelector);
-        await this.waitForOptionalVisible(popup, waitForResourceOptionsTimeout);
-        const option = popup.locator("[role='option']").filter({
-            hasText: this.normalizeTreeDropdownValue(value).replace(/^[-–—]+/u, "").trim(),
-        }).first();
-        if (await this.waitForOptionalVisible(option, waitForResourceOptionsTimeout)
-            && this.treeDropdownValueMatches(await option.textContent(), value)) {
-            await option.click();
-            await this.waitForLoadingIcon();
+        let sawMatchingOption = false;
+        const selected = await expect.poll(async () => {
+            if (this.treeDropdownValueMatches(await box.textContent(), value)) {
+                return true;
+            }
 
+            if (!await popup.isVisible().catch(() => {
+                return false;
+            })) {
+                await box.click();
+                if (!await this.waitForOptionalVisible(popup, wait1second * 2)) {
+                    return false;
+                }
+            }
+
+            const options = await popup.locator("[role='option']").all();
+            for (const option of options) {
+                if (!this.treeDropdownValueMatches(await option.textContent(), value)) {
+                    continue;
+                }
+
+                sawMatchingOption = true;
+                await option.click();
+                await this.waitForLoadingIcon();
+
+                return this.treeDropdownValueMatches(await box.textContent(), value);
+            }
+
+            return false;
+        }, {
+            timeout: waitForResourceOptionsTimeout,
+            message: `Tree dropdown ${boxSelector} should select ${value}`,
+        }).toBe(true).then(() => {
+            return true;
+        }).catch(() => {
+            return false;
+        });
+
+        if (selected) {
             return true;
         }
 
-        return false;
+        if (!sawMatchingOption) {
+            return false;
+        }
+
+        const actualValue = await box.textContent();
+        throw new Error(`Tree dropdown ${boxSelector} option ${value} was clicked, ` +
+            `but selected value did not become ${value}; actual selected value is ${actualValue ?? "<empty>"}`);
     }
 
     public async waitForCompatibilityChecksDoneWithIssues(): Promise<void> {
