@@ -32,7 +32,6 @@ import {
 } from "../../../components/Dialogs/ValueEditDialog.js";
 import { isStandalone } from "../../../utilities/helpers.js";
 
-
 export class MdsEndpointDialog extends ValueDialogBase {
     private dialogRef = createRef<ValueEditDialog>();
 

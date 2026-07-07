@@ -85,6 +85,7 @@ import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
 import { ClientConnections, type IClientConnectionsSavedState } from "./ClientConnections.js";
+import { EnterpriseBackup, type IEnterpriseBackupSavedState } from "./EnterpriseBackup.js";
 import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
 import { Notebook } from "./Notebook.js";
@@ -145,6 +146,7 @@ export interface IOpenDocumentState {
 export interface IAdminPageStates {
     lakehouseNavigatorState: ILakehouseNavigatorState;
     clientConnectionsState: IClientConnectionsSavedState;
+    enterpriseBackupState?: IEnterpriseBackupSavedState;
 }
 
 /**
@@ -221,6 +223,7 @@ interface IConnectionWorkspaceProperties extends IComponentProperties {
 
     onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
     onSaveAdminClientConnectionsState?: (id: string, data: Partial<IClientConnectionsSavedState>) => void;
+    onSaveAdminEnterpriseBackupState?: (id: string, data: Partial<IEnterpriseBackupSavedState>) => void;
     onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
     onDesktopRunStateChanged?: () => void;
 }
@@ -347,7 +350,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             "showAbout", "extraLibs",
             "onHelpCommand", "onAddEditor", "onLoadEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor",
             "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction",
-            "onSaveAdminClientConnectionsState",
+            "onSaveAdminClientConnectionsState", "onSaveAdminEnterpriseBackupState",
             "onDesktopRunStateChanged");
 
     }
@@ -528,6 +531,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         const activeType = this.getActiveDesktopDocumentType();
         if (activeType === "script") {
             this.scriptRef.current?.openIntoActiveScript();
+
             return true;
         }
 
@@ -542,6 +546,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         const activeType = this.getActiveDesktopDocumentType();
         if (activeType === "script") {
             this.scriptRef.current?.saveActiveScript(saveAs);
+
             return true;
         }
 
@@ -575,7 +580,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
         return {
             ...editorRunState,
-            autoCommit: autoCommit === true,
+            autoCommit: autoCommit,
         };
     };
 
@@ -611,7 +616,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             return;
         }
 
-        const autoCommit = value === true;
+        const autoCommit = value;
         if (this.state.autoCommit === autoCommit) {
             return;
         }
@@ -779,6 +784,16 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                                 break;
                             }
 
+                            case "enterpriseBackup": {
+                                document = <EnterpriseBackup
+                                    connection={connection}
+                                    savedState={savedState.adminPageStates.enterpriseBackupState}
+                                    onStateChange={this.handleEnterpriseBackupStateChange}
+                                />;
+
+                                break;
+                            }
+
                             case "lakehouseNavigator": {
                                 document = <LakehouseNavigator
                                     backend={connection.backend}
@@ -876,6 +891,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
             return true;
         }
+
         return false;
     };
 
@@ -1205,6 +1221,8 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
      * @param details.standalone If true, the notebook will be loaded in standalone mode, otherwise like any other
      *                           editor.
      *
+     * @param details.id
+     * @param details.createNew
      * @returns A promise that resolves to true if the notebook was loaded, false if the request could not be fulfilled.
      */
     private editorLoadNotebook = async (
@@ -1218,7 +1236,10 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         /**
          * Helper method to actually create the notebook from the given text.
          *
+         * @param fileName
          * @param text The content to load into the notebook.
+         * @param editorId
+         * @param createNew
          */
         const createNotebook = async (fileName: string, text: string, editorId?: string,
             createNew = false): Promise<void> => {
@@ -1451,6 +1472,11 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
      *
      * @param details Save options and optional host-managed file metadata.
      *
+     * @param details.id
+     * @param details.fileName
+     * @param details.defaultFileName
+     * @param details.content
+     * @param details.saveAs
      * @returns A promise that resolves to true if the notebook was saved, false if the request could not be fulfilled.
      *
      * When running embedded, the current notebook path is tracked on the active editor state. Unsaved notebooks send
@@ -2917,6 +2943,12 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         const { id, onSaveAdminClientConnectionsState } = this.props;
 
         onSaveAdminClientConnectionsState?.(id ?? "", data);
+    };
+
+    private handleEnterpriseBackupStateChange = (data: Partial<IEnterpriseBackupSavedState>): void => {
+        const { id, onSaveAdminEnterpriseBackupState } = this.props;
+
+        onSaveAdminEnterpriseBackupState?.(id ?? "", data);
     };
 
     private handleLakehouseNavigatorStateChange = (data: Partial<ILakehouseNavigatorSavedState>): void => {

@@ -31,7 +31,7 @@ import { Accordion } from "../../../../components/ui/Accordion/Accordion.js";
 import { Codicon } from "../../../../components/ui/Codicon.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
-const icon = Assets.documents.overviewPageIcon as string;
+const icon = Assets.documents.overviewPageIcon;
 
 describe("Accordion component tests", (): void => {
 
@@ -110,10 +110,10 @@ describe("Accordion component tests", (): void => {
             />,
         );
 
-        const section1 = container.querySelector("#first") as HTMLElement;
+        const section1 = container.querySelector("#first")!;
         expect(section1).toBeDefined();
 
-        const section2 = container.querySelector("#second") as HTMLElement;
+        const section2 = container.querySelector("#second")!;
         expect(section2).toBeDefined();
 
         const section3 = container.querySelector("#third");
@@ -262,7 +262,7 @@ describe("Accordion component tests", (): void => {
                     />,
                 );
 
-                const sash = container.querySelector("#firstSash") as HTMLElement;
+                const sash = container.querySelector("#firstSash")!;
                 expect(sash).toBeDefined();
 
                 await act(() => {

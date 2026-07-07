@@ -564,8 +564,8 @@ describe("MigrationFilterInfo", () => {
             const result = filterInfo.getOptions();
 
             expect(result.filter).not.toBeNull();
-            expect(result.filter!.schemas.exclude).toContain("`schema1`");
-            expect(result.filter!.users.exclude).toEqual(["user1@%"]);
+            expect(result.filter.schemas.exclude).toContain("`schema1`");
+            expect(result.filter.users.exclude).toEqual(["user1@%"]);
         });
     });
 });

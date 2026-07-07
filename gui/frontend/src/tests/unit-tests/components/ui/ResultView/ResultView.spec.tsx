@@ -1636,7 +1636,7 @@ describe("Result View Tests", (): void => {
         const cancel = vi.fn();
         const internals = viewRef.current! as unknown as IResultViewInternals;
         input.addEventListener("blur", (event) => {
-            internals.handleBlurEvent(cell, success, cancel, event as FocusEvent);
+            internals.handleBlurEvent(cell, success, cancel, event);
         });
         input.value = "new";
         input.focus();

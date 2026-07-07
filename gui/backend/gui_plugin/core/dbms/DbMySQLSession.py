@@ -452,31 +452,31 @@ class DbMysqlSession(DbSession):
     def start_transaction(self):
         self.execute("START TRANSACTION")
 
-    def _run_kill_sql(self, user_session, sql):
+    def _run_kill_sql(self, user_session, sql, params):
         try:
-            self.run_sql(sql)
+            self.run_sql(sql, params)
         except mysqlsh.DBError as e:
             if user_session.is_killed() and self.is_connection_error(e.code):
                 if self._auto_reconnect and self._reconnect(True):
-                    self.run_sql(sql)
+                    self.run_sql(sql, params)
                     return
             raise
         except RuntimeError as e:
             if user_session.is_killed() and "Not connected." in str(e):
                 if self._auto_reconnect and self._reconnect(True):
-                    self.run_sql(sql)
+                    self.run_sql(sql, params)
                     return
             raise
 
     def kill_query(self, user_session):
         with lock_usage(self._mutex, 5):
             user_session._killed = True
-            self._run_kill_sql(user_session, f"KILL QUERY {user_session.connection_id}")
+            self._run_kill_sql(user_session, "KILL QUERY ?", (user_session.connection_id,))
 
     def kill_session(self, user_session):
         with lock_usage(self._mutex, 5):
             user_session._killed = True
-            self._run_kill_sql(user_session, f"KILL {user_session.connection_id}")
+            self._run_kill_sql(user_session, "KILL ?", (user_session.connection_id,))
 
     def get_default_schema(self):
         return (
@@ -509,13 +509,14 @@ class DbMysqlSession(DbSession):
                 DbExecuteTask(
                     self,
                     task_id=task_id,
-                    sql=f"USE {schema_name}",
+                    sql="USE !",
+                    params=(schema_name,),
                     result_callback=callback,
                     options=options,
                 )
             )
         else:
-            return self.execute(f"USE {schema_name}")
+            return self.execute("USE !", (schema_name,))
 
     def get_auto_commit(self, callback=None, options=None):
         if self.threaded:

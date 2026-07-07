@@ -83,6 +83,7 @@ import vectorDbIcon from "../assets/images/vectorDb.svg";
 
 import overviewPageIcon from "../assets/images/overviewPage.svg";
 import sessionIcon from "../assets/images/terminal.svg";
+import adminBackupIcon from "../assets/images/admin/adminBackup.svg";
 import adminDashboardIcon from "../assets/images/admin/adminDashboard.svg";
 import adminPerformanceDashboardIcon from "../assets/images/admin/adminPerformanceDashboard.svg";
 import adminServerStatusIcon from "../assets/images/admin/adminServerStatus.svg";
@@ -359,6 +360,7 @@ export class Assets {
     public static documents = {
         overviewPageIcon,
         sessionIcon,
+        adminBackupIcon,
         adminDashboardIcon,
         adminPerformanceDashboardIcon,
         adminServerStatusIcon,

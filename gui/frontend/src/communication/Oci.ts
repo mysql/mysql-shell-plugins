@@ -55,7 +55,7 @@ export type IBastion = Bastion;
 export type IMySQLDbSystemShapeSummary = ShapeSummary;
 export type IPortForwardingSessionTargetResourceDetails = PortForwardingSessionTargetResourceDetails;
 export type IBastionSession = Session;
-export type IVcn = Vcn
+export type IVcn = Vcn;
 export type ISubnet = Subnet;
 
 export type IAvailabilityDomain = AvailabilityDomain;

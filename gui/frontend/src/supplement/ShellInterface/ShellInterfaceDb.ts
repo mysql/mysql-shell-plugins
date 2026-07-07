@@ -113,6 +113,12 @@ export class ShellInterfaceDb {
      * Executes internal SQL on the DB service session.
      *
      * User-entered SQL must use ShellInterfaceSqlEditor.execute() instead.
+     *
+     * @param sql
+     * @param params
+     * @param requestId
+     * @param callback
+     * @param featureId
      */
     public async executeService(sql: string, params?: unknown[], requestId?: string,
         callback?: DataCallback<ShellAPIGui.GuiDbExecute>, featureId?: string):

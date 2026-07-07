@@ -268,6 +268,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
      * @param requestId The ID to use for the request sent to the backend.
      * @param callback The callback for intermediate results.
      *
+     * @param featureId
      * @returns A promise resolving to a list of records or undefined if no session is open.
      */
     public async execute(sql: string, params?: string[], requestId?: string,

@@ -66,6 +66,17 @@ def enable_plugin_command_mocks(monkeypatch):
     monkeypatch.setenv(PluginCommandMocks.ENABLE_ENVIRONMENT_VARIABLE, "1")
 
 
+def assert_pending_mock_response(execute_request):
+    web_session = MockWebSession()
+    execute_request(web_session)
+
+    assert web_session.json_responses == [
+        {"request_state": {"type": "PENDING", "msg": ""}, "request_id": "request-1"}
+    ]
+    assert web_session.done_requests == ["request-1"]
+    assert web_session.command_responses == []
+
+
 def test_plugin_command_mocks_are_disabled_by_default():
     with pytest.raises(Exception, match="Plugin command mocks are disabled"):
         PluginCommandMocks.set_plugin_command_mocks({})
@@ -182,23 +193,18 @@ def test_websocket_handler_sends_plugin_command_mock_without_invoking_plugin(
         {"gui.migration.work_status": {"responses": [{"request_state": {"type": "PENDING", "msg": ""}}]}}
     )
 
-    handler = ShellGuiWebSocketHandler.__new__(ShellGuiWebSocketHandler)
-    handler._db = MockBackendDb()
-    handler._session_user_id = 1
-    web_session = MockWebSession()
-    handler.send_json_response = web_session.send_json_response
-    handler.send_command_done = web_session.send_command_done
-    handler.send_command_response = web_session.send_command_response
+    def execute_request(web_session):
+        handler = ShellGuiWebSocketHandler.__new__(ShellGuiWebSocketHandler)
+        handler._db = MockBackendDb()
+        handler._session_user_id = 1
+        handler.send_json_response = web_session.send_json_response
+        handler.send_command_done = web_session.send_command_done
+        handler.send_command_response = web_session.send_command_response
+        handler.execute_command_request(
+            {"request_id": "request-1", "command": "gui.migration.work_status"}
+        )
 
-    handler.execute_command_request(
-        {"request_id": "request-1", "command": "gui.migration.work_status"}
-    )
-
-    assert web_session.json_responses == [
-        {"request_state": {"type": "PENDING", "msg": ""}, "request_id": "request-1"}
-    ]
-    assert web_session.done_requests == ["request-1"]
-    assert web_session.command_responses == []
+    assert_pending_mock_response(execute_request)
 
 
 def test_stdio_bridge_sends_plugin_command_mock_without_invoking_plugin(monkeypatch):
@@ -211,18 +217,13 @@ def test_stdio_bridge_sends_plugin_command_mock_without_invoking_plugin(monkeypa
         }
     )
 
-    bridge = ShellGuiStdioBridge.__new__(ShellGuiStdioBridge)
-    web_session = MockWebSession()
-    bridge.send_json_response = web_session.send_json_response
-    bridge.send_command_done = web_session.send_command_done
-    bridge.send_command_response = web_session.send_command_response
+    def execute_request(web_session):
+        bridge = ShellGuiStdioBridge.__new__(ShellGuiStdioBridge)
+        bridge.send_json_response = web_session.send_json_response
+        bridge.send_command_done = web_session.send_command_done
+        bridge.send_command_response = web_session.send_command_response
+        bridge.execute_command_request(
+            {"request_id": "request-1", "command": "gui.migration.work_status"}
+        )
 
-    bridge.execute_command_request(
-        {"request_id": "request-1", "command": "gui.migration.work_status"}
-    )
-
-    assert web_session.json_responses == [
-        {"request_state": {"type": "PENDING", "msg": ""}, "request_id": "request-1"}
-    ]
-    assert web_session.done_requests == ["request-1"]
-    assert web_session.command_responses == []
+    assert_pending_mock_response(execute_request)

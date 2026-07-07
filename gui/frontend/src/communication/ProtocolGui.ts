@@ -321,6 +321,50 @@ export enum ShellAPIGui {
     GuiMysqlDeleteUser = "gui.mysql.delete_user",
     /** Updates a MySQL user details, specified by the user and host, with the options. */
     GuiMysqlUpdateUser = "gui.mysql.update_user",
+    /** Returns local MySQL Enterprise Backup configuration and profile status. */
+    GuiMebGetStatus = "gui.meb.get_status",
+    /** Returns the local MEB setup state for the connected MySQL server. */
+    GuiMebGetSetupState = "gui.meb.get_setup_state",
+    /** Validates current-user access for local backup operations. */
+    GuiMebValidateLocalBackupAccess = "gui.meb.validate_local_backup_access",
+    /** Validates a local backup home path for the connected MySQL server. */
+    GuiMebValidateBackupHome = "gui.meb.validate_backup_home",
+    /** Creates a local backup home directory and validates it. */
+    GuiMebCreateBackupHome = "gui.meb.create_backup_home",
+    /** Validates and stores credentials for an existing MySQL backup account. */
+    GuiMebValidateBackupMysqlUser = "gui.meb.validate_backup_mysql_user",
+    /** Creates the MySQL backup account, grants privileges, and stores credentials. */
+    GuiMebCreateBackupMysqlUser = "gui.meb.create_backup_mysql_user",
+    /** Reapplies the required privileges and limits for an existing backup account. */
+    GuiMebFixBackupMysqlUser = "gui.meb.fix_backup_mysql_user",
+    /** Resets the MySQL backup account password and stores the credential. */
+    GuiMebResetBackupMysqlUserPassword = "gui.meb.reset_backup_mysql_user_password",
+    /** Persists local MEB support configuration in the backup home. */
+    GuiMebApplySetup = "gui.meb.apply_setup",
+    /** Creates or updates a MySQL Enterprise Backup profile. */
+    GuiMebSaveProfile = "gui.meb.save_profile",
+    /** Deletes a MySQL Enterprise Backup profile. */
+    GuiMebDeleteProfile = "gui.meb.delete_profile",
+    /** Starts executing a MySQL Enterprise Backup profile immediately. */
+    GuiMebStartProfileExecution = "gui.meb.start_profile_execution",
+    /** Deletes backup data associated with a recent activity log entry. */
+    GuiMebDeleteBackup = "gui.meb.delete_backup",
+    /** Runs mysqlbackup validation and returns its direct output. */
+    GuiMebVerifyBackup = "gui.meb.verify_backup",
+    /** Applies pending redo logs to a recent activity backup. */
+    GuiMebApplyBackupLogs = "gui.meb.apply_backup_logs",
+    /** Restores local backup data associated with a recent activity log entry. */
+    GuiMebRestoreBackup = "gui.meb.restore_backup",
+    /** Returns live output and state for a matching restore operation. */
+    GuiMebGetRestoreProgress = "gui.meb.get_restore_progress",
+    /** Aborts the matching active restore operation. */
+    GuiMebAbortBackupRestore = "gui.meb.abort_backup_restore",
+    /** Reads the table contents represented by a recent activity backup. */
+    GuiMebReadBackupContent = "gui.meb.read_backup_content",
+    /** Returns the local directory path represented by a recent activity backup. */
+    GuiMebGetBackupPath = "gui.meb.get_backup_path",
+    /** Reads a mysqlbackup log file discovered below a configured backup home. */
+    GuiMebReadLog = "gui.meb.read_log",
     /** Indicates whether this module is a GUI backend module */
     GuiDebuggerIsGuiModuleBackend = "gui.debugger.is_gui_module_backend",
     /** Returns display information about the module */
@@ -467,6 +511,298 @@ export interface IMySQLUser {
 
 export interface IUserInfo {
     generatedPassword: string | null
+}
+
+export interface IMebProfileSchedule {
+    enabled: boolean,
+    interval: number,
+    frequency: number,
+    monthDays: number[],
+    weekDays: boolean[],
+    hour: number,
+    minute: number
+}
+
+export interface IMebBackupProfileInfo {
+    uuid: string,
+    label: string,
+    type: string,
+    destination: string,
+    latest: string,
+    nextFull: string,
+    nextIncremental: string,
+    status: string,
+    command: string | null,
+    user: string | null,
+    configPath: string | null,
+    applyLog: boolean,
+    comments: string | null,
+    compress: boolean,
+    compressLevel: string,
+    compressMethod: string,
+    storageType: "local",
+    cloudService: string | null,
+    cloudObject: string | null,
+    cloudParUrl: string | null,
+    cloudHost: string | null,
+    cloudBucket: string | null,
+    cloudObjectKey: string | null,
+    cloudAccessKeyId: string | null,
+    cloudAwsRegion: string | null,
+    cloudContainer: string | null,
+    cloudUserId: string | null,
+    cloudTempAuthUrl: string | null,
+    cloudBasicAuthUrl: string | null,
+    cloudIdentityUrl: string | null,
+    cloudTenant: string | null,
+    cloudRegion: string | null,
+    cloudChunkedTransfer: boolean,
+    cloudChunkSize: string | null,
+    cloudProxy: string | null,
+    cloudCaInfo: string | null,
+    cloudCaPath: string | null,
+    cloudBufferSize: string | null,
+    cloudTrace: boolean,
+    excludeTables: string | null,
+    fullSchedule: IMebProfileSchedule,
+    includeTables: string | null,
+    legacyPartialBackupConverted: boolean,
+    legacyPartialBackupConversionMessage: string | null,
+    incrementalBase: string,
+    incrementalWithRedoLogOnly: boolean,
+    incSchedule: IMebProfileSchedule,
+    partial: boolean,
+    skipUnusedPages: boolean,
+    usingTts: "0" | "1" | "2",
+    datadir: string | null,
+    mysqlBasedir: string | null,
+    mysqlVersion: string | null
+}
+
+export interface IMebStatusItem {
+    label: string,
+    value: string,
+    tone: string
+}
+
+export interface IMebActivityItem {
+    time: string,
+    title: string,
+    detail: string,
+    tone: string,
+    activityId: string | null,
+    size: string | null,
+    profile: string | null,
+    profileId: string | null,
+    status: string | null,
+    backupType: string | null,
+    isBackup: boolean
+}
+
+export interface IMebStatus {
+    configured: boolean,
+    mysqlbackupCommand: string | null,
+    backupHome: string | null,
+    backupUser: string | null,
+    mysqlVersion: string | null,
+    mysqlEdition: string | null,
+    mysqlBasedir: string | null,
+    datadir: string | null,
+    spaceAvailable: string | null,
+    spaceUsed: string | null,
+    spaceTotal: string | null,
+    spaceUsedPercent: number | null,
+    spaceOtherUsedPercent: number | null,
+    profileTemplate: IMebBackupProfileInfo,
+    profiles: IMebBackupProfileInfo[],
+    statusItems: IMebStatusItem[],
+    recentActivity: IMebActivityItem[]
+}
+
+export interface IMebSetupState {
+    configured: boolean,
+    needsSetup: boolean,
+    localSupported: boolean,
+    message: string,
+    messageTone: string,
+    backupHomePath: string | null,
+    backupOsUser: string | null,
+    runtimeHelperPath: string | null,
+    mysqlbackupPath: string | null,
+    mysqlbackupExists: boolean,
+    mysqlBackupUser: string,
+    datadir: string | null,
+    datadirOwner: string | null,
+    datadirGroup: string | null,
+    currentOsUser: string | null,
+    platform: string,
+    mysqlVersion: string | null,
+    mysqlEdition: string | null,
+    mysqlBasedir: string | null,
+    loginFile: string | null,
+    loginPath: string | null,
+    schedulerName: string,
+    status: IMebStatus | null
+}
+
+export interface IMebValidationStatus {
+    tone: string,
+    message: string
+}
+
+export interface IMebPrerequisitesValidation {
+    valid: boolean,
+    osUser: string,
+    mysqlbackupPath: string | null,
+    mysqlbackupExists: boolean,
+    datadir: string | null,
+    datadirOwner: string | null,
+    datadirGroup: string | null,
+    currentOsUser: string | null,
+    platform: string,
+    schedulerName: string,
+    userStatus: IMebValidationStatus,
+    mysqlbackupStatus: IMebValidationStatus,
+    datadirStatus: IMebValidationStatus
+}
+
+export interface IMebBackupHomeValidation {
+    valid: boolean,
+    backupHomePath: string | null,
+    exists: boolean,
+    owner: string | null,
+    status: IMebValidationStatus,
+    ownershipStatus: IMebValidationStatus,
+    permissionsStatus: IMebValidationStatus,
+    reuseStatus: IMebValidationStatus,
+    accessStatus: IMebValidationStatus
+}
+
+export interface IMebMysqlBackupUserValidation {
+    valid: boolean,
+    exists: boolean,
+    host: string | null,
+    passwordStored: boolean,
+    loginFile: string | null,
+    loginPath: string | null,
+    missingGrants: string[],
+    status: IMebValidationStatus,
+    passwordStatus: IMebValidationStatus
+}
+
+export interface IMebBackupProfile {
+    applyLog: boolean,
+    comments: string | null,
+    compress: boolean,
+    compressLevel: string,
+    compressMethod: string,
+    storageType: "local",
+    cloudService: string | null,
+    cloudObject: string | null,
+    cloudParUrl: string | null,
+    cloudHost: string | null,
+    cloudBucket: string | null,
+    cloudObjectKey: string | null,
+    cloudAccessKeyId: string | null,
+    cloudSecretAccessKey: string | null,
+    cloudAwsRegion: string | null,
+    cloudAccessKey: string | null,
+    cloudSecretKey: string | null,
+    cloudContainer: string | null,
+    cloudUserId: string | null,
+    cloudPassword: string | null,
+    cloudTempAuthUrl: string | null,
+    cloudBasicAuthUrl: string | null,
+    cloudIdentityUrl: string | null,
+    cloudTenant: string | null,
+    cloudRegion: string | null,
+    cloudChunkedTransfer: boolean,
+    cloudChunkSize: string | null,
+    cloudProxy: string | null,
+    cloudCaInfo: string | null,
+    cloudCaPath: string | null,
+    cloudBufferSize: string | null,
+    cloudTrace: boolean,
+    label: string,
+    destination: string,
+    excludeTables: string | null,
+    fullSchedule: IMebProfileSchedule,
+    includeTables: string | null,
+    incrementalBase: string,
+    incrementalWithRedoLogOnly: boolean,
+    incSchedule: IMebProfileSchedule,
+    partial: boolean,
+    skipUnusedPages: boolean,
+    usingTts: "0" | "1" | "2",
+    user: string | null,
+    datadir: string | null,
+    mysqlBasedir: string | null,
+    configPath: string | null
+}
+
+export interface IMebLogContent {
+    activityId: string,
+    displayName: string,
+    content: string,
+    warnings: string[]
+}
+
+export interface IMebRestoreResult {
+    succeeded: boolean,
+    aborted: boolean,
+    message: string,
+    output: string,
+    status: IMebStatus | null
+}
+
+export interface IMebRestoreProgress {
+    state: string,
+    operationId: string,
+    output: string
+}
+
+export interface IMebBackupRestoreChainEntry {
+    name: string,
+    type: "Full" | "Incremental" | null,
+    timestamp: string | null
+}
+
+export interface IMebBackupFileGroup {
+    category: string,
+    fileCount: number,
+    description: string,
+    sample: string,
+    files: string[]
+}
+
+export interface IMebBackupContentRow {
+    schema: string,
+    table: string,
+    engine: string,
+    scope: string,
+    coverage: string,
+    inBackup: boolean,
+    inInstance: boolean,
+    action: string
+}
+
+export interface IMebBackupContent {
+    backupHome: string,
+    activityId: string,
+    backupLabel: string,
+    backupScope: string | null,
+    applyLogDone: boolean,
+    hasInstanceData: boolean,
+    mysqlVersion: string | null,
+    gtidExecuted: string | null,
+    startTime: string | null,
+    endTime: string | null,
+    binlogFile: string | null,
+    binlogPosition: string | null,
+    restoreChain: IMebBackupRestoreChainEntry[],
+    fileGroups: IMebBackupFileGroup[],
+    rows: IMebBackupContentRow[],
+    warnings: string[]
 }
 
 export interface IProtocolGuiParameters {
@@ -616,6 +952,28 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiMysqlCreateUser]: { args: { options: IMySQLUser; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlDeleteUser]: { args: { user: string; host: string; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiMysqlUpdateUser]: { args: { options: IMySQLUser; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMebGetStatus]: { args: { backupHomePath?: string | null; }; };
+    [ShellAPIGui.GuiMebGetSetupState]: { args: { moduleSessionId: string; backupHomePath?: string | null; }; };
+    [ShellAPIGui.GuiMebValidateLocalBackupAccess]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiMebValidateBackupHome]: { args: { moduleSessionId: string; backupHomePath: string; }; };
+    [ShellAPIGui.GuiMebCreateBackupHome]: { args: { moduleSessionId: string; backupHomePath: string; }; };
+    [ShellAPIGui.GuiMebValidateBackupMysqlUser]: { args: { moduleSessionId: string; backupHomePath: string; mysqlUser: string; password?: string | null; }; };
+    [ShellAPIGui.GuiMebCreateBackupMysqlUser]: { args: { moduleSessionId: string; backupHomePath: string; mysqlUser: string; }; };
+    [ShellAPIGui.GuiMebFixBackupMysqlUser]: { args: { moduleSessionId: string; backupHomePath: string; mysqlUser: string; }; };
+    [ShellAPIGui.GuiMebResetBackupMysqlUserPassword]: { args: { moduleSessionId: string; backupHomePath: string; mysqlUser: string; password?: string | null; }; };
+    [ShellAPIGui.GuiMebApplySetup]: { args: { moduleSessionId: string; backupHomePath: string; mysqlUser: string; }; };
+    [ShellAPIGui.GuiMebSaveProfile]: { args: { moduleSessionId: string; backupHomePath: string; profile: IMebBackupProfile; }; };
+    [ShellAPIGui.GuiMebDeleteProfile]: { args: { moduleSessionId: string; backupHomePath: string; profileUuid: string; }; };
+    [ShellAPIGui.GuiMebStartProfileExecution]: { args: { moduleSessionId: string; backupHomePath: string; profileUuid: string; backupMode: string; }; };
+    [ShellAPIGui.GuiMebDeleteBackup]: { args: { backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebVerifyBackup]: { args: { backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebApplyBackupLogs]: { args: { backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebRestoreBackup]: { args: { backupHomePath: string; activityId: string; operationId: string; force?: boolean; }; };
+    [ShellAPIGui.GuiMebGetRestoreProgress]: { args: { backupHomePath: string; operationId: string; }; };
+    [ShellAPIGui.GuiMebAbortBackupRestore]: { args: { backupHomePath: string; operationId: string; }; };
+    [ShellAPIGui.GuiMebReadBackupContent]: { args: { backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebGetBackupPath]: { args: { backupHomePath: string; activityId: string; }; };
+    [ShellAPIGui.GuiMebReadLog]: { args: { backupHomePath: string; activityId: string; }; };
     [ShellAPIGui.GuiDebuggerIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiDebuggerGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiDebuggerGetScripts]: {};
@@ -1164,6 +1522,28 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiMysqlCreateUser]: { result: IUserInfo; };
     [ShellAPIGui.GuiMysqlDeleteUser]: {};
     [ShellAPIGui.GuiMysqlUpdateUser]: { result: IUserInfo; };
+    [ShellAPIGui.GuiMebGetStatus]: { result: IMebStatus; };
+    [ShellAPIGui.GuiMebGetSetupState]: { result: IMebSetupState; };
+    [ShellAPIGui.GuiMebValidateLocalBackupAccess]: { result: IMebPrerequisitesValidation; };
+    [ShellAPIGui.GuiMebValidateBackupHome]: { result: IMebBackupHomeValidation; };
+    [ShellAPIGui.GuiMebCreateBackupHome]: { result: IMebBackupHomeValidation; };
+    [ShellAPIGui.GuiMebValidateBackupMysqlUser]: { result: IMebMysqlBackupUserValidation; };
+    [ShellAPIGui.GuiMebCreateBackupMysqlUser]: { result: IMebMysqlBackupUserValidation; };
+    [ShellAPIGui.GuiMebFixBackupMysqlUser]: { result: IMebMysqlBackupUserValidation; };
+    [ShellAPIGui.GuiMebResetBackupMysqlUserPassword]: { result: IMebMysqlBackupUserValidation; };
+    [ShellAPIGui.GuiMebApplySetup]: { result: IMebSetupState; };
+    [ShellAPIGui.GuiMebSaveProfile]: { result: IMebStatus; };
+    [ShellAPIGui.GuiMebDeleteProfile]: { result: IMebStatus; };
+    [ShellAPIGui.GuiMebStartProfileExecution]: { result: IMebStatus; };
+    [ShellAPIGui.GuiMebDeleteBackup]: { result: IMebStatus; };
+    [ShellAPIGui.GuiMebVerifyBackup]: { result: IMebLogContent; };
+    [ShellAPIGui.GuiMebApplyBackupLogs]: { result: IMebStatus; };
+    [ShellAPIGui.GuiMebRestoreBackup]: { result: IMebRestoreResult; };
+    [ShellAPIGui.GuiMebGetRestoreProgress]: { result: IMebRestoreProgress; };
+    [ShellAPIGui.GuiMebAbortBackupRestore]: { result: IMebRestoreProgress; };
+    [ShellAPIGui.GuiMebReadBackupContent]: { result: IMebBackupContent; };
+    [ShellAPIGui.GuiMebGetBackupPath]: { result: string; };
+    [ShellAPIGui.GuiMebReadLog]: { result: IMebLogContent; };
     [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
     [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
 }

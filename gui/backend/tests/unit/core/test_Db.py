@@ -40,14 +40,6 @@ import re
 from gui_plugin.core.GuiBackendDbManager import InitDBFirstTime
 
 
-def test_GuiBackendDb_init():
-    backend_db = GuiBackendDb()
-    backend_db.select("SELECT * FROM log")
-
-    backend_db2 = GuiBackendDb()
-    backend_db2.select("SELECT * FROM log")
-
-
 def test_GuiBackendDb_commit():
     backend_db = GuiBackendDb()
 

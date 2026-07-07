@@ -60,7 +60,7 @@ import { DocumentToolbar } from "../db-editor/DocumentToolbar.js";
 import type { IToolbarItems } from "../db-editor/index.js";
 import { ShellConsole } from "./ShellConsole.js";
 import { ShellPrompt } from "./ShellPrompt.js";
-import { isShellPromptResult } from "../../utilities/helpers.js"
+import { isShellPromptResult } from "../../utilities/helpers.js";
 
 export interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -607,7 +607,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     //      the password.
                     //requisitions.register("acceptPassword", this.acceptPassword);
 
-                    if (!isShellPromptResult(result) || !ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend.interactive)) {
+                    if (!isShellPromptResult(result)
+                        || !ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend.interactive)) {
                         if (this.isShellObjectResult(result)) {
                             let text = "<" + result.class;
                             if (result.name) {

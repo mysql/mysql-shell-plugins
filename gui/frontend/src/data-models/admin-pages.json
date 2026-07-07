@@ -34,5 +34,12 @@
         "command": "msg.showLakehouseNavigator",
         "commandTitle": "Show Lakehouse Navigator",
         "requires": "heatWave"
+    },
+    {
+        "pageType": "enterpriseBackup",
+        "desktopCommandId": "database.admin.enterpriseBackup",
+        "label": "Enterprise Backup",
+        "command": "msg.showEnterpriseBackup",
+        "commandTitle": "Show Enterprise Backup"
     }
 ]

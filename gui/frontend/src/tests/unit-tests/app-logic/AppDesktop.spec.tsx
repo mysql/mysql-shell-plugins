@@ -64,13 +64,19 @@ describe("Application desktop bootstrap", () => {
                 disconnect: vi.fn(),
                 send: vi.fn(),
                 onMessage: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onClose: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onError: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
             },
         });
@@ -109,13 +115,19 @@ describe("Application desktop bootstrap", () => {
                 disconnect: vi.fn(),
                 send: vi.fn(),
                 onMessage: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onClose: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onError: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
             },
         });
@@ -155,13 +167,19 @@ describe("Application desktop bootstrap", () => {
                 disconnect: vi.fn(),
                 send: vi.fn(),
                 onMessage: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onClose: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onError: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
             },
         });

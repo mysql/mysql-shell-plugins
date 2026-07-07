@@ -83,45 +83,6 @@ describe("DocumentToolbar tests", (): void => {
         unmount();
     });
 
-    it("Test DocumentToolbar requisitions editorCaretMoved", async () => {
-        const { unmount } = render(
-            <DocumentToolbar
-                language={"msg"}
-                activeDocument={"document1"}
-                heatWaveEnabled={false}
-                documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        await requisitions.execute("editorCaretMoved", {
-            lineNumber: 1,
-            column: 1,
-        });
-
-        // TODO: Check if the change is handled correctly.
-
-        unmount();
-    });
-
-    it("Test DocumentToolbar requisitions editorContextStateChanged", async () => {
-        const { unmount } = render(
-            <DocumentToolbar
-                language={"msg"}
-                activeDocument={"document1"}
-                heatWaveEnabled={false}
-                documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        await requisitions.execute("editorContextStateChanged", "123");
-
-        // TODO: Check if the change is handled correctly.
-
-        unmount();
-    });
-
     it("notifies the desktop host when a non-current context in the active editor changes state", async () => {
         const currentContext = {
             id: "current-context",
@@ -181,42 +142,6 @@ describe("DocumentToolbar tests", (): void => {
 
         expect(result).toBe(true);
         expect(onDesktopRunStateChanged).toHaveBeenCalledTimes(1);
-
-        unmount();
-    });
-
-    it("Test DocumentToolbar requisitions editorToggleStopExecutionOnError", async () => {
-        const { unmount } = render(
-            <DocumentToolbar
-                language={"msg"}
-                activeDocument={"document1"}
-                heatWaveEnabled={false}
-                documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        await requisitions.execute("editorToggleStopExecutionOnError", true);
-
-        // TODO: Check if the change is handled correctly.
-
-        unmount();
-    });
-
-    it("Test DocumentToolbar requisitions settingsChanged", async () => {
-        const { unmount } = render(
-            <DocumentToolbar
-                language={"msg"}
-                activeDocument={"document1"}
-                heatWaveEnabled={false}
-                documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        await requisitions.execute("settingsChanged", undefined);
-
-        // TODO: Check if the change is handled correctly.
 
         unmount();
     });

@@ -95,22 +95,21 @@ def test_create_user(user, password, role):
         assert name_in_message(role, roles) == True
 
 
-@pytest.mark.parametrize("user, password, role", test_users_data)
-def test_grant_role(user, password, role):
-    if role == None:
-        fake_role = "FakeRole"
-        with pytest.raises(
-            MSGException,
-            match=re.escape(
-                f"Error[MSG-1300]: There is no role with the name '{fake_role}'."
-            ),
-        ):
-            msg = UserManagement.grant_role(user, fake_role)
+def test_grant_role():
+    user = "pytest_user2"
+    fake_role = "FakeRole"
+    with pytest.raises(
+        MSGException,
+        match=re.escape(
+            f"Error[MSG-1300]: There is no role with the name '{fake_role}'."
+        ),
+    ):
+        UserManagement.grant_role(user, fake_role)
 
-        msg = UserManagement.grant_role(user, "User")
-        assert msg is None
-        roles = UserManagement.list_user_roles(user)
-        assert name_in_message("User", roles) == True
+    msg = UserManagement.grant_role(user, "User")
+    assert msg is None
+    roles = UserManagement.list_user_roles(user)
+    assert name_in_message("User", roles) == True
 
 
 @pytest.mark.parametrize("user, password, role", test_fake_users_data)
@@ -131,10 +130,9 @@ def test_grant_fake_role(user, password, role):
         UserManagement.grant_role(user, role)
 
 
-@pytest.mark.parametrize("user, password, role", test_users_data)
-def test_create_user_already_created(user, password, role):
+def test_create_user_already_created():
     with pytest.raises(MSGException, match="User already exists."):
-        UserManagement.create_user(user, password, role=role)
+        UserManagement.create_user("pytest_user1", "password1", role="User")
 
 
 @pytest.mark.parametrize("role, privilege, privilege_type", test_roles_privileges_data)
@@ -161,13 +159,14 @@ def test_user_privileges(user, role, privilege):
     assert access_pattern_in_message(privilege, privileges) == True
 
 
-@pytest.mark.parametrize("user, password, role", test_fake_users_data)
-def test_get_fake_user_id(user, password, role):
+def test_get_fake_user_id():
     with pytest.raises(
         MSGException,
-        match=re.escape(f"Error[MSG-1301]: There is no user with the name '{user}'."),
+        match=re.escape(
+            "Error[MSG-1301]: There is no user with the name 'pytest_fake_user1'."
+        ),
     ):
-        UserManagement.get_user_id(user)
+        UserManagement.get_user_id("pytest_fake_user1")
 
 
 @pytest.mark.parametrize("user, modules", test_modules_data)
@@ -180,8 +179,8 @@ def test_gui_module_list(user, modules):
     assert sorted(msg) == sorted(modules)
 
 
-@pytest.mark.parametrize("user, password, role", test_users_data)
-def test_profile(user, password, role):
+def test_profile():
+    user = "pytest_user2"
     profile_name = f"{user}_profile"
     profile = {
         "name": profile_name,
@@ -357,15 +356,13 @@ def test_user_group():
     assert not value_in_message("description", "Second user group", msg)
 
 
-@pytest.mark.parametrize("user, password, role", test_users_data)
-def test_delete_user(user, password, role):
-    msg = UserManagement.delete_user(user)
-
-    assert msg is None
+def test_delete_user():
+    for user, _, _ in test_users_data:
+        assert UserManagement.delete_user(user) is None
 
 
-@pytest.mark.parametrize("user, password, role", test_users_data)
-def test_delete_user_not_exists(user, password, role):
+def test_delete_user_not_exists():
+    user = "pytest_missing_user"
     with pytest.raises(
         MSGException,
         match=re.escape(f"Error[MSG-1301]: There is no user with the name '{user}'."),

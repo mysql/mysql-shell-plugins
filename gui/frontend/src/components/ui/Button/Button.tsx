@@ -35,6 +35,8 @@ import { requisitions } from "../../../supplement/Requisitions.js";
 import type { IRequestTypeMap } from "../../../supplement/RequisitionTypes.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
 
+export type ButtonAppearance = "flat";
+
 export interface IButtonProperties extends IComponentProperties {
     innerRef?: preact.RefObject<HTMLDivElement>;
 
@@ -47,6 +49,9 @@ export interface IButtonProperties extends IComponentProperties {
 
     /** If set this button gets a different background. */
     isDefault?: boolean;
+
+    /** Optional shared visual treatment for buttons. */
+    appearance?: ButtonAppearance;
 
     /** Buttons can automatically trigger requests, if no parameter is required. */
     requestType?: keyof IRequestTypeMap;
@@ -66,7 +71,7 @@ export class Button extends ComponentBase<IButtonProperties> {
 
         // Have to handle the `disabled` property manually because we have to disable a div instead of a button element.
         this.addHandledProperties("innerRef", "round", "orientation", "imageOnly", "isDefault", "requestType",
-            "disabled", "focusOnClick");
+            "disabled", "focusOnClick", "appearance");
 
         if (props.requestType) {
             this.connectEvents("onClick");
@@ -81,9 +86,10 @@ export class Button extends ComponentBase<IButtonProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, caption, style, orientation, round, imageOnly, disabled, isDefault } = this.props;
+        const { appearance, children, caption, style, orientation, round, imageOnly, disabled, isDefault } = this.props;
         const className = this.getEffectiveClassNames([
             "button",
+            appearance,
             this.classFromProperty(round, "round"),
             this.classFromProperty(imageOnly, "imageOnly"),
             this.classFromProperty(disabled, "disabled"),

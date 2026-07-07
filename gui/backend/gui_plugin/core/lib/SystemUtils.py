@@ -23,6 +23,7 @@
 import subprocess
 import platform
 import os
+from pathlib import Path
 
 import gui_plugin.core.Logger as logger
 
@@ -145,6 +146,18 @@ def in_vs_code():
             return True
 
     return False
+
+
+def get_mysqlsh_install_path() -> str:
+    """Returns the MySQL Shell installation directory."""
+    import mysqlsh  # pylint: disable=import-outside-toplevel
+
+    executable_path = Path(mysqlsh.executable).resolve()
+    if executable_path.parent.name != "bin":
+        raise RuntimeError(
+            f"Cannot determine MySQL Shell installation path from {mysqlsh.executable}.")
+
+    return executable_path.parent.parent.as_posix()
 
 
 def run_shell_cmd(cmd, cwd=None):

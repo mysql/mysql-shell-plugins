@@ -148,6 +148,7 @@ export const pageTypeToDocumentIcon = new Map<AdminPageType, string>([
     ["clientConnections", Assets.documents.clientConnectionsIcon],
     ["userAccounts", Assets.oci.profileIcon],
     ["performanceDashboard", Assets.documents.adminPerformanceDashboardIcon],
+    ["enterpriseBackup", Assets.documents.adminBackupIcon],
     ["lakehouseNavigator", Assets.lakehouse.navigatorIcon],
 ]);
 
@@ -409,7 +410,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                             setTimeout(() => {
                                 const row = this.connectionTableRef.current?.getRows()[0];
                                 if (row) {
-                                    row.treeExpand();
+                                    this.expandTreeRowIfReady(row);
                                 }
                             }, 500);
 
@@ -1567,37 +1568,45 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             );
         }
 
-        const copyToClipboardMenuItems = () => (
-            <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
-            </MenuItem>
-        );
+        const copyToClipboardMenuItems = () => {
+            return (
+                <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
+                    <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
+                    <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
+                </MenuItem>
+            );
+        };
 
-        const sendToEditorMenuItems = () => (
-            <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
-            </MenuItem >
-        );
+        const sendToEditorMenuItems = () => {
+            return (
+                <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
+                    <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                    <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
+                </MenuItem >
+            );
+        };
 
-        const copyToClipboardRoutineMenuItems = () => (
-            <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
-                <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
-                <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
-                <MenuItem key="copy-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToClipboard" }} />
-                <MenuItem key="copy-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToClipboard" }} />
-            </MenuItem>
-        );
+        const copyToClipboardRoutineMenuItems = () => {
+            return (
+                <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
+                    <MenuItem key="copy-name" command={{ title: "Name", command: "msg.copyNameToClipboard" }} />
+                    <MenuItem key="copy-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToClipboard" }} />
+                    <MenuItem key="copy-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToClipboard" }} />
+                    <MenuItem key="copy-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToClipboard" }} />
+                </MenuItem>
+            );
+        };
 
-        const sendToEditorRoutineMenuItems = () => (
-            <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
-                <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
-                <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
-                <MenuItem key="send-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToEditor" }} />
-                <MenuItem key="send-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToEditor" }} />
-            </MenuItem >
-        );
+        const sendToEditorRoutineMenuItems = () => {
+            return (
+                <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
+                    <MenuItem key="send-name" command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                    <MenuItem key="send-create" command={{ title: "CREATE Statement", command: "msg.copyCreateStatementToEditor" }} />
+                    <MenuItem key="send-create-with-delimiters" command={{ title: "CREATE Statement With DELIMITERs", command: "msg.copyCreateStatementWithDelimitersToEditor" }} />
+                    <MenuItem key="send-drop-create-with-delimiters" command={{ title: "DROP & CREATE Statement With DELIMITERs", command: "msg.copyDropCreateStatementWithDelimitersToEditor" }} />
+                </MenuItem >
+            );
+        };
 
         return (
             <>
@@ -2464,7 +2473,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             return undefined;
         }
 
-        const connection = entry.dataModelEntry as ICdmConnectionEntry;
+        const connection = entry.dataModelEntry;
         const showSystemSchemas = connection.state.payload?.showSystemSchemas ?? false;
 
         return {
@@ -2484,7 +2493,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             return undefined;
         }
 
-        const mrsRoot = entry.dataModelEntry as ICdmRestRootEntry;
+        const mrsRoot = entry.dataModelEntry;
 
         return {
             ...props.command,
@@ -3019,6 +3028,14 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         entry.dataModelEntry.state.expanded = false;
     };
 
+    private expandTreeRowIfReady = (row: RowComponent): void => {
+        const rowData = row.getData() as Record<string, unknown>;
+
+        if (Array.isArray(rowData.children)) {
+            row.treeExpand();
+        }
+    };
+
     private isConnectionTreeRowExpanded = (row: RowComponent): boolean => {
         const { markedSchema } = this.props;
 
@@ -3028,7 +3045,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             && !entry.dataModelEntry.state.isLeaf && !entry.dataModelEntry.state.expandedOnce) {
             entry.dataModelEntry.state.expanded = true;
             setTimeout(() => {
-                row.treeExpand();
+                this.expandTreeRowIfReady(row);
             }, 100);
 
             return true;
@@ -4057,6 +4074,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      *
      * @param connections The connections to create the entries for.
      *
+     * @param items
      * @returns The list of entries.
      */
     private renderConnectionTreeItems(items: IConnectionTreeItem[]): ComponentChild {
@@ -4832,7 +4850,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         // Re-expand the parent row if it was expanded before.
         if (data.dataModelEntry.state.expanded) {
-            row.treeExpand();
+            this.expandTreeRowIfReady(row);
         }
     }
 

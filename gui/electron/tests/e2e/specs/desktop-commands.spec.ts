@@ -116,7 +116,7 @@ test.describe("Desktop command integration", () => {
         await expect(page.locator("#connectionList")).toBeVisible();
     });
 
-    test("reuses the administration server connection", async ({ page, workbench }) => {
+    test("reuses the active server connection for administration pages", async ({ page, workbench }) => {
         await workbench.waitForShell();
 
         const connection = {

@@ -43,6 +43,12 @@ type IShellConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOption
 export interface IConnectionSettings {
     defaultEditor?: ConnectionEditorType;
     badge?: string;
+    enterpriseBackup?: {
+        mysqlbackupPath?: string;
+        backupHomePath?: string;
+        backupOsUser?: string;
+        backupUser?: string;
+    };
 }
 
 export interface IConnectionDetails<OptionsType = IShellConnectionOptions> {

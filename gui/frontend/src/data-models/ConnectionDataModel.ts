@@ -3207,6 +3207,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @param withDelimiter If true, the statement will be wrapped in a delimiter block.
      * @param withDrop If true, the statement will be preceded by a DROP statement.
      * @param editRoutine If true, the script is created for modifying a routine
+     * @param uppercaseKeywords
      * @returns The CREATE statement for the given database object.
      */
     public async getCreateSqlScript(entry: ConnectionDataModelNoGroupEntry, withDelimiter = false,

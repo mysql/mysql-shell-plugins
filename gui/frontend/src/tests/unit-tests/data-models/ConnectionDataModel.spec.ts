@@ -344,7 +344,7 @@ describe("ConnectionDataModel", () => {
         expect(offlineConnection.mrsEntry).toBeUndefined();
         expect(offlineConnection.adminEntry?.pages.map((page) => {
             return page.pageType;
-        })).toEqual(["serverStatus"]);
+        })).toEqual(["serverStatus", "enterpriseBackup"]);
     });
 
     it("Refreshing entries", async () => {
@@ -413,7 +413,7 @@ describe("ConnectionDataModel", () => {
         await dataModel.reloadConnections();
         const connection = dataModel.roots.find((entry) => {
             return entry.type === CdmEntityType.Connection;
-        }) as ICdmConnectionEntry | undefined;
+        });
         expect(connection).toBeDefined();
         await connection!.close();
 

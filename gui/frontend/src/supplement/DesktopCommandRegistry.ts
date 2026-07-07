@@ -54,6 +54,7 @@ export type DesktopCommandId =
     "database.admin.clientConnections" |
     "database.admin.userAccounts" |
     "database.admin.performanceDashboard" |
+    "database.admin.enterpriseBackup" |
     "database.admin.lakehouseNavigator" |
     "database.mrs.configure" |
     "database.mrs.browseDocs" |

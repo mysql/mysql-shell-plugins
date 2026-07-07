@@ -210,6 +210,43 @@ describe("TreeGrid tests", (): void => {
         unmount();
     });
 
+    it("does not initially expand rows while their children are unavailable", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const isRowExpanded = vi.fn(() => {
+            return true;
+        });
+        const { unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "field1" }]}
+                tableData={[{ id: "1", field1: "a" }]}
+                options={{ treeColumn: "field1" }}
+                isRowExpanded={isRowExpanded}
+            />,
+        );
+
+        await nextRunLoop();
+        const table = await gridRef.current!.table;
+        const startExpanded = table!.options.dataTreeStartExpanded;
+        const callback = startExpanded as (row: RowComponent, level: number) => boolean;
+        const rowWithoutChildren = {
+            getData: () => {
+                return { id: "parent", field1: "Parent" };
+            },
+        } as unknown as RowComponent;
+        const rowWithChildren = {
+            getData: () => {
+                return { id: "parent", field1: "Parent", children: [] };
+            },
+        } as unknown as RowComponent;
+
+        expect(callback(rowWithoutChildren, 0)).toBe(false);
+        expect(callback(rowWithChildren, 0)).toBe(true);
+        expect(isRowExpanded).toHaveBeenCalledTimes(1);
+
+        unmount();
+    });
+
     it("shows header tooltips only for clipped titles", async () => {
         const gridRef = createRef<TreeGrid>();
         const { unmount } = render(

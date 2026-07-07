@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,6 +43,7 @@ import { Label } from "../ui/Label/Label.js";
 interface IPasswordDialogState extends IComponentState {
     request?: IServicePasswordRequest;
     password: string;
+    confirmPassword: string;
 }
 
 export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
@@ -55,6 +56,7 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
 
         this.state = {
             password: "",
+            confirmPassword: "",
         };
     }
 
@@ -66,7 +68,7 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
      * @returns The entered password or undefined if the dialog was cancelled.
      */
     public async show(values: IServicePasswordRequest): Promise<string | undefined> {
-        await this.setStatePromise({ request: values, password: "" });
+        await this.setStatePromise({ request: values, password: "", confirmPassword: "" });
         this.signal = new Semaphore();
         this.dialogRef.current?.open();
 
@@ -81,7 +83,7 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
     }
 
     public render(): ComponentChild {
-        const { request, password } = this.state;
+        const { confirmPassword, request, password } = this.state;
 
         if (!request) {
             return null;
@@ -89,6 +91,9 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
 
         const className = this.getEffectiveClassNames(["passwordDialog"]);
         const caption = request.caption ?? "Enter Password";
+        const passwordLabel = `${request.passwordLabel ?? "Password"}:`;
+        const confirmPasswordLabel = `${request.confirmPasswordLabel ?? "Confirm Password"}:`;
+        const validation = this.validationMessage;
 
         const descriptionCells: ComponentChild[] = [];
         request.description?.forEach((value) => {
@@ -102,6 +107,30 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
                 </GridCell>,
             );
         });
+
+        const additionalCells: ComponentChild[] = [];
+        if (request.confirmPassword) {
+            additionalCells.push(
+                <GridCell key="confirmPasswordLabel" className="left" crossAlignment={ContentAlignment.Center}>
+                    {confirmPasswordLabel}
+                </GridCell>,
+                <GridCell key="confirmPasswordInput" className="right" crossAlignment={ContentAlignment.Center}>
+                    <Input
+                        password={true}
+                        value={confirmPassword}
+                        onChange={this.handleConfirmPasswordChange}
+                        onConfirm={this.handlePasswordConfirm}
+                    />
+                </GridCell>,
+            );
+        }
+        if (validation) {
+            additionalCells.push(
+                <GridCell key="validation" columnSpan={2} crossAlignment={ContentAlignment.Start}>
+                    <Label className="resultText" language="ansi" caption={validation} />
+                </GridCell>,
+            );
+        }
 
         return <Dialog
             ref={this.dialogRef}
@@ -132,7 +161,7 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
                             </GridCell>
                         </>
                     }
-                    <GridCell className="left" crossAlignment={ContentAlignment.Center}>Password:</GridCell>
+                    <GridCell className="left" crossAlignment={ContentAlignment.Center}>{passwordLabel}</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
                         <Input
                             autoFocus
@@ -142,6 +171,7 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
                             onConfirm={this.handlePasswordConfirm}
                         />
                     </GridCell>
+                    {additionalCells}
                 </Grid>
             }
             actions={{
@@ -149,7 +179,8 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
                     <Button
                         id="ok"
                         key="ok"
-                        caption="OK"
+                        caption={request.submitCaption ?? "OK"}
+                        disabled={validation !== ""}
                         onClick={this.handleButtonClick}
                     />,
                     <Button
@@ -163,15 +194,49 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
         />;
     }
 
+    private get validationMessage(): string {
+        const { confirmPassword, password, request } = this.state;
+
+        if (request?.passwordRequired && password === "") {
+            return "Enter a password.";
+        }
+
+        if (request?.confirmPassword) {
+            if (password === "") {
+                return "Enter a password.";
+            }
+
+            if (confirmPassword === "") {
+                return "Confirm the password.";
+            }
+
+            if (password !== confirmPassword) {
+                return "Passwords do not match.";
+            }
+        }
+
+        return "";
+    }
+
     private handlePasswordChange = (_: InputEvent, props: IInputChangeProperties): void => {
         this.setState({ password: props.value });
     };
 
+    private handleConfirmPasswordChange = (_: InputEvent, props: IInputChangeProperties): void => {
+        this.setState({ confirmPassword: props.value });
+    };
+
     private handlePasswordConfirm = (): void => {
-        this.dialogRef.current?.close(false);
+        if (this.validationMessage === "") {
+            this.dialogRef.current?.close(false);
+        }
     };
 
     private handleButtonClick = (_: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
+        if (props.id === "ok" && this.validationMessage !== "") {
+            return;
+        }
+
         this.dialogRef.current?.close(props.id !== "ok");
     };
 

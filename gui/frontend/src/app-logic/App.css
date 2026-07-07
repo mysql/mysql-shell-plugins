@@ -61,6 +61,15 @@ body {
     user-select: none;
 }
 
+.selectableText,
+.selectableText * {
+    user-select: text;
+}
+
+.selectableText {
+    cursor: text;
+}
+
 #root {
     display: flex;
     flex-direction: column;

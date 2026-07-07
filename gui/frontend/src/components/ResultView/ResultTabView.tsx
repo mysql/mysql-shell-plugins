@@ -461,6 +461,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                         <Button
                             id="showActionMenu"
                             imageOnly={true}
+                            appearance="flat"
                             data-tooltip="Show Action Menu"
                             onClick={this.showActionMenu}
                         >
@@ -1383,6 +1384,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     /**
      * Called when the user cancels editing a field. If there are no more changes, editing is stopped.
      * Otherwise the changes are kept and editing continues.
+     *
+     * @param row The edited row index.
+     * @param field The edited field name.
+     * @param restoredValue The value to restore if the change has to be kept.
+     * @param restoreChange Whether the restored value should remain tracked as a change.
      */
     private onFieldEditCancel = (row: number, field: string, restoredValue: unknown, restoreChange: boolean): void => {
         const { currentResultSet } = this.state;
@@ -1415,7 +1421,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             }
 
             if (!rowChange.added && !rowChange.deleted && rowChange.changes.length === 0) {
-                delete rowChanges[row];
+                Reflect.deleteProperty(rowChanges, row);
             }
         }
 

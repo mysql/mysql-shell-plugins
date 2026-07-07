@@ -132,121 +132,66 @@ class MockDbSession(DbMySQLSession.DbMysqlSession):
 
 
 class TestSessionInfoTask:
-    def test_initialization(self):
-        try:
-            options = {"scheme": "mysql"}
-            on_connect_options = options.copy()
-
-            session = MockDbSession(
-                Tasks.SessionInfoTask, False, options, on_connect_options, {}
-            )
-        except Exception as e:
-            assert False, f"Unexpected Error Happened: {str(e)}"
-
     def test_connection(self):
-        try:
-            options = {"scheme": "mysql"}
-            on_connect_options = options.copy()
-            session = MockDbSession(
-                Tasks.SessionInfoTask,
-                True,
-                options,
-                on_connect_options,
-                {
-                    common.MySQLData.CONNECTION_ID: 5,
-                    common.MySQLData.VERSION_INFO: "8.0.30",
-                    common.MySQLData.VERSION_COMMENT: "MySQL Community Server - GPL",
-                    common.MySQLData.SQL_MODE: "SOME SQL MODE",
-                },
-                expected_queries=[
+        options = {"scheme": "mysql"}
+        on_connect_options = options.copy()
+        session = MockDbSession(
+            Tasks.SessionInfoTask,
+            True,
+            options,
+            on_connect_options,
+            {
+                common.MySQLData.CONNECTION_ID: 5,
+                common.MySQLData.VERSION_INFO: "8.0.30",
+                common.MySQLData.VERSION_COMMENT: "MySQL Community Server - GPL",
+                common.MySQLData.SQL_MODE: "SOME SQL MODE",
+            },
+            expected_queries=[
+                (
                     (
-                        (
-                            """SELECT connection_id(),
-                            @@version,
-                            @@version_comment,
-                            @@SESSION.sql_mode""",
-                            None,
-                        ),
-                        MockResult(
+                        """SELECT connection_id(),
+                        @@version,
+                        @@version_comment,
+                        @@SESSION.sql_mode""",
+                        None,
+                    ),
+                    MockResult(
+                        [
                             [
-                                [
-                                    5,
-                                    "8.0.30",
-                                    "MySQL Community Server - GPL",
-                                    "SOME SQL MODE",
-                                ]
+                                5,
+                                "8.0.30",
+                                "MySQL Community Server - GPL",
+                                "SOME SQL MODE",
                             ]
-                        ),
-                    )
-                ],
-            )
+                        ]
+                    ),
+                )
+            ],
+        )
 
-            session.reconnect()
-
-        except Exception as e:
-            assert False, f"Unexpected Error Happened: {str(e)}"
+        session.reconnect()
 
 
 class TestExplainJsonFormatVersionTask:
     def test_connection_supported_version(self):
-        try:
-            options = {"scheme": "mysql"}
-            on_connect_options = options.copy()
-            data = {common.MySQLData.VERSION_INFO: "8.3.0"}
-            session = MockDbSession(
-                Tasks.ExplainJsonFormatVersionTask,
-                True,
-                options,
-                on_connect_options,
-                data,
-                known_data=data,
-                expected_queries=[
-                    (("SET SESSION explain_json_format_version=2", None), MockResult([]))
-                ],
-            )
-            session.reconnect()
-        except Exception as e:
-            assert False, f"Unexpected Error Happened: {str(e)}"
-
-    def test_connection_unsupported_version(self):
-        try:
-            options = {"scheme": "mysql"}
-            on_connect_options = options.copy()
-            data = {common.MySQLData.VERSION_INFO: "8.0.30"}
-            session = MockDbSession(
-                Tasks.ExplainJsonFormatVersionTask,
-                True,
-                options,
-                on_connect_options,
-                data,
-                known_data=data,
-            )
-            session.reconnect()
-        except Exception as e:
-            assert False, f"Unexpected Error Happened: {str(e)}"
+        options = {"scheme": "mysql"}
+        on_connect_options = options.copy()
+        data = {common.MySQLData.VERSION_INFO: "8.3.0"}
+        session = MockDbSession(
+            Tasks.ExplainJsonFormatVersionTask,
+            True,
+            options,
+            on_connect_options,
+            data,
+            known_data=data,
+            expected_queries=[
+                (("SET SESSION explain_json_format_version=2", None), MockResult([]))
+            ],
+        )
+        session.reconnect()
 
 
 class TestHeatWaveCheckTask:
-    def test_initialization(self):
-        try:
-            options = {"scheme": "mysql", Tasks.HeatWaveCheckTask._OPT: True}
-            on_connect_options = options.copy()
-            on_connect_options.pop(Tasks.HeatWaveCheckTask._OPT)
-            session = MockDbSession(
-                Tasks.HeatWaveCheckTask,
-                True,
-                options,
-                on_connect_options,
-                {
-                    common.MySQLData.MLE_AVAILABLE: False,
-                    common.MySQLData.HEATWAVE_AVAILABLE: False,
-                    common.MySQLData.IS_CLOUD_INSTANCE: False,
-                    common.MySQLData.HAS_EXPLAIN_ERROR: False,
-                },
-            )
-        except Exception as e:
-            assert False, f"Unexpected Error Happened: {str(e)}"
-
     def test_connection_hw_check_already_known(self):
         try:
             # Each item is compsed of

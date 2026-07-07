@@ -117,10 +117,14 @@ describe("Electron desktop frontend integration", () => {
                     };
                 },
                 onClose: () => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 },
                 onError: () => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 },
             },
         });
@@ -207,13 +211,19 @@ describe("Electron desktop frontend integration", () => {
                 disconnect: vi.fn().mockResolvedValue(undefined),
                 send: vi.fn(),
                 onMessage: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onClose: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
                 onError: vi.fn(() => {
-                    return () => undefined;
+                    return () => {
+                        return undefined;
+                    };
                 }),
             },
         });
@@ -252,11 +262,13 @@ describe("Electron desktop frontend integration", () => {
         const execute = vi.fn().mockResolvedValue(true);
         const { desktopCommandRegistry } = await import("../../../supplement/DesktopCommandRegistry.js");
         const provider = {
-            getCommands: (): IDesktopCommandDescriptor[] => [{
-                id: "app.about",
-                label: "About MySQL Workbench",
-                enabled: true,
-            }],
+            getCommands: (): IDesktopCommandDescriptor[] => {
+                return [{
+                    id: "app.about",
+                    label: "About MySQL Workbench",
+                    enabled: true,
+                }];
+            },
             execute,
         } as IDesktopCommandProvider;
 

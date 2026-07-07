@@ -269,7 +269,7 @@ describe("Menu component tests", (): void => {
         fireEvent.click(items[0]);
         expect(onItemClick).toHaveBeenCalled();
 
-        unmount;
+        unmount();
     });
 
     it("keeps the menu open when a click handler returns false", async () => {
@@ -294,11 +294,39 @@ describe("Menu component tests", (): void => {
         menuRef.current!.open(new DOMRect(0, 0, 2, 2), false);
         await nextRunLoop();
 
-        const portal = document.getElementsByClassName("portal")[0]!;
+        const portal = document.getElementsByClassName("portal")[0];
         fireEvent.click(portal.getElementsByClassName("menuItem")[0]);
         await nextRunLoop();
 
         expect(document.getElementsByClassName("portal")).toHaveLength(1);
+    });
+
+    it("passes open payload to item click handlers", async () => {
+        const payload = { logPath: "/tmp/mysqlbackup.log" };
+        const onItemClick = vi.fn(() => {
+            return true;
+        });
+        const menuRef = createRef<Menu>();
+
+        render(
+            <Menu
+                ref={menuRef}
+                id="activityMenu"
+                placement={ComponentPlacement.BottomLeft}
+                onItemClick={onItemClick}
+            >
+                <MenuItem command={{ title: "Delete Backup", command: "deleteBackup" }} />
+            </Menu>,
+        );
+
+        await nextRunLoop();
+        menuRef.current!.open(new DOMRect(0, 0, 2, 2), false, undefined, payload);
+        await nextRunLoop();
+
+        const portal = document.getElementsByClassName("portal")[0];
+        fireEvent.click(portal.getElementsByClassName("menuItem")[0]);
+
+        expect(onItemClick).toHaveBeenCalledWith(expect.any(Object), false, payload);
     });
 
     it("closes the menu when clicking outside it", async () => {
@@ -405,7 +433,7 @@ describe("Menu component tests", (): void => {
 
         expect(document.getElementsByClassName("portal")).toHaveLength(2);
 
-        const rootPortal = document.getElementsByClassName("portal")[0]!;
+        const rootPortal = document.getElementsByClassName("portal")[0];
         const rootItems = rootPortal.getElementsByClassName("menuItem");
         fireEvent.mouseEnter(rootItems[1]);
         await nextRunLoop();
@@ -517,12 +545,17 @@ describe("Menu component tests", (): void => {
         });
         await nextRunLoop();
 
-        expect(onItemClick).toHaveBeenCalledWith(expect.objectContaining({
-            command: expect.objectContaining({
-                title: "Hide Private Items",
-                command: "hide",
-            }),
-        }), false, { hide: true, disableLeaf: true });
+        const [props, altActive, payload] = onItemClick.mock.calls[0] as [
+            { command?: { title?: string; command?: string } },
+            boolean,
+            unknown,
+        ];
+        expect(props.command).toMatchObject({
+            title: "Hide Private Items",
+            command: "hide",
+        });
+        expect(altActive).toBe(false);
+        expect(payload).toEqual({ hide: true, disableLeaf: true });
 
         menuRef.current!.close();
         expect(closeNativeMenu).toHaveBeenCalledWith(request.id);
@@ -549,7 +582,9 @@ describe("Menu component tests", (): void => {
             top: 20,
             right: 12,
             bottom: 22,
-            toJSON: () => "",
+            toJSON: () => {
+                return "";
+            },
         } as unknown as DOMRect;
 
         Object.defineProperty(window, "electronHost", {
@@ -599,7 +634,9 @@ describe("Menu component tests", (): void => {
             top: 20,
             right: 40,
             bottom: 60,
-            toJSON: () => "",
+            toJSON: () => {
+                return "";
+            },
         } as unknown as DOMRect;
 
         Object.defineProperty(window, "electronHost", {

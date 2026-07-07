@@ -56,7 +56,9 @@ describe("CodeEditor component tests", (): void => {
     });
 
     it("routes save shortcuts through the provided save handler", async () => {
-        vi.spyOn(requisitions, "register").mockImplementation(() => undefined);
+        vi.spyOn(requisitions, "register").mockImplementation(() => {
+            return undefined;
+        });
 
         const onSave = vi.fn();
         const actions = new Map<string, IEditorAction>();
@@ -66,11 +68,21 @@ describe("CodeEditor component tests", (): void => {
 
                 return { dispose: vi.fn() };
             }),
-            onDidChangeCursorPosition: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidPaste: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidScrollChange: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidChangeModelOptions: vi.fn(() => ({ dispose: vi.fn() })),
+            onDidChangeCursorPosition: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidChangeModelContent: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidPaste: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidScrollChange: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidChangeModelOptions: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
             getDomNode: vi.fn(),
             dispose: vi.fn(),
         };
@@ -106,11 +118,21 @@ describe("CodeEditor component tests", (): void => {
                     set: key === "notebookCanGoBackInHistory" ? canGoBackSet : canGoForwardSet,
                 };
             }),
-            onDidChangeCursorPosition: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidPaste: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidScrollChange: vi.fn(() => ({ dispose: vi.fn() })),
-            onDidChangeModelOptions: vi.fn(() => ({ dispose: vi.fn() })),
+            onDidChangeCursorPosition: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidChangeModelContent: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidPaste: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidScrollChange: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
+            onDidChangeModelOptions: vi.fn(() => {
+                return { dispose: vi.fn() };
+            }),
             getDomNode: vi.fn(),
             dispose: vi.fn(),
         };

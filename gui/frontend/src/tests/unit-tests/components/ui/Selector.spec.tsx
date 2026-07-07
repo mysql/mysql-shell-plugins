@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,7 +32,7 @@ import { Label } from "../../../../components/ui/Label/Label.js";
 import { Selector } from "../../../../components/ui/Selector/Selector.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
-const icon = Assets.documents.overviewPageIcon as string;
+const icon = Assets.documents.overviewPageIcon;
 
 describe("Selector component tests", (): void => {
 
@@ -73,7 +73,7 @@ describe("Selector component tests", (): void => {
         );
 
         await act(() => {
-            const item = container.querySelector("#id5") as HTMLElement;
+            const item = container.querySelector("#id5")!;
             item.click();
         });
 

@@ -213,8 +213,8 @@ export const mockClassMethods = <T extends abstract new (...args: never[]) => un
     targetClass: T,
     mocks: {
         [K in keyof InstanceType<T>]?: InstanceType<T>[K] extends (...args: infer P) => infer R
-            ? (...args: P) => R
-            : never;
+        ? (...args: P) => R
+        : never;
     },
 ): void => {
     (Object.keys(mocks) as Array<keyof typeof mocks>).forEach((methodName) => {
@@ -478,6 +478,7 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
  * @param logLevel The log level to use. Only relevant if showOutput is true.
  * @param context Test context name used when copying MySQL Shell logs.
  *
+ * @param context
  * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
  */
 export const setupShellForTests = (showOutput: boolean, handleEvents = true,
@@ -555,7 +556,7 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
                     fs.rmSync(targetDir, { recursive: true, force: true });
                 } catch (e) {
                     console.error(`⚠️  Could not delete temporary dir ${targetDir}:`, e);
-                }                
+                }
             },
         );
 

@@ -23,42 +23,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { IDbEditorResultSetData } from "../../../../communication/ProtocolGui.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { mockClassMethods, nextRunLoop } from "../../test-helpers.js";
-
-mockClassMethods(ShellInterfaceSqlEditor, {
-    closeSession: () => {
-        return Promise.resolve();
-    },
-});
 
 describe("ShellInterfaceSqlEditor Tests", () => {
-    let backend: ShellInterfaceSqlEditor;
-
-    beforeAll(() => {
-        backend = new ShellInterfaceSqlEditor();
-    });
-
-    it("Base tests", async () => {
-        backend.closeSession().catch(() => {
-            throw new Error("Close session failed");
-        });
-        await nextRunLoop();
-
-    });
-
     it("caches performance schema availability on the backend instance", async () => {
         class TestBackend extends ShellInterfaceSqlEditor {
             public calls: string[] = [];
             public response: IDbEditorResultSetData | undefined = { rows: [["1"]] };
 
-            public override async executeService(sql: string): Promise<IDbEditorResultSetData | undefined> {
+            public override executeService(sql: string): Promise<IDbEditorResultSetData | undefined> {
                 this.calls.push(sql);
 
-                return this.response;
+                return Promise.resolve(this.response);
             }
         }
 

@@ -639,7 +639,6 @@ export const convertErrorToString = (error: unknown): string => {
     return result;
 };
 
-/* eslint-disable @typescript-eslint/naming-convention */
 /** Key names to key strings. */
 export const KeyboardKeys = {
     // Modifier keys
@@ -909,7 +908,6 @@ export const KeyboardKeys = {
     Y: "y",
     Z: "z",
 
-    /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 export const resolvePageSize = (settingsRawValue?: string): number => {
@@ -928,7 +926,6 @@ export const getConnectionInfoFromDetails = (details: IConnectionDetails): IConn
     };
 };
 
-
 export const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;
 
@@ -937,4 +934,4 @@ export const isShellPromptResult = (response?: unknown): response is IShellFeedb
 
 export const isStandalone = (): boolean => {
     return (appParameters?.embedded || false) && (appParameters?.inExtension || false);
-}
+};

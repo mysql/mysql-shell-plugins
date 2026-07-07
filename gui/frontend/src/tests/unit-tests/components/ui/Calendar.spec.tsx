@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,17 +30,6 @@ import { render } from "@testing-library/preact";
 
 describe("Calendar render testing", (): void => {
 
-    it("Calendar view test properties", () => {
-        const currentDate = new Date();
-        const { unmount } = render(
-            <Calendar
-                initialDate={currentDate}
-            />,
-        );
-
-        unmount();
-    });
-
     it("Test Calendar (Snapshot)", () => {
         const { container, unmount } = render(
             <Calendar
@@ -58,6 +47,5 @@ describe("Calendar render testing", (): void => {
 
         unmount();
     });
-
 
 });

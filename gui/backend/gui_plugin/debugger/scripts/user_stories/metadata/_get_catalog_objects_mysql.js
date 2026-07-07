@@ -159,7 +159,8 @@ await ws.sendAndValidate({
     "command": "gui.db.get_catalog_object_names",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
-        "type": "User"
+        "type": "User",
+        "name": "root@localhost"
     }
 }, [
     {

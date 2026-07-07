@@ -64,6 +64,9 @@ PROPERTIES
       migration
             The Migration Assistant MySQL Shell GUI backend module
 
+      meb
+            The MySQL Enterprise Backup MySQL Shell GUI backend module
+
       modeler
             The Modeler MySQL Shell GUI backend module
 

@@ -623,7 +623,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         }) ?? savedState.documentStates[0];
         const executionContexts = activeEditor?.state?.model.executionContexts;
         const presentation = executionContexts && executionContexts.count > 0
-            ? executionContexts.contextAt(0)?.presentation as PresentationInterface | undefined
+            ? executionContexts.contextAt(0)?.presentation
             : undefined;
 
         return {

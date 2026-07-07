@@ -487,7 +487,7 @@ describe("Result Tabview Tests", (): void => {
             current: { cancelCellEditingForDiscard },
         });
 
-        const button = container.querySelector("#rollbackButton") as HTMLButtonElement;
+        const button = container.querySelector("#rollbackButton")!;
         expect(button.classList.contains("disabled")).toBe(false);
 
         button.click();
@@ -564,7 +564,7 @@ describe("Result Tabview Tests", (): void => {
             current: { finishCellEditingForCommit },
         });
 
-        const button = container.querySelector("#applyButton") as HTMLButtonElement;
+        const button = container.querySelector("#applyButton")!;
         expect(button.classList.contains("disabled")).toBe(false);
 
         button.click();
@@ -624,7 +624,7 @@ describe("Result Tabview Tests", (): void => {
             current: { editSelectedOrFirstCell },
         });
 
-        const button = container.querySelector("#editButton") as HTMLButtonElement;
+        const button = container.querySelector("#editButton")!;
         button.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
         await nextRunLoop();
 
@@ -1853,6 +1853,131 @@ describe("Result Tabview Tests", (): void => {
         unmount();
     });
 
+    it("uses radio button behavior for the view selector", async () => {
+        const resultSets: IResultSets = {
+            type: "resultSets",
+            sets: [{
+                type: "resultSet",
+                sql: "select 1",
+                resultId: "123",
+                columns: [],
+                updatable: true,
+                fullTableName: "",
+                data: {
+                    rows: [],
+                    currentPage: 0,
+                    hasMoreRows: false,
+                    executionInfo: {
+                        text: "All fine",
+                    },
+                },
+            }],
+        };
+
+        const { container, unmount } = render(
+            <ResultTabView
+                currentSet={1}
+                resultSets={resultSets}
+                contextId="ec123"
+                hideTabs="single"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const buttons = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
+        const editButton = buttons.namedItem("editButton")!;
+        editButton.click();
+        await nextRunLoop();
+
+        const gridButton = buttons.namedItem("viewGridButton")!;
+        const previewButton = buttons.namedItem("viewPreviewButton")!;
+        expect(gridButton.getAttribute("aria-checked")).toBe("true");
+        expect(gridButton.classList.contains("selected")).toBe(true);
+        expect(gridButton.tabIndex).toBe(0);
+        expect(previewButton.getAttribute("aria-checked")).toBe("false");
+        expect(previewButton.classList.contains("selected")).toBe(false);
+        expect(previewButton.classList.contains("disabled")).toBe(false);
+        expect(previewButton.tabIndex).toBe(-1);
+
+        gridButton.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+        await nextRunLoop();
+
+        expect(gridButton.getAttribute("aria-checked")).toBe("false");
+        expect(gridButton.classList.contains("selected")).toBe(false);
+        expect(gridButton.tabIndex).toBe(-1);
+        expect(previewButton.getAttribute("aria-checked")).toBe("true");
+        expect(previewButton.classList.contains("selected")).toBe(true);
+        expect(previewButton.tabIndex).toBe(0);
+
+        previewButton.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+        await nextRunLoop();
+
+        expect(gridButton.getAttribute("aria-checked")).toBe("true");
+        expect(gridButton.classList.contains("selected")).toBe(true);
+        expect(gridButton.tabIndex).toBe(0);
+        expect(previewButton.getAttribute("aria-checked")).toBe("false");
+        expect(previewButton.classList.contains("selected")).toBe(false);
+        expect(previewButton.tabIndex).toBe(-1);
+
+        unmount();
+    });
+
+    it("updates the toolbar when deleting a row is the first edit", async () => {
+        const resultSet: IResultSet = {
+            type: "resultSet",
+            sql: "select * from test",
+            resultId: "delete-first-edit",
+            columns: [{
+                title: "id",
+                field: "id",
+                dataType: { type: DBDataType.Bigint },
+                inPK: true,
+                nullable: false,
+                autoIncrement: false,
+            }],
+            updatable: true,
+            fullTableName: "test",
+            data: {
+                rows: [{ id: 1 }],
+                currentPage: 0,
+                executionInfo: {
+                    text: "All fine",
+                },
+            },
+        };
+
+        const viewRef = createRef<ResultTabView>();
+        const { container, unmount } = render(
+            <ResultTabView
+                ref={viewRef}
+                currentSet={1}
+                resultSets={{
+                    type: "resultSets",
+                    sets: [resultSet],
+                }}
+                contextId="ec123"
+                hideTabs="single"
+                toggleOptions={toggleOptions}
+            />,
+        );
+
+        const buttons = container.getElementsByClassName("button") as HTMLCollectionOf<HTMLButtonElement>;
+        let applyButton = buttons.namedItem("applyButton")!;
+        expect(applyButton.classList.contains("disabled")).toBe(true);
+
+        const internals = viewRef.current! as unknown as IResultTabViewInternals;
+        internals.onToggleRowDeletionMarks([0]);
+        await nextRunLoop();
+
+        applyButton = buttons.namedItem("applyButton")!;
+        expect(applyButton.classList.contains("disabled")).toBe(false);
+
+        const info = internals.editingInfo.get("delete-first-edit");
+        expect(info).toBeDefined();
+        expect(info!.rowChanges[0].deleted).toBe(true);
+
+        unmount();
+    });
     describe("Test getDerivedStateFromProps", () => {
         it("Removes currentResultSet when sets are empty", () => {
             // const newProps: IResultTabViewProperties = {};

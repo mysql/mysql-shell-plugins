@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Frame component tests > renders framed content with standard component properties 1`] = `
+<div>
+  <div
+    class="msg frame customFrame"
+    id="demoFrame"
+  >
+    <div
+      class="frameContent"
+    >
+      <span>
+        Frame content
+      </span>
+    </div>
+  </div>
+</div>
+`;

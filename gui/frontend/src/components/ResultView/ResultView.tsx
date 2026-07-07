@@ -1984,7 +1984,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         if (rowChanges) {
             const rowIndex = cell.getRow().getPosition() as number - 1;
 
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             return rowChanges[rowIndex]; // rowChanges is a sparse array.
         }
 

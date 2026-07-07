@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -66,13 +66,10 @@ export const execute = async (worker: PrivateWorker, code: string,
         mrsAuthenticate, mrsEditSchema, mrsEditDbObject, mrsAddContentSet, mrsRefreshSdkCode,
     } = await import("./web-functions.js");
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const { GraphProxy: Graph } = await import("./GraphProxy.js");
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const { PieGraphProxy: PieGraph } = await import("./PieGraphProxy.js");
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const { PieGraphLayout } = await import("../console.worker-types.js");
 
     /* Define the variable $ as a proxy to the globalObject. This triggers the get/set functions of the proxy whenever

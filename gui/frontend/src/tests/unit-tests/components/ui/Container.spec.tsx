@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,7 +31,7 @@ import { Container, Orientation } from "../../../../components/ui/Container/Cont
 import { Icon } from "../../../../components/ui/Icon/Icon.js";
 import { Assets } from "../../../../supplement/Assets.js";
 
-const icon = Assets.documents.overviewPageIcon as string;
+const icon = Assets.documents.overviewPageIcon;
 
 describe("Container component tests", (): void => {
 

@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ui } from "../app-logic/UILayer.js"
+import { ui } from "../app-logic/UILayer.js";
 
 export interface IScriptDetails {
     /** The name of the script. */
@@ -146,4 +146,4 @@ export const resolveNewSqlScript = async (type: string, schemaName: string, plac
     }
 
     return {name, sql};
-}
+};

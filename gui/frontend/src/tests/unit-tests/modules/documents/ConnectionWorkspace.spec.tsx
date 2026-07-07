@@ -177,6 +177,8 @@ describe("DBConnectionWorkspace tests", (): void => {
                 autoRefreshTablesAndTasks: true,
                 activeTabId: LakehouseNavigatorTab.Overview,
             },
+            clientConnectionsState: {},
+            enterpriseBackupState: {},
         },
         chatOptionsState: {
             chatOptionsExpanded: false,
@@ -507,14 +509,16 @@ describe("DBConnectionWorkspace tests", (): void => {
             autoCommit: false,
         };
         tab.scriptRef.current = {
-            getDesktopRunState: () => ({
-                canExecute: true,
-                canExecuteSubparts: true,
-                canStop: false,
-                autoCommit: true,
-                transactionOpen: false,
-                stopOnErrors: true,
-            }),
+            getDesktopRunState: () => {
+                return {
+                    canExecute: true,
+                    canExecuteSubparts: true,
+                    canStop: false,
+                    autoCommit: true,
+                    transactionOpen: false,
+                    stopOnErrors: true,
+                };
+            },
         } as unknown as ScriptEditor;
 
         expect(tab.getDesktopRunState()?.autoCommit).toBe(false);

@@ -24,7 +24,16 @@
  */
 
 const { spawnSync } = require("child_process");
-const { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } = require("fs");
+const {
+    chmodSync,
+    cpSync,
+    existsSync,
+    mkdirSync,
+    readdirSync,
+    rmSync,
+    statSync,
+    writeFileSync,
+} = require("fs");
 const { basename, dirname, join, resolve } = require("path");
 
 class Logger {
@@ -78,6 +87,7 @@ const electronCacheFolder = join(electronFolder, "packaging", "electron");
 const electronBuilderCacheFolder = join(electronFolder, "packaging", "electron-builder-cache");
 const electronSourceFolder = join(electronFolder, "src");
 const electronImagesFolder = join(electronFolder, "images");
+const taskHelperFolder = join(guiFolder, "task-helper");
 const desktopIconIcns = join(electronImagesFolder, "app-icon.icns");
 const desktopIconIco = join(electronImagesFolder, "app-icon.ico");
 const desktopIconPng = join(electronImagesFolder, "app-icon.png");
@@ -544,6 +554,58 @@ const installAppImages = (appFolder) => {
     cpSync(electronImagesFolder, imagesTargetFolder, { recursive: true, force: true });
 };
 
+const getTaskHelperInstallFolder = (target, targetFolder) => {
+    return join(getPackagedResourcesDirectory(target, targetFolder), "app", "helpers");
+};
+
+const installProductBundleHelper = (target, targetFolder) => {
+    const helperSourcePath = join(taskHelperFolder, "task-helper");
+    const setupSourcePath = join(taskHelperFolder, "task-helper-setup");
+    const setupModuleSourcePath = join(taskHelperFolder, "task_helper_setup.py");
+    for (const path of [helperSourcePath, setupSourcePath, setupModuleSourcePath]) {
+        if (!existsSync(path)) {
+            throw new Error(`Could not find task helper file at ${path}`);
+        }
+    }
+
+    const helpersFolder = getTaskHelperInstallFolder(target, targetFolder);
+    ensureDirectory(helpersFolder);
+
+    if (target.startsWith("win32")) {
+        const helperScriptPath = join(helpersFolder, "task-helper.py");
+        const helperTargetPath = join(helpersFolder, "task-helper.cmd");
+        const setupScriptPath = join(helpersFolder, "task-helper-setup.py");
+        const setupTargetPath = join(helpersFolder, "task-helper-setup.cmd");
+
+        cpSync(helperSourcePath, helperScriptPath, { force: true });
+        cpSync(setupSourcePath, setupScriptPath, { force: true });
+        cpSync(setupModuleSourcePath, join(helpersFolder, "task_helper_setup.py"), { force: true });
+        writeFileSync(
+            helperTargetPath,
+            "@echo off\r\n"
+            + "setlocal\r\n"
+            + "\"%~dp0..\\shell\\bin\\mysqlsh.exe\" --py -f \"%~dp0task-helper.py\" %*\r\n"
+            + "exit /b %ERRORLEVEL%\r\n",
+        );
+        writeFileSync(
+            setupTargetPath,
+            "@echo off\r\n"
+            + "setlocal\r\n"
+            + "\"%~dp0..\\shell\\bin\\mysqlsh.exe\" --py -f \"%~dp0task-helper-setup.py\" %*\r\n"
+            + "exit /b %ERRORLEVEL%\r\n",
+        );
+    } else {
+        const helperTargetPath = join(helpersFolder, "task-helper");
+        const setupTargetPath = join(helpersFolder, "task-helper-setup");
+
+        cpSync(helperSourcePath, helperTargetPath, { force: true });
+        cpSync(setupSourcePath, setupTargetPath, { force: true });
+        cpSync(setupModuleSourcePath, join(helpersFolder, "task_helper_setup.py"), { force: true });
+        chmodSync(helperTargetPath, 0o755);
+        chmodSync(setupTargetPath, 0o755);
+    }
+};
+
 const installAppPayload = (target, appFolder, includeShellBundle) => {
     if (includeShellBundle) {
         resetDirectory(appFolder);
@@ -591,6 +653,7 @@ const packageTarget = (target, packageOptions) => {
     if (packageOptions.artifacts || packageOptions.zip) {
         copyArtifactFiles(builderOutputFolder, targetArtifactFolder);
     }
+    installProductBundleHelper(target, targetOutputFolder);
 
     Logger.success(`Created desktop package for ${target} in ${targetOutputFolder}`);
     if (packageOptions.artifacts || packageOptions.zip) {
@@ -613,6 +676,7 @@ const quickPackageTarget = (target) => {
     }
 
     installAppPayload(target, appFolder, false);
+    installProductBundleHelper(target, targetOutputFolder);
     Logger.success(`Updated desktop package app payload for ${target} in ${targetOutputFolder}`);
 };
 

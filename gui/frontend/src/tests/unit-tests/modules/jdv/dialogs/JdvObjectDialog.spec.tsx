@@ -53,6 +53,7 @@ describe("Jdv Object dialog tests", () => {
     });
 
     afterAll(async () => {
+        await nextRunLoop();
         await backend.closeSession();
         await launcher.exitProcess();
     });

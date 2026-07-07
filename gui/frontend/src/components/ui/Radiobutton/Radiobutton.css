@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@
     position: relative;
     user-select: none;
 
-    height: 25px;
+    min-height: 25px;
     padding: 0 5px 0 2px;
 
     cursor: pointer;
@@ -41,12 +41,11 @@
     content: '';
     flex: 0 0 16px;
 
-    top: 3px;
-    left: 5px;
+    position: relative;
     width: 16px;
     height: 16px;
 
-    margin: 0 4px;
+    margin: 0 8px 0 2px;
 
     background-color: var(--checkbox-background);
     border: 1px solid var(--checkbox-border);
@@ -87,12 +86,13 @@
 /* This is the indicator for the checked state. */
 .msg.radioButton input:checked ~ .checkMark::after {
     display: inline-block;
-    top: 8.5px;
-    left: 11px;
+    top: 50%;
+    left: 50%;
 
     width: 8px;
     height: 8px;
 
     background: var(--checkbox-foreground);
     border-radius: 50%;
+    transform: translate(-50%, -50%);
 }

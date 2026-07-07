@@ -55,7 +55,8 @@ export interface Command {
 
 /** Identifiers for the type of admin page we have. */
 export type AdminPageType =
-    "serverStatus" | "clientConnections" | "userAccounts" | "performanceDashboard" | "lakehouseNavigator";
+    "serverStatus" | "clientConnections" | "userAccounts" | "performanceDashboard" | "enterpriseBackup" |
+    "lakehouseNavigator";
 
 /**
  * The signature of a callback, which can be passed to any `initialize()` method.

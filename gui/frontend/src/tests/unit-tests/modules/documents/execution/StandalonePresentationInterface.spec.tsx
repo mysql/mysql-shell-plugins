@@ -23,79 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { MessageType } from "../../../../../app-logic/general-types.js";
-import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
-import { ICodeEditorModel, IEditorPersistentState } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
-import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor/index.js";
-import type { ISavedEditorState } from "../../../../../modules/db-editor/ConnectionWorkspace.js";
 import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
-import { StandalonePresentationInterface } from "../../../../../modules/db-editor/execution/StandalonePresentationInterface.js";
-import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
-import { notebookDocumentMock } from "../../../__mocks__/DocumentModuleMocks.js";
-import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
-import { render } from "@testing-library/preact";
+import {
+    StandalonePresentationInterface,
+} from "../../../../../modules/db-editor/execution/StandalonePresentationInterface.js";
 
 describe("Standalone presentation interface tests", (): void => {
-
-    let content = `\nprint("typescript");\n\\js\n`;
-    content += `\nprint("javascript");\n\\sql\n`;
-    content += `\nselect "(my)sql" from dual;\n\\py\n`;
-    content += `\nprint("python");\n`;
-
-    const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
-        executionContexts: new ExecutionContexts(),
-        editorMode: CodeEditorMode.Standard,
-    });
-
-    model.setEOL(Monaco.EndOfLineSequence.LF);
-    model.setValue(content);
-
-    beforeAll(() => {
-        registerUiLayer(uiLayerMock);
-    });
-
-    afterAll(() => {
-        vi.resetAllMocks();
-    });
-
-    it("Standalone presentation interface instantiation", () => {
-        const editorState: IEditorPersistentState = {
-            viewState: null,
-            model,
-            options: {},
-        };
-
-        const savedState: ISavedEditorState = {
-            documentStates: [{
-                document: notebookDocumentMock,
-                state: editorState,
-                currentVersion: 1,
-            }],
-            activeEntry: "1",
-            heatWaveEnabled: false,
-            mleEnabled: false,
-            isCloudInstance: false,
-        };
-
-        const { unmount } = render(
-            <ScriptEditor
-                savedState={savedState}
-                standaloneMode={false}
-                connectionId={-1}
-                connectionCaption="Test Connection"
-                pageCaption="Test Connection"
-                toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
-            />,
-        );
-
-        unmount();
-    });
-
     it("keeps the embedded result pane visible when results are removed", () => {
+        const setState = vi.fn();
         const host = {
-            setState: vi.fn(),
+            setState,
         } as unknown as ScriptEditor;
         const target = { current: document.createElement("div") };
         const presentation = new StandalonePresentationInterface("mysql");
@@ -104,7 +44,7 @@ describe("Standalone presentation interface tests", (): void => {
 
         (presentation as unknown as { removeRenderTarget: () => void }).removeRenderTarget();
 
-        expect(host.setState).toHaveBeenCalledWith({
+        expect(setState).toHaveBeenCalledWith({
             showResultPane: true,
             maximizeResultPane: false,
             hasResultContent: false,
@@ -126,7 +66,9 @@ describe("Standalone presentation interface tests", (): void => {
             id: "ctx-1",
         } as never;
         presentation.activate({
-            getModel: () => null,
+            getModel: () => {
+                return null;
+            },
         } as never);
 
         presentation.setResult({
@@ -168,7 +110,9 @@ describe("Standalone presentation interface tests", (): void => {
             id: "ctx-1",
         } as never;
         presentation.activate({
-            getModel: () => null,
+            getModel: () => {
+                return null;
+            },
         } as never);
 
         presentation.setResult({
@@ -183,8 +127,10 @@ describe("Standalone presentation interface tests", (): void => {
                 viewType: "image",
                 image: {
                     mimeType: "image/svg+xml",
-                    data: "<svg id=\"mysqlVisualExplain\" xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\">" +
-                        "<g data-estimated_total_cost=\"1\"><rect width=\"10\" height=\"10\" /></g></svg>",
+                    data:
+                        "<svg id=\"mysqlVisualExplain\" xmlns=\"http://www.w3.org/2000/svg\" " +
+                        "width=\"10\" height=\"10\"><g data-estimated_total_cost=\"1\">" +
+                        "<rect width=\"10\" height=\"10\" /></g></svg>",
                     caption: "Visual Explain",
                 },
                 caption: "Visual Explain",

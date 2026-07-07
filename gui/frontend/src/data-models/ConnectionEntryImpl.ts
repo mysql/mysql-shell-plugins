@@ -253,7 +253,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 },
             };
 
-            this.addAdminSections(this.adminEntry, new Set(["serverStatus"]));
+            this.addAdminSections(this.adminEntry, new Set(["serverStatus", "enterpriseBackup"]));
         }
 
         (this.state as Mutable<IDataModelEntryState>).initialized = true;

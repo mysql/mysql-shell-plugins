@@ -772,7 +772,7 @@ describe("Document module desktop commands", () => {
         const workspaceItems = Array.from(document.querySelectorAll("#workspaceSelectorPopup .dropdownItem"));
         expect(workspaceItems.length).toBeGreaterThan(1);
         expect(workspaceItems.every((item) => {
-            return getComputedStyle(item).height === getComputedStyle(workspaceItems[0]!).height;
+            return getComputedStyle(item).height === getComputedStyle(workspaceItems[0]).height;
         })).toBe(true);
 
         await act(async () => {
@@ -2861,7 +2861,7 @@ describe("Document module desktop commands", () => {
             moduleRef.current!.forceUpdate();
         });
 
-        const runTrigger = container.querySelector("#desktopTitlebarRunButton .splitButtonTrigger") as HTMLElement;
+        const runTrigger = container.querySelector("#desktopTitlebarRunButton .splitButtonTrigger")!;
         await act(async () => {
             fireEvent.click(runTrigger, {
                 clientX: 240,
@@ -2950,13 +2950,19 @@ describe("Document module desktop commands", () => {
                 currentVersion: 0,
                 state: {
                     model: {
-                        getLanguageId: () => "mysql",
-                        getVersionId: () => 0,
+                        getLanguageId: () => {
+                            return "mysql";
+                        },
+                        getVersionId: () => {
+                            return 0;
+                        },
                         is3rdLanguage: false,
                         executionContexts: {
                             dispose: () => { },
                             cursorPosition: {},
-                            contextFromPosition: () => fakeExecutionContext,
+                            contextFromPosition: () => {
+                                return fakeExecutionContext;
+                            },
                         },
                         dispose: () => { },
                     },
@@ -2983,19 +2989,33 @@ describe("Document module desktop commands", () => {
             });
         });
 
-        vi.spyOn(moduleRef.current as any, "getActiveDesktopExecutionContext").mockImplementation(() => ({
-            activeType: "script",
-            activeConnectionState: (moduleRef.current as any).connectionPresentation.get(fakePage),
-            activeDocumentState: (moduleRef.current as any).connectionPresentation.get(fakePage).documentStates[0],
-            editorExecutionContext: fakeExecutionContext,
-            desktopRunState: {
-                canExecute: fakeExecutionContext.loadingState === LoadingState.Idle,
+        const selectedConnectionWorkspaceRef = (moduleRef.current as any).connectionWorkspaceRefs.get(fakePage.id);
+        expect(selectedConnectionWorkspaceRef).toBeDefined();
+        vi.spyOn(selectedConnectionWorkspaceRef, "getActiveDesktopDocumentType").mockReturnValue("script");
+        vi.spyOn(selectedConnectionWorkspaceRef, "getDesktopRunState").mockImplementation(() => {
+            return {
+                canExecute: false,
                 canExecuteSubparts: true,
                 canStop: fakeExecutionContext.loadingState !== LoadingState.Idle,
                 autoCommit: false,
                 stopOnErrors: true,
-            },
-        }));
+            };
+        });
+        vi.spyOn(moduleRef.current as any, "getActiveDesktopExecutionContext").mockImplementation(() => {
+            return {
+                activeType: "script",
+                activeConnectionState: (moduleRef.current as any).connectionPresentation.get(fakePage),
+                activeDocumentState: (moduleRef.current as any).connectionPresentation.get(fakePage).documentStates[0],
+                editorExecutionContext: fakeExecutionContext,
+                desktopRunState: {
+                    canExecute: fakeExecutionContext.loadingState === LoadingState.Idle,
+                    canExecuteSubparts: true,
+                    canStop: fakeExecutionContext.loadingState !== LoadingState.Idle,
+                    autoCommit: false,
+                    stopOnErrors: true,
+                },
+            };
+        });
 
         await act(async () => {
             moduleRef.current!.forceUpdate();
@@ -3074,6 +3094,7 @@ describe("Document module desktop commands", () => {
         expect(initialState.find((entry) => entry.id === "database.admin.clientConnections")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.userAccounts")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.performanceDashboard")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "database.admin.enterpriseBackup")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.lakehouseNavigator")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.mrs.configure")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.mrs.browseDocs")?.enabled).toBe(true);
@@ -3133,9 +3154,15 @@ describe("Document module desktop commands", () => {
         });
 
         const activePageState = desktopCommandRegistry.getState();
-        expect(activePageState.find((entry) => entry.id === "file.open")?.enabled).toBe(true);
-        expect(activePageState.find((entry) => entry.id === "desktop.newScriptTab")?.enabled).toBe(true);
-        expect(activePageState.find((entry) => entry.id === "desktop.newNotebookTab")?.enabled).toBe(true);
+        expect(activePageState.find((entry) => {
+            return entry.id === "file.open";
+        })?.enabled).toBe(true);
+        expect(activePageState.find((entry) => {
+            return entry.id === "desktop.newScriptTab";
+        })?.enabled).toBe(true);
+        expect(activePageState.find((entry) => {
+            return entry.id === "desktop.newNotebookTab";
+        })?.enabled).toBe(true);
 
         const selectedConnectionWorkspaceRef = (moduleRef.current as any).connectionWorkspaceRefs.get(fakePage.id);
         expect(selectedConnectionWorkspaceRef).toBeDefined();
@@ -3269,11 +3296,15 @@ describe("Document module desktop commands", () => {
 
         expect(await desktopCommandRegistry.execute("view.showHiddenCharacters")).toBe(true);
         expect(Settings.get("editor.showHidden", false)).toBe(true);
-        expect(desktopCommandRegistry.getState().find((entry) => entry.id === "view.showHiddenCharacters")?.checked).toBe(true);
+        expect(desktopCommandRegistry.getState().find((entry) => {
+            return entry.id === "view.showHiddenCharacters";
+        })?.checked).toBe(true);
 
         expect(await desktopCommandRegistry.execute("view.softWrap")).toBe(true);
         expect(Settings.get("editor.wordWrap", "off")).toBe("on");
-        expect(desktopCommandRegistry.getState().find((entry) => entry.id === "view.softWrap")?.checked).toBe(true);
+        expect(desktopCommandRegistry.getState().find((entry) => {
+            return entry.id === "view.softWrap";
+        })?.checked).toBe(true);
 
         await act(async () => {
             expect(await desktopCommandRegistry.execute("view.toggleSidebar")).toBe(true);
@@ -3392,6 +3423,10 @@ describe("Document module desktop commands", () => {
                 caption: "Performance Dashboard",
                 pageType: "performanceDashboard",
             }, {
+                id: "admin-enterprise-backup",
+                caption: "Enterprise Backup",
+                pageType: "enterpriseBackup",
+            }, {
                 id: "admin-lakehouse-navigator",
                 caption: "Lakehouse Navigator",
                 pageType: "lakehouseNavigator",
@@ -3451,6 +3486,11 @@ describe("Document module desktop commands", () => {
                 enabled: true,
             }),
             expect.objectContaining({
+                id: "database.admin.enterpriseBackup",
+                label: "Enterprise Backup",
+                enabled: true,
+            }),
+            expect.objectContaining({
                 id: "database.admin.lakehouseNavigator",
                 label: "Lakehouse Navigator",
                 enabled: true,
@@ -3487,6 +3527,12 @@ describe("Document module desktop commands", () => {
 
         const selectAdminPageSpy = vi.spyOn(moduleRef.current as any, "handleConnectionEntrySelection")
             .mockResolvedValue(undefined);
+        const enterpriseBackupPage = sharedConnection.adminPages.find((page) => {
+            return page.pageType === "enterpriseBackup";
+        });
+        expect(await desktopCommandRegistry.execute("database.admin.enterpriseBackup")).toBe(true);
+        expect(selectAdminPageSpy).toHaveBeenCalledWith(enterpriseBackupPage);
+
         const lakehouseNavigatorPage = sharedConnection.adminPages.find((page) => {
             return page.pageType === "lakehouseNavigator";
         });
@@ -3801,15 +3847,19 @@ describe("Document module desktop commands", () => {
         ));
         (module as any).currentConnectionWorkspaceRef.current = {
             props: { id: userPage.id },
-            getActiveDesktopDocumentType: () => "script",
-            getDesktopRunState: () => ({
-                canExecute: false,
-                canExecuteSubparts: true,
-                canStop: true,
-                autoCommit: true,
-                transactionOpen: false,
-                stopOnErrors: true,
-            }),
+            getActiveDesktopDocumentType: () => {
+                return "script";
+            },
+            getDesktopRunState: () => {
+                return {
+                    canExecute: false,
+                    canExecuteSubparts: true,
+                    canStop: true,
+                    autoCommit: true,
+                    transactionOpen: false,
+                    stopOnErrors: true,
+                };
+            },
         };
 
         expect((module as any).getSelectedConnectionWorkspaceRef()).toBeNull();
@@ -3873,8 +3923,12 @@ describe("Document module desktop commands", () => {
 
         desktopCommandRegistry.notifyHostStateChanged();
 
-        expect(desktopCommandRegistry.getState().find((entry) => entry.id === "edit.previousCommand")?.enabled).toBe(true);
-        expect(desktopCommandRegistry.getState().find((entry) => entry.id === "edit.nextCommand")?.enabled).toBe(false);
+        expect(desktopCommandRegistry.getState().find((entry) => {
+            return entry.id === "edit.previousCommand";
+        })?.enabled).toBe(true);
+        expect(desktopCommandRegistry.getState().find((entry) => {
+            return entry.id === "edit.nextCommand";
+        })?.enabled).toBe(false);
 
         expect(await desktopCommandRegistry.execute("edit.previousCommand")).toBe(true);
         expect(navigateHistorySpy).toHaveBeenCalledWith(true);

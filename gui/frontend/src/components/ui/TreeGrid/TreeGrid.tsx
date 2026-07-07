@@ -747,7 +747,19 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         // Tabulator is not consistent when dealing with missing callback functions. In some situations it tests for
         // null before accessing a callback, and sometimes it does not and creates an exception when null is assigned.
         if (isRowExpanded) {
-            result.dataTreeStartExpanded = isRowExpanded;
+            const childKey = options?.childKey ?? "children";
+
+            result.dataTreeStartExpanded = (row, level) => {
+                const rowData = row.getData() as Record<string, unknown>;
+
+                // A lazy tree can temporarily have no child field while its contents are refreshed. Tabulator
+                // assumes the field exists when expanding a row, so do not ask it to expand such a row.
+                if (!Array.isArray(rowData[childKey])) {
+                    return false;
+                }
+
+                return isRowExpanded(row, level);
+            };
         }
 
         if (options?.layout) {

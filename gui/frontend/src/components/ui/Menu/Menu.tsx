@@ -332,6 +332,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         payload?: unknown): void {
         if (this.shouldUseNativeMenu()) {
             this.openNativeMenu(currentTarget, activateFirstEntry, payload);
+
             return;
         }
 
@@ -530,13 +531,16 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         });
 
         const positioningItem = activateFirstEntry
-            ? items.findIndex((item) => item.type !== "separator" && (item.enabled ?? true))
+            ? items.findIndex((item) => {
+                return item.type !== "separator" && (item.enabled ?? true);
+            })
             : undefined;
         const openAtCursor = !activateFirstEntry && currentTarget.width <= 2 && currentTarget.height <= 2;
         const popupCoordinates = openAtCursor
             ? undefined
             : (() => {
                 const { x: anchorX, y: anchorY } = this.getNativeMenuCoordinates(currentTarget);
+
                 return { x: anchorX, y: anchorY };
             })();
 

@@ -27,9 +27,9 @@ import { DataCallback, MessageScheduler } from "../../communication/MessageSched
 import { IShellResultType, ShellAPIGui } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
-import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js"
+import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
 
-export class ShellInterfaceShellSession  {
+export class ShellInterfaceShellSession {
 
     public interactive: ShellInteractiveInterface = new ShellInteractiveInterface();
     public mhs: ShellInterfaceMhs = new ShellInterfaceMhs(this.interactive);

@@ -174,7 +174,7 @@ describe("Button component tests", (): void => {
                         Button<h2>with content</h2>
                     </Button>
                     <Button id="button4">
-                        <Image src={Assets.misc.closeIcon as string} />
+                        <Image src={Assets.misc.closeIcon} />
                         Image Button
                     </Button>
                 </Container>
@@ -193,7 +193,7 @@ describe("Button component tests", (): void => {
                 <Container>
                     <Button round>M</Button>
                     <Button round>
-                        <Image src={Assets.misc.closeIcon as string} />
+                        <Image src={Assets.misc.closeIcon} />
                     </Button>
                 </Container>
             </div>,

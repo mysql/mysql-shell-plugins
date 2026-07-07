@@ -1,0 +1,1701 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ */
+
+.msg.enterpriseBackupHost {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    background: var(--editor-background);
+    color: var(--foreground);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupSurface {
+    display: grid;
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-rows: auto auto minmax(0, auto) minmax(220px, 1fr);
+    gap: 18px;
+    padding: 16px 24px 24px;
+    overflow: auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeader,
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMain,
+.msg.enterpriseBackupHost .enterpriseBackupSectionHeader,
+.msg.enterpriseBackupHost .enterpriseBackupTitle,
+.msg.enterpriseBackupHost .enterpriseBackupHeaderActions,
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem,
+.msg.enterpriseBackupHost .enterpriseBackupSectionActions {
+    display: flex;
+    align-items: center;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeader {
+    display: grid;
+    grid-row: 1;
+    box-sizing: border-box;
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    padding: 18px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
+            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+    align-items: stretch;
+    gap: 18px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMain {
+    justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTitle {
+    gap: 14px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupIcon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
+}
+
+.msg.enterpriseBackupHost h1,
+.msg.enterpriseBackupHost h2,
+.msg.enterpriseBackupHost p {
+    margin: 0;
+}
+
+.msg.enterpriseBackupHost h1 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.msg.enterpriseBackupHost h2 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderActions {
+    flex: 0 0 auto;
+    gap: 8px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupVersion {
+    margin: 2px 0 0;
+    color: var(--disabledForeground);
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderOverview {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric strong {
+    display: block;
+    min-width: 0;
+    margin-top: 4px;
+    overflow: hidden;
+    color: var(--foreground);
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin-bottom: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricCaption {
+    display: block;
+    flex: 0 0 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricLegend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+    margin-left: auto;
+    overflow: hidden;
+    color: var(--descriptionForeground);
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric .enterpriseBackupHeaderMetricLegendItem {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 4px;
+    min-width: 0;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric .enterpriseBackupHeaderMetricLegendDot {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricLegendDot.backup {
+    background-color: #c99a28;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricLegendDot.other {
+    background-color: #c44d45;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricLegendDot.available {
+    background-color: #3fa95f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric .enterpriseBackupHeaderMetricStatus {
+    margin-top: 3px;
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric .enterpriseBackupHeaderMetricStatus.ok {
+    color: #3fa95f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric .enterpriseBackupHeaderMetricStatus.warn {
+    color: #c7832f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetric .enterpriseBackupHeaderMetricStatus.info {
+    color: #4b8fd8;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricFill {
+    position: relative;
+    margin-top: 4px;
+    overflow: hidden;
+    background-color: color-mix(in srgb, var(--contrastBorder) 68%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricFill>span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: block;
+    height: 100%;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricFillOther {
+    background-color: color-mix(in srgb, #c44d45 58%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricFillBackup {
+    background-color: color-mix(in srgb, #c99a28 68%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricFillAvailable {
+    background-color: color-mix(in srgb, #3fa95f 58%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupHeaderMetricFill>strong {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 2px 4px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWorkspace,
+.msg.enterpriseBackupHost .enterpriseBackupLower {
+    display: grid;
+    gap: 14px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLoadError {
+    grid-row: 2;
+    overflow: hidden;
+    color: #c7832f;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupIntroSurface {
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    justify-items: center;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupIntro {
+    display: grid;
+    box-sizing: border-box;
+    gap: 18px;
+    width: min(620px, 100%);
+    padding: 22px;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 6px;
+    background: var(--sideBar-background);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupIntroHeader {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupIntroActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLocalNotice {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--sideBar-background) 78%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLocalNotice>.icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLocalNotice.info>.icon {
+    color: #4b8fd8;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLocalNotice.warn>.icon {
+    color: #c7832f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLocalNotice strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLocalNotice p {
+    margin-top: 3px;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizard {
+    display: grid;
+    box-sizing: border-box;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 18px;
+    width: min(860px, 100%);
+    min-height: min(620px, 100%);
+    padding: 22px;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 6px;
+    background: var(--sideBar-background);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardSteps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep {
+    display: flex;
+    align-items: center;
+    flex: 0 1 auto;
+    gap: 6px;
+    min-width: 0;
+    color: var(--descriptionForeground);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep:not(:last-child)::after {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 1px;
+    margin-left: 2px;
+    background: var(--contrastBorder);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep>span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 50%;
+    font-size: 11px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep>strong {
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep.current,
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep.complete {
+    color: var(--foreground);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep.current>span,
+.msg.enterpriseBackupHost .enterpriseBackupWizardStep.complete>span {
+    border-color: #3ba99c;
+    color: #3ba99c;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardContent,
+.msg.enterpriseBackupHost .enterpriseBackupWizardPage,
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageHeader,
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageDescription,
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageBody,
+.msg.enterpriseBackupHost .enterpriseBackupWizardStatusList {
+    display: grid;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardContent {
+    min-height: 0;
+    overflow: auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardPage {
+    align-content: start;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 18px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageHeader {
+    align-content: start;
+    gap: 8px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageHeader h1 {
+    padding-bottom: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageDescription {
+    align-content: start;
+    gap: 8px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardPageBody {
+    align-content: start;
+    padding-top: 30px;
+    gap: 16px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardPage p {
+    color: var(--descriptionForeground);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardInfoText {
+    display: grid;
+    gap: 4px;
+    padding: 12px 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardInfoText p {
+    margin: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardInfoText strong {
+    color: var(--foreground);
+    font-weight: 500;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStatusList {
+    gap: 10px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStatusRow {
+    display: block;
+    grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr);
+    gap: 14px;
+    align-content: center;
+    align-items: center;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--sideBar-background) 80%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStatusRow span,
+.msg.enterpriseBackupHost .enterpriseBackupWizardField>span,
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountPanel label>span {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStatusRow strong {
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardStatusFooter {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    min-height: 31px;
+    padding-top: 12px;
+    border-top: 1px solid var(--contrastBorder);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardField,
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountPanel {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardField .fileSelector,
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountPanel .input {
+    width: 100%;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeInput {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeField .fileSelector {
+    flex: 0 1 520px;
+    width: min(520px, 100%);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeInput>.button {
+    flex: 0 0 auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardResultRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountPanel {
+    width: min(760px, 100%);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountPanel>label {
+    width: min(360px, 100%);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    width: 100%;
+    max-width: 860px;
+    padding-top: 4px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardAccountActions p {
+    flex: 0 0 100%;
+    margin: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWizardResultRow>.msg.button {
+    align-self: start;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem.ok .enterpriseBackupActivityStatus,
+.msg.enterpriseBackupHost .enterpriseBackupPill.ok {
+    color: #3fa95f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem.warn .enterpriseBackupActivityStatus,
+.msg.enterpriseBackupHost .enterpriseBackupPill.warn {
+    color: #c7832f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem.info .enterpriseBackupActivityStatus {
+    color: #4b8fd8;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobRow span,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFacts span,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields label>span,
+.msg.enterpriseBackupHost dt {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupWorkspace {
+    grid-row: 3;
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    grid-template-columns: minmax(520px, 1fr) minmax(280px, 360px);
+    align-items: stretch;
+    min-height: 100px;
+    max-height: 280px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLower {
+    grid-row: 4;
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupLower>div {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobs,
+.msg.enterpriseBackupHost .enterpriseBackupInspector,
+.msg.enterpriseBackupHost .enterpriseBackupLower>div {
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 6px;
+    background: var(--sideBar-background);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobs {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupSectionHeader {
+    min-height: 42px;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--contrastBorder);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupSectionActions {
+    gap: 8px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobTable {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    align-content: start;
+    overflow: auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobHeader,
+.msg.enterpriseBackupHost .enterpriseBackupJobRow {
+    display: grid;
+    grid-template-columns: minmax(210px, 1.4fr) minmax(92px, .65fr) minmax(82px, .55fr) minmax(120px, .75fr);
+    align-items: center;
+    gap: 12px;
+    min-height: 46px;
+    padding: 0 24px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobHeader {
+    color: var(--descriptionForeground);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobRow {
+    border-top: 1px solid var(--contrastBorder);
+    cursor: pointer;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupEmptyState {
+    padding: 18px 24px;
+    color: var(--descriptionForeground);
+    font-size: 13px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobRow strong,
+.msg.enterpriseBackupHost .enterpriseBackupJobRow div span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupPill {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-height: 22px;
+    padding: 0 8px;
+    border: 1px solid currentColor;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupInspector {
+    min-width: 0;
+    overflow: auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupInspector dl {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 16px 24px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupInspectorActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 14px 16px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupInspector dd {
+    margin: 4px 0 0;
+    font-size: 13px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimeline {
+    display: grid;
+    min-height: 0;
+    align-content: start;
+    padding: 10px 0 14px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineHeader {
+    display: grid;
+    grid-template-columns: 150px 90px minmax(130px, 1.1fr) minmax(130px, 1fr) 92px 28px;
+    gap: 14px;
+    padding: 0 24px 6px;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    border-bottom: 1px solid var(--contrastBorder);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem {
+    display: grid;
+    grid-template-columns: 150px 90px minmax(130px, 1.1fr) minmax(130px, 1fr) 92px 28px;
+    gap: 14px;
+    align-items: center;
+    padding: 9px 24px;
+    border-bottom: 1px solid var(--contrastBorder);
+    cursor: pointer;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem>strong,
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem>span,
+.msg.enterpriseBackupHost .enterpriseBackupActivityStatus {
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityProfile,
+.msg.enterpriseBackupHost .enterpriseBackupActivityStatus span,
+.msg.enterpriseBackupHost .enterpriseBackupActivityStatus small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobRow:hover,
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem:hover {
+    background: color-mix(in srgb, var(--list-hoverBackground) 72%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupJobRow.selected,
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem.selected {
+    background: color-mix(in srgb, #3ba99c 12%, transparent);
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupTimelineItem:last-child {
+    border-bottom: none;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityTime {
+    display: grid;
+    gap: 2px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityTime span:last-child {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityStatus {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityStatus>div {
+    display: grid;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityStatus small {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupActivityActions {
+    justify-self: end;
+}
+
+.msg.enterpriseBackupConfigurationDialog {
+    width: min(720px, 90vw);
+}
+
+.msg.enterpriseBackupProfileDialog,
+.msg.enterpriseBackupLogDialog {
+    width: min(900px, 94vw);
+}
+
+.msg.enterpriseBackupProfileDialog {
+    box-sizing: border-box;
+    height: min(700px, calc(100vh - 48px));
+    max-height: calc(100vh - 48px);
+}
+
+.msg.enterpriseBackupConfigurationDialog>.content {
+    padding: 18px 20px 16px;
+    white-space: normal;
+}
+
+.msg.enterpriseBackupProfileDialog>.content,
+.msg.enterpriseBackupLogDialog>.content {
+    white-space: normal;
+}
+
+.msg.enterpriseBackupProfileDialog>.content {
+    display: flex;
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationContent {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFacts {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 6px;
+    background: var(--sideBar-background);
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFactRow {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFactRow.twoColumns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFacts strong {
+    display: block;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields {
+    display: grid;
+    gap: 12px;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields label,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields .input,
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupConfigurationFields .fileSelector {
+    width: 100%;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields>.button {
+    margin-top: 22px;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountPasswordStatus {
+    display: flex;
+    align-items: center;
+    grid-column: 1 / -1;
+    gap: 8px;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountPasswordStatus>span {
+    flex: 0 0 auto;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupValidation {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupValidation>.icon {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupValidation.ok>.icon {
+    color: #3fa95f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupValidation.warn>.icon {
+    color: #c7832f;
+}
+
+.msg.enterpriseBackupHost .enterpriseBackupValidation.info>.icon {
+    color: #4b8fd8;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation>.icon {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation.ok>.icon {
+    color: #3fa95f;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation.warn>.icon {
+    color: #c7832f;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation.info>.icon {
+    color: #4b8fd8;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation.ok>.icon:not(.codicon) {
+    background-color: #3fa95f;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation.warn>.icon:not(.codicon) {
+    background-color: #c7832f;
+}
+
+.msg.enterpriseBackupConfigurationDialog .enterpriseBackupValidation.info>.icon:not(.codicon) {
+    background-color: #4b8fd8;
+}
+
+.enterpriseBackupTooltipTarget {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    flex: 1 1 auto;
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileHeaderFields {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(480px, max-content);
+    align-items: end;
+    gap: 14px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileSummaries {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTypeSummary {
+    display: grid;
+    gap: 3px;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 7px 10px;
+    overflow: hidden;
+    border: 1px solid var(--contrastBorder);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--sideBar-background) 78%, transparent);
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTypeSummary span {
+    color: var(--descriptionForeground);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTypeSummary strong {
+    overflow: hidden;
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent label:not(.checkbox) {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent label:not(.checkbox)>span {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent .checkbox {
+    display: inline-flex;
+    align-items: center;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent .input,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent .fileSelector,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent select {
+    width: 100%;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent select {
+    box-sizing: border-box;
+    min-height: 24px;
+    padding: 2px 8px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background-color: var(--input-background);
+    color: var(--input-foreground);
+    font: inherit;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent select:hover:not(:disabled) {
+    background-color: var(--inputOption-hoverBackground);
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent select:disabled {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent textarea {
+    box-sizing: border-box;
+    min-height: 56px;
+    padding: 6px 8px;
+    resize: vertical;
+    border: 1px solid var(--input-border);
+    border-radius: 2px;
+    background: var(--input-background);
+    color: var(--input-foreground);
+    font: inherit;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTabview {
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTabview>.tabContent {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTabContent {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    min-height: 0;
+    min-width: 0;
+    padding: 14px 0 0;
+    overflow: auto;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupContentsTabContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupBackupPathFrame {
+    display: grid;
+    gap: 10px;
+    align-self: stretch;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupPartialControls,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupTtsControls {
+    min-width: 0;
+    padding-left: 26px;
+    box-sizing: border-box;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupStorageTabContent {
+    align-content: stretch;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupStorageTabLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 100%;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupStorageNote {
+    margin: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupStorageFullPath {
+    display: block;
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupPartialControls {
+    display: grid;
+    gap: 12px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupTtsControls {
+    display: grid;
+    gap: 8px;
+    align-self: end;
+    width: 100%;
+    margin-top: auto;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupObjectFilterFrame,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupCompressionFrame {
+    align-self: start;
+    flex: 0 0 auto;
+    height: fit-content;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupObjectFilterFrame>.frameContent,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupCompressionFrame>.frameContent {
+    display: grid;
+    flex: 0 0 auto;
+    gap: 8px;
+    overflow: visible;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupObjectFilterFrame p {
+    margin: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupInlineError,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileContent label:not(.checkbox)>span.enterpriseBackupInlineError {
+    color: #f14c4c;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupInlineError {
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupFieldCaptionRow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupProfileTabContent p {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupCommentsField textarea {
+    min-height: 180px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupOptionHelp {
+    margin: -4px 0 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupContentModeHelp {
+    margin: -4px 0 0 26px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupOptionsGroup {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleSentence,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupOptionPair {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleGroup {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleFrame {
+    align-self: start;
+    flex: 0 0 auto;
+    height: fit-content;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleFrame>.frameContent {
+    display: grid;
+    flex: 0 0 auto;
+    gap: 10px;
+    overflow: visible;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupIncrementalScheduleFrame>.frameContent {
+    gap: 16px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleSentence>span {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleSentence>select {
+    width: auto;
+    min-width: 76px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleInterval.input,
+.msg.enterpriseBackupProfileDialog .enterpriseBackupScheduleTimeInput.input {
+    width: 54px;
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupOptionsSeparator {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--input-border);
+}
+
+.msg.enterpriseBackupProfileDialog .enterpriseBackupWeekDays {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.msg.enterpriseBackupContentDialog,
+.msg.enterpriseBackupRestoreDialog {
+    width: min(680px, 80vw);
+}
+
+.msg.enterpriseBackupContentDialog {
+    width: min(920px, 88vw);
+}
+
+.msg.enterpriseBackupContentDialog>.content,
+.msg.enterpriseBackupRestoreDialog>.content {
+    padding: 20px 24px;
+    white-space: normal;
+}
+
+.msg.enterpriseBackupContentDialog>.content {
+    display: flex;
+    min-height: 0;
+    height: min(520px, 70vh);
+    overflow: hidden;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentViewer {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 14px;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFacts {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px 16px;
+    margin: 0;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFacts div {
+    min-width: 0;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentWideFact {
+    grid-column: span 3;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFacts dt {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFacts dd {
+    min-width: 0;
+    margin: 2px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain {
+    min-width: 0;
+    max-height: 96px;
+    overflow: auto;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain th,
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain td {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--tab-border);
+    text-align: left;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain th {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain th:first-child,
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain td:first-child {
+    width: min(400px, 100%);
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentRestoreChain td:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordion {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-top: 1px solid var(--tab-border);
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileAccordion {
+    overflow: auto;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionSection {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-bottom: 1px solid var(--tab-border);
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionSection.expanded {
+    flex: 1 1 auto;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionHeader {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 28px;
+    padding: 4px 0;
+    border: 0;
+    color: var(--foreground);
+    background: transparent;
+    text-align: left;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionHeader:hover {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionHeader .icon {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionHeader span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentAccordionBody {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    min-height: 0;
+    padding: 8px 0 12px 20px;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px 16px;
+    min-width: 0;
+    margin: 0;
+    padding-right: 10px;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileGroup .enterpriseBackupContentFileInfoRow,
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileGroup .enterpriseBackupContentFileListRow {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 8px 16px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileGroup dt {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileGroup dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFileList {
+    display: grid;
+    align-content: start;
+    min-width: 0;
+    height: 220px;
+    overflow: auto;
+    border: 1px solid var(--tab-border);
+    background-color: var(--list-inactiveSelectionBackground);
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentFilePath {
+    min-width: 0;
+    padding: 2px 6px;
+    overflow-wrap: anywhere;
+    font-family: var(--msg-monospace-font-family);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.msg.enterpriseBackupContentDialog .enterpriseBackupContentWarnings {
+    display: grid;
+    gap: 6px;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent p {
+    margin: 0;
+    color: var(--descriptionForeground);
+    line-height: 1.5;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent .enterpriseBackupRestoreWarning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--notificationsWarningIcon-foreground);
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent .enterpriseBackupRestoreWarning .icon {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-left: 20px;
+    color: var(--descriptionForeground);
+    line-height: 1.5;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent dl>div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent dt {
+    color: var(--descriptionForeground);
+    font-size: 12px;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreContent .checkbox,
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreProgressContent .checkbox {
+    width: fit-content;
+}
+
+.msg.enterpriseBackupRestoreDialog.active .title #closeButton {
+    display: none;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreProgressContent {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreProgressStatus {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--descriptionForeground);
+    line-height: 1.5;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreProgressStatus .icon {
+    animation: enterpriseBackupRestoreSpin 1s linear infinite;
+}
+
+.msg.enterpriseBackupRestoreDialog .enterpriseBackupRestoreProgressContent textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 260px;
+    padding: 8px;
+    resize: vertical;
+    color: var(--input-foreground);
+    border: 1px solid var(--input-border);
+    background-color: var(--input-background);
+    font-family: var(--msg-monospace-font-family);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+@keyframes enterpriseBackupRestoreSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 1180px) {
+
+    .msg.enterpriseBackupHost .enterpriseBackupWorkspace,
+    .msg.enterpriseBackupHost .enterpriseBackupLower {
+        grid-template-columns: 1fr;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupJobHeader,
+    .msg.enterpriseBackupHost .enterpriseBackupJobRow {
+        grid-template-columns: minmax(210px, 1fr) 90px 90px;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupJobHeader span:nth-child(4),
+    .msg.enterpriseBackupHost .enterpriseBackupJobRow>span:nth-child(4),
+    .msg.enterpriseBackupHost .enterpriseBackupJobHeader span:nth-child(5),
+    .msg.enterpriseBackupHost .enterpriseBackupJobRow>span:nth-child(5) {
+        display: none;
+    }
+}
+
+@media (max-width: 760px) {
+    .msg.enterpriseBackupHost .enterpriseBackupHeaderOverview {
+        grid-template-columns: 1fr;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupSectionHeader {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 10px 16px;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupSectionActions {
+        flex-wrap: wrap;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupJobHeader,
+    .msg.enterpriseBackupHost .enterpriseBackupJobRow,
+    .msg.enterpriseBackupHost .enterpriseBackupInspector dl,
+    .msg.enterpriseBackupHost .enterpriseBackupTimeline {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .msg.enterpriseBackupConfigurationDialog .enterpriseBackupServerFacts,
+    .msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields,
+    .msg.enterpriseBackupProfileDialog .enterpriseBackupProfileHeaderFields,
+    .msg.enterpriseBackupProfileDialog .enterpriseBackupProfileSummaries,
+    .msg.enterpriseBackupProfileDialog .enterpriseBackupOptionPair {
+        grid-template-columns: 1fr;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeInput {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .msg.enterpriseBackupHost .enterpriseBackupWizardBackupHomeField .fileSelector {
+        flex-basis: auto;
+    }
+
+    .msg.enterpriseBackupContentDialog .enterpriseBackupContentFacts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .msg.enterpriseBackupConfigurationDialog .enterpriseBackupAccountFields>.button {
+        margin-top: 0;
+    }
+}

@@ -49,6 +49,7 @@ import {
     ConnectionWorkspace, IOpenDocumentState, ISelectItemDetails, type IConnectionPresentationState,
 } from "./ConnectionWorkspace.js";
 import type { IClientConnectionsSavedState } from "./ClientConnections.js";
+import type { IEnterpriseBackupSavedState } from "./EnterpriseBackup.js";
 import { getDocumentFileName, getOpenDocumentDisplayCaption, getUntitledFileIndex } from "./DocumentCaptionHelpers.js";
 import {
     DocumentContext, ISavedGraphData, IToolbarItems, type ISideBarCommandResult, type QualifiedName,
@@ -1565,6 +1566,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 onEditorChange={this.handleEditorChange}
                 onGraphDataChange={this.handleGraphDataChange}
                 onSaveAdminClientConnectionsState={this.handleClientConnectionsStateChange}
+                onSaveAdminEnterpriseBackupState={this.handleEnterpriseBackupStateChange}
                 onChatOptionsChange={this.onChatOptionsChange}
                 onDesktopRunStateChanged={this.handleDesktopRunStateChanged}
             />);
@@ -3500,7 +3502,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private activateConnectionWorkspace = async (entry: ICdmConnectionEntry, createNewWorkspace: boolean,
         suppressAbout: boolean,
         initialEditor?: InitialEditor, serviceOnly = initialEditor === "none"): Promise<boolean> => {
-        let selectedPage = this.resolveLatestConnectionPageId(entry, serviceOnly);
+        let selectedPage = createNewWorkspace ? undefined : this.resolveLatestConnectionPageId(entry, serviceOnly);
 
         if (selectedPage && !createNewWorkspace) {
             await this.setStatePromise({
@@ -3708,6 +3710,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                         activeTabId: LakehouseNavigatorTab.Overview,
                     },
                     clientConnectionsState: {},
+                    enterpriseBackupState: {},
                 },
                 graphData: {
                     timestamp: 0,
@@ -5357,6 +5360,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (connectionState) {
             connectionState.adminPageStates.clientConnectionsState = {
                 ...connectionState.adminPageStates.clientConnectionsState,
+                ...data,
+            };
+        }
+    };
+
+    private handleEnterpriseBackupStateChange = (pageId: string, data: Partial<IEnterpriseBackupSavedState>): void => {
+        const { connectionWorkspaces } = this.state;
+
+        const tab = connectionWorkspaces.find((entry) => {
+            return entry.dataModelEntry.id === pageId;
+        });
+
+        if (!tab) {
+            return;
+        }
+
+        const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
+        if (connectionState) {
+            connectionState.adminPageStates.enterpriseBackupState = {
+                ...connectionState.adminPageStates.enterpriseBackupState,
                 ...data,
             };
         }

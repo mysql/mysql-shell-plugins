@@ -88,7 +88,7 @@ describe("SplitButton component tests", (): void => {
             </SplitButton>,
         );
 
-        const primary = container.querySelector(".splitButtonPrimary") as HTMLElement;
+        const primary = container.querySelector(".splitButtonPrimary")!;
         fireEvent.click(primary);
 
         expect(onClick).toHaveBeenCalledTimes(1);
@@ -107,7 +107,7 @@ describe("SplitButton component tests", (): void => {
             <SplitButton menu={createMenu()} onClick={onClick} requestType="editorCommit" caption="Commit" />,
         );
 
-        const primary = container.querySelector(".splitButtonPrimary") as HTMLElement;
+        const primary = container.querySelector(".splitButtonPrimary")!;
         fireEvent.click(primary);
 
         expect(requestHandler).toHaveBeenCalledTimes(1);
@@ -123,7 +123,7 @@ describe("SplitButton component tests", (): void => {
             <SplitButton menu={createMenu(onItemClick)} caption="Run Query" />,
         );
 
-        const trigger = container.querySelector(".splitButtonTrigger") as HTMLElement;
+        const trigger = container.querySelector(".splitButtonTrigger")!;
         fireEvent.click(trigger);
         await nextRunLoop();
 
@@ -157,7 +157,7 @@ describe("SplitButton component tests", (): void => {
             />,
         );
 
-        const splitButton = container.querySelector(".splitButton") as HTMLElement;
+        const splitButton = container.querySelector(".splitButton")!;
         vi.spyOn(splitButton, "getBoundingClientRect").mockReturnValue({
             x: 100,
             y: 20,
@@ -167,10 +167,12 @@ describe("SplitButton component tests", (): void => {
             top: 20,
             right: 180,
             bottom: 44,
-            toJSON: () => "",
+            toJSON: () => {
+                return "";
+            },
         } as DOMRect);
 
-        const trigger = container.querySelector(".splitButtonTrigger") as HTMLElement;
+        const trigger = container.querySelector(".splitButtonTrigger")!;
         fireEvent.click(trigger);
         await nextRunLoop();
 
@@ -190,13 +192,13 @@ describe("SplitButton component tests", (): void => {
             <SplitButton menu={createMenu()} onClick={onClick} caption="Run Query" />,
         );
 
-        const primary = container.querySelector(".splitButtonPrimary") as HTMLElement;
+        const primary = container.querySelector(".splitButtonPrimary")!;
         fireEvent.keyDown(primary, { key: KeyboardKeys.Enter });
         fireEvent.keyDown(primary, { key: KeyboardKeys.Space });
 
         expect(onClick).toHaveBeenCalledTimes(2);
 
-        const trigger = container.querySelector(".splitButtonTrigger") as HTMLElement;
+        const trigger = container.querySelector(".splitButtonTrigger")!;
         fireEvent.keyDown(trigger, { key: KeyboardKeys.ArrowDown });
         await nextRunLoop();
 
@@ -217,8 +219,8 @@ describe("SplitButton component tests", (): void => {
             />,
         );
 
-        const primary = container.querySelector(".splitButtonPrimary") as HTMLElement;
-        const trigger = container.querySelector(".splitButtonTrigger") as HTMLElement;
+        const primary = container.querySelector(".splitButtonPrimary")!;
+        const trigger = container.querySelector(".splitButtonTrigger")!;
 
         fireEvent.click(primary);
         fireEvent.keyDown(primary, { key: KeyboardKeys.Enter });

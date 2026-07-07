@@ -295,7 +295,9 @@ describe("Client connections module tests", (): void => {
     });
 
     it("does not start overlapping refreshes while a refresh is still pending", async () => {
-        let resolveProbe: (value: boolean) => void = () => undefined;
+        let resolveProbe: (value: boolean) => void = () => {
+            return undefined;
+        };
         const pendingProbe = new Promise<boolean>((resolve) => {
             resolveProbe = resolve;
         });

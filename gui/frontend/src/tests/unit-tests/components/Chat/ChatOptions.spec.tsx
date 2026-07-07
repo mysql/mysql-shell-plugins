@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-/* eslint-disable dot-notation */
 
 import { render } from "@testing-library/preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -151,7 +149,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "testSection", true);
+            chatOptionsRef.current!.handleSectionExpand({} as IAccordionProperties, "testSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
                 sectionStates: new Map([["testSection", { expanded: true }]]),
@@ -182,7 +180,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "existingSection", true);
+            chatOptionsRef.current!.handleSectionExpand({} as IAccordionProperties, "existingSection", true);
 
             const expectedMap = new Map([
                 ["existingSection", { expanded: true, size: 100 }],
@@ -215,7 +213,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "promptSection", true);
+            chatOptionsRef.current!.handleSectionExpand({} as IAccordionProperties, "promptSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(2);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -251,7 +249,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSectionExpand"]({} as IAccordionProperties, "promptSection", true);
+            chatOptionsRef.current!.handleSectionExpand({} as IAccordionProperties, "promptSection", true);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -288,7 +286,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleStartNewChatClick"]({} as MouseEvent, {});
+            chatOptionsRef.current!.handleStartNewChatClick({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.StartNewChat);
@@ -314,7 +312,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleStartNewChatClick"]({} as KeyboardEvent, {});
+            chatOptionsRef.current!.handleStartNewChatClick({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.StartNewChat);
@@ -349,7 +347,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSaveOptionsBtnClick"]({} as MouseEvent, {});
+            chatOptionsRef.current!.handleSaveOptionsBtnClick({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.SaveChatOptions);
@@ -375,7 +373,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSaveOptionsBtnClick"]({} as KeyboardEvent, {});
+            chatOptionsRef.current!.handleSaveOptionsBtnClick({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.SaveChatOptions);
@@ -410,7 +408,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleLoadOptionsBtnClick"]({} as MouseEvent, {});
+            chatOptionsRef.current!.handleLoadOptionsBtnClick({} as MouseEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.LoadChatOptions);
@@ -436,7 +434,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleLoadOptionsBtnClick"]({} as KeyboardEvent, {});
+            chatOptionsRef.current!.handleLoadOptionsBtnClick({} as KeyboardEvent, {});
 
             expect(mockOnAction).toHaveBeenCalledTimes(1);
             expect(mockOnAction).toHaveBeenCalledWith(ChatOptionAction.LoadChatOptions);
@@ -474,7 +472,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSchemaChange"](true, new Set(["newSchema"]));
+            chatOptionsRef.current!.handleSchemaChange(true, new Set(["newSchema"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -507,7 +505,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSchemaChange"](true, new Set(["schemaDropdownAllSchemas"]));
+            chatOptionsRef.current!.handleSchemaChange(true, new Set(["schemaDropdownAllSchemas"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -542,7 +540,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleSchemaChange"](true, new Set(["newSchema"]));
+            chatOptionsRef.current!.handleSchemaChange(true, new Set(["newSchema"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -589,7 +587,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelIdChange"](true, new Set(["newModel"]));
+            chatOptionsRef.current!.handleModelIdChange(true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -623,7 +621,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelIdChange"](true, new Set(["newModel"]));
+            chatOptionsRef.current!.handleModelIdChange(true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -663,7 +661,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelIdChange"](true, new Set(["newModel"]));
+            chatOptionsRef.current!.handleModelIdChange(true, new Set(["newModel"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -713,7 +711,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["en"]));
+            chatOptionsRef.current!.handleModelLanguageChange(true, new Set(["en"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -747,7 +745,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["es"]));
+            chatOptionsRef.current!.handleModelLanguageChange(true, new Set(["es"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -789,7 +787,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["es"]));
+            chatOptionsRef.current!.handleModelLanguageChange(true, new Set(["es"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -836,7 +834,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelLanguageChange"](true, new Set(["en"]));
+            chatOptionsRef.current!.handleModelLanguageChange(true, new Set(["en"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -888,7 +886,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
+            chatOptionsRef.current!.handleLanguageModelIdChange(true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -922,7 +920,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
+            chatOptionsRef.current!.handleLanguageModelIdChange(true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -966,7 +964,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleLanguageModelIdChange"](true, new Set(["newTranslator"]));
+            chatOptionsRef.current!.handleLanguageModelIdChange(true, new Set(["newTranslator"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1023,7 +1021,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
+            chatOptionsRef.current!.handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1059,7 +1057,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
+            chatOptionsRef.current!.handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1103,7 +1101,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
+            chatOptionsRef.current!.handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1147,7 +1145,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handlePreambleChange"](mockEvent, {} as IInputChangeProperties);
+            chatOptionsRef.current!.handlePreambleChange(mockEvent, {} as IInputChangeProperties);
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1192,7 +1190,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["fr"]));
+            chatOptionsRef.current!.handleTranslationLanguageChange(true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1226,7 +1224,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["fr"]));
+            chatOptionsRef.current!.handleTranslationLanguageChange(true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1264,7 +1262,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["noTranslation"]));
+            chatOptionsRef.current!.handleTranslationLanguageChange(true, new Set(["noTranslation"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1309,7 +1307,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleTranslationLanguageChange"](true, new Set(["fr"]));
+            chatOptionsRef.current!.handleTranslationLanguageChange(true, new Set(["fr"]));
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1370,7 +1368,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelOptionChange"](e, {});
+            chatOptionsRef.current!.handleModelOptionChange(e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1411,7 +1409,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelOptionChange"](e, {});
+            chatOptionsRef.current!.handleModelOptionChange(e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1462,7 +1460,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["handleModelOptionChange"](e, {});
+            chatOptionsRef.current!.handleModelOptionChange(e, {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1517,7 +1515,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["removeVectorTable"]("schema1.table1", {});
+            chatOptionsRef.current!.removeVectorTable("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1553,7 +1551,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["removeVectorTable"]("schema1.table1", {});
+            chatOptionsRef.current!.removeVectorTable("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1584,7 +1582,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            chatOptionsRef.current!["removeVectorTable"]("schema1.table1", {});
+            chatOptionsRef.current!.removeVectorTable("schema1.table1", {});
 
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledTimes(1);
             expect(mockOnChatOptionsStateChange).toHaveBeenCalledWith({
@@ -1627,7 +1625,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            const result = chatOptionsRef.current!["historyMessageColumnFormatter"](message);
+            const result = chatOptionsRef.current!.historyMessageColumnFormatter(message);
 
             expect(result).toMatchSnapshot();
 
@@ -1656,7 +1654,7 @@ describe("ChatOptions", () => {
             await nextRunLoop();
             expect(chatOptionsRef.current).toBeDefined();
 
-            const result = chatOptionsRef.current!["historyMessageColumnFormatter"](message);
+            const result = chatOptionsRef.current!.historyMessageColumnFormatter(message);
 
             expect(result).toMatchSnapshot();
 

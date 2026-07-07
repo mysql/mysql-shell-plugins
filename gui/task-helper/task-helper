@@ -1,0 +1,4062 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026, Oracle and/or its affiliates.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2.0,
+# as published by the Free Software Foundation.
+#
+# This program is designed to work with certain software (including
+# but not limited to OpenSSL) that is licensed under separate terms, as
+# designated in a particular file or component or in included license
+# documentation.  The authors of MySQL hereby grant you an additional
+# permission to link the program and your derivative works with the
+# separately licensed software that they have either included with
+# the program or referenced in the documentation.
+#
+# This program is distributed in the hope that it will be useful,  but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+# the GNU General Public License, version 2.0, for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+from __future__ import annotations
+
+import configparser
+import hashlib
+import io
+import itertools
+import json
+import os
+import plistlib
+import re
+import shlex
+import signal
+import shutil
+import socket
+import stat
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass, replace
+from pathlib import Path
+from typing import Any
+
+if os.name == "posix":
+    import pwd
+
+
+# Errors
+class HelperError(Exception):
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+# Data types
+@dataclass(frozen=True)
+class TargetUser:
+    uid: int | None = None
+    gid: int | None = None
+    account: str | None = None
+    windows_logon_type: str = "ServiceAccount"
+
+
+@dataclass(frozen=True)
+class HelperConfig:
+    target_user_name: str
+    target_user: TargetUser
+    mysqlbackup: str
+    login_file: str
+    login_path: str
+    crontab: str
+    job_runner: str
+    backup_roots: list[str]
+    option_file_roots: list[str]
+    working_directory: str
+    timeout_ms: int
+    max_output_bytes: int
+    backup_home: str = ""
+    launchctl: str = "/bin/launchctl"
+    schtasks: str = r"C:\Windows\System32\schtasks.exe"
+    scheduler_backend: str = "platform"
+    launchd_plist_dir: str = "/Library/LaunchDaemons"
+    windows_task_folder: str = r"\MySQLWorkbench"
+    datadir: str = ""
+
+
+@dataclass(frozen=True)
+class ProcessPlan:
+    executable: str
+    args: list[str]
+    cwd: str
+    env: dict[str, str]
+    uid: int | None
+    gid: int | None
+    timeout_ms: int
+    max_output_bytes: int
+    audit_name: str
+    account: str | None = None
+    stdin: str | None = None
+    log_path: str | None = None
+    output_path: str | None = None
+    progress_path: str | None = None
+    progress_context: dict[str, Any] | None = None
+
+# Request validation
+def require_dict(value: Any, label: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise HelperError("invalid_request", f"{label} must be an object.")
+
+    return value
+
+
+def reject_unknown_fields(value: dict[str, Any], allowed_fields: set[str], label: str) -> None:
+    for field in value:
+        if field not in allowed_fields:
+            raise HelperError("invalid_request", f"{label} contains unsupported field '{field}'.")
+
+
+def require_string(value: Any, label: str) -> str:
+    if not isinstance(value, str) or len(value) == 0:
+        raise HelperError("invalid_request", f"{label} must be a non-empty string.")
+
+    if "\0" in value:
+        raise HelperError("invalid_request", f"{label} must not contain NUL bytes.")
+
+    return value
+
+
+def require_safe_identifier(value: Any, label: str) -> str:
+    candidate = require_string(value, label)
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", candidate) is None:
+        raise HelperError("invalid_request", f"{label} must be a safe identifier.")
+
+    return candidate
+
+
+# Runtime configuration
+HELPER_VERSION = "1"
+CONFIG_NAME = "backups.cnf"
+PROFILE_CONFIG_IGNORES = {
+    CONFIG_NAME,
+    ".mylogin.cnf",
+    "mebmanager.cnf",
+}
+INCREMENTAL_BASE_VALUES = {
+    "history:last_backup",
+    "history:last_full_backup",
+}
+CLOUD_OBJECT_OPTION_BY_SERVICE = {
+    "gcp": "--cloud-object",
+    "oci": "--cloud-object",
+    "openstack": "--cloud-object",
+    "s3": "--cloud-object-key",
+}
+DEFAULT_TIMEOUT_MS = 900000
+DEFAULT_MAX_OUTPUT_BYTES = 1024 * 1024
+MAX_CONFIG_BYTES = 65536
+
+
+def _entrypoint_path() -> str:
+    script_path = Path(__file__).resolve()
+    if os.name == "nt" and script_path.name == "task-helper.py":
+        return script_path.with_name("task-helper.cmd").as_posix()
+
+    return script_path.as_posix()
+
+
+def _read_helper_config_file(backup_home: Path | None = None) -> configparser.RawConfigParser:
+    path = (backup_home or _default_backup_home()) / CONFIG_NAME
+    try:
+        file_stat = path.lstat()
+    except OSError:
+        raise HelperError("invalid_config", f"{CONFIG_NAME} is missing.")
+
+    if not stat.S_ISREG(file_stat.st_mode):
+        raise HelperError("invalid_config", f"{CONFIG_NAME} must be a regular file, not a symlink or directory.")
+    if file_stat.st_size > MAX_CONFIG_BYTES:
+        raise HelperError("invalid_config", f"{CONFIG_NAME} is too large.")
+
+    if os.name == "posix":
+        effective_uid = os.geteuid()
+        if file_stat.st_uid not in {effective_uid, 0}:
+            raise HelperError("invalid_config", f"{CONFIG_NAME} must be owned by root or the effective helper user.")
+        if file_stat.st_mode & 0o022:
+            raise HelperError("invalid_config", f"{CONFIG_NAME} must not be group or world writable.")
+        for parent in path.parents:
+            parent_stat = parent.lstat()
+            if not stat.S_ISDIR(parent_stat.st_mode):
+                raise HelperError("invalid_config", f"{CONFIG_NAME} parent paths must be directories.")
+            if parent_stat.st_uid not in {effective_uid, 0}:
+                raise HelperError("invalid_config", f"{CONFIG_NAME} parent paths must be owned by root or the effective helper user.")
+            if parent_stat.st_mode & 0o022:
+                raise HelperError("invalid_config", f"{CONFIG_NAME} parent paths must not be group or world writable.")
+
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(path, flags)
+        opened_stat = os.fstat(fd)
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
+            raise HelperError("invalid_config", f"{CONFIG_NAME} changed while opening.")
+        if not stat.S_ISREG(opened_stat.st_mode):
+            raise HelperError("invalid_config", f"{CONFIG_NAME} must be a regular file.")
+
+        with os.fdopen(fd, "r", encoding="utf-8") as config_file:
+            fd = None
+            parser = configparser.RawConfigParser()
+            parser.optionxform = str.lower
+            parser.read_file(config_file)
+    except HelperError:
+        raise
+    except (OSError, UnicodeDecodeError, configparser.Error):
+        raise HelperError("invalid_config", f"{CONFIG_NAME} could not be read.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    return parser
+
+
+def _config_section(parser: configparser.RawConfigParser) -> str:
+    for section in ("meb", "meb_manager"):
+        if parser.has_section(section):
+            return section
+
+    raise HelperError("invalid_config", f"{CONFIG_NAME} must contain a [meb] section.")
+
+
+def _config_get(parser: configparser.RawConfigParser, section: str, key: str) -> str:
+    if not parser.has_option(section, key):
+        raise HelperError("invalid_config", f"{CONFIG_NAME} is missing {key}.")
+
+    return require_string(parser.get(section, key).strip(), key)
+
+
+def _config_get_int(parser: configparser.RawConfigParser, section: str, key: str, default: int) -> int:
+    if not parser.has_option(section, key):
+        return default
+
+    try:
+        value = parser.getint(section, key)
+    except ValueError:
+        raise HelperError("invalid_config", f"{key} must be an integer.")
+
+    if value < 1:
+        raise HelperError("invalid_config", f"{key} must be positive.")
+
+    return value
+
+
+def _config_get_path(parser: configparser.RawConfigParser, section: str, key: str) -> str:
+    path = _config_get(parser, section, key)
+    if not Path(path).is_absolute():
+        raise HelperError("invalid_config", f"{key} must be an absolute path.")
+
+    return path
+
+
+def helper_config(backup_home: Path | None = None) -> HelperConfig:
+    selected_backup_home = backup_home or _default_backup_home()
+    if not selected_backup_home.is_absolute():
+        raise HelperError("invalid_config", "backupHome must be an absolute path.")
+    try:
+        selected_backup_home = selected_backup_home.resolve(strict=True)
+    except OSError:
+        raise HelperError("invalid_config", "backupHome does not exist.")
+    if not selected_backup_home.is_dir():
+        raise HelperError("invalid_config", "backupHome must be a directory.")
+
+    parser = _read_helper_config_file(selected_backup_home)
+    section = _config_section(parser)
+    for key, _value in parser.items(section):
+        if key not in SAFE_CONFIG_KEYS:
+            raise HelperError("invalid_config", f"{CONFIG_NAME} contains unsupported field '{key}'.")
+
+    target_user_name = _config_get(parser, section, "backup_os_user")
+    try:
+        uid = parser.getint(section, "backup_os_uid") if parser.has_option(section, "backup_os_uid") else None
+        gid = parser.getint(section, "backup_os_gid") if parser.has_option(section, "backup_os_gid") else None
+    except ValueError:
+        raise HelperError("invalid_config", "backup_os_uid and backup_os_gid must be integers.")
+    if (uid is not None and uid < 0) or (gid is not None and gid < 0):
+        raise HelperError("invalid_config", "backup_os_uid and backup_os_gid must be non-negative.")
+    if (uid is None) != (gid is None):
+        raise HelperError("invalid_config", "backup_os_uid and backup_os_gid must be set together.")
+
+    job_runner = _config_get(parser, section, "job_runner")
+    if job_runner == "self":
+        job_runner = _entrypoint_path()
+    elif not Path(job_runner).is_absolute():
+        raise HelperError("invalid_config", "job_runner must be an absolute path or 'self'.")
+
+    scheduler_backend = _config_get(parser, section, "scheduler_backend")
+    if scheduler_backend not in {"platform", "cron", "launchd", "schtasks"}:
+        raise HelperError("invalid_config", "scheduler_backend is not supported.")
+
+    return HelperConfig(
+        target_user_name=target_user_name,
+        target_user=TargetUser(
+            uid=uid,
+            gid=gid,
+            account=target_user_name,
+            windows_logon_type=parser.get(section, "windows_logon_type", fallback="ServiceAccount"),
+        ),
+        mysqlbackup=_config_get_path(parser, section, "mysqlbackup"),
+        login_file=_config_get_path(parser, section, "login_file"),
+        login_path=_config_get(parser, section, "login_path"),
+        crontab=_config_get_path(parser, section, "crontab"),
+        job_runner=job_runner,
+        backup_roots=[_config_get_path(parser, section, "backup_root")],
+        option_file_roots=[_config_get_path(parser, section, "option_file_root")],
+        working_directory=_config_get_path(parser, section, "working_directory"),
+        timeout_ms=_config_get_int(parser, section, "timeout_ms", DEFAULT_TIMEOUT_MS),
+        max_output_bytes=_config_get_int(parser, section, "max_output_bytes", DEFAULT_MAX_OUTPUT_BYTES),
+        backup_home=selected_backup_home.as_posix(),
+        launchctl=_config_get_path(parser, section, "launchctl"),
+        schtasks=_config_get_path(parser, section, "schtasks") if os.name != "nt" else _config_get(parser, section, "schtasks"),
+        scheduler_backend=scheduler_backend,
+        launchd_plist_dir=_config_get_path(parser, section, "launchd_plist_dir"),
+        windows_task_folder=_config_get(parser, section, "windows_task_folder"),
+        datadir=_config_get_path(parser, section, "datadir"),
+    )
+
+
+def resolve_target_user(config: HelperConfig) -> TargetUser:
+    target_user = config.target_user
+    if os.name != "posix" or (target_user.uid is not None and target_user.gid is not None):
+        return target_user
+
+    account = target_user.account or config.target_user_name
+    try:
+        entry = pwd.getpwnam(account)
+    except KeyError:
+        raise HelperError("invalid_config", f"configured target user '{account}' does not exist.")
+
+    return TargetUser(
+        uid=entry.pw_uid,
+        gid=entry.pw_gid,
+        account=account,
+        windows_logon_type=target_user.windows_logon_type,
+    )
+
+# Process runner
+def redact_plan(plan: ProcessPlan) -> dict[str, Any]:
+    return {
+        "executable": plan.executable,
+        "args": plan.args,
+        "stdin": "<redacted>" if plan.stdin else "<empty>",
+        "cwd": plan.cwd,
+        "env": plan.env,
+        "uid": plan.uid,
+        "gid": plan.gid,
+        "account": plan.account,
+        "timeoutMs": plan.timeout_ms,
+        "maxOutputBytes": plan.max_output_bytes,
+        "auditName": plan.audit_name,
+        "logPath": plan.log_path,
+        "outputPath": plan.output_path,
+        "progressPath": plan.progress_path,
+    }
+
+
+def process_status(result: dict[str, Any]) -> dict[str, Any]:
+    status = {
+        "exitCode": result["exitCode"],
+        "timedOut": result["timedOut"],
+        "stdoutTruncated": result["stdoutTruncated"],
+        "stderrTruncated": result["stderrTruncated"],
+    }
+    if result.get("logPath") is not None:
+        status["logPath"] = result["logPath"]
+
+    return status
+
+
+def scheduler_status(
+    result: dict[str, Any],
+    success_status: str,
+    action: str,
+    not_found_markers: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    status = process_status(result)
+    output = str(result.get("stderr") or result.get("stdout") or "")
+    detail = " ".join(output.split())[:1024]
+
+    if (
+        not result["timedOut"]
+        and result["exitCode"] != 0
+        and any(marker in output.lower() for marker in not_found_markers)
+    ):
+        status["status"] = "notFound"
+        status["message"] = "Scheduled backup job was already absent."
+    elif result["timedOut"]:
+        status["status"] = "failed"
+        status["message"] = f"{action} timed out."
+    elif result["exitCode"] != 0:
+        status["status"] = "failed"
+        status["message"] = detail or f"{action} failed with exit code {result['exitCode']}."
+    else:
+        status["status"] = success_status
+
+    return status
+
+
+def scheduler_not_found_status() -> dict[str, Any]:
+    return {
+        "exitCode": 0,
+        "timedOut": False,
+        "stdoutTruncated": False,
+        "stderrTruncated": False,
+        "status": "notFound",
+        "message": "Scheduled backup job was already absent.",
+    }
+
+
+def validate_process_plan(plan: ProcessPlan) -> None:
+    if not Path(plan.executable).is_absolute():
+        raise HelperError("invalid_plan", "executable must be absolute.")
+
+    if not Path(plan.cwd).is_absolute():
+        raise HelperError("invalid_plan", "cwd must be absolute.")
+
+    if "\0" in plan.executable:
+        raise HelperError("invalid_plan", "executable must not contain NUL bytes.")
+
+    if "\0" in plan.cwd:
+        raise HelperError("invalid_plan", "cwd must not contain NUL bytes.")
+
+    for index, arg in enumerate(plan.args):
+        if "\0" in arg:
+            raise HelperError("invalid_plan", f"args[{index}] must not contain NUL bytes.")
+
+    for key, value in plan.env.items():
+        if re.fullmatch(r"[A-Z0-9_]+", key) is None:
+            raise HelperError("invalid_plan", f"environment key '{key}' is not allowlisted.")
+        if "\0" in value:
+            raise HelperError("invalid_plan", f"env.{key} must not contain NUL bytes.")
+
+    if (plan.uid is not None and plan.uid < 0) or (plan.gid is not None and plan.gid < 0):
+        raise HelperError("invalid_plan", "uid and gid must be non-negative.")
+
+    if (plan.uid is None) != (plan.gid is None):
+        raise HelperError("invalid_plan", "uid and gid must be set together.")
+
+    if plan.timeout_ms < 1:
+        raise HelperError("invalid_plan", "timeoutMs must be positive.")
+
+    if plan.max_output_bytes < 1:
+        raise HelperError("invalid_plan", "maxOutputBytes must be positive.")
+
+    if plan.stdin is not None and len(plan.stdin.encode("utf-8")) > plan.max_output_bytes:
+        raise HelperError("invalid_plan", "stdin exceeds maxOutputBytes.")
+
+    if plan.log_path is not None:
+        if not Path(plan.log_path).is_absolute():
+            raise HelperError("invalid_plan", "logPath must be absolute.")
+        if "\0" in plan.log_path:
+            raise HelperError("invalid_plan", "logPath must not contain NUL bytes.")
+
+    if plan.progress_path is not None:
+        if not Path(plan.progress_path).is_absolute():
+            raise HelperError("invalid_plan", "progressPath must be absolute.")
+        if "\0" in plan.progress_path:
+            raise HelperError("invalid_plan", "progressPath must not contain NUL bytes.")
+
+
+def validate_executable_reference(executable: str) -> None:
+    try:
+        executable_stat = os.lstat(executable)
+    except OSError:
+        raise HelperError("invalid_plan", "executable must exist.")
+
+    if not stat.S_ISREG(executable_stat.st_mode):
+        raise HelperError("invalid_plan", "executable must be a regular file, not a symlink or directory.")
+
+    if os.name == "nt":
+        if Path(executable).suffix.lower() != ".exe":
+            raise HelperError("invalid_plan", "Windows executables must be .exe files.")
+
+        return
+
+    if executable_stat.st_mode & 0o111 == 0:
+        raise HelperError("invalid_plan", "executable must have an executable permission bit set.")
+
+    if executable_stat.st_mode & 0o022:
+        raise HelperError("invalid_plan", "executable must not be group or world writable.")
+
+    if os.name == "posix" and os.geteuid() == 0 and executable_stat.st_uid != 0:
+        raise HelperError("invalid_plan", "executable must be owned by root.")
+
+    for ancestor in Path(executable).parents:
+        ancestor_stat = os.lstat(ancestor)
+        if not stat.S_ISDIR(ancestor_stat.st_mode):
+            raise HelperError("invalid_plan", "executable parent paths must be directories.")
+
+        if ancestor_stat.st_mode & 0o022:
+            raise HelperError("invalid_plan", "executable parent paths must not be group or world writable.")
+
+        if os.name == "posix" and os.geteuid() == 0 and ancestor_stat.st_uid != 0:
+            raise HelperError("invalid_plan", "executable parent paths must be owned by root.")
+
+
+def _terminate_process(process: subprocess.Popen[Any]) -> None:
+    if process.poll() is not None:
+        return
+
+    if os.name != "posix":
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+        return
+
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    except PermissionError:
+        process.terminate()
+
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            process.kill()
+
+
+def _terminate_process_group_by_pid(pid: int) -> None:
+    if pid < 1:
+        raise HelperError("invalid_request", "restore process ID is invalid.")
+
+    try:
+        if os.name == "posix":
+            os.killpg(pid, signal.SIGTERM)
+        else:
+            os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    except OSError:
+        raise HelperError("operation_failed", "restore process could not be aborted.")
+
+    deadline = time.monotonic() + 5
+    while _process_exists(pid) and time.monotonic() < deadline:
+        time.sleep(0.1)
+    if not _process_exists(pid):
+        return
+
+    try:
+        if os.name == "posix":
+            os.killpg(pid, signal.SIGKILL)
+        else:
+            os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return
+    except OSError:
+        raise HelperError("operation_failed", "restore process could not be killed after abort.")
+
+
+def _windows_current_account_matches(account: str) -> bool:
+    user_domain = os.environ.get("USERDOMAIN", "")
+    user_name = os.environ.get("USERNAME", "")
+    if not user_name:
+        return False
+
+    current = f"{user_domain}\\{user_name}" if user_domain else user_name
+    return account.casefold() == current.casefold()
+
+
+class ProcessProgressTracker:
+    def __init__(self, path: str, context: dict[str, Any] | None) -> None:
+        self.path = Path(path)
+        self.state = {
+            "version": 1,
+            "state": "running",
+            **(context or {}),
+        }
+        self.lock = threading.Lock()
+
+    def start(self) -> None:
+        self.state["updatedTime"] = int(time.time())
+        self._write()
+
+    def finish(self, exit_code: int | None, timed_out: bool) -> None:
+        with self.lock:
+            end_time = int(time.time())
+            self.state["state"] = "finished"
+            self.state["updatedTime"] = end_time
+            self.state["endTime"] = end_time
+            self.state["exitCode"] = exit_code
+            self.state["timedOut"] = timed_out
+            self._write()
+
+    def update(self, values: dict[str, Any]) -> None:
+        with self.lock:
+            self.state.update(values)
+            self.state["updatedTime"] = int(time.time())
+            self._write()
+
+    def _write(self) -> None:
+        _write_json_store(self.path, self.state)
+
+
+def _read_process_stream(
+    stream: Any,
+    stream_name: str,
+    output: bytearray,
+    combined_output: bytearray,
+    log_fd: int | None,
+    output_fd: int | None,
+    log_lock: threading.Lock,
+    written: dict[str, int],
+    truncated: dict[str, bool],
+    limit: int,
+    process: subprocess.Popen[Any],
+) -> None:
+    while True:
+        chunk = os.read(stream.fileno(), 8192)
+        if not chunk:
+            return
+
+        with log_lock:
+            combined_available = limit - len(combined_output)
+            if combined_available > 0:
+                combined_chunk = chunk[:combined_available]
+                combined_output.extend(combined_chunk)
+                if output_fd is not None:
+                    os.write(output_fd, combined_chunk)
+            if log_fd is not None:
+                _write_log_chunk(log_fd, stream_name, chunk, written, truncated, limit)
+
+        available = limit - len(output)
+        if available <= 0:
+            truncated[stream_name] = True
+            if log_fd is None:
+                _terminate_process(process)
+                return
+            continue
+
+        output.extend(chunk[:available])
+        if len(chunk) > available:
+            truncated[stream_name] = True
+            if log_fd is None:
+                _terminate_process(process)
+                return
+
+
+def _open_process_log(path: str) -> int:
+    flags = os.O_WRONLY | os.O_APPEND
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    try:
+        file_stat = os.lstat(path)
+        if not stat.S_ISREG(file_stat.st_mode):
+            raise HelperError("invalid_plan", "logPath must be a regular file, not a symlink or directory.")
+        if getattr(file_stat, "st_nlink", 1) > 1:
+            raise HelperError("invalid_plan", "logPath must not be a hard link.")
+        if os.name == "posix" and stat.S_IMODE(file_stat.st_mode) != 0o600:
+            raise HelperError("invalid_plan", "logPath permissions must be 0600.")
+        fd = os.open(path, flags)
+        opened_stat = os.fstat(fd)
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
+            os.close(fd)
+            raise HelperError("invalid_plan", "logPath changed while opening.")
+        if not stat.S_ISREG(opened_stat.st_mode):
+            os.close(fd)
+            raise HelperError("invalid_plan", "logPath must be a regular file.")
+        if getattr(opened_stat, "st_nlink", 1) > 1:
+            os.close(fd)
+            raise HelperError("invalid_plan", "logPath must not be a hard link.")
+
+        return fd
+    except HelperError:
+        raise
+    except OSError:
+        raise HelperError("invalid_plan", "logPath could not be opened.")
+
+
+def _write_log_line(log_fd: int, message: str) -> None:
+    os.write(log_fd, message.encode("utf-8", errors="replace"))
+
+
+def _write_log_chunk(
+    log_fd: int,
+    stream_name: str,
+    chunk: bytes,
+    written: dict[str, int],
+    truncated: dict[str, bool],
+    limit: int,
+) -> None:
+    available = limit - written[stream_name]
+    if available <= 0:
+        truncated[stream_name] = True
+        return
+
+    payload = chunk[:available]
+    if not payload:
+        truncated[stream_name] = True
+        return
+
+    _write_log_line(log_fd, f"\n--- {stream_name} ---\n")
+    os.write(log_fd, payload)
+    written[stream_name] += len(payload)
+    if len(chunk) > available:
+        truncated[stream_name] = True
+
+
+def run_process_plan(plan: ProcessPlan) -> dict[str, Any]:
+    validate_process_plan(plan)
+    validate_executable_reference(plan.executable)
+
+    popen_args: dict[str, Any] = {
+        "cwd": plan.cwd,
+        "env": plan.env,
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.PIPE,
+        "shell": False,
+    }
+    if os.name == "nt":
+        if plan.account is not None and not _windows_current_account_matches(plan.account):
+            raise HelperError("not_authorized", "Windows direct execution cannot switch accounts.")
+        popen_args["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+    elif os.name == "posix":
+        if plan.uid is None or plan.gid is None:
+            raise HelperError("invalid_plan", "uid and gid are required on POSIX platforms.")
+        if os.geteuid() == 0:
+            popen_args.update({
+                "user": plan.uid,
+                "group": plan.gid,
+                "extra_groups": [],
+            })
+        elif plan.uid != os.geteuid() or plan.gid != os.getegid():
+            raise HelperError("not_authorized", "helper must run as root to switch users.")
+        popen_args.update({
+            "start_new_session": True,
+            "umask": 0o077,
+        })
+    else:
+        raise HelperError("unsupported_platform", "process execution is not supported on this platform.")
+
+    stdin_file = None
+    popen_args["stdin"] = subprocess.DEVNULL
+    if plan.stdin is not None:
+        stdin_file = tempfile.TemporaryFile("w+b")
+        stdin_file.write(plan.stdin.encode("utf-8"))
+        stdin_file.seek(0)
+        popen_args["stdin"] = stdin_file
+
+    progress_tracker = ProcessProgressTracker(plan.progress_path, plan.progress_context) if plan.progress_path is not None else None
+    if progress_tracker is not None:
+        progress_tracker.start()
+
+    log_fd = None
+    output_fd = None
+    try:
+        log_fd = _open_process_log(plan.log_path) if plan.log_path is not None else None
+        output_fd = _open_process_log(plan.output_path) if plan.output_path is not None else None
+    except Exception:
+        if progress_tracker is not None:
+            progress_tracker.finish(1, False)
+        if log_fd is not None:
+            os.close(log_fd)
+        raise
+    if log_fd is not None:
+        _write_log_line(log_fd, f"# {plan.audit_name} started\n")
+
+    try:
+        process = subprocess.Popen([plan.executable, *plan.args], **popen_args)
+        if progress_tracker is not None:
+            progress_tracker.update({"pid": process.pid, "state": "running"})
+    except Exception:
+        if progress_tracker is not None:
+            progress_tracker.finish(1, False)
+        if log_fd is not None:
+            os.close(log_fd)
+        if output_fd is not None:
+            os.close(output_fd)
+        raise
+    finally:
+        if stdin_file is not None:
+            stdin_file.close()
+
+    assert process.stdout is not None
+    assert process.stderr is not None
+    output = {"stdout": bytearray(), "stderr": bytearray()}
+    combined_output = bytearray()
+    log_written = {"stdout": 0, "stderr": 0}
+    truncated = {"stdout": False, "stderr": False}
+    log_lock = threading.Lock()
+    stdout_thread = threading.Thread(
+        target=_read_process_stream,
+        args=(
+            process.stdout, "stdout", output["stdout"], combined_output, log_fd, output_fd, log_lock,
+            log_written, truncated,
+            plan.max_output_bytes, process,
+        ),
+    )
+    stderr_thread = threading.Thread(
+        target=_read_process_stream,
+        args=(
+            process.stderr, "stderr", output["stderr"], combined_output, log_fd, output_fd, log_lock,
+            log_written, truncated,
+            plan.max_output_bytes, process,
+        ),
+    )
+    stdout_thread.start()
+    stderr_thread.start()
+    timed_out = False
+
+    try:
+        process.wait(timeout=plan.timeout_ms / 1000)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        _terminate_process(process)
+
+    stdout_thread.join(timeout=5)
+    stderr_thread.join(timeout=5)
+    process.stdout.close()
+    process.stderr.close()
+    if progress_tracker is not None:
+        progress_tracker.finish(process.returncode, timed_out)
+    if log_fd is not None:
+        _write_log_line(log_fd, f"\n# {plan.audit_name} finished exitCode={process.returncode} timedOut={json.dumps(timed_out)} stdoutTruncated={json.dumps(truncated['stdout'])} stderrTruncated={json.dumps(truncated['stderr'])}\n")
+        os.close(log_fd)
+    if output_fd is not None:
+        os.close(output_fd)
+
+    return {
+        "exitCode": process.returncode,
+        "stdout": output["stdout"].decode("utf-8", errors="replace"),
+        "stderr": output["stderr"].decode("utf-8", errors="replace"),
+        "output": combined_output.decode("utf-8", errors="replace"),
+        "timedOut": timed_out,
+        "stdoutTruncated": truncated["stdout"],
+        "stderrTruncated": truncated["stderr"],
+        "logPath": plan.log_path,
+    }
+
+# Job operations
+PROGRESS_STATE_NAME = ".backup-progress.json"
+MYSQLBACKUP_PROGRESS_NAME = ".backup-progress"
+RESTORE_OUTPUT_PREFIX = ".restore-output-"
+RESTORE_ABORT_PREFIX = ".restore-abort-"
+RUN_LOCK_DIR_NAME = ".backup-run.lock"
+RUN_LOCK_OWNER_NAME = "owner.json"
+JOB_STORE_MODE = 0o600
+JOB_LOG_DIR_NAME = "logs"
+JOB_LOG_DIR_MODE = 0o700
+JOB_LOG_FILE_MODE = 0o600
+MAX_JOBS = 128
+MAX_JOB_STORE_BYTES = 1024 * 1024
+MAX_BACKUPS_LISTED = 1024
+MAX_BACKUP_LIST_DEPTH = 2
+MAX_LOG_READ_BYTES = 128 * 1024
+DEFAULT_LOG_READ_BYTES = 64 * 1024
+RUN_LOCK_POLL_SECONDS = 0.1
+RUN_LOCK_INITIALIZATION_GRACE_SECONDS = 5.0
+RESERVED_BACKUP_HOME_NAMES = {
+    CONFIG_NAME,
+    PROGRESS_STATE_NAME,
+    MYSQLBACKUP_PROGRESS_NAME,
+    RUN_LOCK_DIR_NAME,
+    JOB_LOG_DIR_NAME,
+    ".mylogin.cnf",
+    "launchd",
+    "task-helper",
+    "task-helper.cmd",
+    "task-helper.py",
+    "task-helper-setup",
+    "task-helper-setup.cmd",
+    "task-helper-setup.py",
+}
+
+
+def _validate_option_file_permissions(path: str, target_uid: int | None) -> None:
+    file_stat = os.stat(path)
+    if file_stat.st_mode & 0o022:
+        raise HelperError("invalid_request", "defaultsFile must not be group or world writable.")
+
+    if os.name == "posix" and os.geteuid() == 0 and file_stat.st_uid not in {0, target_uid}:
+        raise HelperError("invalid_request", "defaultsFile must be owned by root or the target user.")
+
+
+def _path_under_roots(value: str, roots: list[str], label: str, *, file: bool = False) -> str:
+    path = Path(value)
+    if not path.is_absolute():
+        raise HelperError("invalid_request", f"{label} must be an absolute path.")
+
+    try:
+        candidate = path.resolve(strict=True)
+        resolved_roots = [Path(root).resolve(strict=True) for root in roots]
+    except OSError:
+        raise HelperError("invalid_request", f"{label} must exist.")
+
+    if file and not candidate.is_file():
+        raise HelperError("invalid_request", f"{label} must be a file.")
+    if not file and not candidate.is_dir():
+        raise HelperError("invalid_request", f"{label} must be a directory.")
+
+    if not any(candidate == root or root in candidate.parents for root in resolved_roots):
+        raise HelperError("invalid_request", f"{label} is outside the configured allowlisted roots.")
+
+    return candidate.as_posix()
+
+
+def _run_lock_path(backup_home: Path) -> Path:
+    return backup_home / RUN_LOCK_DIR_NAME
+
+
+def _progress_state_path(backup_home: Path) -> Path:
+    return backup_home / PROGRESS_STATE_NAME
+
+
+def _mysqlbackup_progress_path(backup_home: Path) -> Path:
+    return backup_home / MYSQLBACKUP_PROGRESS_NAME
+
+
+def _restore_output_path(backup_home: Path, operation_id: str) -> Path:
+    return backup_home / f"{RESTORE_OUTPUT_PREFIX}{operation_id}.log"
+
+
+def _restore_abort_path(backup_home: Path, operation_id: str) -> Path:
+    return backup_home / f"{RESTORE_ABORT_PREFIX}{operation_id}"
+
+
+def _prepare_private_file(path: Path, content: bytes = b"") -> None:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(path, flags, JOB_STORE_MODE)
+        opened_stat = os.fstat(fd)
+        if not stat.S_ISREG(opened_stat.st_mode) or getattr(opened_stat, "st_nlink", 1) > 1:
+            raise HelperError("invalid_request", f"{path.name} is not a regular private file.")
+        if os.name == "posix":
+            os.fchmod(fd, JOB_STORE_MODE)
+        if content:
+            os.write(fd, content)
+    except OSError:
+        raise HelperError("operation_failed", f"{path.name} could not be prepared.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+
+def _delete_private_file(path: Path) -> None:
+    try:
+        file_stat = os.lstat(path)
+        if not stat.S_ISREG(file_stat.st_mode) or getattr(file_stat, "st_nlink", 1) > 1:
+            return
+        path.unlink()
+    except FileNotFoundError:
+        return
+    except OSError:
+        return
+
+
+def _private_regular_file_exists(path: Path) -> bool:
+    try:
+        file_stat = os.lstat(path)
+        return stat.S_ISREG(file_stat.st_mode) and getattr(file_stat, "st_nlink", 1) == 1
+    except OSError:
+        return False
+
+
+def _prepare_mysqlbackup_progress_file(path: Path) -> None:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(path, flags, JOB_STORE_MODE)
+        opened_stat = os.fstat(fd)
+        if not stat.S_ISREG(opened_stat.st_mode) or getattr(opened_stat, "st_nlink", 1) > 1:
+            raise HelperError("invalid_request", "mysqlbackup progress file is not a regular private file.")
+        if os.name == "posix":
+            os.fchmod(fd, JOB_STORE_MODE)
+    except OSError:
+        raise HelperError("operation_failed", "mysqlbackup progress file could not be prepared.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+
+def _checked_log_dir(backup_home: Path, user: dict[str, Any], *, create: bool = False, missing_ok: bool = False) -> Path | None:
+    log_dir = backup_home / JOB_LOG_DIR_NAME
+    error_code = "operation_failed" if create else "invalid_request"
+    if create:
+        try:
+            log_dir.mkdir(mode=JOB_LOG_DIR_MODE)
+        except FileExistsError:
+            pass
+        except OSError:
+            raise HelperError("operation_failed", "log directory could not be created.")
+
+    try:
+        log_dir_stat = log_dir.lstat()
+    except OSError:
+        if missing_ok:
+            return None
+        raise HelperError(error_code, "log directory is not usable.")
+
+    if not stat.S_ISDIR(log_dir_stat.st_mode):
+        raise HelperError(error_code, "log directory must be a directory, not a symlink or file.")
+
+    if os.name == "posix":
+        if log_dir_stat.st_uid != user["uid"]:
+            raise HelperError(error_code, "log directory must be owned by the effective helper user.")
+        if stat.S_IMODE(log_dir_stat.st_mode) != JOB_LOG_DIR_MODE:
+            if not create:
+                raise HelperError("invalid_request", f"log directory permissions must be {JOB_LOG_DIR_MODE:04o}.")
+            try:
+                os.chmod(log_dir, JOB_LOG_DIR_MODE, follow_symlinks=False)
+            except (NotImplementedError, OSError):
+                raise HelperError("operation_failed", "log directory permissions could not be repaired.")
+
+    return log_dir
+
+
+def _new_job_log_path(backup_home: Path, job_id: str, user: dict[str, Any]) -> Path:
+    log_dir = _checked_log_dir(backup_home, user, create=True)
+    assert log_dir is not None
+    timestamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    fd = None
+    try:
+        fd, log_name = tempfile.mkstemp(prefix=f"{timestamp}-{job_id}-", suffix=".log", dir=log_dir)
+        if os.name == "posix":
+            os.chmod(log_name, JOB_LOG_FILE_MODE)
+    except OSError:
+        raise HelperError("operation_failed", "log file could not be created.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    return Path(log_name)
+
+
+def _require_request_int(value: Any, label: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise HelperError("invalid_request", f"{label} must be an integer.")
+
+    return value
+
+
+def _require_safe_relative_path(value: Any, label: str) -> Path:
+    text = require_string(value, label)
+    if text.startswith("/") or "\\" in text or "\n" in text or "\r" in text:
+        raise HelperError("invalid_request", f"{label} must be a safe relative path.")
+
+    parts = text.split("/")
+    if len(parts) == 0 or any(part in {"", ".", ".."} for part in parts):
+        raise HelperError("invalid_request", f"{label} must be a safe relative path.")
+
+    for index, part in enumerate(parts):
+        require_safe_identifier(part, f"{label}[{index}]")
+
+    if parts[0] in RESERVED_BACKUP_HOME_NAMES:
+        raise HelperError("invalid_request", f"{label} names a reserved backup-home entry.")
+
+    return Path(*parts)
+
+
+def _require_backup_child_path(backup_home: Path, relative_path: Path, kind: str) -> tuple[Path, os.stat_result]:
+    candidate = backup_home / relative_path
+    try:
+        backup_home_resolved = backup_home.resolve(strict=True)
+        current = backup_home
+        file_stat = None
+        for part in relative_path.parts:
+            current = current / part
+            file_stat = current.lstat()
+            if stat.S_ISLNK(file_stat.st_mode):
+                raise HelperError("invalid_request", f"{kind} must not contain symlinks.")
+        assert file_stat is not None
+        candidate_resolved = candidate.resolve(strict=True)
+    except OSError:
+        raise HelperError("invalid_request", f"{kind} does not exist.")
+
+    if candidate_resolved == backup_home_resolved or backup_home_resolved not in candidate_resolved.parents:
+        raise HelperError("invalid_request", f"{kind} is outside the backup home.")
+
+    return candidate_resolved, file_stat
+
+
+def _list_backup_dirs(backup_home: Path) -> list[dict[str, Any]]:
+    backups: list[dict[str, Any]] = []
+
+    def visit(directory: Path, relative_parts: list[str], depth: int) -> None:
+        if depth > MAX_BACKUP_LIST_DEPTH or len(backups) >= MAX_BACKUPS_LISTED:
+            return
+
+        try:
+            with os.scandir(directory) as entries:
+                sorted_entries = sorted(entries, key=lambda entry: entry.name)
+        except OSError:
+            return
+
+        for entry in sorted_entries:
+            if len(backups) >= MAX_BACKUPS_LISTED:
+                return
+            if depth == 1 and entry.name in RESERVED_BACKUP_HOME_NAMES:
+                continue
+            if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", entry.name) is None:
+                continue
+
+            try:
+                file_stat = entry.stat(follow_symlinks=False)
+            except OSError:
+                continue
+            if not stat.S_ISDIR(file_stat.st_mode):
+                continue
+
+            relative_path = Path(*relative_parts, entry.name)
+            path = backup_home / relative_path
+            backups.append({
+                "id": relative_path.as_posix(),
+                "path": path.resolve(strict=False).as_posix(),
+                "modifiedTime": int(file_stat.st_mtime),
+            })
+            visit(path, [*relative_parts, entry.name], depth + 1)
+
+    visit(backup_home, [], 1)
+
+    return backups
+
+
+def _require_log_id(value: Any) -> str:
+    log_id = require_string(value, "logId")
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", log_id) is None:
+        raise HelperError("invalid_request", "logId must be a safe log file name.")
+    if not log_id.endswith(".log"):
+        raise HelperError("invalid_request", "logId must name a log file.")
+
+    return log_id
+
+
+def _log_path(backup_home: Path, log_id: str, user: dict[str, Any]) -> tuple[Path, os.stat_result]:
+    log_dir = _checked_log_dir(backup_home, user)
+    assert log_dir is not None
+    log_path = log_dir / log_id
+    try:
+        file_stat = log_path.lstat()
+    except OSError:
+        raise HelperError("invalid_request", "logId does not exist.")
+
+    if not stat.S_ISREG(file_stat.st_mode):
+        raise HelperError("invalid_request", "logId must name a regular file, not a symlink or directory.")
+    _require_private_regular_file(file_stat, user, "log file")
+
+    return log_path, file_stat
+
+
+def _list_log_files(backup_home: Path, user: dict[str, Any]) -> list[dict[str, Any]]:
+    log_dir = _checked_log_dir(backup_home, user, missing_ok=True)
+    if log_dir is None:
+        return []
+
+    result = []
+    try:
+        with os.scandir(log_dir) as entries:
+            sorted_entries = sorted(entries, key=lambda entry: entry.name)
+    except OSError:
+        raise HelperError("invalid_request", "log directory could not be read.")
+
+    for entry in sorted_entries:
+        if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", entry.name) is None or not entry.name.endswith(".log"):
+            continue
+        try:
+            file_stat = entry.stat(follow_symlinks=False)
+        except OSError:
+            continue
+        if not stat.S_ISREG(file_stat.st_mode):
+            continue
+        if os.name == "posix" and (file_stat.st_uid != user["uid"] or stat.S_IMODE(file_stat.st_mode) != JOB_LOG_FILE_MODE):
+            continue
+
+        result.append({
+            "id": entry.name,
+            "path": (log_dir / entry.name).as_posix(),
+            "sizeBytes": file_stat.st_size,
+            "modifiedTime": int(file_stat.st_mtime),
+        })
+
+    return result
+
+
+def _read_log_tail(log_path: Path, file_stat: os.stat_result, max_bytes: int) -> tuple[str, bool]:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(log_path, flags)
+        opened_stat = os.fstat(fd)
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
+            raise HelperError("invalid_request", "log file changed while opening.")
+        if not stat.S_ISREG(opened_stat.st_mode):
+            raise HelperError("invalid_request", "log file is not a regular file.")
+
+        size = opened_stat.st_size
+        offset = max(0, size - max_bytes)
+        os.lseek(fd, offset, os.SEEK_SET)
+        payload = os.read(fd, max_bytes)
+    except HelperError:
+        raise
+    except OSError:
+        raise HelperError("invalid_request", "log file could not be read.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    return payload.decode("utf-8", errors="replace"), size > max_bytes
+
+
+def _require_valid_backup_home(backup_home: Path, config: HelperConfig, user: dict[str, Any], write: bool) -> Path:
+    checks, _backup_home_stat = _backup_home_checks(backup_home, config, user, write=write)
+    if _validation_status(checks) != "valid":
+        raise HelperError("invalid_request", "backupHome is not valid.")
+
+    try:
+        return backup_home.resolve(strict=True)
+    except OSError:
+        raise HelperError("invalid_request", "backupHome is not valid.")
+
+
+def _require_private_regular_file(file_stat: os.stat_result, user: dict[str, Any], label: str) -> None:
+    if os.name != "posix":
+        return
+
+    if file_stat.st_uid != user["uid"]:
+        raise HelperError("invalid_request", f"{label} must be owned by the effective helper user.")
+
+    if stat.S_IMODE(file_stat.st_mode) != JOB_STORE_MODE:
+        raise HelperError("invalid_request", f"{label} permissions must be {JOB_STORE_MODE:04o}.")
+
+
+def _profile_truthy(value: str | None) -> bool:
+    return value is not None and value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _profile_week_days(value: str | None) -> str:
+    parts = [part.strip() for part in (value or "").split(",")]
+    if not value or any(part not in {"0", "1", "2", "3", "4", "5", "6"} for part in parts):
+        raise HelperError("invalid_config", "profile weekly schedule must list days from 0 to 6.")
+
+    days = [int(part) for part in parts]
+    if len(set(days)) != len(days):
+        raise HelperError("invalid_config", "profile weekly schedule must list unique days from 0 to 6.")
+
+    return ",".join(str(day) for day in sorted(days))
+
+
+def _profile_schedule(options: dict[str, str], prefix: str) -> dict[str, str] | None:
+    if not _profile_truthy(options.get(f"{prefix}_backups_enabled")):
+        return None
+
+    try:
+        interval = max(1, int(options.get(f"{prefix}_backups_interval", "1")))
+    except ValueError:
+        interval = 1
+
+    frequency = options.get(f"{prefix}_backups_frequency", "0")
+    minute = options.get(f"{prefix}_backups_minute", "0")
+    hour = options.get(f"{prefix}_backups_hour", "0")
+    if frequency == "0":
+        schedule = {
+            "minute": minute,
+            "hour": "*" if interval == 1 else f"*/{min(interval, 23)}",
+            "dayOfMonth": "*",
+            "month": "*",
+            "dayOfWeek": "*",
+        }
+    elif frequency == "1":
+        schedule = {
+            "minute": minute,
+            "hour": hour,
+            "dayOfMonth": "*" if interval == 1 else f"*/{min(interval, 31)}",
+            "month": "*",
+            "dayOfWeek": "*",
+        }
+    elif frequency == "2":
+        schedule = {
+            "minute": minute,
+            "hour": hour,
+            "dayOfMonth": "*",
+            "month": "*",
+            "dayOfWeek": _profile_week_days(options.get(f"{prefix}_backups_week_days")),
+        }
+    elif frequency == "3":
+        schedule = {
+            "minute": minute,
+            "hour": hour,
+            "dayOfMonth": options.get(f"{prefix}_backups_month_day", "1"),
+            "month": "*" if interval == 1 else f"*/{min(interval, 12)}",
+            "dayOfWeek": "*",
+        }
+    else:
+        raise HelperError("invalid_config", "profile schedule frequency is not supported.")
+
+    return _require_schedule(schedule)
+
+
+def _read_profile_config(path: Path, file_stat: os.stat_result) -> configparser.RawConfigParser:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(path, flags)
+        opened_stat = os.fstat(fd)
+        if opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino:
+            raise HelperError("invalid_request", "profile configuration changed while opening.")
+        if not stat.S_ISREG(opened_stat.st_mode):
+            raise HelperError("invalid_request", "profile configuration must be a regular file.")
+        parser = configparser.RawConfigParser()
+        parser.optionxform = str.lower
+        with os.fdopen(fd, encoding="utf-8") as config_file:
+            fd = None
+            parser.read_file(config_file)
+    except HelperError:
+        raise
+    except (OSError, UnicodeDecodeError, configparser.Error):
+        raise HelperError("invalid_config", "profile configuration could not be read.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    return parser
+
+
+def _profile_options(parser: configparser.RawConfigParser, section: str) -> dict[str, str]:
+    if not parser.has_section(section):
+        return {}
+
+    return {key: value.strip() for key, value in parser.items(section)}
+
+
+def _derived_profile_jobs(backup_home: Path, config: HelperConfig) -> dict[str, dict[str, Any]]:
+    target_user = resolve_target_user(config)
+    jobs: dict[str, dict[str, Any]] = {}
+    try:
+        entries = sorted(os.scandir(backup_home), key=lambda entry: entry.name)
+    except OSError:
+        raise HelperError("invalid_request", "profile configurations could not be read.")
+
+    for entry in entries:
+        if not entry.name.endswith(".cnf") or entry.name in PROFILE_CONFIG_IGNORES:
+            continue
+        try:
+            file_stat = entry.stat(follow_symlinks=False)
+        except OSError:
+            raise HelperError("invalid_request", "profile configuration could not be inspected.")
+        if not stat.S_ISREG(file_stat.st_mode):
+            continue
+        if file_stat.st_size > MAX_CONFIG_BYTES:
+            raise HelperError("invalid_config", "profile configuration is too large.")
+
+        profile_path = backup_home / entry.name
+        _validate_option_file_permissions(profile_path.as_posix(), target_user.uid)
+        parser = _read_profile_config(profile_path, file_stat)
+        manager = _profile_options(parser, "meb_manager")
+        mysqlbackup = _profile_options(parser, "mysqlbackup")
+        output_directory = mysqlbackup.get("backup_dir")
+        if not output_directory:
+            continue
+
+        profile_id = require_safe_identifier(manager.get("uuid") or profile_path.stem, "profile uuid")
+        storage_type = manager.get("storage_type") or ("cloud" if mysqlbackup.get("cloud_service") else "local")
+        base_job = {
+            "outputDirectory": output_directory,
+            "storageType": storage_type,
+            "defaultsFile": profile_path.as_posix(),
+        }
+        candidates = [
+            {
+                **base_job,
+                "id": f"{profile_id}-backup-full",
+                "backupMode": "full",
+                **({"schedule": schedule} if (schedule := _profile_schedule(manager, "full")) else {}),
+            },
+            {
+                **base_job,
+                "id": f"{profile_id}-backup-incremental",
+                "backupMode": "incremental",
+                "incrementalBase": mysqlbackup.get("incremental_base", "history:last_backup"),
+                **({"schedule": schedule} if (schedule := _profile_schedule(manager, "inc")) else {}),
+            },
+        ]
+        for candidate in candidates:
+            job = _require_job_definition(candidate, config, target_user)
+            if job["id"] in jobs:
+                raise HelperError("invalid_config", "profile configurations contain duplicate job ids.")
+            jobs[job["id"]] = job
+
+    if len(jobs) > MAX_JOBS:
+        raise HelperError("invalid_config", "profile configurations contain too many jobs.")
+    _validate_non_overlapping_job_schedules(jobs)
+
+    return jobs
+
+
+def _read_json_store(
+    path: Path,
+    config: HelperConfig,
+    user: dict[str, Any],
+    *,
+    missing_ok: bool,
+    label: str,
+) -> dict[str, Any]:
+    path_check, file_stat = _path_check(f"{label}.path", path, "regular file", missing_ok=missing_ok)
+    if file_stat is None:
+        if missing_ok and path_check["status"] == "pass":
+            return {}
+        raise HelperError("invalid_request", f"{label} file is not usable.")
+
+    _require_private_regular_file(file_stat, user, f"{label} file")
+
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(path, flags)
+        opened_stat = os.fstat(fd)
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
+            raise HelperError("invalid_request", f"{label} file changed while opening.")
+        if not stat.S_ISREG(opened_stat.st_mode):
+            raise HelperError("invalid_request", f"{label} file is not a regular file.")
+        payload = os.read(fd, MAX_JOB_STORE_BYTES + 1)
+    except OSError:
+        raise HelperError("invalid_request", f"{label} file could not be read.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    if len(payload) > MAX_JOB_STORE_BYTES:
+        raise HelperError("invalid_request", f"{label} file is too large.")
+
+    try:
+        return require_dict(json.loads(payload.decode("utf-8")), f"{label} file")
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise HelperError("invalid_config", f"{label} file is malformed.")
+
+
+def _read_private_output(path: Path, config: HelperConfig, user: dict[str, Any]) -> str:
+    path_check, file_stat = _path_check("restoreOutput.path", path, "regular file", missing_ok=True)
+    if file_stat is None:
+        if path_check["status"] == "pass":
+            return ""
+        raise HelperError("invalid_request", "restore output file is not usable.")
+
+    _require_private_regular_file(file_stat, user, "restore output file")
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    fd = None
+    try:
+        fd = os.open(path, flags)
+        opened_stat = os.fstat(fd)
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
+            raise HelperError("invalid_request", "restore output file changed while opening.")
+        payload = os.read(fd, config.max_output_bytes + 1)
+    except OSError:
+        raise HelperError("invalid_request", "restore output file could not be read.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    if len(payload) > config.max_output_bytes:
+        payload = payload[:config.max_output_bytes]
+
+    return payload.decode("utf-8", errors="replace")
+
+
+def _write_json_store(path: Path, value: dict[str, Any]) -> None:
+    payload = json.dumps(value, indent=2, sort_keys=True)
+    if len(payload.encode("utf-8")) > MAX_JOB_STORE_BYTES:
+        raise HelperError("invalid_request", f"{path.name} would be too large.")
+
+    fd = None
+    temp_name = None
+    try:
+        fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent, text=True)
+        if os.name == "posix":
+            os.chmod(temp_name, JOB_STORE_MODE)
+
+        with os.fdopen(fd, "w", encoding="utf-8") as json_file:
+            fd = None
+            json_file.write(payload)
+            json_file.write("\n")
+            json_file.flush()
+            os.fsync(json_file.fileno())
+
+        os.replace(temp_name, path)
+        temp_name = None
+        if os.name == "posix":
+            try:
+                os.chmod(path, JOB_STORE_MODE, follow_symlinks=False)
+            except NotImplementedError:
+                os.chmod(path, JOB_STORE_MODE)
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    finally:
+        if fd is not None:
+            os.close(fd)
+        if temp_name is not None:
+            try:
+                os.unlink(temp_name)
+            except FileNotFoundError:
+                pass
+
+
+def _cloud_object_name() -> str:
+    return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+
+
+def _cloud_object_option(defaults_file: str) -> str:
+    config = configparser.RawConfigParser()
+    config.optionxform = str.lower
+    try:
+        with open(defaults_file, encoding="utf-8") as config_file:
+            config.read_file(config_file)
+    except (OSError, configparser.Error):
+        raise HelperError("invalid_config", "cloud storage profile options could not be read.")
+
+    service = config.get("mysqlbackup", "cloud_service", fallback="").strip().lower()
+    option = CLOUD_OBJECT_OPTION_BY_SERVICE.get(service)
+    if option is None:
+        raise HelperError("invalid_config", "cloud_service is required for cloud backup jobs.")
+
+    return option
+
+
+def _require_job_definition(value: Any, config: HelperConfig, target_user: TargetUser) -> dict[str, Any]:
+    job = require_dict(value, "job")
+    reject_unknown_fields(job, {
+        "id",
+        "backupMode",
+        "outputDirectory",
+        "storageType",
+        "baseBackupDirectory",
+        "incrementalBase",
+        "defaultsFile",
+        "schedule",
+    }, "job")
+
+    job_id = require_safe_identifier(job.get("id"), "job.id")
+    backup_mode = require_string(job.get("backupMode"), "job.backupMode")
+    if backup_mode not in {"full", "incremental"}:
+        raise HelperError("invalid_request", "job.backupMode is not supported.")
+    storage_type = require_string(job.get("storageType", "local"), "job.storageType")
+    if storage_type not in {"local", "cloud"}:
+        raise HelperError("invalid_request", "job.storageType is not supported.")
+
+    output_directory = _path_under_roots(
+        require_string(job.get("outputDirectory"), "job.outputDirectory"),
+        config.backup_roots,
+        "job.outputDirectory",
+    )
+    defaults_file = _path_under_roots(
+        require_string(job.get("defaultsFile"), "job.defaultsFile"),
+        config.option_file_roots,
+        "job.defaultsFile",
+        file=True,
+    )
+    _validate_option_file_permissions(defaults_file, target_user.uid)
+
+    result = {
+        "id": job_id,
+        "backupMode": backup_mode,
+        "storageType": storage_type,
+        "outputDirectory": output_directory,
+        "defaultsFile": defaults_file,
+    }
+
+    if backup_mode == "full":
+        if job.get("baseBackupDirectory") is not None:
+            raise HelperError("invalid_request", "job.baseBackupDirectory is only supported for incremental jobs.")
+        if job.get("incrementalBase") is not None:
+            raise HelperError("invalid_request", "job.incrementalBase is only supported for incremental jobs.")
+    else:
+        incremental_base = job.get("incrementalBase")
+        if incremental_base is None:
+            if job.get("baseBackupDirectory") is None:
+                result["incrementalBase"] = "history:last_backup"
+            else:
+                base_directory = _path_under_roots(
+                    require_string(job.get("baseBackupDirectory"), "job.baseBackupDirectory"),
+                    config.backup_roots,
+                    "job.baseBackupDirectory",
+                )
+                result["baseBackupDirectory"] = base_directory
+                result["incrementalBase"] = f"dir:{base_directory}"
+        else:
+            incremental_base = require_string(incremental_base, "job.incrementalBase")
+            if incremental_base in INCREMENTAL_BASE_VALUES:
+                if job.get("baseBackupDirectory") is not None:
+                    raise HelperError(
+                        "invalid_request",
+                        "job.baseBackupDirectory cannot be combined with a history incremental base.",
+                    )
+                result["incrementalBase"] = incremental_base
+            elif incremental_base.startswith("dir:"):
+                base_directory = _path_under_roots(
+                    incremental_base[4:],
+                    config.backup_roots,
+                    "job.incrementalBase",
+                )
+                result["baseBackupDirectory"] = base_directory
+                result["incrementalBase"] = f"dir:{base_directory}"
+            else:
+                raise HelperError("invalid_request", "job.incrementalBase is not supported.")
+
+    if job.get("schedule") is not None:
+        result["schedule"] = _require_schedule(job.get("schedule"))
+
+    return result
+
+
+def _mysqlbackup_plan_for_job(job: dict[str, Any], config: HelperConfig) -> ProcessPlan:
+    target_user = resolve_target_user(config)
+    args = [
+        f"--defaults-file={job['defaultsFile']}",
+        f"--login-path={config.login_path}",
+        "--with-timestamp",
+    ]
+
+    if job["storageType"] == "cloud":
+        args.append(f"--backup-dir={job['outputDirectory']}")
+        args.append("--backup-image=-")
+        args.append(f"{_cloud_object_option(job['defaultsFile'])}={_cloud_object_name()}")
+        if job["backupMode"] == "incremental":
+            args.extend([
+                "--incremental",
+                f"--incremental-base={job['incrementalBase']}",
+            ])
+        args.append("backup-to-image")
+    elif job["backupMode"] == "full":
+        args.extend([f"--backup-dir={job['outputDirectory']}", "backup-and-apply-log"])
+    else:
+        args.extend([
+            "--incremental",
+            f"--incremental-base={job['incrementalBase']}",
+            f"--incremental-backup-dir={job['outputDirectory']}",
+            "backup",
+        ])
+
+    env = {
+        "PATH": r"C:\Windows\System32",
+        "SYSTEMROOT": os.environ.get("SystemRoot", r"C:\Windows"),
+        "MYSQL_TEST_LOGIN_FILE": config.login_file,
+    } if os.name == "nt" else {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "MYSQL_TEST_LOGIN_FILE": config.login_file,
+    }
+
+    return ProcessPlan(
+        executable=config.mysqlbackup,
+        args=args,
+        cwd=config.working_directory,
+        env=env,
+        uid=target_user.uid,
+        gid=target_user.gid,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="jobs.execute",
+        account=target_user.account,
+    )
+
+
+def _with_mysqlbackup_progress_file(plan: ProcessPlan, progress_path: Path) -> ProcessPlan:
+    args = [
+        *plan.args[:-1],
+        f"--show-progress=file:{progress_path.as_posix()}",
+        "--progress-interval=1",
+        plan.args[-1],
+    ]
+
+    return replace(plan, args=args)
+
+
+def _mysqlbackup_validate_plan_for_backup(backup_dir: Path, config: HelperConfig) -> ProcessPlan:
+    target_user = resolve_target_user(config)
+    env = {
+        "PATH": r"C:\Windows\System32",
+        "SYSTEMROOT": os.environ.get("SystemRoot", r"C:\Windows"),
+        "MYSQL_TEST_LOGIN_FILE": config.login_file,
+    } if os.name == "nt" else {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "MYSQL_TEST_LOGIN_FILE": config.login_file,
+    }
+
+    return ProcessPlan(
+        executable=config.mysqlbackup,
+        args=[
+            f"--login-path={config.login_path}",
+            f"--backup-dir={backup_dir.as_posix()}",
+            "validate",
+        ],
+        cwd=config.working_directory,
+        env=env,
+        uid=target_user.uid,
+        gid=target_user.gid,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="backups.verify",
+        account=target_user.account,
+    )
+
+
+def _mysqlbackup_apply_log_plan_for_backup(backup_dir: Path, config: HelperConfig) -> ProcessPlan:
+    variables = _read_backup_variables(backup_dir)
+    if variables.get("apply_log_done") == "1":
+        raise HelperError("invalid_request", "apply-log is not pending for this backup.")
+    plan = _mysqlbackup_validate_plan_for_backup(backup_dir, config)
+    args = [f"--backup-dir={backup_dir.as_posix()}"]
+    if variables.get("is_compressed") == "1":
+        args.append("--uncompress")
+    args.append("apply-log")
+    return replace(plan, args=args, audit_name="backups.applyLog")
+
+
+def _read_backup_variables(backup_dir: Path) -> dict[str, str]:
+    variables_path = backup_dir / "meta" / "backup_variables.txt"
+    try:
+        file_stat = variables_path.lstat()
+    except OSError:
+        raise HelperError("invalid_request", "backup metadata was not found.")
+
+    if not stat.S_ISREG(file_stat.st_mode):
+        raise HelperError("invalid_request", "backup metadata must be a regular file.")
+
+    parser = configparser.RawConfigParser()
+    try:
+        with variables_path.open("r", encoding="utf-8") as variables_file:
+            parser.read_file(variables_file)
+    except (OSError, configparser.Error):
+        raise HelperError("invalid_request", "backup metadata could not be read.")
+
+    if not parser.has_section("backup_variables"):
+        raise HelperError("invalid_request", "backup metadata is malformed.")
+
+    return dict(parser.items("backup_variables"))
+
+
+def _read_restore_base_defaults(backup_dir: Path, datadir: str) -> str:
+    defaults_path = backup_dir / "backup-my.cnf"
+    try:
+        file_stat = defaults_path.lstat()
+    except OSError:
+        return f"[mysqld]\ndatadir = {datadir}\n"
+
+    if not stat.S_ISREG(file_stat.st_mode):
+        raise HelperError("invalid_request", "backup defaults file must be a regular file.")
+
+    try:
+        content = defaults_path.read_text(encoding="utf-8")
+    except OSError:
+        raise HelperError("invalid_request", "backup defaults file could not be read.")
+
+    return f"{content.rstrip()}\n\ndatadir = {datadir}\n"
+
+
+def _write_restore_defaults_file(backup_dir: Path, datadir: str) -> Path:
+    fd = None
+    temp_name = None
+    completed = False
+    try:
+        fd, temp_name = tempfile.mkstemp(prefix=".restore-", suffix=".cnf", dir=backup_dir, text=True)
+        if os.name == "posix":
+            os.chmod(temp_name, JOB_STORE_MODE)
+
+        with os.fdopen(fd, "w", encoding="utf-8") as defaults_file:
+            fd = None
+            defaults_file.write(_read_restore_base_defaults(backup_dir, datadir))
+            defaults_file.flush()
+            os.fsync(defaults_file.fileno())
+
+        completed = True
+        return Path(temp_name)
+    except OSError:
+        raise HelperError("operation_failed", "restore defaults file could not be written.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+        if temp_name is not None and not completed:
+            try:
+                os.unlink(temp_name)
+            except FileNotFoundError:
+                pass
+
+
+def _delete_restore_defaults_file(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return
+    except OSError:
+        raise HelperError("operation_failed", "restore defaults file could not be deleted.")
+
+
+def _mysqlbackup_restore_plan_for_backup(
+    backup_dir: Path,
+    defaults_file: Path,
+    config: HelperConfig,
+    *,
+    force: bool,
+) -> ProcessPlan:
+    if not config.datadir:
+        raise HelperError("invalid_config", "datadir is required for restore.")
+
+    target_user = resolve_target_user(config)
+    variables = _read_backup_variables(backup_dir)
+    is_incremental = variables.get("is_incremental") == "1"
+    is_compressed = variables.get("is_compressed") == "1"
+    apply_log_done = variables.get("apply_log_done") == "1"
+    env = {
+        "PATH": r"C:\Windows\System32",
+        "SYSTEMROOT": os.environ.get("SystemRoot", r"C:\Windows"),
+        "MYSQL_TEST_LOGIN_FILE": config.login_file,
+    } if os.name == "nt" else {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "MYSQL_TEST_LOGIN_FILE": config.login_file,
+    }
+    args = [
+        f"--defaults-file={defaults_file.as_posix()}",
+        f"--login-path={config.login_path}",
+        f"--backup-dir={backup_dir.as_posix()}",
+    ]
+    if force:
+        args.append("--force")
+    if is_incremental:
+        args.append("--incremental")
+    if is_compressed:
+        args.append("--uncompress")
+    args.append("copy-back" if not is_incremental and apply_log_done else "copy-back-and-apply-log")
+
+    return ProcessPlan(
+        executable=config.mysqlbackup,
+        args=args,
+        cwd=config.working_directory,
+        env=env,
+        uid=target_user.uid,
+        gid=target_user.gid,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="backups.restore",
+        account=target_user.account,
+    )
+
+
+def _public_jobs(jobs: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    return [jobs[job_id] for job_id in sorted(jobs)]
+
+
+def _cron_values(field: str, minimum: int, maximum: int) -> set[int]:
+    values = _expand_cron_field(field, minimum, maximum)
+    if values is None:
+        return set(range(minimum, maximum + 1))
+
+    return set(values)
+
+
+def _cron_day_of_week_values(field: str) -> set[int]:
+    return {0 if value == 7 else value for value in _cron_values(field, 0, 7)}
+
+
+def _schedules_overlap(first: dict[str, str], second: dict[str, str]) -> bool:
+    return (
+        bool(_cron_values(first["minute"], 0, 59) & _cron_values(second["minute"], 0, 59))
+        and bool(_cron_values(first["hour"], 0, 23) & _cron_values(second["hour"], 0, 23))
+        and bool(_cron_values(first["dayOfMonth"], 1, 31) & _cron_values(second["dayOfMonth"], 1, 31))
+        and bool(_cron_values(first["month"], 1, 12) & _cron_values(second["month"], 1, 12))
+        and bool(_cron_day_of_week_values(first["dayOfWeek"]) & _cron_day_of_week_values(second["dayOfWeek"]))
+    )
+
+
+def _validate_non_overlapping_job_schedules(jobs: dict[str, dict[str, Any]]) -> None:
+    seen: list[tuple[str, dict[str, str]]] = []
+    for job_id, job in jobs.items():
+        schedule = job.get("schedule")
+        if not isinstance(schedule, dict):
+            continue
+        for existing_id, existing_schedule in seen:
+            if _schedules_overlap(schedule, existing_schedule):
+                raise HelperError("invalid_request", f"jobs '{existing_id}' and '{job_id}' use overlapping schedules.")
+        seen.append((job_id, schedule))
+
+
+def _process_exists(pid: int) -> bool:
+    if pid < 1:
+        return False
+    if os.name == "nt":
+        return _windows_process_exists(pid)
+
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+
+
+def _windows_process_exists(pid: int) -> bool:
+    import ctypes
+    from ctypes import wintypes
+
+    process_query_limited_information = 0x1000
+    still_active = 259
+    error_invalid_parameter = 87
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    kernel32.GetExitCodeProcess.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel32.CloseHandle.restype = wintypes.BOOL
+
+    process = kernel32.OpenProcess(process_query_limited_information, False, pid)
+    if not process:
+        error = ctypes.get_last_error()
+        if error == error_invalid_parameter:
+            return False
+
+        return True
+
+    try:
+        exit_code = wintypes.DWORD()
+        if not kernel32.GetExitCodeProcess(process, ctypes.byref(exit_code)):
+            return True
+
+        return exit_code.value == still_active
+    finally:
+        kernel32.CloseHandle(process)
+
+
+def _read_run_lock_owner(lock_dir: Path) -> dict[str, Any] | None:
+    owner_path = lock_dir / RUN_LOCK_OWNER_NAME
+    try:
+        with owner_path.open("r", encoding="utf-8") as owner_file:
+            return require_dict(json.load(owner_file), "run lock owner")
+    except (OSError, json.JSONDecodeError, HelperError):
+        return None
+
+
+def _run_lock_owner_is_complete(owner: dict[str, Any] | None) -> bool:
+    if owner is None:
+        return False
+
+    return (
+        owner.get("version") == 1
+        and isinstance(owner.get("host"), str)
+        and isinstance(owner.get("pid"), int)
+        and not isinstance(owner.get("pid"), bool)
+        and isinstance(owner.get("token"), str)
+        and bool(owner.get("token"))
+    )
+
+
+def _write_run_lock_owner(lock_dir: Path, owner: dict[str, Any]) -> None:
+    owner_path = lock_dir / RUN_LOCK_OWNER_NAME
+    fd = None
+    try:
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        if hasattr(os, "O_CLOEXEC"):
+            flags |= os.O_CLOEXEC
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(owner_path, flags, JOB_STORE_MODE)
+        if os.name == "posix":
+            os.fchmod(fd, JOB_STORE_MODE)
+        payload = json.dumps(owner, indent=2, sort_keys=True).encode("utf-8")
+        os.write(fd, payload)
+        os.write(fd, b"\n")
+        os.fsync(fd)
+    except OSError:
+        raise HelperError("operation_failed", "run lock owner could not be written.")
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+
+def _lock_is_stale(lock_dir: Path) -> bool:
+    owner = _read_run_lock_owner(lock_dir)
+    if owner is None:
+        return False
+
+    host = owner.get("host")
+    pid = owner.get("pid")
+    if host != socket.gethostname() or not isinstance(pid, int):
+        return False
+
+    return not _process_exists(pid)
+
+
+def _lock_entry_is_abandoned(path: Path) -> bool:
+    try:
+        file_stat = path.lstat()
+    except OSError:
+        return False
+
+    return time.time() - file_stat.st_mtime >= RUN_LOCK_INITIALIZATION_GRACE_SECONDS
+
+
+def _break_incomplete_run_lock(lock_dir: Path) -> bool:
+    try:
+        lock_stat = lock_dir.lstat()
+    except OSError:
+        return False
+    if not stat.S_ISDIR(lock_stat.st_mode) or not _lock_entry_is_abandoned(lock_dir):
+        return False
+
+    owner_path = lock_dir / RUN_LOCK_OWNER_NAME
+    owner_stat = None
+    try:
+        owner_stat = owner_path.lstat()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        return False
+    if owner_stat is not None:
+        if not stat.S_ISREG(owner_stat.st_mode) or not _lock_entry_is_abandoned(owner_path):
+            return False
+
+    if _run_lock_owner_is_complete(_read_run_lock_owner(lock_dir)):
+        return False
+
+    try:
+        latest_lock_stat = lock_dir.lstat()
+        if (latest_lock_stat.st_dev, latest_lock_stat.st_ino) != (lock_stat.st_dev, lock_stat.st_ino):
+            return False
+        if owner_stat is not None:
+            latest_owner_stat = owner_path.lstat()
+            if (latest_owner_stat.st_dev, latest_owner_stat.st_ino) != (owner_stat.st_dev, owner_stat.st_ino):
+                return False
+            owner_path.unlink()
+        lock_dir.rmdir()
+        return True
+    except OSError:
+        return False
+
+
+def _break_stale_run_lock(lock_dir: Path) -> bool:
+    owner = _read_run_lock_owner(lock_dir)
+    if not _run_lock_owner_is_complete(owner):
+        return _break_incomplete_run_lock(lock_dir)
+    assert owner is not None
+    token = owner.get("token")
+    if not token or not _lock_is_stale(lock_dir):
+        return False
+
+    latest_owner = _read_run_lock_owner(lock_dir)
+    if latest_owner is None or latest_owner.get("token") != token:
+        return False
+
+    try:
+        (lock_dir / RUN_LOCK_OWNER_NAME).unlink()
+        lock_dir.rmdir()
+        return True
+    except OSError:
+        return False
+
+
+class BackupRunLock:
+    def __init__(
+        self,
+        backup_home: Path,
+        job_id: str,
+        run_mode: str,
+        operation_id: str | None = None,
+    ) -> None:
+        self.lock_dir = _run_lock_path(backup_home)
+        self.job_id = job_id
+        self.run_mode = run_mode
+        self.operation_id = operation_id
+        self.token = hashlib.sha256(f"{socket.gethostname()}:{os.getpid()}:{time.time_ns()}:{job_id}".encode("utf-8")).hexdigest()
+        self.acquired = False
+
+    def try_acquire(self) -> bool:
+        while True:
+            created_lock_stat = None
+            try:
+                os.mkdir(self.lock_dir, 0o700)
+                created_lock_stat = self.lock_dir.lstat()
+                if os.name == "posix":
+                    os.chmod(self.lock_dir, 0o700)
+                owner = {
+                    "version": 1,
+                    "host": socket.gethostname(),
+                    "pid": os.getpid(),
+                    "jobId": self.job_id,
+                    "runMode": self.run_mode,
+                    "startedTime": int(time.time()),
+                    "token": self.token,
+                }
+                if self.operation_id is not None:
+                    owner["operationId"] = self.operation_id
+                _write_run_lock_owner(self.lock_dir, owner)
+                self.acquired = True
+                return True
+            except FileExistsError:
+                if _break_stale_run_lock(self.lock_dir):
+                    continue
+                return False
+            except HelperError:
+                if created_lock_stat is not None:
+                    self._remove_failed_acquisition(created_lock_stat)
+                raise
+            except OSError:
+                if created_lock_stat is not None:
+                    self._remove_failed_acquisition(created_lock_stat)
+                raise HelperError("operation_failed", "run lock could not be acquired.")
+
+    def _remove_failed_acquisition(self, created_lock_stat: os.stat_result) -> None:
+        try:
+            current_stat = self.lock_dir.lstat()
+            if (current_stat.st_dev, current_stat.st_ino) != (created_lock_stat.st_dev, created_lock_stat.st_ino):
+                return
+            owner = _read_run_lock_owner(self.lock_dir)
+            if owner is not None and owner.get("token") != self.token:
+                return
+            owner_path = self.lock_dir / RUN_LOCK_OWNER_NAME
+            if owner_path.exists():
+                owner_path.unlink()
+            self.lock_dir.rmdir()
+        except OSError:
+            pass
+
+    def wait_acquire(self) -> None:
+        while not self.try_acquire():
+            time.sleep(RUN_LOCK_POLL_SECONDS)
+
+    def release(self) -> None:
+        if not self.acquired:
+            return
+
+        owner = _read_run_lock_owner(self.lock_dir)
+        if owner is not None and owner.get("token") == self.token:
+            try:
+                (self.lock_dir / RUN_LOCK_OWNER_NAME).unlink()
+                self.lock_dir.rmdir()
+            except OSError:
+                pass
+        self.acquired = False
+
+    def __enter__(self) -> "BackupRunLock":
+        return self
+
+    def __exit__(self, _exc_type: Any, _exc: Any, _tb: Any) -> None:
+        self.release()
+
+
+def handle_jobs_list(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "jobs.list params")
+    reject_unknown_fields(request, {"backupHome"}, "jobs.list params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=False)
+    jobs = _derived_profile_jobs(backup_home, config)
+
+    return {
+        "backupHome": backup_home.as_posix(),
+        "jobs": _public_jobs(jobs),
+    }
+
+
+def handle_jobs_execute(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    request = require_dict(params, "jobs.execute params")
+    reject_unknown_fields(request, {"backupHome", "jobId", "runMode"}, "jobs.execute params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=True)
+    job_id = require_safe_identifier(request.get("jobId"), "jobId")
+    run_mode = request.get("runMode", "manual")
+    if run_mode not in {"manual", "scheduled"}:
+        raise HelperError("invalid_request", "runMode is not supported.")
+    jobs = _derived_profile_jobs(backup_home, config)
+    job = jobs.get(job_id)
+    if job is None:
+        raise HelperError("invalid_request", "jobId is not defined.")
+
+    job = _require_job_definition(job, config, resolve_target_user(config))
+    plan = _mysqlbackup_plan_for_job(job, config)
+    mysqlbackup_progress_path = _mysqlbackup_progress_path(backup_home)
+    plan = _with_mysqlbackup_progress_file(plan, mysqlbackup_progress_path)
+
+    if dry_run:
+        return {
+            "job": job,
+            "runMode": run_mode,
+            "plan": redact_plan(plan),
+        }
+
+    start_time = int(time.time())
+    log_path = _new_job_log_path(backup_home, job_id, user).as_posix()
+    _prepare_mysqlbackup_progress_file(mysqlbackup_progress_path)
+    plan = replace(
+        plan,
+        log_path=log_path,
+        progress_path=_progress_state_path(backup_home).as_posix(),
+        progress_context={
+            "jobId": job_id,
+            "backupMode": job["backupMode"],
+            "runMode": run_mode,
+            "startedTime": start_time,
+            "logPath": log_path,
+            "mysqlbackupProgressPath": mysqlbackup_progress_path.as_posix(),
+        },
+    )
+    run_lock = BackupRunLock(backup_home, job_id, str(run_mode))
+    if run_mode == "manual" and not run_lock.try_acquire():
+        raise HelperError("backup_running", "Another backup is already running.")
+    if run_mode == "scheduled":
+        run_lock.wait_acquire()
+
+    with run_lock:
+        result = run_process_plan(plan)
+
+        return {
+            "status": "completed",
+            **process_status(result),
+        }
+
+
+def handle_backups_list(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backups.list params")
+    reject_unknown_fields(request, {"backupHome"}, "backups.list params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=False)
+    backups = _list_backup_dirs(backup_home)
+
+    return {
+        "backupHome": backup_home.as_posix(),
+        "truncated": len(backups) >= MAX_BACKUPS_LISTED,
+        "backups": backups,
+    }
+
+
+def _unlink_private_file(path: Path, user: dict[str, Any], label: str) -> bool:
+    try:
+        file_stat = path.lstat()
+    except FileNotFoundError:
+        return False
+    except OSError:
+        raise HelperError("operation_failed", f"{label} could not be checked.")
+
+    if not stat.S_ISREG(file_stat.st_mode):
+        raise HelperError("invalid_request", f"{label} must be a regular file, not a symlink or directory.")
+    _require_private_regular_file(file_stat, user, label)
+
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return False
+    except OSError:
+        raise HelperError("operation_failed", f"{label} could not be deleted.")
+
+    return True
+
+
+def _backup_delete_related_progress_files(
+    backup_home: Path,
+    config: HelperConfig,
+    user: dict[str, Any],
+    log_path: Path | None,
+) -> list[str]:
+    if log_path is None:
+        return []
+
+    progress_path = _progress_state_path(backup_home)
+    try:
+        progress_state = _read_json_store(progress_path, config, user, missing_ok=True, label="progress")
+    except HelperError:
+        return []
+
+    if progress_state.get("logPath") != log_path.as_posix() or progress_state.get("state") == "running":
+        return []
+
+    deleted = []
+    if _unlink_private_file(progress_path, user, "progress file"):
+        deleted.append(progress_path.as_posix())
+
+    mysqlbackup_progress_path = _mysqlbackup_progress_path(backup_home)
+    if progress_state.get("mysqlbackupProgressPath") == mysqlbackup_progress_path.as_posix():
+        if _unlink_private_file(mysqlbackup_progress_path, user, "mysqlbackup progress file"):
+            deleted.append(mysqlbackup_progress_path.as_posix())
+
+    return deleted
+
+
+def handle_backups_delete(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    request = require_dict(params, "backups.delete params")
+    reject_unknown_fields(request, {"backupHome", "backupId", "logId"}, "backups.delete params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=True)
+    log_id = request.get("logId")
+    if request.get("backupId") is None:
+        if log_id is None:
+            raise HelperError("invalid_request", "backupId or logId is required.")
+        log_id = _require_log_id(log_id)
+        log_path, _log_stat = _log_path(backup_home, log_id, user)
+        if not dry_run:
+            _unlink_private_file(log_path, user, "log file")
+
+        return {
+            "status": "wouldDelete" if dry_run else "deleted",
+            "backupHome": backup_home.as_posix(),
+            "logId": log_id,
+            "logPath": log_path.as_posix(),
+        }
+
+    relative_path = _require_safe_relative_path(request.get("backupId"), "backupId")
+    target_path, file_stat = _require_backup_child_path(backup_home, relative_path, "backupId")
+    if not stat.S_ISDIR(file_stat.st_mode):
+        raise HelperError("invalid_request", "backupId must name a backup directory.")
+
+    log_path = None
+    if log_id is not None:
+        log_path, _log_stat = _log_path(backup_home, _require_log_id(log_id), user)
+
+    deleted_related: list[str] = []
+    if not dry_run:
+        try:
+            shutil.rmtree(target_path)
+        except OSError:
+            raise HelperError("operation_failed", "backup directory could not be deleted.")
+        if log_path is not None and _unlink_private_file(log_path, user, "log file"):
+            deleted_related.append(log_path.as_posix())
+        deleted_related.extend(_backup_delete_related_progress_files(backup_home, config, user, log_path))
+
+    return {
+        "status": "wouldDelete" if dry_run else "deleted",
+        "backupHome": backup_home.as_posix(),
+        "backupId": relative_path.as_posix(),
+        "path": target_path.as_posix(),
+        "deletedRelated": deleted_related,
+    }
+
+
+def handle_backups_verify(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    request = require_dict(params, "backups.verify params")
+    reject_unknown_fields(request, {"backupHome", "backupId"}, "backups.verify params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(
+        Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=False,
+    )
+    relative_path = _require_safe_relative_path(request.get("backupId"), "backupId")
+    target_path, file_stat = _require_backup_child_path(backup_home, relative_path, "backupId")
+    if not stat.S_ISDIR(file_stat.st_mode):
+        raise HelperError("invalid_request", "backupId must name a backup directory.")
+
+    plan = _mysqlbackup_validate_plan_for_backup(target_path, config)
+    if dry_run:
+        return {
+            "backupHome": backup_home.as_posix(),
+            "backupId": relative_path.as_posix(),
+            "path": target_path.as_posix(),
+            "plan": redact_plan(plan),
+        }
+
+    result = run_process_plan(plan)
+
+    status = "failed" if result["exitCode"] != 0 or result["timedOut"] else "verified"
+    output = str(result.get("output") or "")
+    if not output:
+        output = "\n\n".join(
+            stream.rstrip() for stream in (str(result.get("stdout") or ""), str(result.get("stderr") or ""))
+            if stream.strip()
+        )
+    if not output:
+        output = "Backup verification completed successfully." if status == "verified" else "Backup verification failed."
+
+    return {
+        "status": status,
+        "backupHome": backup_home.as_posix(),
+        "backupId": relative_path.as_posix(),
+        "path": target_path.as_posix(),
+        "output": output,
+        **process_status(result),
+    }
+
+
+def handle_backups_apply_log(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    request = require_dict(params, "backups.applyLog params")
+    reject_unknown_fields(request, {"backupHome", "backupId"}, "backups.applyLog params")
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=True)
+    relative_path = _require_safe_relative_path(request.get("backupId"), "backupId")
+    target_path, file_stat = _require_backup_child_path(backup_home, relative_path, "backupId")
+    if not stat.S_ISDIR(file_stat.st_mode):
+        raise HelperError("invalid_request", "backupId must name a backup directory.")
+    plan = _mysqlbackup_apply_log_plan_for_backup(target_path, config)
+    if dry_run:
+        return {"backupHome": backup_home.as_posix(), "backupId": relative_path.as_posix(), "plan": redact_plan(plan)}
+    log_path = _new_job_log_path(backup_home, f"apply-logs-{relative_path.name}", user).as_posix()
+    plan = replace(plan, log_path=log_path)
+    result = run_process_plan(plan)
+    status = "failed" if result["exitCode"] != 0 or result["timedOut"] else "applied"
+    return {"status": status, "backupHome": backup_home.as_posix(), "backupId": relative_path.as_posix(), **process_status(result)}
+
+
+def _restore_operation_context(params: Any, config: HelperConfig) -> tuple[Path, str, dict[str, Any]]:
+    request = require_dict(params, "restore operation params")
+    reject_unknown_fields(request, {"backupHome", "operationId"}, "restore operation params")
+    user = _current_user()
+    backup_home = _require_valid_backup_home(
+        Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=True,
+    )
+    operation_id = require_safe_identifier(request.get("operationId"), "operationId")
+    progress = _read_json_store(
+        _progress_state_path(backup_home), config, user, missing_ok=True, label="backup progress",
+    )
+
+    return backup_home, operation_id, progress
+
+
+def handle_backups_restore_progress(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    backup_home, operation_id, progress = _restore_operation_context(params, config)
+    if progress.get("backupMode") != "restore" or progress.get("operationId") != operation_id:
+        return {"state": "starting", "operationId": operation_id, "output": ""}
+
+    state = str(progress.get("state") or "starting")
+    if _private_regular_file_exists(_restore_abort_path(backup_home, operation_id)):
+        state = "aborting"
+
+    return {
+        "state": state,
+        "operationId": operation_id,
+        "output": _read_private_output(_restore_output_path(backup_home, operation_id), config, _current_user()),
+    }
+
+
+def handle_backups_restore_abort(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    backup_home, operation_id, progress = _restore_operation_context(params, config)
+    if progress.get("backupMode") != "restore" or progress.get("operationId") != operation_id:
+        raise HelperError("invalid_request", "matching active restore operation was not found.")
+    if progress.get("state") != "running":
+        raise HelperError("invalid_request", "restore operation is not running.")
+
+    lock_dir = _run_lock_path(backup_home)
+    lock_owner = _read_run_lock_owner(lock_dir)
+    if (
+        lock_owner is None
+        or lock_owner.get("jobId") != "restore-backup"
+        or lock_owner.get("operationId") != operation_id
+        or _lock_is_stale(lock_dir)
+    ):
+        raise HelperError("invalid_request", "matching active restore lock was not found.")
+
+    pid = progress.get("pid")
+    if not isinstance(pid, int) or pid < 1:
+        raise HelperError("operation_failed", "restore process is not ready to be aborted.")
+
+    marker_path = _restore_abort_path(backup_home, operation_id)
+    _prepare_private_file(marker_path, b"abort\n")
+    try:
+        _terminate_process_group_by_pid(pid)
+    except Exception:
+        _delete_private_file(marker_path)
+        raise
+
+    return {
+        "state": "aborting",
+        "operationId": operation_id,
+        "output": _read_private_output(_restore_output_path(backup_home, operation_id), config, _current_user()),
+    }
+
+
+def handle_backups_restore(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    request = require_dict(params, "backups.restore params")
+    reject_unknown_fields(
+        request, {"backupHome", "backupId", "operationId", "profileId", "force"}, "backups.restore params",
+    )
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=True)
+    relative_path = _require_safe_relative_path(request.get("backupId"), "backupId")
+    operation_id = require_safe_identifier(request.get("operationId"), "operationId")
+    profile_id = request.get("profileId")
+    if profile_id is not None:
+        profile_id = require_safe_identifier(profile_id, "profileId")
+    target_path, file_stat = _require_backup_child_path(backup_home, relative_path, "backupId")
+    if not stat.S_ISDIR(file_stat.st_mode):
+        raise HelperError("invalid_request", "backupId must name a backup directory.")
+    force = request.get("force", False)
+    if not isinstance(force, bool):
+        raise HelperError("invalid_request", "force must be a boolean.")
+
+    restore_defaults_file = target_path / ".restore-dry-run.cnf" if dry_run else _write_restore_defaults_file(target_path, config.datadir)
+    restore_output_path = _restore_output_path(backup_home, operation_id)
+    restore_abort_path = _restore_abort_path(backup_home, operation_id)
+    try:
+        plan = _mysqlbackup_restore_plan_for_backup(target_path, restore_defaults_file, config, force=force)
+        mysqlbackup_progress_path = _mysqlbackup_progress_path(backup_home)
+        plan = _with_mysqlbackup_progress_file(plan, mysqlbackup_progress_path)
+        if dry_run:
+            return {
+                "backupHome": backup_home.as_posix(),
+                "backupId": relative_path.as_posix(),
+                "operationId": operation_id,
+                "path": target_path.as_posix(),
+                "plan": redact_plan(plan),
+            }
+
+        start_time = int(time.time())
+        restore_log_id = f"restore-{profile_id}-{relative_path.name}" if profile_id else f"restore-{relative_path.name}"
+        log_path = _new_job_log_path(backup_home, restore_log_id, user).as_posix()
+        _prepare_private_file(restore_output_path)
+        _delete_private_file(restore_abort_path)
+        _prepare_mysqlbackup_progress_file(mysqlbackup_progress_path)
+        plan = replace(
+            plan,
+            log_path=log_path,
+            output_path=restore_output_path.as_posix(),
+            progress_path=_progress_state_path(backup_home).as_posix(),
+            progress_context={
+                "state": "starting",
+                "jobId": f"restore-{relative_path.as_posix()}",
+                "backupMode": "restore",
+                "operationId": operation_id,
+                "runMode": "manual",
+                "startedTime": start_time,
+                "logPath": log_path,
+                "mysqlbackupProgressPath": mysqlbackup_progress_path.as_posix(),
+            },
+        )
+        run_lock = BackupRunLock(backup_home, "restore-backup", "manual", operation_id)
+        if not run_lock.try_acquire():
+            raise HelperError("backup_running", "Another backup or restore operation is already running.")
+
+        with run_lock:
+            result = run_process_plan(plan)
+
+        aborted = _private_regular_file_exists(restore_abort_path)
+        status = "aborted" if aborted else "failed" if result["exitCode"] != 0 or result["timedOut"] else "restored"
+
+        response = {
+            "status": status,
+            "backupHome": backup_home.as_posix(),
+            "backupId": relative_path.as_posix(),
+            "operationId": operation_id,
+            "path": target_path.as_posix(),
+            **process_status(result),
+        }
+        if status in {"failed", "aborted"}:
+            response["stdout"] = result["stdout"]
+            response["stderr"] = result["stderr"]
+            response["output"] = result.get("output") or "\n\n".join(
+                stream.rstrip() for stream in (result["stdout"], result["stderr"]) if stream.strip()
+            )
+
+        return response
+    finally:
+        if not dry_run:
+            try:
+                _delete_restore_defaults_file(restore_defaults_file)
+            finally:
+                _delete_private_file(restore_output_path)
+                _delete_private_file(restore_abort_path)
+
+
+def handle_backup_logs_read(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backupLogs.read params")
+    reject_unknown_fields(request, {"backupHome", "logId", "maxBytes"}, "backupLogs.read params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=False)
+    log_id = _require_log_id(request.get("logId"))
+    max_bytes = DEFAULT_LOG_READ_BYTES
+    if request.get("maxBytes") is not None:
+        max_bytes = _require_request_int(request.get("maxBytes"), "maxBytes")
+    if max_bytes < 1 or max_bytes > MAX_LOG_READ_BYTES:
+        raise HelperError("invalid_request", f"maxBytes must be between 1 and {MAX_LOG_READ_BYTES}.")
+
+    log_path, file_stat = _log_path(backup_home, log_id, user)
+    content, truncated = _read_log_tail(log_path, file_stat, max_bytes)
+
+    return {
+        "backupHome": backup_home.as_posix(),
+        "logId": log_id,
+        "logPath": log_path.as_posix(),
+        "content": content,
+        "truncated": truncated,
+    }
+
+
+def handle_backup_logs_list(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backupLogs.list params")
+    reject_unknown_fields(request, {"backupHome"}, "backupLogs.list params")
+
+    user = _current_user()
+    backup_home = _require_valid_backup_home(Path(require_string(request.get("backupHome"), "backupHome")), config, user, write=False)
+
+    return {
+        "backupHome": backup_home.as_posix(),
+        "logs": _list_log_files(backup_home, user),
+    }
+
+# Schedule operations
+def _parse_cron_part(part: str, minimum: int, maximum: int) -> bool:
+    if len(part) == 0:
+        return False
+
+    step_split = part.split("/")
+    if len(step_split) > 2:
+        return False
+
+    if len(step_split) == 2:
+        if not step_split[1].isdigit():
+            return False
+        step = int(step_split[1])
+        if step < 1 or step > maximum:
+            return False
+
+    value = step_split[0]
+    if value == "*":
+        return True
+
+    bounds = value.split("-")
+    if len(bounds) > 2 or any(len(bound) == 0 for bound in bounds):
+        return False
+
+    if not all(bound.isdigit() for bound in bounds):
+        return False
+
+    start = int(bounds[0])
+    if start < minimum or start > maximum:
+        return False
+
+    if len(bounds) == 1:
+        return True
+
+    end = int(bounds[1])
+    return start <= end <= maximum
+
+
+def _validate_cron_field(value: Any, label: str, minimum: int, maximum: int) -> str:
+    field = require_string(value, label)
+    if not all(char in "0123456789*,/-" for char in field):
+        raise HelperError("invalid_request", f"{label} contains unsupported characters.")
+
+    parts = field.split(",")
+    if len(parts) == 0 or any(not _parse_cron_part(part, minimum, maximum) for part in parts):
+        raise HelperError("invalid_request", f"{label} is not a supported cron expression.")
+
+    return field
+
+
+def _expand_cron_field(field: str, minimum: int, maximum: int) -> list[int] | None:
+    if field == "*":
+        return None
+
+    values: set[int] = set()
+    for part in field.split(","):
+        step_split = part.split("/")
+        step = int(step_split[1]) if len(step_split) == 2 else 1
+        value = step_split[0]
+
+        if value == "*":
+            start = minimum
+            end = maximum
+        elif "-" in value:
+            start_text, end_text = value.split("-", 1)
+            start = int(start_text)
+            end = int(end_text)
+        else:
+            start = int(value)
+            end = start
+
+        values.update(range(start, end + 1, step))
+
+    return sorted(values)
+
+
+def _require_schedule(value: Any) -> dict[str, str]:
+    schedule = require_dict(value, "schedule")
+    reject_unknown_fields(schedule, {"minute", "hour", "dayOfMonth", "month", "dayOfWeek"}, "schedule")
+
+    return {
+        "minute": _validate_cron_field(schedule.get("minute"), "schedule.minute", 0, 59),
+        "hour": _validate_cron_field(schedule.get("hour"), "schedule.hour", 0, 23),
+        "dayOfMonth": _validate_cron_field(schedule.get("dayOfMonth"), "schedule.dayOfMonth", 1, 31),
+        "month": _validate_cron_field(schedule.get("month"), "schedule.month", 1, 12),
+        "dayOfWeek": _validate_cron_field(schedule.get("dayOfWeek"), "schedule.dayOfWeek", 0, 7),
+    }
+
+
+def _require_job(params: Any, label: str, *, with_schedule: bool) -> tuple[str, dict[str, str] | None]:
+    request = require_dict(params, f"{label} params")
+    allowed = {"jobId", "schedule"} if with_schedule else {"jobId"}
+    reject_unknown_fields(request, allowed, f"{label} params")
+
+    job_id = require_safe_identifier(request.get("jobId"), "jobId")
+    schedule = _require_schedule(request.get("schedule")) if with_schedule else None
+
+    return job_id, schedule
+
+
+def _managed_begin(job_id: str) -> str:
+    return f"# BEGIN mysql-workbench-managed:{job_id}"
+
+
+def _managed_end(job_id: str) -> str:
+    return f"# END mysql-workbench-managed:{job_id}"
+
+
+def _managed_block_indexes(lines: list[str], job_id: str) -> tuple[int, int] | None:
+    begin = _managed_begin(job_id)
+    end = _managed_end(job_id)
+    begin_indexes = [index for index, line in enumerate(lines) if line == begin]
+    end_indexes = [index for index, line in enumerate(lines) if line == end]
+
+    if len(begin_indexes) == 0 and len(end_indexes) == 0:
+        return None
+
+    if len(begin_indexes) != 1 or len(end_indexes) != 1 or end_indexes[0] <= begin_indexes[0]:
+        raise HelperError("operation_failed", "Existing managed crontab block is malformed.")
+
+    return begin_indexes[0], end_indexes[0]
+
+
+def remove_managed_job_block(existing_crontab: str, job_id: str) -> str:
+    lines = existing_crontab.splitlines()
+    block_indexes = _managed_block_indexes(lines, job_id)
+    if block_indexes is None:
+        return existing_crontab.rstrip()
+
+    begin_index, end_index = block_indexes
+    result = lines[:begin_index] + lines[end_index + 1:]
+
+    compacted = "\n".join(result)
+    while "\n\n\n" in compacted:
+        compacted = compacted.replace("\n\n\n", "\n\n")
+
+    return compacted.rstrip()
+
+
+def _cron_command_path(path: str) -> str:
+    candidate = path
+    if re.search(r"\s", candidate):
+        raise HelperError("invalid_config", "config.jobRunner must not contain whitespace.")
+
+    if re.fullmatch(r"/[A-Za-z0-9._/+@:-]+", candidate) is None:
+        raise HelperError("invalid_config", "config.jobRunner is not safe to embed in crontab.")
+
+    try:
+        validate_executable_reference(candidate)
+    except HelperError as error:
+        raise HelperError("invalid_config", f"config.jobRunner is invalid: {error.message}")
+
+    return candidate
+
+
+def _windows_command_path(path: str) -> str:
+    if "\0" in path:
+        raise HelperError("invalid_config", "config.jobRunner contains a NUL byte.")
+
+    if os.name == "nt":
+        try:
+            validate_executable_reference(path)
+        except HelperError as error:
+            raise HelperError("invalid_config", f"config.jobRunner is invalid: {error.message}")
+    elif re.fullmatch(r"[A-Za-z]:\\[^<>|?*\"]+", path) is None and re.fullmatch(r"/[A-Za-z0-9._/+@:-]+", path) is None:
+        raise HelperError("invalid_config", "config.jobRunner is not a safe Windows command path.")
+
+    return path
+
+
+def _scheduled_backup_home(config: HelperConfig) -> str:
+    backup_home = config.backup_home
+    if not backup_home or not Path(backup_home).is_absolute() or "\0" in backup_home:
+        raise HelperError("invalid_config", "config.backupHome must be an absolute path.")
+
+    return backup_home
+
+
+def _scheduled_job_arguments(config: HelperConfig, job_id: str) -> list[str]:
+    return ["--backup-home", _scheduled_backup_home(config), "run-job", job_id]
+
+
+def render_managed_job_block(config: HelperConfig, job_id: str, schedule: dict[str, str]) -> str:
+    job_runner = _cron_command_path(config.job_runner)
+    backup_home = shlex.quote(_scheduled_backup_home(config))
+    cron_line = " ".join([
+        schedule["minute"],
+        schedule["hour"],
+        schedule["dayOfMonth"],
+        schedule["month"],
+        schedule["dayOfWeek"],
+        job_runner,
+        "--backup-home",
+        backup_home,
+        "run-job",
+        job_id,
+    ])
+
+    return "\n".join([
+        _managed_begin(job_id),
+        "# Managed by MySQL Workbench task helper. Do not edit this block.",
+        cron_line,
+        _managed_end(job_id),
+    ])
+
+
+def install_managed_job_block(
+    existing_crontab: str,
+    config: HelperConfig,
+    job_id: str,
+    schedule: dict[str, str],
+) -> str:
+    cleaned = remove_managed_job_block(existing_crontab, job_id)
+    block = render_managed_job_block(config, job_id, schedule)
+
+    return f"{cleaned + chr(10) + chr(10) if cleaned else ''}{block}\n"
+
+
+def _scheduler_backend(config: HelperConfig) -> str:
+    if config.scheduler_backend != "platform":
+        return config.scheduler_backend
+
+    if sys.platform == "darwin":
+        return "launchd"
+
+    if os.name == "nt":
+        return "schtasks"
+
+    return "cron"
+
+
+def _launchd_label(job_id: str) -> str:
+    return f"com.mysql.workbench.helper.{job_id}"
+
+
+def _launchd_calendar_intervals(schedule: dict[str, str]) -> list[dict[str, int]]:
+    fields = {
+        "Minute": _expand_cron_field(schedule["minute"], 0, 59),
+        "Hour": _expand_cron_field(schedule["hour"], 0, 23),
+        "Day": _expand_cron_field(schedule["dayOfMonth"], 1, 31),
+        "Month": _expand_cron_field(schedule["month"], 1, 12),
+        "Weekday": _expand_cron_field(schedule["dayOfWeek"], 0, 7),
+    }
+    if fields["Day"] is not None and fields["Weekday"] is not None:
+        raise HelperError("invalid_request", "launchd schedules must not restrict both dayOfMonth and dayOfWeek.")
+
+    restricted = [(key, value) for key, value in fields.items() if value is not None]
+    combinations = 1
+    for _key, value in restricted:
+        combinations *= len(value)
+
+    if combinations > 1024:
+        raise HelperError("invalid_request", "schedule expands to too many launchd calendar intervals.")
+
+    intervals: list[dict[str, int]] = []
+    for values in itertools.product(*(value for _key, value in restricted)):
+        item: dict[str, int] = {}
+        for (key, _field_values), value in zip(restricted, values, strict=True):
+            item[key] = 0 if key == "Weekday" and value == 7 else value
+        intervals.append(item)
+
+    return intervals or [{}]
+
+
+def _render_launchd_plist(config: HelperConfig, job_id: str, schedule: dict[str, str]) -> bytes:
+    target_user = resolve_target_user(config)
+    account = target_user.account or config.target_user_name
+    job_runner = _cron_command_path(config.job_runner)
+
+    return plistlib.dumps({
+        "Label": _launchd_label(job_id),
+        "ProgramArguments": [job_runner, *_scheduled_job_arguments(config, job_id)],
+        "StartCalendarInterval": _launchd_calendar_intervals(schedule),
+        "UserName": account,
+    }, sort_keys=True)
+
+
+def _write_launchd_plist(config: HelperConfig, job_id: str, payload: bytes) -> Path:
+    plist_dir = Path(config.launchd_plist_dir)
+    try:
+        plist_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        plist_dir = plist_dir.resolve(strict=True)
+    except OSError as error:
+        raise HelperError("operation_failed", f"Unable to prepare launchd job directory: {error}.")
+
+    if not plist_dir.is_dir():
+        raise HelperError("invalid_config", "config.launchdPlistDir must be a directory.")
+
+    target_path = plist_dir / f"{_launchd_label(job_id)}.plist"
+    with tempfile.NamedTemporaryFile("wb", dir=plist_dir, delete=False) as file:
+        file.write(payload)
+        temporary_path = Path(file.name)
+
+    os.chmod(temporary_path, 0o644)
+    if os.name == "posix" and os.geteuid() == 0:
+        os.chown(temporary_path, 0, 0)
+
+    os.replace(temporary_path, target_path)
+
+    return target_path
+
+
+def _launchctl_plan(config: HelperConfig, args: list[str]) -> ProcessPlan:
+    return ProcessPlan(
+        executable=config.launchctl,
+        args=args,
+        cwd=config.working_directory,
+        env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
+        uid=os.geteuid() if os.name == "posix" else None,
+        gid=os.getegid() if os.name == "posix" else None,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="launchctl",
+    )
+
+
+def _launchd_domain() -> str:
+    if os.name == "posix":
+        return f"gui/{os.geteuid()}"
+
+    return "gui/0"
+
+
+def _install_launchd_job(config: HelperConfig, job_id: str, schedule: dict[str, str], dry_run: bool) -> Any:
+    plist_payload = _render_launchd_plist(config, job_id, schedule)
+
+    if dry_run:
+        return {"plist": plist_payload.decode("utf-8"), "label": _launchd_label(job_id)}
+
+    plist_path = _write_launchd_plist(config, job_id, plist_payload)
+    label = _launchd_label(job_id)
+    domain = _launchd_domain()
+    run_process_plan(_launchctl_plan(config, ["bootout", f"{domain}/{label}"]))
+
+    result = run_process_plan(_launchctl_plan(config, ["bootstrap", domain, plist_path.as_posix()]))
+
+    return scheduler_status(result, "installed", "Installing the scheduled backup job")
+
+
+def _remove_launchd_job(config: HelperConfig, job_id: str, dry_run: bool) -> Any:
+    label = _launchd_label(job_id)
+    plist_path = Path(config.launchd_plist_dir) / f"{label}.plist"
+
+    if dry_run:
+        return {"label": label, "plistPath": plist_path.as_posix()}
+
+    process_result = run_process_plan(_launchctl_plan(config, ["bootout", f"{_launchd_domain()}/{label}"]))
+    result = scheduler_status(
+        process_result,
+        "removed",
+        "Removing the scheduled backup job",
+        ("no such process", "not found"),
+    )
+    if result["status"] in {"removed", "notFound"}:
+        try:
+            plist_path.unlink()
+        except FileNotFoundError:
+            pass
+
+    return result
+
+
+def _single_windows_schedule_value(schedule: dict[str, str], key: str, minimum: int, maximum: int) -> int:
+    values = _expand_cron_field(schedule[key], minimum, maximum)
+    if values is None or len(values) != 1:
+        raise HelperError("invalid_request", "Windows Task Scheduler backend requires single minute and hour values.")
+
+    return values[0]
+
+
+def _windows_task_name(config: HelperConfig, job_id: str) -> str:
+    return f"{config.windows_task_folder}\\{job_id}"
+
+
+def _windows_day_name(value: int) -> str:
+    return {
+        0: "Sunday",
+        1: "Monday",
+        2: "Tuesday",
+        3: "Wednesday",
+        4: "Thursday",
+        5: "Friday",
+        6: "Saturday",
+        7: "Sunday",
+    }[value]
+
+
+def _windows_month_name(value: int) -> str:
+    return {
+        1: "January",
+        2: "February",
+        3: "March",
+        4: "April",
+        5: "May",
+        6: "June",
+        7: "July",
+        8: "August",
+        9: "September",
+        10: "October",
+        11: "November",
+        12: "December",
+    }[value]
+
+
+def _render_windows_task_xml(config: HelperConfig, job_id: str, schedule: dict[str, str]) -> bytes:
+    target_user = resolve_target_user(config)
+    if target_user.account is None:
+        raise HelperError("invalid_config", "Windows scheduled tasks require a configured target account.")
+
+    minute = _single_windows_schedule_value(schedule, "minute", 0, 59)
+    hour = _single_windows_schedule_value(schedule, "hour", 0, 23)
+
+    root = ET.Element("Task", {
+        "version": "1.4",
+        "xmlns": "http://schemas.microsoft.com/windows/2004/02/mit/task",
+    })
+    principals = ET.SubElement(root, "Principals")
+    principal = ET.SubElement(principals, "Principal", {"id": "Author"})
+    ET.SubElement(principal, "UserId").text = target_user.account
+    ET.SubElement(principal, "LogonType").text = target_user.windows_logon_type
+    ET.SubElement(principal, "RunLevel").text = "LeastPrivilege"
+    triggers = ET.SubElement(root, "Triggers")
+    start_boundary = f"2026-01-01T{hour:02d}:{minute:02d}:00"
+    trigger = ET.SubElement(triggers, "CalendarTrigger")
+    ET.SubElement(trigger, "StartBoundary").text = start_boundary
+    ET.SubElement(trigger, "Enabled").text = "true"
+
+    days_of_month = _expand_cron_field(schedule["dayOfMonth"], 1, 31)
+    months = _expand_cron_field(schedule["month"], 1, 12)
+    days_of_week = _expand_cron_field(schedule["dayOfWeek"], 0, 7)
+    if days_of_month is not None:
+        if days_of_week is not None:
+            raise HelperError(
+                "invalid_request",
+                "Windows Task Scheduler schedules must not restrict both dayOfMonth and dayOfWeek.",
+            )
+        schedule_by_month = ET.SubElement(trigger, "ScheduleByMonth")
+        days = ET.SubElement(schedule_by_month, "DaysOfMonth")
+        for day in days_of_month:
+            ET.SubElement(days, "Day").text = str(day)
+        selected_months = ET.SubElement(schedule_by_month, "Months")
+        for month in months or range(1, 13):
+            ET.SubElement(selected_months, _windows_month_name(month))
+    elif months is not None:
+        raise HelperError(
+            "invalid_request",
+            "Windows Task Scheduler requires dayOfMonth when month is restricted.",
+        )
+    elif days_of_week is None:
+        schedule_by_day = ET.SubElement(trigger, "ScheduleByDay")
+        ET.SubElement(schedule_by_day, "DaysInterval").text = "1"
+    else:
+        schedule_by_week = ET.SubElement(trigger, "ScheduleByWeek")
+        ET.SubElement(schedule_by_week, "WeeksInterval").text = "1"
+        days = ET.SubElement(schedule_by_week, "DaysOfWeek")
+        for day in days_of_week:
+            ET.SubElement(days, _windows_day_name(day))
+
+    settings = ET.SubElement(root, "Settings")
+    ET.SubElement(settings, "MultipleInstancesPolicy").text = "Queue"
+    ET.SubElement(settings, "ExecutionTimeLimit").text = "PT24H"
+    actions = ET.SubElement(root, "Actions", {"Context": "Author"})
+    exec_action = ET.SubElement(actions, "Exec")
+    ET.SubElement(exec_action, "Command").text = _windows_command_path(config.job_runner)
+    ET.SubElement(exec_action, "Arguments").text = subprocess.list2cmdline(_scheduled_job_arguments(config, job_id))
+
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
+
+def _schtasks_plan(config: HelperConfig, args: list[str]) -> ProcessPlan:
+    return ProcessPlan(
+        executable=config.schtasks,
+        args=args,
+        cwd=config.working_directory,
+        env={"PATH": r"C:\Windows\System32"},
+        uid=None,
+        gid=None,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="schtasks",
+    )
+
+
+def _install_windows_task(config: HelperConfig, job_id: str, schedule: dict[str, str], dry_run: bool) -> Any:
+    task_name = _windows_task_name(config, job_id)
+    task_xml = _render_windows_task_xml(config, job_id, schedule)
+
+    if dry_run:
+        return {"taskName": task_name, "xml": task_xml.decode("utf-8")}
+
+    with tempfile.NamedTemporaryFile("wb", suffix=".xml", delete=False) as file:
+        file.write(task_xml)
+        task_xml_path = file.name
+
+    try:
+        result = run_process_plan(_schtasks_plan(config, [
+            "/Create", "/TN", task_name, "/XML", task_xml_path, "/F",
+        ]))
+
+        return scheduler_status(result, "installed", "Installing the scheduled backup job")
+    finally:
+        Path(task_xml_path).unlink(missing_ok=True)
+
+
+def _remove_windows_task(config: HelperConfig, job_id: str, dry_run: bool) -> Any:
+    task_name = _windows_task_name(config, job_id)
+
+    if dry_run:
+        return {"taskName": task_name}
+
+    result = run_process_plan(_schtasks_plan(config, ["/Delete", "/TN", task_name, "/F"]))
+
+    return scheduler_status(
+        result,
+        "removed",
+        "Removing the scheduled backup job",
+        ("cannot find the file specified", "cannot find the task", "task does not exist"),
+    )
+
+
+def _crontab_read_plan(config: HelperConfig) -> ProcessPlan:
+    target_user = resolve_target_user(config)
+
+    return ProcessPlan(
+        executable=config.crontab,
+        args=["-l"],
+        cwd=config.working_directory,
+        env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
+        uid=target_user.uid,
+        gid=target_user.gid,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="cron.read",
+        account=target_user.account,
+    )
+
+
+def _crontab_write_plan(config: HelperConfig, crontab: str) -> ProcessPlan:
+    target_user = resolve_target_user(config)
+
+    return ProcessPlan(
+        executable=config.crontab,
+        args=["-"],
+        stdin=crontab,
+        cwd=config.working_directory,
+        env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
+        uid=target_user.uid,
+        gid=target_user.gid,
+        timeout_ms=config.timeout_ms,
+        max_output_bytes=config.max_output_bytes,
+        audit_name="cron.write",
+        account=target_user.account,
+    )
+
+
+def _read_current_crontab(config: HelperConfig) -> str:
+    result = run_process_plan(_crontab_read_plan(config))
+    if result["timedOut"] or result["stdoutTruncated"] or result["stderrTruncated"]:
+        raise HelperError("operation_failed", "Unable to safely read existing crontab.")
+
+    if result["exitCode"] == 0:
+        return str(result["stdout"])
+
+    if result["exitCode"] == 1 and "no crontab" in str(result["stderr"]).lower():
+        return ""
+
+    raise HelperError("operation_failed", "Unable to read existing crontab.")
+
+
+def handle_cron_install_managed_job(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    job_id, schedule = _require_job(params, "cron.installManagedJob", with_schedule=True)
+    assert schedule is not None
+
+    backend = _scheduler_backend(config)
+    if backend == "launchd":
+        return _install_launchd_job(config, job_id, schedule, dry_run)
+
+    if backend == "schtasks":
+        return _install_windows_task(config, job_id, schedule, dry_run)
+
+    if dry_run:
+        placeholder = install_managed_job_block("", config, job_id, schedule)
+        plan = _crontab_write_plan(config, placeholder)
+
+        return {
+            "plan": redact_plan(plan),
+            "generatedManagedBlock": render_managed_job_block(config, job_id, schedule),
+        }
+
+    current = _read_current_crontab(config)
+    next_crontab = install_managed_job_block(current, config, job_id, schedule)
+
+    result = run_process_plan(_crontab_write_plan(config, next_crontab))
+
+    return scheduler_status(result, "installed", "Installing the scheduled backup job")
+
+
+def handle_cron_remove_managed_job(params: Any, config: HelperConfig, dry_run: bool) -> Any:
+    job_id, _schedule = _require_job(params, "cron.removeManagedJob", with_schedule=False)
+
+    backend = _scheduler_backend(config)
+    if backend == "launchd":
+        return _remove_launchd_job(config, job_id, dry_run)
+
+    if backend == "schtasks":
+        return _remove_windows_task(config, job_id, dry_run)
+
+    if dry_run:
+        return {"plan": redact_plan(_crontab_write_plan(config, ""))}
+
+    current = _read_current_crontab(config)
+    if _managed_block_indexes(current.splitlines(), job_id) is None:
+        return scheduler_not_found_status()
+
+    next_crontab = f"{remove_managed_job_block(current, job_id)}\n"
+    result = run_process_plan(_crontab_write_plan(config, next_crontab))
+
+    return scheduler_status(result, "removed", "Removing the scheduled backup job")
+
+# Backup home operations
+BACKUP_HOME_MODE = 0o700
+CONFIG_MODE = 0o600
+SAFE_CONFIG_KEYS = {
+    "datadir": "dataDir",
+    "basedir": "baseDir",
+    "mysqlbackup": "mysqlbackup",
+    "backup_os_user": "backupOsUser",
+    "backup_os_uid": "backupOsUid",
+    "backup_os_gid": "backupOsGid",
+    "backup_mysql_user": "backupMysqlUser",
+    "login_file": "loginFile",
+    "login_path": "loginPath",
+    "mysql_version": "mysqlVersion",
+    "crontab": "crontab",
+    "job_runner": "jobRunner",
+    "backup_root": "backupRoot",
+    "option_file_root": "optionFileRoot",
+    "working_directory": "workingDirectory",
+    "timeout_ms": "timeoutMs",
+    "max_output_bytes": "maxOutputBytes",
+    "launchctl": "launchctl",
+    "schtasks": "schtasks",
+    "scheduler_backend": "schedulerBackend",
+    "launchd_plist_dir": "launchdPlistDir",
+    "windows_task_folder": "windowsTaskFolder",
+    "windows_logon_type": "windowsLogonType",
+}
+
+
+def _current_user() -> dict[str, Any]:
+    if os.name != "posix":
+        return {
+            "uid": None,
+            "gid": None,
+            "name": os.environ.get("USERNAME") or os.environ.get("USER"),
+        }
+
+    uid = os.geteuid()
+    try:
+        name = pwd.getpwuid(uid).pw_name
+    except KeyError:
+        name = None
+
+    return {"uid": uid, "gid": os.getegid(), "name": name}
+
+
+def _check(check_id: str, status: str, expected: str, observed: str, message: str) -> dict[str, str]:
+    return {
+        "id": check_id,
+        "status": status,
+        "expected": expected,
+        "observed": observed,
+        "message": message,
+    }
+
+
+def _action(action_id: str, status: str, before: str, after: str, message: str) -> dict[str, str]:
+    return {
+        "id": action_id,
+        "status": status,
+        "before": before,
+        "after": after,
+        "message": message,
+    }
+
+
+def _summary(checks: list[dict[str, str]]) -> dict[str, int]:
+    return {
+        "passed": sum(1 for check in checks if check["status"] == "pass"),
+        "failed": sum(1 for check in checks if check["status"] == "fail"),
+        "indeterminate": sum(1 for check in checks if check["status"] == "indeterminate"),
+    }
+
+
+def _validation_status(checks: list[dict[str, str]]) -> str:
+    counts = _summary(checks)
+    if counts["failed"]:
+        return "invalid"
+    if counts["indeterminate"]:
+        return "indeterminate"
+
+    return "valid"
+
+
+def _file_type(file_stat: os.stat_result) -> str:
+    if stat.S_ISLNK(file_stat.st_mode):
+        return "symlink"
+    if stat.S_ISDIR(file_stat.st_mode):
+        return "directory"
+    if stat.S_ISREG(file_stat.st_mode):
+        return "regular file"
+
+    return "special file"
+
+
+def _mode(file_stat: os.stat_result) -> str:
+    return f"{stat.S_IMODE(file_stat.st_mode):04o}"
+
+
+def _path_check(
+    check_id: str,
+    path: Path,
+    kind: str,
+    *,
+    missing_ok: bool = False,
+) -> tuple[dict[str, str], os.stat_result | None]:
+    expected = f"absolute {kind} path with no line breaks and no symlink"
+    if missing_ok:
+        expected = f"missing or {expected}"
+
+    if not path.is_absolute():
+        return _check(check_id, "fail", expected, "relative path", "Path must be absolute."), None
+
+    if "\n" in path.as_posix() or "\r" in path.as_posix():
+        return _check(check_id, "fail", expected, "contains line break", "Path must not contain line breaks."), None
+
+    try:
+        file_stat = path.lstat()
+    except FileNotFoundError:
+        if missing_ok:
+            return _check(check_id, "pass", expected, "missing", "Path can be created."), None
+        return _check(check_id, "fail", expected, "missing", "Path does not exist."), None
+    except OSError as error:
+        return _check(check_id, "fail", expected, error.__class__.__name__, "Path is not usable."), None
+
+    observed = _file_type(file_stat)
+    if observed == "symlink":
+        return _check(check_id, "fail", expected, observed, "Path must not be a symlink."), None
+
+    if observed != kind:
+        return _check(check_id, "fail", expected, observed, f"Path must be a {kind}."), None
+
+    return _check(check_id, "pass", expected, observed, f"Path is a usable {kind}."), file_stat
+
+
+def _root_check(backup_home: Path, file_stat: os.stat_result | None, roots: list[str]) -> dict[str, str]:
+    expected = "inside a configured backup root"
+    if file_stat is None:
+        return _check("backupHome.root", "indeterminate", expected, "path check failed", "Backup root was not checked.")
+
+    try:
+        candidate = backup_home.resolve(strict=True)
+        allowed = [Path(root).resolve(strict=True) for root in roots]
+    except OSError as error:
+        return _check("backupHome.root", "fail", expected, error.__class__.__name__, "Backup root could not be resolved.")
+
+    if any(candidate == root or root in candidate.parents for root in allowed):
+        return _check("backupHome.root", "pass", expected, candidate.as_posix(), "Backup home is inside an allowed backup root.")
+
+    return _check("backupHome.root", "fail", expected, candidate.as_posix(), "Backup home must be inside an allowed backup root.")
+
+
+def _owner_check(check_id: str, file_stat: os.stat_result | None, user: dict[str, Any]) -> dict[str, str]:
+    expected = "owned by the effective helper user"
+    if file_stat is None:
+        return _check(check_id, "indeterminate", expected, "path check failed", "Ownership was not checked.")
+    if os.name != "posix":
+        return _check(check_id, "indeterminate", expected, "unsupported platform", "Ownership validation is not available on this platform.")
+
+    observed = f"uid={file_stat.st_uid} gid={file_stat.st_gid}"
+    if file_stat.st_uid == user["uid"]:
+        return _check(check_id, "pass", f"uid={user['uid']}", observed, "Owner is correct.")
+
+    return _check(check_id, "fail", f"uid={user['uid']}", observed, "Owner must be the effective helper user.")
+
+
+def _mode_check(check_id: str, file_stat: os.stat_result | None, mode: int) -> dict[str, str]:
+    expected = f"{mode:04o}"
+    if file_stat is None:
+        return _check(check_id, "indeterminate", expected, "path check failed", "Permissions were not checked.")
+    if os.name != "posix":
+        return _check(check_id, "indeterminate", expected, "unsupported platform", "POSIX mode validation is not available on this platform.")
+
+    observed = _mode(file_stat)
+    status = "pass" if observed == expected else "fail"
+    message = "Permissions are correct." if status == "pass" else f"Permissions must be {expected}."
+
+    return _check(check_id, status, expected, observed, message)
+
+
+def _access_check(check_id: str, path: Path, file_stat: os.stat_result | None, mask: int, label: str) -> dict[str, str]:
+    if file_stat is None:
+        return _check(check_id, "indeterminate", label, "path check failed", "Access was not checked.")
+
+    try:
+        ok = os.access(path, mask, effective_ids=True)
+    except (NotImplementedError, TypeError):
+        ok = os.access(path, mask)
+
+    if ok:
+        return _check(check_id, "pass", label, "available", "Access is available.")
+
+    return _check(check_id, "fail", label, "not available", "Access is not available.")
+
+
+def _read_backup_config(config_path: Path, file_stat: os.stat_result | None) -> tuple[dict[str, str], str | None, configparser.RawConfigParser | None]:
+    if file_stat is None:
+        return _check("config.parse", "indeterminate", "parseable config", "path check failed", "Config was not parsed."), None, None
+
+    flags = os.O_RDONLY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    parser = configparser.RawConfigParser()
+    parser.optionxform = str.lower # type: ignore
+    fd = None
+
+    try:
+        fd = os.open(config_path, flags)
+        opened_stat = os.fstat(fd)
+        if os.name == "posix" and (opened_stat.st_dev != file_stat.st_dev or opened_stat.st_ino != file_stat.st_ino):
+            os.close(fd)
+            fd = None
+            return _check("config.parse", "fail", "stable regular config file", "file changed while opening", "Config file changed while opening."), None, None
+        if not stat.S_ISREG(opened_stat.st_mode):
+            os.close(fd)
+            fd = None
+            return _check("config.parse", "fail", "stable regular config file", _file_type(opened_stat), "Config path did not open as a regular file."), None, None
+
+        with os.fdopen(fd, "r", encoding="utf-8") as config_file:
+            fd = None
+            parser.read_file(config_file)
+    except OSError as error:
+        if fd is not None:
+            os.close(fd)
+        return _check("config.parse", "fail", "parseable config", error.__class__.__name__, "Config file could not be read."), None, None
+    except configparser.Error as error:
+        if fd is not None:
+            os.close(fd)
+        return _check("config.parse", "fail", "parseable config", error.__class__.__name__, "Config file could not be parsed."), None, None
+
+    for section in ("meb", "meb_manager"):
+        if parser.has_section(section):
+            return _check("config.parse", "pass", "parseable config", f"[{section}]", "Config file was parsed."), section, parser
+
+    return _check("config.parse", "fail", "parseable config with [meb] section", "section missing", "Config must contain a [meb] section."), None, None
+
+
+def _datadir_match(config_datadir: str | None, data_dir: Path, data_dir_stat: os.stat_result | None) -> dict[str, str]:
+    expected = data_dir.as_posix()
+    if config_datadir is None:
+        return _check("config.dataDir", "indeterminate", expected, "config datadir missing", "Config datadir was not checked.")
+    if data_dir_stat is None:
+        return _check("config.dataDir", "indeterminate", expected, "dataDir path check failed", "Config datadir was not checked.")
+    if "\n" in config_datadir or "\r" in config_datadir:
+        return _check("config.dataDir", "fail", expected, "contains line break", "Config datadir must not contain line breaks.")
+
+    config_path = Path(config_datadir)
+    if not config_path.is_absolute():
+        return _check("config.dataDir", "fail", expected, "relative path", "Config datadir must be absolute.")
+
+    try:
+        expected = data_dir.resolve(strict=True).as_posix()
+        observed = config_path.resolve(strict=True).as_posix()
+    except OSError as error:
+        return _check("config.dataDir", "fail", expected, error.__class__.__name__, "Config datadir could not be resolved.")
+
+    if observed == expected:
+        return _check("config.dataDir", "pass", expected, observed, "Config datadir matches the requested data directory.")
+
+    return _check("config.dataDir", "fail", expected, observed, "Config datadir does not match the requested data directory.")
+
+
+def _generated_config_values(
+    backup_home: Path,
+    data_dir: Path,
+    config: HelperConfig,
+    user: dict[str, Any],
+) -> dict[str, str]:
+    canonical_data_dir = data_dir.resolve(strict=True).as_posix()
+    backup_home_path = backup_home.resolve(strict=True).as_posix()
+    user_name = user["name"] if isinstance(user.get("name"), str) and user["name"] else str(user.get("uid") or "unknown")
+
+    values = {
+        "datadir": canonical_data_dir,
+        "mysqlbackup": config.mysqlbackup,
+        "backup_os_user": user_name,
+        "login_file": (backup_home / ".mylogin.cnf").as_posix(),
+        "login_path": f"mysql_workbench_meb_{hashlib.sha256(canonical_data_dir.encode('utf-8')).hexdigest()[:12]}",
+        "crontab": config.crontab,
+        "job_runner": config.job_runner,
+        "backup_root": config.backup_roots[0] if config.backup_roots else backup_home_path,
+        "option_file_root": config.option_file_roots[0] if config.option_file_roots else backup_home_path,
+        "working_directory": config.working_directory,
+        "timeout_ms": str(config.timeout_ms),
+        "max_output_bytes": str(config.max_output_bytes),
+        "launchctl": config.launchctl,
+        "schtasks": config.schtasks,
+        "scheduler_backend": config.scheduler_backend,
+        "launchd_plist_dir": config.launchd_plist_dir,
+        "windows_task_folder": config.windows_task_folder,
+    }
+    if user.get("uid") is not None and user.get("gid") is not None:
+        values["backup_os_uid"] = str(user["uid"])
+        values["backup_os_gid"] = str(user["gid"])
+    if config.target_user.windows_logon_type:
+        values["windows_logon_type"] = config.target_user.windows_logon_type
+
+    return values
+
+
+def _write_config_file(config_path: Path, values: dict[str, str]) -> None:
+    parser = configparser.RawConfigParser()
+    parser.add_section("meb")
+    for key, value in values.items():
+        parser.set("meb", key, value)
+
+    stream = io.StringIO()
+    stream.write("# MySQL Enterprise Backup local support configuration\n")
+    parser.write(stream)
+
+    fd = None
+    temp_name = None
+    try:
+        fd, temp_name = tempfile.mkstemp(prefix=f".{CONFIG_NAME}.", suffix=".tmp", dir=config_path.parent, text=True)
+        if os.name == "posix":
+            os.chmod(temp_name, CONFIG_MODE)
+
+        with os.fdopen(fd, "w", encoding="utf-8") as config_file:
+            fd = None
+            config_file.write(stream.getvalue())
+            config_file.flush()
+            os.fsync(config_file.fileno())
+
+        os.replace(temp_name, config_path)
+        temp_name = None
+        if os.name == "posix":
+            try:
+                os.chmod(config_path, CONFIG_MODE, follow_symlinks=False)
+            except NotImplementedError:
+                os.chmod(config_path, CONFIG_MODE)
+            directory_fd = os.open(config_path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    finally:
+        if fd is not None:
+            os.close(fd)
+        if temp_name is not None:
+            try:
+                os.unlink(temp_name)
+            except FileNotFoundError:
+                pass
+
+
+def _base_response(status: str, backup_home: Path, config_path: Path, user: dict[str, Any], checks: list[dict[str, str]]) -> dict[str, Any]:
+    return {
+        "status": status,
+        "backupHome": backup_home.as_posix(),
+        "configPath": config_path.as_posix(),
+        "effectiveUser": user,
+        "checks": checks,
+        "summary": _summary(checks),
+    }
+
+
+def _backup_home_checks(backup_home: Path, config: HelperConfig, user: dict[str, Any], write: bool) -> tuple[list[dict[str, str]], os.stat_result | None]:
+    checks = []
+    path_check, file_stat = _path_check("backupHome.path", backup_home, "directory")
+    checks.append(path_check)
+    checks.append(_root_check(backup_home, file_stat, config.backup_roots))
+    checks.append(_owner_check("backupHome.owner", file_stat, user))
+    checks.append(_mode_check("backupHome.permissions", file_stat, BACKUP_HOME_MODE))
+    access = os.R_OK | os.X_OK | (os.W_OK if write else 0)
+    checks.append(_access_check("backupHome.access", backup_home, file_stat, access, "read/write/search" if write else "read/search"))
+
+    return checks, file_stat
+
+
+def handle_backup_home_validate(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backupHome.validate params")
+    reject_unknown_fields(request, {"backupHome", "dataDir"}, "backupHome.validate params")
+
+    backup_home = Path(require_string(request.get("backupHome"), "backupHome"))
+    data_dir = Path(require_string(request.get("dataDir"), "dataDir"))
+    config_path = backup_home / CONFIG_NAME
+    user = _current_user()
+
+    checks, _backup_home_stat = _backup_home_checks(backup_home, config, user, write=True)
+
+    data_dir_check, data_dir_stat = _path_check("dataDir.path", data_dir, "directory")
+    checks.append(data_dir_check)
+    checks.append(_access_check("dataDir.access", data_dir, data_dir_stat, os.R_OK | os.X_OK, "read/search"))
+
+    config_path_check, config_stat = _path_check("config.path", config_path, "regular file")
+    checks.append(config_path_check)
+    checks.append(_owner_check("config.owner", config_stat, user))
+    checks.append(_mode_check("config.permissions", config_stat, CONFIG_MODE))
+    parse_check, section, parser = _read_backup_config(config_path, config_stat)
+    config_datadir = None
+    if parser is not None and section is not None:
+        if parser.has_option(section, "datadir"):
+            config_datadir = parser.get(section, "datadir").strip().strip("\"'")
+        if not config_datadir:
+            parse_check = _check("config.parse", "fail", "parseable config with datadir", "datadir missing", "Config must contain a datadir setting.")
+    checks.append(parse_check)
+    checks.append(_datadir_match(config_datadir, data_dir, data_dir_stat))
+
+    response = _base_response(_validation_status(checks), backup_home, config_path, user, checks)
+    response["dataDir"] = data_dir.as_posix()
+
+    return response
+
+
+def handle_backup_home_read_config(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backupHome.readConfig params")
+    reject_unknown_fields(request, {"backupHome"}, "backupHome.readConfig params")
+
+    backup_home = Path(require_string(request.get("backupHome"), "backupHome"))
+    config_path = backup_home / CONFIG_NAME
+    user = _current_user()
+
+    checks, _backup_home_stat = _backup_home_checks(backup_home, config, user, write=False)
+    config_path_check, config_stat = _path_check("config.path", config_path, "regular file")
+    checks.append(config_path_check)
+    checks.append(_owner_check("config.owner", config_stat, user))
+    checks.append(_mode_check("config.permissions", config_stat, CONFIG_MODE))
+    parse_check, source_section, parser = _read_backup_config(config_path, config_stat)
+    checks.append(parse_check)
+
+    status = _validation_status(checks)
+    if status != "valid" or parser is None or source_section is None:
+        return _base_response(status, backup_home, config_path, user, checks)
+
+    response = _base_response("read", backup_home, config_path, user, checks)
+    response["sourceSection"] = source_section
+    response["config"] = {
+        result_key: parser.get(source_section, config_key)
+        for config_key, result_key in SAFE_CONFIG_KEYS.items()
+        if parser.has_option(source_section, config_key)
+    }
+
+    return response
+
+
+def handle_backup_home_write_config(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backupHome.writeConfig params")
+    reject_unknown_fields(request, {"backupHome", "dataDir"}, "backupHome.writeConfig params")
+
+    backup_home = Path(require_string(request.get("backupHome"), "backupHome"))
+    data_dir = Path(require_string(request.get("dataDir"), "dataDir"))
+    config_path = backup_home / CONFIG_NAME
+    user = _current_user()
+
+    checks, _backup_home_stat = _backup_home_checks(backup_home, config, user, write=True)
+    data_dir_check, data_dir_stat = _path_check("dataDir.path", data_dir, "directory")
+    checks.append(data_dir_check)
+    checks.append(_access_check("dataDir.access", data_dir, data_dir_stat, os.R_OK | os.X_OK, "read/search"))
+    config_path_check, _config_stat = _path_check("config.path", config_path, "regular file", missing_ok=True)
+    checks.append(config_path_check)
+
+    status = _validation_status(checks)
+    if status != "valid" or data_dir_stat is None:
+        response = _base_response(status, backup_home, config_path, user, checks)
+        response["dataDir"] = data_dir.as_posix()
+
+        return response
+
+    values = _generated_config_values(backup_home, data_dir, config, user)
+    try:
+        _write_config_file(config_path, values)
+    except OSError as error:
+        response = _base_response("failed", backup_home, config_path, user, checks)
+        response["dataDir"] = data_dir.as_posix()
+        response["error"] = error.__class__.__name__
+
+        return response
+
+    response = _base_response("written", backup_home, config_path, user, checks)
+    response["dataDir"] = values["datadir"]
+    response["config"] = {SAFE_CONFIG_KEYS[key]: value for key, value in values.items()}
+
+    return response
+
+
+def _chown_action(action_id: str, path: Path, file_stat: os.stat_result, user: dict[str, Any]) -> dict[str, str]:
+    if os.name != "posix":
+        return _action(action_id, "failed", "unsupported platform", "unchanged", "Ownership repair is not available on this platform.")
+
+    before = f"uid={file_stat.st_uid} gid={file_stat.st_gid}"
+    after = f"uid={user['uid']}"
+    if file_stat.st_uid == user["uid"]:
+        return _action(action_id, "unchanged", before, after, "Owner is already correct.")
+
+    try:
+        os.chown(path, user["uid"], -1, follow_symlinks=False)
+        repaired_stat = path.lstat()
+    except OSError as error:
+        return _action(action_id, "failed", before, after, f"Could not change owner: {error.__class__.__name__}.")
+
+    return _action(action_id, "changed", before, f"uid={repaired_stat.st_uid} gid={repaired_stat.st_gid}", "Owner was updated.")
+
+
+def _chmod_action(action_id: str, path: Path, file_stat: os.stat_result, mode: int) -> dict[str, str]:
+    if os.name != "posix":
+        return _action(action_id, "failed", "unsupported platform", "unchanged", "POSIX mode repair is not available on this platform.")
+
+    before = _mode(file_stat)
+    after = f"{mode:04o}"
+    if before == after:
+        return _action(action_id, "unchanged", before, after, "Permissions are already correct.")
+
+    try:
+        os.chmod(path, mode, follow_symlinks=False)
+        repaired_stat = path.lstat()
+    except (NotImplementedError, OSError) as error:
+        return _action(action_id, "failed", before, after, f"Could not change permissions: {error.__class__.__name__}.")
+
+    return _action(action_id, "changed", before, _mode(repaired_stat), "Permissions were updated.")
+
+
+def handle_backup_home_repair(params: Any, config: HelperConfig, _dry_run: bool) -> Any:
+    request = require_dict(params, "backupHome.repair params")
+    reject_unknown_fields(request, {"backupHome"}, "backupHome.repair params")
+
+    backup_home = Path(require_string(request.get("backupHome"), "backupHome"))
+    config_path = backup_home / CONFIG_NAME
+    user = _current_user()
+    actions: list[dict[str, str]] = []
+
+    backup_home_check, backup_home_stat = _path_check("backupHome.path", backup_home, "directory")
+    if backup_home_stat is None:
+        actions.append(_action("backupHome.path", "failed", backup_home_check["observed"], backup_home_check["expected"], backup_home_check["message"]))
+
+        return {
+            "status": "failed",
+            "backupHome": backup_home.as_posix(),
+            "configPath": config_path.as_posix(),
+            "effectiveUser": user,
+            "actions": actions,
+        }
+
+    root_check = _root_check(backup_home, backup_home_stat, config.backup_roots)
+    if root_check["status"] != "pass":
+        actions.append(_action("backupHome.root", "failed", root_check["observed"], root_check["expected"], root_check["message"]))
+
+        return {
+            "status": "failed",
+            "backupHome": backup_home.as_posix(),
+            "configPath": config_path.as_posix(),
+            "effectiveUser": user,
+            "actions": actions,
+        }
+
+    actions.append(_chown_action("backupHome.owner", backup_home, backup_home_stat, user))
+    actions.append(_chmod_action("backupHome.permissions", backup_home, backup_home_stat, BACKUP_HOME_MODE))
+
+    config_path_check, config_stat = _path_check("config.path", config_path, "regular file", missing_ok=True)
+    if config_stat is None:
+        status = "skipped" if config_path_check["status"] == "pass" else "failed"
+        actions.append(_action("config.path", status, config_path_check["observed"], config_path_check["expected"], config_path_check["message"]))
+    else:
+        actions.append(_chown_action("config.owner", config_path, config_stat, user))
+        actions.append(_chmod_action("config.permissions", config_path, config_stat, CONFIG_MODE))
+
+    changed = any(action["status"] == "changed" for action in actions)
+    failed = any(action["status"] == "failed" for action in actions)
+
+    return {
+        "status": "partial" if changed and failed else "failed" if failed else "repaired" if changed else "noop",
+        "backupHome": backup_home.as_posix(),
+        "configPath": config_path.as_posix(),
+        "effectiveUser": user,
+        "actions": actions,
+    }
+
+
+# Request dispatch
+HANDLERS = {
+    "jobs.list": handle_jobs_list,
+    "jobs.execute": handle_jobs_execute,
+    "backups.list": handle_backups_list,
+    "backups.delete": handle_backups_delete,
+    "backups.verify": handle_backups_verify,
+    "backups.applyLog": handle_backups_apply_log,
+    "backups.restore": handle_backups_restore,
+    "backups.restore.progress": handle_backups_restore_progress,
+    "backups.restore.abort": handle_backups_restore_abort,
+    "backupLogs.list": handle_backup_logs_list,
+    "backupLogs.read": handle_backup_logs_read,
+    "cron.installManagedJob": handle_cron_install_managed_job,
+    "cron.removeManagedJob": handle_cron_remove_managed_job,
+    "backupHome.validate": handle_backup_home_validate,
+    "backupHome.repair": handle_backup_home_repair,
+    "backupHome.readConfig": handle_backup_home_read_config,
+    "backupHome.writeConfig": handle_backup_home_write_config,
+}
+
+
+def _request_backup_home(value: Any) -> Path:
+    backup_home = Path(require_string(value, "backupHome"))
+    if not backup_home.is_absolute():
+        raise HelperError("invalid_request", "backupHome must be an absolute path.")
+    try:
+        return backup_home.resolve(strict=True)
+    except OSError:
+        raise HelperError("invalid_request", "backupHome does not exist.")
+
+
+def _validate_operation_backup_home(params: Any, config: HelperConfig) -> None:
+    if not config.backup_home or not isinstance(params, dict) or params.get("backupHome") is None:
+        return
+
+    operation_backup_home = _request_backup_home(params["backupHome"])
+    if operation_backup_home.as_posix() != config.backup_home:
+        raise HelperError("invalid_request", "operation backupHome does not match the selected backupHome.")
+
+
+def handle_request(request_value: Any, config: HelperConfig | None = None, allow_dry_run: bool = False) -> dict[str, Any]:
+    request_id = None
+    operation = None
+
+    try:
+        request = require_dict(request_value, "request")
+        reject_unknown_fields(request, {"id", "version", "operation", "params", "dryRun", "backupHome"}, "request")
+        if isinstance(request.get("id"), str):
+            request_id = request["id"]
+
+        if request.get("version") is not None and request.get("version") != 1:
+            raise HelperError("invalid_request", "request.version is not supported.")
+
+        if request.get("dryRun") is not None and not allow_dry_run:
+            raise HelperError("invalid_request", "request.dryRun is not accepted by the helper service.")
+
+        operation = require_string(request.get("operation"), "operation")
+        handler = HANDLERS.get(operation)
+        if handler is None:
+            raise HelperError("unknown_operation", f"operation '{operation}' is not registered.")
+        if config is None:
+            config = helper_config(_request_backup_home(request.get("backupHome")))
+        elif request.get("backupHome") is not None:
+            selected_backup_home = _request_backup_home(request["backupHome"])
+            if config.backup_home and selected_backup_home.as_posix() != config.backup_home:
+                raise HelperError("invalid_request", "request backupHome does not match the loaded configuration.")
+
+        _validate_operation_backup_home(request.get("params"), config)
+
+        result = handler(request.get("params"), config, request.get("dryRun") is True)
+
+        return {
+            "id": request_id,
+            "ok": True,
+            "operation": operation,
+            "result": result,
+        }
+    except HelperError as error:
+        return {
+            "id": request_id,
+            "ok": False,
+            "operation": operation,
+            "error": {
+                "code": error.code,
+                "message": error.message,
+            },
+        }
+    except Exception:
+        return {
+            "id": request_id,
+            "ok": False,
+            "operation": operation,
+            "error": {
+                "code": "internal_error",
+                "message": "Internal helper error.",
+            },
+        }
+
+# CLI
+MAX_REQUEST_BYTES = 1024 * 1024
+
+
+def _write_json(value: dict[str, Any]) -> None:
+    sys.stdout.write(json.dumps(value, separators=(",", ":")) + "\n")
+
+
+def _read_json_request() -> Any:
+    payload = sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)
+    if len(payload) > MAX_REQUEST_BYTES:
+        raise RuntimeError("request exceeds maximum helper request size.")
+
+    return json.loads(payload.decode("utf-8"))
+
+
+def _self_test(backup_home: Path | None = None) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "ok": True,
+        "version": HELPER_VERSION,
+        "capabilities": list(HANDLERS),
+    }
+    try:
+        config = helper_config(backup_home)
+    except HelperError as error:
+        result["configLoaded"] = False
+        result["configError"] = error.code
+
+        return result
+
+    result["configLoaded"] = True
+    result["targetUser"] = config.target_user_name
+    result["jobRunner"] = config.job_runner
+
+    return result
+
+
+def _default_backup_home() -> Path:
+    helper_dir = Path(__file__).resolve().parent
+    if helper_dir.name in {"bin", "sbin"}:
+        return helper_dir.parent
+
+    return helper_dir
+
+
+def _run_job_cli(config: HelperConfig, args: list[str]) -> int:
+    if len(args) != 2:
+        _write_json({
+            "ok": False,
+            "operation": "jobs.execute",
+            "error": {
+                "code": "invalid_request",
+                "message": "usage: task-helper run-job <jobId>",
+            },
+        })
+
+        return 64
+
+    response = handle_request({
+        "operation": "jobs.execute",
+        "params": {
+            "backupHome": config.backup_home,
+            "jobId": args[1],
+            "runMode": "scheduled",
+        },
+    }, config)
+    _write_json(response)
+    if not response["ok"]:
+        return 1
+
+    result = response["result"]
+    if result.get("status") == "skipped":
+        return 0
+    if result["timedOut"] or result["exitCode"] != 0:
+        return 1
+
+    return 0
+
+
+def main() -> int:
+    try:
+        args = sys.argv[1:]
+        backup_home = None
+        if len(args) >= 2 and args[0] == "--backup-home":
+            backup_home = _request_backup_home(args[1])
+            args = args[2:]
+        if args == ["--self-test"]:
+            _write_json(_self_test(backup_home))
+
+            return 0
+
+        if args and args[0] == "run-job":
+            if backup_home is None:
+                raise HelperError("invalid_request", "--backup-home is required for run-job.")
+            config = helper_config(backup_home)
+            return _run_job_cli(config, args)
+        if args:
+            _write_json({
+                "ok": False,
+                "error": {
+                    "code": "invalid_request",
+                    "message": "Unsupported helper arguments.",
+                },
+            })
+
+            return 64
+
+        payload = _read_json_request()
+        _write_json(handle_request(payload))
+
+        return 0
+    except Exception as error:
+        _write_json({
+            "ok": False,
+            "error": {
+                "code": "startup_error",
+                "message": str(error),
+            },
+        })
+
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

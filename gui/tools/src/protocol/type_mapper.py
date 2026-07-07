@@ -22,9 +22,10 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA"""
 
 import inspect
+import json
 import os
 from enum import Enum, StrEnum, IntEnum
-from typing import Union, get_args, get_origin
+from typing import Literal, Union, get_args, get_origin
 from types import UnionType
 
 PYTHON_BUILT_IN_TYPES = [
@@ -165,6 +166,8 @@ def generate_ts_interfaces(type_hint, registry):
         elif get_origin(type_) is list:
             inner_type = get_args(type_)[0]
             return f"{get_ts_type(inner_type)}[]"
+        elif get_origin(type_) is Literal:
+            return " | ".join(json.dumps(value) for value in get_args(type_))
         elif get_origin(type_) is Union or get_origin(type_) is UnionType:
             inner_types = [get_ts_type(inner_type) for inner_type in get_args(type_)]
             return " | ".join(inner_types)

@@ -4641,6 +4641,7 @@ Migration Assistant.`}
                                     </div>
                                     <Button
                                         imageOnly
+                                        appearance="flat"
                                         data-tooltip="Show details"
                                         onClick={() => {
                                             expandedIssues[checkId] = true;

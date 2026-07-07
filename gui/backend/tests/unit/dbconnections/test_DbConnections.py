@@ -52,7 +52,6 @@ def validate_connection_row(row):
 
     assert isinstance(row["folder_path_id"], int)
     assert isinstance(row["caption"], str)
-    assert isinstance(row["caption"], str)
     assert isinstance(row["description"], str)
 
     assert isinstance(row["db_type"], str)

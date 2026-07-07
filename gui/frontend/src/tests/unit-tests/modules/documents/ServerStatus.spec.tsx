@@ -68,6 +68,7 @@ describe("Server status module tests", (): void => {
             />,
         );
 
+        await nextRunLoop();
         expect(container).toMatchSnapshot("ServerStatus1");
 
         backend.closeSession().catch(() => {

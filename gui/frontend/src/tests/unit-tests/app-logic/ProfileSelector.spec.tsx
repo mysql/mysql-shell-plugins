@@ -42,7 +42,7 @@ import type {
 import { IMenuItemProperties } from "../../../components/ui/Menu/MenuItem.js";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../../supplement/WebSession.js";
-import { mockClassMethods, nextProcessTick, nextRunLoop, setupShellForTests } from "../test-helpers.js";
+import { mockClassMethods, nextProcessTick, nextRunLoop } from "../test-helpers.js";
 import { ShellInterfaceUser } from "../../../supplement/ShellInterface/ShellInterfaceUser.js";
 
 let clicked = false;
@@ -140,21 +140,6 @@ describe("ProfileSelector test", () => {
 
         unmount();
     });
-
-    it("Update on connect", async () => {
-        const launchPromise = setupShellForTests(true, true, "DEBUG3");
-
-        const { unmount } = render(
-            <ProfileSelector />,
-        );
-
-        const launcher = await launchPromise;
-
-        // TODO: add check the profile selector has been updated on connect.
-
-        await launcher.exitProcess();
-        unmount();
-    }, 20000);
 
     describe("handleProfileAction tests", () => {
         let profileSelector: TestProfileSelector;

@@ -135,7 +135,7 @@ export interface DocumentContextType {
  * Note: have to include `undefined` in the type list here, to avoid being forced to provide a
  *       default value in the `createContext` call.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
+
 export const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
 /** Describes possible results for a sidebar command. */

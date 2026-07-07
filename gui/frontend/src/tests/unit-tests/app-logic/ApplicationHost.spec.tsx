@@ -31,7 +31,9 @@ vi.mock("../../../utilities/helpers.js", async () => {
 
     return {
         ...actual,
-        isStandalone: vi.fn(() => false),
+        isStandalone: vi.fn(() => {
+            return false;
+        }),
     };
 });
 
@@ -316,9 +318,15 @@ describe("Application host tests", () => {
         await nextRunLoop();
 
         const initialState = desktopCommandRegistry.getState();
-        expect(initialState.find((entry) => entry.id === "app.about")?.enabled).toBe(true);
-        expect(initialState.find((entry) => entry.id === "app.preferences")?.enabled).toBe(true);
-        expect(initialState.find((entry) => entry.id === "dev.toggleDebugger")).toMatchObject({
+        expect(initialState.find((entry) => {
+            return entry.id === "app.about";
+        })?.enabled).toBe(true);
+        expect(initialState.find((entry) => {
+            return entry.id === "app.preferences";
+        })?.enabled).toBe(true);
+        expect(initialState.find((entry) => {
+            return entry.id === "dev.toggleDebugger";
+        })).toMatchObject({
             enabled: true,
             checked: false,
         });
@@ -331,7 +339,9 @@ describe("Application host tests", () => {
 
         expect(await desktopCommandRegistry.execute("dev.toggleDebugger")).toBe(true);
         expect(hostRef.current!.state.debuggerVisible).toBe(true);
-        expect(desktopCommandRegistry.getState().find((entry) => entry.id === "dev.toggleDebugger")).toMatchObject({
+        expect(desktopCommandRegistry.getState().find((entry) => {
+            return entry.id === "dev.toggleDebugger";
+        })).toMatchObject({
             enabled: true,
             checked: true,
         });

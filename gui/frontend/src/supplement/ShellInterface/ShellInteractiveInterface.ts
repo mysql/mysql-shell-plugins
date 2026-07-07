@@ -26,10 +26,9 @@
 import { MessageScheduler, ISendRequestParameters, ResponsePromise} from "../../communication/MessageScheduler.js";
 import type { IProtocolResults } from "../../communication/ProtocolResultMapper.js";
 import { type IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
-import { isShellPromptResult } from "../../utilities/helpers.js"
+import { isShellPromptResult } from "../../utilities/helpers.js";
 import { ShellPromptHandler } from "../../modules/common/ShellPromptHandler.js";
 import { IShellInteractiveBackend } from "./ShellInteractiveBackend.js";
-
 
 export class ShellInteractiveInterface implements IPromptReplyBackend, IShellInteractiveBackend {
     public async sendReply(requestId: string, type: ShellPromptResponseType, reply: string): Promise<void> {
@@ -44,7 +43,6 @@ export class ShellInteractiveInterface implements IPromptReplyBackend, IShellInt
 
         const callerOnData = details.onData;
 
-
         details.onData = async (response: any, requestId: string) => {
             if ("result" in response && isShellPromptResult(response.result)) {
                 return ShellPromptHandler.handleShellPrompt(response.result, requestId, this);
@@ -56,7 +54,6 @@ export class ShellInteractiveInterface implements IPromptReplyBackend, IShellInt
                 return Promise.resolve(false);
             }
         };
-
 
         const response = await MessageScheduler.get.sendRequest(details, useExecute);
         

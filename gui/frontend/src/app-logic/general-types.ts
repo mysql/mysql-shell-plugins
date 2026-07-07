@@ -423,6 +423,21 @@ export interface IServicePasswordRequest {
     /** The user name for which to get the password. */
     user?: string;
 
+    /** The caption for the password field. */
+    passwordLabel?: string;
+
+    /** Whether an empty password is rejected by the dialog. */
+    passwordRequired?: boolean;
+
+    /** Whether the password must be entered twice and match. */
+    confirmPassword?: boolean;
+
+    /** The caption for the password confirmation field. */
+    confirmPasswordLabel?: string;
+
+    /** The caption for the submit button. */
+    submitCaption?: string;
+
     /** Any other data the caller wants to pass over. */
     payload?: IDictionary;
 }

@@ -113,8 +113,7 @@ export class App extends Component<{}, IAppState> {
 
             // Session recovery is not supported in tests, so remove the else branch from test coverage.
             // istanbul ignore else
-            const hasBootstrapProfile = data.activeProfile.id >= 0
-                && data.activeProfile.userId >= 0;
+            const hasBootstrapProfile = data.activeProfile.id >= 0 && data.activeProfile.userId >= 0;
 
             if (webSession.userName === "" && data.requestState.msg !== "Session recovered") {
                 if (webSession.runMode === RunMode.LocalUser) {

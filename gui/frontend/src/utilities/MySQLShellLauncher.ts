@@ -391,10 +391,10 @@ export class MySQLShellLauncher {
 
                 const secureString = secure ? "secure={}, " : "";
                 // --no-defaults takes precedence
-                const parameters = ["--no-defaults"]
+                const parameters = ["--no-defaults"];
                 // If the extension is running the development mode, the development plugins should be used.
                 if (inDevelopment) {
-                    parameters.push('--disable-builtin-plugins')
+                    parameters.push("--disable-builtin-plugins");
                 }
                 parameters.push(
                     "--loose-execution-context=.vsc",
