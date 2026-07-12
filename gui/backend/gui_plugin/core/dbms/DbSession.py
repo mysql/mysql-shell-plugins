@@ -251,7 +251,7 @@ class DbSession(threading.Thread):
         self._close_database(True)
         if self.thread_error is not None:
             logger.error(f"Thread {self._id} exiting with code {self.thread_error}")
-            self._message_callback("ERROR", self.thread_error)
+            self._message_callback("ERROR", self.thread_error, None)
         self._term_complete.set()
 
     def execute_thread(self, sql, params, options=None):

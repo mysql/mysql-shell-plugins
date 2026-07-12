@@ -93,9 +93,9 @@ class HeatWaveCheckTask(DbSessionSetupTask):
             result = self.execute("""
                                   SELECT ROUTINE_NAME
                                   FROM information_schema.routines
-                                  WHERE ROUTINE_SCHEMA="sys"
-                                    AND ROUTINE_NAME="mle_explain_error"
-                                    AND ROUTINE_TYPE="PROCEDURE"
+                                  WHERE ROUTINE_SCHEMA='sys'
+                                    AND ROUTINE_NAME='mle_explain_error'
+                                    AND ROUTINE_TYPE='PROCEDURE'
                                   """).fetch_all()
             self.define_data(common.MySQLData.HAS_EXPLAIN_ERROR, len(result) > 0)
 
