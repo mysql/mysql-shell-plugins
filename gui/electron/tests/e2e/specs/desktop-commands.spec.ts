@@ -146,6 +146,6 @@ test.describe("Desktop command integration", () => {
 
         await expect.poll(() => {
             return openConnectionCount(connection);
-        }, { timeout: 15000 }).toBe(initialConnectionCount + 1);
+        }, { timeout: 15000 }).toBe(initialConnectionCount);
     });
 });

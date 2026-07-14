@@ -1784,7 +1784,7 @@ describe("Document module desktop commands", () => {
         });
         await nextRunLoop();
 
-        const connectionState = (moduleRef.current as any).connectionPresentation.get(servicePage);
+        const connectionState = (moduleRef.current as any).connectionPresentation.get(fakePage);
         expect(connectionState.documentStates).toHaveLength(1);
         expect(connectionState.documentStates[0].document.type).toBe(OdmEntityType.AdminPage);
         expect(connectionState.documentStates[0].document.caption).toBe(sharedConnection.adminPages[0].caption);
@@ -3488,7 +3488,7 @@ describe("Document module desktop commands", () => {
         unmount();
     });
 
-    it("opens administration pages through a service connection page", async () => {
+    it("opens administration pages in the active connection workspace", async () => {
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
@@ -3539,21 +3539,19 @@ describe("Document module desktop commands", () => {
                 loading: false,
             });
         });
-        const showPageSpy = vi.spyOn(moduleRef.current as any, "showPage").mockResolvedValue(true);
+        vi.spyOn(moduleRef.current as any, "showPage").mockResolvedValue(true);
         (moduleRef.current as any).currentConnectionWorkspaceRef.current = null;
 
         await act(async () => {
             await (moduleRef.current as any).handleConnectionEntrySelection(sharedConnection.adminPages[0]);
         });
 
-        expect(showPageSpy).toHaveBeenCalledTimes(1);
-        expect(showPageSpy.mock.calls[0][0]).toEqual(expect.objectContaining({
-            connectionId: connectionDetails.id,
-            editor: "none",
-            createNewWorkspace: false,
-            serviceOnly: true,
-        }));
-        expect(showPageSpy.mock.calls[0][0].pageId).toBeUndefined();
+        const connectionState = (moduleRef.current as any).connectionPresentation.get(notebookPage);
+        expect(connectionState.documentStates.map((state: { document: { type: OdmEntityType; }; }) => {
+            return state.document.type;
+        })).toEqual([OdmEntityType.Notebook, OdmEntityType.AdminPage]);
+        expect(connectionState.activeEntry).toBe(connectionState.documentStates[1].document.id);
+        expect(moduleRef.current!.state.selectedWorkspace).toBe("connection:42");
 
         unmount();
     });

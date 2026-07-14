@@ -5566,24 +5566,39 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     return;
                 }
 
-                let pageId = this.resolveServiceConnectionPageId(entry.connection);
+                let pageId: string | undefined;
 
                 if (entry.connection.isOffline) {
+                    pageId = this.resolveServiceConnectionPageId(entry.connection);
                     pageId ??= this.state.connectionWorkspaces.find((candidate) => {
                         return candidate.connection.details.id === connectionId
                             && this.isServiceConnectionPage(candidate.dataModelEntry.id);
                     })?.dataModelEntry.id;
                 } else {
-                    await this.showPage({
-                        connectionId,
-                        pageId,
-                        editor: "none",
-                        createNewWorkspace: false,
-                        serviceOnly: true,
-                    });
+                    pageId = this.state.connectionWorkspaces.find((candidate) => {
+                        return candidate.dataModelEntry.id === this.state.selectedPage
+                            && candidate.connection.details.id === connectionId;
+                    })?.dataModelEntry.id;
 
-                    // But now it surely exists, either from the admin page map or from the freshly opened page.
-                    pageId = this.resolveServiceConnectionPageId(entry.connection);
+                    if (!pageId) {
+                        const activeWorkspace = this.getResolvedSelectedWorkspace();
+                        if (activeWorkspace.kind === "connection"
+                            && activeWorkspace.connectionId === connectionId) {
+                            pageId = activeWorkspace.connectionWorkspace?.dataModelEntry.id;
+                        }
+                    }
+
+                    if (!pageId) {
+                        pageId = this.resolveLatestPageId(entry.connection);
+                        await this.showPage({
+                            connectionId,
+                            pageId,
+                            editor: "none",
+                            createNewWorkspace: false,
+                            serviceOnly: false,
+                        });
+                        pageId = this.resolveLatestPageId(entry.connection);
+                    }
                 }
 
                 const tab = this.state.connectionWorkspaces.find((tab) => {
@@ -5607,7 +5622,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 if (document) {
                     this.handleSelectItem({ pageId: tab.dataModelEntry.id, document });
-                    this.servicePagesByConnection.set(connectionId, tab.dataModelEntry.id);
+                    if (this.isServiceConnectionPage(tab.dataModelEntry.id)) {
+                        this.servicePagesByConnection.set(connectionId, tab.dataModelEntry.id);
+                    }
                 }
 
                 break;
