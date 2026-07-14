@@ -54,7 +54,7 @@ class gui:
         # Import all sub-modules to register the decorated functions there
         from gui_plugin import cluster, core, db_connections, mds, migration, modeler
         from gui_plugin import shell, sql_editor, users, start
-        from gui_plugin import modules, db, general
+        from gui_plugin import modules, db, general, mysql
 
         migration.register()
 
@@ -151,4 +151,10 @@ class gui:
         """Used to retrieve metadata from database
 
         This extension allow user to retrieve metadata form databases.
+        """
+
+    class mysql:
+        """Used to interact with MySQL specific features
+
+        This extension allow user to interact with MySQL specific features.
         """

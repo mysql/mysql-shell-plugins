@@ -28,7 +28,9 @@ import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
-    IShellDbConnection, ISqlEditorHistoryEntry, IVisualExplainData,
+    IShellDbConnection, ISqlEditorHistoryEntry, IVisualExplainData, IMySQLUserListItem,
+    IMySQLUser, IMySQLGlobalPrivilegeCatalogItem, IMySQLDefaultUserOptions, IMySQLObjectPrivilegeSchemaTarget,
+    IObjectPrivilegeTarget, IUserInfo,
 } from "../../communication/ProtocolGui.js";
 import { defaultVisualExplainOptions, type IVisualExplainOptions } from "../../script-execution/index.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
@@ -38,7 +40,11 @@ import { promiseWithTimeout } from "../../utilities/helpers.js";
 import { ShellInteractiveInterface } from "./ShellInteractiveInterface.js";
 
 const isBackendTrue = (value: unknown): boolean => {
-    return value === true || value === 1 || value === "1";
+    if (value === true || value === 1 || value === "1") {
+        return true;
+    }
+
+    return typeof value === "string" && ["ON", "TRUE", "YES"].includes(value.trim().toUpperCase());
 };
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
@@ -50,6 +56,8 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     private serviceOnlySession = false;
     private performanceSchemaAvailable?: boolean;
     private performanceSchemaAvailabilityProbe?: Promise<boolean>;
+    private partialRevokesEnabled?: boolean;
+    private partialRevokesEnabledProbe?: Promise<boolean>;
 
     /**
      * @returns a flag which indicates if a session was opened already.
@@ -162,9 +170,37 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
         return this.performanceSchemaAvailabilityProbe;
     }
 
-    private clearWorkspaceCaches(): void {
-        this.performanceSchemaAvailable = undefined;
-        this.performanceSchemaAvailabilityProbe = undefined;
+    /**
+     * Returns whether partial revokes are enabled on the connected MySQL server.
+     *
+     * @returns A promise resolving whether partial revokes are enabled.
+     */
+    public async isPartialRevokesEnabled(): Promise<boolean> {
+        if (this.partialRevokesEnabled !== undefined) {
+            return this.partialRevokesEnabled;
+        }
+
+        this.partialRevokesEnabledProbe ??= this.executeService("SELECT @@GLOBAL.partial_revokes")
+            .then((result) => {
+                if (!result?.rows) {
+                    return false;
+                }
+
+                const enabled = result.rows[0] == 1;
+                this.partialRevokesEnabled = enabled;
+
+                return enabled;
+            })
+            .catch(() => {
+                this.partialRevokesEnabled = false;
+
+                return false;
+            })
+            .finally(() => {
+                this.partialRevokesEnabledProbe = undefined;
+            });
+
+        return this.partialRevokesEnabledProbe;
     }
 
     /**
@@ -239,10 +275,10 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
     ): Promise<IDbEditorResultSetData | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
-            let executeOptions: { rowPacketSize: number; featureId?: string } = { rowPacketSize: Settings.get("sql.rowPacketSize", 1000) };
-            if (featureId) {
-                executeOptions.featureId = featureId;
-            }
+            const executeOptions: { rowPacketSize: number; featureId?: string } = {
+                rowPacketSize: Settings.get("sql.rowPacketSize", 1000),
+                ...(featureId ? { featureId } : {}),
+            };
             const response = await MessageScheduler.get.sendRequest({
                 requestType: ShellAPIGui.GuiSqlEditorExecute,
                 requestId,
@@ -537,5 +573,320 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb {
                 },
             },
         });
+    }
+
+    /**
+     * Lists MySQL users.
+     *
+     * @returns A promise resolving to a list of MySQL users or undefined if no session is open.
+     */
+    public async listMySQLUsers(): Promise<IMySQLUserListItem[] | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlListUsers,
+                parameters: { args: { moduleSessionId } },
+                caseConversionIgnores: [
+                    "schemaPrivileges",
+                    "schema_privileges",
+                    "tablePrivileges",
+                    "table_privileges",
+                    "columnPrivileges",
+                    "column_privileges",
+                    "routinePrivileges",
+                    "routine_privileges",
+                    "partialRevokes",
+                    "partial_revokes",
+                ],
+            });
+
+            return response.result;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Replaces the granted/default roles for a MySQL user.
+     *
+     * @param user The user name.
+     * @param host The host for this user.
+     * @param roles The full selected role set as user@host account identifiers.
+     * @param defaultRoles The selected role set to activate by default.
+     */
+    public async setMySQLUserRoles(
+        user: string, host: string, roles: string[], defaultRoles: string[] = [],
+    ): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlSetGrantedRoles,
+                parameters: { args: {
+                    user,
+                    host,
+                    roles,
+                    defaultRoles,
+                    moduleSessionId
+                } },
+            });
+        }
+    }
+
+    /**
+     * Lists global privileges supported by the connected MySQL server.
+     *
+     * @returns A promise resolving to global privilege catalog entries or undefined if no session is open.
+     */
+    public async listMySQLGlobalPrivilegeCatalog(): Promise<IMySQLGlobalPrivilegeCatalogItem[] | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlListGlobalPrivilegeCatalog,
+                parameters: { args: { moduleSessionId } },
+            });
+
+            return response.result;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Lists schema-level privileges supported by the connected MySQL server.
+     *
+     * @returns A promise resolving to schema privilege catalog entries or undefined if no session is open.
+     */
+    public async listMySQLSchemaPrivilegeCatalog(): Promise<IMySQLGlobalPrivilegeCatalogItem[] | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlListSchemaPrivilegeCatalog,
+                parameters: { args: { moduleSessionId } },
+            });
+
+            return response.result;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Lists the tables and routines in a schema for object privilege assignment.
+     *
+     * @param schema The schema name.
+     *
+     * @returns A promise resolving to schema object privilege targets or undefined if no session is open.
+     */
+    public async listMySQLObjectPrivilegeSchemaTargets(schema: string):
+    Promise<IMySQLObjectPrivilegeSchemaTarget[] | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlListObjectPrivilegeSchemaTargets,
+                parameters: { args: { schema, moduleSessionId } },
+            });
+
+            return response.result;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Lists authentication plugins supported by the connected MySQL server.
+     *
+     * @returns A promise resolving to authentication plugin names or undefined if no session is open.
+     */
+    public async listMySQLAuthenticationPlugins(): Promise<string[] | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlListAuthenticationPlugins,
+                parameters: { args: { moduleSessionId } },
+            });
+
+            return response.result;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Returns server default values used to initialize the create user dialog.
+     *
+     * @returns A promise resolving to create user defaults or undefined if no session is open.
+     */
+    public async getMySQLCreateUserDefaults(): Promise<IMySQLDefaultUserOptions | undefined> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlGetCreateUserDefaults,
+                parameters: { args: { moduleSessionId } },
+            });
+
+            return response.result;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Replaces the direct global privileges for a MySQL user.
+     *
+     * @param user The user name.
+     * @param host The host for this user.
+     * @param privileges The full selected direct global privilege set.
+     */
+    public async setMySQLUserGlobalPrivileges(user: string, host: string, privileges: string[]): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlSetUserGlobalPrivileges,
+                parameters: { args: {
+                    user,
+                    host,
+                    privileges,
+                    moduleSessionId
+                } },
+            });
+        }
+    }
+
+    /**
+     * Replaces the direct object privileges for a MySQL user.
+     *
+     * @param user The user name.
+     * @param host The host for this user.
+     * @param target The object privilege target.
+     * @param privileges The full selected direct object privilege set.
+     */
+    public async setMySQLUserObjectPrivileges(
+        user: string, host: string, target: IObjectPrivilegeTarget, privileges: string[],
+    ): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlSetUserObjectPrivileges,
+                parameters: { args: {
+                    user,
+                    host,
+                    target,
+                    privileges,
+                    moduleSessionId
+                } },
+            });
+        }
+    }
+
+    /**
+     * Get a MySQL user details.
+     *
+     * @param user The user name.
+     * @param host The host for this user.
+     * @returns A promise resolving the details of a MySQL user.
+     */
+    public async getMySQLUser(user: string, host: string): Promise<IMySQLUser | null> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlGetUser,
+                parameters: { args: {
+                    user,
+                    host,
+                    moduleSessionId
+                } },
+            });
+
+            return response.result;
+        }
+
+        return null;
+    }
+
+    /**
+     * Create a MySQL user.
+     *
+     * @param options All the necessary data to create a MySQL user.
+     * @returns A promise resolving information about the created user.
+     */
+    public async createMySQLUser(options: IMySQLUser): Promise<IUserInfo | null> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlCreateUser,
+                parameters: { args: {
+                    options,
+                    moduleSessionId
+                } },
+            });
+
+            return response.result;
+        }
+
+        return null;
+    }
+
+    /**
+     * Create a MySQL user.
+     *
+     * @param user The MySQL user.
+     * @param host The host for this user.
+     * @returns A promise resolving the details of a MySQL user.
+     */
+    public async deleteMySQLUser(user: string, host: string): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlDeleteUser,
+                parameters: { args: {
+                    user,
+                    host,
+                    moduleSessionId
+                } },
+            });
+        }
+    }
+
+    /**
+     * Update a MySQL user.
+     *
+     * @param options All the necessary data to update a MySQL user.
+     * @returns A promise resolving information about the updated user.
+     */
+    public async updateMySQLUser(options: IMySQLUser): Promise<IUserInfo | null> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            const response = await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiMysqlUpdateUser,
+                parameters: { args: {
+                    options,
+                    moduleSessionId
+                } },
+            });
+
+            return response.result;
+        }
+
+        return null;
+    }
+
+    private clearWorkspaceCaches(): void {
+        this.performanceSchemaAvailable = undefined;
+        this.performanceSchemaAvailabilityProbe = undefined;
+        this.partialRevokesEnabled = undefined;
+        this.partialRevokesEnabledProbe = undefined;
     }
 }

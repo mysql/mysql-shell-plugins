@@ -43,6 +43,7 @@
     box-shadow: 0 2px 6px 0 var(--widget-shadow);
     opacity: 0.95;
 
+    white-space: pre-line;
     overflow: auto;
     pointer-events: none;
     z-index: 20;

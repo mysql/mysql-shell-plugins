@@ -14,6 +14,13 @@
         "commandTitle": "Show Client Connections"
     },
     {
+        "pageType": "userAccounts",
+        "desktopCommandId": "database.admin.userAccounts",
+        "label": "User Accounts",
+        "command": "msg.showUserAccounts",
+        "commandTitle": "Show User Accounts"
+    },
+    {
         "pageType": "performanceDashboard",
         "desktopCommandId": "database.admin.performanceDashboard",
         "label": "Performance Dashboard",

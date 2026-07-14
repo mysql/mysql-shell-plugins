@@ -92,6 +92,7 @@ import { offlineProbeStatusText } from "./OfflineAdministration.js";
 import { PerformanceDashboard } from "./PerformanceDashboard.js";
 import { ScriptEditor } from "./ScriptEditor.js";
 import { type RunStatus, ServerStatus } from "./ServerStatus.js";
+import { UserAccounts } from "./UserAccounts.js";
 import { SqlQueryExecutor } from "./SqlQueryExecutor.js";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
@@ -751,6 +752,15 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                                     refreshInterval={5000}
                                     savedState={savedState.adminPageStates.clientConnectionsState}
                                     onStateChange={this.handleClientConnectionsStateChange}
+                                />;
+
+                                break;
+                            }
+
+                            case "userAccounts": {
+                                document = <UserAccounts
+                                    backend={connection.backend}
+                                    toolbarItems={toolbarItems}
                                 />;
 
                                 break;

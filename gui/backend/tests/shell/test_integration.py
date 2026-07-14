@@ -70,6 +70,9 @@ PROPERTIES
       modules
             The Modules MySQL Shell GUI backend module
 
+      mysql
+            Used to interact with MySQL specific features
+
       shell
             The Shell MySQL Shell GUI backend module
 

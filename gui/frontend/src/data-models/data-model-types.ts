@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,7 +54,8 @@ export interface Command {
 }
 
 /** Identifiers for the type of admin page we have. */
-export type AdminPageType = "serverStatus" | "clientConnections" | "performanceDashboard" | "lakehouseNavigator";
+export type AdminPageType =
+    "serverStatus" | "clientConnections" | "userAccounts" | "performanceDashboard" | "lakehouseNavigator";
 
 /**
  * The signature of a callback, which can be passed to any `initialize()` method.

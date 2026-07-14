@@ -991,6 +991,10 @@
                 "title": "Show Client Connections"
             },
             {
+                "command": "msg.showUserAccounts",
+                "title": "Show User Accounts"
+            },
+            {
                 "command": "msg.showPerformanceDashboard",
                 "title": "Show Performance Dashboard"
             },

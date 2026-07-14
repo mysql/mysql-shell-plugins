@@ -330,6 +330,12 @@ export interface ICustomDialogValue extends IBaseDialogValue {
 export interface ISeparatorValue extends IBaseDialogValue {
     type: "separator",
     value?: boolean,
+
+    /** If set, this separator starts a collapsible section containing the values that follow it. */
+    collapsible?: boolean;
+
+    /** The initial expansion state for a collapsible separator. */
+    expanded?: boolean;
 }
 
 type IDialogValue =
@@ -433,11 +439,14 @@ interface IValueEditDialogProperties extends IComponentProperties {
     container?: HTMLElement;
 
     advancedActionCaption?: string;
+    confirmCaption?: string;
     customFooter?: ComponentChild;
 
     advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => Promise<IDialogValidations>;
-    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary) => Promise<void> | void;
+    /** Return false after accepting to keep the dialog open. */
+    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary) =>
+    Promise<boolean | void> | boolean | void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
 }
@@ -489,7 +498,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             preventConfirm: false,
         };
 
-        this.addHandledProperties("container", "advancedAction", "advancedActionCaption",
+        this.addHandledProperties("container", "advancedAction", "advancedActionCaption", "confirmCaption",
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
     }
 
@@ -498,7 +507,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     }
 
     public render(): ComponentChild {
-        const { container, advancedActionCaption, advancedAction, customFooter } = this.props;
+        const { container, advancedActionCaption, advancedAction, confirmCaption, customFooter } = this.props;
         const {
             title, heading, actionText, description, validations, activeContexts, values, preventConfirm, autoResize,
             autoMinWidth,
@@ -589,7 +598,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         begin: customActions,
                         end: [
                             <Button
-                                caption="OK"
+                                caption={confirmCaption ?? "OK"}
                                 id="ok"
                                 key="ok"
                                 disabled={Object.keys(validations.messages).length > 0 || preventConfirm}
@@ -652,6 +661,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             values,
             activeContexts,
             validations: { messages: {} },
+            preventConfirm: false,
             data,
             autoResize: dialogOptions?.autoResize,
             autoMinWidth: dialogOptions?.autoMinWidth,
@@ -917,7 +927,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * @returns The list of grid cells.
      */
     private renderSection = (sectionId: string, section: IDialogSection): ComponentChild => {
-        const result = [];
+        const result: ComponentChild[] = [];
 
         // Render caption only if this section is not grouped.
         if (section.caption && (!section.groupName || section.groupName.length === 0)) {
@@ -954,6 +964,13 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             }
         });
 
+        interface ICollapsibleValueGroup {
+            caption: string;
+            expanded: boolean;
+            values: ComponentChild[];
+        }
+
+        let collapsibleGroup: ICollapsibleValueGroup | undefined;
         let i = 0;
 
         while (i < keys.length) {
@@ -979,10 +996,61 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             }
 
-            result.push(this.renderDialogValueGroup(i, group, sectionId, relatedValues));
+            const separator = group.length === 1 && group[0].value.type === "separator"
+                ? group[0]
+                : undefined;
+            if (separator?.value.type === "separator" && separator.value.collapsible) {
+                if (collapsibleGroup) {
+                    result.push(this.renderCollapsibleValueGroup(collapsibleGroup));
+                }
+
+                collapsibleGroup = {
+                    caption: separator.value.caption ?? "",
+                    expanded: separator.value.expanded ?? false,
+                    values: [],
+                };
+                continue;
+            }
+
+            const renderedGroup = this.renderDialogValueGroup(i, group, sectionId, relatedValues);
+            if (collapsibleGroup) {
+                collapsibleGroup.values.push(renderedGroup);
+            } else {
+                result.push(renderedGroup);
+            }
+        }
+
+        if (collapsibleGroup) {
+            result.push(this.renderCollapsibleValueGroup(collapsibleGroup));
         }
 
         return result;
+    };
+
+    /**
+     * Renders values following a collapsible separator in the same grid layout as their parent section.
+     *
+     * @param group The collapsible group to render.
+     * @param group.caption The text displayed in the group's summary.
+     * @param group.expanded Whether the group is initially expanded.
+     * @param group.values The rendered grid rows contained in the group.
+     * @returns The collapsible group wrapped in a grid cell.
+     */
+    private renderCollapsibleValueGroup = (group: {
+        caption: string;
+        expanded: boolean;
+        values: ComponentChild[];
+    }): ComponentChild => {
+        return (
+            <GridCell columnSpan={8}>
+                <details className="collapsibleValueGroup" open={group.expanded}>
+                    <summary>{group.caption}</summary>
+                    <Grid columns={8} rowGap={16} columnGap={16} className="collapsibleValueGroupContent">
+                        {group.values}
+                    </Grid>
+                </details>
+            </GridCell>
+        );
     };
 
     /**
@@ -1646,8 +1714,16 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     return;
                 }
                 // Only send success close events here. Closed on cancel are handled in `handleClose`.
-                void onClose?.(DialogResponseClosure.Accept, values, data);
-                this.dialogRef.current?.close(false);
+                this.preventConfirm(true);
+                void Promise.resolve(onClose?.(DialogResponseClosure.Accept, values, data)).then((closeDialog) => {
+                    if (closeDialog !== false) {
+                        this.dialogRef.current?.close(false);
+                    } else {
+                        this.preventConfirm(false);
+                    }
+                }).catch(() => {
+                    this.preventConfirm(false);
+                });
             });
         } else {
             this.dialogRef.current?.close(true);
@@ -1792,18 +1868,19 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         advancedAction?.(values, props);
     };
 
-    private upDownChange = (sectionId: string, item: number | bigint,
+    private upDownChange = (sectionId: string, item: number | bigint | string,
         props: IUpDownProperties<number | bigint>): void => {
         const { values } = this.state;
+        const numericItem = typeof item === "string" ? Number(item) : item;
 
         const section = values.sections.get(sectionId);
         if (section && props.id) {
-            const value = this.setValue(props.id, item, section) as INumberInputDialogValue | undefined;
+            const value = this.setValue(props.id, numericItem, section) as INumberInputDialogValue | undefined;
             if (value) {
 
                 void this.handleValidations();
 
-                value.onChange?.(item, this);
+                value.onChange?.(numericItem, this);
             }
         }
     };
@@ -1882,8 +1959,16 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 const { onClose } = this.props;
                 const { values, data } = this.state;
 
-                this.dialogRef.current?.close(false);
-                void onClose?.(DialogResponseClosure.Accept, values, data);
+                this.preventConfirm(true);
+                void Promise.resolve(onClose?.(DialogResponseClosure.Accept, values, data)).then((closeDialog) => {
+                    if (closeDialog !== false) {
+                        this.dialogRef.current?.close(false);
+                    } else {
+                        this.preventConfirm(false);
+                    }
+                }).catch(() => {
+                    this.preventConfirm(false);
+                });
             }
         });
     };

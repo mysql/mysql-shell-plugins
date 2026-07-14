@@ -52,6 +52,7 @@ export type DesktopCommandId =
     "run.autoCommit" |
     "database.admin.serverStatus" |
     "database.admin.clientConnections" |
+    "database.admin.userAccounts" |
     "database.admin.performanceDashboard" |
     "database.admin.lakehouseNavigator" |
     "database.mrs.configure" |

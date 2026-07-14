@@ -130,6 +130,21 @@
     border-bottom: 1px solid var(--disabledForeground);
 }
 
+.msg.valueEditDialog .collapsibleValueGroup {
+    flex: 1 1 auto;
+}
+
+.msg.valueEditDialog .collapsibleValueGroup > summary {
+    cursor: pointer;
+    font-size: 0.95em;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--disabledForeground);
+}
+
+.msg.valueEditDialog .collapsibleValueGroupContent {
+    margin-top: 16px;
+}
+
 
 .msg.dialog.valueEditDialog .valueEditor {
     flex: 0 0 auto;

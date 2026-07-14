@@ -146,6 +146,7 @@ const odmTypeToDocumentIcon = new Map<OdmEntityType, string>([
 export const pageTypeToDocumentIcon = new Map<AdminPageType, string>([
     ["serverStatus", Assets.documents.adminServerStatusIcon],
     ["clientConnections", Assets.documents.clientConnectionsIcon],
+    ["userAccounts", Assets.oci.profileIcon],
     ["performanceDashboard", Assets.documents.adminPerformanceDashboardIcon],
     ["lakehouseNavigator", Assets.lakehouse.navigatorIcon],
 ]);
@@ -2951,6 +2952,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         const host = document.createElement("div");
         host.className = "documentTreeEntry sidebarTreeEntry";
+
         const content = <>
             {iconName && <Icon src={iconName} />}
             <Label caption={data.caption} />

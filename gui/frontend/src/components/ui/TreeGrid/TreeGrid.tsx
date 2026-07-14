@@ -321,7 +321,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         this.hostRef.current?.removeEventListener("wheel", this.handleWheel);
     }
 
-    public override componentDidUpdate(_prevProps: ITreeGridProperties): void {
+    public override componentDidUpdate(prevProps: ITreeGridProperties): void {
         if (this.tabulator && this.tableReady) {
             const { selectedRows, columns, tableData, options } = this.props;
 
@@ -330,9 +330,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 return;
             }
 
-            // TODO: switch to the comparison of the data objects. Need to always update until the view editor
-            // is changed to use the setData API.
-            //if (prevProps.tableData !== tableData) {
+            // Some existing callers mutate tableData in place and force a render. Keep refreshing until those
+            // callers use immutable data or the setData API.
             if (tableData) {
                 const preserveColumnWidths = options?.preserveColumnWidthsOnDataUpdate ?? true;
                 const widths = columns && preserveColumnWidths ? this.currentColumnWidths() : undefined;
@@ -368,7 +367,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                         }
                     }
                 });
-            } else if (selectedRows && !this.cancelled) {
+            } else if (selectedRows && prevProps.selectedRows !== selectedRows && !this.cancelled) {
                 if (columns) {
                     // No data here, so no need to restore the scroll position.
                     this.tabulator.setColumns(TreeGrid.addDefaultHeaderTooltips(columns));

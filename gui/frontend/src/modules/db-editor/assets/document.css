@@ -747,6 +747,7 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
 .msg.dbModuleTabview #documentToolbar,
 .msg.dbModuleTabview #serverStatusToolbar,
 .msg.dbModuleTabview #clientConnectionToolbar,
+.msg.dbModuleTabview #userAccountsToolbar,
 .msg.dbModuleTabview #dashboardToolbar,
 .msg.dbModuleTabview #simpleEditorToolbar,
 .msg#schemaDiagramToolbar {
@@ -1261,6 +1262,1156 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     .msg.serverStatus .serverStatusFieldLabel {
         justify-content: flex-start;
         text-align: left;
+    }
+}
+
+/* Definitions for user accounts. */
+
+.msg .userAccountSqlViewer {
+    position: relative;
+}
+
+.msg .userAccountSqlViewer .userAccountSqlCopyButton {
+    position: absolute;
+    z-index: 1;
+    top: 4px;
+    right: 4px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.msg .userAccountSqlViewer:hover .userAccountSqlCopyButton {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.msg .generatedPasswordInput {
+    position: relative;
+    margin-block: 4px;
+    overflow: visible;
+}
+
+.msg .generatedPasswordDialogContent {
+    row-gap: 12px;
+}
+
+.msg .generatedPasswordInput .input {
+    box-sizing: border-box;
+    height: 32px;
+    padding-right: 56px;
+}
+
+.msg .generatedPasswordInput .generatedPasswordVisibilityButton,
+.msg .generatedPasswordInput .generatedPasswordCopyButton {
+    position: absolute;
+    z-index: 1;
+    top: 4px;
+    opacity: 0;
+}
+
+.msg .generatedPasswordInput .generatedPasswordVisibilityButton {
+    right: 28px;
+}
+
+.msg .generatedPasswordInput .generatedPasswordCopyButton {
+    right: 4px;
+}
+
+.msg .generatedPasswordInput:hover .generatedPasswordVisibilityButton,
+.msg .generatedPasswordInput:hover .generatedPasswordCopyButton,
+.msg .generatedPasswordInput:focus-within .generatedPasswordVisibilityButton,
+.msg .generatedPasswordInput:focus-within .generatedPasswordCopyButton {
+    opacity: 1;
+}
+
+.msg.userAccountsHost {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.msg.userAccounts {
+    --secondaryButton-background: transparent;
+    --secondaryButton-foreground: var(--foreground);
+    --secondaryButton-hoverBackground: var(--button-secondaryHoverBackground);
+    --secondaryButton-disabledBackground: transparent;
+    --secondaryButton-disabledForeground: var(--disabledForeground);
+
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+    overflow: auto;
+    margin: 0;
+    padding: 16px 24px 24px;
+    color: var(--foreground);
+}
+
+.msg.userAccounts #userAccountsOverview,
+.msg.userAccounts #userAccountsList {
+    width: min(1560px, 100%);
+    margin: 0 auto;
+}
+
+.msg.userAccounts #userAccountsOverview {
+    flex: 0 0 auto;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
+            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+}
+
+.msg.userAccounts #userAccountsOverview,
+.msg.userAccounts #userAccountsOverview *,
+.msg.userAccounts #userAccountsList,
+.msg.userAccounts #userAccountsList * {
+    user-select: text;
+}
+
+.msg.userAccounts #userAccountsHeader {
+    gap: 16px;
+}
+
+.msg.userAccounts .userAccountsTitle {
+    min-width: 0;
+    gap: 14px;
+}
+
+.msg.userAccounts #userAccountsIcon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
+}
+
+.msg.userAccounts h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.msg.userAccounts .userAccountsSubtitle {
+    margin: 2px 0 0;
+    color: var(--disabledForeground);
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.msg.userAccounts .userAccountsSummary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.msg.userAccounts .userAccountsSummaryItem {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
+}
+
+.msg.userAccounts .userAccountsSummaryItem>span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--disabledForeground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.userAccounts .userAccountsSummaryItem strong {
+    color: var(--foreground);
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.msg.userAccounts .userAccountPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 18px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    color: var(--administration-statusForeground, var(--button-foreground));
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.msg.userAccounts .userAccountPill>.icon {
+    flex: 0 0 auto;
+}
+
+.msg.userAccounts .userAccountPill>.icon.codicon {
+    background: none;
+    color: currentColor;
+}
+
+.msg.userAccounts .userAccountPill.on {
+    background-color: var(--administration-statusSuccessBackground, var(--charts-green));
+}
+
+.msg.userAccounts .userAccountPill.off {
+    background-color: var(--administration-statusErrorBackground, var(--statusBarItem-errorBackground));
+    color: var(--administration-statusErrorForeground, var(--statusBarItem-errorForeground));
+}
+
+.msg.userAccounts .userAccountPill.warning {
+    background-color: var(--administration-statusWarningBackground, var(--statusBarItem-warningBackground));
+    color: var(--administration-statusWarningForeground, var(--statusBarItem-warningForeground));
+}
+
+.msg.userAccounts .userAccountPill.info {
+    background-color: var(--button-background);
+    color: var(--button-foreground);
+}
+
+.msg.userAccounts .userAccountPill.none {
+    color: var(--disabledForeground);
+    background-color: color-mix(in srgb, var(--disabledForeground) 18%, transparent);
+}
+
+.msg.userAccounts #userAccountsList {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 14px 16px 16px;
+    border: 1px solid var(--editorGroupHeader-tabsBorder);
+    border-radius: 8px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 78%, transparent);
+}
+
+.msg.userAccounts #userAccountsListHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+}
+
+.msg.userAccounts #userAccountsListHeader>label {
+    flex: 0 0 auto;
+    color: var(--foreground);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.msg.userAccounts #userAccountsToolbar {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 26px;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+}
+
+.msg.userAccounts #userAccountsSearch {
+    flex: 0 1 520px;
+    max-width: 520px;
+    min-width: 180px;
+}
+
+.msg.userAccounts #userAccountsSearch .input {
+    flex: 1 1 auto;
+    min-height: 26px;
+    margin: 0 4px 0 0;
+    padding: 3px 2px 3px 4px;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+.msg.userAccounts #userAccountsSearch .input:hover {
+    background: none;
+}
+
+.msg.userAccounts #userAccountsSearch .leadingIcon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    color: var(--input-placeholderForeground);
+    line-height: 1;
+}
+
+.msg.userAccounts #userAccountsSearch #clearAll .icon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.msg.userAccounts #userAccountsToolbar .button {
+    background-color: var(--secondaryButton-background);
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.userAccounts #userAccountsToolbar .button:not(.disabled):hover,
+.msg.userAccounts #userAccountsToolbar .button:not(.disabled):focus,
+.msg.userAccounts #userAccountsToolbar .button:not(.disabled):focus-visible,
+.msg.userAccounts #userAccountsToolbar .button:not(.disabled):active {
+    background-color: var(--secondaryButton-hoverBackground);
+}
+
+.msg.userAccounts #userAccountsToolbar .button.disabled {
+    background-color: var(--secondaryButton-disabledBackground);
+    color: var(--secondaryButton-disabledForeground);
+}
+
+.msg.userAccounts #userAccountsToolbar .button>.icon.codicon {
+    background: none;
+    color: var(--secondaryButton-foreground);
+}
+
+.msg.userAccounts #userAccountsToolbar .button.disabled>.icon {
+    background-color: var(--secondaryButton-disabledForeground) !important;
+}
+
+.msg.userAccounts #userAccountsToolbar .button.disabled>.icon.codicon {
+    color: var(--secondaryButton-disabledForeground);
+}
+
+.msg.userAccounts #userAccountsGridFrame {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.msg.userAccounts #userAccountsGrid {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--background) 28%, transparent);
+    font-size: 12px;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-header {
+    min-height: 30px;
+    border-bottom-color: color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 86%, transparent);
+    background-color: color-mix(in srgb, var(--list-headerBackground) 88%, var(--sideBar-background));
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-header .tabulator-col {
+    padding: 0 8px;
+    border-right-color: transparent;
+    background-color: transparent;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 6px 0;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-col-title {
+    overflow: hidden;
+    color: var(--disabledForeground);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-title {
+    padding-right: 0;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-tableholder {
+    background:
+        linear-gradient(color-mix(in srgb, var(--foreground) 3%, transparent), transparent 26px),
+        var(--rowBackgroundColor);
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row {
+    position: relative;
+    transition: background-color 80ms ease;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row .userAccountRowActions {
+    position: absolute;
+    right: 6px;
+    bottom: 3px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--rowBackgroundColor) 92%, var(--foreground) 8%);
+    color: var(--foreground);
+    font-size: 0.8rem;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    cursor: pointer;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row:hover .userAccountRowActions,
+.msg.userAccounts #userAccountsGrid .tabulator-row .userAccountRowActions:focus,
+.msg.userAccounts #userAccountsGrid .tabulator-row .userAccountRowActions:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row .userAccountRowActions:hover,
+.msg.userAccounts #userAccountsGrid .tabulator-row .userAccountRowActions:focus,
+.msg.userAccounts #userAccountsGrid .tabulator-row .userAccountRowActions:focus-visible {
+    background-color: var(--toolbar-hoverBackground);
+    border-color: color-mix(in srgb, var(--foreground) 28%, transparent);
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row.tabulator-row-odd {
+    background-color: transparent;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row.tabulator-row-even {
+    background-color: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row .tabulator-cell {
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 5px 8px;
+    border-right: none;
+    font-size: 0.76rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row .tabulator-cell:first-child {
+    border-left: 3px solid transparent;
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row.tabulator-selectable:not(.tabulator-selected):hover .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-hoverBackground) 72%, transparent);
+}
+
+.msg.userAccounts #userAccountsGrid:focus-within .tabulator-row.tabulator-selected .tabulator-cell,
+.msg.userAccounts #userAccountsGrid .tabulator-row.tabulator-selected .tabulator-cell {
+    background-color: color-mix(in srgb, var(--list-activeSelectionBackground) 84%, transparent);
+    color: var(--list-activeSelectionForeground);
+}
+
+.msg.userAccounts #userAccountsGrid .tabulator-row.tabulator-selected .tabulator-cell:first-child {
+    border-left-color: var(--administration-selectionBorder, var(--list-focusOutline));
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleEditor {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleEditorSection,
+.msg.dialog.valueEditDialog .userAccountPrivilegeEditorSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleEditorSection>.msg.label,
+.msg.dialog.valueEditDialog .userAccountPrivilegeEditorSection>.msg.label {
+    color: var(--disabledForeground);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleDescription {
+    color: var(--descriptionForeground);
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.msg.dialog.valueEditDialog .userAccountAssignedRoles,
+.msg.dialog.valueEditDialog .userAccountAssignedPrivileges {
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 42px;
+    max-height: 112px;
+    overflow: auto;
+    padding: 8px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    background-color: var(--input-background);
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleChip,
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    min-height: 24px;
+    padding: 2px 3px 2px 8px;
+    border: 1px solid color-mix(in srgb, var(--button-secondaryHoverBackground) 65%, transparent);
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+    color: var(--foreground);
+    font-size: 0.68rem;
+    line-height: 1.25;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleChip.defaultRole {
+    border-color: color-mix(in srgb, var(--button-background) 70%, transparent);
+    background-color: color-mix(in srgb, var(--button-background) 28%, var(--input-background));
+    color: var(--foreground);
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleDefaultToggle {
+    min-width: 0;
+    min-height: 18px;
+    padding: 0 4px 0 0;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleDefaultToggle:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountRoleDefaultToggle:not(.disabled):focus {
+    background-color: transparent;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleDefaultToggle>span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleChip .userAccountRoleRemoveButton,
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeRemoveButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleChip .userAccountRoleRemoveButton:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountRoleChip .userAccountRoleRemoveButton:not(.disabled):focus,
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeRemoveButton:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeRemoveButton:not(.disabled):focus {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleChip .userAccountRoleRemoveButton>.icon.codicon,
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeRemoveButton>.icon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 12px;
+    width: 12px;
+    height: 12px;
+    background: none;
+    color: currentColor;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleChip .userAccountRoleRemoveButton>.icon.codicon::before,
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeRemoveButton>.icon.codicon::before {
+    display: block;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    text-align: center;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleFilter,
+.msg.dialog.valueEditDialog .userAccountPrivilegeFilter {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 28px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleList,
+.msg.dialog.valueEditDialog .userAccountPrivilegeList {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 220px;
+    overflow: auto;
+    padding: 4px;
+    border: 1px solid var(--input-border);
+    border-top: none;
+    border-radius: 6px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    background-color: var(--input-background);
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleResult,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult {
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 28px;
+    min-width: 0;
+    padding: 4px 6px;
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+    color: var(--foreground);
+    font-size: 0.78rem;
+    text-align: left;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleResult>.icon.codicon,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult>.icon.codicon {
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 75%;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleResult:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountRoleResult:not(.disabled):focus,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult:not(.disabled):focus {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleResult>span,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult>.userAccountPrivilegeName {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleEmpty {
+    align-self: center;
+    padding: 4px;
+    color: var(--disabledForeground);
+    font-size: 0.78rem;
+    line-height: 1.25;
+}
+
+.msg.dialog.valueEditDialog .userAccountAssignedPrivileges .userAccountPrivilegeEmpty,
+.msg.dialog.valueEditDialog .userAccountPrivilegeList .userAccountPrivilegeEmpty {
+    align-self: center;
+    padding: 4px;
+    color: var(--disabledForeground);
+    font-size: 0.78rem;
+    line-height: 1.25;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeName,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult .userAccountPrivilegeName {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeChip .userAccountPrivilegeName>span:first-child,
+.msg.dialog.valueEditDialog .userAccountPrivilegeResult .userAccountPrivilegeName>span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeEditor {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeEditor {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 10px;
+    width: min(820px, calc(100vw - 96px));
+    max-width: 100%;
+    max-height: calc(100vh - 160px);
+    min-width: 0;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.msg.dialog.valueEditDialog .userAccountPartialRevokeDescription {
+    color: var(--descriptionForeground);
+    font-size: 0.72rem;
+    line-height: 1.3;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeBody {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.9fr) minmax(240px, 1.4fr);
+    gap: 10px;
+    min-width: 0;
+    min-height: 0;
+    height: min(460px, calc(100vh - 260px));
+    max-height: min(460px, calc(100vh - 260px));
+    overflow: hidden;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTree,
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegePanel {
+    min-width: 0;
+    overflow: auto;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    background-color: var(--input-background);
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTree {
+    padding: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegePanel {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 8px;
+    overflow: hidden;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegePanel .userAccountPrivilegeEditorSection:last-child {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: start;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeTitle {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeTitleIcon {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background-color: currentColor;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeTitleText {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectUnavailable {
+    display: block;
+    color: var(--descriptionForeground);
+    font-size: 0.72rem;
+    line-height: 1.3;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeSchema {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeNode {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeChevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 26px;
+    border: 0;
+    color: var(--foreground);
+    background: transparent;
+    font-family: inherit;
+    font-weight: inherit;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeChevron:not(.userAccountObjectTreeLeaf):hover {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeDisclosure,
+.msg.dialog.valueEditDialog .userAccountObjectTarget {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    gap: 5px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 26px;
+    border: 0;
+    color: var(--foreground);
+    background: transparent;
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: 0.78rem;
+    text-align: left;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeDisclosure>span,
+.msg.dialog.valueEditDialog .userAccountObjectTargetName,
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeHeader .label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTarget {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTargetIcon {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background-color: currentColor;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTargetName {
+    flex: 1 1 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectGrantCount {
+    flex: 0 0 auto;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectLoading {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+    animation: userAccountObjectLoadingSpin 1s linear infinite;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTarget.hasPrivileges>.userAccountObjectTargetName {
+    font-weight: 700;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTarget:hover,
+.msg.dialog.valueEditDialog .userAccountObjectTreeDisclosure:hover {
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTarget.selected {
+    color: var(--list-activeSelectionForeground);
+    background-color: var(--list-activeSelectionBackground);
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTarget.unavailable:not(.selected) {
+    color: var(--descriptionForeground);
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectTreeChildren {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-left: 12px;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectGrantCount {
+    min-width: 18px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    color: var(--button-foreground);
+    background-color: var(--button-background);
+    font-size: 0.68rem;
+    text-align: center;
+}
+
+@keyframes userAccountObjectLoadingSpin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeToolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountSchemaSelector {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountSchemaSelector select {
+    min-width: 0;
+    height: 26px;
+    padding: 2px 8px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    color: var(--input-foreground);
+    background-color: var(--input-background);
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeSearch {
+    min-width: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeCount {
+    color: var(--descriptionForeground);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeTable {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-height: min(440px, 58vh);
+    overflow: auto;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    background-color: var(--input-background);
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    min-height: 30px;
+    min-width: 0;
+    padding: 3px 8px;
+    border-bottom: 1px solid color-mix(in srgb, var(--input-border) 58%, transparent);
+    color: var(--foreground);
+    font-size: 0.78rem;
+}
+
+.msg.dialog.valueEditDialog .userAccountGlobalPrivilegeTable .userAccountPrivilegeRow {
+    grid-template-columns: minmax(220px, 1fr) minmax(120px, 0.7fr) 34px;
+}
+
+.msg.dialog.valueEditDialog .userAccountRoleTable .userAccountPrivilegeRow,
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeTable .userAccountPrivilegeRow {
+    grid-template-columns: minmax(0, 1fr) 34px;
+}
+
+.msg.dialog.valueEditDialog .userAccountObjectPrivilegeTable {
+    max-height: none;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow.header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    min-height: 28px;
+    background-color: color-mix(in srgb, var(--list-headerBackground) 88%, var(--input-background));
+    color: var(--descriptionForeground);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow>span.userAccountPrivilegeSortHeader {
+    display: flex;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton {
+    justify-content: flex-start;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+    min-height: 22px;
+    margin: 0;
+    padding: 0 2px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-transform: inherit;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton:not(.disabled):focus,
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton:not(.disabled):focus-visible,
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton:not(.disabled):active {
+    background-color: color-mix(in srgb, var(--input-border) 40%, transparent);
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton>span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton .userAccountPrivilegeSortIcon {
+    flex: 0 0 auto;
+    color: currentColor;
+    opacity: 0.35;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeSortHeader .userAccountPrivilegeSortButton.active .userAccountPrivilegeSortIcon {
+    opacity: 0.85;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow:last-child {
+    border-bottom: none;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow:not(.header):hover {
+    background-color: color-mix(in srgb, var(--list-hoverBackground) 72%, transparent);
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow .checkbox {
+    min-height: 22px;
+    padding: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow .checkbox .checkMark {
+    margin: 0;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow>span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow .userAccountPrivilegeName {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeRow .userAccountPrivilegeName>span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeInheritedPill {
+    display: inline-flex;
+    gap: 2px;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 1px 5px;
+    border: 1px solid color-mix(in srgb, var(--descriptionForeground) 38%, transparent);
+    border-radius: 999px;
+    color: var(--descriptionForeground);
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeInheritedPill .userAccountInheritedRemoveButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: transparent;
+    color: inherit;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeInheritedPill .userAccountInheritedRemoveButton:not(.disabled):hover,
+.msg.dialog.valueEditDialog .userAccountPrivilegeInheritedPill .userAccountInheritedRemoveButton:not(.disabled):focus {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeInheritedPill .userAccountInheritedRemoveButton>.icon.codicon {
+    width: 10px;
+    height: 10px;
+    font-size: 10px;
+    line-height: 10px;
+}
+
+.msg.dialog.valueEditDialog .userAccountPrivilegeEmpty {
+    padding: 28px 12px;
+    color: var(--disabledForeground);
+    font-size: 0.78rem;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .msg.userAccounts {
+        padding: 8px 14px 14px;
+    }
+
+    .msg.userAccounts #userAccountsHeader,
+    .msg.userAccounts #userAccountsListHeader {
+        align-items: flex-start;
+        flex-direction: column !important;
+    }
+
+    .msg.userAccounts #userAccountsToolbar {
+        width: 100%;
     }
 }
 

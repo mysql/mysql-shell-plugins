@@ -376,6 +376,7 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.showServerStatus", showAdminPage));
         context.subscriptions.push(commands.registerCommand("msg.showClientConnections", showAdminPage));
+        context.subscriptions.push(commands.registerCommand("msg.showUserAccounts", showAdminPage));
         context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard", showAdminPage));
         context.subscriptions.push(commands.registerCommand("msg.showLakehouseNavigator", showAdminPage));
 

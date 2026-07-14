@@ -29,6 +29,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import pytest
 import mysqlsh
@@ -495,9 +496,7 @@ def test_stdio_transport_response_loop_continues_after_unexpected_error(monkeypa
     stdout = io.StringIO()
     bridge = FlakyBridge(stdin=io.StringIO(""), stdout=stdout)
     bridge.session_id = 123
-    bridge.send_json_response(
-        Response.standard("OK", "first", {"request_id": "req-1"})
-    )
+    bridge.send_json_response(Response.standard("OK", "first", {"request_id": "req-1"}))
     bridge.send_json_response(
         Response.standard("OK", "second", {"request_id": "req-2"})
     )
@@ -507,9 +506,7 @@ def test_stdio_transport_response_loop_continues_after_unexpected_error(monkeypa
     output_lines = [json.loads(line) for line in stdout.getvalue().splitlines()]
 
     assert logged_errors
-    assert output_lines == [
-        Response.standard("OK", "second", {"request_id": "req-2"})
-    ]
+    assert output_lines == [Response.standard("OK", "second", {"request_id": "req-2"})]
 
 
 def test_stdio_transport_execute_bypasses_backend_command_privileges(monkeypatch):
@@ -677,6 +674,63 @@ def test_stdio_transport_routes_sql_editor_execute_to_user_session(monkeypatch):
             "args": {
                 "module_session_id": "module",
                 "sql": "select sleep(30)",
+            },
+        }
+    )
+
+    assert len(started_requests) == 1
+    assert started_requests[0].kwargs["session"] is user_session
+    assert started_requests[0].kwargs["session"] is not service_session
+
+
+def test_stdio_transport_routes_mysql_commands_to_user_session(monkeypatch):
+    started_requests = []
+
+    class FakeRequestHandler:
+        def __init__(self, request_id, func, kwargs, web_handler, lock_session=False):
+            self.request_id = request_id
+            self.func = func
+            self.kwargs = kwargs
+            self.web_handler = web_handler
+            self.lock_session = lock_session
+
+        def run(self):
+            return None
+
+        def start(self):
+            started_requests.append(self)
+
+    class FakeSqlEditorModuleSession(SqlEditorModuleSession):
+        def __del__(self):
+            pass
+
+    def mysql_list_users(session):
+        return []
+
+    monkeypatch.setattr(StdioBridgeModule, "RequestHandler", FakeRequestHandler)
+    monkeypatch.setattr(logger, "debug2", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        StdioBridgeModule.gui,
+        "mysql",
+        SimpleNamespace(list_users=mysql_list_users),
+        raising=False,
+    )
+
+    bridge = ShellGuiStdioBridge(stdin=io.StringIO(""), stdout=io.StringIO())
+    module_session = object.__new__(FakeSqlEditorModuleSession)
+    user_session = DbSession("user", False, {})
+    service_session = DbSession("service", False, {})
+    module_session._db_user_session = user_session
+    module_session._db_service_session = service_session
+    bridge._module_sessions["module"] = module_session
+
+    bridge.process_message(
+        {
+            "request": "execute",
+            "request_id": "mysql-list-users",
+            "command": "gui.mysql.list_users",
+            "args": {
+                "module_session_id": "module",
             },
         }
     )

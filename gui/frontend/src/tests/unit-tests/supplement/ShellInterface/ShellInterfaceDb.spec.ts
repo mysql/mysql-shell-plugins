@@ -164,6 +164,23 @@ describe("ShellInterfaceDb Tests", () => {
         expect(objects).toHaveLength(0);
     });
 
+    it("ignores empty catalog response chunks", async () => {
+        try {
+            await db.startSession("test1", testConnection.id);
+            vi.mocked(MessageScheduler.get.sendRequest).mockResolvedValueOnce([
+                { result: ["mysql"] },
+                {},
+                { result: undefined },
+                { result: ["sys"] },
+            ] as never);
+
+            const objects = await db.getCatalogObjects("Schema");
+            expect(objects).toEqual(["mysql", "sys"]);
+        } finally {
+            await db.closeSession();
+        }
+    });
+
     it("Connection from credentials, catalog/schema/table objects", async () => {
         const temp: IShellDbConnection = {
             dbType: testConnection.dbType,

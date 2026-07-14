@@ -32,6 +32,7 @@ import inspect
 import logging
 import mysqlsh
 import signal
+import tempfile
 import gui_plugin.core.Logger as logger
 from gui_plugin.users import backend as user_handler
 from gui_plugin.core.Db import GuiBackendDb
@@ -186,3 +187,50 @@ def clear_module_data_tables():
         db.rollback()
     finally:
         db.close()
+
+
+def get_connection_data(instance: int = 0):
+    if instance == 0:
+        return {
+            "user": os.environ.get("MYSQL_USER", "root"),
+            "host": os.environ.get("MYSQL_HOST", "localhost"),
+            "port": os.environ.get("MYSQL_PORT", "3388"),
+            "password": os.environ.get("MYSQL_PASSWORD", ""),
+        }
+    else:
+        return {
+            "user": os.environ.get("MYSQL_USER", "root"),
+            "host": os.environ.get("MYSQL_HOST", "localhost"),
+            "port": os.environ.get(f"MYSQL_PORT{instance}", str(3388 + instance)),
+            "password": os.environ.get("MYSQL_PASSWORD", ""),
+        }
+
+@pytest.fixture(scope="session")
+def session(instance=0) -> mysqlsh.globals.session:
+    shell = mysqlsh.globals.shell
+    shell.options.set("useWizards", False)
+
+    connection_data = get_connection_data()
+    deployment_dir = tempfile.TemporaryDirectory()
+
+    if not os.getenv("REUSE_MYSQLD"):
+        mysqlsh.globals.dba.deploy_sandbox_instance(
+            connection_data["port"],
+            {
+                "password": connection_data["password"],
+                "sandboxDir": deployment_dir.name,
+            },
+        )
+
+    session = shell.connect(
+        f"{connection_data['user']}:{connection_data['password']}@{connection_data['host']}:{connection_data['port']}"
+    )
+
+    yield session
+
+    session.close()
+
+    if not os.getenv("REUSE_MYSQLD"):
+        mysqlsh.globals.dba.kill_sandbox_instance(
+            connection_data["port"], {"sandboxDir": deployment_dir.name}
+        )

@@ -1,0 +1,689 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CreateUserDialog > renders default dialog shell (snapshot) 1`] = `<div />`;
+
+exports[`CreateUserDialog > shows the dialog with default values (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="createUserDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Create User Account
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%201024,%201024'%3e%3cg%20id='Close_Thick'%3e%3cg%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill='%23000000'/%3e%3cpath%20d='M359.765,257.942%20L767.058,665.235%20C795.176,693.353%20795.176,738.941%20767.058,767.058%20L767.058,767.058%20C738.941,795.176%20693.353,795.176%20665.235,767.058%20L257.942,359.765%20C229.824,331.647%20229.824,286.059%20257.942,257.942%20L257.942,257.942%20C286.059,229.824%20331.647,229.824%20359.765,257.942%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3cg%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill='%23000000'/%3e%3cpath%20d='M257.942,665.235%20L665.235,257.942%20C693.353,229.824%20738.941,229.824%20767.058,257.942%20L767.058,257.942%20C795.176,286.059%20795.176,331.647%20767.058,359.765%20L359.765,767.058%20C331.647,795.176%20286.059,795.176%20257.942,767.058%20L257.942,767.058%20C229.824,738.941%20229.824,693.353%20257.942,665.235%20z'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            User Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="userName"
+              placeholder="<enter user name>"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Host
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="hostName"
+              placeholder="<host or %>"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="lockAccount"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Lock Account
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Comment
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="comment"
+              placeholder="<comment string>"
+              rows="4"
+              spellcheck="true"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container tabAreaContainer"
+              style="flex-direction: row;"
+            >
+              <div
+                class="scrollable"
+              >
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="tabCaption"
+                      data-tooltip="inherit"
+                    >
+                      Authentication
+                    </span>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="tabCaption"
+                      data-tooltip="inherit"
+                    >
+                      TLS
+                    </span>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="tabCaption"
+                      data-tooltip="inherit"
+                    >
+                      Resource Limits
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar tabContent"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg grid"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Authentication Plugin
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar dropdown valueEditor"
+                    data-tooltip="inherit"
+                    id="authenticationPlugin"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <label
+                      class="msg label ellipsis"
+                      data-tooltip="inherit"
+                    >
+                      caching_sha2_password
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 2;"
+                >
+                  <label
+                    class="msg checkbox unchecked valueEditor"
+                    id="randomPassword"
+                    tabindex="0"
+                  >
+                    <span
+                      class="checkMark"
+                    />
+                    Random Password
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 2;"
+                >
+                  <label
+                    class="msg checkbox unchecked valueEditor"
+                    id="passwordExpire"
+                    tabindex="0"
+                  >
+                    <span
+                      class="checkMark"
+                    />
+                    Require Reset
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Password
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="password"
+                      placeholder="<enter password>"
+                      spellcheck="true"
+                      type="password"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Password Confirmation
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="passwordConfirmation"
+                      placeholder="<confirm password>"
+                      spellcheck="true"
+                      type="password"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: row; grid-column: span 8;"
+                >
+                  <details
+                    class="collapsibleValueGroup"
+                  >
+                    <summary>
+                      Password Management
+                    </summary>
+                    <div
+                      class="msg grid collapsibleValueGroupContent"
+                      style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar gridCell"
+                        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                      >
+                        <label
+                          class="msg label valueTitle"
+                          data-tooltip="expand"
+                        >
+                          Password Expiration
+                        </label>
+                        <div
+                          class="msg grid upDown valueEditor"
+                          step="1"
+                          style="grid-template-columns: auto 16px; --item-height: 0px;"
+                          value="0"
+                        >
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            data-tooltip="inherit"
+                            id="content"
+                            style="flex-direction: row; grid-row: span 2;"
+                          >
+                            <input
+                              class="msg input"
+                              data-tooltip="inherit"
+                              id="passwordExpiration"
+                              spellcheck="true"
+                              style="text-align: end;"
+                              type="text"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="up"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="down"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                        </div>
+                        <label
+                          class="msg label cellDescription"
+                          data-tooltip="expand"
+                        >
+                          Password valid for N days (0 - forever)
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar gridCell"
+                        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                      >
+                        <label
+                          class="msg label valueTitle"
+                          data-tooltip="expand"
+                        >
+                          Password History
+                        </label>
+                        <div
+                          class="msg grid upDown valueEditor"
+                          step="1"
+                          style="grid-template-columns: auto 16px; --item-height: 0px;"
+                          value="0"
+                        >
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            data-tooltip="inherit"
+                            id="content"
+                            style="flex-direction: row; grid-row: span 2;"
+                          >
+                            <input
+                              class="msg input"
+                              data-tooltip="inherit"
+                              id="passwordHistory"
+                              spellcheck="true"
+                              style="text-align: end;"
+                              type="text"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="up"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="down"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                        </div>
+                        <label
+                          class="msg label cellDescription"
+                          data-tooltip="expand"
+                        >
+                          Prevent re-use of last N passwords (0 - always allow)
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar gridCell"
+                        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                      >
+                        <label
+                          class="msg label valueTitle"
+                          data-tooltip="expand"
+                        >
+                          Password Re-use Interval
+                        </label>
+                        <div
+                          class="msg grid upDown valueEditor"
+                          step="1"
+                          style="grid-template-columns: auto 16px; --item-height: 0px;"
+                          value="0"
+                        >
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            data-tooltip="inherit"
+                            id="content"
+                            style="flex-direction: row; grid-row: span 2;"
+                          >
+                            <input
+                              class="msg input"
+                              data-tooltip="inherit"
+                              id="passwordReuseInterval"
+                              spellcheck="true"
+                              style="text-align: end;"
+                              type="text"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="up"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="down"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                        </div>
+                        <label
+                          class="msg label cellDescription"
+                          data-tooltip="expand"
+                        >
+                          Prevent re-use of password for N days (0 - always allow)
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar gridCell"
+                        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                      >
+                        <label
+                          class="msg label valueTitle"
+                          data-tooltip="expand"
+                        >
+                          Failed Attempts
+                        </label>
+                        <div
+                          class="msg grid upDown valueEditor"
+                          step="1"
+                          style="grid-template-columns: auto 16px; --item-height: 0px;"
+                          value="0"
+                        >
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            data-tooltip="inherit"
+                            id="content"
+                            style="flex-direction: row; grid-row: span 2;"
+                          >
+                            <input
+                              class="msg input"
+                              data-tooltip="inherit"
+                              id="failedPasswordAttempts"
+                              spellcheck="true"
+                              style="text-align: end;"
+                              type="text"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="up"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="down"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                        </div>
+                        <label
+                          class="msg label cellDescription"
+                          data-tooltip="expand"
+                        >
+                          Lock account after N incorrect password entries
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar gridCell"
+                        style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                      >
+                        <label
+                          class="msg label valueTitle"
+                          data-tooltip="expand"
+                        >
+                          Account Lock Interval
+                        </label>
+                        <div
+                          class="msg grid upDown valueEditor"
+                          step="1"
+                          style="grid-template-columns: auto 16px; --item-height: 0px;"
+                          value="0"
+                        >
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            data-tooltip="inherit"
+                            id="content"
+                            style="flex-direction: row; grid-row: span 2;"
+                          >
+                            <input
+                              class="msg input"
+                              data-tooltip="inherit"
+                              id="passwordLockTime"
+                              spellcheck="true"
+                              style="text-align: end;"
+                              type="text"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="up"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar gridCell"
+                            style="flex-direction: row;"
+                          >
+                            <div
+                              class="msg button"
+                              id="down"
+                              role="button"
+                              tabindex="-1"
+                            />
+                          </div>
+                        </div>
+                        <label
+                          class="msg label cellDescription"
+                          data-tooltip="expand"
+                        >
+                          Lock account for N days after too many failed password entries
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar gridCell"
+                        style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
+                      >
+                        <label
+                          class="msg checkbox unchecked valueEditor"
+                          id="lockAccount"
+                          tabindex="0"
+                        >
+                          <span
+                            class="checkMark"
+                          />
+                          Password Change requires Password
+                        </label>
+                        <label
+                          class="msg label cellDescription"
+                          data-tooltip="expand"
+                        >
+                          Changing the password should require the password itself
+                        </label>
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

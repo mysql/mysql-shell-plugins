@@ -1,0 +1,164 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`UserAccounts module > matches snapshot after initial load > UserAccounts1 1`] = `
+<div>
+  <div
+    class="msg container fixedScrollbar userAccountsHost"
+    style="flex-direction: column;"
+  >
+    <div
+      class="msg container fixedScrollbar userAccounts"
+      style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
+    >
+      <div
+        class="msg container fixedScrollbar"
+        id="userAccountsOverview"
+        style="flex-direction: column;"
+      >
+        <div
+          class="msg container fixedScrollbar"
+          id="userAccountsHeader"
+          style="flex-direction: row; justify-content: space-between; align-items: center;"
+        >
+          <div
+            class="msg container fixedScrollbar userAccountsTitle"
+            style="flex-direction: row; align-items: center;"
+          >
+            <div
+              class="msg icon"
+              id="userAccountsIcon"
+              style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='ociProfile'%3e%3cpath%20d='M16,7.992C16,3.58%2012.416,0%208,0C3.584,0%200,3.58%200,7.992C0,10.422%201.104,12.612%202.832,14.082C2.848,14.098%202.864,14.098%202.864,14.114C3.008,14.226%203.152,14.338%203.312,14.45C3.392,14.498%203.456,14.561%203.536,14.625C4.858,15.521%206.419,16%208.016,16C9.613,16%2011.174,15.521%2012.496,14.625C12.576,14.577%2012.64,14.514%2012.72,14.465C12.864,14.354%2013.024,14.242%2013.168,14.13C13.184,14.114%2013.2,14.114%2013.2,14.098C14.896,12.611%2016,10.422%2016,7.992ZM8,14.993C6.496,14.993%205.12,14.513%203.984,13.714C4,13.586%204.032,13.459%204.064,13.331C4.159,12.984%204.299,12.651%204.48,12.34C4.656,12.036%204.864,11.764%205.12,11.524C5.36,11.284%205.648,11.061%205.936,10.885C6.24,10.709%206.56,10.581%206.912,10.485C7.267,10.389%207.633,10.341%208,10.342C9.09,10.334%2010.142,10.753%2010.928,11.508C11.296,11.876%2011.584,12.308%2011.792,12.803C11.904,13.091%2011.984,13.395%2012.032,13.714C10.851,14.544%209.443,14.991%208,14.993ZM5.552,7.593C5.411,7.27%205.34,6.921%205.344,6.569C5.344,6.218%205.408,5.866%205.552,5.546C5.696,5.226%205.888,4.939%206.128,4.699C6.368,4.459%206.656,4.268%206.976,4.124C7.296,3.98%207.648,3.916%208,3.916C8.368,3.916%208.704,3.98%209.024,4.124C9.344,4.268%209.632,4.46%209.872,4.699C10.112,4.939%2010.304,5.227%2010.448,5.546C10.592,5.866%2010.656,6.218%2010.656,6.569C10.656,6.937%2010.592,7.273%2010.448,7.592C10.309,7.907%2010.114,8.195%209.872,8.44C9.627,8.681%209.339,8.876%209.024,9.015C8.363,9.287%207.621,9.287%206.96,9.015C6.645,8.876%206.357,8.681%206.112,8.44C5.87,8.198%205.679,7.91%205.552,7.592L5.552,7.593ZM12.976,12.899C12.976,12.867%2012.96,12.851%2012.96,12.819C12.803,12.318%2012.571,11.844%2012.272,11.413C11.973,10.978%2011.606,10.595%2011.184,10.278C10.862,10.036%2010.513,9.832%2010.144,9.67C10.312,9.559%2010.467,9.431%2010.608,9.287C10.847,9.052%2011.056,8.788%2011.232,8.503C11.586,7.921%2011.769,7.25%2011.76,6.569C11.765,6.065%2011.667,5.564%2011.472,5.099C11.28,4.651%2011.002,4.244%2010.656,3.9C10.31,3.56%209.903,3.289%209.456,3.1C8.99,2.905%208.489,2.808%207.984,2.813C7.479,2.808%206.978,2.906%206.512,3.101C6.061,3.289%205.653,3.566%205.312,3.916C4.972,4.262%204.701,4.668%204.512,5.115C4.317,5.58%204.219,6.081%204.224,6.585C4.224,6.937%204.272,7.273%204.368,7.592C4.464,7.928%204.592,8.232%204.768,8.519C4.928,8.807%205.152,9.063%205.392,9.303C5.536,9.447%205.696,9.574%205.872,9.686C5.502,9.852%205.153,10.062%204.832,10.31C4.416,10.63%204.048,11.013%203.744,11.429C3.442,11.859%203.21,12.333%203.056,12.835C3.04,12.867%203.04,12.899%203.04,12.915C1.776,11.636%200.992,9.91%200.992,7.992C0.992,4.14%204.144,0.991%208,0.991C11.856,0.991%2015.008,4.14%2015.008,7.992C15.006,9.831%2014.275,11.597%2012.976,12.899Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/svg%3e");"
+            />
+            <div
+              class="msg container fixedScrollbar"
+              style="flex-direction: column;"
+            >
+              <h1>
+                User Accounts
+              </h1>
+              <div
+                class="userAccountsSubtitle"
+                data-testid="userAccountsTotal"
+              >
+                1 account
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="userAccountsSummary"
+        >
+          <div
+            class="userAccountsSummaryItem"
+          >
+            <span>
+              Accounts
+            </span>
+            <strong
+              data-testid="summaryTotal"
+            >
+              1
+            </strong>
+          </div>
+          <div
+            class="userAccountsSummaryItem"
+          >
+            <span>
+              Expired Passwords
+            </span>
+            <strong
+              data-testid="summaryExpiredPasswords"
+            >
+              0
+            </strong>
+          </div>
+          <div
+            class="userAccountsSummaryItem"
+          >
+            <span>
+              Password Validation
+            </span>
+            <strong
+              data-testid="summaryPasswordValidation"
+            >
+              Off
+            </strong>
+          </div>
+        </div>
+      </div>
+      <div
+        class="userAccountsCard"
+        id="userAccountsList"
+      >
+        <div
+          id="userAccountsListHeader"
+        >
+          <label
+            class="msg label"
+            data-tooltip="expand"
+          >
+            Account List
+          </label>
+          <div
+            class="msg container fixedScrollbar toolbar verticalCenterContent"
+            id="userAccountsToolbar"
+            style="flex-direction: row; align-items: center;"
+          >
+            <div
+              class="msg button imageOnly"
+              data-tooltip="Refresh"
+              role="button"
+              tabindex="0"
+            >
+              <div
+                class="msg icon"
+                data-tooltip="inherit"
+                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-306,-161)'%3e%3cg%20id='refresh'%20transform='matrix(1,0,0,1,309.561,163.025)'%3e%3cpath%20d='M4.681,3L2,3L2,2L5.5,2L6,2.5L6,6L5,6L5,4C3.742,4.944%203.001,6.427%203.001,7.999C3.001,10.742%205.258,12.999%208.001,12.999C10.744,12.999%2013.001,10.742%2013.001,7.999C13.001,5.833%2011.593,3.902%209.53,3.239L9.832,2.285C12.309,3.079%2014,5.398%2014,7.998C14,11.29%2011.291,13.998%208,13.998C4.708,13.998%202,11.29%202,7.998C2,5.99%203.008,4.111%204.681,3Z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+              />
+            </div>
+            <div
+              class="msg button imageOnly"
+              data-tooltip="Create user"
+              role="button"
+              tabindex="0"
+            >
+              <div
+                class="msg icon"
+                data-tooltip="inherit"
+                style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%2032,%2032'%3e%3cg%20id='plus.svg'%20transform='translate(0,%200)'%3e%3cpath%20d='M-0,13.333%20L13.333,13.333%20L13.333,-0%20L18.667,-0%20L18.667,13.333%20L32,13.333%20L32,18.667%20L18.667,18.667%20L18.667,32%20L13.333,32%20L13.333,18.667%20L-0,18.667%20L-0,13.333%20z'%20fill='%23000000'%20id='_-'/%3e%3cpath%20d='M289,21%20L289,21'%20fill-opacity='0'%20stroke='%23000000'%20stroke-width='1'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e"); width: 16px; height: 16px;"
+              />
+            </div>
+            <div
+              class="expander"
+            />
+            <div
+              class="msg container fixedScrollbar searchContainer"
+              id="userAccountsSearch"
+              style="flex-direction: row;"
+            >
+              <div
+                class="msg icon leadingIcon codicon codicon-search"
+              />
+              <input
+                class="msg input search"
+                id="search"
+                placeholder="Search users, hosts, auth, roles, privileges"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          id="userAccountsGridFrame"
+        >
+          <div
+            class="msg treeGrid horizontalGrid alternatingRows"
+            id="userAccountsGrid"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

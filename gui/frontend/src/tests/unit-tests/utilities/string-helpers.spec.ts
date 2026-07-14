@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -379,6 +379,35 @@ describe("String Helpers Tests", () => {
 
         result = convertObjectKeysSnakeToCamelCase(source, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual(camelCaseTarget);
+
+        result = convertObjectKeysSnakeToCamelCase({
+            result: [{
+                schemaPrivileges: {
+                    performance_schema: ["SELECT"],
+                    information_schema: ["SELECT"],
+                },
+                tablePrivileges: {
+                    "performance_schema.events_statements_current": ["SELECT"],
+                },
+                partial_revokes: {
+                    performance_schema: ["SELECT"],
+                },
+            }],
+        }, { ignore: ["schemaPrivileges", "tablePrivileges", "partial_revokes"] });
+        expect(result).toStrictEqual({
+            result: [{
+                schemaPrivileges: {
+                    performance_schema: ["SELECT"],
+                    information_schema: ["SELECT"],
+                },
+                tablePrivileges: {
+                    "performance_schema.events_statements_current": ["SELECT"],
+                },
+                partialRevokes: {
+                    performance_schema: ["SELECT"],
+                },
+            }],
+        });
 
         expect(convertCamelToTitleCase("")).toBe("");
         expect(convertCamelToTitleCase("ABC")).toBe("ABC");

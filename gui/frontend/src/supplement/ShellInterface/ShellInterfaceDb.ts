@@ -104,9 +104,7 @@ export class ShellInterfaceDb {
         });
 
         const result: string[] = [];
-        response.forEach((entry) => {
-            result.push(...entry.result);
-        });
+        this.appendArrayResults(response, result);
 
         return result;
     }
@@ -204,9 +202,7 @@ export class ShellInterfaceDb {
         });
 
         const result: string[] = [];
-        response.forEach((entry) => {
-            result.push(...entry.result);
-        });
+        this.appendArrayResults(response, result);
 
         return result;
     }
@@ -284,9 +280,7 @@ export class ShellInterfaceDb {
         });
 
         const result: string[] = [];
-        response.forEach((entry) => {
-            result.push(...entry.result);
-        });
+        this.appendArrayResults(response, result);
 
         return result;
     }
@@ -432,4 +426,11 @@ export class ShellInterfaceDb {
         return webSession.moduleSessionId(this.moduleSessionLookupId);
     }
 
+    private appendArrayResults<T>(response: Array<{ result?: T[]; }>, result: T[]): void {
+        response.forEach((entry) => {
+            if (Array.isArray(entry.result)) {
+                result.push(...entry.result);
+            }
+        });
+    }
 }

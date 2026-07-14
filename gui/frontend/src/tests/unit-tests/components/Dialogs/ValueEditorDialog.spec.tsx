@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -298,6 +298,58 @@ describe("Value Edit Dialog Tests", (): void => {
 
         sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
+
+        unmount();
+    });
+
+    it("Prevents duplicate confirmation while closing", async () => {
+        let resolveClose: (value: boolean) => void;
+        const onClose = vi.fn(() => {
+            return new Promise<boolean>((resolve) => {
+                resolveClose = resolve;
+            });
+        });
+        const dialogRef = createRef<ValueEditDialog>();
+        const { unmount } = render(
+            <ValueEditDialog ref={dialogRef} onClose={onClose} />,
+        );
+
+        await nextRunLoop();
+        dialogRef.current!.show(
+            {
+                id: "testDialog",
+                sections: new Map<string, IDialogSection>([["name", nameSection]]),
+            },
+            { title: "Confirm" },
+        );
+        await nextProcessTick();
+
+        const button = document.getElementById("ok") as HTMLDivElement;
+        button.click();
+        await nextProcessTick();
+
+        expect(onClose).toHaveBeenCalledOnce();
+        expect(button.classList).toContain("disabled");
+        button.click();
+        expect(onClose).toHaveBeenCalledOnce();
+
+        resolveClose!(false);
+        await nextProcessTick();
+        expect(button.classList).not.toContain("disabled");
+
+        let rejectClose: (error: Error) => void;
+        onClose.mockImplementationOnce(() => {
+            return new Promise<boolean>((_resolve, reject) => {
+                rejectClose = reject;
+            });
+        });
+        button.click();
+        await nextProcessTick();
+        expect(button.classList).toContain("disabled");
+
+        rejectClose!(new Error("close failed"));
+        await nextProcessTick();
+        expect(button.classList).not.toContain("disabled");
 
         unmount();
     });
@@ -918,7 +970,7 @@ describe("Value Edit Dialog Tests", (): void => {
         );
         await nextProcessTick();
 
-        expect(stateSpy).toHaveBeenCalledTimes(7);
+        expect(stateSpy).toHaveBeenCalledTimes(8);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
@@ -930,20 +982,20 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(nameInput.value).toBe("");
         changeInputValue(nameInput, "Mike");
 
-        expect(stateSpy).toHaveBeenCalledTimes(8);
+        expect(stateSpy).toHaveBeenCalledTimes(9);
         changeInputValue(nameInput, "");
 
         const fileSelector = inputs[1] as HTMLInputElement;
         expect(fileSelector.value).toBe("../relative/path");
         changeInputValue(fileSelector, "/absolutePath");
 
-        expect(stateSpy).toHaveBeenCalledTimes(10);
+        expect(stateSpy).toHaveBeenCalledTimes(11);
 
         const checkboxes = portals[0].getElementsByClassName("checkbox");
         expect(checkboxes).toHaveLength(1);
         (checkboxes[0] as HTMLInputElement).click();
 
-        expect(stateSpy).toHaveBeenCalledTimes(11);
+        expect(stateSpy).toHaveBeenCalledTimes(12);
 
         const state = dialogRef.current!.state;
         const section = state.values.sections.get("full");
@@ -970,6 +1022,11 @@ describe("Value Edit Dialog Tests", (): void => {
             (buttons[1] as HTMLButtonElement).click();
             await nextProcessTick();
             expect(section.values.upDown.value).toBe(12346);
+
+            const upDownInput = elements[0].querySelector<HTMLInputElement>("input")!;
+            changeInputValue(upDownInput, "20");
+            await nextProcessTick();
+            expect(section.values.upDown.value).toBe(20);
 
             elements = portals[0].getElementsByClassName("valueEditor dropdown");
             expect(elements).toHaveLength(1);

@@ -325,6 +325,36 @@ describe("TreeGrid tests", (): void => {
         unmount();
     });
 
+    it("refreshes after an in-place table data change", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const tableData = [{ id: "1", field1: "a" }];
+        const { unmount, rerender } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "field1" }]}
+                tableData={tableData}
+            />,
+        );
+
+        await nextRunLoop();
+        const table = await gridRef.current!.table;
+        const replaceData = vi.spyOn(table!, "replaceData");
+
+        tableData.push({ id: "2", field1: "b" });
+        rerender(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "field1" }]}
+                tableData={tableData}
+            />,
+        );
+
+        await nextRunLoop();
+        expect(replaceData).toHaveBeenCalledWith(tableData);
+
+        unmount();
+    });
+
     it("preserves scroll position when replacing data", async () => {
         const gridRef = createRef<TreeGrid>();
         const { unmount } = render(

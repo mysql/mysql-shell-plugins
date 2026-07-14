@@ -31,6 +31,7 @@ import threading
 import typing
 import uuid
 from contextlib import contextmanager
+from fnmatch import fnmatchcase
 from queue import Empty, Queue
 
 import mysqlsh
@@ -632,20 +633,21 @@ class ShellGuiStdioBridge:
                     )
 
                 user_session_functions = [
-                    "execute",
-                    "start_transaction",
-                    "commit_transaction",
-                    "rollback_transaction",
-                    "default_user_schema",
-                    "get_current_schema",
-                    "set_current_schema",
-                    "get_auto_commit",
-                    "set_auto_commit",
+                    "gui.sql_editor.start_transaction",
+                    "gui.sql_editor.commit_transaction",
+                    "gui.sql_editor.rollback_transaction",
+                    "gui.sql_editor.execute",
+                    "gui.sql_editor.default_user_schema",
+                    "gui.sql_editor.get_current_schema",
+                    "gui.sql_editor.set_current_schema",
+                    "gui.sql_editor.get_auto_commit",
+                    "gui.sql_editor.set_auto_commit",
+                    "gui.mysql.*",
                 ]
-                if (
-                    isinstance(module_session, SqlEditorModuleSession)
-                    and found_objects == ["gui", "sql_editor"]
-                    and function_name in user_session_functions
+                normalized_cmd = ".".join(found_objects + [function_name])
+                if isinstance(module_session, SqlEditorModuleSession) and any(
+                    fnmatchcase(normalized_cmd, pattern)
+                    for pattern in user_session_functions
                 ):
                     db_module_session = module_session._db_user_session
                 else:
@@ -734,9 +736,7 @@ class ShellGuiStdioBridge:
 
         return f_args
 
-    def _wait_for_request_threads(
-        self, timeout: typing.Optional[float] = None
-    ) -> None:
+    def _wait_for_request_threads(self, timeout: typing.Optional[float] = None) -> None:
         with self._request_threads_mutex:
             threads = list(self._request_threads)
 

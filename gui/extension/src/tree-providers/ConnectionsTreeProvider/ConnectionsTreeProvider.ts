@@ -89,6 +89,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
     private static adminPageTypeToIcon = new Map<AdminPageType, string>([
         ["serverStatus", "adminServerStatus.svg"],
         ["clientConnections", "clientConnections.svg"],
+        ["userAccounts", "ociProfile.svg"],
         ["performanceDashboard", "adminPerformanceDashboard.svg"],
         ["lakehouseNavigator", "adminLakehouseNavigator.svg"],
     ]);

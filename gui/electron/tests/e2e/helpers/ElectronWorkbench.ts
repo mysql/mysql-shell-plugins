@@ -351,9 +351,52 @@ export class ElectronWorkbench {
         await this.selectTileMenuAction(this.connectionTile(caption), menuPath);
     }
 
+    public async selectUserAccountRowAction(row: Locator, menuPath: string[]): Promise<void> {
+        await this.installNativeMenuInterceptor();
+        await this.clearNativeMenuRequest();
+
+        await expect(row).toBeVisible({ timeout: 15000 });
+        await row.hover();
+        await row.locator("[data-tooltip='More Actions']").click();
+
+        await this.selectNativeMenuPath(menuPath);
+    }
+
+    public async selectUserAccountRowContextMenuAction(row: Locator, menuPath: string[]): Promise<void> {
+        await this.installNativeMenuInterceptor();
+        await this.clearNativeMenuRequest();
+
+        await expect(row).toBeVisible({ timeout: 15000 });
+        const userCell = row.locator(".tabulator-cell[tabulator-field='user']");
+        await expect(userCell).toBeVisible({ timeout: 15000 });
+        await userCell.click({ button: "right" });
+
+        await this.selectNativeMenuPath(menuPath);
+    }
+
     public async acceptConfirmDialog(): Promise<void> {
         const dialog = this.page.locator(".confirmDialog").first();
         await expect(dialog).toBeVisible({ timeout: 15000 });
+        const dialogElement = await dialog.elementHandle();
+        await dialog.locator("#accept").evaluate((button: HTMLElement) => {
+            button.click();
+        });
+        await this.waitForDialogElementHidden(dialogElement, 15000);
+    }
+
+    public async closeActiveTabDiscardingChanges(): Promise<void> {
+        await this.clickMenu(["File", "Close Tab"]);
+
+        const dialog = this.page.locator(".confirmDialog").first();
+        if (!await this.waitForVisible(dialog, 1000)) {
+            return;
+        }
+
+        const dialogText = await dialog.innerText();
+        if (!/unsaved changes/i.test(dialogText)) {
+            throw new Error(`Unexpected confirmation while closing a tab: ${dialogText}`);
+        }
+
         const dialogElement = await dialog.elementHandle();
         await dialog.locator("#accept").evaluate((button: HTMLElement) => {
             button.click();

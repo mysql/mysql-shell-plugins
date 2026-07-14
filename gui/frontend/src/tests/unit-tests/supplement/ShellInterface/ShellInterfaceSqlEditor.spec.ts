@@ -68,4 +68,23 @@ describe("ShellInterfaceSqlEditor Tests", () => {
         expect(await testBackend.isPerformanceSchemaAvailable()).toBe(true);
         expect(testBackend.calls).toEqual(["select @@performance_schema"]);
     });
+
+    it("caches partial revokes availability on the backend instance", async () => {
+        class TestBackend extends ShellInterfaceSqlEditor {
+            public calls: string[] = [];
+            public response: IDbEditorResultSetData | undefined = { rows: [[1]] };
+
+            public override async executeService(sql: string): Promise<IDbEditorResultSetData | undefined> {
+                this.calls.push(sql);
+
+                return Promise.resolve(this.response);
+            }
+        }
+
+        const testBackend = new TestBackend();
+
+        expect(await testBackend.isPartialRevokesEnabled()).toBe(true);
+        expect(await testBackend.isPartialRevokesEnabled()).toBe(true);
+        expect(testBackend.calls).toEqual(["SELECT @@GLOBAL.partial_revokes"]);
+    });
 });

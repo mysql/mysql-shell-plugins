@@ -295,6 +295,32 @@ export enum ShellAPIGui {
     GuiInfo = "gui.info",
     /** Returns the version number of the plugin */
     GuiVersion = "gui.version",
+    /** Lists MySQL users using the provided session object. */
+    GuiMysqlListUsers = "gui.mysql.list_users",
+    /** Replaces the granted/default roles for the given MySQL user account. */
+    GuiMysqlSetGrantedRoles = "gui.mysql.set_granted_roles",
+    /** Lists global privileges supported by the connected MySQL server. */
+    GuiMysqlListGlobalPrivilegeCatalog = "gui.mysql.list_global_privilege_catalog",
+    /** Lists schema-level privileges supported by the connected MySQL server. */
+    GuiMysqlListSchemaPrivilegeCatalog = "gui.mysql.list_schema_privilege_catalog",
+    /** Lists tables and routines in a schema for object privilege assignment. */
+    GuiMysqlListObjectPrivilegeSchemaTargets = "gui.mysql.list_object_privilege_schema_targets",
+    /** Lists authentication plugins supported by the connected MySQL server. */
+    GuiMysqlListAuthenticationPlugins = "gui.mysql.list_authentication_plugins",
+    /** Returns server default values used to initialize the create user dialog. */
+    GuiMysqlGetCreateUserDefaults = "gui.mysql.get_create_user_defaults",
+    /** Replaces the direct global privileges for the given MySQL user account. */
+    GuiMysqlSetUserGlobalPrivileges = "gui.mysql.set_user_global_privileges",
+    /** Replaces the direct object privileges for the given MySQL user account. */
+    GuiMysqlSetUserObjectPrivileges = "gui.mysql.set_user_object_privileges",
+    /** Retrieves a MySQL user by username and host using the provided session object. */
+    GuiMysqlGetUser = "gui.mysql.get_user",
+    /** Creates a MySQL user with the specified username, host, password and options using the provided session object. */
+    GuiMysqlCreateUser = "gui.mysql.create_user",
+    /** Deletes a MySQL user with the specified username and host using the provided session object. */
+    GuiMysqlDeleteUser = "gui.mysql.delete_user",
+    /** Updates a MySQL user details, specified by the user and host, with the options. */
+    GuiMysqlUpdateUser = "gui.mysql.update_user",
     /** Indicates whether this module is a GUI backend module */
     GuiDebuggerIsGuiModuleBackend = "gui.debugger.is_gui_module_backend",
     /** Returns display information about the module */
@@ -335,6 +361,113 @@ export interface IShellDbConnection {
 export interface Ilist {}
 
 export interface IAny {}
+
+export interface IDbSession {}
+
+export interface IMySQLTablePrivilege {
+    schema: string,
+    table: string,
+    privileges: string[]
+}
+
+export interface IMySQLColumnPrivilege {
+    schema: string,
+    table: string,
+    column: string,
+    privileges: string[]
+}
+
+export interface IMySQLRoutinePrivilege {
+    schema: string,
+    routine: string,
+    routineType: string,
+    privileges: string[]
+}
+
+export interface IMySQLUserListItemSSLOptions {
+    requiresCertificate: boolean,
+    sslCipher: string | null,
+    x509Issuer: string | null,
+    x509Subject: string | null
+}
+
+export interface IMySQLUserListItem {
+    accountLocked: boolean,
+    plugin: string,
+    user: string,
+    host: string,
+    temporarilyLocked: boolean,
+    isRole: boolean,
+    globalPrivileges: string[],
+    passwordExpired: boolean,
+    passwordExpiration: string | null,
+    roles: string[],
+    defaultRoles: string[],
+    schemaPrivileges: Record<string, string[]>,
+    tablePrivileges: IMySQLTablePrivilege[],
+    columnPrivileges: IMySQLColumnPrivilege[],
+    routinePrivileges: IMySQLRoutinePrivilege[],
+    partialRevokes: Record<string, string[]>,
+    sslOptions: IMySQLUserListItemSSLOptions | null
+}
+
+export interface IMySQLGlobalPrivilegeCatalogItem {
+    privilege: string,
+    category: string,
+    description: string
+}
+
+export interface IMySQLObjectPrivilegeSchemaTarget {
+    kind: string,
+    objectName: string,
+    routineType: string | null
+}
+
+export interface IMySQLDefaultUserOptions {
+    passwordLifetime: number,
+    passwordReuseHistory: number,
+    passwordReuseInterval: number,
+    passwordRequireCurrent: boolean,
+    maxUserConnections: number
+}
+
+export interface IObjectPrivilegeTarget {
+    kind: string,
+    schema: string,
+    objectName: string | null,
+    routineType: string | null,
+    column: string | null
+}
+
+export interface IMySQLUser {
+    host: string,
+    user: string,
+    sslType: string | null,
+    sslCipher: string | null,
+    x509Issuer: string | null,
+    x509Subject: string | null,
+    maxQuestions: number | null,
+    maxUpdates: number | null,
+    maxConnections: number | null,
+    maxUserConnections: number | null,
+    plugin: string | null,
+    passwordExpire: boolean | null,
+    passwordLastChanged: string | null,
+    passwordLifetime: number | null,
+    accountLocked: boolean | null,
+    passwordReuseHistory: number | null,
+    passwordReuseInterval: number | null,
+    passwordRequireCurrent: boolean | null,
+    comment: string | null,
+    failedLoginAttempts: number | null,
+    passwordLockTime: number | null,
+    authString: string | null,
+    randomPassword: boolean | null
+}
+
+export interface IUserInfo {
+    generatedPassword: string | null
+}
 
 export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
@@ -470,6 +603,19 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiUsersRemoveUserGroup]: { args: { groupId: number; }; };
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
+    [ShellAPIGui.GuiMysqlListUsers]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlSetGrantedRoles]: { args: { user: string; host: string; roles: string[]; moduleSessionId?: string; defaultRoles?: string[] | null; }; };
+    [ShellAPIGui.GuiMysqlListGlobalPrivilegeCatalog]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlListSchemaPrivilegeCatalog]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlListObjectPrivilegeSchemaTargets]: { args: { schema: string; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlListAuthenticationPlugins]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlGetCreateUserDefaults]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlSetUserGlobalPrivileges]: { args: { user: string; host: string; privileges: string[]; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlSetUserObjectPrivileges]: { args: { user: string; host: string; target: IObjectPrivilegeTarget; privileges: string[]; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlGetUser]: { args: { user: string; host: string; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlCreateUser]: { args: { options: IMySQLUser; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlDeleteUser]: { args: { user: string; host: string; moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiMysqlUpdateUser]: { args: { options: IMySQLUser; moduleSessionId?: string; }; };
     [ShellAPIGui.GuiDebuggerIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiDebuggerGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiDebuggerGetScripts]: {};
@@ -1005,6 +1151,19 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: {};
     [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { result: Record<string, IAny> | null; };
     [ShellAPIGui.GuiSqlEditorReformat]: { result: string; };
+    [ShellAPIGui.GuiMysqlListUsers]: { result: IMySQLUserListItem[]; };
+    [ShellAPIGui.GuiMysqlSetGrantedRoles]: {};
+    [ShellAPIGui.GuiMysqlListGlobalPrivilegeCatalog]: { result: IMySQLGlobalPrivilegeCatalogItem[]; };
+    [ShellAPIGui.GuiMysqlListSchemaPrivilegeCatalog]: { result: IMySQLGlobalPrivilegeCatalogItem[]; };
+    [ShellAPIGui.GuiMysqlListObjectPrivilegeSchemaTargets]: { result: IMySQLObjectPrivilegeSchemaTarget[]; };
+    [ShellAPIGui.GuiMysqlListAuthenticationPlugins]: { result: string[]; };
+    [ShellAPIGui.GuiMysqlGetCreateUserDefaults]: { result: IMySQLDefaultUserOptions; };
+    [ShellAPIGui.GuiMysqlSetUserGlobalPrivileges]: {};
+    [ShellAPIGui.GuiMysqlSetUserObjectPrivileges]: {};
+    [ShellAPIGui.GuiMysqlGetUser]: { result: IMySQLUser | null; };
+    [ShellAPIGui.GuiMysqlCreateUser]: { result: IUserInfo; };
+    [ShellAPIGui.GuiMysqlDeleteUser]: {};
+    [ShellAPIGui.GuiMysqlUpdateUser]: { result: IUserInfo; };
     [ShellAPIGui.GuiDebuggerGetScripts]: { result: string[]; };
     [ShellAPIGui.GuiDebuggerGetScriptContent]: { result: string; };
 }

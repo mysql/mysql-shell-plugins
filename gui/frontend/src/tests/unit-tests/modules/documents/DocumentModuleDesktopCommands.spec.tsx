@@ -3072,6 +3072,7 @@ describe("Document module desktop commands", () => {
         expect(initialState.find((entry) => entry.id === "run.autoCommit")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.serverStatus")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.clientConnections")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "database.admin.userAccounts")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.performanceDashboard")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.lakehouseNavigator")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.mrs.configure")?.enabled).toBe(false);
@@ -3383,6 +3384,10 @@ describe("Document module desktop commands", () => {
                 caption: "Client Connections",
                 pageType: "clientConnections",
             }, {
+                id: "admin-user-accounts",
+                caption: "User Accounts",
+                pageType: "userAccounts",
+            }, {
                 id: "admin-performance-dashboard",
                 caption: "Performance Dashboard",
                 pageType: "performanceDashboard",
@@ -3436,6 +3441,11 @@ describe("Document module desktop commands", () => {
                 enabled: true,
             }),
             expect.objectContaining({
+                id: "database.admin.userAccounts",
+                label: "User Accounts",
+                enabled: true,
+            }),
+            expect.objectContaining({
                 id: "database.admin.performanceDashboard",
                 label: "Performance Dashboard",
                 enabled: true,
@@ -3477,8 +3487,11 @@ describe("Document module desktop commands", () => {
 
         const selectAdminPageSpy = vi.spyOn(moduleRef.current as any, "handleConnectionEntrySelection")
             .mockResolvedValue(undefined);
+        const lakehouseNavigatorPage = sharedConnection.adminPages.find((page) => {
+            return page.pageType === "lakehouseNavigator";
+        });
         expect(await desktopCommandRegistry.execute("database.admin.lakehouseNavigator")).toBe(true);
-        expect(selectAdminPageSpy).toHaveBeenCalledWith(sharedConnection.adminPages[3]);
+        expect(selectAdminPageSpy).toHaveBeenCalledWith(lakehouseNavigatorPage);
 
         const sideBarCommandSpy = vi.spyOn(moduleRef.current as any, "handleSideBarConnectionCommand")
             .mockResolvedValue({ success: true });
