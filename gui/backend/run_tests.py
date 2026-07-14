@@ -127,6 +127,12 @@ arg_parser.add_argument(
     action="store_true",
     help="Display logs at the end if there were failures",
 )
+arg_parser.add_argument(
+    "--no-coverage",
+    required=False,
+    action="store_true",
+    help="Run tests without collecting or checking coverage",
+)
 
 try:
     args = arg_parser.parse_args()
@@ -147,7 +153,9 @@ assert (
 
 
 class MyPaths:
-    def __init__(self, debug_mode, portable_path, shell_path, userhome_path: Path):
+    def __init__(
+        self, debug_mode, portable_path, shell_path, userhome_path: Path, no_coverage
+    ):
         class MyPathsBase:
             pass
 
@@ -199,7 +207,7 @@ class MyPaths:
                 self.source.backend,
                 (
                     "pytest-coverage.ini"
-                    if debug_mode is None
+                    if debug_mode is None and not no_coverage
                     else self.source.backend / "pytest.ini"
                 ),
             )
@@ -234,7 +242,7 @@ if args.portable is not None and zipfile.is_zipfile(args.portable):
     # Update the portable argument with the final path
     args.portable = os.path.join(unzip_path, "gui_plugin")
 
-paths = MyPaths(args.debug, args.portable, args.shell, args.userhome)
+paths = MyPaths(args.debug, args.portable, args.shell, args.userhome, args.no_coverage)
 
 # remove the shell home dir
 if args.debug is not None and paths.runtime.root.exists():
@@ -299,7 +307,8 @@ with pushd(paths.source.backend):
     if args.debug is not None:
         env["ATTACH_DEBUGGER"] = args.debug
 
-    command = f"{paths.shell} --disable-builtin-plugins --pym pytest --color={COLOR} --cov={paths.source.code} --cov-append -vvv -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
+    coverage = "" if args.no_coverage else f"--cov={paths.source.code} --cov-append"
+    command = f"{paths.shell} --disable-builtin-plugins --pym pytest --color={COLOR} {coverage} -vvv -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
     print(command)
     shell = subprocess.run(command, shell=True, env=env)
 
