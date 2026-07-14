@@ -58,8 +58,8 @@
         "@types/ws": "8.18.1",
         "@typescript-eslint/eslint-plugin": "8.36.0",
         "@typescript-eslint/parser": "8.36.0",
-        "@vitest/coverage-v8": "3.2.4",
-        "@vitest/ui": "3.2.4",
+        "@vitest/coverage-v8": "3.2.6",
+        "@vitest/ui": "3.2.6",
         "antlr-ng": "1.0.10",
         "autoprefixer": "10.4.21",
         "cheerio": "1.0.0-rc.12",
@@ -91,7 +91,7 @@
         "typescript-eslint": "8.34.1",
         "vite": "6.4.2",
         "vite-plugin-monaco-editor": "1.1.0",
-        "vitest": "3.2.4",
+        "vitest": "3.2.6",
         "vitest-canvas-mock": "0.3.3"
     },
     "browserslist": [
