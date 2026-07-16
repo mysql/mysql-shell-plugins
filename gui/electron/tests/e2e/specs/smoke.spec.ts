@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { mkdir, stat, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 
 import { test, expect } from "../fixtures/electron.js";
 
@@ -80,6 +80,20 @@ test.describe("Electron desktop shell", () => {
         });
 
         expect(userDataPath).toBe(testInfo.outputPath("electron-user-data"));
+    });
+
+    test("keeps Workbench runtime data user-only", async ({ electronApp }, testInfo) => {
+        const userDataPath = testInfo.outputPath("electron-user-data");
+        const desktopLogPath = join(userDataPath, "MySQL Workbench-electron.log");
+
+        const modes = await Promise.all([
+            userDataPath,
+            desktopLogPath,
+        ].map(async (filePath) => {
+            return (await stat(filePath)).mode & 0o777;
+        }));
+
+        expect(modes).toEqual([0o700, 0o600]);
     });
 
     test("writes to the system clipboard from the renderer", async ({ page, workbench }) => {

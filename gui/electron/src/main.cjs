@@ -41,6 +41,9 @@ const {
 const { buildNativeMenuTemplate, resolvePositioningItem, translatePopupCoordinates } = require("./native-menu.cjs");
 const { createFileViewerHost } = require("./file-viewer-host.cjs");
 const { buildMysqlShellArguments, parseMysqlShellExtraArguments } = require("./mysqlsh-arguments.cjs");
+const { createPrivateFiles } = require("./private-files.cjs");
+
+const { ensurePrivateDirectory, ensurePrivateFile, privateFileMode } = createPrivateFiles();
 
 const appRootDir = path.resolve(__dirname, "..");
 const bundledFrontendBuildDir = path.join(appRootDir, "frontend", "build");
@@ -99,13 +102,13 @@ if (typeof explicitUserDataDir === "string" && explicitUserDataDir.length > 0) {
 const windowStatePath = path.join(app.getPath("userData"), "window-state.json");
 const recentFilesPath = path.join(app.getPath("userData"), "recent-files.json");
 const desktopLogPath = path.join(app.getPath("userData"), "MySQL Workbench-electron.log");
+ensurePrivateDirectory(app.getPath("userData"));
 
 const appendDesktopLog = (message) => {
     const line = `[${new Date().toISOString()}] ${message}\n`;
 
     try {
-        fs.mkdirSync(path.dirname(desktopLogPath), { recursive: true });
-        fs.appendFileSync(desktopLogPath, line);
+        fs.appendFileSync(desktopLogPath, line, { mode: privateFileMode });
     } catch (_error) {
         // Best-effort logging only.
     }
@@ -329,10 +332,6 @@ const resolveDesktopIconPath = () => {
 
 const desktopIconPath = resolveDesktopIconPath();
 
-const ensureDirectory = (directory) => {
-    fs.mkdirSync(directory, { recursive: true });
-};
-
 const defaultWindowState = {
     width: 1400,
     height: 950,
@@ -345,7 +344,8 @@ const isFiniteNumber = (value) => {
 
 const readWindowState = () => {
     try {
-        const parsed = JSON.parse(fs.readFileSync(windowStatePath, "utf8"));
+        const content = fs.readFileSync(windowStatePath, "utf8");
+        const parsed = JSON.parse(content);
 
         return {
             width: isFiniteNumber(parsed.width) ? parsed.width : defaultWindowState.width,
@@ -375,8 +375,7 @@ const intersectsAnyDisplay = ({ x, y, width, height }) => {
 
 const writeWindowState = (windowState) => {
     try {
-        ensureDirectory(path.dirname(windowStatePath));
-        fs.writeFileSync(windowStatePath, JSON.stringify(windowState, null, 2));
+        fs.writeFileSync(windowStatePath, JSON.stringify(windowState, null, 2), { mode: privateFileMode });
     } catch (error) {
         appendDesktopLog(`failed to persist window state: ${error.message}`);
     }
@@ -384,7 +383,8 @@ const writeWindowState = (windowState) => {
 
 const readRecentFiles = () => {
     try {
-        const parsed = JSON.parse(fs.readFileSync(recentFilesPath, "utf8"));
+        const content = fs.readFileSync(recentFilesPath, "utf8");
+        const parsed = JSON.parse(content);
         if (!Array.isArray(parsed)) {
             return [];
         }
@@ -400,8 +400,7 @@ const readRecentFiles = () => {
 
 const writeRecentFiles = (recentFiles) => {
     try {
-        ensureDirectory(path.dirname(recentFilesPath));
-        fs.writeFileSync(recentFilesPath, JSON.stringify(recentFiles, null, 2));
+        fs.writeFileSync(recentFilesPath, JSON.stringify(recentFiles, null, 2), { mode: privateFileMode });
     } catch (error) {
         appendDesktopLog(`failed to persist recent files: ${error.message}`);
     }
@@ -446,11 +445,12 @@ const fileViewerHost = createFileViewerHost({
     shell,
     nativeTheme,
     appendDesktopLog,
-    ensureDirectory,
     fileViewerEntryUrl,
     fileViewerPreloadPath,
     installNavigationGuards,
     isTrustedFileViewerUrl,
+    ensurePrivateFile,
+    privateFileMode,
 });
 
 const openMysqlShellLogFile = () => {
@@ -857,7 +857,6 @@ class DesktopBackendBridge {
             return this.connectPromise;
         }
 
-        ensureDirectory(shellUserConfigDir);
         this.bufferedMessages = [];
         this.pendingStdout = "";
         this.ready = false;

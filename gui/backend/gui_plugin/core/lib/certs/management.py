@@ -20,10 +20,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-from mysqlsh.plugin_manager import general
-from pathlib import Path
 import os
 from gui_plugin.core.lib import SystemUtils
+from gui_plugin.core.Files import (
+    PRIVATE_EXECUTABLE_MODE,
+    ensure_private_directory,
+    ensure_private_file,
+    ensure_plugin_data_path,
+    get_plugin_data_path,
+)
 import gui_plugin.core.Logger as logger
 import platform
 from cryptography import x509
@@ -35,9 +40,7 @@ from gui_plugin.core.lib.certs import locations
 
 
 def get_cert_path():
-    return general.get_shell_user_dir(
-        "plugin_data", "gui_plugin", "web_certs", "rootCA.crt"
-    )
+    return get_plugin_data_path("gui_plugin", "web_certs", "rootCA.crt")
 
 
 def create_certificate(cert_path):
@@ -52,6 +55,7 @@ def create_certificate(cert_path):
     """
 
     try:
+        ensure_private_directory(cert_path)
         # ----------------------------------------------------
         # Attributes to be used on the certificate generation
         # ----------------------------------------------------
@@ -120,6 +124,7 @@ def create_certificate(cert_path):
         from cryptography.hazmat.primitives import serialization
 
         root_ca_path = os.path.join(cert_path, "rootCA.crt")
+        ensure_private_file(root_ca_path)
         with open(root_ca_path, "wb") as f:
             f.write(ca_cert.public_bytes(serialization.Encoding.PEM))
 
@@ -139,6 +144,7 @@ def create_certificate(cert_path):
         )
 
         server_key_path = os.path.join(cert_path, "server.key")
+        ensure_private_file(server_key_path)
         with open(server_key_path, "wb") as pem_out:
             pem_out.write(pem)
 
@@ -208,6 +214,7 @@ def create_certificate(cert_path):
 
         # Serialization of the Server Certificate
         server_crt_path = os.path.join(cert_path, "server.crt")
+        ensure_private_file(server_crt_path)
         with open(server_crt_path, "wb") as f:
             f.write(certificate.public_bytes(serialization.Encoding.PEM))
 
@@ -240,7 +247,7 @@ NOBOLD = "\\033[0m"
 
 def create_certificate_script(type, certs):
     installing = type == "install"
-    cert_path = general.get_shell_user_dir("plugin_data", "gui_plugin", "web_certs")
+    cert_path = ensure_plugin_data_path("gui_plugin", "web_certs")
 
     script_path = os.path.join(cert_path, f"{type}.sh")
     script_sections = []
@@ -379,18 +386,17 @@ def reset_deployment(certs, type):
     # If any of the locations was scripted, all of the install is done through a script
     if scripted:
         script = create_certificate_script(type, certs)
-        cert_path = general.get_shell_user_dir("plugin_data", "gui_plugin", "web_certs")
-
-        Path(cert_path).mkdir(parents=True, exist_ok=True)
+        cert_path = ensure_plugin_data_path("gui_plugin", "web_certs")
 
         script_path = os.path.join(cert_path, f"{type}.sh")
 
         # Save the script
+        ensure_private_file(script_path)
         with open(script_path, "w") as file:
             file.write(script)
 
         # Make the script executable
-        SystemUtils.run_system_command(["chmod", "u+x", script_path])
+        os.chmod(script_path, PRIVATE_EXECUTABLE_MODE)
 
         terminal_error = None
         cmd = None

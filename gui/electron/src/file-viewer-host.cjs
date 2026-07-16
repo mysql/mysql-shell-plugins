@@ -30,11 +30,12 @@ const createFileViewerHost = ({
     shell,
     nativeTheme,
     appendDesktopLog,
-    ensureDirectory,
     fileViewerEntryUrl,
     fileViewerPreloadPath,
     installNavigationGuards,
     isTrustedFileViewerUrl,
+    ensurePrivateFile,
+    privateFileMode,
     setTimeoutFn = setTimeout,
 }) => {
     const defaultMaximumReadBytes = 1024 * 1024;
@@ -43,8 +44,8 @@ const createFileViewerHost = ({
     const fileViewerWindowByPath = new Map();
 
     const prepareFileForViewing = (filePath) => {
-        ensureDirectory(path.dirname(filePath));
-        fs.writeFileSync(filePath, "", { flag: "a" });
+        fs.writeFileSync(filePath, "", { flag: "a", mode: privateFileMode });
+        ensurePrivateFile(filePath);
     };
 
     const getFileViewerPath = (event) => {

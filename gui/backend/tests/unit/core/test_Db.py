@@ -31,6 +31,7 @@ from gui_plugin.core.Db import (
 import datetime
 import os
 import sqlite3
+import stat
 import tempfile
 import contextlib
 import difflib
@@ -330,8 +331,21 @@ def test_backup_logs():
             log_rotation=False, session_uuid=None, connection_options=connection_options
         )
 
+        if os.name != "nt":
+            assert stat.S_IMODE(os.stat(tmpdirname).st_mode) == 0o700
+            os.chmod(connection_options["db_file"], 0o644)
+            os.chmod(connection_options["attach"][0]["db_file"], 0o644)
+
         db = db_manager.open_database()
         try:
+            if os.name != "nt":
+                assert stat.S_IMODE(os.stat(connection_options["db_file"]).st_mode) == 0o600
+                assert (
+                    stat.S_IMODE(
+                        os.stat(connection_options["attach"][0]["db_file"]).st_mode
+                    )
+                    == 0o600
+                )
             db_manager.backup_logs(db)
         finally:
             db.close()
@@ -343,3 +357,5 @@ def test_backup_logs():
 
         os.chdir(current_dir)
         assert os.path.exists(backup_file)
+        if os.name != "nt":
+            assert stat.S_IMODE(os.stat(backup_file).st_mode) == 0o600

@@ -21,13 +21,13 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USAfrom gettext import install
 import shutil
-from mysqlsh.plugin_manager import general
 from gui_plugin.core import lib
 import gui_plugin.core.Logger as logger
 import os
 import filecmp
 from pathlib import Path
 import enum
+from gui_plugin.core.Files import ensure_plugin_data_path, get_plugin_data_path
 from gui_plugin.core.lib.certs import management
 from gui_plugin.core.lib import SystemUtils
 from cryptography import x509
@@ -247,9 +247,7 @@ class User_home(Cert_location):
     def __init__(self):
         super().__init__(
             Type.USER_HOME,
-            general.get_shell_user_dir(
-                "plugin_data", "gui_plugin", "web_certs", "rootCA.crt"
-            ),
+            get_plugin_data_path("gui_plugin", "web_certs", "rootCA.crt"),
             False,
         )
 
@@ -261,12 +259,12 @@ class User_home(Cert_location):
 
     def _do_install(self):
         cert_path = os.path.dirname(self.desc)
-        Path(cert_path).mkdir(parents=True, exist_ok=True)
+        ensure_plugin_data_path("gui_plugin", "web_certs")
         return management.create_certificate(cert_path)
 
     def _do_uninstall(self):
         cert_path = os.path.dirname(self.desc)
-        Path(cert_path).mkdir(parents=True, exist_ok=True)
+        ensure_plugin_data_path("gui_plugin", "web_certs")
         return management.delete_certificate(cert_path)
 
     def _get_cert_install_script(self, padding=0):

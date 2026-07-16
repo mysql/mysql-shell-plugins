@@ -26,6 +26,7 @@ import threading
 from time import sleep
 
 import mysqlsh
+from gui_plugin.core.Files import get_plugin_data_path
 
 import gui_plugin.core.Context as ctx
 import gui_plugin.core.Error as Error
@@ -116,12 +117,8 @@ class DbModuleSession(ModuleSession):
                     f"Absolute paths are not allowed when running a remote session for '{database_name}' database.",
                 )
         else:
-            user_dir = os.path.abspath(
-                mysqlsh.plugin_manager.general.get_shell_user_dir(
-                    "plugin_data",
-                    "gui_plugin",
-                    f"user_{self._web_session.session_user_id}",
-                )
+            user_dir = get_plugin_data_path(
+                "gui_plugin", f"user_{self._web_session.session_user_id}"
             )
 
             path = os.path.join(user_dir, path)

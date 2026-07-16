@@ -151,6 +151,7 @@ const createHost = (contentByPath = new Map<string, string>()) => {
         };
     };
     const fsModule = {
+        chmodSync: vi.fn(),
         promises: {
             open: vi.fn((filePath: string) => {
                 const fileHandle = createFileHandle(filePath);
@@ -176,15 +177,17 @@ const createHost = (contentByPath = new Map<string, string>()) => {
         showItemInFolder: vi.fn(),
     };
     const appendDesktopLog = vi.fn();
-    const ensureDirectory = vi.fn();
     const installNavigationGuards = vi.fn();
+    const ensurePrivateFile = (filePath: string) => {
+        fsModule.chmodSync(filePath, 0o600);
+    };
     const host = createFileViewerHost({
         BrowserWindow,
         appendDesktopLog,
-        ensureDirectory,
         fileViewerEntryUrl,
         fileViewerPreloadPath,
         fs: fsModule,
+        ensurePrivateFile,
         installNavigationGuards,
         isTrustedFileViewerUrl: (url: string) => {
             return url === trustedFileViewerUrl;
@@ -193,6 +196,7 @@ const createHost = (contentByPath = new Map<string, string>()) => {
             shouldUseDarkColors: false,
         },
         path: nodePath,
+        privateFileMode: 0o600,
         setTimeoutFn: (callback: () => void) => {
             callback();
         },
@@ -202,7 +206,6 @@ const createHost = (contentByPath = new Map<string, string>()) => {
     return {
         BrowserWindow,
         appendDesktopLog,
-        ensureDirectory,
         fileHandles,
         fsModule,
         host,
@@ -215,13 +218,13 @@ const createHost = (contentByPath = new Map<string, string>()) => {
 describe("Electron file viewer host", () => {
     it("opens a sandboxed viewer window and reuses the existing window for the same file", () => {
         const logPath = "/tmp/mysqlsh.log";
-        const { BrowserWindow, ensureDirectory, fsModule, host, installNavigationGuards, windows } = createHost();
+        const { BrowserWindow, fsModule, host, installNavigationGuards, windows } = createHost();
 
         host.openFileViewerWindow(logPath);
 
         expect(BrowserWindow).toHaveBeenCalledOnce();
-        expect(ensureDirectory).toHaveBeenCalledWith("/tmp");
-        expect(fsModule.writeFileSync).toHaveBeenCalledWith(logPath, "", { flag: "a" });
+        expect(fsModule.writeFileSync).toHaveBeenCalledWith(logPath, "", { flag: "a", mode: 0o600 });
+        expect(fsModule.chmodSync).toHaveBeenCalledWith(logPath, 0o600);
         expect(windows[0].options).toMatchObject({
             backgroundColor: "#ffffff",
             title: "mysqlsh.log",

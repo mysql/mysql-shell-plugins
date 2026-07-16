@@ -31,6 +31,7 @@ import threading
 from queue import Queue
 
 import mysqlsh
+from gui_plugin.core.Files import ensure_private_file, ensure_plugin_data_path
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 
 import gui_plugin.core.Error as Error
@@ -150,11 +151,9 @@ class ShellModuleSession(ModuleSession):
 
         # Symlinks the plugins on the master shell as we want them available
         # on the Shell Console
-        self._subprocess_home = mysqlsh.plugin_manager.general.get_shell_user_dir(  # pylint: disable=no-member
-            "plugin_data", "gui_plugin", "shell_instance_home"
+        self._subprocess_home = ensure_plugin_data_path(
+            "gui_plugin", "shell_instance_home"
         )
-        if not os.path.exists(self._subprocess_home):
-            os.makedirs(self._subprocess_home)
 
         subprocess_plugins = os.path.join(self._subprocess_home, "plugins")
 
@@ -250,14 +249,14 @@ class ShellModuleSession(ModuleSession):
         if not "TERM" in env:
             env["TERM"] = "xterm-256color"
 
-        with open(
-            os.path.join(self._subprocess_home, "options.json"), "w"
-        ) as options_file:
+        options_path = os.path.join(self._subprocess_home, "options.json")
+        ensure_private_file(options_path)
+        with open(options_path, "w") as options_file:
             json.dump({"history.autoSave": "true"}, options_file)
 
-        with open(
-            os.path.join(self._subprocess_home, "prompt.json"), "w"
-        ) as prompt_file:
+        prompt_path = os.path.join(self._subprocess_home, "prompt.json")
+        ensure_private_file(prompt_path)
+        with open(prompt_path, "w") as prompt_file:
             json.dump(
                 {
                     "variables": {

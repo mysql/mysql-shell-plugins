@@ -26,14 +26,14 @@ import os
 import pathlib
 import re
 import sqlite3
-import stat
 from datetime import date
-from os import chdir, getcwd, listdir, makedirs, path, remove, rename
+from os import chdir, getcwd, listdir, path, remove, rename
 
 import mysqlsh
 
 import gui_plugin.core.Logger as logger
 from gui_plugin.core import Error
+from gui_plugin.core.Files import ensure_private_directory, ensure_private_file
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.lib.Version import Version
 
@@ -180,6 +180,7 @@ class BackendSqliteDbManager(BackendDbManager):
     def open_database(self):
         # Clean WAL/SHM files before opening database
         self._cleanup_wal_shm_files()
+        self._ensure_database_files()
 
         session_id = (
             "BackendDB-" + "anonymous"
@@ -199,6 +200,23 @@ class BackendSqliteDbManager(BackendDbManager):
             None,
             None,
         )
+
+    def _database_files(self):
+        if self._connection_options is None:
+            return []
+
+        files = [self._connection_options["db_file"]]
+        files.extend(
+            attachment["db_file"]
+            for attachment in self._connection_options.get("attach", [])
+            if "db_file" in attachment
+        )
+        return files
+
+    def _ensure_database_files(self):
+        ensure_private_directory(self.db_dir)
+        for db_file in self._database_files():
+            ensure_private_file(db_file)
 
     def _cleanup_wal_shm_files(self):
         """
@@ -260,7 +278,7 @@ class BackendSqliteDbManager(BackendDbManager):
         logger.debug2(
             f"Checking for previous version and upgrade\n\tdb_dir: {self.db_dir}"
         )
-        makedirs(self.db_dir, exist_ok=True)
+        ensure_private_directory(self.db_dir)
         final_db_file = "mysqlsh_gui_backend.sqlite3"
         final_db_log_file = "mysqlsh_gui_backend_log.sqlite3"
         installed_db_log_file = None
@@ -416,10 +434,9 @@ class BackendSqliteDbManager(BackendDbManager):
         )
 
         try:
-            makedirs(self.db_dir, exist_ok=True)
+            self._ensure_database_files()
             db_file = self._connection_options["db_file"]
             conn = sqlite3.connect(db_file)
-            os.chmod(db_file, stat.S_IRUSR | stat.S_IWUSR)
             cursor = conn.cursor()
 
             # Do a fresh initialization of the database
@@ -456,6 +473,8 @@ class BackendSqliteDbManager(BackendDbManager):
         # The backup was done for today already
         if new_filename.exists():
             return
+
+        ensure_private_file(new_filename)
 
         # check files, remove oldest if count > 6
         backup_files = []
@@ -609,8 +628,8 @@ class BackendSqliteDbManager(BackendDbManager):
         return upgrade_scripts
 
     def backup_db(self, src, dst):
+        ensure_private_file(dst)
         with sqlite3.connect(src) as source, sqlite3.connect(dst) as dest:
-            os.chmod(dst, stat.S_IRUSR | stat.S_IWUSR)
             source.backup(dest)
 
     def remove_wal_and_shm_files(self, file):

@@ -39,6 +39,7 @@ from os import path
 from subprocess import Popen
 
 import mysqlsh
+from gui_plugin.core.Files import ensure_private_directory, ensure_plugin_data_path
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 
 import gui_plugin.core.Logger as logger
@@ -128,9 +129,7 @@ def web_server(
         core_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "core")
         )
-        cert_path = mysqlsh.plugin_manager.general.get_shell_user_dir(
-            "plugin_data", "gui_plugin", "web_certs"
-        )
+        cert_path = ensure_plugin_data_path("gui_plugin", "web_certs")
 
         # Set defaults when necessary
         if port is None:
@@ -405,10 +404,9 @@ def browser_app():
     try:
         # In order to support running more than one instance of the application it is required to use a different user data dir
         # for this reason we create a temporary directory every time the application is launched
-        data_dir_path = mysqlsh.plugin_manager.general.get_shell_user_dir(  # type: ignore
-            "plugin_data", "gui_plugin"
-        )
+        data_dir_path = ensure_plugin_data_path("gui_plugin")
         with tempfile.TemporaryDirectory(dir=data_dir_path) as data_path:
+            ensure_private_directory(data_path)
             leftover_path = data_path
 
             p_application = None

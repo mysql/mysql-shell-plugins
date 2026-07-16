@@ -254,10 +254,6 @@ def add_db_connection(profile_id, connection, folder_path_id=None, be_session=No
         )
 
     with BackendDatabase(be_session) as db:
-        # TODO: Encrypt stored password. The password will be inside "options", but we
-        # don't know the structure of that object. Maybe the FE should pass the keys that should
-        # be encrypted.
-
         with BackendTransaction(db):
             # Insert new db_connection
             db.execute(
