@@ -66,6 +66,10 @@ export const mysqlshUserConfigHome = (): string => {
     return readConfigValue("MYSQLSH_USER_CONFIG_HOME");
 };
 
+export const mysqlServerVersion = (): string => {
+    return readConfigValue("MYSQL_VERSION");
+};
+
 const sanitizeIdentifierPart = (value: string): string => {
     return value.toLowerCase()
         .replace(/[^a-z0-9]+/g, "_")

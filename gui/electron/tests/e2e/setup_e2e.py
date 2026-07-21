@@ -190,6 +190,7 @@ def setup(args: argparse.Namespace) -> None:
     print(f"[OK] Electron e2e sandbox MySQL basedir: {basedir}")
 
     config["MYSQL_PORT"] = db_port
+    config["MYSQL_VERSION"] = version
     config["SANDBOX_DIR"] = str(SANDBOX_DIR)
     config["MYSQLSH_USER_CONFIG_HOME"] = str(EXECUTION_DIR / "mysqlsh")
     save_config(config)

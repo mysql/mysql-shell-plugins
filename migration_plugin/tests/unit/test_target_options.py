@@ -21,8 +21,11 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from migration_plugin import plan_step
+from migration_plugin.lib import errors
 from migration_plugin.lib.backend import model, target_config
 
 
@@ -78,6 +81,65 @@ def _issue_inputs(issues):
     return [issue.info["input"] for issue in issues]
 
 
+def _version_error(message: str) -> model.MigrationError:
+    return model.MigrationError._from_exception(
+        errors.BadUserInput(message, "database.mysqlVersion")
+    )
+
+
+class FakeTargetChecker:
+
+    def __init__(
+        self,
+        database_errors: list[model.MigrationError] | None = None,
+        version_errors: list[model.MigrationError] | None = None,
+    ) -> None:
+        self.database_errors = database_errors or []
+        self.version_errors = version_errors or []
+        self.calls: list[str] = []
+        self.compute_resolution_notice = ""
+
+    def validate_target_options(
+        self,
+        options: model.OCIHostingOptions,
+        changed_options: list[str] | None,
+    ) -> list[model.MigrationError]:
+        self.calls.append("hosting")
+        return []
+
+    def resolve_jump_host(self, options: model.OCIHostingOptions) -> None:
+        self.calls.append("resolve_jump_host")
+
+    def validate_target_mysql_options(
+        self,
+        options: model.DBSystemOptions,
+        changed_options: list[str] | None,
+    ) -> list[model.MigrationError]:
+        self.calls.append("database")
+        return list(self.database_errors)
+
+    def validate_target_mysql_version(
+        self, options: model.DBSystemOptions
+    ) -> list[model.MigrationError]:
+        self.calls.append("version")
+        return list(self.version_errors)
+
+
+def _target_options_substep(
+    target_checker: FakeTargetChecker,
+) -> plan_step.TargetOptionsSubStep:
+    owner = SimpleNamespace(
+        project=MagicMock(),
+        options=model.MigrationOptions(
+            targetHostingOptions=model.OCIHostingOptions(),
+            targetMySQLOptions=model.DBSystemOptions(),
+        ),
+    )
+    substep = plan_step.TargetOptionsSubStep(owner)
+    substep._target_check = target_checker
+    return substep
+
+
 class TestTargetOptionsPublicCidr:
 
     def test_recommended_options_use_detected_ipv4_cidr(self):
@@ -128,3 +190,48 @@ class TestTargetOptionsPublicCidr:
         issues = _target_options_issues_for(_valid_hosting_options("192.0.2.44/24"))
 
         assert "hosting.onPremisePublicCidrBlock" in _issue_inputs(issues)
+
+
+class TestTargetOptionsVersionErrorOwnership:
+
+    def test_repeated_database_partial_validation_replaces_version_error(
+        self,
+    ) -> None:
+        version_error = _version_error("catalog mismatch")
+        substep = _target_options_substep(FakeTargetChecker([version_error]))
+
+        substep._run_checks([], ["database.name"])
+        substep._run_checks([], ["database.name"])
+
+        version_errors = [
+            issue
+            for issue in substep._option_errors
+            if issue.info["input"] == "database.mysqlVersion"
+        ]
+        assert len(version_errors) == 1
+
+    def test_shape_partial_validation_clears_stale_version_error(self) -> None:
+        substep = _target_options_substep(FakeTargetChecker())
+        substep._option_errors = [_version_error("regular shape mismatch")]
+
+        substep._run_checks([], ["database.shapeName"])
+
+        assert "database.mysqlVersion" not in _issue_inputs(substep._option_errors)
+
+    def test_hosting_partial_validation_replaces_version_error_after_refresh(
+        self,
+    ) -> None:
+        new_error = _version_error("new compartment catalog mismatch")
+        target_checker = FakeTargetChecker(version_errors=[new_error])
+        substep = _target_options_substep(target_checker)
+        substep._option_errors = [_version_error("old compartment catalog mismatch")]
+
+        substep._run_checks(["hosting.compartmentId"], [])
+
+        assert target_checker.calls == ["hosting", "resolve_jump_host", "version"]
+        version_errors = [
+            issue
+            for issue in substep._option_errors
+            if issue.info["input"] == "database.mysqlVersion"
+        ]
+        assert version_errors == [new_error]

@@ -32,17 +32,42 @@ import re
 shell = mysqlsh.globals.shell
 
 
-def version_to_nversion(v):
-    m = re.match(r"^(\d+)\.(\d+)(\.(\d+))?", v)
+def _parse_version(version: str) -> tuple[int, int, int]:
+    m = re.match(r"^(\d+)\.(\d+)(\.(\d+))?", version)
     if m:
         major, minor, _, patch = m.groups()
+        return int(major), int(minor), int(patch or 0)
 
-        if patch is not None:
-            return int(major) * 10000 + int(minor) * 100 + int(patch)
-        else:
-            return int(major) * 10000 + int(minor) * 100
+    raise ValueError(f"Could not parse version '{version}'")
 
-    raise ValueError(f"Could not parse version '{v}'")
+
+def version_to_nversion(version: str) -> int:
+    major, minor, patch = _parse_version(version)
+    return major * 10000 + minor * 100 + patch
+
+
+def version_to_release_series(version: str) -> int:
+    """Return the OCI target compatibility series for a MySQL version.
+
+    Legacy versions through 9.x use their major version as the series.
+    Calendar versions from 26.7 onward are grouped into 24-month series so
+    target selection can compare versions in the same supported upgrade
+    series without requiring the minor version to be a scheduled release
+    month.
+    """
+    major, minor, _ = _parse_version(version)
+
+    if major <= 9:
+        return major
+
+    if major <= 25:
+        raise ValueError(f"Version '{version}' is not a supported calendar release")
+
+    months_since_calendar_start = (major - 26) * 12 + minor - 7
+    if months_since_calendar_start < 0:
+        raise ValueError(f"Version '{version}' predates calendar release 26.7")
+
+    return 10 + months_since_calendar_start // 24
 
 
 class Session:

@@ -23,8 +23,10 @@
 
 
 import ipaddress
+import os
 import string
 import re
+from dataclasses import dataclass
 from typing import cast, Optional
 
 
@@ -36,7 +38,7 @@ from .. import oci_utils, logging, dbsession, util
 from . import model
 from ..migration import Project
 from ..errors import BadUserInput, SSHError
-from ..dbsession import MigrationSession, version_to_nversion
+from ..dbsession import MigrationSession
 from .model import (
     DBSystemOptions,
     OCIHostingOptions,
@@ -47,6 +49,13 @@ k_min_storage_size_gb = 50
 k_default_storage_size_multiplier = 2.0
 k_base_jump_host_name = "mysql-jump-host"
 k_oci_not_authorized_or_not_found = "NotAuthorizedOrNotFound"
+
+
+@dataclass(frozen=True)
+class _MySQLVersionMetadata:
+    original: str
+    nversion: int
+    release_series: Optional[int]
 
 
 # ref https://docs.oracle.com/en-us/iaas/mysql-database/doc/db-system-storage.html
@@ -418,7 +427,6 @@ class ConfigureTargetDBSystem:
         assert availability_domains
 
         versions = self.compartment.list_db_versions()
-        assert versions
 
         shapes: dict[str, list[ShapeSummary]] = {}
         for ad in availability_domains:
@@ -866,33 +874,8 @@ class ConfigureTargetDBSystem:
                     "database.shapeName",
                 )
 
-        if self.versions:
-            if options.mysqlVersion:
-                for vf in self.versions:
-                    if options.mysqlVersion in [
-                        v.version for v in cast(list, vf.versions)
-                    ]:
-                        break
-                else:
-                    add_error(
-                        f"'{options.mysqlVersion}' is not a supported MySQL version",
-                        "database.mysqlVersion",
-                    )
-            else:
-                if "MySQL.Free" == options.shapeName:
-                    # Always Free Tier DB Systems must use the latest active available version
-                    latest_versions = cast(list, self.versions[-1].versions)
-                    assert latest_versions
-                    options.mysqlVersion = latest_versions[-1].version
-                else:
-                    options.mysqlVersion = self.recommend_version(
-                        self._server_info, self.versions
-                    )
-        elif not self._compartment_access_failed:
-            if not options.mysqlVersion:
-                add_error(
-                    "Target database version not selected", "database.mysqlVersion"
-                )
+        version_issues, target_version = self._validate_target_mysql_version(options)
+        issues.extend(version_issues)
 
         # storageSizeGB
         try:
@@ -968,8 +951,8 @@ class ConfigureTargetDBSystem:
 
         if (
             self._server_info.hasMRS
-            or version_to_nversion(options.mysqlVersion) < 90301
             or options.enableHA
+            or (target_version is not None and target_version.nversion < 90301)
         ):
             logging.info(
                 f"Disabling REST service because hasMRS={self._server_info.hasMRS} and targetVersion={options.mysqlVersion} and enableHA={options.enableHA}"
@@ -979,6 +962,82 @@ class ConfigureTargetDBSystem:
         # TODO disable backup for development templates (and Free shape)
 
         return issues
+
+    def validate_target_mysql_version(
+        self, options: DBSystemOptions
+    ) -> list[model.MigrationError]:
+        issues, _ = self._validate_target_mysql_version(options)
+        return issues
+
+    def _validate_target_mysql_version(
+        self, options: DBSystemOptions
+    ) -> tuple[list[model.MigrationError], Optional[_MySQLVersionMetadata]]:
+        issues: list[model.MigrationError] = []
+
+        def add_error(msg: str) -> None:
+            issues.append(
+                model.MigrationError._from_exception(
+                    BadUserInput(msg, "database.mysqlVersion")
+                )
+            )
+
+        target_version = None
+        if options.mysqlVersion:
+            try:
+                target_version = self._parse_mysql_version(options.mysqlVersion)
+            except ValueError:
+                add_error(f"'{options.mysqlVersion}' is not a valid MySQL version")
+                return issues, None
+
+        try:
+            source_version = self._parse_source_mysql_version(self._server_info)
+        except ValueError:
+            add_error(
+                f"The source MySQL version '{self._server_info.version}' is not valid"
+            )
+            return issues, target_version
+
+        if self.versions is not None:
+            catalog_versions = self._get_catalog_versions(self.versions)
+
+            if target_version:
+                catalog_by_version = {
+                    version.original: version for version in catalog_versions
+                }
+                if target_version.original not in catalog_by_version:
+                    add_error(
+                        f"'{options.mysqlVersion}' is not a supported MySQL version"
+                    )
+                elif target_version not in self._compatible_catalog_versions(
+                    source_version,
+                    catalog_versions,
+                    options.shapeName == "MySQL.Free",
+                    self._server_info.serverType == ServerType.MariaDB,
+                ):
+                    add_error(
+                        f"'{options.mysqlVersion}' is not compatible with source version '{self._server_info.version}'"
+                    )
+            else:
+                target_version = self._recommend_version(
+                    source_version,
+                    catalog_versions,
+                    is_free=options.shapeName == "MySQL.Free",
+                    server_type=self._server_info.serverType,
+                )
+                if target_version:
+                    options.mysqlVersion = target_version.original
+
+            if not target_version:
+                available_versions = (
+                    ", ".join(version.original for version in catalog_versions) or "none"
+                )
+                add_error(
+                    f"No compatible OCI MySQL version is available for source version '{self._server_info.version}'. Available OCI versions: {available_versions}"
+                )
+        elif not self._compartment_access_failed and not options.mysqlVersion:
+            add_error("Target database version not selected")
+
+        return issues, target_version
 
     def resolve_target_mysql_options(self, options: DBSystemOptions):
         "Apply remaining options that were not set from the ones that were"
@@ -1308,33 +1367,155 @@ class ConfigureTargetDBSystem:
         self,
         server_info: model.ServerInfo,
         versions: list[VersionSummary],
-    ) -> str:
+    ) -> Optional[str]:
+        source_version = self._parse_source_mysql_version(server_info)
+        catalog_versions = self._get_catalog_versions(versions)
+        recommendation = self._recommend_version(
+            source_version,
+            catalog_versions,
+            is_free=False,
+            server_type=server_info.serverType,
+        )
+        return recommendation.original if recommendation else None
 
-        def get_version_summary(version_prefix: str) -> Optional[VersionSummary]:
-            for family in versions:
-                if cast(str, family.version_family).startswith(version_prefix):
-                    return family
+    def _recommend_version(
+        self,
+        source_version: _MySQLVersionMetadata,
+        catalog_versions: list[_MySQLVersionMetadata],
+        is_free: bool,
+        server_type: ServerType,
+    ) -> Optional[_MySQLVersionMetadata]:
+        candidates = self._compatible_catalog_versions(
+            source_version,
+            catalog_versions,
+            is_free,
+            server_type == ServerType.MariaDB,
+        )
+        if not candidates:
             return None
 
-        if server_info.serverType == ServerType.MariaDB:
-            version_prefix = "8.4"
-        else:
-            nversion = dbsession.version_to_nversion(server_info.version)
-
-            # for now, recommend the newest supported version of the same series
-            if nversion // 100 <= 804:
-                version_prefix = "8.4"
-            else:
-                version_prefix = server_info.version[: server_info.version.find(".")]
-
-        vf = get_version_summary(version_prefix)
-        assert vf and vf.versions, server_info.version
-
-        version = vf.versions[-1].version
-        logging.info(
-            f"Recommended target version={version} for source={server_info.version} source_type={server_info.serverType.name}"
+        recommendation = max(
+            candidates, key=lambda version: (version.nversion, version.original)
         )
-        return version
+        logging.info(
+            f"Recommended target version={recommendation.original} for source={source_version.original} source_type={server_type.name}"
+        )
+        return recommendation
+
+    def _get_catalog_versions(
+        self, versions: list[VersionSummary]
+    ) -> list[_MySQLVersionMetadata]:
+        catalog_versions: dict[str, _MySQLVersionMetadata] = {}
+
+        for version_summary in versions:
+            summary_versions = getattr(version_summary, "versions", None)
+            if not summary_versions:
+                logging.warning("Ignoring OCI version summary with no versions")
+                continue
+
+            for version_info in summary_versions:
+                version = getattr(version_info, "version", None)
+                if not isinstance(version, str) or not version:
+                    logging.warning("Ignoring OCI catalog entry with no version")
+                    continue
+
+                try:
+                    catalog_versions[version] = self._parse_mysql_version(version)
+                except ValueError as e:
+                    logging.warning(
+                        f"Ignoring malformed OCI catalog version '{version}': {e}"
+                    )
+
+        if (
+            test_version := os.getenv("MIGRATION_TEST_OCI_MYSQL_VERSIONS")
+        ) is not None:
+            if os.getenv("MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS") != "1":
+                raise RuntimeError(
+                    "MIGRATION_TEST_OCI_MYSQL_VERSIONS requires "
+                    "MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS=1"
+                )
+
+            try:
+                parsed_test_version = self._parse_mysql_version(test_version)
+            except ValueError as e:
+                raise ValueError(
+                    "Invalid MIGRATION_TEST_OCI_MYSQL_VERSIONS value "
+                    f"'{test_version}': {e}"
+                ) from e
+
+            if test_version not in catalog_versions:
+                logging.info(
+                    f"Appending test MySQL version '{test_version}' to OCI catalog"
+                )
+
+            catalog_versions.setdefault(test_version, parsed_test_version)
+
+        return sorted(
+            catalog_versions.values(),
+            key=lambda version: (version.nversion, version.original),
+        )
+
+    def _parse_mysql_version(self, version: str) -> _MySQLVersionMetadata:
+        return _MySQLVersionMetadata(
+            original=version,
+            nversion=dbsession.version_to_nversion(version),
+            release_series=dbsession.version_to_release_series(version),
+        )
+
+    def _parse_source_mysql_version(
+        self, server_info: model.ServerInfo
+    ) -> _MySQLVersionMetadata:
+        nversion = dbsession.version_to_nversion(server_info.version)
+        release_series = (
+            None
+            if server_info.serverType == ServerType.MariaDB
+            else dbsession.version_to_release_series(server_info.version)
+        )
+        return _MySQLVersionMetadata(
+            original=server_info.version,
+            nversion=nversion,
+            release_series=release_series,
+        )
+
+    def _compatible_catalog_versions(
+        self,
+        source_version: _MySQLVersionMetadata,
+        catalog_versions: list[_MySQLVersionMetadata],
+        is_free: bool,
+        is_mariadb: bool,
+    ) -> list[_MySQLVersionMetadata]:
+        if is_free:
+            latest_version = catalog_versions[-1:]
+            if is_mariadb:
+                return latest_version
+            return [
+                version
+                for version in latest_version
+                if version.nversion >= source_version.nversion
+            ]
+
+        if is_mariadb:
+            return [
+                version
+                for version in catalog_versions
+                if version.nversion // 100 == 804
+            ]
+
+        if source_version.nversion // 100 <= 804:
+            return [
+                version
+                for version in catalog_versions
+                if version.nversion // 100 == 804
+                and version.nversion >= source_version.nversion
+            ]
+
+        assert source_version.release_series is not None
+        return [
+            version
+            for version in catalog_versions
+            if version.nversion >= source_version.nversion
+            and version.release_series == source_version.release_series
+        ]
 
     def recommend_shape(self, session, shapes: list[ShapeSummary]) -> str:
         assert shapes

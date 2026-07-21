@@ -49,7 +49,18 @@ import {
     TileStepStatus,
     tiles,
 } from "../helpers/MigrationAssistant.js";
-import { localMySQLConnection } from "../helpers/testConfig.js";
+import { localMySQLConnection, mysqlServerVersion } from "../helpers/testConfig.js";
+
+const migrationElectronLaunchEnvironment = (
+    overrides: Record<string, string | undefined> = {},
+): Record<string, string | undefined> => {
+    return {
+        MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS: "1",
+        MIGRATION_TEST_OCI_MYSQL_VERSIONS:
+            process.env.MIGRATION_TEST_OCI_MYSQL_VERSIONS ?? mysqlServerVersion(),
+        ...overrides,
+    };
+};
 
 const openMigrationAssistant = async (
     electronApp: ElectronApplication,
@@ -231,9 +242,7 @@ const assertStepGroup = async (
 
 test.describe("Migration Assistant", () => {
     test.use({
-        electronLaunchEnvironment: {
-            MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS: "1",
-        },
+        electronLaunchEnvironment: migrationElectronLaunchEnvironment(),
     });
 
     test("opens from an Electron desktop connection tile", async ({ electronApp, page, workbench }) => {
@@ -305,10 +314,9 @@ test.describe("Migration Assistant", () => {
 
     test.describe("with create-new VCN available", () => {
         test.use({
-            electronLaunchEnvironment: {
+            electronLaunchEnvironment: migrationElectronLaunchEnvironment({
                 MIGRATION_TEST_DEFAULT_VCN_NAME: "ElectronMigrationAssistantCIDRTestNoDefaultVcn",
-                MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS: "1",
-            },
+            }),
         });
 
         test("validates target option CIDR input", async ({ electronApp, page, workbench }) => {
@@ -507,10 +515,9 @@ test.describe("Migration Assistant", () => {
 
     test.describe("with invalid OCI config", () => {
         test.use({
-            electronLaunchEnvironment: {
-                MYSQLSH_GUI_ENABLE_PLUGIN_MOCKS: "1",
+            electronLaunchEnvironment: migrationElectronLaunchEnvironment({
                 MYSQLSH_OCI_CONFIG_FILE: "dummy",
-            },
+            }),
         });
 
         test("shows OCI sign-in controls when config is invalid", async ({ electronApp, page, workbench }) => {

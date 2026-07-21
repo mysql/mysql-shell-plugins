@@ -27,7 +27,9 @@
 
 import "./MigrationSubApp.css";
 
-import { Component, createRef, FunctionalComponent, RefObject, VNode } from "preact";
+import {
+    Component, ComponentChild, ComponentChildren, createRef, FunctionalComponent, RefObject, VNode
+} from "preact";
 import { CSSProperties } from "preact/compat";
 
 import {
@@ -1318,6 +1320,55 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         });
     }
 
+    private renderTargetOptionErrorContent(content: string, allowLists = false): ComponentChildren {
+        const supportedTagPattern = allowLists
+            ? /<\/?(?:br|code|li|ul)\b[^>]*>/iu
+            : /<\/?(?:br|code)\b[^>]*>/iu;
+        if (!supportedTagPattern.test(content)) {
+            return content;
+        }
+
+        const renderNode = (node: ChildNode, key: number): ComponentChild => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.textContent ?? "";
+            }
+
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return null;
+            }
+
+            const element = node as HTMLElement;
+            const children = Array.from(element.childNodes).map((child, index) => {
+                return renderNode(child, index);
+            });
+
+            switch (element.tagName.toLowerCase()) {
+                case "br":
+                    return <br key={key} />;
+
+                case "code":
+                    return <code key={key}>{children}</code>;
+
+                case "li":
+                    return allowLists ? <li key={key}>{children}</li> : element.outerHTML;
+
+                case "ul":
+                    return allowLists ? <ul key={key}>{children}</ul> : element.outerHTML;
+
+                default:
+                    return element.outerHTML;
+            }
+        };
+
+        // Parse into an inert template, then rebuild only supported elements without attributes.
+        const template = document.createElement("template");
+        template.innerHTML = content;
+
+        return Array.from(template.content.childNodes).map((node, index) => {
+            return renderNode(node, index);
+        });
+    }
+
     private renderBadUserInputErrorsFor(option: string) {
         const matches = this.state.targetOptionErrors.filter(o => {
             return o.option === option;
@@ -1330,19 +1381,11 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
         return (
             <div class="input-errors">
                 {matches.map(item => {
-                    let text;
-                    if (item.title) {
-                        text = `<h4>${item.title}</h4>${item.message}`;
-                    } else {
-                        text = item.message;
-                    }
-
                     return (
-                        <div>
-                            <p dangerouslySetInnerHTML={{
-                                __html:
-                                    item.level === "WARNING" ? "⚠️" + text : text
-                            }} className={"input-" + item.level.toLowerCase()} ></p>
+                        <div className={"input-" + item.level.toLowerCase()}>
+                            {item.level === "WARNING" && "⚠️"}
+                            {item.title && <h4>{this.renderTargetOptionErrorContent(item.title)}</h4>}
+                            <div>{this.renderTargetOptionErrorContent(item.message, true)}</div>
                         </div>);
                 })
                 }
@@ -2381,6 +2424,7 @@ Migration Assistant.`}
 
         return (
             <div className="target-options">
+                {this.renderBadUserInputErrorsFor("database.mysqlVersion")}
                 <Container className="compartment-pick" orientation={Orientation.LeftToRight}
                     mainAlignment={ContentAlignment.Start}>
                     <div className="form-group hosting.compartmentId">

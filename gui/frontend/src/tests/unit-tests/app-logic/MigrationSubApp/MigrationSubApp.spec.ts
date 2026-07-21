@@ -161,6 +161,39 @@ describe("MigrationSubApp source selection commit errors", () => {
     });
 });
 
+describe("MigrationSubApp target selection errors", () => {
+    it("renders target MySQL version validation errors as text", () => {
+        const title = "No compatible version <img src=x alt='injected title'>";
+        const message = "Available <script>alert('injected message')</script> versions";
+        const migrationSubApp = new MigrationSubApp({});
+        migrationSubApp.state = {
+            ...migrationSubApp.state,
+            hasOciConfig: true,
+            formGroupValues: {
+                ...migrationSubApp.state.formGroupValues,
+                profile: "DEFAULT",
+            },
+            targetOptionErrors: [{
+                level: MessageLevel.ERROR,
+                title,
+                message,
+                option: "database.mysqlVersion",
+            }],
+        };
+        const renderTargetSelection = (migrationSubApp as unknown as {
+            renderTargetSelection: () => ComponentChild;
+        }).renderTargetSelection.bind(migrationSubApp);
+
+        const { container } = render(h("div", null, renderTargetSelection()));
+
+        expect(container.textContent).toContain(title);
+        expect(container.textContent).toContain(message);
+        expect(container.querySelector("img")).toBeNull();
+        expect(container.querySelector("script")).toBeNull();
+    });
+
+});
+
 describe("MigrationSubApp compatibility issues", () => {
     it("marks compatibility issue rows for E2E synchronization", () => {
         const migrationSubApp = new MigrationSubApp({});

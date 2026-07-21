@@ -1649,12 +1649,15 @@ class TargetOptionsSubStep(PlanSubStep):
         assert self._target_check
 
         option_errors = []
+        revalidated_options = []
+        hosting_validated = False
         if self._owner.options.targetHostingOptions and (
             hosting_changes or hosting_changes is None
         ):
             option_errors += self._target_check.validate_target_options(
                 self._owner.options.targetHostingOptions, hosting_changes
             )
+            hosting_validated = True
             self._target_check.resolve_jump_host(
                 self._owner.options.targetHostingOptions
             )
@@ -1668,6 +1671,16 @@ class TargetOptionsSubStep(PlanSubStep):
             option_errors += self._target_check.validate_target_mysql_options(
                 self._owner.options.targetMySQLOptions, database_changes
             )
+            revalidated_options.append("database.mysqlVersion")
+        elif (
+            self._owner.options.targetMySQLOptions
+            and hosting_validated
+            and hosting_changes
+        ):
+            option_errors += self._target_check.validate_target_mysql_version(
+                self._owner.options.targetMySQLOptions
+            )
+            revalidated_options.append("database.mysqlVersion")
 
         # ensure errors for options that weren't changed aren't cleared because they weren't rechecked
         if hosting_changes is None or database_changes is None:
@@ -1675,7 +1688,8 @@ class TargetOptionsSubStep(PlanSubStep):
             self._option_errors = option_errors
         else:
             self._update_option_errors(
-                option_errors, hosting_changes + database_changes
+                option_errors,
+                hosting_changes + database_changes + revalidated_options,
             )
 
     def _update_option_errors(
