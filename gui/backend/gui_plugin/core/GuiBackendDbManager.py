@@ -33,7 +33,11 @@ import mysqlsh
 
 import gui_plugin.core.Logger as logger
 from gui_plugin.core import Error
-from gui_plugin.core.Files import ensure_private_directory, ensure_private_file
+from gui_plugin.core.Files import (
+    ensure_private_directory,
+    ensure_private_file,
+    secure_existing_file,
+)
 from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.lib.Version import Version
 
@@ -102,7 +106,7 @@ class BackendDbManager:
 
         InitDBFirstTime.get_instance().set_db_initialized(True)
 
-    def ensure_database_exists(self):
+    def ensure_database_exists(self) -> None:
         if not self.current_database_exist():
             self.initialize_db()
         else:
@@ -177,10 +181,23 @@ class BackendSqliteDbManager(BackendDbManager):
             ),
         )
 
+    def ensure_database_exists(self):
+        existing_database_files = {
+            db_file for db_file in self._database_files() if path.lexists(db_file)
+        }
+        for db_file in existing_database_files:
+            secure_existing_file(db_file)
+
+        super().ensure_database_exists()
+
+        for db_file in self._database_files():
+            if db_file not in existing_database_files:
+                secure_existing_file(db_file)
+
     def open_database(self):
+        self._ensure_database_files()
         # Clean WAL/SHM files before opening database
         self._cleanup_wal_shm_files()
-        self._ensure_database_files()
 
         session_id = (
             "BackendDB-" + "anonymous"

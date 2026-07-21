@@ -379,22 +379,44 @@ def secure_existing_file(file_path: PathLike) -> None:
             return
 
         try:
+            # This path-based operation assumes the parent directory
+            # is private to the current user, so an untrusted process cannot
+            # replace the directory entry between validation and chmod.
             try:
-                file_descriptor = os.open(
+                file_stat = os.lstat(
+                    os.path.basename(file_name), dir_fd=parent_fd
+                )
+            except FileNotFoundError:
+                return
+
+            if stat.S_ISLNK(file_stat.st_mode):
+                raise ValueError(f"Symlink file is not allowed: {file_name}")
+            if not stat.S_ISREG(file_stat.st_mode):
+                raise ValueError(f"Expected a regular file: {file_name}")
+
+            if os.chmod in os.supports_follow_symlinks:
+                os.chmod(
                     os.path.basename(file_name),
-                    os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+                    PRIVATE_FILE_MODE,
+                    dir_fd=parent_fd,
+                    follow_symlinks=False,
+                )
+            else:
+                os.chmod(
+                    os.path.basename(file_name),
+                    PRIVATE_FILE_MODE,
                     dir_fd=parent_fd,
                 )
-            except OSError as exc:
-                if exc.errno == errno.ELOOP:
-                    raise ValueError(f"Symlink file is not allowed: {file_name}")
-                raise
-            try:
-                if not stat.S_ISREG(os.fstat(file_descriptor).st_mode):
-                    raise ValueError(f"Expected a regular file: {file_name}")
-                os.fchmod(file_descriptor, PRIVATE_FILE_MODE)
-            finally:
-                os.close(file_descriptor)
+
+            secured_file_stat = os.lstat(
+                os.path.basename(file_name), dir_fd=parent_fd
+            )
+            if (
+                not stat.S_ISREG(secured_file_stat.st_mode)
+                or secured_file_stat.st_dev != file_stat.st_dev
+                or secured_file_stat.st_ino != file_stat.st_ino
+            ):
+                raise RuntimeError(f"File changed while securing it: {file_name}")
         except FileNotFoundError:
             return
         finally:

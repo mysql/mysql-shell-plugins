@@ -28,7 +28,6 @@ import sqlite3
 import threading
 import time
 import uuid
-import stat
 
 import mysqlsh
 import pytest
@@ -206,9 +205,6 @@ class TestDbSessionSqlite:
         db_session.close()
 
         assert os.path.isfile("tests.sqlite3")
-        assert oct(os.stat("tests.sqlite3").st_mode) == oct(
-            stat.S_IFREG | stat.S_IRUSR | stat.S_IWUSR
-        )  # '0o100600'
 
     # TODO(rennox): Duplicate tests for non threaded sessions
     def test_bad_query(self, sqlite_session):

@@ -28,8 +28,6 @@ const { spawnSync } = require("child_process");
 
 const privateDirectoryMode = 0o700;
 const privateFileMode = 0o600;
-const administratorsSid = "*S-1-5-32-544";
-const systemSid = "*S-1-5-18";
 
 const run = (command, args) => {
     const result = spawnSync(command, args, { encoding: "utf8", windowsHide: true });
@@ -44,15 +42,26 @@ const run = (command, args) => {
 };
 
 const restrictWindowsAccess = (targetPath, isDirectory, runCommand = run) => {
-    const username = runCommand("whoami", []);
-    const access = isDirectory ? "(OI)(CI)F" : "F";
+    const encodedPath = Buffer.from(targetPath, "utf8").toString("base64");
+    const inheritanceFlags = isDirectory ? "OICI" : "";
+    const script = `
+$targetPath = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("${encodedPath}"))
+$currentUser = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+$sddl = "D:P(A;${inheritanceFlags};FA;;;$currentUser)(A;${inheritanceFlags};FA;;;BA)(A;${inheritanceFlags};FA;;;SY)"
+$acl = Get-Acl -LiteralPath $targetPath
+$acl.SetSecurityDescriptorSddlForm($sddl, [Security.AccessControl.AccessControlSections]::Access)
+Set-Acl -LiteralPath $targetPath -AclObject $acl
+`;
+    const encodedScript = Buffer.from(script, "utf16le").toString("base64");
 
-    runCommand("icacls", [
-        targetPath,
-        "/inheritance:r",
-        "/grant:r", `${username}:${access}`,
-        "/grant:r", `${administratorsSid}:${access}`,
-        "/grant:r", `${systemSid}:${access}`,
+    // A protected parent is insufficient because Windows users commonly have
+    // bypass-traverse privilege. Replace the target DACL instead of amending it.
+    runCommand("powershell.exe", [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-EncodedCommand",
+        encodedScript,
     ]);
 };
 

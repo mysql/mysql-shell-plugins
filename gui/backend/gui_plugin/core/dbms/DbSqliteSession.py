@@ -29,7 +29,6 @@ import time
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
-from gui_plugin.core.Files import ensure_private_file, secure_existing_file
 from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory, ReconnectionMode
 from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 from gui_plugin.core.dbms.DbSqliteSessionTasks import (
@@ -203,24 +202,16 @@ class DbSqliteSession(DbSession):
                     check_same_thread=False,
                 )
 
-                secure_existing_file(self._databases[self._current_schema])
-
                 # Cursor to be used for statements from the owner of this instance
                 self.cursor = None
 
                 init_cursor = self.conn.execute("PRAGMA journal_mode = WAL")
                 init_cursor.close()
-                secure_existing_file(f"{self._databases[self._current_schema]}-wal")
-                secure_existing_file(f"{self._databases[self._current_schema]}-shm")
 
                 for database_name, db_file in self._databases.items():
                     if database_name == self._current_schema:
                         continue
-                    ensure_private_file(db_file)
                     self.conn.execute(f"ATTACH '{db_file}' AS '{database_name}';")
-                    secure_existing_file(db_file)
-                    secure_existing_file(f"{db_file}-wal")
-                    secure_existing_file(f"{db_file}-shm")
 
                 if self._connected_cb is not None and notify_success:
                     self._connected_cb(self)

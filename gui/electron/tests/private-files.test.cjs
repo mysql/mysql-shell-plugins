@@ -33,21 +33,27 @@ test("restrictWindowsAccess grants file access to approved principals", () => {
     const runCommand = (command, args) => {
         calls.push([command, args]);
 
-        return command === "whoami" ? "example\\user" : "";
+        return "";
     };
 
     restrictWindowsAccess("C:\\Users\\example\\state.json", false, runCommand);
 
-    assert.deepEqual(calls, [
-        ["whoami", []],
-        ["icacls", [
-            "C:\\Users\\example\\state.json",
-            "/inheritance:r",
-            "/grant:r", "example\\user:F",
-            "/grant:r", "*S-1-5-32-544:F",
-            "/grant:r", "*S-1-5-18:F",
-        ]],
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][0], "powershell.exe");
+    assert.deepEqual(calls[0][1].slice(0, -1), [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-EncodedCommand",
     ]);
+    const script = Buffer.from(calls[0][1].at(-1), "base64").toString("utf16le");
+
+    assert.match(script, /D:P\(A;;FA;;;\$currentUser\)\(A;;FA;;;BA\)\(A;;FA;;;SY\)/);
+    assert.match(script, /SetSecurityDescriptorSddlForm\(\$sddl, .*::Access\)/);
+    assert.equal(
+        Buffer.from(script.match(/FromBase64String\("([^"]+)"\)/)[1], "base64").toString("utf8"),
+        "C:\\Users\\example\\state.json",
+    );
 });
 
 test("restrictWindowsAccess makes directory grants inheritable", () => {
@@ -55,16 +61,12 @@ test("restrictWindowsAccess makes directory grants inheritable", () => {
     const runCommand = (command, args) => {
         calls.push([command, args]);
 
-        return command === "whoami" ? "example\\user" : "";
+        return "";
     };
 
     restrictWindowsAccess("C:\\Users\\example\\data", true, runCommand);
 
-    assert.deepEqual(calls[1][1], [
-        "C:\\Users\\example\\data",
-        "/inheritance:r",
-        "/grant:r", "example\\user:(OI)(CI)F",
-        "/grant:r", "*S-1-5-32-544:(OI)(CI)F",
-        "/grant:r", "*S-1-5-18:(OI)(CI)F",
-    ]);
+    const script = Buffer.from(calls[0][1].at(-1), "base64").toString("utf16le");
+
+    assert.match(script, /D:P\(A;OICI;FA;;;\$currentUser\)\(A;OICI;FA;;;BA\)\(A;OICI;FA;;;SY\)/);
 });

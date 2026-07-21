@@ -327,14 +327,21 @@ def test_backup_logs():
                 }
             ],
         }
-        db_manager = BackendSqliteDbManager(
-            log_rotation=False, session_uuid=None, connection_options=connection_options
-        )
 
         if os.name != "nt":
             assert stat.S_IMODE(os.stat(tmpdirname).st_mode) == 0o700
-            os.chmod(connection_options["db_file"], 0o644)
-            os.chmod(connection_options["attach"][0]["db_file"], 0o644)
+            for db_file in (
+                connection_options["db_file"],
+                connection_options["attach"][0]["db_file"],
+            ):
+                with sqlite3.connect(db_file) as connection:
+                    connection.execute("PRAGMA journal_mode = WAL")
+                os.chmod(db_file, 0o644)
+
+        InitDBFirstTime.get_instance().reset()
+        db_manager = BackendSqliteDbManager(
+            log_rotation=False, session_uuid=None, connection_options=connection_options
+        )
 
         db = db_manager.open_database()
         try:
@@ -346,6 +353,12 @@ def test_backup_logs():
                     )
                     == 0o600
                 )
+                for db_file in (
+                    connection_options["db_file"],
+                    connection_options["attach"][0]["db_file"],
+                ):
+                    assert stat.S_IMODE(os.stat(f"{db_file}-wal").st_mode) == 0o600
+                    assert stat.S_IMODE(os.stat(f"{db_file}-shm").st_mode) == 0o600
             db_manager.backup_logs(db)
         finally:
             db.close()
@@ -359,3 +372,38 @@ def test_backup_logs():
         assert os.path.exists(backup_file)
         if os.name != "nt":
             assert stat.S_IMODE(os.stat(backup_file).st_mode) == 0o600
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not supported")
+def test_new_backend_database_file_permissions(tmp_path):
+    connection_options = {
+        "db_dir": str(tmp_path),
+        "database_name": "main",
+        "db_file": str(tmp_path / "mysqlsh_gui_backend.sqlite3"),
+        "attach": [
+            {
+                "database_name": "gui_log",
+                "db_file": str(tmp_path / "mysqlsh_gui_backend_log.sqlite3"),
+            }
+        ],
+    }
+
+    InitDBFirstTime.get_instance().reset()
+    db_manager = BackendSqliteDbManager(
+        log_rotation=False, session_uuid=None, connection_options=connection_options
+    )
+
+    db = db_manager.open_database()
+    try:
+        db.execute("PRAGMA gui_log.journal_mode = WAL")
+        db.execute("CREATE TABLE main.permission_test (id INTEGER)")
+        db.execute("CREATE TABLE gui_log.permission_test (id INTEGER)")
+        for db_file in (
+            connection_options["db_file"],
+            connection_options["attach"][0]["db_file"],
+        ):
+            assert stat.S_IMODE(os.stat(db_file).st_mode) == 0o600
+            assert stat.S_IMODE(os.stat(f"{db_file}-wal").st_mode) == 0o600
+            assert stat.S_IMODE(os.stat(f"{db_file}-shm").st_mode) == 0o600
+    finally:
+        db.close()

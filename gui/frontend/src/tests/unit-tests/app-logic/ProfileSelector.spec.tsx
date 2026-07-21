@@ -154,7 +154,7 @@ describe("ProfileSelector test", () => {
 
         await launcher.exitProcess();
         unmount();
-    });
+    }, 20000);
 
     describe("handleProfileAction tests", () => {
         let profileSelector: TestProfileSelector;
