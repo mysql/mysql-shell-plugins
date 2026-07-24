@@ -166,7 +166,6 @@ function install_plugin_links() {
     install_plugin_link "mrs_plugin" "$REPO_DIR/mrs_plugin" "$plugins_dir"
     install_plugin_link "msm_plugin" "$REPO_DIR/msm_plugin" "$plugins_dir"
     install_plugin_link "util_plugin" "$REPO_DIR/util_plugin" "$plugins_dir"
-    install_plugin_link "migration_plugin" "$REPO_DIR/migration_plugin" "$plugins_dir"
 }
 
 trap cleanup EXIT INT TERM

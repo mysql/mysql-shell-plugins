@@ -14,8 +14,9 @@ Shell plugins, and a bundled MySQL Shell runtime.
   production build.
 - `gui/backend/gui_plugin`: Python GUI backend plugin copied into the bundled
   MySQL Shell tree.
-- `mds_plugin`, `mrs_plugin`, `msm_plugin`, `util_plugin`,
-  `migration_plugin`: additional plugins copied into packaged desktop builds.
+- `mds_plugin`, `mrs_plugin`, `msm_plugin`, `util_plugin`: additional plugins
+  copied into packaged desktop builds. The Migration Assistant backend is
+  included in `gui_plugin`.
 - `gui/electron/packaging/electron/<platform>`: unpacked Electron runtime cache.
 - `gui/electron/packaging/mysql-shell-staging/<platform>`: staged and stripped
   MySQL Shell tree cache.

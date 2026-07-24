@@ -56,7 +56,6 @@ const pluginNames = [
     "mrs_plugin",
     "msm_plugin",
     "util_plugin",
-    "migration_plugin",
 ];
 const desktopProductName = "MySQL Workbench";
 const desktopBundleStem = "MySQL Workbench";
@@ -94,7 +93,6 @@ const pluginSourceFolders = new Map([
     ["mrs_plugin", resolve(guiFolder, "..", "mrs_plugin")],
     ["msm_plugin", resolve(guiFolder, "..", "msm_plugin")],
     ["util_plugin", resolve(guiFolder, "..", "util_plugin")],
-    ["migration_plugin", resolve(guiFolder, "..", "migration_plugin")],
 ]);
 const packageJson = require(join(electronFolder, "package.json"));
 const desktopPackageVersion = packageJson.version;

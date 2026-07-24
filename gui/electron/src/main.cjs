@@ -434,7 +434,7 @@ const resolveMysqlShellBinary = () => {
 const buildApplicationData = () => {
     return {
         logPath: path.join(shellUserConfigDir, "mysqlsh.log"),
-        projectsPath: path.join(shellUserConfigDir, "plugin_data", "migration_plugin"),
+        projectsPath: path.join(shellUserConfigDir, "plugin_data", "gui_plugin", "migration"),
     };
 };
 

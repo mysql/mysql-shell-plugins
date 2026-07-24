@@ -43,7 +43,6 @@ const pluginSourceDirs = new Map([
     ["mrs_plugin", resolve(repoRoot, "mrs_plugin")],
     ["msm_plugin", resolve(repoRoot, "msm_plugin")],
     ["util_plugin", resolve(repoRoot, "util_plugin")],
-    ["migration_plugin", resolve(repoRoot, "migration_plugin")],
 ]);
 const rendererHost = process.env.ELECTRON_E2E_VITE_HOST ?? "127.0.0.1";
 const rendererPort = process.env.ELECTRON_E2E_VITE_PORT ?? "5174";

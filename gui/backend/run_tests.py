@@ -182,6 +182,9 @@ class MyPaths:
         self.runtime.plugins.gui_plugin = Path(
             os.path.join(self.runtime.plugins.root, "gui_plugin")
         )
+        self.runtime.plugins.mds_plugin = Path(
+            os.path.join(self.runtime.plugins.root, "mds_plugin")
+        )
         self.runtime.plugins.test_plugin = Path(
             os.path.join(self.runtime.plugins.root, "test_plugin")
         )
@@ -196,6 +199,7 @@ class MyPaths:
         self.source.root = Path(os.path.abspath(os.path.join(Path().cwd(), "..", "..")))
         self.source.backend = Path(os.path.join(self.source.root, "gui", "backend"))
         self.source.gui_plugin = Path(os.path.join(self.source.backend, "gui_plugin"))
+        self.source.mds_plugin = Path(os.path.join(self.source.root, "mds_plugin"))
         self.source.test_plugin = Path(
             os.path.join(
                 self.source.root, "gui", "backend", "tests", "data", "test_plugin"
@@ -228,6 +232,9 @@ class MyPaths:
         assert (
             self.runtime.plugins.gui_plugin.is_dir()
         ), "gui plugin dir not found: %s" % (self.runtime.plugins.gui_plugin)
+        assert (
+            self.runtime.plugins.mds_plugin.is_dir()
+        ), "MDS plugin dir not found: %s" % (self.runtime.plugins.mds_plugin)
         assert self.source.pytest_config.is_file(), "pytest config not found: %s" % (
             self.source.pytest_config
         )
@@ -264,6 +271,10 @@ if paths.runtime.plugins.gui_plugin.exists():
 if paths.runtime.plugins.test_plugin.exists():
     paths.runtime.plugins.test_plugin.unlink()
 
+# remove link to .mysqlsh/plugins/mds_plugin
+if paths.runtime.plugins.mds_plugin.exists():
+    paths.runtime.plugins.mds_plugin.unlink()
+
 # remove .mysqlsh/plugin_data/gui_plugin
 if paths.runtime.plugin_data.gui_plugin.exists():
     shutil.rmtree(paths.runtime.plugin_data.gui_plugin, ignore_errors=True)
@@ -271,7 +282,8 @@ if paths.runtime.plugin_data.gui_plugin.exists():
 # Create source code symlink into the runtime plugin dir (.mysqlsh/plugins/gui_plugin)
 create_symlink(paths.source.code, paths.runtime.plugins.gui_plugin, is_dir=True)
 
-# Create source code symlink into the runtime plugin dir (.mysqlsh/plugins/gui_plugin)
+# Create dependency and test plugin symlinks in the runtime plugin directory.
+create_symlink(paths.source.mds_plugin, paths.runtime.plugins.mds_plugin, is_dir=True)
 create_symlink(paths.source.test_plugin, paths.runtime.plugins.test_plugin, is_dir=True)
 
 # create a symlink of the code if it doesn't exist in the source code dir (and using portable code)
@@ -308,7 +320,8 @@ with pushd(paths.source.backend):
         env["ATTACH_DEBUGGER"] = args.debug
 
     coverage = "" if args.no_coverage else f"--cov={paths.source.code} --cov-append"
-    command = f"{paths.shell} --disable-builtin-plugins --pym pytest --color={COLOR} {coverage} -vvv -c {paths.source.pytest_config} {LOGS} {paths.source.backend} {PATTERN}"
+    migration_tests = paths.source.gui_plugin / "migration" / "tests"
+    command = f"{paths.shell} --disable-builtin-plugins --pym pytest --color={COLOR} {coverage} -vvv -c {paths.source.pytest_config} --ignore={migration_tests} {LOGS} {paths.source.backend} {PATTERN}"
     print(command)
     shell = subprocess.run(command, shell=True, env=env)
 

@@ -72,7 +72,7 @@ def test_plugin_command_mocks_are_disabled_by_default():
 
     assert (
         PluginCommandMocks.send_plugin_command_mock_response(
-            "migration.work_status", "request-1", MockWebSession()
+            "gui.migration.work_status", "request-1", MockWebSession()
         )
         is False
     )
@@ -81,12 +81,12 @@ def test_plugin_command_mocks_are_disabled_by_default():
 def test_plugin_command_mock_result_response(monkeypatch):
     enable_plugin_command_mocks(monkeypatch)
     PluginCommandMocks.set_plugin_command_mocks(
-        {"migration.work_status": {"result": {"state": "ok"}}}
+        {"gui.migration.work_status": {"result": {"state": "ok"}}}
     )
 
     web_session = MockWebSession()
     handled = PluginCommandMocks.send_plugin_command_mock_response(
-        "migration.work_status", "request-1", web_session
+        "gui.migration.work_status", "request-1", web_session
     )
 
     assert handled is True
@@ -101,7 +101,7 @@ def test_plugin_command_mock_raw_responses_rewrite_request_id(monkeypatch):
     enable_plugin_command_mocks(monkeypatch)
     PluginCommandMocks.set_plugin_command_mocks(
         {
-            "migration.work_status": {
+            "gui.migration.work_status": {
                 "responses": [
                     {
                         "request_state": {"type": "OK", "msg": ""},
@@ -115,7 +115,7 @@ def test_plugin_command_mock_raw_responses_rewrite_request_id(monkeypatch):
 
     web_session = MockWebSession()
     handled = PluginCommandMocks.send_plugin_command_mock_response(
-        "migration.work_status", "request-1", web_session
+        "gui.migration.work_status", "request-1", web_session
     )
 
     assert handled is True
@@ -133,7 +133,7 @@ def test_plugin_command_mock_sequence_and_repeat_last(monkeypatch):
     enable_plugin_command_mocks(monkeypatch)
     PluginCommandMocks.set_plugin_command_mocks(
         {
-            "migration.work_status": {
+            "gui.migration.work_status": {
                 "sequence": [{"result": 1}, {"result": 2}],
                 "repeatLast": False,
             }
@@ -143,19 +143,19 @@ def test_plugin_command_mock_sequence_and_repeat_last(monkeypatch):
     web_session = MockWebSession()
     assert (
         PluginCommandMocks.send_plugin_command_mock_response(
-            "migration.work_status", "request-1", web_session
+            "gui.migration.work_status", "request-1", web_session
         )
         is True
     )
     assert (
         PluginCommandMocks.send_plugin_command_mock_response(
-            "migration.work_status", "request-2", web_session
+            "gui.migration.work_status", "request-2", web_session
         )
         is True
     )
     assert (
         PluginCommandMocks.send_plugin_command_mock_response(
-            "migration.work_status", "request-3", web_session
+            "gui.migration.work_status", "request-3", web_session
         )
         is False
     )
@@ -179,7 +179,7 @@ def test_websocket_handler_sends_plugin_command_mock_without_invoking_plugin(
 ):
     enable_plugin_command_mocks(monkeypatch)
     PluginCommandMocks.set_plugin_command_mocks(
-        {"migration.work_status": {"responses": [{"request_state": {"type": "PENDING", "msg": ""}}]}}
+        {"gui.migration.work_status": {"responses": [{"request_state": {"type": "PENDING", "msg": ""}}]}}
     )
 
     handler = ShellGuiWebSocketHandler.__new__(ShellGuiWebSocketHandler)
@@ -191,7 +191,7 @@ def test_websocket_handler_sends_plugin_command_mock_without_invoking_plugin(
     handler.send_command_response = web_session.send_command_response
 
     handler.execute_command_request(
-        {"request_id": "request-1", "command": "migration.work_status"}
+        {"request_id": "request-1", "command": "gui.migration.work_status"}
     )
 
     assert web_session.json_responses == [
@@ -205,7 +205,7 @@ def test_stdio_bridge_sends_plugin_command_mock_without_invoking_plugin(monkeypa
     enable_plugin_command_mocks(monkeypatch)
     PluginCommandMocks.set_plugin_command_mocks(
         {
-            "migration.work_status": {
+            "gui.migration.work_status": {
                 "responses": [{"request_state": {"type": "PENDING", "msg": ""}}]
             }
         }
@@ -218,7 +218,7 @@ def test_stdio_bridge_sends_plugin_command_mock_without_invoking_plugin(monkeypa
     bridge.send_command_response = web_session.send_command_response
 
     bridge.execute_command_request(
-        {"request_id": "request-1", "command": "migration.work_status"}
+        {"request_id": "request-1", "command": "gui.migration.work_status"}
     )
 
     assert web_session.json_responses == [

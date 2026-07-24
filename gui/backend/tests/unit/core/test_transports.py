@@ -80,11 +80,12 @@ def _mysqlsh_command():
 
 def _desktop_bridge_env(tmp_path, log_level=None):
     env = os.environ.copy()
-    backend_root = str(_backend_root())
+    python_paths = [str(_backend_root()), str(_repo_root())]
     pythonpath = env.get("PYTHONPATH")
-    env["PYTHONPATH"] = (
-        backend_root if not pythonpath else os.pathsep.join([backend_root, pythonpath])
-    )
+    if pythonpath:
+        python_paths.append(pythonpath)
+
+    env["PYTHONPATH"] = os.pathsep.join(python_paths)
     env["MYSQLSH_USER_CONFIG_HOME"] = str(tmp_path / "mysqlsh-home")
     Path(env["MYSQLSH_USER_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
 
@@ -550,6 +551,48 @@ def test_stdio_transport_execute_bypasses_backend_command_privileges(monkeypatch
 
     assert len(started_requests) == 1
     assert started_requests[0].request_id == "stdio-bypass"
+
+
+def test_stdio_transport_resolves_migration_commands(monkeypatch):
+    started_requests = []
+
+    class FakeRequestHandler:
+        def __init__(self, request_id, func, kwargs, web_handler, lock_session=False):
+            self.request_id = request_id
+            self.func = func
+            self.kwargs = kwargs
+            self.web_handler = web_handler
+            self.lock_session = lock_session
+
+        def run(self):
+            return None
+
+        def start(self):
+            started_requests.append(self)
+
+    monkeypatch.setattr(StdioBridgeModule, "RequestHandler", FakeRequestHandler)
+    monkeypatch.setattr(logger, "debug2", lambda *_args, **_kwargs: None)
+
+    bridge = ShellGuiStdioBridge(stdin=io.StringIO(""), stdout=io.StringIO())
+    commands = sorted(
+        command
+        for command in bridge._web_functions
+        if command.startswith("gui.migration.")
+    )
+
+    assert commands
+
+    for index, command in enumerate(commands):
+        bridge.execute_command_request(
+            {
+                "request": "execute",
+                "request_id": f"migration-{index}",
+                "command": command,
+            }
+        )
+
+        assert len(started_requests) == index + 1, command
+        assert started_requests[-1].func.__name__ == command.rsplit(".", 1)[-1]
 
 
 def test_stdio_transport_execute_injects_local_profile(monkeypatch):

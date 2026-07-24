@@ -46,10 +46,6 @@
             "path": "msm_plugin"
         },
         {
-            "name": "Migration Plugin",
-            "path": "migration_plugin"
-        },
-        {
             "name": "Shell Plugin Tools",
             "path": "gui/tools"
         },
@@ -94,7 +90,6 @@
         "files.exclude": {
             "gui": true,
             "mds_plugin": true,
-            "migration_plugin": true,
             "mrs_plugin": true,
             "msm_plugin": true,
             "MySQLShellPluginDevelopment.code-workspace": true,

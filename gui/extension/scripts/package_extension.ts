@@ -66,7 +66,6 @@ const mdsPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins"
 const msmPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "msm_plugin");
 const guiPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "gui_plugin");
 const utilPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "util_plugin");
-const migrationPluginPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "migration_plugin");
 const webRootPath = join(extensionFolder, "shell", "lib", "mysqlsh", "plugins", "gui_plugin", "core", "webroot");
 
 // extra directories containing debug-only features that should not be part of the final package
@@ -145,11 +144,6 @@ Logger.done();
 Logger.info("Adding UTIL plugin...");
 rmSync(utilPluginPath, { recursive: true, force: true });
 cpSync(join(shellPluginsFolder, "util_plugin"), utilPluginPath, { recursive: true });
-Logger.done();
-
-Logger.info("Adding MIGRATION plugin...");
-rmSync(migrationPluginPath, { recursive: true, force: true });
-cpSync(join(shellPluginsFolder, "migration_plugin"), migrationPluginPath, { recursive: true });
 Logger.done();
 
 Logger.info("Adding GUI plugin (BE)...");

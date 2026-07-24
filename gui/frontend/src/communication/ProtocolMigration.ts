@@ -25,47 +25,48 @@
 
 import { IShellDictionary } from "./Protocol.js";
 
-/* eslint-disable max-len */
+/* eslint-disable max-len, @typescript-eslint/naming-convention, @stylistic/quotes, @stylistic/no-multiple-empty-lines */
+
 
 export enum ShellAPIMigration {
-    /** Starts the work step */
-    MigrationWorkStart = "migration.work_start",
-    /** Aborts the work step */
-    MigrationWorkAbort = "migration.work_abort",
-    /** Deletes OCI resources created for the migration. */
-    MigrationWorkClean = "migration.work_clean",
-    /** Retrieves the status of the work step */
-    MigrationWorkStatus = "migration.work_status",
-    /** Retries the work step */
-    MigrationWorkRetry = "migration.work_retry",
-    /** Skips transactions on the work step */
-    MigrationSkipTransactions = "migration.skip_transactions",
-    /** Fetch logs for the given step or the log file. */
-    MigrationFetchLogs = "migration.fetch_logs",
     /** Returns basic information about this plugin. */
-    MigrationInfo = "migration.info",
+    MigrationInfo = "gui.migration.info",
     /** Returns the version number of the plugin */
-    MigrationVersion = "migration.version",
+    MigrationVersion = "gui.migration.version",
+    /** Starts the work step */
+    MigrationWorkStart = "gui.migration.work_start",
+    /** Aborts the work step */
+    MigrationWorkAbort = "gui.migration.work_abort",
+    /** Deletes OCI resources created for the migration. */
+    MigrationWorkClean = "gui.migration.work_clean",
+    /** Retrieves the status of the work step */
+    MigrationWorkStatus = "gui.migration.work_status",
+    /** Retries the work step */
+    MigrationWorkRetry = "gui.migration.work_retry",
+    /** Skips transactions on the work step */
+    MigrationSkipTransactions = "gui.migration.skip_transactions",
+    /** Fetch logs for the given step or the log file. */
+    MigrationFetchLogs = "gui.migration.fetch_logs",
     /** Update migration plan sub-step with user input. */
-    MigrationPlanUpdate = "migration.plan_update",
+    MigrationPlanUpdate = "gui.migration.plan_update",
     /** Get additional data for frontend use. */
-    MigrationPlanGetDataItem = "migration.plan_get_data_item",
+    MigrationPlanGetDataItem = "gui.migration.plan_get_data_item",
     /** Fetch and/or update migration plan sub-step with user input. */
-    MigrationPlanUpdateSubStep = "migration.plan_update_sub_step",
+    MigrationPlanUpdateSubStep = "gui.migration.plan_update_sub_step",
     /** Commit changes to the given sub-step and performs checks. Call before switching from a sub-step to the next one. */
-    MigrationPlanCommit = "migration.plan_commit",
+    MigrationPlanCommit = "gui.migration.plan_commit",
     /** Call to Sign In to OCI, create a session and bootstrap a OCI profile. If signing-in, region must have been already picked in the OCIProfile sub-step. */
-    MigrationOciSignIn = "migration.oci_sign_in",
+    MigrationOciSignIn = "gui.migration.oci_sign_in",
     /** Returns the list of migration steps */
-    MigrationGetSteps = "migration.get_steps",
+    MigrationGetSteps = "gui.migration.get_steps",
     /** Returns the migration plan status for a new migration project */
-    MigrationNewProject = "migration.new_project",
+    MigrationNewProject = "gui.migration.new_project",
     /** Returns the migration plan status for an existing migration project */
-    MigrationOpenProject = "migration.open_project",
+    MigrationOpenProject = "gui.migration.open_project",
     /** Closes an existing migration project */
-    MigrationCloseProject = "migration.close_project",
+    MigrationCloseProject = "gui.migration.close_project",
     /** Returns the existing migration projects */
-    MigrationListProjects = "migration.list_projects"
+    MigrationListProjects = "gui.migration.list_projects"
 }
 
 export enum WorkStatus {
@@ -497,6 +498,8 @@ export interface IProjectData {
 }
 
 export interface IProtocolMigrationParameters {
+    [ShellAPIMigration.MigrationInfo]: {};
+    [ShellAPIMigration.MigrationVersion]: {};
     [ShellAPIMigration.MigrationWorkStart]: {};
     [ShellAPIMigration.MigrationWorkAbort]: {};
     [ShellAPIMigration.MigrationWorkClean]: { args: { options: { }; }; };
@@ -504,8 +507,6 @@ export interface IProtocolMigrationParameters {
     [ShellAPIMigration.MigrationWorkRetry]: {};
     [ShellAPIMigration.MigrationSkipTransactions]: { args: { gtids: string; }; };
     [ShellAPIMigration.MigrationFetchLogs]: { args: { subStepId?: SubStepId | null; offset?: number; }; };
-    [ShellAPIMigration.MigrationInfo]: {};
-    [ShellAPIMigration.MigrationVersion]: {};
     [ShellAPIMigration.MigrationPlanUpdate]: { args: { configs: IShellDictionary[]; }; };
     [ShellAPIMigration.MigrationPlanGetDataItem]: { args: { what: PlanDataItemType; detail: string; }; };
     [ShellAPIMigration.MigrationPlanUpdateSubStep]: { args: { subStepId: SubStepId; configs: { }; }; };
@@ -523,6 +524,8 @@ export interface IProtocolMigrationParameters {
 export type MigrationVersion = [number, number, number];
 
 export interface IProtocolMigrationResults {
+    [ShellAPIMigration.MigrationInfo]: { result: string; };
+    [ShellAPIMigration.MigrationVersion]: { result: string; };
     [ShellAPIMigration.MigrationWorkStart]: { result: IWorkStatusInfo; };
     [ShellAPIMigration.MigrationWorkAbort]: {};
     [ShellAPIMigration.MigrationWorkClean]: {};
@@ -530,8 +533,6 @@ export interface IProtocolMigrationResults {
     [ShellAPIMigration.MigrationWorkRetry]: {};
     [ShellAPIMigration.MigrationSkipTransactions]: {};
     [ShellAPIMigration.MigrationFetchLogs]: { result: ILogInfo; };
-    [ShellAPIMigration.MigrationInfo]: { result: string; };
-    [ShellAPIMigration.MigrationVersion]: { result: string; };
     [ShellAPIMigration.MigrationPlanUpdate]: { result: IMigrationPlanState[]; };
     [ShellAPIMigration.MigrationPlanGetDataItem]: { result: ISchemaObjects | ISchemaTables; };
     [ShellAPIMigration.MigrationPlanUpdateSubStep]: { result: IMigrationPlanState; };

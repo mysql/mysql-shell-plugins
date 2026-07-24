@@ -33,7 +33,7 @@ PATHS_TO_FIX = [
     os.path.join(ROOT_PATH, "gui", "backend", "readme.md"),
     os.path.join(ROOT_PATH, "mds_plugin", "readme.md"),
     os.path.join(ROOT_PATH, "mrs_plugin", "readme.md"),
-    os.path.join(ROOT_PATH, "migration_plugin", "readme.md"),
+    os.path.join(ROOT_PATH, "gui", "backend", "gui_plugin", "migration", "README.md"),
     os.path.join(ROOT_PATH, "msm_plugin", "readme.md"),
     os.path.join(ROOT_PATH, "README.md"),
     os.path.join(ROOT_PATH, "gui", "frontend", "src", "app-logic", "App.css"),

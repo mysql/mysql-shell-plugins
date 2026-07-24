@@ -52,9 +52,11 @@ class gui:
         automatically register all decorated functions in the sub-modules
         """
         # Import all sub-modules to register the decorated functions there
-        from gui_plugin import cluster, core, db_connections, mds, modeler
+        from gui_plugin import cluster, core, db_connections, mds, migration, modeler
         from gui_plugin import shell, sql_editor, users, start
         from gui_plugin import modules, db, general
+
+        migration.register()
 
         if DEBUG_MODE:
             from gui_plugin import debugger
@@ -99,6 +101,13 @@ class gui:
 
         This extension object holds the backend implementation of the
         MySQL Database Service MySQL Shell GUI module
+        """
+
+    class migration:
+        """The Migration Assistant MySQL Shell GUI backend module
+
+        This extension object holds the backend implementation of the
+        Migration Assistant module
         """
 
     class shell:

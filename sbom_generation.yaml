@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 
 # This OCI DevOps build specification file [1] generates a Software Bill of Materials (SBOM) of the repository.
 # The file is needed to run checks for third-party vulnerabilities and business approval according to Oracle’s GitHub policies.
@@ -93,13 +93,13 @@ steps:
          cdxgen -t python -o artifactSBOM.json --spec-version 1.4 --project-name $plugin --project-version $id --no-recurse
       fi ) \
   - type: Command
-    name: "Generate SBOM for migration_plugin"
+    name: "Generate SBOM for gui_plugin migration backend"
     command: |
       # Search the test or dev requirements files, so that test and dev py packages can be excluded in the generated SBOM
-      plugin=migration_plugin && \
+      plugin=gui_plugin_migration && \
       # Get the version
       version=$(cat VERSION | cut -d'=' -f2) && \
-      ( cd $plugin && \
+      ( cd gui/backend/gui_plugin/migration && \
       files=$(find . -type f -regex ".*\(test.*requirements\|requirements.*test\|dev.*requirements\|requirements.*dev\).*\.txt") && \
       if [ -n "$files" ]; then \
         cdxgen -t python -o artifactSBOM.json --spec-version 1.4 \
@@ -128,7 +128,7 @@ steps:
     command: |
       # For more details, visit https://github.com/CycloneDX/cyclonedx-cli/blob/main/README.md
       chmod +x cyclonedx-linux-x64
-      ./cyclonedx-linux-x64 merge --input-files ./mds_plugin/artifactSBOM.json ./mrs_plugin/artifactSBOM.json ./gui/backend/artifactSBOM.json ./gui/frontend/artifactSBOM.json ./gui/extension/artifactSBOM.json --output-file artifactSBOM.json
+      ./cyclonedx-linux-x64 merge --input-files ./mds_plugin/artifactSBOM.json ./mrs_plugin/artifactSBOM.json ./gui/backend/artifactSBOM.json ./gui/backend/gui_plugin/migration/artifactSBOM.json ./gui/frontend/artifactSBOM.json ./gui/extension/artifactSBOM.json --output-file artifactSBOM.json
 
 outputArtifacts:
   - name: artifactSBOM

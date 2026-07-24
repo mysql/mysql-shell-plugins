@@ -61,6 +61,9 @@ PROPERTIES
       mds
             The MySQL Database Service MySQL Shell GUI backend module
 
+      migration
+            The Migration Assistant MySQL Shell GUI backend module
+
       modeler
             The Modeler MySQL Shell GUI backend module
 

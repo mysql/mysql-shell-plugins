@@ -344,14 +344,14 @@ export const setMigrationMockStatus = async (page: Page, status: MigrationMockSt
     };
     const inProgressResponse = mockResponse("response_work_status_in_progress.json");
     const rules: PluginCommandMockRules = {
-        "migration.work_start": status === MigrationMockStatus.Aborted
+        "gui.migration.work_start": status === MigrationMockStatus.Aborted
             ? inProgressResponse
             : statusResponses[status],
-        "migration.work_status": statusResponses[status],
+        "gui.migration.work_status": statusResponses[status],
     };
 
     if (status === MigrationMockStatus.Aborted) {
-        rules["migration.work_abort"] = statusResponses[MigrationMockStatus.Aborted];
+        rules["gui.migration.work_abort"] = statusResponses[MigrationMockStatus.Aborted];
     }
 
     await sendPluginCommandMocks(page, rules);

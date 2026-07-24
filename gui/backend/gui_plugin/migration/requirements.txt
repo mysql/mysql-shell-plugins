@@ -1,0 +1,11 @@
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
+
+# Run the following command to install the dependencies in the local MySQL Shell
+# mysqlsh --pym pip install -r gui/backend/gui_plugin/migration/requirements.txt
+
+pytest >= 6.1.2, <= 7.0
+pytest-cov >= 2.10.1
+pytest-mock
+pyright
+paramiko >= 4.0.0
+PyYAML >= 6.0.2

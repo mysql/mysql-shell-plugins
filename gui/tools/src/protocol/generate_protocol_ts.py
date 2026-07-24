@@ -945,8 +945,15 @@ class TypeScriptFunction:
 
         # Creates name for the Shell API from fully qualified name
         # example: "gui.core.listRoles" -> "GuiCoreListRoles"
+        ts_name_parts = full_name.split(".")
+        if self._plugin_name == "Migration" and ts_name_parts[:2] == [
+            "gui",
+            "migration",
+        ]:
+            ts_name_parts = ts_name_parts[1:]
+
         self._ts_fully_qualified_name = "".join(
-            [x[0].upper() + x[1:] for x in full_name.split(".")]
+            [x[0].upper() + x[1:] for x in ts_name_parts]
         )
 
         # Creates proper name for BE function from fully qualified name
@@ -1118,7 +1125,10 @@ def add_to_protocol_ts(definition: registrar.PluginRegistrar.FunctionData) -> No
     # Get the plugin name by stripping the function name
     name_path = definition.fully_qualified_name.split(".")
     # base_name = ".".join(name_path[0:-1])
-    plugin_name = f"{name_path[0][0].upper()}{name_path[0][1:]}"
+    if name_path[:2] == ["gui", "migration"]:
+        plugin_name = "Migration"
+    else:
+        plugin_name = f"{name_path[0][0].upper()}{name_path[0][1:]}"
 
     base_plugin_path = Path(__file__).resolve(strict=True).parents[3].as_posix()
 

@@ -249,7 +249,6 @@ PLUGIN_PATHS=(
     "$ELECTRON_DIR/../../mrs_plugin"
     "$ELECTRON_DIR/../../msm_plugin"
     "$ELECTRON_DIR/../../util_plugin"
-    "$ELECTRON_DIR/../../migration_plugin"
 )
 
 if [ "$QUICK_MODE" -ne 1 ]; then

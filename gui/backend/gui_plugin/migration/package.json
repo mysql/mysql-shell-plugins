@@ -1,0 +1,11 @@
+{
+    "name": "gui-migration-backend",
+    "version": "1.0.0",
+    "description": "Migration Assistant backend module for the MySQL Shell GUI plugin",
+    "scripts": {
+        "run-pytest": "clear;mysqlsh --disable-builtin-plugins --log-level=debug3 --verbose=4 --py -f run_tests.py",
+        "static-check": "./scripts/build.sh"
+    },
+    "publisher": "Oracle",
+    "devDependencies": {}
+}

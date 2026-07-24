@@ -43,6 +43,7 @@ GUI_SUBMODULES = {
     "db",
     "general",
     "debugger",
+    "migration",
 }
 
 
@@ -50,6 +51,7 @@ class RecordingGuiPluginPackage(ModuleType):
     def __init__(self) -> None:
         super().__init__("gui_plugin")
         self.loaded_submodules: list[str] = []
+        self.registered_submodules: list[str] = []
 
     def __getattr__(self, name: str) -> ModuleType:
         if name not in GUI_SUBMODULES:
@@ -57,6 +59,8 @@ class RecordingGuiPluginPackage(ModuleType):
 
         self.loaded_submodules.append(name)
         module = ModuleType(f"gui_plugin.{name}")
+        if name == "migration":
+            module.register = lambda: self.registered_submodules.append(name)
         setattr(self, name, module)
         return module
 
@@ -113,3 +117,11 @@ def test_debugger_is_not_loaded_without_debug_mode(
     assert module.DEBUG_MODE == 0
     assert not hasattr(module.gui, "debugger")
     assert "debugger" not in gui_plugin.loaded_submodules
+
+
+def test_migration_is_loaded_as_gui_module(monkeypatch: pytest.MonkeyPatch) -> None:
+    module, gui_plugin = _load_init(monkeypatch, "0")
+
+    assert hasattr(module.gui, "migration")
+    assert "migration" in gui_plugin.loaded_submodules
+    assert "migration" in gui_plugin.registered_submodules
