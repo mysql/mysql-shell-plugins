@@ -93,6 +93,11 @@ arg_parser.add_argument(
     ),
     help="Path to MySQL Shell binary",
 )
+arg_parser.add_argument(
+    "--mrs-component",
+    action="store_true",
+    help="Run MRS component end-to-end tests",
+)
 arg_parser.add_argument("-v", "--verbose", required=False, help="Enable verbose mode")
 arg_parser.add_argument(
     "-u",
@@ -256,6 +261,7 @@ LOGS = ""
 PATTERN = ""
 MYSQLSH_FLAGS = args.mysqlsh or ""
 EXTRA_OPTIONS = ""
+COMPONENT_OPTIONS = ""
 # Enables verbose execution
 if args.verbose is not None or args.debug is not None:
     LOGS = "-sv"
@@ -263,6 +269,13 @@ if args.verbose is not None or args.debug is not None:
 
 if args.only is not None:
     PATTERN = f"-k {args.only}"
+
+if args.mrs_component:
+    COMPONENT_OPTIONS = "--mrs-component"
+    print(
+        f"[component-e2e] MySQL Shell binary: {paths.shell.resolve()}",
+        flush=True,
+    )
 
 with pushd(paths.source.plugin):
     env = os.environ.copy()
@@ -273,7 +286,7 @@ with pushd(paths.source.plugin):
     if args.debug is not None:
         env["ATTACH_DEBUGGER"] = args.debug
 
-    command = f"{paths.shell} {MYSQLSH_FLAGS} --pym pytest {args.pytest or ''} --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN} {" ".join(other_arguments)}"
+    command = f"{paths.shell} {MYSQLSH_FLAGS} --pym pytest {args.pytest or ''} {COMPONENT_OPTIONS} --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN} {" ".join(other_arguments)}"
     print(f"Test run command: {command}")
     shell = subprocess.run(command, shell=True, env=env)
 
