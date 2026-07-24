@@ -175,7 +175,33 @@ const assertMigrationPlanStepsPassed = async (migrationAssistant: MigrationAssis
     }
 };
 
+const waitForMigrationPlanTileStepsPassed = async (
+    migrationAssistant: MigrationAssistant,
+): Promise<void> => {
+    await expect.poll(async () => {
+        const actualTiles = await migrationAssistant.getTiles();
+        const migrationPlanTile = actualTiles.find((tile) => {
+            return tile.name === "Migration Plan";
+        });
+
+        if (!migrationPlanTile) {
+            return ["Migration Plan tile is missing"];
+        }
+
+        return migrationPlanTile.subSteps.filter((step) => {
+            return step.status !== TileStepStatus.Passed;
+        }).map((step) => {
+            return `${step.name}: ${step.status}`;
+        });
+    }, {
+        timeout: 30000,
+        message: "Migration Plan tile steps should be passed",
+    }).toEqual([]);
+};
+
 const assertTilesForActiveMigration = async (migrationAssistant: MigrationAssistant, status: TileStepStatus): Promise<void> => {
+    await waitForMigrationPlanTileStepsPassed(migrationAssistant);
+
     const actualTiles = await migrationAssistant.getTiles();
     expect(actualTiles.length).toBe(5);
 
@@ -330,16 +356,19 @@ test.describe("Migration Assistant", () => {
 
             await migrationAssistant.setOnPremisePublicCidrBlock("");
             await migrationAssistant.next();
+            await migrationAssistant.waitForLoadingIcon();
             await migrationAssistant.waitUntilStepIs({ caption: targetSelection, isExpanded: true }, 5000);
             await expect(migrationAssistant.onPremisePublicCidrBlockErrors()).toContainText("Required value missing");
 
             await migrationAssistant.setOnPremisePublicCidrBlock("2001:db8::1/128");
             await migrationAssistant.next();
+            await migrationAssistant.waitForLoadingIcon();
             await migrationAssistant.waitUntilStepIs({ caption: targetSelection, isExpanded: true }, 5000);
             await expect(migrationAssistant.onPremisePublicCidrBlockErrors()).toContainText("Invalid IPv4 CIDR block");
 
             await migrationAssistant.setOnPremisePublicCidrBlock("0.0.0.0/0");
             await migrationAssistant.next();
+            await migrationAssistant.waitForLoadingIcon();
             await migrationAssistant.waitUntilStepIs({ caption: targetSelection, isExpanded: false }, 90000);
             await migrationAssistant.waitUntilStepIs({ caption: "Migration Type", isExpanded: true }, 90000);
         });
@@ -476,6 +505,8 @@ test.describe("Migration Assistant", () => {
         }, { timeout: 30000, message: "'Finalize' should be the current header" }).toBe(true);
 
         await migrationAssistant.dismissNotifications();
+        await waitForMigrationPlanTileStepsPassed(migrationAssistant);
+
         const actualTiles = await migrationAssistant.getTiles();
         expect(actualTiles.length).toBe(5);
         for (const tile of actualTiles) {
@@ -483,11 +514,11 @@ test.describe("Migration Assistant", () => {
             for (const step of tile.subSteps) {
                 expect(tiles.get(tile.name!)).toContain(step.name);
                 if (step.name === "Database Ready") {
-                    expect(step.status).toBe(TileStepStatus.Current);
+                    expect(step.status, `Expected ${step.name}`).toBe(TileStepStatus.Current);
                 } else if (step.name === "Enable High Availability" || step.name === "Check Connectivity") {
-                    expect(step.status).toBe(TileStepStatus.NotStarted);
+                    expect(step.status, `Expected ${step.name}`).toBe(TileStepStatus.NotStarted);
                 } else {
-                    expect(step.status).toBe(TileStepStatus.Passed);
+                    expect(step.status, `Expected ${step.name}`).toBe(TileStepStatus.Passed);
                 }
             }
         }

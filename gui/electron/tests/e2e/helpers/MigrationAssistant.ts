@@ -525,6 +525,8 @@ export class MigrationAssistant {
             throw new Error(`Target Selection did not advance to Migration Type. ` +
                 `State: ${JSON.stringify(await this.getTargetSelectionDebugState())}`, { cause: error });
         }
+
+        await this.waitForLoadingIcon();
     }
 
     public async setCreateNewNetworkTargetOptions(): Promise<boolean> {

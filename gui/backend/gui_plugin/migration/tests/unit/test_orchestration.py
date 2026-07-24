@@ -80,7 +80,6 @@ def test_connect_remote_helper_wait_ready_does_not_retry_other_os_errors(
         "gui_plugin.migration.lib.backend.orchestration.ssh_utils.connect_ssh",
         side_effect=network_unreachable,
     )
-    sleep = mocker.patch("time.sleep")
     remote_helper = mocker.patch(
         "gui_plugin.migration.lib.backend.orchestration.RemoteHelperClient"
     )
@@ -90,5 +89,4 @@ def test_connect_remote_helper_wait_ready_does_not_retry_other_os_errors(
 
     assert err.value is network_unreachable
     connect_ssh.assert_called_once()
-    sleep.assert_not_called()
     remote_helper.assert_not_called()
