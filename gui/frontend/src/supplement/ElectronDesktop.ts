@@ -28,6 +28,7 @@ import type { IEmbeddedMessage } from "../communication/index.js";
 export interface IElectronNativeMenuItem {
     id: string;
     label?: string;
+    accelerator?: string;
     enabled?: boolean;
     checked?: boolean;
     submenu?: IElectronNativeMenuItem[];

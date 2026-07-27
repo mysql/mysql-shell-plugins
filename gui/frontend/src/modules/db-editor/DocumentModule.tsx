@@ -146,6 +146,12 @@ const CommunicationDebugger = lazy(async () => {
     return import("../../components/CommunicationDebugger/CommunicationDebugger.js");
 });
 
+const desktopRunAccelerators = {
+    execute: "CmdOrCtrl+Enter",
+    executeCurrent: "Shift+CmdOrCtrl+Enter",
+    executeAsText: "Alt+Enter",
+} as const;
+
 /**
  * Details generated while adding a new connection workspace. These are used in the render method to fill the
  * workspace page details.
@@ -2157,6 +2163,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const stopTooltip = isStopping
             ? "Stopping execution..."
             : "Stop execution of the current statement/script";
+
         return (
             <Container
                 id="desktopWorkspaceTitlebarActions"
@@ -2217,6 +2224,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteItem"
                                         command={{ title: "Run Script", command: "run.execute" }}
+                                        accelerator={desktopRunAccelerators.execute}
                                         title="Execute the selected script"
                                         icon={Assets.toolbar.executeIcon}
                                         disabled={!desktopRunState.canExecute}
@@ -2226,6 +2234,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteCurrentItem"
                                         command={{ title: "Run Current Statement", command: "run.executeCurrent" }}
+                                        accelerator={desktopRunAccelerators.executeCurrent}
                                         title="Execute the statement at the caret position"
                                         icon={Assets.toolbar.executeCaretIcon}
                                         disabled={!desktopRunState.canExecute}
@@ -2235,6 +2244,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                                     <MenuItem
                                         id="desktopTitlebarRunExecuteAsTextItem"
                                         command={{ title: "Run (Results as Text)", command: "run.executeAsText" }}
+                                        accelerator={desktopRunAccelerators.executeAsText}
                                         title={`Execute the ${area} and print the result as text`}
                                         icon={Assets.toolbar.executePrintTextIcon}
                                         disabled={!desktopRunState.canExecute}
@@ -6089,21 +6099,21 @@ EXAMPLES
             id: "run.execute",
             label: "Execute",
             enabled: !isOfflineWorkspace && (desktopRunState?.canExecute ?? false),
-            accelerator: "CmdOrCtrl+Enter",
+            accelerator: desktopRunAccelerators.execute,
         }, {
             id: "run.executeCurrent",
             label: "Execute One",
             enabled: !isOfflineWorkspace
                 && (desktopRunState?.canExecute ?? false)
                 && (desktopRunState?.canExecuteSubparts ?? false),
-            accelerator: "Shift+CmdOrCtrl+Enter",
+            accelerator: desktopRunAccelerators.executeCurrent,
         }, {
             id: "run.executeAsText",
             label: "Execute with Results as Text",
             enabled: !isOfflineWorkspace
                 && (desktopRunState?.canExecute ?? false)
                 && (desktopRunState?.canExecuteSubparts ?? false),
-            accelerator: "Alt+Enter",
+            accelerator: desktopRunAccelerators.executeAsText,
         }, {
             id: "run.explain",
             label: "Explain",

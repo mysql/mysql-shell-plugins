@@ -32,6 +32,7 @@ const buildNativeMenuTemplate = (items, onSelect) => {
         const menuItem = {
             label: item.label ?? "",
             enabled: item.enabled ?? true,
+            accelerator: item.accelerator,
         };
 
         if (Array.isArray(item.submenu) && item.submenu.length > 0) {

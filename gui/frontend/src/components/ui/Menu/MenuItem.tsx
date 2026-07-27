@@ -44,6 +44,7 @@ export interface IMenuItemProperties extends Omit<IComponentProperties, "onClick
     altCommand?: Command;
 
     icon?: string | Codicon;
+    accelerator?: string;
     checked?: boolean;
     active?: boolean;
     subMenuPlacement?: ComponentPlacement;
@@ -85,12 +86,15 @@ export class MenuItem extends ComponentBase<IMenuItemProperties, IMenuItemState>
 
         this.itemRef = props.innerRef ?? createRef<HTMLDivElement>();
 
-        this.addHandledProperties("caption", "icon", "checked", "active", "subMenuPlacement", "onSubMenuClose",
+        this.addHandledProperties(
+            "caption", "icon", "accelerator", "checked", "active", "subMenuPlacement", "onSubMenuClose",
             "onSubMenuOpen", "subMenuShowOnClick", "innerRef", "title");
     }
 
     public render(): ComponentChild {
-        const { children, id, command, altCommand, icon, checked, disabled, active, subMenuPlacement, title } = this.props;
+        const {
+            children, id, command, altCommand, icon, checked, disabled, active, subMenuPlacement, title,
+        } = this.props;
         const { altActive } = this.state;
 
         const isSeparator = command.title === "-";

@@ -592,6 +592,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                 enabled: !disabled,
                 type: "normal",
                 checked: child.props.checked,
+                accelerator: child.props.accelerator,
             };
         });
     };

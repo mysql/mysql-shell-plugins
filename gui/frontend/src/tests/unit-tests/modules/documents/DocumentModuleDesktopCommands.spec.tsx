@@ -2560,8 +2560,12 @@ describe("Document module desktop commands", () => {
             x: undefined,
             y: undefined,
             items: expect.arrayContaining([
-                expect.objectContaining({ label: "Run Current Statement" }),
-                expect.objectContaining({ label: "Run (Results as Text)" }),
+                expect.objectContaining({ label: "Run Script", accelerator: "CmdOrCtrl+Enter" }),
+                expect.objectContaining({
+                    label: "Run Current Statement",
+                    accelerator: "Shift+CmdOrCtrl+Enter",
+                }),
+                expect.objectContaining({ label: "Run (Results as Text)", accelerator: "Alt+Enter" }),
                 expect.objectContaining({ label: "Explain" }),
                 expect.objectContaining({ label: "Explain Analyze" }),
                 expect.objectContaining({ label: "Visual Explain" }),
