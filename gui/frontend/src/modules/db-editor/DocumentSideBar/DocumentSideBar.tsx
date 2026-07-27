@@ -640,7 +640,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         title: "Refresh Schemas",
                     },
                 }],
-                content: this.renderSchemasTree(schemaTreeItems),
+                content: this.renderSchemasTree(schemaTreeItems,
+                    `${activeWorkspaceConnection?.id ?? ""}:${schemaSearchValues.value ?? ""}`),
             });
         }
 
@@ -937,7 +938,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         } catch (error) {
             void ui.showErrorMessage(convertErrorToString(error), {});
         } finally {
-            this.forceUpdate();
+            await this.replaceWorkspaceSchemasTreeData();
         }
     };
 
@@ -948,8 +949,24 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const filterValue = this.state.schemaSearchValues.value ?? "";
         if (refreshed && filterValue.trim().length > 0) {
             await this.loadSchemaSearchData(connection);
+        } else {
+            await this.replaceWorkspaceSchemasTreeData();
         }
     };
+
+    private async replaceWorkspaceSchemasTreeData(): Promise<void> {
+        const connection = this.getActiveWorkspaceConnectionEntry();
+        const table = this.schemasTableRef.current;
+        if (!connection || !table) {
+            this.forceUpdate();
+
+            return;
+        }
+
+        const filterValue = this.state.schemaSearchValues.value ?? "";
+        await table.setData(this.getSchemasTreeItems(connection, filterValue), SetDataAction.Replace);
+        this.restoreSelectedSchemaTreeRow();
+    }
 
     private reformatMarkedSchemaRows = (
         tableRef: RefObject<TreeGrid>,
@@ -1290,14 +1307,18 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         });
     };
 
-    private renderSchemasTree = (items: IConnectionTreeItem[]): ComponentChild => {
+    private renderSchemasTree = (items: IConnectionTreeItem[], dataKey: string): ComponentChild => {
         const { schemaSearchValues } = this.state;
         const filterValue = schemaSearchValues.value ?? "";
         const columns = this.getConnectionWorkspaceTreeColumns();
-        const options = this.getConnectionWorkspaceTreeOptions();
+        const options = {
+            ...this.getConnectionWorkspaceTreeOptions(),
+            updateDataOnComponentUpdate: false,
+        };
         const treeContent = items.length === 0
             ? <Accordion.Item caption="no schemas available" />
             : <TreeGrid
+                key={dataKey}
                 ref={this.schemasTableRef}
                 className="schemasSectionTree"
                 columns={columns}
@@ -1381,6 +1402,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         if (!entry.dataModelEntry.state.isLeaf && !entry.dataModelEntry.state.expandedOnce) {
             entry.dataModelEntry.state.expandedOnce = true;
             await this.refreshConnectionEntry(entry.dataModelEntry, sectionRef);
+            if (sectionRef === this.schemasSectionRef && this.isElectronConnectionSidebar()) {
+                await this.replaceWorkspaceSchemasTreeData();
+            }
         } else {
             this.forceUpdate();
         }
@@ -4450,6 +4474,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         if (this.isElectronConnectionSidebar()) {
             await this.refreshWorkspaceConnectionTreeEntryChildren(entry, needRefresh, recursive);
+            if (this.getWorkspaceConnectionSectionRef(entry) === this.schemasSectionRef) {
+                await this.replaceWorkspaceSchemasTreeData();
+            }
 
             return;
         }

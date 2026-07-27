@@ -28,6 +28,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     CdmEntityType, type ICdmConnectionEntry, type ICdmConnectionGroupEntry,
 } from "../../../../data-models/ConnectionDataModel.js";
+import { SetDataAction } from "../../../../components/ui/TreeGrid/TreeGrid.js";
 import { DocumentSideBar } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
@@ -56,8 +57,15 @@ describe("DocumentSideBar", () => {
 
     interface ITestDocumentSideBar {
         buildHomeConnectionTreeItem(entry: ICdmConnectionEntry | ICdmConnectionGroupEntry): IConnectionTreeItemTestData;
+        buildWorkspaceConnectionTreeItem(entry: Record<string, unknown>): IConnectionTreeItemTestData;
         handleConnectionTreeRowExpanded(row: RowComponentMock): void;
+        handleSchemasTreeRowExpanded(row: RowComponentMock): void;
         handleSectionExpand(props: unknown, sectionId: string, expanded: boolean): void;
+        schemasTableRef: {
+            current: {
+                setData(data: unknown[], action: SetDataAction): Promise<void>;
+            } | null;
+        };
     }
 
     const isRenderedNode = (value: unknown): value is IRenderedNode => {
@@ -366,6 +374,47 @@ describe("DocumentSideBar", () => {
 
         expect((sideBar as any).isConnectionTreeRowExpanded(row)).toBe(true);
         expect((schema.state as { expanded: boolean; }).expanded).toBe(true);
+    });
+
+    it("updates schema tree data after first expansion", async () => {
+        const { connection } = createConnectionTree();
+        const sideBar = new DocumentSideBar({
+            selectedOpenDocument: "",
+            markedSchema: "",
+            overviewId: "overview",
+            sidebarMode: "electronConnection",
+            activeWorkspaceConnectionId: 42,
+            onConnectionTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onDocumentTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+            onOciTreeCommand: vi.fn().mockResolvedValue({ success: true }),
+        });
+        (sideBar as unknown as { context: DocumentContextType; }).context = createContext(connection);
+
+        const schema = (connection.schemaEntries as Array<Record<string, unknown>>)[0];
+        schema.state = createTreeState();
+        const testSideBar = sideBar as unknown as ITestDocumentSideBar;
+        const setData = vi.fn().mockResolvedValue(undefined);
+        testSideBar.schemasTableRef.current = { setData };
+        const treeItem = testSideBar.buildWorkspaceConnectionTreeItem(schema);
+        const row = new RowComponentMock(treeItem as unknown as ConstructorParameters<typeof RowComponentMock>[0]);
+
+        testSideBar.handleSchemasTreeRowExpanded(row);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
+        expect(schema.refresh).toHaveBeenCalled();
+        expect(setData).toHaveBeenCalledWith([
+            expect.objectContaining({
+                id: "schema-sakila",
+                children: [
+                    expect.objectContaining({
+                        id: "tables-group",
+                    }),
+                ],
+            }),
+        ], SetDataAction.Replace);
+        expect((schema.state as { expandedOnce: boolean; }).expandedOnce).toBe(true);
     });
 
     it("shows the home connection section by default", () => {

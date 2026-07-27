@@ -399,6 +399,35 @@ describe("TreeGrid tests", (): void => {
         unmount();
     });
 
+    it("can skip replacing API-managed data on component updates", async () => {
+        const gridRef = createRef<TreeGrid>();
+        const { rerender, unmount } = render(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "col1" }]}
+                options={{ updateDataOnComponentUpdate: false }}
+                tableData={[{ id: "1", col1: "a" }]}
+            />,
+        );
+
+        const table = await gridRef.current!.table;
+        const replaceDataSpy = vi.spyOn(table!, "replaceData");
+        rerender(
+            <TreeGrid
+                ref={gridRef}
+                columns={[{ title: "col1", field: "col1" }]}
+                options={{ updateDataOnComponentUpdate: false }}
+                tableData={[{ id: "1", col1: "b" }]}
+            />,
+        );
+        await nextRunLoop();
+
+        expect(replaceDataSpy).not.toHaveBeenCalled();
+
+        replaceDataSpy.mockRestore();
+        unmount();
+    });
+
     it("preserves resized column widths when data is refreshed", async () => {
         const gridRef = createRef<TreeGrid>();
         const columns = [

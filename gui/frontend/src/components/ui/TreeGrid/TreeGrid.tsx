@@ -99,6 +99,12 @@ export interface ITreeGridOptions {
      */
     preserveColumnWidthsOnDataUpdate?: boolean;
 
+    /**
+     * If false, parent component updates do not replace the grid data (default: true).
+     * Use this when the owner updates rows through the TreeGrid API.
+     */
+    updateDataOnComponentUpdate?: boolean;
+
     /** If false, no header is shown (default: true). */
     showHeader?: boolean;
 
@@ -330,8 +336,13 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 return;
             }
 
-            // Some existing callers mutate tableData in place and force a render. Keep refreshing until those
-            // callers use immutable data or the setData API.
+            if (tableData && options?.updateDataOnComponentUpdate === false) {
+                return;
+            }
+
+            // TODO: switch to the comparison of the data objects. Need to always update until the view editor
+            // is changed to use the setData API.
+            //if (prevProps.tableData !== tableData) {
             if (tableData) {
                 const preserveColumnWidths = options?.preserveColumnWidthsOnDataUpdate ?? true;
                 const widths = columns && preserveColumnWidths ? this.currentColumnWidths() : undefined;
