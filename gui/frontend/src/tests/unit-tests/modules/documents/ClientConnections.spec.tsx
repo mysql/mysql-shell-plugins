@@ -26,6 +26,7 @@
 import { ComponentChild, createRef } from "preact";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -42,7 +43,7 @@ import { RowComponentMock } from "../../__mocks__/RowComponentMock.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
 const readFrontendSourceFile = (path: string): string => {
-    let directory = process.cwd();
+    let directory = dirname(fileURLToPath(import.meta.url));
 
     for (let i = 0; i < 8; i++) {
         const candidate = join(directory, path);
@@ -64,7 +65,7 @@ const readCssRule = (css: string, selector: string): string => {
     return match?.groups?.rule ?? "";
 };
 
-const clientConnectionsGlobalStatusQuery = expect.stringMatching(
+const clientConnectionsGlobalStatusQuery: unknown = expect.stringMatching(
     /^show global status where VARIABLE_NAME in \('Aborted_clients', 'Aborted_connects', /,
 );
 
@@ -255,25 +256,27 @@ describe("Client connections module tests", (): void => {
     });
 
     it("retries performance schema detection when refreshing after the first probe returns no result", async () => {
+        const isPerformanceSchemaAvailable = vi.fn()
+            .mockResolvedValueOnce(false)
+            .mockResolvedValueOnce(true);
+        const executeService = vi.fn()
+            .mockResolvedValueOnce({
+                rows: [
+                    ["version_comment", "MySQL Enterprise Server - Commercial"],
+                    ["max_connections", "151"],
+                ],
+            })
+            .mockResolvedValueOnce({
+                columns: [
+                    { title: "PROCESSLIST_ID", type: "int" },
+                    { title: "THREAD_ID", type: "int" },
+                ],
+                rows: [["7", "42"]],
+            })
+            .mockResolvedValueOnce({ rows: [] });
         const backend = {
-            isPerformanceSchemaAvailable: vi.fn()
-                .mockResolvedValueOnce(false)
-                .mockResolvedValueOnce(true),
-            executeService: vi.fn()
-                .mockResolvedValueOnce({
-                    rows: [
-                        ["version_comment", "MySQL Enterprise Server - Commercial"],
-                        ["max_connections", "151"],
-                    ],
-                })
-                .mockResolvedValueOnce({
-                    columns: [
-                        { title: "PROCESSLIST_ID", type: "int" },
-                        { title: "THREAD_ID", type: "int" },
-                    ],
-                    rows: [["7", "42"]],
-                })
-                .mockResolvedValueOnce({ rows: [] }),
+            isPerformanceSchemaAvailable,
+            executeService,
         } as unknown as ShellInterfaceSqlEditor;
 
         const props = {
@@ -285,11 +288,11 @@ describe("Client connections module tests", (): void => {
         await nextRunLoop();
         await instance.testUpdateValues();
 
-        const isPerformanceSchemaAvailable =
-            backend.isPerformanceSchemaAvailable as unknown as ReturnType<typeof vi.fn>;
-        const executeService = backend.executeService as unknown as ReturnType<typeof vi.fn>;
         expect(isPerformanceSchemaAvailable).toHaveBeenCalledTimes(2);
-        expect(executeService).toHaveBeenCalledWith("show variables where VARIABLE_NAME in ('version_comment', 'max_connections')");
+        expect(executeService).toHaveBeenCalledWith(
+            "show variables where VARIABLE_NAME in " +
+            "('version_comment', 'max_connections', 'thread_handling', 'thread_pool_size')",
+        );
         expect(executeService).toHaveBeenCalledWith(clientConnectionsGlobalStatusQuery);
         expect(executeService).not.toHaveBeenCalledWith("show global status");
     });
@@ -301,24 +304,25 @@ describe("Client connections module tests", (): void => {
         const pendingProbe = new Promise<boolean>((resolve) => {
             resolveProbe = resolve;
         });
+        const isPerformanceSchemaAvailable = vi.fn().mockReturnValueOnce(pendingProbe);
+        const executeService = vi.fn()
+            .mockResolvedValueOnce({
+                rows: [
+                    ["version_comment", "MySQL Enterprise Server - Commercial"],
+                    ["max_connections", "151"],
+                ],
+            })
+            .mockResolvedValueOnce({
+                columns: [
+                    { title: "PROCESSLIST_ID", type: "int" },
+                    { title: "THREAD_ID", type: "int" },
+                ],
+                rows: [["7", "42"]],
+            })
+            .mockResolvedValueOnce({ rows: [] });
         const backend = {
-            isPerformanceSchemaAvailable: vi.fn()
-                .mockReturnValueOnce(pendingProbe),
-            executeService: vi.fn()
-                .mockResolvedValueOnce({
-                    rows: [
-                        ["version_comment", "MySQL Enterprise Server - Commercial"],
-                        ["max_connections", "151"],
-                    ],
-                })
-                .mockResolvedValueOnce({
-                    columns: [
-                        { title: "PROCESSLIST_ID", type: "int" },
-                        { title: "THREAD_ID", type: "int" },
-                    ],
-                    rows: [["7", "42"]],
-                })
-                .mockResolvedValueOnce({ rows: [] }),
+            isPerformanceSchemaAvailable,
+            executeService,
         } as unknown as ShellInterfaceSqlEditor;
 
         const props = {
@@ -330,9 +334,6 @@ describe("Client connections module tests", (): void => {
         await nextRunLoop();
         await instance.testUpdateValues();
 
-        const isPerformanceSchemaAvailable =
-            backend.isPerformanceSchemaAvailable as unknown as ReturnType<typeof vi.fn>;
-        const executeService = backend.executeService as unknown as ReturnType<typeof vi.fn>;
         expect(isPerformanceSchemaAvailable).toHaveBeenCalledTimes(1);
         expect(executeService).not.toHaveBeenCalled();
 
@@ -341,11 +342,85 @@ describe("Client connections module tests", (): void => {
             expect(executeService).toHaveBeenCalledWith(clientConnectionsGlobalStatusQuery);
         });
 
-        expect(executeService).toHaveBeenCalledWith("show variables where VARIABLE_NAME in ('version_comment', 'max_connections')");
+        expect(executeService).toHaveBeenCalledWith(
+            "show variables where VARIABLE_NAME in " +
+            "('version_comment', 'max_connections', 'thread_handling', 'thread_pool_size')",
+        );
+    });
+
+    it("groups connection health metrics and shows enabled thread pool information", async ({ expect }) => {
+        const executeService = vi.fn((query: string): IDbEditorResultSetData => {
+            if (query.startsWith("show variables")) {
+                return {
+                    rows: [
+                        ["version_comment", "MySQL Enterprise Server - Commercial"],
+                        ["max_connections", "151"],
+                        ["thread_handling", "loaded-dynamically"],
+                        ["thread_pool_size", "16"],
+                    ],
+                };
+            }
+
+            if (query.startsWith("show global status")) {
+                return {
+                    rows: [
+                        ["Aborted_clients", "6"],
+                        ["Aborted_connects", "7"],
+                        ["Connection_errors_accept", "1"],
+                        ["Connection_errors_internal", "2"],
+                        ["Connection_errors_max_connections", "8"],
+                        ["Connection_errors_peer_address", "3"],
+                        ["Connection_errors_select", "4"],
+                        ["Connection_errors_tcpwrap", "5"],
+                        ["Max_used_connections", "64"],
+                        ["Threads_connected", "21"],
+                        ["Threads_running", "9"],
+                    ],
+                };
+            }
+
+            return {
+                columns: [
+                    { name: "PROCESSLIST_ID", type: "int", length: 8 },
+                    { name: "THREAD_ID", type: "int", length: 8 },
+                ],
+                rows: [],
+            };
+        });
+        const backend = {
+            executeService,
+            isPerformanceSchemaAvailable: vi.fn().mockResolvedValue(true),
+        } as unknown as ShellInterfaceSqlEditor;
+        const { container, unmount } = render(
+            <ClientConnections
+                backend={backend}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(container.querySelector('[data-testid="threadsConnected"]')?.textContent).toBe("21");
+        });
+
+        const groups = [...container.querySelectorAll(".clientConnectionMetricGroup")];
+        expect(groups.map((group) => {
+            return group.querySelector("h2")?.textContent;
+        })).toEqual(["Connections", "Failures", "Thread Pool"]);
+        expect(container.querySelector('[data-testid="connectionsLimit"]')?.textContent).toBe("151");
+        expect(container.querySelector('[data-testid="connectionHighWatermark"]')?.textContent).toBe("64");
+        expect(container.querySelector('[data-testid="errors"]')?.textContent).toBe("15");
+        expect(container.querySelector('[data-testid="abortedClients"]')?.textContent).toBe("6");
+        expect(container.querySelector('[data-testid="abortedConnections"]')?.textContent).toBe("7");
+        expect(container.querySelector('[data-testid="rejected"]')?.textContent).toBe("8");
+        expect(container.querySelector('[data-testid="threadPoolEnabled"]')?.textContent).toBe("Enabled");
+        expect(container.querySelector('[data-testid="threadPoolSize"]')?.textContent).toBe("16");
+        expect(container.querySelector('[data-testid="threadsRunning"]')?.textContent).toBe("9");
+
+        unmount();
     });
 
     it("keeps numeric connection selection after refresh", async ({ expect }) => {
-        const executeService = vi.fn(async (query: string): Promise<IDbEditorResultSetData> => {
+        const executeService = vi.fn((query: string): IDbEditorResultSetData => {
             if (query.startsWith("show variables")) {
                 return {
                     rows: [
@@ -390,7 +465,7 @@ describe("Client connections module tests", (): void => {
     });
 
     it("restores selected row by thread id and navigation history from saved state", async ({ expect }) => {
-        const executeService = vi.fn(async (query: string): Promise<IDbEditorResultSetData> => {
+        const executeService = vi.fn((query: string): IDbEditorResultSetData => {
             if (query.startsWith("show variables")) {
                 return {
                     rows: [
@@ -570,8 +645,9 @@ describe("Client connections module tests", (): void => {
 
     it("sizes masked SVG icons in connection detail actions", ({ expect }) => {
         const clientConnectionsCss = readFrontendSourceFile("src/modules/db-editor/assets/document.css");
-        const maskedIconRule = /\.msg\.clientConnections \.connectionDetailsActions \.button>\.icon:not\(\.codicon\)\s*{(?<rule>[^}]*)}/s
-            .exec(clientConnectionsCss)?.groups?.rule ?? "";
+        const maskedIconRule =
+            /\.msg\.clientConnections \.connectionDetailsActions \.button>\.icon:not\(\.codicon\)\s*{(?<rule>[^}]*)}/s
+                .exec(clientConnectionsCss)?.groups?.rule ?? "";
 
         expect(maskedIconRule).toContain("width: 16px;");
         expect(maskedIconRule).toContain("height: 16px;");
@@ -1325,7 +1401,9 @@ describe("Client connections module tests", (): void => {
         );
 
         expect(container.querySelector("#clientConnectionAttributes")).toBeNull();
-        expect(container.textContent).toMatch(/Connection Attributes\s*_client_name\s*libmysql\s*program_name\s*mysqlsh/s);
+        expect(container.textContent).toMatch(
+            /Connection Attributes\s*_client_name\s*libmysql\s*program_name\s*mysqlsh/s,
+        );
 
         unmountAttributes();
         unmount();
@@ -1621,7 +1699,7 @@ describe("Client connections module tests", (): void => {
     });
 
     it("toggles full info text for the connection list query", async ({ expect }) => {
-        const executeService = vi.fn(async (query: string) => {
+        const executeService = vi.fn((query: string) => {
             if (query.startsWith("show variables")) {
                 return {
                     rows: [
@@ -1670,7 +1748,7 @@ describe("Client connections module tests", (): void => {
     });
 
     it("uses Show Background Threads to include background rows", async ({ expect }) => {
-        const executeService = vi.fn(async (query: string) => {
+        const executeService = vi.fn((query: string) => {
             if (query.startsWith("show variables")) {
                 return {
                     rows: [
@@ -1743,7 +1821,15 @@ describe("Client connections module tests", (): void => {
     });
 
     it("opens display options through the native menu bridge", async () => {
-        const showNativeMenu = vi.fn().mockResolvedValue(undefined);
+        interface ITestNativeMenuOptions {
+            x?: number;
+            y?: number;
+            items: Array<{ label: string; }>;
+        }
+
+        const showNativeMenu = vi.fn((_options: ITestNativeMenuOptions): Promise<void> => {
+            return Promise.resolve();
+        });
         Object.defineProperty(window, "electronHost", {
             configurable: true,
             value: {
@@ -1772,17 +1858,16 @@ describe("Client connections module tests", (): void => {
         await waitFor(() => {
             expect(showNativeMenu).toHaveBeenCalledTimes(1);
         });
-        expect(showNativeMenu).toHaveBeenCalledWith(expect.objectContaining({
-            x: undefined,
-            y: undefined,
-            items: expect.arrayContaining([
-                expect.objectContaining({ label: "Hide Sleeping Connections" }),
-                expect.objectContaining({ label: "Show Background Threads" }),
-                expect.objectContaining({ label: "Show Full Info Column" }),
-            ]),
-        }));
-        const items = showNativeMenu.mock.calls[0][0].items as Array<{ label: string; }>;
-        expect(items).not.toContainEqual(expect.objectContaining({ label: "Show Details" }));
+        const options = showNativeMenu.mock.calls[0][0];
+        expect(options.x).toBeUndefined();
+        expect(options.y).toBeUndefined();
+        expect(options.items.map((item) => {
+            return item.label;
+        })).toEqual([
+            "Hide Sleeping Connections",
+            "Show Background Threads",
+            "Show Full Info Column",
+        ]);
 
         backend.closeSession().catch(() => {
             throw new Error("Close session failed");

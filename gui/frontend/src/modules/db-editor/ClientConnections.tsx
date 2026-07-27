@@ -39,7 +39,7 @@ import { Codicon } from "../../components/ui/Codicon.js";
 import {
     ComponentBase, ComponentPlacement, IComponentProperties, IComponentState, SelectionType,
 } from "../../components/ui/Component/ComponentBase.js";
-import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { Container, Orientation } from "../../components/ui/Container/Container.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
@@ -63,18 +63,28 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { convertRows, generateColumnInfo } from "../../supplement/index.js";
 import { convertErrorToString, uuid } from "../../utilities/helpers.js";
+import {
+    AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
+} from "./AdministrationPageFrame.js";
 
 interface IGlobalStatus {
     threadConnected?: number;
     threadRunning?: number;
-    threadsCached?: number;
-    threadsCreated?: number;
     rejected?: number;
-    totalConnections?: number;
     connectionLimit?: number;
+    connectionHighWatermark?: number;
     abortedClients?: number;
     abortedConnections?: number;
     errors?: number;
+    threadPoolEnabled: boolean;
+    threadPoolSize?: number;
+}
+
+interface IClientConnectionMetric {
+    id: string;
+    label: string;
+    value?: number | string;
+    tooltip?: string;
 }
 
 interface IClientConnectionsProperties extends IComponentProperties {
@@ -84,7 +94,7 @@ interface IClientConnectionsProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
 
     /** The user selected value for refreshs of this page. */
-    // TODO: This should be stored as part of the user's preferences or the persistent state of the connection workspace.
+    // TODO: Store this as part of the user's preferences or the persistent state of the connection workspace.
     refreshInterval?: number;
 
     savedState?: IClientConnectionsSavedState;
@@ -178,11 +188,14 @@ const connectionGridHiddenColumns = new Set([
 const globalStatusNames = [
     "Aborted_clients",
     "Aborted_connects",
+    "Connection_errors_accept",
+    "Connection_errors_internal",
     "Connection_errors_max_connections",
-    "Connections",
-    "Threads_cached",
+    "Connection_errors_peer_address",
+    "Connection_errors_select",
+    "Connection_errors_tcpwrap",
+    "Max_used_connections",
     "Threads_connected",
-    "Threads_created",
     "Threads_running",
 ];
 
@@ -255,7 +268,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             },
             gotResponse: false,
             gotError: false,
-            globalStatus: {},
+            globalStatus: { threadPoolEnabled: false },
             showDetails: savedState?.showDetails ?? false,
             selectedTab: savedState?.selectedTab ?? "propsTab",
             selectedConnectionId: savedState?.selectedConnectionId,
@@ -273,7 +286,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         this.addHandledProperties("backend", "toolbarItems", "savedState", "onStateChange");
     }
 
-    public override componentDidUpdate(prevProps: IClientConnectionsProperties, prevState: IClientConnectionsState): void {
+    public override componentDidUpdate(
+        prevProps: IClientConnectionsProperties,
+        prevState: IClientConnectionsState,
+    ): void {
         const { backend } = this.props;
 
         // If we reopen a connection a new backend is created then we need to refresh the page.
@@ -333,9 +349,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         const auxiliaryItems = [...toolbarItems.auxiliary];
         const toolbar = <Toolbar id="clientConnectionToolbar" dropShadow={false} >
             {navigationItems}
-            {this.toolbarContent()}
             {auxiliaryItems}
             <div className="expander" />
+            {this.toolbarContent()}
             {this.displayToolbarContent()}
         </Toolbar>;
         const displayOptionsMenu = this.displayOptionsMenu();
@@ -400,40 +416,79 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         </Container>;
 
         return (
-            <Container
+            <AdministrationPageFrame
                 className={className}
-                orientation={Orientation.TopDown}
-                mainAlignment={ContentAlignment.Start}
             >
-                <div id="contentHost" className="fixedScrollbar">
-                    <section id="clientConnectionsOverview">
-                        <div id="clientConnectionsHeader">
-                            <div className="clientConnectionsTitle">
-                                <Icon src={Assets.documents.clientConnectionsIcon} id="clientConnectionsIcon" />
-                                <div>
-                                    <h1>Client Connections</h1>
-                                    <div className="clientConnectionsVersion">{version}</div>
-                                </div>
-                            </div>
-                            <div className="clientConnectionPrimaryMetrics">
-                                <div className="clientConnectionMetric primary">
-                                    <span>Threads Connected / Limit</span>
-                                    <Label data-testid="threadsConnected">
-                                        <span>{this.formatNumber(globalStatus.threadConnected)}</span>
-                                        <span className="clientConnectionLimitValue">
-                                            {this.formatNumber(globalStatus.connectionLimit)}
-                                        </span>
-                                    </Label>
-                                    <Label data-testid="connectionsLimit" className="clientConnectionHiddenMetric">
-                                        {this.formatNumber(globalStatus.connectionLimit)}
-                                    </Label>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="connectionProps">
-                            {this.getClientConnectionInfo()}
-                        </div>
-                    </section>
+                <AdministrationPageHeading
+                    id="clientConnectionsOverview"
+                    heading="Client Connections"
+                    icon={<Icon src={Assets.documents.clientConnectionsIcon} id="clientConnectionsIcon" />}
+                    subtitle={version}
+                >
+                    <div id="connectionProps" aria-label="Connection status overview">
+                        {this.metricGroup("Connections", [
+                            {
+                                id: "threadsConnected",
+                                label: "Connected",
+                                value: globalStatus.threadConnected,
+                            },
+                            {
+                                id: "connectionsLimit",
+                                label: "Limit",
+                                value: globalStatus.connectionLimit,
+                            },
+                            {
+                                id: "connectionHighWatermark",
+                                label: "Max. Seen",
+                                value: globalStatus.connectionHighWatermark,
+                            },
+                        ])}
+                        {this.metricGroup("Failures", [
+                            {
+                                id: "errors",
+                                label: "Errors",
+                                value: globalStatus.errors,
+                                tooltip: "Connection errors reported by the server, excluding limit rejections.",
+                            },
+                            {
+                                id: "abortedClients",
+                                label: "Aborted Clients",
+                                value: globalStatus.abortedClients,
+                                tooltip: "Established clients that disconnected without closing cleanly.",
+                            },
+                            {
+                                id: "abortedConnections",
+                                label: "Aborted Connects",
+                                value: globalStatus.abortedConnections,
+                                tooltip: "Connection attempts that failed before they were established.",
+                            },
+                            {
+                                id: "rejected",
+                                label: "Rejected",
+                                value: globalStatus.rejected,
+                                tooltip: "Connections refused because the server connection limit was reached.",
+                            },
+                        ])}
+                        {globalStatus.threadPoolEnabled && this.metricGroup("Thread Pool", [
+                            {
+                                id: "threadPoolEnabled",
+                                label: "Status",
+                                value: "Enabled",
+                            },
+                            {
+                                id: "threadPoolSize",
+                                label: "Groups",
+                                value: globalStatus.threadPoolSize,
+                            },
+                            {
+                                id: "threadsRunning",
+                                label: "Running",
+                                value: globalStatus.threadRunning,
+                            },
+                        ])}
+                    </div>
+                </AdministrationPageHeading>
+                <AdministrationPageBody id="contentHost" className="fixedScrollbar">
                     <SplitContainer
                         id="connectionList"
                         splitterSize={16}
@@ -455,8 +510,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                         ]}
                         onPaneResized={this.handleDetailsPaneResized}
                     />
-                </div>
-            </Container>
+                </AdministrationPageBody>
+            </AdministrationPageFrame>
         );
     }
 
@@ -1340,7 +1395,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             String(this.getResultSetValue(currentStatement, currentStatementRow, "isActive")) === "1";
 
         return (
-            <div id="clientConnectionCurrentStatementHost" key="currentStatementTab" className="connectionDetailsTabContent">
+            <div
+                id="clientConnectionCurrentStatementHost"
+                key="currentStatementTab"
+                className="connectionDetailsTabContent"
+            >
                 <section className="connectionDetailsSection">
                     <h2>Current Statement</h2>
                     {hasCurrentStatement
@@ -1458,30 +1517,28 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         );
     };
 
-    private getClientConnectionInfo = (): ComponentChild => {
-
-        const { globalStatus } = this.state;
+    private metricGroup = (title: string, metrics: IClientConnectionMetric[]): ComponentChild => {
 
         return (
-            <>
-                {this.metricTile("threadsRunning", "Threads Running", globalStatus.threadRunning)}
-                {this.metricTile("threadsCached", "Threads Cached", globalStatus.threadsCached)}
-                {this.metricTile("rejected", "Rejected (over limit)", globalStatus.rejected)}
-                {this.metricTile("abortedClients", "Aborted Clients", globalStatus.abortedClients)}
-                {this.metricTile("abortedConnections", "Aborted Connections", globalStatus.abortedConnections)}
-                {this.metricTile("errors", "Errors", globalStatus.errors)}
-            </>
-        );
-    };
+            <section className="clientConnectionMetricGroup" key={`${title}MetricGroup`}>
+                <h2>{title}</h2>
+                <dl>
+                    {metrics.map((metric) => {
+                        const value = typeof metric.value === "number"
+                            ? this.formatNumber(metric.value)
+                            : metric.value;
 
-    private metricTile = (id: string, label: string, value?: number, primary = false): ComponentChild => {
-        const formattedValue = this.formatNumber(value);
-
-        return (
-            <div className={`clientConnectionMetric${primary ? " primary" : ""}`} key={`${id}Metric`}>
-                <span>{label}</span>
-                <Label data-testid={id}>{formattedValue}</Label>
-            </div>
+                        return (
+                            <div key={metric.id}>
+                                <dt>{metric.label}</dt>
+                                <dd data-testid={metric.id} data-tooltip={metric.tooltip}>
+                                    {value ?? "—"}
+                                </dd>
+                            </div>
+                        );
+                    })}
+                </dl>
+            </section>
         );
     };
 
@@ -1798,7 +1855,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
         const { globalStatus, version } = this.state;
 
-        const variableNames = version ? "('max_connections')" : "('version_comment', 'max_connections')";
+        const variableNames = version
+            ? "('max_connections', 'thread_handling', 'thread_pool_size')"
+            : "('version_comment', 'max_connections', 'thread_handling', 'thread_pool_size')";
         const variablesPromise = backend.executeService(`show variables where VARIABLE_NAME in ${variableNames}`);
         const statusPromise = backend.executeService(globalStatusQuery);
 
@@ -1840,6 +1899,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             const values = new Map<string, string>(variables.rows as Array<[string, string]>);
             nextVersion = version ?? values.get("version_comment") ?? "none";
             nextGlobalStatus.connectionLimit = parseInt(values.get("max_connections") ?? "0", 10);
+            nextGlobalStatus.threadPoolEnabled = values.get("thread_handling") === "loaded-dynamically";
+            const threadPoolSize = values.get("thread_pool_size");
+            nextGlobalStatus.threadPoolSize = nextGlobalStatus.threadPoolEnabled && threadPoolSize !== undefined
+                ? parseInt(threadPoolSize, 10)
+                : undefined;
         }
 
         if (result) {
@@ -1905,14 +1969,19 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             const values = new Map<string, string>(status.rows as Array<[string, string]>);
             nextGlobalStatus.abortedClients = parseInt(values.get("Aborted_clients") ?? "0", 10);
             nextGlobalStatus.abortedConnections = parseInt(values.get("Aborted_connects") ?? "0", 10);
+            nextGlobalStatus.connectionHighWatermark = parseInt(values.get("Max_used_connections") ?? "0", 10);
             nextGlobalStatus.threadConnected = parseInt(values.get("Threads_connected") ?? "0", 10);
-            nextGlobalStatus.threadsCached = parseInt(values.get("Threads_cached") ?? "0", 10);
             nextGlobalStatus.threadRunning = parseInt(values.get("Threads_running") ?? "0", 10);
-            nextGlobalStatus.threadsCreated = parseInt(values.get("Threads_created") ?? "0", 10);
-
             nextGlobalStatus.rejected = parseInt(values.get("Connection_errors_max_connections") ?? "0", 10);
-            nextGlobalStatus.totalConnections = parseInt(values.get("Connections") ?? "0", 10);
-            nextGlobalStatus.errors = 0;
+            nextGlobalStatus.errors = [
+                "Connection_errors_accept",
+                "Connection_errors_internal",
+                "Connection_errors_peer_address",
+                "Connection_errors_select",
+                "Connection_errors_tcpwrap",
+            ].reduce((sum, name) => {
+                return sum + parseInt(values.get(name) ?? "0", 10);
+            }, 0);
         }
 
         if (variables || status) {

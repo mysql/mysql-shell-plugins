@@ -60,6 +60,9 @@ import { convertErrorToString, selectFileInBrowser, uuidBinary16Base64 } from ".
 import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
 import { IToolbarItems } from "./index.js";
 import { AnimatedProgressIndicator } from "../../app-logic/MigrationSubApp/AnimatedProgressIndicator.js";
+import {
+    AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
+} from "./AdministrationPageFrame.js";
 
 export enum LakehouseNavigatorTab {
     Overview = "overview",
@@ -398,18 +401,23 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         ];
 
         return (
-            <Container
+            <AdministrationPageFrame
                 className="lakehouseNavigatorHost"
-                orientation={Orientation.TopDown}
             >
-                {toolbar}
-                <Tabview
-                    pages={pages}
-                    selectedId={activeTabId}
-                    stretchTabs={true}
-                    onSelectTab={this.handleSelectTab}
+                <AdministrationPageHeading
+                    heading="HeatWave Lakehouse Navigator"
+                    icon={<Icon src={Assets.lakehouse.navigatorIcon} />}
                 />
-            </Container>
+                <AdministrationPageBody>
+                    {toolbar}
+                    <Tabview
+                        pages={pages}
+                        selectedId={activeTabId}
+                        stretchTabs={true}
+                        onSelectTab={this.handleSelectTab}
+                    />
+                </AdministrationPageBody>
+            </AdministrationPageFrame>
         );
     }
 

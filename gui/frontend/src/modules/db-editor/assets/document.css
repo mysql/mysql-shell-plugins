@@ -965,27 +965,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 /* Definitions for server status. */
 
-.msg.serverStatusHost {
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-.msg.serverStatus {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: 18px;
-    min-height: 0;
-    overflow: auto;
-    margin: 0;
-    padding: 16px 24px 24px;
-    color: var(--foreground);
-}
-
-.msg.serverStatus #serverStatusOverview,
-.msg.serverStatus #statusBoxHost,
-.msg.clientConnections #clientConnectionsOverview,
-.msg.clientConnections #connectionList,
 .msg.msg.clientConnections #clientConnectionToolbar {
     width: min(1560px, 100%);
     margin: 0 auto;
@@ -1031,19 +1010,15 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 }
 
 .msg.serverStatus #serverStatusOverview {
-    flex: 0 0 auto;
-    gap: 18px;
-    padding: 18px;
-    border: 1px solid var(--editorGroupHeader-tabsBorder);
-    border-radius: 8px;
-    background:
-        linear-gradient(90deg,
-            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
-            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+    display: grid;
+    grid-template-columns: minmax(180px, auto) 1fr;
+    gap: 12px 18px;
+    align-items: center;
 }
 
-.msg.serverStatus #serverStatusHeader {
-    gap: 16px;
+.msg.serverStatus #serverStatusOverview>.administrationPageHeadingHeader {
+    align-self: start;
+    margin: 6px 0 0 4px;
 }
 
 .msg.serverStatus #serverStatusOverview,
@@ -1053,32 +1028,11 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     user-select: text;
 }
 
-.msg.serverStatus .serverStatusTitle {
-    min-width: 0;
-    gap: 14px;
-}
-
 .msg.serverStatus #mysqlLogo {
     flex: 0 0 auto;
     width: 42px;
     height: 42px;
     background-color: var(--icon-foreground);
-}
-
-.msg.serverStatus h1 {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 600;
-    line-height: 1.25;
-}
-
-.msg.serverStatus .serverStatusVersion {
-    margin: 2px 0 0;
-    color: var(--disabledForeground);
-    font-size: 0.82rem;
-    font-weight: 400;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
 }
 
 .msg.serverStatus .serverStatusState {
@@ -1250,11 +1204,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
         padding: 8px 14px 14px;
     }
 
-    .msg.serverStatus #serverStatusHeader {
-        align-items: flex-start;
-        flex-direction: column !important;
-    }
-
     .msg.serverStatus .serverStatusFields {
         grid-template-columns: 1fr !important;
     }
@@ -1324,11 +1273,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     opacity: 1;
 }
 
-.msg.userAccountsHost {
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
 .msg.userAccounts {
     --secondaryButton-background: transparent;
     --secondaryButton-foreground: var(--foreground);
@@ -1336,33 +1280,18 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     --secondaryButton-disabledBackground: transparent;
     --secondaryButton-disabledForeground: var(--disabledForeground);
 
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: 18px;
-    min-height: 0;
-    overflow: auto;
-    margin: 0;
-    padding: 16px 24px 24px;
-    color: var(--foreground);
 }
 
-.msg.userAccounts #userAccountsOverview,
 .msg.userAccounts #userAccountsList {
     width: min(1560px, 100%);
     margin: 0 auto;
 }
 
 .msg.userAccounts #userAccountsOverview {
-    flex: 0 0 auto;
-    gap: 18px;
-    padding: 18px;
-    border: 1px solid var(--editorGroupHeader-tabsBorder);
-    border-radius: 8px;
-    background:
-        linear-gradient(90deg,
-            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
-            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+    display: grid;
+    grid-template-columns: minmax(180px, auto) 1fr;
+    gap: 12px 18px;
+    align-items: center;
 }
 
 .msg.userAccounts #userAccountsOverview,
@@ -1372,13 +1301,9 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     user-select: text;
 }
 
-.msg.userAccounts #userAccountsHeader {
-    gap: 16px;
-}
-
-.msg.userAccounts .userAccountsTitle {
-    min-width: 0;
-    gap: 14px;
+.msg.userAccounts #userAccountsOverview>.administrationPageHeadingHeader {
+    align-self: start;
+    margin: 6px 0 0 4px;
 }
 
 .msg.userAccounts #userAccountsIcon {
@@ -1388,51 +1313,108 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     background-color: var(--icon-foreground);
 }
 
-.msg.userAccounts h1 {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 600;
-    line-height: 1.25;
-}
-
-.msg.userAccounts .userAccountsSubtitle {
-    margin: 2px 0 0;
-    color: var(--disabledForeground);
-    font-size: 0.82rem;
-    font-weight: 400;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
-}
-
 .msg.userAccounts .userAccountsSummary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
 }
 
-.msg.userAccounts .userAccountsSummaryItem {
+.msg.userAccounts .userAccountsSummaryGroup {
+    grid-column: span 5;
     min-width: 0;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
 }
 
+.msg.userAccounts .userAccountsSummaryGroup h2 {
+    margin: 0 0 7px;
+    color: var(--foreground);
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.msg.userAccounts .userAccountsSummaryGroupValues {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+}
+
+.msg.userAccounts .userAccountsSummaryItem {
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
+}
+
+.msg.userAccounts .userAccountsSummary>.userAccountsSummaryItem::before {
+    display: block;
+    height: 0.988rem;
+    margin-bottom: 7px;
+    content: "";
+}
+
+.msg.userAccounts .userAccountsSummaryItem.grouped {
+    padding: 0 8px;
+    border: 0;
+    border-left: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 64%, transparent);
+    border-radius: 0;
+    background-color: transparent;
+}
+
+.msg.userAccounts .userAccountsSummaryItem.grouped:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.msg.userAccounts button.userAccountsSummaryItem {
+    appearance: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+}
+
+.msg.userAccounts button.userAccountsSummaryItem.actionable {
+    cursor: pointer;
+}
+
+.msg.userAccounts button.userAccountsSummaryItem.actionable:hover:not(:disabled) {
+    border-color: var(--focusBorder);
+    background-color: var(--list-hoverBackground);
+}
+
+.msg.userAccounts button.userAccountsSummaryItem.actionable:focus-visible {
+    outline: 1px solid var(--focusBorder);
+    outline-offset: 1px;
+}
+
+.msg.userAccounts button.userAccountsSummaryItem.actionable.active {
+    border-color: var(--focusBorder);
+    background-color: var(--list-activeSelectionBackground);
+}
+
+.msg.userAccounts button.userAccountsSummaryItem.actionable:disabled {
+    cursor: default;
+    opacity: 0.65;
+}
+
 .msg.userAccounts .userAccountsSummaryItem>span {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     color: var(--disabledForeground);
     font-size: 0.68rem;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
-    text-transform: uppercase;
 }
 
 .msg.userAccounts .userAccountsSummaryItem strong {
     color: var(--foreground);
-    font-size: 0.84rem;
-    font-weight: 500;
-    line-height: 1.35;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.3;
     overflow-wrap: anywhere;
 }
 
@@ -1489,29 +1471,17 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
+    gap: 8px;
     min-height: 0;
     overflow: hidden;
-    padding: 14px 16px 16px;
-    border: 1px solid var(--editorGroupHeader-tabsBorder);
-    border-radius: 8px;
-    background-color: color-mix(in srgb, var(--sideBar-background) 78%, transparent);
+    padding: 0;
 }
 
 .msg.userAccounts #userAccountsListHeader {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
-}
-
-.msg.userAccounts #userAccountsListHeader>label {
-    flex: 0 0 auto;
-    color: var(--foreground);
-    font-size: 0.82rem;
-    font-weight: 600;
-    line-height: 1.35;
+    padding-bottom: 8px;
 }
 
 .msg.userAccounts #userAccountsToolbar {
@@ -1589,6 +1559,17 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     color: var(--secondaryButton-disabledForeground);
 }
 
+.msg.userAccounts #userAccountsToolbar .userAccountCreateButton {
+    flex: 0 0 auto;
+}
+
+.msg.userAccounts #userAccountsToolbar .userAccountCreateButton>.icon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
 .msg.userAccounts #userAccountsGridFrame {
     display: flex;
     flex: 1 1 auto;
@@ -1603,7 +1584,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 72%, transparent);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--background) 28%, transparent);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .msg.userAccounts #userAccountsGrid .tabulator-header {
@@ -1625,7 +1606,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 .msg.userAccounts #userAccountsGrid .tabulator-col-title {
     overflow: hidden;
     color: var(--disabledForeground);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.2;
     text-overflow: ellipsis;
@@ -1698,7 +1679,7 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     overflow: hidden;
     padding: 5px 8px;
     border-right: none;
-    font-size: 0.76rem;
+    font-size: 0.82rem;
     line-height: 1.25;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2400,11 +2381,28 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 }
 
 @media (max-width: 700px) {
-    .msg.userAccounts {
-        padding: 8px 14px 14px;
+    .msg.userAccounts #userAccountsOverview {
+        grid-template-columns: 1fr;
     }
 
-    .msg.userAccounts #userAccountsHeader,
+    .msg.userAccounts .userAccountsSummary {
+        grid-template-columns: 1fr;
+    }
+
+    .msg.userAccounts .userAccountsSummaryGroup {
+        grid-column: auto;
+    }
+
+    .msg.userAccounts .userAccountsSummary>.userAccountsSummaryItem::before {
+        display: none;
+    }
+
+    .msg.userAccounts .userAccountsSummaryGroupValues {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-auto-flow: row;
+        gap: 8px 0;
+    }
+
     .msg.userAccounts #userAccountsListHeader {
         align-items: flex-start;
         flex-direction: column !important;
@@ -2443,6 +2441,16 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 .msg .performanceDashboard {
     flex: 1;
     padding-top: 8px;
+}
+
+.msg .performanceDashboard>.administrationPageFrameHeader {
+    padding: 0 24px 8px;
+}
+
+.msg .performanceDashboard>.administrationPageFrameHeader .icon {
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
 }
 
 .msg .performanceDashboard #graphColorsDropdown,
@@ -2557,49 +2565,18 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     --secondaryButton-disabledBackground: transparent;
     --secondaryButton-disabledForeground: var(--disabledForeground);
 
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-.msg.clientConnections #contentHost {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    gap: 18px;
-    min-height: 0;
-    margin: 0;
-    overflow: auto;
-    padding: 16px 24px 24px;
-    color: var(--foreground);
 }
 
 .msg.clientConnections #clientConnectionsOverview {
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 auto;
-    gap: 18px;
-    padding: 18px;
-    border: 1px solid var(--editorGroupHeader-tabsBorder);
-    border-radius: 8px;
-    background:
-        linear-gradient(90deg,
-            color-mix(in srgb, var(--administration-overviewAccent, var(--textLink-foreground)) 12%, transparent),
-            color-mix(in srgb, var(--sideBar-background) 82%, transparent));
+    display: grid;
+    grid-template-columns: minmax(180px, auto) 1fr;
+    gap: 12px 18px;
+    align-items: center;
 }
 
-.msg.clientConnections #clientConnectionsHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.msg.clientConnections .clientConnectionsTitle {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    gap: 14px;
+.msg.clientConnections #clientConnectionsOverview>.administrationPageHeadingHeader {
+    align-self: start;
+    margin: 6px 0 0 4px;
 }
 
 .msg.clientConnections #clientConnectionsIcon {
@@ -2609,70 +2586,60 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     background-color: var(--icon-foreground);
 }
 
-.msg.clientConnections h1 {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 600;
-    line-height: 1.25;
-}
-
-.msg.clientConnections .clientConnectionsVersion {
-    margin: 2px 0 0;
-    color: var(--disabledForeground);
-    font-size: 0.82rem;
-    font-weight: 400;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
-}
-
 .msg.clientConnections #connectionProps {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 6px;
 }
 
-.msg.clientConnections .clientConnectionPrimaryMetrics {
-    flex: 0 1 220px;
-    width: auto;
-}
-
-.msg.clientConnections .clientConnectionMetric {
+.msg.clientConnections .clientConnectionMetricGroup {
     min-width: 0;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 70%, transparent);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--sideBar-background) 70%, transparent);
 }
 
-.msg.clientConnections .clientConnectionMetric>span {
-    display: block;
-    margin-bottom: 4px;
+.msg.clientConnections .clientConnectionMetricGroup h2 {
+    margin: 0 0 7px;
+    color: var(--foreground);
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.msg.clientConnections .clientConnectionMetricGroup dl {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    margin: 0;
+}
+
+.msg.clientConnections .clientConnectionMetricGroup dl>div {
+    min-width: 0;
+    padding: 0 8px;
+    border-left: 1px solid color-mix(in srgb, var(--editorGroupHeader-tabsBorder) 64%, transparent);
+}
+
+.msg.clientConnections .clientConnectionMetricGroup dl>div:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.msg.clientConnections .clientConnectionMetricGroup dt {
     color: var(--disabledForeground);
     font-size: 0.68rem;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
-    text-transform: uppercase;
 }
 
-.msg.clientConnections .clientConnectionMetric label {
-    display: block;
+.msg.clientConnections .clientConnectionMetricGroup dd {
+    margin: 2px 0 0;
     overflow-wrap: anywhere;
     color: var(--foreground);
-    font-size: 0.84rem;
-    font-weight: 500;
-    line-height: 1.35;
-}
-
-.msg.clientConnections .clientConnectionMetric.primary .clientConnectionLimitValue {
-    font-size: 0.78em;
-}
-
-.msg.clientConnections .clientConnectionMetric.primary .clientConnectionLimitValue::before {
-    content: " / ";
-}
-
-.msg.clientConnections .clientConnectionHiddenMetric {
-    display: none !important;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
 .msg.clientConnections #connectionList {
@@ -3370,14 +3337,10 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
         padding: 8px 14px 14px;
     }
 
-    .msg.clientConnections #clientConnectionsHeader {
-        align-items: flex-start;
-        flex-direction: column !important;
+    .msg.clientConnections #clientConnectionsOverview {
+        grid-template-columns: 1fr;
     }
 
-    .msg.clientConnections .clientConnectionPrimaryMetrics {
-        width: 100%;
-    }
 }
 
 .msg#editorToolbarActionMenu .popup {

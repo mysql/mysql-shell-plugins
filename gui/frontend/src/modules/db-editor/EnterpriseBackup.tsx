@@ -34,7 +34,6 @@ import { Codicon } from "../../components/ui/Codicon.js";
 import { Dialog } from "../../components/ui/Dialog/Dialog.js";
 import { EmbeddedLogViewer } from "../../components/ui/EmbeddedLogViewer/EmbeddedLogViewer.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
-import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
 import { MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import type { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
@@ -74,6 +73,9 @@ import {
     type MebProfileDialogTab,
 } from "./EnterpriseBackupProfileEditor.js";
 import { EnterpriseBackupRestoreDialog } from "./EnterpriseBackupRestoreDialog.js";
+import {
+    AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
+} from "./AdministrationPageFrame.js";
 
 interface IMebBackupJob {
     command?: string;
@@ -97,6 +99,7 @@ interface IMebOverviewItem {
 }
 
 export interface IEnterpriseBackupSavedState {
+    configuration?: IMebConfiguration;
     setupState?: IMebSetupState;
     status?: IMebStatus;
 }
@@ -275,8 +278,8 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     const backend = connection?.backend;
     const moduleSessionId = backend?.moduleSessionId;
     const initialConfiguration = useMemo(() => {
-        return defaultConfiguration(connection);
-    }, [connection]);
+        return savedState?.configuration ?? defaultConfiguration(connection);
+    }, [connection, savedState?.configuration]);
     const [status, setStatus] = useState<IMebStatus | undefined>(savedState?.status);
     const [setupState, setSetupState] = useState<IMebSetupState | undefined>(savedState?.setupState);
     const offline = connection?.isOffline === true;
@@ -311,6 +314,13 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
     const updateCachedStatus = useCallback((nextStatus: IMebStatus | undefined): void => {
         setStatus(nextStatus);
         onStateChange?.({ status: nextStatus });
+    }, [onStateChange]);
+
+    const updateCachedConfiguration = useCallback((nextConfiguration: IMebConfiguration): void => {
+        const normalizedConfiguration = normalizeMebConfiguration(nextConfiguration);
+
+        setConfiguration(normalizedConfiguration);
+        onStateChange?.({ configuration: normalizedConfiguration });
     }, [onStateChange]);
 
     const updateCachedSetupState = useCallback((nextSetupState: IMebSetupState): void => {
@@ -364,7 +374,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                 backupHomePath: nextSetupState.backupHomePath ?? fallbackConfiguration.backupHomePath,
                 backupUser: nextSetupState.mysqlBackupUser || fallbackConfiguration.backupUser,
             });
-            setConfiguration(nextConfiguration);
+            updateCachedConfiguration(nextConfiguration);
 
             return nextSetupState;
         } catch (reason: unknown) {
@@ -375,7 +385,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         } finally {
             setSetupStateLoading(false);
         }
-    }, [moduleSessionId, offline, updateCachedSetupState, updateCachedStatus]);
+    }, [moduleSessionId, offline, updateCachedConfiguration, updateCachedSetupState, updateCachedStatus]);
 
     useEffect(() => {
         const backupHomePath = initialConfiguration.backupHomePath.trim();
@@ -926,31 +936,29 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
 
     const renderUnsupportedPage = (): ComponentChild => {
         return (
-            <main className="enterpriseBackupSurface enterpriseBackupIntroSurface">
-                <section className="enterpriseBackupIntro enterpriseBackupNotConfigured">
+            <AdministrationPageFrame className="enterpriseBackupSurface enterpriseBackupIntroSurface">
+                <AdministrationPageHeading
+                    className="enterpriseBackupIntro enterpriseBackupNotConfigured"
+                    heading="MEB support not available for this connection"
+                    subtitle="Connect to a MySQL Server running on localhost to configure Enterprise Backup support."
+                />
+                <AdministrationPageBody className="enterpriseBackupIntroBody">
                     {renderLocalhostNotice()}
-
-                    <div className="enterpriseBackupIntroHeader">
-                        <h1>MEB support not available for this connection</h1>
-                        <Label>
-                            Connect to a MySQL Server running on localhost to configure Enterprise Backup support.
-                        </Label>
-                    </div>
-                </section>
-            </main>
+                </AdministrationPageBody>
+            </AdministrationPageFrame>
         );
     };
 
     const renderLoadingPage = (): ComponentChild => {
         return (
-            <main className="enterpriseBackupSurface enterpriseBackupIntroSurface">
-                <section className="enterpriseBackupIntro enterpriseBackupNotConfigured">
-                    <div className="enterpriseBackupIntroHeader">
-                        <h1>Loading Enterprise Backup</h1>
-                        <Label>Checking the configured backup home for this connection.</Label>
-                    </div>
-                </section>
-            </main>
+            <AdministrationPageFrame className="enterpriseBackupSurface enterpriseBackupIntroSurface">
+                <AdministrationPageHeading
+                    className="enterpriseBackupIntro enterpriseBackupNotConfigured"
+                    heading="Loading Enterprise Backup"
+                    subtitle="Checking the configured backup home for this connection."
+                />
+                <AdministrationPageBody className="enterpriseBackupIntroBody" />
+            </AdministrationPageFrame>
         );
     };
 
@@ -960,20 +968,19 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         }
 
         return (
-            <main className="enterpriseBackupSurface enterpriseBackupIntroSurface">
-                <section className="enterpriseBackupIntro enterpriseBackupNotConfigured">
-                    <div className="enterpriseBackupIntroHeader">
-                        <h1>MEB support not configured</h1>
-                        <Label>Manage local MySQL Enterprise Backup jobs and schedules.</Label>
-                    </div>
-
-                    <div className="enterpriseBackupIntroActions">
+            <AdministrationPageFrame className="enterpriseBackupSurface enterpriseBackupIntroSurface">
+                <AdministrationPageHeading
+                    className="enterpriseBackupIntro enterpriseBackupNotConfigured"
+                    heading="MEB support not configured"
+                    subtitle="Manage local MySQL Enterprise Backup jobs and schedules."
+                    actions={
                         <Button onClick={startWizard} disabled={backupCommandsDisabled}>
                             Configure
                         </Button>
-                    </div>
-                </section>
-            </main>
+                    }
+                />
+                <AdministrationPageBody className="enterpriseBackupIntroBody" />
+            </AdministrationPageFrame>
         );
     };
 
@@ -995,27 +1002,20 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
         }];
 
         return (
-            <main className="enterpriseBackupSurface">
-                <section className="enterpriseBackupHeader">
-                    <div className="enterpriseBackupHeaderMain">
-                        <div className="enterpriseBackupTitle">
-                            <Icon src={Assets.documents.adminBackupIcon} className="enterpriseBackupIcon" />
-                            <div>
-                                <h1>MySQL Enterprise Backup</h1>
-                                <div className="enterpriseBackupVersion">
-                                    Manage local MySQL Enterprise Backup jobs and schedules
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="enterpriseBackupHeaderActions">
-                            <Button onClick={() => {
-                                setConfigurationDialogOpen(true);
-                            }} disabled={backupCommandsDisabled}>
-                                Configure
-                            </Button>
-                        </div>
-                    </div>
+            <AdministrationPageFrame className="enterpriseBackupSurface">
+                <AdministrationPageHeading
+                    className="enterpriseBackupHeader"
+                    heading="MySQL Enterprise Backup"
+                    icon={<Icon src={Assets.documents.adminBackupIcon} className="enterpriseBackupIcon" />}
+                    subtitle="Manage local MySQL Enterprise Backup jobs and schedules"
+                    actions={
+                        <Button onClick={() => {
+                            setConfigurationDialogOpen(true);
+                        }} disabled={backupCommandsDisabled}>
+                            Configure
+                        </Button>
+                    }
+                >
 
                     <div className="enterpriseBackupHeaderOverview" aria-label="Backup overview">
                         {overviewItems.map((item) => {
@@ -1075,237 +1075,201 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                             );
                         })}
                     </div>
-                </section>
+                </AdministrationPageHeading>
 
-                {loadError && <div className="enterpriseBackupLoadError">{loadError}</div>}
+                <AdministrationPageBody>
+                    {loadError && <div className="enterpriseBackupLoadError">{loadError}</div>}
 
-                <section className="enterpriseBackupWorkspace">
-                    <div className="enterpriseBackupJobs">
-                        <div className="enterpriseBackupSectionHeader">
-                            <h2>Backup Jobs</h2>
-                            <div className="enterpriseBackupSectionActions">
-                                <Button
-                                    imageOnly={true}
-                                    appearance="flat"
-                                    title="New Job"
-                                    onClick={newJobClicked}
-                                    disabled={backupCommandsDisabled}
-                                >
-                                    <Icon src={Codicon.Add} />
-                                </Button>
+                    <section className="enterpriseBackupWorkspace">
+                        <div className="enterpriseBackupJobs">
+                            <div className="enterpriseBackupSectionHeader">
+                                <h2>Backup Jobs</h2>
+                                <div className="enterpriseBackupSectionActions">
+                                    <Button
+                                        imageOnly={true}
+                                        appearance="flat"
+                                        title="New Job"
+                                        onClick={newJobClicked}
+                                        disabled={backupCommandsDisabled}
+                                    >
+                                        <Icon src={Codicon.Add} />
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="enterpriseBackupJobTable">
-                            <div className="enterpriseBackupJobHeader">
-                                <span>Profile</span>
-                                <span>Latest</span>
-                                <span>Next full</span>
-                                <span>Next incremental</span>
-                            </div>
-                            {displayJobs.map((job, index) => {
-                                const rowClassName = index === selectedJobIndex
-                                    ? "enterpriseBackupJobRow selected"
-                                    : "enterpriseBackupJobRow";
-                                const profile = status?.profiles[index];
+                            <div className="enterpriseBackupJobTable">
+                                <div className="enterpriseBackupJobHeader">
+                                    <span>Profile</span>
+                                    <span>Latest</span>
+                                    <span>Next full</span>
+                                    <span>Next incremental</span>
+                                </div>
+                                {displayJobs.map((job, index) => {
+                                    const rowClassName = index === selectedJobIndex
+                                        ? "enterpriseBackupJobRow selected"
+                                        : "enterpriseBackupJobRow";
+                                    const profile = status?.profiles[index];
 
-                                return (
-                                    <div
-                                        className={rowClassName}
-                                        key={job.configPath ?? job.label}
-                                        onClick={() => {
-                                            setSelectedJobIndex(index);
-                                        }}
-                                        onDblClick={() => {
-                                            if (profile && !backupCommandsDisabled) {
-                                                openProfileDialog("edit", profile);
-                                            }
-                                        }}
-                                        onContextMenu={(event: TargetedMouseEvent<HTMLDivElement>) => {
-                                            event.preventDefault();
-                                            setSelectedJobIndex(index);
-                                            if (!backupCommandsDisabled) {
-                                                openJobActionsMenu(contextMenuRect(event), profile?.uuid);
-                                            }
-                                        }}>
-                                        <div>
-                                            <strong>{job.label}</strong>
-                                            <span>{job.type}</span>
+                                    return (
+                                        <div
+                                            className={rowClassName}
+                                            key={job.configPath ?? job.label}
+                                            onClick={() => {
+                                                setSelectedJobIndex(index);
+                                            }}
+                                            onDblClick={() => {
+                                                if (profile && !backupCommandsDisabled) {
+                                                    openProfileDialog("edit", profile);
+                                                }
+                                            }}
+                                            onContextMenu={(event: TargetedMouseEvent<HTMLDivElement>) => {
+                                                event.preventDefault();
+                                                setSelectedJobIndex(index);
+                                                if (!backupCommandsDisabled) {
+                                                    openJobActionsMenu(contextMenuRect(event), profile?.uuid);
+                                                }
+                                            }}>
+                                            <div>
+                                                <strong>{job.label}</strong>
+                                                <span>{job.type}</span>
+                                            </div>
+                                            <span>{job.latest}</span>
+                                            <span>{job.nextFull}</span>
+                                            <span>{job.nextIncremental}</span>
                                         </div>
-                                        <span>{job.latest}</span>
-                                        <span>{job.nextFull}</span>
-                                        <span>{job.nextIncremental}</span>
-                                    </div>
-                                );
-                            })}
-                            {displayJobs.length === 0 && <div className="enterpriseBackupEmptyState">
-                                No backup profiles found.
-                            </div>}
-                        </div>
-                    </div>
-
-                    {selectedJob ? <aside className="enterpriseBackupInspector">
-                        <div className="enterpriseBackupSectionHeader">
-                            <h2>{selectedJob.label}</h2>
-                            <Button
-                                imageOnly={true}
-                                appearance="flat"
-                                className="iconSize24"
-                                data-tooltip="Job Actions"
-                                disabled={!selectedProfile || jobCommand !== undefined || backupCommandsDisabled}
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    openJobActionsMenu(contextMenuRect(event), selectedProfile?.uuid);
-                                }}
-                            >
-                                <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
-                            </Button>
+                                    );
+                                })}
+                                {displayJobs.length === 0 && <div className="enterpriseBackupEmptyState">
+                                    No backup profiles found.
+                                </div>}
+                            </div>
                         </div>
 
-                        <dl>
-                            <div>
-                                <dt>Type</dt>
-                                <dd>{profileContentsSummary(selectedProfile)}</dd>
-                            </div>
-                            <div>
-                                <dt>Full backup schedule</dt>
-                                <dd>{selectedJob.nextFull}</dd>
-                            </div>
-                            <div>
-                                <dt>Incremental backup schedule</dt>
-                                <dd>{selectedJob.nextIncremental}</dd>
-                            </div>
-                        </dl>
-                        <div className="enterpriseBackupInspectorActions">
-                            <Button
-                                onClick={() => {
-                                    void executeSelectedProfile("full");
-                                }}
-                                disabled={backupCommandsDisabled || executingProfile !== undefined
-                                    || backupRunning || !selectedProfile}
-                            >
-                                Start Backup
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    void executeSelectedProfile("incremental");
-                                }}
-                                disabled={backupCommandsDisabled || executingProfile !== undefined || backupRunning
-                                    || !selectedProfile?.destination
-                                    || selectedProfile.destination === "Not configured"}
-                            >
-                                Start Incremental Backup
-                            </Button>
-                        </div>
-                    </aside> : <aside className="enterpriseBackupInspector">
-                        <div className="enterpriseBackupSectionHeader">
-                            <h2>Selected Job</h2>
-                        </div>
-                        <div className="enterpriseBackupEmptyState">
-                            Select or create a backup profile.
-                        </div>
-                    </aside>}
-                </section>
-
-                <section className="enterpriseBackupLower">
-                    <div>
-                        <div className="enterpriseBackupSectionHeader">
-                            <h2>Recent Activity</h2>
-                            <div className="enterpriseBackupSectionActions">
+                        {selectedJob ? <aside className="enterpriseBackupInspector">
+                            <div className="enterpriseBackupSectionHeader">
+                                <h2>{selectedJob.label}</h2>
                                 <Button
                                     imageOnly={true}
                                     appearance="flat"
-                                    data-tooltip="Filter Recent Activity"
+                                    className="iconSize24"
+                                    data-tooltip="Job Actions"
+                                    disabled={!selectedProfile || jobCommand !== undefined || backupCommandsDisabled}
                                     onClick={(event) => {
                                         event.stopPropagation();
-                                        activityFilterMenuRef.current?.open(contextMenuRect(event), false);
+                                        openJobActionsMenu(contextMenuRect(event), selectedProfile?.uuid);
                                     }}
                                 >
-                                    <Icon src={Codicon.ListFilter} data-tooltip="inherit" />
+                                    <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
                                 </Button>
                             </div>
-                        </div>
 
-                        <div className="enterpriseBackupTimeline">
-                            {displayActivity.length > 0 && <div className="enterpriseBackupTimelineHeader">
-                                <span>Date</span>
-                                <span>Type</span>
-                                <span>Profile</span>
-                                <span>Status</span>
-                                <span>Size</span>
-                                <span />
-                            </div>}
-                            {displayActivity.map(({ time, title, detail, tone, activityId: itemActivityId,
-                                size, profile, status,
-                                backupType, isBackup }, index) => {
-                                const activityId = itemActivityId ?? "";
-                                const canOpenLog = activityId.length > 0;
-                                const canManageBackupData = canOpenLog && status !== "Running"
-                                    && status !== "Backup missing";
-                                const canRestoreBackup = canManageBackupData && status === "Completed OK"
-                                    && !restoreCommandsDisabled;
-                                const canApplyLogs = canManageBackupData && status === "apply-log pending"
-                                    && !activityCommandsDisabled;
-                                const canManageActivityEntry = canOpenLog && status !== "Running";
-                                const canOpenActions = isBackup ? canManageBackupData : canManageActivityEntry;
-                                const relativeTime = activityRelativeTime(time);
-                                const statusText = status ?? detail;
-                                const statusDetail = status !== null && detail !== status ? detail : undefined;
-                                const rowClassName = index === selectedActivityIndex
-                                    ? `enterpriseBackupTimelineItem ${tone} selected`
-                                    : `enterpriseBackupTimelineItem ${tone}`;
+                            <dl>
+                                <div>
+                                    <dt>Type</dt>
+                                    <dd>{profileContentsSummary(selectedProfile)}</dd>
+                                </div>
+                                <div>
+                                    <dt>Full backup schedule</dt>
+                                    <dd>{selectedJob.nextFull}</dd>
+                                </div>
+                                <div>
+                                    <dt>Incremental backup schedule</dt>
+                                    <dd>{selectedJob.nextIncremental}</dd>
+                                </div>
+                            </dl>
+                            <div className="enterpriseBackupInspectorActions">
+                                <Button
+                                    onClick={() => {
+                                        void executeSelectedProfile("full");
+                                    }}
+                                    disabled={backupCommandsDisabled || executingProfile !== undefined
+                                    || backupRunning || !selectedProfile}
+                                >
+                                    Start Backup
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        void executeSelectedProfile("incremental");
+                                    }}
+                                    disabled={backupCommandsDisabled || executingProfile !== undefined || backupRunning
+                                    || !selectedProfile?.destination
+                                    || selectedProfile.destination === "Not configured"}
+                                >
+                                    Start Incremental Backup
+                                </Button>
+                            </div>
+                        </aside> : <aside className="enterpriseBackupInspector">
+                            <div className="enterpriseBackupSectionHeader">
+                                <h2>Selected Job</h2>
+                            </div>
+                            <div className="enterpriseBackupEmptyState">
+                                Select or create a backup profile.
+                            </div>
+                        </aside>}
+                    </section>
 
-                                return (
-                                    <div
-                                        className={rowClassName}
-                                        key={`${time}-${title}`}
-                                        onClick={() => {
-                                            setSelectedActivityIndex(index);
+                    <section className="enterpriseBackupLower">
+                        <div>
+                            <div className="enterpriseBackupSectionHeader">
+                                <h2>Recent Activity</h2>
+                                <div className="enterpriseBackupSectionActions">
+                                    <Button
+                                        imageOnly={true}
+                                        appearance="flat"
+                                        data-tooltip="Filter Recent Activity"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            activityFilterMenuRef.current?.open(contextMenuRect(event), false);
                                         }}
-                                        onDblClick={canOpenLog ? () => {
-                                            void openActivityLog(activityId);
-                                        } : undefined}
-                                        onContextMenu={canOpenActions
-                                            ? (event: TargetedMouseEvent<HTMLDivElement>) => {
-                                                event.preventDefault();
-                                                setSelectedActivityIndex(index);
-                                                if (isBackup) {
-                                                    openActivityActionsMenu(
-                                                        contextMenuRect(event),
-                                                        activityId,
-                                                        canManageBackupData,
-                                                        canRestoreBackup,
-                                                        canApplyLogs,
-                                                    );
-                                                } else {
-                                                    openActivityEntryMenu(contextMenuRect(event), activityId);
-                                                }
-                                            } : undefined}
                                     >
-                                        <div className="enterpriseBackupActivityTime">
-                                            {relativeTime && <span>{relativeTime}</span>}
-                                            <span>{time}</span>
-                                        </div>
-                                        <span>{backupType ?? "--"}</span>
-                                        <span className="enterpriseBackupActivityProfile">{profile ?? title}</span>
-                                        <div className="enterpriseBackupActivityStatus">
-                                            <Icon src={tone === "ok" ? Codicon.PassFilled : tone === "warn"
-                                                ? Codicon.Warning : Codicon.Info} />
-                                            <div>
-                                                <span>{statusText}</span>
-                                                {statusDetail !== undefined && <small>{statusDetail}</small>}
-                                            </div>
-                                        </div>
-                                        <span>{size ?? "--"}</span>
-                                        <div className="enterpriseBackupActivityActions">
-                                            {canOpenActions && <Button
-                                                imageOnly={true}
-                                                appearance="flat"
-                                                className="iconSize24"
-                                                data-tooltip="Activity Actions"
-                                                disabled={activityCommand !== undefined || openingBackupContent}
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
+                                        <Icon src={Codicon.ListFilter} data-tooltip="inherit" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="enterpriseBackupTimeline">
+                                {displayActivity.length > 0 && <div className="enterpriseBackupTimelineHeader">
+                                    <span>Date</span>
+                                    <span>Type</span>
+                                    <span>Profile</span>
+                                    <span>Status</span>
+                                    <span>Size</span>
+                                    <span />
+                                </div>}
+                                {displayActivity.map(({ time, title, detail, tone, activityId: itemActivityId,
+                                    size, profile, status,
+                                    backupType, isBackup }, index) => {
+                                    const activityId = itemActivityId ?? "";
+                                    const canOpenLog = activityId.length > 0;
+                                    const canManageBackupData = canOpenLog && status !== "Running"
+                                    && status !== "Backup missing";
+                                    const canRestoreBackup = canManageBackupData && status === "Completed OK"
+                                    && !restoreCommandsDisabled;
+                                    const canApplyLogs = canManageBackupData && status === "apply-log pending"
+                                    && !activityCommandsDisabled;
+                                    const canManageActivityEntry = canOpenLog && status !== "Running";
+                                    const canOpenActions = isBackup ? canManageBackupData : canManageActivityEntry;
+                                    const relativeTime = activityRelativeTime(time);
+                                    const statusText = status ?? detail;
+                                    const statusDetail = status !== null && detail !== status ? detail : undefined;
+                                    const rowClassName = index === selectedActivityIndex
+                                        ? `enterpriseBackupTimelineItem ${tone} selected`
+                                        : `enterpriseBackupTimelineItem ${tone}`;
+
+                                    return (
+                                        <div
+                                            className={rowClassName}
+                                            key={`${time}-${title}`}
+                                            onClick={() => {
+                                                setSelectedActivityIndex(index);
+                                            }}
+                                            onDblClick={canOpenLog ? () => {
+                                                void openActivityLog(activityId);
+                                            } : undefined}
+                                            onContextMenu={canOpenActions
+                                                ? (event: TargetedMouseEvent<HTMLDivElement>) => {
+                                                    event.preventDefault();
+                                                    setSelectedActivityIndex(index);
                                                     if (isBackup) {
                                                         openActivityActionsMenu(
                                                             contextMenuRect(event),
@@ -1315,26 +1279,64 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                                                             canApplyLogs,
                                                         );
                                                     } else {
-                                                        openActivityEntryMenu(
-                                                            contextMenuRect(event),
-                                                            activityId,
-                                                        );
+                                                        openActivityEntryMenu(contextMenuRect(event), activityId);
                                                     }
-                                                }}
-                                            >
-                                                <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
-                                            </Button>}
+                                                } : undefined}
+                                        >
+                                            <div className="enterpriseBackupActivityTime">
+                                                {relativeTime && <span>{relativeTime}</span>}
+                                                <span>{time}</span>
+                                            </div>
+                                            <span>{backupType ?? "--"}</span>
+                                            <span className="enterpriseBackupActivityProfile">{profile ?? title}</span>
+                                            <div className="enterpriseBackupActivityStatus">
+                                                <Icon src={tone === "ok" ? Codicon.PassFilled : tone === "warn"
+                                                    ? Codicon.Warning : Codicon.Info} />
+                                                <div>
+                                                    <span>{statusText}</span>
+                                                    {statusDetail !== undefined && <small>{statusDetail}</small>}
+                                                </div>
+                                            </div>
+                                            <span>{size ?? "--"}</span>
+                                            <div className="enterpriseBackupActivityActions">
+                                                {canOpenActions && <Button
+                                                    imageOnly={true}
+                                                    appearance="flat"
+                                                    className="iconSize24"
+                                                    data-tooltip="Activity Actions"
+                                                    disabled={activityCommand !== undefined || openingBackupContent}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        if (isBackup) {
+                                                            openActivityActionsMenu(
+                                                                contextMenuRect(event),
+                                                                activityId,
+                                                                canManageBackupData,
+                                                                canRestoreBackup,
+                                                                canApplyLogs,
+                                                            );
+                                                        } else {
+                                                            openActivityEntryMenu(
+                                                                contextMenuRect(event),
+                                                                activityId,
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    <Icon src={Codicon.Ellipsis} data-tooltip="inherit" />
+                                                </Button>}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                            {displayActivity.length === 0 && <div className="enterpriseBackupEmptyState">
-                                No recent activity.
-                            </div>}
+                                    );
+                                })}
+                                {displayActivity.length === 0 && <div className="enterpriseBackupEmptyState">
+                                    No recent activity.
+                                </div>}
+                            </div>
                         </div>
-                    </div>
-                </section>
-            </main>
+                    </section>
+                </AdministrationPageBody>
+            </AdministrationPageFrame>
         );
     };
 
@@ -1623,7 +1625,7 @@ export const EnterpriseBackup = ({ connection, onStateChange, savedState }: IEnt
                 serverInfo={serverInfo}
                 setupState={setupState}
                 onApplied={(nextConfiguration, nextSetupState) => {
-                    setConfiguration(nextConfiguration);
+                    updateCachedConfiguration(nextConfiguration);
                     updateCachedSetupState(nextSetupState);
                     setWizardActive(false);
                     setWizardCancelled(false);

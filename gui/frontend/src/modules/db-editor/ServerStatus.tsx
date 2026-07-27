@@ -43,6 +43,9 @@ import {
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { calculateTimestampAge } from "../../utilities/time-helpers.js";
+import {
+    AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
+} from "./AdministrationPageFrame.js";
 import { localServerEndpointFingerprint } from "./OfflineAdministration.js";
 import { IToolbarItems } from "./index.js";
 
@@ -78,6 +81,8 @@ interface IServerStatus {
     offlineModeStatus?: string;
     readOnlyStatus?: string;
     redoLogStatus?: string;
+    serverId?: string;
+    serverUuid?: string;
     superReadOnlyStatus?: string;
     socket?: string;
     port?: string;
@@ -153,6 +158,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         "admin-port",
         "socket",
         "port",
+        "server_id",
+        "server_uuid",
         "version_compile_os",
         "version_comment",
         "version",
@@ -219,56 +226,24 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             statusCards.push(this.firewall());
         }
 
-        const subtitle = this.props.offlineProbeStatus ?? this.valueOrNone(serverStatus.version);
         const cacheAge = isRunning ? undefined : this.cacheAge();
 
         return (
-            <Container
-                className="serverStatusHost"
-                orientation={Orientation.TopDown}
-            >
-                <Container
-                    className={className}
-                    orientation={Orientation.TopDown}
-                    mainAlignment={ContentAlignment.Start}
-                    crossAlignment={ContentAlignment.Stretch}
+            <AdministrationPageFrame className={className}>
+                <AdministrationPageHeading
+                    id="serverStatusOverview"
+                    heading="Server Status"
+                    icon={<Icon src={Assets.misc.mysqlLogoIcon} id="mysqlLogo" />}
+                    subtitle={this.props.offlineProbeStatus}
+                    status={<div className={`serverStatusState ${runStatus}`}>{runStatus}</div>}
                 >
-                    <Container
-                        id="serverStatusOverview"
-                        orientation={Orientation.TopDown}
-                    >
-                        <Container
-                            id="serverStatusHeader"
-                            orientation={Orientation.LeftToRight}
-                            mainAlignment={ContentAlignment.SpaceBetween}
-                            crossAlignment={ContentAlignment.Center}
-                        >
-                            <Container
-                                className="serverStatusTitle"
-                                orientation={Orientation.LeftToRight}
-                                crossAlignment={ContentAlignment.Center}
-                            >
-                                <Icon src={Assets.misc.mysqlLogoIcon} id="mysqlLogo" />
-                                <Container orientation={Orientation.TopDown}>
-                                    <h1>Server Status</h1>
-                                    <div className="serverStatusVersion" data-testid="version">
-                                        {subtitle}
-                                    </div>
-                                </Container>
-                            </Container>
-                            <div className={`serverStatusState ${runStatus}`}>
-                                {runStatus}
-                            </div>
-                        </Container>
-                        <div className="serverStatusSummary">
-                            {this.summaryItem("Host:Port", this.hostPort(serverStatus.host, serverStatus.port))}
-                            {this.summaryItem("Uptime", this.valueOrBlank(serverStatus.runningSince), "runningSince")}
-                            {this.summaryItem("InnoDB Redo Log", this.redoLogSummary(),
-                                "redoLogStatus")}
-                            {this.summaryItem("Binary Log", this.drawStatusPill(serverStatus.binaryLogStatus),
-                                "binaryLogStatus")}
-                        </div>
-                    </Container>
+                    <div className="serverStatusSummary">
+                        {this.summaryItem("Host:Port", this.hostPort(serverStatus.host, serverStatus.port))}
+                        {this.summaryItem("Version", this.valueOrNone(serverStatus.version), "version")}
+                        {this.summaryItem("Uptime", this.valueOrBlank(serverStatus.runningSince), "runningSince")}
+                    </div>
+                </AdministrationPageHeading>
+                <AdministrationPageBody>
                     {!isRunning && (
                         <div className="infoBanner serverStatusOfflineBanner" data-testid="offlineServerBanner">
                             <strong>
@@ -291,8 +266,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     <div id="statusBoxHost">
                         {statusCards}
                     </div>
-                </Container>
-            </Container>
+                </AdministrationPageBody>
+            </AdministrationPageFrame>
         );
     }
 
@@ -396,6 +371,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
         return this.statusSection("serverSettings", "General", [
             ...fieldRow("host", "Host", this.valueOrBlank(serverStatus.host)),
+            ...fieldRow("serverId", "Server ID", this.valueOrBlank(serverStatus.serverId)),
+            ...fieldRow("serverUuid", "Server UUID", this.valueOrBlank(serverStatus.serverUuid)),
             ...fieldRow("bindAddress", "Bind Address", this.valueOrBlank(serverStatus.bindAddress)),
             ...fieldRow("socket", "Socket", this.valueOrBlank(serverStatus.socket)),
             ...fieldRow("port", "Port", this.valueOrBlank(serverStatus.port)),
@@ -414,6 +391,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             ...this.fieldRow("superReadOnlyStatus", "Super read-only",
                 this.drawStatusPill(serverStatus.superReadOnlyStatus)),
             ...this.fieldRow("offlineModeStatus", "Offline mode", this.drawStatusPill(serverStatus.offlineModeStatus)),
+            ...this.fieldRow("redoLogStatus", "InnoDB Redo Log", this.redoLogSummary()),
+            ...this.fieldRow("binaryLogStatus", "Binary Log", this.drawStatusPill(serverStatus.binaryLogStatus)),
         ]);
     };
 
@@ -669,6 +648,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 adminPort: this.cachedValueFrom(values, "admin_port", "admin-port"),
                 socket: this.cachedValueFrom(values, "socket"),
                 port: this.cachedValueFrom(values, "port"),
+                serverId: this.cachedValueFrom(values, "server_id"),
+                serverUuid: this.cachedValueFrom(values, "server_uuid"),
                 compiledFor: this.cachedValueFrom(values, "version_compile_os"),
             };
             const versionComment = this.cachedValueFrom(values, "version_comment");
@@ -742,6 +723,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 serverStatus.adminPort = this.valueFrom(values, "admin_port", "admin-port");
                 serverStatus.socket = values.get("socket") ?? "none";
                 serverStatus.port = values.get("port") ?? "none";
+                serverStatus.serverId = values.get("server_id") ?? "none";
+                serverStatus.serverUuid = values.get("server_uuid") ?? "none";
                 serverStatus.binaryLogStatus = values.get("log_bin") ?? "none";
                 serverStatus.readOnlyStatus = values.get("read_only") ?? "none";
                 serverStatus.superReadOnlyStatus = values.get("super_read_only") ?? "none";

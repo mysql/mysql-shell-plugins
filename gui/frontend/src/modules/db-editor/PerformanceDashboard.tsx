@@ -41,6 +41,7 @@ import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { Assets } from "../../supplement/Assets.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { formatBytes } from "../../utilities/string-helpers.js";
+import { AdministrationPageFrame } from "./AdministrationPageFrame.js";
 
 enum MarkerType {
     None,
@@ -389,9 +390,10 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             },
         ];
 
-        return <Container
+        return <AdministrationPageFrame
             className={className}
-            orientation={Orientation.TopDown}
+            heading="Performance Dashboard"
+            icon={<Icon src={Assets.db.databaseEngineIcon} />}
         >
             {toolbar}
             <Tabview
@@ -400,7 +402,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 selectedId={activeTabId}
                 onSelectTab={this.handleSelectTab}
             />
-        </Container>;
+        </AdministrationPageFrame>;
     }
 
     private handleSelectTab = (id: string): void => {

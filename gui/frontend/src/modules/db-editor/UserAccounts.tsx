@@ -65,6 +65,9 @@ import { ui } from "../../app-logic/UILayer.js";
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { DialogResponseClosure, DialogType, IDictionary } from "../../app-logic/general-types.js";
 import { PasswordChangeDialog } from "../../components/Dialogs/PasswordChangeDialog.js";
+import {
+    AdministrationPageBody, AdministrationPageFrame, AdministrationPageHeading,
+} from "./AdministrationPageFrame.js";
 import { CreateUserDialog } from "./CreateUserDialog.js";
 import type { Command } from "../../data-models/data-model-types.js";
 
@@ -204,7 +207,14 @@ export interface IUserAccountsState extends IComponentState {
     rows: IMySQLUserListItem[];
     editingAccount: { user: string; host: string; comment?: string | null } | null;
     searchValues: ISearchValues;
-    passwordValidationInstalled: boolean;
+    authenticationDefaults?: IMySQLDefaultUserOptions;
+    authenticationPolicy?: string;
+    defaultAuthenticationPlugin?: string;
+    passwordValidationInstalled?: boolean;
+    passwordValidationPolicy?: string;
+    passwordValidationLength?: number;
+    requireSecureTransport?: boolean;
+    expiredAccountsOnly: boolean;
     partialRevokesEnabled: boolean;
     authenticationPlugins: string[];
     generatedPassword: string;
@@ -231,6 +241,15 @@ type ManageRolesAndPrivilegesTab = "roles" | "globalPrivileges" | "objectPrivile
 interface IUserAccountSummary {
     total: number;
     expiredPasswords: number;
+}
+
+interface IAuthenticationServerVariables {
+    authenticationPolicy?: string;
+    defaultAuthenticationPlugin?: string;
+    passwordValidationInstalled?: boolean;
+    passwordValidationPolicy?: string;
+    passwordValidationLength?: number;
+    requireSecureTransport?: boolean;
 }
 
 type UserAccountSearchCategory = "user" | "host" | "auth" | "role" | "privilege" | "all";
@@ -1512,7 +1531,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             rows: [],
             editingAccount: null,
             searchValues: {},
-            passwordValidationInstalled: false,
+            expiredAccountsOnly: false,
             partialRevokesEnabled: false,
             authenticationPlugins: [],
             generatedPassword: "",
@@ -1602,9 +1621,9 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 formatter: (cell) => {
                     return this.rolesFormatter(cell);
                 },
-                width: 76,
-                widthShrink: 2,
-                minWidth: 56,
+                width: 120,
+                widthShrink: 1,
+                minWidth: 120,
             },
             {
                 title: "Global Privileges",
@@ -1613,8 +1632,9 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 formatter: (cell) => {
                     return this.globalPrivilegesFormatter(cell);
                 },
-                minWidth: 100,
+                width: 120,
                 widthShrink: 1,
+                minWidth: 120,
             },
             {
                 title: "Object Privileges",
@@ -1623,8 +1643,9 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                 formatter: (cell) => {
                     return this.objectPrivilegesFormatter(cell);
                 },
-                minWidth: 100,
+                width: 120,
                 widthShrink: 1,
+                minWidth: 120,
                 cellDblClick: this.handleUserAccountsCellDoubleClick,
             },
         ];
@@ -1643,21 +1664,16 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         };
 
         const className = this.getEffectiveClassNames(["userAccounts"]);
-        const summary = this.userAccountSummary(filteredRows);
-
-        const toolbar = <Toolbar id="userAccountsToolbar" dropShadow={false}>
-            {navigationItems}
-            {this.toolbarContent()}
-            <div className="expander" />
-            {auxiliaryItems}
-            {this.searchContent()}
-        </Toolbar>;
+        const summary = this.userAccountSummary(rows);
+        const passwordExpiration = this.passwordExpirationPolicyText();
+        const passwordValidation = this.passwordValidationPolicyText();
+        const passwordReuse = this.passwordReusePolicyText();
+        const passwordChanges = this.passwordChangePolicyText();
+        const authenticationPolicy = this.authenticationPolicyText();
+        const secureTransport = this.secureTransportPolicyText();
 
         return (
-            <Container
-                className="userAccountsHost"
-                orientation={Orientation.TopDown}
-            >
+            <>
                 <CreateUserDialog
                     dialogRef={this.createUserDialogRef}
                     editing={this.state.editingAccount !== null}
@@ -1721,93 +1737,121 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                     id="viewUserAccountSqlDialog"
                     ref={this.viewAccountSqlDialogRef}
                 />
-                <Container
+                <AdministrationPageFrame
                     className={className}
-                    orientation={Orientation.TopDown}
-                    mainAlignment={ContentAlignment.Start}
-                    crossAlignment={ContentAlignment.Stretch}
                 >
-                    <Container
+                    <AdministrationPageHeading
                         id="userAccountsOverview"
-                        orientation={Orientation.TopDown}
+                        heading="User Accounts"
+                        icon={<Icon src={Assets.oci.profileIcon} id="userAccountsIcon" />}
+                        subtitle={<span data-testid="userAccountsTotal">
+                            {this.accountCountText(filteredRows.length, rows.length)}
+                        </span>}
                     >
-                        <Container
-                            id="userAccountsHeader"
-                            orientation={Orientation.LeftToRight}
-                            mainAlignment={ContentAlignment.SpaceBetween}
-                            crossAlignment={ContentAlignment.Center}
+                        <div className="userAccountsSummary" aria-label="Server authentication overview">
+                            {this.summaryItem(
+                                "Expired Accounts",
+                                `${summary.expiredPasswords} of ${summary.total}`,
+                                "summaryExpiredAccounts",
+                                {
+                                    active: this.state.expiredAccountsOnly,
+                                    disabled: summary.expiredPasswords === 0 && !this.state.expiredAccountsOnly,
+                                    onClick: this.toggleExpiredAccountsFilter,
+                                    tooltip: `${summary.expiredPasswords} of ${summary.total} accounts currently have `
+                                        + "expired passwords. Select to filter the account list.",
+                                },
+                            )}
+                            <section className="userAccountsSummaryGroup">
+                                <h2>Password Policy</h2>
+                                <div className="userAccountsSummaryGroupValues">
+                                    {this.summaryItem("Expiration", passwordExpiration,
+                                        "summaryPasswordExpiration", {
+                                            grouped: true,
+                                            tooltip: this.passwordExpirationTooltip(),
+                                        })}
+                                    {this.summaryItem("Validation", passwordValidation,
+                                        "summaryPasswordValidation", {
+                                            grouped: true,
+                                            tooltip: this.passwordValidationTooltip(),
+                                        })}
+                                    {this.summaryItem("Reuse", passwordReuse,
+                                        "summaryPasswordReuse", {
+                                            grouped: true,
+                                            tooltip: this.passwordReuseTooltip(),
+                                        })}
+                                    {this.summaryItem("Changes", passwordChanges,
+                                        "summaryPasswordChanges", {
+                                            grouped: true,
+                                            tooltip: this.passwordChangesTooltip(),
+                                        })}
+                                    {this.summaryItem("Authentication", authenticationPolicy,
+                                        "summaryAuthenticationPolicy", {
+                                            grouped: true,
+                                            tooltip: this.authenticationPolicyTooltip(),
+                                        })}
+                                </div>
+                            </section>
+                            {this.summaryItem("TLS Required", secureTransport,
+                                "summarySecureTransport", {
+                                    tooltip: this.secureTransportTooltip(),
+                                })}
+                        </div>
+                    </AdministrationPageHeading>
+                    <AdministrationPageBody>
+                        <div id="userAccountsList" className="userAccountsCard">
+                            <div id="userAccountsListHeader">
+                                <Toolbar id="userAccountsToolbar" dropShadow={false}>
+                                    {navigationItems}
+                                    {this.searchContent()}
+                                    <div className="expander" />
+                                    {auxiliaryItems}
+                                    {this.toolbarContent()}
+                                </Toolbar>
+                            </div>
+                            <div id="userAccountsGridFrame">
+                                <TreeGrid
+                                    id="userAccountsGrid"
+                                    ref={this.userAccountsGridRef}
+                                    options={options}
+                                    columns={columns}
+                                    tableData={filteredRows}
+                                    onRowContext={this.handleUserAccountsRowContext}
+                                    onFormatRow={this.handleFormatUserAccountRow}
+                                    onCellClick={this.handleUserAccountsCellClick}
+                                />
+                            </div>
+                        </div>
+                        <Menu
+                            id="userAccountContextMenu"
+                            ref={this.userAccountContextMenuRef}
+                            placement={ComponentPlacement.BottomLeft}
+                            onItemClick={this.handleUserAccountContextMenuItemClick}
+                            customCommand={this.handleUserAccountContextMenuCustomCommand}
                         >
-                            <Container
-                                className="userAccountsTitle"
-                                orientation={Orientation.LeftToRight}
-                                crossAlignment={ContentAlignment.Center}
-                            >
-                                <Icon src={Assets.oci.profileIcon} id="userAccountsIcon" />
-                                <Container orientation={Orientation.TopDown}>
-                                    <h1>User Accounts</h1>
-                                    <div className="userAccountsSubtitle" data-testid="userAccountsTotal">
-                                        {this.accountCountText(summary.total, rows.length)}
-                                    </div>
-                                </Container>
-                            </Container>
-                        </Container>
-                        <div className="userAccountsSummary">
-                            {this.summaryItem("Accounts", String(summary.total), "summaryTotal")}
-                            {this.summaryItem("Expired Passwords", String(summary.expiredPasswords),
-                                "summaryExpiredPasswords")}
-                            {this.summaryItem("Password Validation",
-                                this.state.passwordValidationInstalled ? "On" : "Off",
-                                "summaryPasswordValidation")}
-                        </div>
-                    </Container>
-                    <div id="userAccountsList" className="userAccountsCard">
-                        <div id="userAccountsListHeader">
-                            <Label caption="Account List" />
-                            {toolbar}
-                        </div>
-                        <div id="userAccountsGridFrame">
-                            <TreeGrid
-                                id="userAccountsGrid"
-                                ref={this.userAccountsGridRef}
-                                options={options}
-                                columns={columns}
-                                tableData={filteredRows}
-                                onRowContext={this.handleUserAccountsRowContext}
-                                onFormatRow={this.handleFormatUserAccountRow}
-                                onCellClick={this.handleUserAccountsCellClick}
+                            <MenuItem
+                                id="toggleAccountLock"
+                                command={{ title: "Lock Account", command: "toggleAccountLock" }}
                             />
-                        </div>
-                    </div>
-                    <Menu
-                        id="userAccountContextMenu"
-                        ref={this.userAccountContextMenuRef}
-                        placement={ComponentPlacement.BottomLeft}
-                        onItemClick={this.handleUserAccountContextMenuItemClick}
-                        customCommand={this.handleUserAccountContextMenuCustomCommand}
-                    >
-                        <MenuItem
-                            id="toggleAccountLock"
-                            command={{ title: "Lock Account", command: "toggleAccountLock" }}
-                        />
-                        <MenuItem command={{ title: "Reset Password...", command: "resetPassword" }} />
-                        <MenuItem command={{ title: "-", command: "" }} disabled />
-                        <MenuItem command={{ title: "View as SQL...", command: "viewAccountSql" }} />
-                        <MenuItem command={{ title: "Edit Account...", command: "editAccount" }} />
-                        <MenuItem command={{ title: "Manage Roles...", command: "manageRoles" }} />
-                        <MenuItem command={{
-                            title: "Manage Global Privileges...",
-                            command: "manageGlobalPrivileges"
-                        }} />
-                        <MenuItem command={{
-                            title: "Manage Object Privileges...",
-                            command: "manageObjectPrivileges"
-                        }} />
-                        <MenuItem command={{ title: "-", command: "" }} disabled />
-                        <MenuItem command={{ title: "Clone Account...", command: "cloneAccount" }} />
-                        <MenuItem command={{ title: "Delete Account...", command: "deleteAccount" }} />
-                    </Menu>
-                </Container>
-            </Container>
+                            <MenuItem command={{ title: "Reset Password...", command: "resetPassword" }} />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                            <MenuItem command={{ title: "View as SQL...", command: "viewAccountSql" }} />
+                            <MenuItem command={{ title: "Edit Account...", command: "editAccount" }} />
+                            <MenuItem command={{ title: "Manage Roles...", command: "manageRoles" }} />
+                            <MenuItem command={{
+                                title: "Manage Global Privileges...",
+                                command: "manageGlobalPrivileges"
+                            }} />
+                            <MenuItem command={{
+                                title: "Manage Object Privileges...",
+                                command: "manageObjectPrivileges"
+                            }} />
+                            <MenuItem command={{ title: "Clone Account...", command: "cloneAccount" }} />
+                            <MenuItem command={{ title: "-", command: "" }} disabled />
+                            <MenuItem command={{ title: "Delete Account...", command: "deleteAccount" }} />
+                        </Menu>
+                    </AdministrationPageBody>
+                </AdministrationPageFrame>
+            </>
         );
     }
 
@@ -1831,14 +1875,247 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         return `${count} account${count === 1 ? "" : "s"}`;
     };
 
-    private summaryItem = (label: string, value: string, testId: string): ComponentChild => {
-        return (
-            <div className="userAccountsSummaryItem">
+    private summaryItem = (
+        label: string,
+        value: string,
+        testId: string,
+        options?: {
+            active?: boolean;
+            disabled?: boolean;
+            grouped?: boolean;
+            onClick?: () => void;
+            tooltip?: string;
+        },
+    ): ComponentChild => {
+        const content = (
+            <>
                 <span>{label}</span>
                 <strong data-testid={testId}>{value}</strong>
-            </div>
+            </>
         );
+
+        if (options?.onClick) {
+            return (
+                <button
+                    className={`userAccountsSummaryItem actionable${options.active ? " active" : ""}`}
+                    type="button"
+                    aria-pressed={options.active}
+                    disabled={options.disabled}
+                    onClick={options.onClick}
+                    data-tooltip={options.tooltip}
+                >
+                    {content}
+                </button>
+            );
+        }
+
+        const className = `userAccountsSummaryItem${options?.grouped ? " grouped" : ""}`;
+
+        return <div className={className} data-tooltip={options?.tooltip}>{content}</div>;
     };
+
+    private toggleExpiredAccountsFilter = (): void => {
+        this.setState(({ expiredAccountsOnly }) => {
+            return { expiredAccountsOnly: !expiredAccountsOnly };
+        });
+    };
+
+    private passwordExpirationPolicyText(): string {
+        const lifetime = this.state.authenticationDefaults?.passwordLifetime;
+        if (lifetime === undefined) {
+            return "Unavailable";
+        }
+
+        return lifetime === 0 ? "Never" : `${lifetime} day${lifetime === 1 ? "" : "s"}`;
+    }
+
+    private passwordExpirationTooltip(): string {
+        const lifetime = this.state.authenticationDefaults?.passwordLifetime;
+        if (lifetime === undefined) {
+            return "The server default password lifetime could not be read. (@@default_password_lifetime)";
+        }
+
+        return lifetime === 0
+            ? "Passwords do not expire automatically unless an account sets its own lifetime. "
+                + "(@@default_password_lifetime)"
+            : `Passwords expire ${lifetime} day${lifetime === 1 ? "" : "s"} after they are changed unless `
+                + "the account overrides the default. (@@default_password_lifetime)";
+    }
+
+    private passwordValidationPolicyText(): string {
+        if (this.state.passwordValidationInstalled === undefined) {
+            return "Unavailable";
+        }
+
+        if (!this.state.passwordValidationInstalled) {
+            return "Off";
+        }
+
+        const policy = this.state.passwordValidationPolicy ?? "On";
+        const length = this.state.passwordValidationLength;
+
+        return length === undefined
+            ? policy
+            : `${policy} · ${length} character${length === 1 ? "" : "s"}`;
+    }
+
+    private passwordValidationTooltip(): string {
+        if (this.state.passwordValidationInstalled === undefined) {
+            return "The server password-validation policy could not be read. "
+                + "(@@validate_password.policy, @@validate_password.length)";
+        }
+
+        if (!this.state.passwordValidationInstalled) {
+            return "The server is not enforcing password-strength validation. "
+                + "(@@validate_password.policy, @@validate_password.length)";
+        }
+
+        const policy = this.state.passwordValidationPolicy ?? "enabled";
+        const length = this.state.passwordValidationLength;
+        const minimumLength = length === undefined
+            ? ""
+            : ` and be at least ${length} character${length === 1 ? "" : "s"} long`;
+
+        return `New passwords must satisfy the ${policy} validation policy${minimumLength}. `
+            + "(@@validate_password.policy, @@validate_password.length)";
+    }
+
+    private passwordReusePolicyText(): string {
+        const history = this.state.authenticationDefaults?.passwordReuseHistory;
+        const interval = this.state.authenticationDefaults?.passwordReuseInterval;
+        if (history === undefined || interval === undefined) {
+            return "Unavailable";
+        }
+
+        if (history === 0 && interval === 0) {
+            return "Allowed";
+        }
+
+        const values: string[] = [];
+        if (history > 0) {
+            values.push(`${history} password${history === 1 ? "" : "s"}`);
+        }
+        if (interval > 0) {
+            values.push(`${interval} day${interval === 1 ? "" : "s"}`);
+        }
+
+        return values.join(" · ");
+    }
+
+    private passwordReuseTooltip(): string {
+        const history = this.state.authenticationDefaults?.passwordReuseHistory;
+        const interval = this.state.authenticationDefaults?.passwordReuseInterval;
+        if (history === undefined || interval === undefined) {
+            return "The server password-reuse limits could not be read. "
+                + "(@@password_history, @@password_reuse_interval)";
+        }
+        if (history === 0 && interval === 0) {
+            return "Previously used passwords can be reused immediately. "
+                + "(@@password_history, @@password_reuse_interval)";
+        }
+
+        const restrictions: string[] = [];
+        if (history > 0) {
+            restrictions.push(`outside the last ${history} password${history === 1 ? "" : "s"}`);
+        }
+        if (interval > 0) {
+            restrictions.push(`at least ${interval} day${interval === 1 ? "" : "s"} old`);
+        }
+
+        return `A password can be reused only when it is ${restrictions.join(" and ")}. `
+            + "(@@password_history, @@password_reuse_interval)";
+    }
+
+    private passwordChangePolicyText(): string {
+        const requireCurrent = this.state.authenticationDefaults?.passwordRequireCurrent;
+        if (requireCurrent === undefined) {
+            return "Unavailable";
+        }
+
+        return requireCurrent ? "Current required" : "Current optional";
+    }
+
+    private passwordChangesTooltip(): string {
+        const requireCurrent = this.state.authenticationDefaults?.passwordRequireCurrent;
+        if (requireCurrent === undefined) {
+            return "The server password-change requirement could not be read. (@@password_require_current)";
+        }
+
+        return requireCurrent
+            ? "Accounts must provide the current password when changing it. (@@password_require_current)"
+            : "Accounts can change their password without providing the current password. "
+                + "(@@password_require_current)";
+    }
+
+    private authenticationPolicyText(): string {
+        const policy = this.state.authenticationPolicy?.trim();
+        if (!policy) {
+            const count = this.state.authenticationPlugins.length;
+
+            return count === 0 ? "Unavailable" : `${count} active plugin${count === 1 ? "" : "s"}`;
+        }
+
+        const factors = policy.split(",").map((factor) => {
+            return factor.trim();
+        }).filter(Boolean);
+        if (factors.length === 0) {
+            return "No factors configured";
+        }
+
+        const primary = factors[0] === "*"
+            ? this.state.defaultAuthenticationPlugin ?? "Any plugin"
+            : factors[0];
+        const count = factors.length;
+
+        return `${primary} · ${count} factor${count === 1 ? "" : "s"}`;
+    }
+
+    private authenticationPolicyTooltip(): string {
+        const policy = this.state.authenticationPolicy?.trim();
+        if (!policy) {
+            return "The server authentication policy could not be read. "
+                + "(@@authentication_policy, @@default_authentication_plugin)";
+        }
+
+        const factors = policy.split(",").map((factor) => {
+            return factor.trim();
+        }).filter(Boolean);
+        if (factors.length === 0) {
+            return "New accounts have no default authentication factors configured. "
+                + "(@@authentication_policy, @@default_authentication_plugin)";
+        }
+
+        const primary = factors[0] === "*"
+            ? this.state.defaultAuthenticationPlugin ?? "any available plugin"
+            : factors[0];
+        if (factors.length === 1) {
+            return `New accounts use ${primary} as their default authentication factor. `
+                + "(@@authentication_policy, @@default_authentication_plugin)";
+        }
+
+        return `New accounts use ${factors.length} authentication factors; the first uses ${primary}. `
+            + "(@@authentication_policy, @@default_authentication_plugin)";
+    }
+
+    private secureTransportPolicyText(): string {
+        const requireSecureTransport = this.state.requireSecureTransport;
+        if (requireSecureTransport === undefined) {
+            return "Unavailable";
+        }
+
+        return requireSecureTransport ? "Required" : "Not required";
+    }
+
+    private secureTransportTooltip(): string {
+        const requireSecureTransport = this.state.requireSecureTransport;
+        if (requireSecureTransport === undefined) {
+            return "The server secure-transport requirement could not be read. (@@require_secure_transport)";
+        }
+
+        return requireSecureTransport
+            ? "Accounts must connect using TLS or another secure transport. (@@require_secure_transport)"
+            : "Accounts may connect without TLS or another secure transport. (@@require_secure_transport)";
+    }
 
     private renderStatusPill = (
         text: string, kind: "on" | "off" | "none" | "warning" | "info", icon?: Codicon, tooltip?: string,
@@ -1876,8 +2153,15 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             <Button key="refresh" data-tooltip="Refresh" imageOnly={true} onClick={this.handleRefresh}>
                 <Icon src={Assets.toolbar.refreshIcon2} data-tooltip="inherit" />
             </Button>,
-            <Button key="createUser" data-tooltip="Create user" imageOnly={true} onClick={this.handleCreateUser}>
-                <Icon src={Assets.misc.plusIcon} width={16} height={16} data-tooltip="inherit" />
+            <Button
+                key="createUser"
+                id="createUserAccount"
+                className="userAccountCreateButton"
+                data-tooltip="Create user"
+                imageOnly={true}
+                onClick={this.handleCreateUser}
+            >
+                <Icon src={Codicon.Add} data-tooltip="inherit" />
             </Button>,
         ];
     };
@@ -3166,12 +3450,17 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
     }
 
     private filteredUserRows = (rows: IMySQLUserListItem[]): IMySQLUserListItem[] => {
+        const statusFilteredRows = this.state.expiredAccountsOnly
+            ? rows.filter((row) => {
+                return this.isPasswordExpired(row);
+            })
+            : rows;
         const terms = this.parseSearchTerms(this.state.searchValues.value ?? "");
         if (terms.length === 0) {
-            return rows;
+            return statusFilteredRows;
         }
 
-        return rows.filter((row) => {
+        return statusFilteredRows.filter((row) => {
             return terms.every((term) => {
                 return this.searchableValuesForCategory(row, term.category).some((value) => {
                     return value.includes(term.value);
@@ -3951,8 +4240,15 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             const rows = await backend.listMySQLUsers() ?? [];
             this.setState({ rows });
 
+            // These requests share the SQL editor session and must not run concurrently.
             const authenticationPlugins = await this.loadAuthenticationPlugins();
-            this.setState({ authenticationPlugins });
+            const authenticationDefaults = await this.loadCreateUserDefaults();
+            const authenticationVariables = await this.loadAuthenticationServerVariables();
+            this.setState({
+                authenticationPlugins,
+                authenticationDefaults,
+                ...authenticationVariables,
+            });
 
             const partialRevokesEnabled = rows.some((row) => {
                 return row.globalPrivileges.length > 0;
@@ -3961,12 +4257,16 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             // reformats the existing rows after the capability check completes.
             this.setState({ rows: [...rows], partialRevokesEnabled });
 
-            const passwordValidationInstalled = await this.loadPasswordValidationInstalled();
-            this.setState({ passwordValidationInstalled });
         } catch (err) {
             this.setState({
                 rows: [],
-                passwordValidationInstalled: false,
+                authenticationDefaults: undefined,
+                authenticationPolicy: undefined,
+                defaultAuthenticationPlugin: undefined,
+                passwordValidationInstalled: undefined,
+                passwordValidationPolicy: undefined,
+                passwordValidationLength: undefined,
+                requireSecureTransport: undefined,
                 partialRevokesEnabled: false,
                 authenticationPlugins: [],
             });
@@ -4001,20 +4301,71 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         }
     };
 
-    private loadPasswordValidationInstalled = async (): Promise<boolean> => {
+    private loadAuthenticationServerVariables = async (): Promise<IAuthenticationServerVariables> => {
         const { backend } = this.props;
         if (!backend) {
-            return false;
+            return {};
         }
 
         try {
-            const result = await backend.execute("SHOW VARIABLES LIKE 'validate_password.%'");
+            const result = await backend.execute(`
+SHOW VARIABLES
+WHERE Variable_name IN (
+    'authentication_policy',
+    'default_authentication_plugin',
+    'require_secure_transport'
+)
+   OR Variable_name LIKE 'validate_password.%'
+   OR Variable_name LIKE 'validate_password_%'`);
+            const variables = new Map<string, string>();
+            result?.rows?.forEach((row) => {
+                if (Array.isArray(row) && row.length >= 2) {
+                    variables.set(String(row[0]), String(row[1]));
+                }
+            });
+            const passwordValidationPolicy = variables.get("validate_password.policy")
+                ?? variables.get("validate_password_policy");
+            const passwordValidationLengthValue = variables.get("validate_password.length")
+                ?? variables.get("validate_password_length");
+            const passwordValidationLength = passwordValidationLengthValue === undefined
+                ? undefined
+                : Number(passwordValidationLengthValue);
 
-            return (result?.rows?.length ?? 0) > 0;
+            return {
+                authenticationPolicy: variables.get("authentication_policy"),
+                defaultAuthenticationPlugin: variables.get("default_authentication_plugin"),
+                passwordValidationInstalled: [...variables.keys()].some((name) => {
+                    return name.startsWith("validate_password.");
+                }) || [...variables.keys()].some((name) => {
+                    return name.startsWith("validate_password_");
+                }),
+                passwordValidationPolicy: passwordValidationPolicy?.toLocaleUpperCase(),
+                passwordValidationLength: passwordValidationLength !== undefined
+                    && Number.isFinite(passwordValidationLength)
+                    ? passwordValidationLength
+                    : undefined,
+                requireSecureTransport: this.mysqlBooleanVariable(variables.get("require_secure_transport")),
+            };
         } catch {
-            return false;
+            return {};
         }
     };
+
+    private mysqlBooleanVariable(value: string | undefined): boolean | undefined {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        const normalized = value.toLocaleUpperCase();
+        if (normalized === "ON") {
+            return true;
+        }
+        if (normalized === "OFF") {
+            return false;
+        }
+
+        return undefined;
+    }
 
     private catalogPrivilegeSets(catalogs: IObjectPrivilegeCatalogs): Record<ObjectPrivilegeTargetKind, Set<string>> {
         return {
@@ -4467,7 +4818,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const list = data.roles;
 
         return this.renderIntoHost(this.renderStatusPill(String(list.length),
-            list.length > 0 ? "on" : "none", undefined, this.tooltipList(list)));
+            list.length > 0 ? "info" : "none", undefined, this.tooltipList(list)));
     };
 
     private globalPrivilegesFormatter = (cell: CellComponent): HTMLElement => {
@@ -4476,7 +4827,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         const list = data.globalPrivileges;
 
         return this.renderIntoHost(this.renderStatusPill(String(list.length),
-            list.length > 0 ? "on" : "none", undefined, this.tooltipList(list)));
+            list.length > 0 ? "info" : "none", undefined, this.tooltipList(list)));
     };
 
     private objectPrivilegesFormatter = (cell: CellComponent): HTMLElement => {
@@ -4511,7 +4862,7 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             : String(total);
 
         return this.renderIntoHost(this.renderStatusPill(text,
-            hasPrivileges ? "on" : "none", undefined, this.tooltipList(tooltipLines)));
+            hasPrivileges ? "info" : "none", undefined, this.tooltipList(tooltipLines)));
     };
 
     private compactInheritedGlobalPrivileges(row: IMySQLUserListItem): string[] {

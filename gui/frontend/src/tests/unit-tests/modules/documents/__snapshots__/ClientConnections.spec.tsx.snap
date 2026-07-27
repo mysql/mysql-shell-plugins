@@ -42,141 +42,143 @@ exports[`Client connections module tests > Test ClientConnections getClientConne
 
 exports[`Client connections module tests > Test ClientConnections instantiation > ClientConnections1 1`] = `
 <div>
-  <div
-    class="msg container fixedScrollbar clientConnections"
-    style="flex-direction: column; justify-content: flex-start;"
+  <main
+    class="msg administrationPageFrame clientConnections"
   >
-    <div
-      class="fixedScrollbar"
-      id="contentHost"
+    <section
+      class="msg administrationPageHeading"
+      id="clientConnectionsOverview"
     >
-      <section
-        id="clientConnectionsOverview"
+      <header
+        class="administrationPageHeadingHeader"
       >
         <div
-          id="clientConnectionsHeader"
+          class="administrationPageHeadingIdentity"
         >
           <div
-            class="clientConnectionsTitle"
+            class="administrationPageHeadingIcon"
           >
             <div
               class="msg icon"
               id="clientConnectionsIcon"
               style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='clientConnections'%20transform='matrix(0.0132735,0,0,0.0124748,2.74273,-0.736333)'%3e%3cg%20transform='matrix(75.2284,0,0,60.3308,-55.8459,58.9287)'%3e%3crect%20x='1'%20y='2'%20width='1'%20height='12'/%3e%3c/g%3e%3cg%20transform='matrix(72.5993,0,0,60.2952,-317.321,58.9999)'%3e%3crect%20x='14'%20y='2'%20width='1'%20height='12'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,786.808)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.759,5.156C46.759,5.156%2047.255,5.552%2047.532,5.739C47.965,6.03%2048.496,6.352%2048.998,6.569C52.75,8.192%2058.814,9.193%2065.647,9.193C72.48,9.193%2078.543,8.192%2082.295,6.569C82.797,6.352%2083.329,6.03%2083.761,5.739L84.538,5.205L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,546.089)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.793,5.149C46.793,5.149%2047.289,5.546%2047.567,5.732C48,6.023%2048.531,6.346%2049.033,6.563C52.785,8.185%2058.849,9.186%2065.681,9.186C72.514,9.186%2078.578,8.185%2082.33,6.563C82.832,6.346%2083.363,6.023%2083.796,5.732L84.573,5.199L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,305.601)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.749,5.172C46.749,5.172%2047.245,5.568%2047.523,5.755C47.956,6.046%2048.487,6.368%2048.989,6.585C52.741,8.208%2058.804,9.208%2065.637,9.208C72.47,9.208%2078.534,8.208%2082.286,6.585C82.788,6.368%2083.319,6.046%2083.752,5.755L84.529,5.221L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.2402,-724.401,61.7199)'%3e%3cpath%20d='M65.594,-0.156C77.761,-0.156%2087.625,2.971%2087.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828C43.562,2.971%2053.426,-0.156%2065.594,-0.156ZM83.31,6.687C82.888,6.919%2082.37,7.176%2081.88,7.349C78.219,8.644%2072.303,9.443%2065.636,9.443C58.968,9.443%2053.052,8.644%2049.391,7.349C48.901,7.176%2048.383,6.919%2047.961,6.687C48.383,6.454%2048.901,6.197%2049.391,6.024C53.052,4.729%2058.968,3.93%2065.636,3.93C72.303,3.93%2078.219,4.729%2081.88,6.024C82.37,6.197%2082.888,6.454%2083.31,6.687Z'/%3e%3c/g%3e%3cg%20transform='matrix(67.3382,0,0,64.5334,-142.212,283.78)'%3e%3crect%20x='0'%20y='14'%20width='16'%20height='1'/%3e%3c/g%3e%3cg%20transform='matrix(75.3379,0,0,69.5062,-206.631,213.16)'%3e%3cpath%20d='M10,13.536C10,13.24%209.792,13%209.535,13L6.465,13C6.208,13%206,13.24%206,13.536L6,15.464C6,15.76%206.208,16%206.465,16L9.535,16C9.792,16%2010,15.76%2010,15.464L10,13.536Z'/%3e%3c/g%3e%3cg%20transform='matrix(75.3379,0,0,95.4505,-170.308,-123.419)'%3e%3crect%20x='7'%20y='12'%20width='1'%20height='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
             />
-            <div>
-              <h1>
-                Client Connections
-              </h1>
-              <div
-                class="clientConnectionsVersion"
-              />
-            </div>
           </div>
           <div
-            class="clientConnectionPrimaryMetrics"
+            class="administrationPageHeadingTitle"
           >
-            <div
-              class="clientConnectionMetric primary"
-            >
-              <span>
-                Threads Connected / Limit
-              </span>
-              <label
-                class="msg label"
-                data-testid="threadsConnected"
-                data-tooltip="expand"
-              >
-                <span />
-                <span
-                  class="clientConnectionLimitValue"
-                />
-              </label>
-              <label
-                class="msg label clientConnectionHiddenMetric"
-                data-testid="connectionsLimit"
-                data-tooltip="expand"
-              />
-            </div>
+            <h1>
+              Client Connections
+            </h1>
           </div>
         </div>
+      </header>
+      <div
+        class="administrationPageHeadingContent"
+      >
         <div
+          aria-label="Connection status overview"
           id="connectionProps"
         >
-          <div
-            class="clientConnectionMetric"
+          <section
+            class="clientConnectionMetricGroup"
           >
-            <span>
-              Threads Running
-            </span>
-            <label
-              class="msg label"
-              data-testid="threadsRunning"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
+            <h2>
+              Connections
+            </h2>
+            <dl>
+              <div>
+                <dt>
+                  Connected
+                </dt>
+                <dd
+                  data-testid="threadsConnected"
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Limit
+                </dt>
+                <dd
+                  data-testid="connectionsLimit"
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Max. Seen
+                </dt>
+                <dd
+                  data-testid="connectionHighWatermark"
+                >
+                  —
+                </dd>
+              </div>
+            </dl>
+          </section>
+          <section
+            class="clientConnectionMetricGroup"
           >
-            <span>
-              Threads Cached
-            </span>
-            <label
-              class="msg label"
-              data-testid="threadsCached"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Rejected (over limit)
-            </span>
-            <label
-              class="msg label"
-              data-testid="rejected"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Aborted Clients
-            </span>
-            <label
-              class="msg label"
-              data-testid="abortedClients"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Aborted Connections
-            </span>
-            <label
-              class="msg label"
-              data-testid="abortedConnections"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Errors
-            </span>
-            <label
-              class="msg label"
-              data-testid="errors"
-              data-tooltip="expand"
-            />
-          </div>
+            <h2>
+              Failures
+            </h2>
+            <dl>
+              <div>
+                <dt>
+                  Errors
+                </dt>
+                <dd
+                  data-testid="errors"
+                  data-tooltip="Connection errors reported by the server, excluding limit rejections."
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Aborted Clients
+                </dt>
+                <dd
+                  data-testid="abortedClients"
+                  data-tooltip="Established clients that disconnected without closing cleanly."
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Aborted Connects
+                </dt>
+                <dd
+                  data-testid="abortedConnections"
+                  data-tooltip="Connection attempts that failed before they were established."
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Rejected
+                </dt>
+                <dd
+                  data-testid="rejected"
+                  data-tooltip="Connections refused because the server connection limit was reached."
+                >
+                  —
+                </dd>
+              </div>
+            </dl>
+          </section>
         </div>
-      </section>
+      </div>
+    </section>
+    <section
+      class="msg administrationPageBody fixedScrollbar"
+      id="contentHost"
+    >
       <div
         class="msg splitContainer"
         id="connectionList"
@@ -206,6 +208,9 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
                 id="clientConnectionToolbar"
                 style="flex-direction: row; align-items: center;"
               >
+                <div
+                  class="expander"
+                />
                 <label
                   class="msg label"
                   data-tooltip="expand"
@@ -239,9 +244,6 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
                     style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-306,-161)'%3e%3cg%20id='refresh'%20transform='matrix(1,0,0,1,309.561,163.025)'%3e%3cpath%20d='M4.681,3L2,3L2,2L5.5,2L6,2.5L6,6L5,6L5,4C3.742,4.944%203.001,6.427%203.001,7.999C3.001,10.742%205.258,12.999%208.001,12.999C10.744,12.999%2013.001,10.742%2013.001,7.999C13.001,5.833%2011.593,3.902%209.53,3.239L9.832,2.285C12.309,3.079%2014,5.398%2014,7.998C14,11.29%2011.291,13.998%208,13.998C4.708,13.998%202,11.29%202,7.998C2,5.99%203.008,4.111%204.681,3Z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
                   />
                 </div>
-                <div
-                  class="expander"
-                />
                 <div
                   class="msg button imageOnly"
                   data-tooltip="Display Options"
@@ -375,148 +377,150 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 `;
 
 exports[`Client connections module tests > Test ClientConnections instantiation > ClientConnections2 1`] = `
 <div>
-  <div
-    class="msg container fixedScrollbar clientConnections"
-    style="flex-direction: column; justify-content: flex-start;"
+  <main
+    class="msg administrationPageFrame clientConnections"
   >
-    <div
-      class="fixedScrollbar"
-      id="contentHost"
+    <section
+      class="msg administrationPageHeading"
+      id="clientConnectionsOverview"
     >
-      <section
-        id="clientConnectionsOverview"
+      <header
+        class="administrationPageHeadingHeader"
       >
         <div
-          id="clientConnectionsHeader"
+          class="administrationPageHeadingIdentity"
         >
           <div
-            class="clientConnectionsTitle"
+            class="administrationPageHeadingIcon"
           >
             <div
               class="msg icon"
               id="clientConnectionsIcon"
               style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='clientConnections'%20transform='matrix(0.0132735,0,0,0.0124748,2.74273,-0.736333)'%3e%3cg%20transform='matrix(75.2284,0,0,60.3308,-55.8459,58.9287)'%3e%3crect%20x='1'%20y='2'%20width='1'%20height='12'/%3e%3c/g%3e%3cg%20transform='matrix(72.5993,0,0,60.2952,-317.321,58.9999)'%3e%3crect%20x='14'%20y='2'%20width='1'%20height='12'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,786.808)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.759,5.156C46.759,5.156%2047.255,5.552%2047.532,5.739C47.965,6.03%2048.496,6.352%2048.998,6.569C52.75,8.192%2058.814,9.193%2065.647,9.193C72.48,9.193%2078.543,8.192%2082.295,6.569C82.797,6.352%2083.329,6.03%2083.761,5.739L84.538,5.205L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,546.089)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.793,5.149C46.793,5.149%2047.289,5.546%2047.567,5.732C48,6.023%2048.531,6.346%2049.033,6.563C52.785,8.185%2058.849,9.186%2065.681,9.186C72.514,9.186%2078.578,8.185%2082.33,6.563C82.832,6.346%2083.363,6.023%2083.796,5.732L84.573,5.199L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.074,-724.401,305.601)'%3e%3cpath%20d='M87.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828L46.749,5.172C46.749,5.172%2047.245,5.568%2047.523,5.755C47.956,6.046%2048.487,6.368%2048.989,6.585C52.741,8.208%2058.804,9.208%2065.637,9.208C72.47,9.208%2078.534,8.208%2082.286,6.585C82.788,6.368%2083.319,6.046%2083.752,5.755L84.529,5.221L87.625,6.828Z'/%3e%3c/g%3e%3cg%20transform='matrix(17.074,0,0,17.2402,-724.401,61.7199)'%3e%3cpath%20d='M65.594,-0.156C77.761,-0.156%2087.625,2.971%2087.625,6.828C87.625,10.685%2077.761,13.813%2065.594,13.813C53.426,13.813%2043.562,10.685%2043.562,6.828C43.562,2.971%2053.426,-0.156%2065.594,-0.156ZM83.31,6.687C82.888,6.919%2082.37,7.176%2081.88,7.349C78.219,8.644%2072.303,9.443%2065.636,9.443C58.968,9.443%2053.052,8.644%2049.391,7.349C48.901,7.176%2048.383,6.919%2047.961,6.687C48.383,6.454%2048.901,6.197%2049.391,6.024C53.052,4.729%2058.968,3.93%2065.636,3.93C72.303,3.93%2078.219,4.729%2081.88,6.024C82.37,6.197%2082.888,6.454%2083.31,6.687Z'/%3e%3c/g%3e%3cg%20transform='matrix(67.3382,0,0,64.5334,-142.212,283.78)'%3e%3crect%20x='0'%20y='14'%20width='16'%20height='1'/%3e%3c/g%3e%3cg%20transform='matrix(75.3379,0,0,69.5062,-206.631,213.16)'%3e%3cpath%20d='M10,13.536C10,13.24%209.792,13%209.535,13L6.465,13C6.208,13%206,13.24%206,13.536L6,15.464C6,15.76%206.208,16%206.465,16L9.535,16C9.792,16%2010,15.76%2010,15.464L10,13.536Z'/%3e%3c/g%3e%3cg%20transform='matrix(75.3379,0,0,95.4505,-170.308,-123.419)'%3e%3crect%20x='7'%20y='12'%20width='1'%20height='1'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
             />
-            <div>
-              <h1>
-                Client Connections
-              </h1>
-              <div
-                class="clientConnectionsVersion"
-              />
-            </div>
           </div>
           <div
-            class="clientConnectionPrimaryMetrics"
+            class="administrationPageHeadingTitle"
           >
-            <div
-              class="clientConnectionMetric primary"
-            >
-              <span>
-                Threads Connected / Limit
-              </span>
-              <label
-                class="msg label"
-                data-testid="threadsConnected"
-                data-tooltip="expand"
-              >
-                <span />
-                <span
-                  class="clientConnectionLimitValue"
-                />
-              </label>
-              <label
-                class="msg label clientConnectionHiddenMetric"
-                data-testid="connectionsLimit"
-                data-tooltip="expand"
-              />
-            </div>
+            <h1>
+              Client Connections
+            </h1>
           </div>
         </div>
+      </header>
+      <div
+        class="administrationPageHeadingContent"
+      >
         <div
+          aria-label="Connection status overview"
           id="connectionProps"
         >
-          <div
-            class="clientConnectionMetric"
+          <section
+            class="clientConnectionMetricGroup"
           >
-            <span>
-              Threads Running
-            </span>
-            <label
-              class="msg label"
-              data-testid="threadsRunning"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
+            <h2>
+              Connections
+            </h2>
+            <dl>
+              <div>
+                <dt>
+                  Connected
+                </dt>
+                <dd
+                  data-testid="threadsConnected"
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Limit
+                </dt>
+                <dd
+                  data-testid="connectionsLimit"
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Max. Seen
+                </dt>
+                <dd
+                  data-testid="connectionHighWatermark"
+                >
+                  —
+                </dd>
+              </div>
+            </dl>
+          </section>
+          <section
+            class="clientConnectionMetricGroup"
           >
-            <span>
-              Threads Cached
-            </span>
-            <label
-              class="msg label"
-              data-testid="threadsCached"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Rejected (over limit)
-            </span>
-            <label
-              class="msg label"
-              data-testid="rejected"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Aborted Clients
-            </span>
-            <label
-              class="msg label"
-              data-testid="abortedClients"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Aborted Connections
-            </span>
-            <label
-              class="msg label"
-              data-testid="abortedConnections"
-              data-tooltip="expand"
-            />
-          </div>
-          <div
-            class="clientConnectionMetric"
-          >
-            <span>
-              Errors
-            </span>
-            <label
-              class="msg label"
-              data-testid="errors"
-              data-tooltip="expand"
-            />
-          </div>
+            <h2>
+              Failures
+            </h2>
+            <dl>
+              <div>
+                <dt>
+                  Errors
+                </dt>
+                <dd
+                  data-testid="errors"
+                  data-tooltip="Connection errors reported by the server, excluding limit rejections."
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Aborted Clients
+                </dt>
+                <dd
+                  data-testid="abortedClients"
+                  data-tooltip="Established clients that disconnected without closing cleanly."
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Aborted Connects
+                </dt>
+                <dd
+                  data-testid="abortedConnections"
+                  data-tooltip="Connection attempts that failed before they were established."
+                >
+                  —
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  Rejected
+                </dt>
+                <dd
+                  data-testid="rejected"
+                  data-tooltip="Connections refused because the server connection limit was reached."
+                >
+                  —
+                </dd>
+              </div>
+            </dl>
+          </section>
         </div>
-      </section>
+      </div>
+    </section>
+    <section
+      class="msg administrationPageBody fixedScrollbar"
+      id="contentHost"
+    >
       <div
         class="msg splitContainer"
         id="connectionList"
@@ -546,6 +550,9 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
                 id="clientConnectionToolbar"
                 style="flex-direction: row; align-items: center;"
               >
+                <div
+                  class="expander"
+                />
                 <label
                   class="msg label"
                   data-tooltip="expand"
@@ -579,9 +586,6 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
                     style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2024%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20transform='matrix(1,0,0,1,-306,-161)'%3e%3cg%20id='refresh'%20transform='matrix(1,0,0,1,309.561,163.025)'%3e%3cpath%20d='M4.681,3L2,3L2,2L5.5,2L6,2.5L6,6L5,6L5,4C3.742,4.944%203.001,6.427%203.001,7.999C3.001,10.742%205.258,12.999%208.001,12.999C10.744,12.999%2013.001,10.742%2013.001,7.999C13.001,5.833%2011.593,3.902%209.53,3.239L9.832,2.285C12.309,3.079%2014,5.398%2014,7.998C14,11.29%2011.291,13.998%208,13.998C4.708,13.998%202,11.29%202,7.998C2,5.99%203.008,4.111%204.681,3Z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
                   />
                 </div>
-                <div
-                  class="expander"
-                />
                 <div
                   class="msg button imageOnly"
                   data-tooltip="Display Options"
@@ -715,7 +719,7 @@ exports[`Client connections module tests > Test ClientConnections instantiation 
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 `;

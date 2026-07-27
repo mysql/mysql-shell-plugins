@@ -325,6 +325,7 @@ describe("UserAccounts module", () => {
                 accountLocked: true,
                 sslOptions: { requiresCertificate: true } as IMySQLUserListItemSSLOptions,
                 globalPrivileges: ["SELECT"],
+                passwordExpired: true,
                 passwordExpiration: "2100-10-01T00:00:00Z",
             }),
         ];
@@ -333,9 +334,22 @@ describe("UserAccounts module", () => {
         const listSpy = vi.spyOn(backend1, "listMySQLUsers").mockResolvedValue(rows);
         const authenticationPluginsSpy = vi.spyOn(backend1, "listMySQLAuthenticationPlugins")
             .mockResolvedValue(["caching_sha2_password", "auth_socket"]);
+        vi.spyOn(backend1, "getMySQLCreateUserDefaults").mockResolvedValue({
+            passwordLifetime: 90,
+            passwordReuseHistory: 5,
+            passwordReuseInterval: 365,
+            passwordRequireCurrent: true,
+            maxUserConnections: 0,
+        });
         vi.spyOn(backend1, "isPartialRevokesEnabled").mockResolvedValue(false);
         vi.spyOn(backend1, "execute").mockResolvedValue({
-            rows: [["validate_password.length", "8"]],
+            rows: [
+                ["authentication_policy", "*,,"],
+                ["default_authentication_plugin", "caching_sha2_password"],
+                ["require_secure_transport", "ON"],
+                ["validate_password.policy", "MEDIUM"],
+                ["validate_password.length", "12"],
+            ],
         });
         const toolbarItems: IToolbarItems = {
             navigation: [], execution: [], editor: [], auxiliary: [],
@@ -356,19 +370,57 @@ describe("UserAccounts module", () => {
         // Basic structural checks
         expect(container.querySelector("#userAccountsToolbar")).toBeTruthy();
         expect(container.querySelector("#userAccountsGrid")).toBeTruthy();
+        const createButton = container.querySelector<HTMLButtonElement>("#createUserAccount");
+        expect(createButton?.querySelector(".codicon-add")).toBeTruthy();
         // Title label
         expect(screen.getByText("User Accounts")).toBeTruthy();
         await waitFor(() => {
             expect(screen.getByTestId("userAccountsTotal").textContent).toBe("2 accounts");
-            expect(screen.getByTestId("summaryTotal").textContent).toBe("2");
-            expect(screen.getByTestId("summaryExpiredPasswords").textContent).toBe("1");
-            expect(screen.getByTestId("summaryPasswordValidation").textContent).toBe("On");
+            expect(screen.getByTestId("summaryExpiredAccounts").textContent).toBe("1 of 2");
+            expect(screen.getByTestId("summaryPasswordExpiration").textContent).toBe("90 days");
+            expect(screen.getByTestId("summaryPasswordValidation").textContent).toBe("MEDIUM · 12 characters");
+            expect(screen.getByTestId("summaryPasswordReuse").textContent).toBe("5 passwords · 365 days");
+            expect(screen.getByTestId("summaryPasswordChanges").textContent).toBe("Current required");
+            expect(screen.getByTestId("summaryAuthenticationPolicy").textContent)
+                .toBe("caching_sha2_password · 1 factor");
+            expect(screen.getByTestId("summarySecureTransport").textContent).toBe("Required");
         });
+        const passwordPolicyGroup = container.querySelector(".userAccountsSummaryGroup");
+        expect(passwordPolicyGroup?.querySelector("h2")?.textContent).toBe("Password Policy");
+        expect(passwordPolicyGroup?.querySelectorAll(".userAccountsSummaryItem").length).toBe(5);
+        expect(screen.getByTestId("summaryExpiredAccounts").closest(".userAccountsSummaryGroup")).toBeNull();
+        expect(screen.getByTestId("summarySecureTransport").closest(".userAccountsSummaryGroup")).toBeNull();
+        expect(screen.getByText("TLS Required")).toBeTruthy();
         expect(screen.queryByTestId("summaryLocked")).toBeNull();
         expect(screen.queryByTestId("summarySslRequired")).toBeNull();
         expect(screen.queryByTestId("summaryPrivileged")).toBeNull();
 
+        const expiredAccounts = screen.getByRole("button", { name: /Expired Accounts/ });
+        expect(expiredAccounts.getAttribute("data-tooltip"))
+            .toBe("1 of 2 accounts currently have expired passwords. Select to filter the account list.");
+        expect(screen.getByTestId("summarySecureTransport").parentElement?.getAttribute("data-tooltip"))
+            .toBe("Accounts must connect using TLS or another secure transport. (@@require_secure_transport)");
+        fireEvent.click(expiredAccounts);
+        await waitFor(() => {
+            expect(screen.getByTestId("userAccountsTotal").textContent).toBe("1 of 2 accounts");
+            expect(expiredAccounts.getAttribute("aria-pressed")).toBe("true");
+        });
+        fireEvent.click(expiredAccounts);
+        await waitFor(() => {
+            expect(screen.getByTestId("userAccountsTotal").textContent).toBe("2 accounts");
+        });
+
         unmount();
+    });
+
+    it("aligns standalone summaries with the grouped policy information row", ({ expect }) => {
+        const documentCss = readFrontendSourceFile("src/modules/db-editor/assets/document.css");
+        const spacerRule = documentCss.match(
+            /\.userAccountsSummary>\.userAccountsSummaryItem::before\s*{[^}]*}/s,
+        )?.[0];
+
+        expect(spacerRule).toContain("height: 0.988rem;");
+        expect(spacerRule).toContain("margin-bottom: 7px;");
     });
 
     it("stores authentication plugins loaded with the user account page", async ({ expect }) => {
@@ -407,11 +459,27 @@ describe("UserAccounts module", () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId("summaryTotal").textContent).toBe("1");
+            expect(screen.getByTestId("summaryExpiredAccounts").textContent).toBe("0 of 1");
         });
 
         expect(screen.getByTestId("userAccountsTotal").textContent).toBe("1 account");
-        expect(screen.getByTestId("summaryPasswordValidation").textContent).toBe("Off");
+        expect(screen.getByTestId("summaryPasswordValidation").textContent).toBe("Unavailable");
+
+        unmount();
+    });
+
+    it("shows unavailable password validation when the policy query fails", async ({ expect }) => {
+        const backend = new ShellInterfaceSqlEditor();
+        vi.spyOn(backend, "listMySQLUsers").mockResolvedValue([baseRow({ id: "1", user: "alice@localhost" })]);
+        vi.spyOn(backend, "execute").mockRejectedValue(new Error("policy unavailable"));
+        const toolbarItems: IToolbarItems = {
+            navigation: [], execution: [], editor: [], auxiliary: [],
+        };
+        const { unmount } = render(<UserAccounts backend={backend} toolbarItems={toolbarItems} />);
+
+        await waitFor(() => {
+            expect(screen.getByTestId("summaryPasswordValidation").textContent).toBe("Unavailable");
+        });
 
         unmount();
     });
@@ -695,7 +763,7 @@ describe("UserAccounts module", () => {
         const hostRoles = rolesFormatter(cellRoles);
         const pillRoles = hostRoles.querySelector(".userAccountPill");
         expect(pillRoles?.textContent).toBe("2");
-        expect(pillRoles?.classList.contains("on")).toBe(true);
+        expect(pillRoles?.classList.contains("info")).toBe(true);
         expect(pillRoles?.getAttribute("data-tooltip")).toContain("r1\nr2");
 
         const cellPrivs = makeCell(row);
@@ -704,7 +772,7 @@ describe("UserAccounts module", () => {
         const hostPrivs = globalPrivilegesFormatter(cellPrivs);
         const pillPrivs = hostPrivs.querySelector(".userAccountPill");
         expect(pillPrivs?.textContent).toBe("1");
-        expect(pillPrivs?.classList.contains("on")).toBe(true);
+        expect(pillPrivs?.classList.contains("info")).toBe(true);
         expect(pillPrivs?.getAttribute("data-tooltip")).toBe("SELECT");
     });
 
@@ -731,7 +799,7 @@ describe("UserAccounts module", () => {
         const pill = host.querySelector(".userAccountPill");
 
         expect(pill?.textContent).toBe("5");
-        expect(pill?.classList.contains("on")).toBe(true);
+        expect(pill?.classList.contains("info")).toBe(true);
         expect(pill?.getAttribute("data-tooltip")).toBe([
             "db.1: INSERT",
             "db.1: SELECT",
@@ -994,7 +1062,7 @@ describe("UserAccounts module", () => {
         const pill = host.querySelector(".userAccountPill");
 
         expect(pill?.textContent).toBe("global");
-        expect(pill?.classList.contains("on")).toBe(true);
+        expect(pill?.classList.contains("info")).toBe(true);
         const tt = pill?.getAttribute("data-tooltip") ?? "";
         expect(tt).toContain("Inherited from global privileges: SELECT");
         expect(tt).toContain("Partially revoked on app: SELECT");
@@ -1278,6 +1346,7 @@ describe("UserAccounts module", () => {
             instance, "createUserDialogRef");
         await waitFor(() => {
             expect(listSpy).toHaveBeenCalledTimes(1);
+            expect(defaultsSpy).toHaveBeenCalledTimes(1);
             expect(dialogRef.current).toBeTruthy();
         });
         const showSpy = vi.spyOn(dialogRef.current, "show");
@@ -1313,7 +1382,7 @@ describe("UserAccounts module", () => {
         expect(values.sections.get("resourceLimits")?.values.maxUserConnections.value).toBe(40);
         expect(values.sections.get("tls")?.values.tlsMode.value).toEqual({ tlsMode: "Require Certificate" });
         expect(values.sections.get("tls")?.values.tlsIssuer.value).toBe("issuer-1");
-        expect(defaultsSpy).not.toHaveBeenCalled();
+        expect(defaultsSpy).toHaveBeenCalledTimes(1);
 
         await waitFor(() => {
             expect(getPrivate<IUserAccountsState>(instance, "state").editingAccount)
@@ -1564,6 +1633,12 @@ describe("UserAccounts module", () => {
         await waitFor(() => {
             expect(document.querySelector("#userAccountContextMenu")).not.toBeNull();
         });
+        const menuEntries = [...document.querySelectorAll(
+            "#userAccountContextMenu .menuItem, #userAccountContextMenu .separator",
+        )].map((entry) => {
+            return entry.textContent?.trim() ?? "";
+        });
+        expect(menuEntries.indexOf("Clone Account...")).toBeLessThan(menuEntries.lastIndexOf(""));
     });
 
     it("locks or unlocks an account without changing unrelated account settings", async ({ expect }) => {
@@ -2817,6 +2892,14 @@ describe("UserAccounts module", () => {
         fireEvent.click(within(availablePrivilegeTable).getByText("Privileges"));
         expect(availablePrivilegeTable.querySelectorAll(".userAccountPrivilegeResult")[0].textContent)
             .toContain("INSERT");
+        fireEvent.input(container.querySelector(".userAccountPrivilegeFilter")!, {
+            target: { value: "delete" },
+        });
+        expect(within(availablePrivilegeTable).getByText("DELETE")).toBeTruthy();
+        expect(within(availablePrivilegeTable).queryByText("INSERT")).toBeNull();
+        fireEvent.input(container.querySelector(".userAccountPrivilegeFilter")!, {
+            target: { value: "" },
+        });
         expect(within(container).queryByText("orders")).toBeNull();
         expect(within(container).queryByText("id")).toBeNull();
         expect(within(container).queryByText("refresh")).toBeNull();
@@ -2959,10 +3042,10 @@ describe("UserAccounts module", () => {
             },
             onDataChange,
         }));
-        fireEvent.input(container.querySelector(".userAccountPrivilegeFilter")!, {
-            target: { value: "select" },
+        const selectPrivilege = [...container.querySelectorAll(".userAccountPrivilegeResult")].find((entry) => {
+            return entry.textContent?.includes("SELECT");
         });
-        fireEvent.click(container.querySelector(".userAccountPrivilegeResult")!);
+        fireEvent.click(selectPrivilege!);
         expect(onDataChange).toHaveBeenLastCalledWith(expect.objectContaining({
             selectedTargetId: JSON.stringify(["schema", "sakila", undefined, undefined]),
             privileges: {
@@ -3317,9 +3400,6 @@ describe("UserAccounts module", () => {
         const partialRevokeDescription = within(container).getByText(
             "Inherited global privileges can be partially revoked.",
         );
-        expect(container.querySelector(".userAccountPrivilegeFilter")?.compareDocumentPosition(
-            partialRevokeDescription,
-        )).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
         expect(partialRevokeDescription.compareDocumentPosition(
             container.querySelector(".userAccountObjectPrivilegeTable")!,
         )).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
@@ -4411,7 +4491,7 @@ describe("UserAccounts module", () => {
         const dialog = dialogRef.current;
         vi.spyOn(dialog, "show");
 
-        const createButton = container.querySelectorAll("#userAccountsToolbar .button")[1];
+        const createButton = container.querySelector<HTMLButtonElement>("#createUserAccount")!;
         fireEvent.click(createButton);
 
         await waitFor(() => {
@@ -4443,11 +4523,13 @@ describe("UserAccounts module", () => {
             instance, "createUserDialogRef");
 
         await waitFor(() => {
+            expect(defaultsSpy).toHaveBeenCalledTimes(1);
             expect(dialogRef.current).toBeTruthy();
         });
+        defaultsSpy.mockClear();
         const showSpy = vi.spyOn(dialogRef.current, "show");
 
-        const createButton = container.querySelectorAll("#userAccountsToolbar .button")[1];
+        const createButton = container.querySelector<HTMLButtonElement>("#createUserAccount")!;
         fireEvent.click(createButton);
 
         await waitFor(() => {
@@ -4487,7 +4569,7 @@ describe("UserAccounts module", () => {
         });
         const showSpy = vi.spyOn(dialogRef.current, "show");
 
-        const createButton = container.querySelectorAll("#userAccountsToolbar .button")[1];
+        const createButton = container.querySelector<HTMLButtonElement>("#createUserAccount")!;
         fireEvent.click(createButton);
 
         await waitFor(() => {
@@ -4520,7 +4602,7 @@ describe("UserAccounts module", () => {
         });
         const showSpy = vi.spyOn(dialogRef.current, "show");
 
-        const createButton = container.querySelectorAll("#userAccountsToolbar .button")[1];
+        const createButton = container.querySelector<HTMLButtonElement>("#createUserAccount")!;
         fireEvent.click(createButton);
 
         await waitFor(() => {

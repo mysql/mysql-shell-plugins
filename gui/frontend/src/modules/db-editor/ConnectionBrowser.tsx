@@ -400,7 +400,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                                 data-tooltip="New Connection"
                                 onClick={this.handleNewConnectionClick}
                             >
-                                <Icon src={Assets.misc.plusIcon} data-tooltip="inherit" />
+                                <Icon src={Codicon.Add} data-tooltip="inherit" />
                             </Button>
                             <Button
                                 id="newFolderButton"

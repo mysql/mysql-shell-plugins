@@ -2,54 +2,53 @@
 
 exports[`Server status module tests > Test ServerStatus instantiation > ServerStatus1 1`] = `
 <div>
-  <div
-    class="msg container fixedScrollbar serverStatusHost"
-    style="flex-direction: column;"
+  <main
+    class="msg administrationPageFrame serverStatus"
   >
-    <div
-      class="msg container fixedScrollbar serverStatus"
-      style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
+    <section
+      class="msg administrationPageHeading"
+      id="serverStatusOverview"
     >
-      <div
-        class="msg container fixedScrollbar"
-        id="serverStatusOverview"
-        style="flex-direction: column;"
+      <header
+        class="administrationPageHeadingHeader"
       >
         <div
-          class="msg container fixedScrollbar"
-          id="serverStatusHeader"
-          style="flex-direction: row; justify-content: space-between; align-items: center;"
+          class="administrationPageHeadingIdentity"
         >
           <div
-            class="msg container fixedScrollbar serverStatusTitle"
-            style="flex-direction: row; align-items: center;"
+            class="administrationPageHeadingIcon"
           >
             <div
               class="msg icon"
               id="mysqlLogo"
               style="mask-image: url("/src/assets/images/admin/mysql-logo.svg");"
             />
-            <div
-              class="msg container fixedScrollbar"
-              style="flex-direction: column;"
-            >
-              <h1>
-                Server Status
-              </h1>
-              <div
-                class="serverStatusVersion"
-                data-testid="version"
-              >
-                none
-              </div>
-            </div>
           </div>
           <div
-            class="serverStatusState running"
+            class="administrationPageHeadingTitle"
           >
-            running
+            <h1>
+              Server Status
+            </h1>
           </div>
         </div>
+        <div
+          class="administrationPageHeadingHeaderEnd"
+        >
+          <div
+            class="administrationPageHeadingStatus"
+          >
+            <div
+              class="serverStatusState running"
+            >
+              running
+            </div>
+          </div>
+        </div>
+      </header>
+      <div
+        class="administrationPageHeadingContent"
+      >
         <div
           class="serverStatusSummary"
         >
@@ -71,6 +70,21 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             class="serverStatusSummaryItem"
           >
             <span>
+              Version
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="version"
+            >
+              <strong>
+                none
+              </strong>
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
               Uptime
             </span>
             <div
@@ -80,34 +94,12 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               <strong />
             </div>
           </div>
-          <div
-            class="serverStatusSummaryItem"
-          >
-            <span>
-              InnoDB Redo Log
-            </span>
-            <div
-              class="serverStatusSummaryValue"
-              data-testid="redoLogStatus"
-            >
-              <strong />
-            </div>
-          </div>
-          <div
-            class="serverStatusSummaryItem"
-          >
-            <span>
-              Binary Log
-            </span>
-            <div
-              class="serverStatusSummaryValue"
-              data-testid="binaryLogStatus"
-            >
-              <strong />
-            </div>
-          </div>
         </div>
       </div>
+    </section>
+    <section
+      class="msg administrationPageBody"
+    >
       <div
         id="statusBoxHost"
       >
@@ -140,6 +132,28 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="host"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Server ID
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="serverId"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Server UUID
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="serverUuid"
               style="flex-direction: row;"
             />
             <div
@@ -272,6 +286,28 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="offlineModeStatus"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              InnoDB Redo Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="redoLogStatus"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Binary Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="binaryLogStatus"
               style="flex-direction: row;"
             />
           </div>
@@ -682,61 +718,60 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 `;
 
 exports[`Server status module tests > Test ServerStatus instantiation > ServerStatus2 1`] = `
 <div>
-  <div
-    class="msg container fixedScrollbar serverStatusHost"
-    style="flex-direction: column;"
+  <main
+    class="msg administrationPageFrame serverStatus"
   >
-    <div
-      class="msg container fixedScrollbar serverStatus"
-      style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
+    <section
+      class="msg administrationPageHeading"
+      id="serverStatusOverview"
     >
-      <div
-        class="msg container fixedScrollbar"
-        id="serverStatusOverview"
-        style="flex-direction: column;"
+      <header
+        class="administrationPageHeadingHeader"
       >
         <div
-          class="msg container fixedScrollbar"
-          id="serverStatusHeader"
-          style="flex-direction: row; justify-content: space-between; align-items: center;"
+          class="administrationPageHeadingIdentity"
         >
           <div
-            class="msg container fixedScrollbar serverStatusTitle"
-            style="flex-direction: row; align-items: center;"
+            class="administrationPageHeadingIcon"
           >
             <div
               class="msg icon"
               id="mysqlLogo"
               style="mask-image: url("/src/assets/images/admin/mysql-logo.svg");"
             />
-            <div
-              class="msg container fixedScrollbar"
-              style="flex-direction: column;"
-            >
-              <h1>
-                Server Status
-              </h1>
-              <div
-                class="serverStatusVersion"
-                data-testid="version"
-              >
-                none
-              </div>
-            </div>
           </div>
           <div
-            class="serverStatusState running"
+            class="administrationPageHeadingTitle"
           >
-            running
+            <h1>
+              Server Status
+            </h1>
           </div>
         </div>
+        <div
+          class="administrationPageHeadingHeaderEnd"
+        >
+          <div
+            class="administrationPageHeadingStatus"
+          >
+            <div
+              class="serverStatusState running"
+            >
+              running
+            </div>
+          </div>
+        </div>
+      </header>
+      <div
+        class="administrationPageHeadingContent"
+      >
         <div
           class="serverStatusSummary"
         >
@@ -758,6 +793,21 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             class="serverStatusSummaryItem"
           >
             <span>
+              Version
+            </span>
+            <div
+              class="serverStatusSummaryValue"
+              data-testid="version"
+            >
+              <strong>
+                none
+              </strong>
+            </div>
+          </div>
+          <div
+            class="serverStatusSummaryItem"
+          >
+            <span>
               Uptime
             </span>
             <div
@@ -767,34 +817,12 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
               <strong />
             </div>
           </div>
-          <div
-            class="serverStatusSummaryItem"
-          >
-            <span>
-              InnoDB Redo Log
-            </span>
-            <div
-              class="serverStatusSummaryValue"
-              data-testid="redoLogStatus"
-            >
-              <strong />
-            </div>
-          </div>
-          <div
-            class="serverStatusSummaryItem"
-          >
-            <span>
-              Binary Log
-            </span>
-            <div
-              class="serverStatusSummaryValue"
-              data-testid="binaryLogStatus"
-            >
-              <strong />
-            </div>
-          </div>
         </div>
       </div>
+    </section>
+    <section
+      class="msg administrationPageBody"
+    >
       <div
         id="statusBoxHost"
       >
@@ -827,6 +855,28 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="host"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Server ID
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="serverId"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Server UUID
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="serverUuid"
               style="flex-direction: row;"
             />
             <div
@@ -959,6 +1009,28 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
             <div
               class="msg container fixedScrollbar gridCell serverStatusFieldValue"
               data-testid="offlineModeStatus"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              InnoDB Redo Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="redoLogStatus"
+              style="flex-direction: row;"
+            />
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldLabel"
+              style="flex-direction: row;"
+            >
+              Binary Log
+            </div>
+            <div
+              class="msg container fixedScrollbar gridCell serverStatusFieldValue"
+              data-testid="binaryLogStatus"
               style="flex-direction: row;"
             />
           </div>
@@ -1369,7 +1441,7 @@ exports[`Server status module tests > Test ServerStatus instantiation > ServerSt
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 `;

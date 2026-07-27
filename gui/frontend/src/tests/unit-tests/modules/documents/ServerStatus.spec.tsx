@@ -94,14 +94,23 @@ describe("Server status module tests", (): void => {
                         rows: [
                             ["hostname", "localhost"],
                             ["port", "3306"],
+                            ["server_id", "42"],
+                            ["server_uuid", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"],
                             ["datadir", "/usr/local/mysql/data"],
+                            ["version_comment", "MySQL Community Server"],
                             ["version", "8.4.0"],
+                            ["log_bin", "ON"],
                             ["password", "should not be cached"],
                         ],
                     });
                 }
 
-                case "show global status":
+                case "show global status": {
+                    return Promise.resolve({
+                        rows: [["Innodb_redo_log_enabled", "ON"]],
+                    });
+                }
+
                 case "show plugins": {
                     return Promise.resolve({ rows: [] });
                 }
@@ -115,7 +124,7 @@ describe("Server status module tests", (): void => {
             executeService,
         } as unknown as ShellInterfaceSqlEditor;
 
-        const { unmount } = render(
+        const { container, getByTestId, unmount } = render(
             <ServerStatus backend={backend}
                 connectionDetails={connectionDetails()}
                 runStatus="running"
@@ -127,10 +136,19 @@ describe("Server status module tests", (): void => {
             expect(updateServerStatusCache).toHaveBeenCalledWith(1, "tcp:localhost:3306", [
                 { name: "hostname", value: "localhost" },
                 { name: "port", value: "3306" },
+                { name: "server_id", value: "42" },
+                { name: "server_uuid", value: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" },
                 { name: "datadir", value: "/usr/local/mysql/data" },
+                { name: "version_comment", value: "MySQL Community Server" },
                 { name: "version", value: "8.4.0" },
             ]);
         });
+        expect(container.querySelectorAll(".serverStatusSummaryItem")).toHaveLength(3);
+        expect(getByTestId("version").textContent).toBe("MySQL Community Server (8.4.0)");
+        expect(getByTestId("serverId").textContent).toBe("42");
+        expect(getByTestId("serverUuid").textContent).toBe("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        expect(getByTestId("redoLogStatus").closest("#serverModeStatus")).not.toBeNull();
+        expect(getByTestId("binaryLogStatus").closest("#serverModeStatus")).not.toBeNull();
 
         unmount();
     });
@@ -182,14 +200,13 @@ describe("Server status module tests", (): void => {
         await nextRunLoop();
 
         expect(getByText("offline")).toBeDefined();
-        expect(getByTestId("version").textContent).toBe(
-            "Local TCP endpoint is unavailable (localhost:3306)",
-        );
+        expect(getByTestId("version").textContent).toBe("none");
+        expect(getByText("Local TCP endpoint is unavailable (localhost:3306)")).toBeDefined();
         expect(getByTestId("offlineServerBanner").textContent).toBe(
             "Offline or unreachable server. No live MySQL connection is available. " +
             "Cached server status data is not available.",
         );
-        expect(container.querySelectorAll(".serverStatusSummaryItem")).toHaveLength(4);
+        expect(container.querySelectorAll(".serverStatusSummaryItem")).toHaveLength(3);
         expect(executeService).not.toHaveBeenCalled();
 
         unmount();
@@ -205,6 +222,8 @@ describe("Server status module tests", (): void => {
                 sysvars: [
                     { name: "hostname", value: "localhost" },
                     { name: "port", value: "3306" },
+                    { name: "server_id", value: "84" },
+                    { name: "server_uuid", value: "ffffffff-1111-2222-3333-444444444444" },
                     { name: "version_comment", value: "MySQL Community Server" },
                     { name: "version", value: "8.4.0" },
                     { name: "datadir", value: "/usr/local/mysql/data" },
@@ -229,12 +248,14 @@ describe("Server status module tests", (): void => {
 
         expect(getServerStatusCache).toHaveBeenCalledWith(1, "tcp:localhost:3306");
         expect(getByTestId("version").textContent).toBe("MySQL Community Server (8.4.0)");
+        expect(getByTestId("serverId").textContent).toBe("84");
+        expect(getByTestId("serverUuid").textContent).toBe("ffffffff-1111-2222-3333-444444444444");
         expect(getByTestId("cacheAge").textContent).toBe("2 hours ago");
         expect(getByTestId("offlineServerBanner").textContent).toBe(
             "Offline or unreachable server. No live MySQL connection is available. " +
             "Showing cached server status data from 2 hours ago.",
         );
-        expect(container.querySelectorAll(".serverStatusSummaryItem")).toHaveLength(4);
+        expect(container.querySelectorAll(".serverStatusSummaryItem")).toHaveLength(3);
         expect(getByTestId("dataDir").textContent).toBe("/usr/local/mysql/data");
         expect(getByTestId("generalLog").textContent).toBe("off");
         expect(container.querySelector("#serverFeatures")).toBeNull();

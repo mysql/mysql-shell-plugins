@@ -37,6 +37,7 @@ import {
 } from "../../../../../modules/jdv/dialogs/JdvObjectFieldEditor.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
+import { parseVersion } from "../../../../../parsing/mysql/mysql-helpers.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import { createBackend, createJdvData, normalizeWhitespace, setupShellForTests, } from "../../../test-helpers.js";
 
@@ -679,7 +680,15 @@ describe("JDV Object field editor tests", () => {
             unmount();
         });
 
-        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async () => {
+        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async ({ skip }) => {
+            const versionResult = await backend.execute("SELECT @@version");
+            const version = String((versionResult?.rows?.[0] as unknown[] | undefined)?.[0] ?? "");
+            if (parseVersion(version) < 90400) {
+                skip();
+
+                return;
+            }
+
             const schemasWithTables = await createJdvData(backend);
             const exampleDDL = createJdvExampleDDL();
             await backend.execute(exampleDDL);

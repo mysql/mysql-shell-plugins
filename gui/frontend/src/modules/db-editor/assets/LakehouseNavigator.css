@@ -21,9 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.lakehouseNavigatorHost {
-    flex: 1 1 auto;
-    padding-top: 8px;
+.msg.lakehouseNavigatorHost .administrationPageHeadingIcon .icon {
+    width: 42px;
+    height: 42px;
+    background-color: var(--icon-foreground);
 }
 
 .msg.lakehouseNavigatorHost .toolbar .toolbarButton .icon {

@@ -2,331 +2,361 @@
 
 exports[`LakehouseNavigator tests > Test LakehouseNavigator instantiation 1`] = `
 <div>
-  <div
-    class="msg container fixedScrollbar lakehouseNavigatorHost"
-    style="flex-direction: column;"
+  <main
+    class="msg administrationPageFrame lakehouseNavigatorHost"
   >
-    <div
-      class="msg container fixedScrollbar toolbar verticalCenterContent"
-      id="lakehouseNavigatorToolbar"
-      style="flex-direction: row; align-items: center;"
+    <section
+      class="msg administrationPageHeading"
     >
-      <div
-        class="msg divider vertical"
-        style="--thickness: 1px;"
-      />
-      <div
-        class="msg button imageOnly toolbarButton"
-        data-tooltip="Assign the required privileges to a MySQL user"
-        id="ensureUserPrivilegesBtn"
-        role="button"
-        tabindex="0"
+      <header
+        class="administrationPageHeadingHeader"
       >
         <div
-          class="msg icon"
-          data-tooltip="inherit"
-          style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='ensurePrivileges'%3e%3cpath%20d='M12.976,9.028C12.987,9.181%2012.992,9.336%2012.992,9.493C12.992,11.467%2012.096,13.246%2010.719,14.454C10.719,14.467%2010.706,14.467%2010.693,14.48C10.576,14.571%2010.446,14.662%2010.329,14.753C10.264,14.792%2010.212,14.844%2010.147,14.883C9.074,15.611%207.806,16%206.509,16C5.212,16%203.945,15.611%202.871,14.883C2.806,14.831%202.754,14.779%202.689,14.74C2.559,14.649%202.443,14.558%202.326,14.467C2.326,14.454%202.313,14.454%202.3,14.441C0.896,13.247%200,11.467%200,9.493C0,5.908%202.91,2.999%206.496,2.999C7.475,2.999%208.403,3.215%209.236,3.603L8.832,4.479C8.128,4.168%207.338,3.997%206.496,3.997C3.365,3.997%200.962,6.363%200.962,9.493C0.962,11.051%201.485,12.293%202.512,13.333C2.506,13.34%202.47,13.452%202.482,13.428C2.491,13.396%202.501,13.364%202.512,13.333C2.636,12.96%202.814,12.607%203.04,12.286C3.287,11.948%203.586,11.636%203.924,11.376C4.184,11.174%204.468,11.004%204.768,10.869C4.625,10.778%204.495,10.675%204.378,10.558C4.184,10.363%204.002,10.155%203.872,9.921C3.729,9.688%203.625,9.441%203.547,9.168C3.469,8.908%203.43,8.635%203.43,8.349C3.426,7.94%203.506,7.533%203.664,7.155C3.817,6.792%204.037,6.461%204.313,6.181C4.59,5.897%204.922,5.671%205.288,5.518C5.666,5.36%206.073,5.28%206.483,5.284C6.893,5.28%207.3,5.359%207.678,5.518C8.041,5.671%208.372,5.891%208.653,6.168C8.934,6.447%209.159,6.778%209.315,7.142C9.474,7.52%209.553,7.927%209.549,8.336C9.557,8.89%209.408,9.435%209.121,9.908C8.978,10.14%208.808,10.354%208.614,10.545C8.5,10.662%208.373,10.766%208.237,10.856C8.537,10.988%208.82,11.154%209.082,11.35C9.424,11.608%209.722,11.919%209.965,12.273C10.189,12.597%2010.367,12.951%2010.494,13.324C10.499,13.338%2010.503,13.352%2010.508,13.365C10.503,13.346%2010.498,13.327%2010.496,13.322C11.549,12.264%2012.032,10.987%2012.034,9.493C12.034,9.333%2012.027,9.176%2012.015,9.02L12.976,9.028ZM4.498,9.172C4.602,9.432%204.758,9.667%204.955,9.864C5.156,10.062%205.39,10.221%205.647,10.334C6.187,10.556%206.792,10.556%207.332,10.334C7.589,10.221%207.824,10.062%208.024,9.864C8.221,9.664%208.381,9.429%208.494,9.172C8.611,8.911%208.664,8.637%208.664,8.336C8.664,8.05%208.611,7.762%208.494,7.501C8.376,7.24%208.22,7.005%208.024,6.809C7.828,6.614%207.593,6.457%207.332,6.34C7.071,6.222%206.796,6.17%206.496,6.17C6.209,6.17%205.922,6.222%205.66,6.34C5.399,6.457%205.164,6.613%204.968,6.809C4.773,7.005%204.616,7.24%204.498,7.501C4.381,7.762%204.329,8.05%204.329,8.336C4.325,8.624%204.383,8.909%204.498,9.172ZM6.496,15.024C7.668,15.022%208.804,14.705%209.763,14.03C9.724,13.771%209.666,13.636%209.575,13.402C9.406,13%209.173,12.649%208.874,12.35C8.235,11.736%207.381,11.396%206.496,11.402C6.198,11.402%205.901,11.441%205.613,11.519C5.327,11.597%205.067,11.701%204.82,11.844C4.586,11.987%204.352,12.168%204.158,12.363C3.95,12.558%203.781,12.779%203.638,13.026C3.491,13.279%203.377,13.549%203.3,13.831C3.274,13.935%203.263,13.925%203.25,14.029C4.173,14.678%205.275,15.024%206.496,15.024Z'/%3e%3cg%20transform='matrix(0.60154,0,0,0.582877,8.17998,-0.165754)'%3e%3cpath%20d='M3,8L3.933,7.144L11.933,7.144L13,8L13,13L12,14L4,14L3,13L3,8ZM4.655,8.851L4.672,12.309L11.338,12.318L11.337,8.877L4.655,8.851ZM11.353,5.429L11.33,3.294C11.33,1.648%209.646,0.284%208,0.284C6.354,0.284%204.673,1.657%204.673,3.303L4.684,7.144L6.36,7.144L6.322,3.799C6.322,2.702%206.898,2.029%207.995,2.029C9.092,2.029%209.673,2.71%209.673,3.807L9.675,5.429L11.353,5.429Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+          class="administrationPageHeadingIdentity"
+        >
+          <div
+            class="administrationPageHeadingIcon"
+          >
+            <div
+              class="msg icon"
+              style="mask-image: url("/src/assets/images/lakehouseNavigator.svg");"
+            />
+          </div>
+          <div
+            class="administrationPageHeadingTitle"
+          >
+            <h1>
+              HeatWave Lakehouse Navigator
+            </h1>
+          </div>
+        </div>
+      </header>
+    </section>
+    <section
+      class="msg administrationPageBody"
+    >
+      <div
+        class="msg container fixedScrollbar toolbar verticalCenterContent"
+        id="lakehouseNavigatorToolbar"
+        style="flex-direction: row; align-items: center;"
+      >
+        <div
+          class="msg divider vertical"
+          style="--thickness: 1px;"
+        />
+        <div
+          class="msg button imageOnly toolbarButton"
+          data-tooltip="Assign the required privileges to a MySQL user"
+          id="ensureUserPrivilegesBtn"
+          role="button"
+          tabindex="0"
+        >
+          <div
+            class="msg icon"
+            data-tooltip="inherit"
+            style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='ensurePrivileges'%3e%3cpath%20d='M12.976,9.028C12.987,9.181%2012.992,9.336%2012.992,9.493C12.992,11.467%2012.096,13.246%2010.719,14.454C10.719,14.467%2010.706,14.467%2010.693,14.48C10.576,14.571%2010.446,14.662%2010.329,14.753C10.264,14.792%2010.212,14.844%2010.147,14.883C9.074,15.611%207.806,16%206.509,16C5.212,16%203.945,15.611%202.871,14.883C2.806,14.831%202.754,14.779%202.689,14.74C2.559,14.649%202.443,14.558%202.326,14.467C2.326,14.454%202.313,14.454%202.3,14.441C0.896,13.247%200,11.467%200,9.493C0,5.908%202.91,2.999%206.496,2.999C7.475,2.999%208.403,3.215%209.236,3.603L8.832,4.479C8.128,4.168%207.338,3.997%206.496,3.997C3.365,3.997%200.962,6.363%200.962,9.493C0.962,11.051%201.485,12.293%202.512,13.333C2.506,13.34%202.47,13.452%202.482,13.428C2.491,13.396%202.501,13.364%202.512,13.333C2.636,12.96%202.814,12.607%203.04,12.286C3.287,11.948%203.586,11.636%203.924,11.376C4.184,11.174%204.468,11.004%204.768,10.869C4.625,10.778%204.495,10.675%204.378,10.558C4.184,10.363%204.002,10.155%203.872,9.921C3.729,9.688%203.625,9.441%203.547,9.168C3.469,8.908%203.43,8.635%203.43,8.349C3.426,7.94%203.506,7.533%203.664,7.155C3.817,6.792%204.037,6.461%204.313,6.181C4.59,5.897%204.922,5.671%205.288,5.518C5.666,5.36%206.073,5.28%206.483,5.284C6.893,5.28%207.3,5.359%207.678,5.518C8.041,5.671%208.372,5.891%208.653,6.168C8.934,6.447%209.159,6.778%209.315,7.142C9.474,7.52%209.553,7.927%209.549,8.336C9.557,8.89%209.408,9.435%209.121,9.908C8.978,10.14%208.808,10.354%208.614,10.545C8.5,10.662%208.373,10.766%208.237,10.856C8.537,10.988%208.82,11.154%209.082,11.35C9.424,11.608%209.722,11.919%209.965,12.273C10.189,12.597%2010.367,12.951%2010.494,13.324C10.499,13.338%2010.503,13.352%2010.508,13.365C10.503,13.346%2010.498,13.327%2010.496,13.322C11.549,12.264%2012.032,10.987%2012.034,9.493C12.034,9.333%2012.027,9.176%2012.015,9.02L12.976,9.028ZM4.498,9.172C4.602,9.432%204.758,9.667%204.955,9.864C5.156,10.062%205.39,10.221%205.647,10.334C6.187,10.556%206.792,10.556%207.332,10.334C7.589,10.221%207.824,10.062%208.024,9.864C8.221,9.664%208.381,9.429%208.494,9.172C8.611,8.911%208.664,8.637%208.664,8.336C8.664,8.05%208.611,7.762%208.494,7.501C8.376,7.24%208.22,7.005%208.024,6.809C7.828,6.614%207.593,6.457%207.332,6.34C7.071,6.222%206.796,6.17%206.496,6.17C6.209,6.17%205.922,6.222%205.66,6.34C5.399,6.457%205.164,6.613%204.968,6.809C4.773,7.005%204.616,7.24%204.498,7.501C4.381,7.762%204.329,8.05%204.329,8.336C4.325,8.624%204.383,8.909%204.498,9.172ZM6.496,15.024C7.668,15.022%208.804,14.705%209.763,14.03C9.724,13.771%209.666,13.636%209.575,13.402C9.406,13%209.173,12.649%208.874,12.35C8.235,11.736%207.381,11.396%206.496,11.402C6.198,11.402%205.901,11.441%205.613,11.519C5.327,11.597%205.067,11.701%204.82,11.844C4.586,11.987%204.352,12.168%204.158,12.363C3.95,12.558%203.781,12.779%203.638,13.026C3.491,13.279%203.377,13.549%203.3,13.831C3.274,13.935%203.263,13.925%203.25,14.029C4.173,14.678%205.275,15.024%206.496,15.024Z'/%3e%3cg%20transform='matrix(0.60154,0,0,0.582877,8.17998,-0.165754)'%3e%3cpath%20d='M3,8L3.933,7.144L11.933,7.144L13,8L13,13L12,14L4,14L3,13L3,8ZM4.655,8.851L4.672,12.309L11.338,12.318L11.337,8.877L4.655,8.851ZM11.353,5.429L11.33,3.294C11.33,1.648%209.646,0.284%208,0.284C6.354,0.284%204.673,1.657%204.673,3.303L4.684,7.144L6.36,7.144L6.322,3.799C6.322,2.702%206.898,2.029%207.995,2.029C9.092,2.029%209.673,2.71%209.673,3.807L9.675,5.429L11.353,5.429Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");"
+          />
+        </div>
+        <div
+          class="expander"
         />
       </div>
       <div
-        class="expander"
-      />
-    </div>
-    <div
-      class="msg container fixedScrollbar tabview top"
-      style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
-    >
-      <div
-        class="msg container tabAreaContainer"
-        style="flex-direction: row;"
+        class="msg container fixedScrollbar tabview top"
+        style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
       >
         <div
-          class="scrollable"
+          class="msg container tabAreaContainer"
+          style="flex-direction: row;"
         >
           <div
-            class="msg container tabArea stretched"
-            style="flex-direction: row;"
+            class="scrollable"
           >
             <div
-              class="msg button tabItem selected"
-              data-tooltip="Lakehouse Navigator Overview"
-              id="overview"
-              role="button"
-              tabindex="-1"
+              class="msg container tabArea stretched"
+              style="flex-direction: row;"
             >
-              <span
-                class="tabCaption"
-                data-tooltip="inherit"
+              <div
+                class="msg button tabItem selected"
+                data-tooltip="Lakehouse Navigator Overview"
+                id="overview"
+                role="button"
+                tabindex="-1"
               >
-                Overview
-              </span>
+                <span
+                  class="tabCaption"
+                  data-tooltip="inherit"
+                >
+                  Overview
+                </span>
+              </div>
+              <div
+                class="msg button tabItem"
+                data-tooltip="Upload local files to Object Storage"
+                id="upload"
+                role="button"
+                tabindex="-1"
+              >
+                <span
+                  class="tabCaption"
+                  data-tooltip="inherit"
+                >
+                  Upload to Object Storage
+                </span>
+              </div>
+              <div
+                class="msg button tabItem"
+                data-tooltip="Load from Object Storage into Lakehouse"
+                id="load"
+                role="button"
+                tabindex="-1"
+              >
+                <span
+                  class="tabCaption"
+                  data-tooltip="inherit"
+                >
+                  Load into Lakehouse
+                </span>
+              </div>
+              <div
+                class="msg button tabItem"
+                data-tooltip="Lakehouse Tables and Loading Tasks"
+                id="manage"
+                role="button"
+                tabindex="-1"
+              >
+                <span
+                  class="tabCaption"
+                  data-tooltip="inherit"
+                >
+                  Lakehouse Tables
+                </span>
+              </div>
             </div>
             <div
-              class="msg button tabItem"
-              data-tooltip="Upload local files to Object Storage"
-              id="upload"
-              role="button"
-              tabindex="-1"
+              class="scrollbar"
             >
-              <span
-                class="tabCaption"
-                data-tooltip="inherit"
-              >
-                Upload to Object Storage
-              </span>
-            </div>
-            <div
-              class="msg button tabItem"
-              data-tooltip="Load from Object Storage into Lakehouse"
-              id="load"
-              role="button"
-              tabindex="-1"
-            >
-              <span
-                class="tabCaption"
-                data-tooltip="inherit"
-              >
-                Load into Lakehouse
-              </span>
-            </div>
-            <div
-              class="msg button tabItem"
-              data-tooltip="Lakehouse Tables and Loading Tasks"
-              id="manage"
-              role="button"
-              tabindex="-1"
-            >
-              <span
-                class="tabCaption"
-                data-tooltip="inherit"
-              >
-                Lakehouse Tables
-              </span>
+              <div
+                class="slider"
+              />
             </div>
           </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar tabContent"
+          style="flex-direction: column;"
+        >
           <div
-            class="scrollbar"
+            class="msg container fixedScrollbar overviewTab"
+            style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
           >
             <div
-              class="slider"
-            />
+              class="msg container fixedScrollbar overviewDiagram"
+              style="flex-direction: row; justify-content: flex-start; align-items: stretch;"
+            >
+              <div
+                class="msg container fixedScrollbar workflowStep onPremise"
+                style="flex-direction: column; justify-content: stretch; align-items: center;"
+              >
+                <div
+                  class="msg container fixedScrollbar iconLabel"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg icon"
+                    style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='folder'%3e%3cpath%20d='M14.5,3L7.71,3L6.86,2.15L6.51,2L1.51,2L1.01,2.5L1.01,13.5L1.51,14L14.51,14L15.01,13.5L15.01,3.5L14.5,3ZM13.99,11.49L13.99,13L1.99,13L1.99,7L6.48,7L6.83,6.85L7.69,5.99L14,5.99L14,7.49L13.99,11.49ZM13.99,5L7.49,5L7.14,5.15L6.28,6.01L2,6.01L2,3.01L6.29,3.01L7.14,3.86L7.5,4.01L14,4.01L13.99,5Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/svg%3e"); background-color: rgb(255, 255, 255);"
+                  />
+                  <label
+                    class="msg label title"
+                    data-tooltip="expand"
+                  >
+                    On-Premise
+                  </label>
+                </div>
+                <label
+                  class="msg label subTitle"
+                  data-tooltip="expand"
+                >
+                  Data to be analyzed
+                  <br />
+                  (on your local storage)
+                </label>
+                <img
+                  class="msg image diagram onPremiseDiagram"
+                  src="/src/assets/images/lakehouseNavigatorOnPremise.svg"
+                />
+                <div
+                  class="msg container fixedScrollbar actionPanel"
+                  style="flex-direction: column; justify-content: center; align-items: stretch;"
+                >
+                  <label
+                    class="msg label title"
+                    data-tooltip="expand"
+                  >
+                    Upload Data to Object Storage
+                  </label>
+                  <label
+                    class="msg label info"
+                    data-tooltip="expand"
+                  >
+                    Select this option to upload files from your local file system or local company network to the Object Storage.
+                  </label>
+                  <div
+                    caption="Upload Files >>"
+                    class="msg button"
+                    id="overviewUploadFilesBtn"
+                    role="button"
+                    tabindex="0"
+                  >
+                    Upload Files &gt;&gt;
+                  </div>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar workflowStep objectStorage"
+                style="flex-direction: column; align-items: center;"
+              >
+                <div
+                  class="msg container fixedScrollbar iconLabel"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg icon"
+                    style="mask-image: url("/src/assets/images/dataLake.svg"); background-color: rgb(255, 255, 255);"
+                  />
+                  <label
+                    class="msg label title"
+                    data-tooltip="expand"
+                  >
+                    Object Storage
+                  </label>
+                </div>
+                <label
+                  class="msg label subTitle"
+                  data-tooltip="expand"
+                >
+                  Data to be analyzed
+                  <br />
+                  (on OCI Object Storage)
+                </label>
+                <img
+                  class="msg image diagram objectStorageDiagram"
+                  src="/src/assets/images/lakehouseNavigatorObjectStorage.svg"
+                />
+                <div
+                  class="msg container fixedScrollbar actionPanel"
+                  style="flex-direction: column; justify-content: center; align-items: stretch;"
+                >
+                  <label
+                    class="msg label title"
+                    data-tooltip="expand"
+                  >
+                    Load Data into Lakehouse
+                  </label>
+                  <label
+                    class="msg label info"
+                    data-tooltip="expand"
+                  >
+                    If your files have been uploaded to the OCI Object Storage select this option to load the data into Lakehouse.
+                  </label>
+                  <div
+                    caption="Start Load >>"
+                    class="msg button"
+                    id="overviewStartLoadBtn"
+                    role="button"
+                    tabindex="0"
+                  >
+                    Start Load &gt;&gt;
+                  </div>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar workflowStep lakeHouse"
+                style="flex-direction: column; align-items: center;"
+              >
+                <div
+                  class="msg container fixedScrollbar iconLabel"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg icon"
+                    style="mask-image: url("/src/assets/images/lakehouseHouse.svg"); background-color: rgb(255, 255, 255);"
+                  />
+                  <label
+                    class="msg label title"
+                    data-tooltip="expand"
+                  >
+                    Lakehouse
+                  </label>
+                </div>
+                <label
+                  class="msg label subTitle"
+                  data-tooltip="expand"
+                >
+                  Data ready for analysis
+                  <br />
+                  (held in memory)
+                </label>
+                <img
+                  class="msg image diagram lakeHouseDiagram"
+                  src="/src/assets/images/lakehouseNavigatorLakeHouse.svg"
+                />
+                <div
+                  class="msg container fixedScrollbar actionPanel"
+                  style="flex-direction: column; justify-content: center; align-items: stretch;"
+                >
+                  <label
+                    class="msg label title"
+                    data-tooltip="expand"
+                  >
+                    Manage Lakehouse Tables
+                  </label>
+                  <label
+                    class="msg label info"
+                    data-tooltip="expand"
+                  >
+                    This option allows you to monitor running your data loading task and manage your data inside Lakehouse.
+                  </label>
+                  <div
+                    caption="Manage Lakehouse"
+                    class="msg button"
+                    id="overviewManageLakehouse"
+                    role="button"
+                    tabindex="0"
+                  >
+                    Manage Lakehouse
+                  </div>
+                </div>
+              </div>
+              <div
+                class="msg container fixedScrollbar stepSeparator step1to2"
+                style="flex-direction: row;"
+              >
+                &gt;&gt;&gt;
+              </div>
+              <div
+                class="msg container fixedScrollbar stepSeparator step2to3"
+                style="flex-direction: row;"
+              >
+                &gt;&gt;&gt;
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar headerTitle"
+              style="flex-direction: row;"
+            >
+              <label
+                class="msg label"
+                data-tooltip="expand"
+              >
+                HeatWave Lakehouse Navigator
+              </label>
+            </div>
           </div>
         </div>
       </div>
-      <div
-        class="msg container fixedScrollbar tabContent"
-        style="flex-direction: column;"
-      >
-        <div
-          class="msg container fixedScrollbar overviewTab"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch;"
-        >
-          <div
-            class="msg container fixedScrollbar overviewDiagram"
-            style="flex-direction: row; justify-content: flex-start; align-items: stretch;"
-          >
-            <div
-              class="msg container fixedScrollbar workflowStep onPremise"
-              style="flex-direction: column; justify-content: stretch; align-items: center;"
-            >
-              <div
-                class="msg container fixedScrollbar iconLabel"
-                style="flex-direction: row;"
-              >
-                <div
-                  class="msg icon"
-                  style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20width='100%25'%20height='100%25'%20viewBox='0%200%2016%2016'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20xml:space='preserve'%20xmlns:serif='http://www.serif.com/'%20style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3e%3cg%20id='folder'%3e%3cpath%20d='M14.5,3L7.71,3L6.86,2.15L6.51,2L1.51,2L1.01,2.5L1.01,13.5L1.51,14L14.51,14L15.01,13.5L15.01,3.5L14.5,3ZM13.99,11.49L13.99,13L1.99,13L1.99,7L6.48,7L6.83,6.85L7.69,5.99L14,5.99L14,7.49L13.99,11.49ZM13.99,5L7.49,5L7.14,5.15L6.28,6.01L2,6.01L2,3.01L6.29,3.01L7.14,3.86L7.5,4.01L14,4.01L13.99,5Z'%20style='fill-rule:nonzero;'/%3e%3c/g%3e%3c/svg%3e"); background-color: rgb(255, 255, 255);"
-                />
-                <label
-                  class="msg label title"
-                  data-tooltip="expand"
-                >
-                  On-Premise
-                </label>
-              </div>
-              <label
-                class="msg label subTitle"
-                data-tooltip="expand"
-              >
-                Data to be analyzed
-                <br />
-                (on your local storage)
-              </label>
-              <img
-                class="msg image diagram onPremiseDiagram"
-                src="/src/assets/images/lakehouseNavigatorOnPremise.svg"
-              />
-              <div
-                class="msg container fixedScrollbar actionPanel"
-                style="flex-direction: column; justify-content: center; align-items: stretch;"
-              >
-                <label
-                  class="msg label title"
-                  data-tooltip="expand"
-                >
-                  Upload Data to Object Storage
-                </label>
-                <label
-                  class="msg label info"
-                  data-tooltip="expand"
-                >
-                  Select this option to upload files from your local file system or local company network to the Object Storage.
-                </label>
-                <div
-                  caption="Upload Files >>"
-                  class="msg button"
-                  id="overviewUploadFilesBtn"
-                  role="button"
-                  tabindex="0"
-                >
-                  Upload Files &gt;&gt;
-                </div>
-              </div>
-            </div>
-            <div
-              class="msg container fixedScrollbar workflowStep objectStorage"
-              style="flex-direction: column; align-items: center;"
-            >
-              <div
-                class="msg container fixedScrollbar iconLabel"
-                style="flex-direction: row;"
-              >
-                <div
-                  class="msg icon"
-                  style="mask-image: url("/src/assets/images/dataLake.svg"); background-color: rgb(255, 255, 255);"
-                />
-                <label
-                  class="msg label title"
-                  data-tooltip="expand"
-                >
-                  Object Storage
-                </label>
-              </div>
-              <label
-                class="msg label subTitle"
-                data-tooltip="expand"
-              >
-                Data to be analyzed
-                <br />
-                (on OCI Object Storage)
-              </label>
-              <img
-                class="msg image diagram objectStorageDiagram"
-                src="/src/assets/images/lakehouseNavigatorObjectStorage.svg"
-              />
-              <div
-                class="msg container fixedScrollbar actionPanel"
-                style="flex-direction: column; justify-content: center; align-items: stretch;"
-              >
-                <label
-                  class="msg label title"
-                  data-tooltip="expand"
-                >
-                  Load Data into Lakehouse
-                </label>
-                <label
-                  class="msg label info"
-                  data-tooltip="expand"
-                >
-                  If your files have been uploaded to the OCI Object Storage select this option to load the data into Lakehouse.
-                </label>
-                <div
-                  caption="Start Load >>"
-                  class="msg button"
-                  id="overviewStartLoadBtn"
-                  role="button"
-                  tabindex="0"
-                >
-                  Start Load &gt;&gt;
-                </div>
-              </div>
-            </div>
-            <div
-              class="msg container fixedScrollbar workflowStep lakeHouse"
-              style="flex-direction: column; align-items: center;"
-            >
-              <div
-                class="msg container fixedScrollbar iconLabel"
-                style="flex-direction: row;"
-              >
-                <div
-                  class="msg icon"
-                  style="mask-image: url("/src/assets/images/lakehouseHouse.svg"); background-color: rgb(255, 255, 255);"
-                />
-                <label
-                  class="msg label title"
-                  data-tooltip="expand"
-                >
-                  Lakehouse
-                </label>
-              </div>
-              <label
-                class="msg label subTitle"
-                data-tooltip="expand"
-              >
-                Data ready for analysis
-                <br />
-                (held in memory)
-              </label>
-              <img
-                class="msg image diagram lakeHouseDiagram"
-                src="/src/assets/images/lakehouseNavigatorLakeHouse.svg"
-              />
-              <div
-                class="msg container fixedScrollbar actionPanel"
-                style="flex-direction: column; justify-content: center; align-items: stretch;"
-              >
-                <label
-                  class="msg label title"
-                  data-tooltip="expand"
-                >
-                  Manage Lakehouse Tables
-                </label>
-                <label
-                  class="msg label info"
-                  data-tooltip="expand"
-                >
-                  This option allows you to monitor running your data loading task and manage your data inside Lakehouse.
-                </label>
-                <div
-                  caption="Manage Lakehouse"
-                  class="msg button"
-                  id="overviewManageLakehouse"
-                  role="button"
-                  tabindex="0"
-                >
-                  Manage Lakehouse
-                </div>
-              </div>
-            </div>
-            <div
-              class="msg container fixedScrollbar stepSeparator step1to2"
-              style="flex-direction: row;"
-            >
-              &gt;&gt;&gt;
-            </div>
-            <div
-              class="msg container fixedScrollbar stepSeparator step2to3"
-              style="flex-direction: row;"
-            >
-              &gt;&gt;&gt;
-            </div>
-          </div>
-          <div
-            class="msg container fixedScrollbar headerTitle"
-            style="flex-direction: row;"
-          >
-            <label
-              class="msg label"
-              data-tooltip="expand"
-            >
-              HeatWave Lakehouse Navigator
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 `;
 
