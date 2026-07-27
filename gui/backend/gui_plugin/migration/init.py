@@ -35,6 +35,11 @@ from typing import Optional
 
 from mysqlsh.plugin_manager.registrar import plugin_function
 from gui_plugin.migration.lib.backend.model import LogInfo, SubStepId, WorkStatusInfo
+from gui_plugin.migration.lib.backend.plan_types import (
+    MigrationPlanState,
+    PlanDataItem,
+    PlanDataItemType,
+)
 
 # The plugin loader restores sys.path after init.py finishes, so any deferred
 # absolute import needs to add the plugin parent back first.
@@ -54,6 +59,10 @@ def _load_impl(module: str, name: str):
 
 def _work_step_impl(name: str):
     return _load_impl("gui_plugin.migration.work_step", name)
+
+
+def _plan_step_impl(name: str):
+    return _load_impl("gui_plugin.migration.plan_step", name)
 
 
 @plugin_function("gui.migration.workStart", shell=True, cli=False, web=True)
@@ -126,4 +135,77 @@ def fetch_logs(sub_step_id: Optional[SubStepId] = None, offset: int = 0) -> LogI
 
 # Import all API modules so their decorated functions are registered as
 # members of gui.migration.
-from gui_plugin.migration import general, migration, plan_step
+from gui_plugin.migration import general, migration
+
+
+k_log_filters = {
+    "logfilters": [
+        {"type": "key", "keys": ["password", "adminPassword", "adminPasswordConfirm"]}
+    ]
+}
+
+
+@plugin_function("gui.migration.planUpdate", shell=True, cli=False, web=k_log_filters)
+def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
+    """
+    Update migration plan sub-step with user input.
+
+    Args:
+        configs (list): list of {"id", "values":[]} sub-steps to update
+    """
+    return _plan_step_impl("plan_update")(configs)
+
+
+@plugin_function(
+    "gui.migration.planGetDataItem", shell=True, cli=False, web=k_log_filters
+)
+def plan_get_data_item(what: PlanDataItemType, detail: str) -> PlanDataItem:
+    """
+    Get additional data for frontend use.
+
+    Args:
+        what (str): the piece of info to be retrieved
+        detail (str): additional argument for the piece of info being retrieved
+    """
+    return _plan_step_impl("plan_get_data_item")(what, detail)
+
+
+@plugin_function(
+    "gui.migration.planUpdateSubStep", shell=True, cli=False, web=k_log_filters
+)
+def plan_update_sub_step(
+    sub_step_id: SubStepId, configs: dict
+) -> MigrationPlanState:
+    """
+    Fetch and/or update migration plan sub-step with user input.
+
+    Args:
+        sub_step_id (int): id of the sub-step to be updated
+        configs (dict): sub-step updates to make
+    """
+    return _plan_step_impl("plan_update_sub_step")(sub_step_id, configs)
+
+
+@plugin_function("gui.migration.planCommit", shell=True, cli=False, web=k_log_filters)
+def plan_commit(sub_step_id: SubStepId) -> MigrationPlanState:
+    """
+    Commit changes to the given sub-step and performs checks.
+    Call before switching from a sub-step to the next one.
+
+    Args:
+        sub_step_id (int): the id of the sub-step to be committed
+    """
+    return _plan_step_impl("plan_commit")(sub_step_id)
+
+
+@plugin_function("gui.migration.ociSignIn", shell=True, cli=False, web=True)
+def oci_sign_in(sign_up: bool = False) -> None:
+    """
+    Call to Sign In to OCI, create a session and bootstrap a OCI profile.
+    If signing-in, region must have been already picked in the OCIProfile
+    sub-step.
+
+    Args:
+        sign_up (bool): if True, opens browser on OCI sign-up page instead
+    """
+    return _plan_step_impl("oci_sign_in")(sign_up)

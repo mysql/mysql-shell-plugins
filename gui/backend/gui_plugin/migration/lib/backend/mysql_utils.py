@@ -23,19 +23,11 @@
 
 from typing import Optional
 
-from dataclasses import dataclass, field
-
 from . import checks
 from .. import logging
 from ..dbsession import Session
-from .model import MigrationMessage
+from .plan_types import InstanceContents, SchemaObjects, SchemaTables
 from ..core import quote_ident, unquote_str
-
-
-@dataclass
-class InstanceContents(MigrationMessage):
-    schemas: list[str] = field(default_factory=list)
-    accounts: list[str] = field(default_factory=list)
 
 
 def _fetch(session: Session, sql: str, args=[], *, field_fn=None) -> list[str]:
@@ -77,19 +69,6 @@ def fetch_instance_contents(session: Session) -> InstanceContents:
             if user not in checks.k_excluded_users + checks.k_mhs_excluded_users
         ],
     )
-
-
-@dataclass
-class SchemaObjects(MigrationMessage):
-    schema: str = ""
-    objects: list[str] = field(default_factory=list)
-
-
-@dataclass
-class SchemaTables(MigrationMessage):
-    schema: str = ""
-    tables: list[str] = field(default_factory=list)
-    views: list[str] = field(default_factory=list)
 
 
 class InstanceCache:

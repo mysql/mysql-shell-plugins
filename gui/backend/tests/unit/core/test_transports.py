@@ -57,9 +57,9 @@ def _repo_root():
     return Path(__file__).resolve().parents[5]
 
 
-def _mysqlsh_command():
+def _mysqlsh_command(entrypoint: str = _DESKTOP_BRIDGE_ENTRYPOINT):
     executable = getattr(mysqlsh, "executable", None)
-    options = ["--disable-builtin-plugins", "--py", "-e", _DESKTOP_BRIDGE_ENTRYPOINT]
+    options = ["--disable-builtin-plugins", "--py", "-e", entrypoint]
     if executable:
         return [executable] + options
 
@@ -121,6 +121,31 @@ def _run_desktop_bridge(tmp_path, input_text="", log_level=None):
         ) from exc
 
     return process.returncode, stdout, stderr
+
+
+def test_gui_startup_defers_migration_step_implementations(tmp_path):
+    entrypoint = """
+import sys
+
+import gui_plugin
+
+assert "gui_plugin.migration.plan_step" not in sys.modules
+assert "gui_plugin.migration.work_step" not in sys.modules
+"""
+    result = subprocess.run(
+        _mysqlsh_command(entrypoint),
+        capture_output=True,
+        text=True,
+        env=_desktop_bridge_env(tmp_path),
+        cwd=_repo_root(),
+        timeout=30,
+    )
+
+    assert result.returncode == 0, (
+        f"MySQL Shell exited with {result.returncode}.\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )
 
 
 def test_http_transport_bootstraps_web_server(tmp_path, monkeypatch):
@@ -577,7 +602,27 @@ def test_stdio_transport_resolves_migration_commands(monkeypatch):
         if command.startswith("gui.migration.")
     )
 
-    assert commands
+    assert set(commands) == {
+        "gui.migration.info",
+        "gui.migration.version",
+        "gui.migration.work_start",
+        "gui.migration.work_abort",
+        "gui.migration.work_clean",
+        "gui.migration.work_status",
+        "gui.migration.work_retry",
+        "gui.migration.skip_transactions",
+        "gui.migration.fetch_logs",
+        "gui.migration.get_steps",
+        "gui.migration.new_project",
+        "gui.migration.open_project",
+        "gui.migration.close_project",
+        "gui.migration.list_projects",
+        "gui.migration.plan_update",
+        "gui.migration.plan_get_data_item",
+        "gui.migration.plan_update_sub_step",
+        "gui.migration.plan_commit",
+        "gui.migration.oci_sign_in",
+    }
 
     for index, command in enumerate(commands):
         bridge.execute_command_request(

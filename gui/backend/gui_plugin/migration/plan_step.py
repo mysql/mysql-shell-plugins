@@ -23,13 +23,12 @@
 
 
 import copy
-import enum
 import json
 import re
 import os
 import webbrowser
 import threading
-from typing import TYPE_CHECKING, Optional, Type, TypeAlias, TypeVar, cast
+from typing import TYPE_CHECKING, Optional, Type, cast
 
 from .lib.backend.mysql_utils import (
     InstanceCache,
@@ -37,6 +36,29 @@ from .lib.backend.mysql_utils import (
     SchemaObjects,
     SchemaTables,
     fetch_instance_contents,
+)
+from .lib.backend.plan_types import (
+    MigrationCheckStatus,
+    MigrationChecksData,
+    MigrationChecksOptions,
+    MigrationPlanState,
+    MigrationStepStatus,
+    MigrationTypeData,
+    MigrationTypeOptions,
+    OCIProfileOptions,
+    PlanDataItem,
+    PlanDataItemType,
+    PlanEvent,
+    PreviewPlanData,
+    ReplicationChannelInfo,
+    SchemaSelectionData,
+    SourceSelectionData,
+    SourceSelectionOptions,
+    SubStepData,
+    SubStepValues,
+    T,
+    TargetOptionsData,
+    TargetOptionsOptions,
 )
 from .lib import errors, logging
 from .lib.logging import plugin_log
@@ -46,21 +68,17 @@ from .lib.backend.source_check import MySQLSourceCheck
 from .lib.backend.string_utils import unquote_db_object, quote_db_object
 import mysqlsh  # type: ignore
 from mysqlsh import mysql  # type: ignore
-from mysqlsh.plugin_manager import plugin_function  # type: ignore
 from .lib.backend.model import (
     IncludeList,
     MigrationError,
     MessageLevel,
     MigrationFilters,
-    MigrationMessage,
     MigrationOptions,
     MigrationType,
     SchemaSelectionOptions,
     SubStepId,
     parse,
 )
-from copy import deepcopy
-from dataclasses import dataclass, field, asdict
 
 if TYPE_CHECKING:
     from .lib.project import Project
@@ -113,149 +131,6 @@ def format_uri(options: dict) -> str:
     if "password" in opts:
         del opts["password"]
     return mysqlsh.globals.shell.unparse_uri(opts)
-
-
-@dataclass
-class ReplicationChannelInfo(MigrationMessage):
-    sourceUser: str = ""
-    replicateIgnoreDb: list[str] = field(default_factory=list)
-    replicateIgnoreTable: list[str] = field(default_factory=list)
-    replicateWildIgnoreTable: list[str] = field(default_factory=list)
-
-
-class MigrationStepStatus(enum.StrEnum):
-    NOT_STARTED = "NOT_STARTED"
-    IN_PROGRESS = "IN_PROGRESS"
-    READY_TO_COMMIT = "READY_TO_COMMIT"
-    FINISHED = "FINISHED"
-    ERROR = "ERROR"
-
-
-class PlanEvent(enum.StrEnum):
-    OCI_PROFILE_CHANGED = "OCI_PROFILE_CHANGED"
-    SOURCE_CONNECTED = "SOURCE_CONNECTED"
-
-
-@dataclass
-class SourceSelectionData(MigrationMessage):
-    serverInfo: Optional[model.ServerInfo] = None
-
-
-@dataclass
-class MigrationTypeData(MigrationMessage):
-    allowedTypes: list[str] = field(default_factory=list)
-    allowedConnectivity: list[str] = field(default_factory=list)
-
-
-@dataclass
-class SchemaSelectionData(MigrationMessage):
-    contents: InstanceContents = field(default_factory=InstanceContents)
-
-
-class MigrationCheckStatus(enum.StrEnum):
-    PENDING = "PENDING"
-    RUNNING_UPGRADE_CHECKS = "RUNNING_UPGRADE_CHECKS"
-    RUNNING_COMPATIBILITY_CHECKS = "RUNNING_COMPATIBILITY_CHECKS"
-    DONE = "DONE"
-    ABORTED = "ABORTED"
-    ERROR = "ERROR"
-
-
-@dataclass
-class MigrationChecksData(MigrationMessage):
-    issues: list[model.CheckResult] = field(default_factory=list)
-    checkProgress: model.MigrationCheckProgress = field(
-        default_factory=model.MigrationCheckProgress
-    )
-    checkStatus: MigrationCheckStatus = MigrationCheckStatus.PENDING
-
-
-@dataclass
-class PreviewPlanData(MigrationMessage):
-    options: model.MigrationOptions = field(default_factory=model.MigrationOptions)
-    computeResolutionNotice: str = ""
-    channelInfo: Optional[ReplicationChannelInfo] = None
-
-
-@dataclass
-class TargetOptionsData(MigrationMessage):
-    compartmentPath: str = ""
-    networkCompartmentPath: str = ""
-    allowCreateNewVcn: bool = True
-
-
-@dataclass
-class OCIProfileOptions(MigrationMessage):
-    configFile: str = ""
-    profile: str = "DEFAULT"
-    availableProfiles: list[str] = field(default_factory=list)
-    region: str = ""
-    availableRegions: list[str] = field(default_factory=list)
-
-
-@dataclass
-class SourceSelectionOptions(MigrationMessage):
-    sourceUri: str = ""
-    password: str = ""
-
-
-@dataclass
-class MigrationTypeOptions(MigrationMessage):
-    type: model.MigrationType = model.MigrationType.COLD
-    connectivity: model.CloudConnectivity = model.CloudConnectivity.NOT_SET
-
-
-@dataclass
-class MigrationChecksOptions(MigrationMessage):
-    runChecks: bool = False
-    abortChecks: bool = False
-    issueResolution: dict[str, model.CompatibilityFlags] = field(default_factory=dict)
-
-
-@dataclass
-class TargetOptionsOptions(MigrationMessage):
-    hosting: Optional[model.OCIHostingOptions] = None
-    database: Optional[model.DBSystemOptions] = None
-
-
-SubStepData: TypeAlias = (
-    SourceSelectionData
-    | MigrationTypeData
-    | SchemaSelectionData
-    | MigrationChecksData
-    | TargetOptionsData
-    | PreviewPlanData
-)
-SubStepValues: TypeAlias = (
-    OCIProfileOptions
-    | SourceSelectionOptions
-    | MigrationTypeOptions
-    | SchemaSelectionOptions
-    | MigrationChecksOptions
-    | TargetOptionsOptions
-)
-
-T = TypeVar("T")
-
-
-class PlanDataItemType(enum.StrEnum):
-    SCHEMA_TABLES = "tables"
-    SCHEMA_ROUTINES = "routines"
-    SCHEMA_TRIGGERS = "triggers"
-    SCHEMA_EVENTS = "events"
-    SCHEMA_LIBRARIES = "libraries"
-
-
-PlanDataItem: TypeAlias = SchemaObjects | SchemaTables
-
-
-@dataclass
-class MigrationPlanState(MigrationMessage):
-    id: SubStepId = SubStepId.ORCHESTRATION
-    status: MigrationStepStatus = MigrationStepStatus.NOT_STARTED
-    errors: list[MigrationError] = field(default_factory=list)
-    data: Optional[SubStepData] = None
-    values: Optional[SubStepValues] = None
 
 
 class PlanSubStep:
@@ -2203,14 +2078,6 @@ def get_plan() -> MigrationPlanStep:
     return get_project().plan_step
 
 
-k_log_filters = {
-    "logfilters": [
-        {"type": "key", "keys": ["password", "adminPassword", "adminPasswordConfirm"]}
-    ]
-}
-
-
-@plugin_function("gui.migration.planUpdate", shell=True, cli=False, web=k_log_filters)
 @plugin_log
 def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
     """
@@ -2224,7 +2091,6 @@ def plan_update(configs: list[dict]) -> list[MigrationPlanState]:
     return plan.update_all(configs)
 
 
-@plugin_function("gui.migration.planGetDataItem", shell=True, cli=False, web=k_log_filters)
 @plugin_log
 def plan_get_data_item(what: PlanDataItemType, detail: str) -> PlanDataItem:
     """
@@ -2239,9 +2105,6 @@ def plan_get_data_item(what: PlanDataItemType, detail: str) -> PlanDataItem:
     return plan.get_data_item(what, detail)
 
 
-@plugin_function(
-    "gui.migration.planUpdateSubStep", shell=True, cli=False, web=k_log_filters
-)
 @plugin_log
 def plan_update_sub_step(sub_step_id: SubStepId, configs: dict) -> MigrationPlanState:
     """
@@ -2256,7 +2119,6 @@ def plan_update_sub_step(sub_step_id: SubStepId, configs: dict) -> MigrationPlan
     return plan.update(sub_step_id, configs)
 
 
-@plugin_function("gui.migration.planCommit", shell=True, cli=False, web=k_log_filters)
 @plugin_log
 def plan_commit(sub_step_id: SubStepId) -> MigrationPlanState:
     """
@@ -2271,7 +2133,6 @@ def plan_commit(sub_step_id: SubStepId) -> MigrationPlanState:
     return plan.commit(sub_step_id)
 
 
-@plugin_function("gui.migration.ociSignIn", shell=True, cli=False, web=True)
 @plugin_log
 def oci_sign_in(sign_up: bool = False) -> None:
     """

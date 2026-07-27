@@ -28,7 +28,6 @@
 from mysqlsh.plugin_manager.registrar import plugin_function
 from .lib.logging import plugin_log
 from .lib.backend.model import ProjectData, MigrationSteps
-from .plan_step import MigrationPlanStep
 
 
 @plugin_log
@@ -38,6 +37,7 @@ def get_steps() -> list[MigrationSteps]:
     Returns:
         dict
     """
+    from .plan_step import MigrationPlanStep
     from .work_step import MigrationWorkStep
 
     MIGRATION_STEPS = [

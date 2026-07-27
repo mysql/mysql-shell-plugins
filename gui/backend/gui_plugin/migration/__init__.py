@@ -34,9 +34,9 @@ def register() -> None:
     """Register the Migration Assistant API under the GUI plugin."""
     global _API_MODULES
 
-    from . import general, init, migration, plan_step
+    from . import general, init, migration
 
-    _API_MODULES = (general, init, migration, plan_step)
+    _API_MODULES = (general, init, migration)
 
 
 def __getattr__(name: str) -> Any:
