@@ -35,6 +35,75 @@ from mrs_plugin import general
 PHONE_BOOKS = {}
 
 
+class _MysqlTestServer:
+    """Own the suite's sandbox and reconnectable Shell session."""
+
+    def __init__(self, connection_data, deployment_dir, session, log):
+        self._connection_data = connection_data
+        self._deployment_dir = deployment_dir
+        self._session = session
+        self._log = log
+
+    @property
+    def session(self):
+        return self._session
+
+    def close_session(self):
+        if self._session is not None and self._session.is_open():
+            self._session.close()
+
+    def _set_session(self, session):
+        self._session = session
+        for phone_book in PHONE_BOOKS.values():
+            phone_book["session"] = session
+
+    def restart(self):
+        if self._deployment_dir is None:
+            raise RuntimeError("Cannot restart a reused MySQL instance")
+
+        port = self._connection_data["port"]
+        sandbox_dir = self._deployment_dir.name
+        # Session-scoped fixtures continue running after this restart.
+        session_state = self._session.run_sql(
+            "SELECT @@SESSION.sql_mode, DATABASE()"
+        ).fetch_one()
+
+        self._log("Stopping the MySQL sandbox")
+        mysqlsh.globals.dba.stop_sandbox_instance(
+            port,
+            {
+                "password": self._connection_data["password"],
+                "sandboxDir": sandbox_dir,
+            },
+        )
+        self._set_session(None)
+        self._log("MySQL sandbox stopped")
+
+        self._log("Starting the MySQL sandbox")
+        mysqlsh.globals.dba.start_sandbox_instance(
+            port,
+            {"sandboxDir": sandbox_dir},
+        )
+        self._log("MySQL sandbox started")
+
+        self._set_session(helpers.create_shell_session())
+
+        self._session.run_sql(
+            "SET SESSION sql_mode = ?",
+            [session_state[0]],
+        )
+        if session_state[1] is not None:
+            schema = mysqlsh.mysql.quote_identifier(session_state[1])
+            self._session.run_sql(f"USE {schema}")
+
+        lib.services.set_current_service_id(
+            self._session,
+            PHONE_BOOKS["PhoneBook"]["service_id"],
+        )
+        self._log("Reconnected to MySQL")
+        return self._session
+
+
 def start_mysql_session(connection_id=0):
     connection_data = helpers.get_connection_data()
 
@@ -124,6 +193,7 @@ def init_mrs(request):
             print(f"[component-e2e] {message}", flush=True)
 
     with ExitStack() as cleanups:
+        deployment_dir = None
         if not reuse_mysqld:
             deployment_dir = tempfile.TemporaryDirectory()
             cleanups.callback(deployment_dir.cleanup)
@@ -161,9 +231,16 @@ def init_mrs(request):
         assert session is not None
         _component_e2e_log("Connected to MySQL")
 
+        test_server = _MysqlTestServer(
+            connection_data,
+            deployment_dir,
+            session,
+            _component_e2e_log,
+        )
+
         def close_session():
             _component_e2e_log("Closing the MySQL session")
-            session.close()
+            test_server.close_session()
 
         cleanups.callback(close_session)
 
@@ -203,7 +280,7 @@ def init_mrs(request):
         )
 
         _component_e2e_log("MySQL and MRS setup complete")
-        yield session
+        yield test_server
 
 
 @pytest.fixture(scope="session")

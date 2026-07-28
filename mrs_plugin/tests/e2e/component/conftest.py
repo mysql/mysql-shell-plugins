@@ -34,14 +34,18 @@ def require_component_e2e(request):
 
 
 @pytest.fixture
-def mrs_component(require_component_e2e, phone_book):
+def mrs_component(require_component_e2e, phone_book, init_mrs):
     session = phone_book["session"]
     service_id = phone_book["service_id"]
     service = lib.services.get_service(session, service_id=service_id)
     if service is None:
         pytest.fail("The MRS test service was not found")
 
-    component = MrsComponentTestHarness(session, service)
+    component = MrsComponentTestHarness(
+        session,
+        service,
+        test_server=init_mrs,
+    )
 
     if component.is_installed():
         pytest.fail("The MRS component is already installed on the test instance")

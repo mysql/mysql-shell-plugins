@@ -13,9 +13,16 @@ at the HTTPS endpoint hosted by the MySQL Server component.
 - The existing `phone_book -> init_mrs` fixtures own the session-scoped MySQL
   sandbox, MRS metadata, and sample data.
 
-The harness always removes an installed component and restores the service's
-original publication state. It polls component status for lifecycle
-transitions; tests must not use fixed startup sleeps.
+During normal teardown, the harness removes an installed component and restores
+the service's original publication state. If a Server restart fails before a
+new session is available, the harness preserves that failure and relies on
+destruction of the suite-owned sandbox to discard its remaining state. It polls
+component status for lifecycle transitions; tests must not use fixed startup
+sleeps.
+
+`restart_server()` stops and starts the suite-owned sandbox, reconnects the
+shared fixture session, and preserves its SQL mode and current schema. Use it
+for scenarios that must verify state across a complete MySQL Server restart.
 
 Tests that change persistent or component configuration must register its
 restoration with `mrs_component.add_cleanup()`. Callbacks run in reverse order

@@ -37,6 +37,7 @@ from mrs_plugin import lib
 
 
 COMPONENT_URN = "file://component_mysql_rest_service"
+LIFECYCLE_ADMIN_PRIVILEGE = "MYSQL_REST_SERVICE_ADMIN"
 DEFAULT_WAIT_TIMEOUT = 30
 DEFAULT_HTTP_TIMEOUT = 10
 POLL_INTERVAL = 0.1
@@ -211,8 +212,9 @@ class MrsHttpClient:
 class MrsComponentTestHarness:
     """Test-facing control of one MRS component and one published service."""
 
-    def __init__(self, session, service, port=None):
+    def __init__(self, session, service, port=None, test_server=None):
         self._session = session
+        self._test_server = test_server
         self._service_id = service["id"]
         self._service_path = service["host_ctx"]
         self._original_published = bool(service["published"])
@@ -259,9 +261,81 @@ class MrsComponentTestHarness:
             f"SET GLOBAL mysql_rest_service.http_port = {self.port}"
         )
 
+    def configure_http_port(self, port=None):
+        port = _get_free_port() if port is None else int(port)
+        log(f"Configuring the MRS component HTTPS port as {port}")
+        self._session.run_sql(
+            f"SET GLOBAL mysql_rest_service.http_port = {port}"
+        )
+
+        self._set_endpoint(port)
+        return port
+
+    def persist_http_port(self, port=None):
+        port = _get_free_port() if port is None else int(port)
+        log(f"Persisting the MRS component HTTPS port as {port}")
+        self._session.run_sql(
+            f"SET PERSIST mysql_rest_service.http_port = {port}"
+        )
+        self.add_cleanup(self._reset_persisted_http_port)
+
+        self._set_endpoint(port)
+        return port
+
+    def _set_endpoint(self, port):
+        self.port = port
+        self.base_url = f"https://127.0.0.1:{port}"
+        self.http = MrsHttpClient(self.base_url)
+
     def uninstall(self):
         log("Uninstalling the MRS component")
         self._session.run_sql(f'UNINSTALL COMPONENT "{COMPONENT_URN}"')
+
+    def start(self):
+        log("Starting the MRS component")
+        return self._execute_lifecycle_udf("start")
+
+    def stop(self):
+        log("Stopping the MRS component")
+        return self._execute_lifecycle_udf("stop")
+
+    def restart(self):
+        log("Restarting the MRS component")
+        return self._execute_lifecycle_udf("restart")
+
+    def restart_server(self):
+        """Restart the suite-owned mysqld and adopt its new session."""
+        if self._test_server is None:
+            raise RuntimeError("MySQL Server restart is not configured")
+
+        try:
+            self._test_server.restart()
+        finally:
+            self._session = self._test_server.session
+
+        return self._session
+
+    def grant_lifecycle_admin(self):
+        log(f"Granting {LIFECYCLE_ADMIN_PRIVILEGE} to the test account")
+        self._session.run_sql(
+            f"GRANT {LIFECYCLE_ADMIN_PRIVILEGE} ON *.* TO CURRENT_USER()"
+        )
+        self.add_cleanup(self._revoke_lifecycle_admin)
+
+    def _revoke_lifecycle_admin(self):
+        log(f"Revoking {LIFECYCLE_ADMIN_PRIVILEGE} from the test account")
+        self._session.run_sql(
+            f"REVOKE {LIFECYCLE_ADMIN_PRIVILEGE} ON *.* FROM CURRENT_USER()"
+        )
+
+    def _reset_persisted_http_port(self):
+        log("Resetting the persisted MRS component HTTPS port")
+        self._session.run_sql("RESET PERSIST mysql_rest_service.http_port")
+
+    def _execute_lifecycle_udf(self, operation):
+        return self._session.run_sql(
+            f"SELECT mysql_rest_service_{operation}()"
+        ).fetch_one()[0]
 
     def status(self):
         rows = self._session.run_sql(
@@ -320,6 +394,13 @@ class MrsComponentTestHarness:
         return status
 
     def cleanup(self):
+        if self._session is None:
+            # The session is invalidated as soon as a suite-owned sandbox
+            # stops. Its destruction will discard all remaining test state.
+            log("MySQL is unavailable; deferring cleanup to sandbox destruction")
+            self._cleanups.pop_all()
+            return
+
         try:
             self._cleanups.close()
         finally:

@@ -25,9 +25,11 @@ import threading
 import urllib.error
 from email.message import Message
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from types import SimpleNamespace
 
 import pytest
 
+from mrs_plugin.tests import conftest as test_fixtures
 from mrs_plugin.tests.e2e.component import harness
 
 
@@ -219,6 +221,166 @@ def test_cleanup_callbacks_run_in_reverse_order_before_uninstall(monkeypatch):
     component.cleanup()
 
     assert events == ["second", "first", "uninstall"]
+
+
+def test_persist_http_port_is_reset_before_uninstall(monkeypatch):
+    service = {
+        "id": b"service-id",
+        "host_ctx": "/test",
+        "published": True,
+    }
+    statements = []
+
+    class Session:
+        def run_sql(self, statement):
+            statements.append(statement)
+
+    component = harness.MrsComponentTestHarness(
+        Session(),
+        service,
+        port=8443,
+    )
+    events = []
+
+    monkeypatch.setattr(component, "is_installed", lambda: True)
+    monkeypatch.setattr(component, "uninstall", lambda: events.append("uninstall"))
+
+    component.persist_http_port(9443)
+    component.cleanup()
+
+    assert component.port == 9443
+    assert statements == [
+        "SET PERSIST mysql_rest_service.http_port = 9443",
+        "RESET PERSIST mysql_rest_service.http_port",
+    ]
+    assert events == ["uninstall"]
+
+
+def test_restart_server_adopts_reconnected_session_on_failure(monkeypatch):
+    service = {
+        "id": b"service-id",
+        "host_ctx": "/test",
+        "published": True,
+    }
+    old_statements = []
+    new_statements = []
+
+    class Session:
+        def __init__(self, statements):
+            self._statements = statements
+
+        def run_sql(self, statement):
+            self._statements.append(statement)
+
+    old_session = Session(old_statements)
+    new_session = Session(new_statements)
+
+    class TestServer:
+        session = old_session
+
+        def restart(self):
+            self.session = new_session
+            raise RuntimeError("reconnect setup failed")
+
+    component = harness.MrsComponentTestHarness(
+        old_session,
+        service,
+        port=8443,
+        test_server=TestServer(),
+    )
+    monkeypatch.setattr(component, "is_installed", lambda: False)
+
+    component.persist_http_port(9443)
+    with pytest.raises(RuntimeError, match="reconnect setup failed"):
+        component.restart_server()
+    component.cleanup()
+
+    assert old_statements == ["SET PERSIST mysql_rest_service.http_port = 9443"]
+    assert new_statements == ["RESET PERSIST mysql_rest_service.http_port"]
+
+
+@pytest.mark.parametrize(
+    ("failure_stage", "expected_error"),
+    [
+        ("start", "sandbox start failed"),
+        ("connect", "sandbox reconnect failed"),
+    ],
+)
+def test_restart_server_preserves_failure_without_reconnected_session(
+    monkeypatch,
+    failure_stage,
+    expected_error,
+):
+    statements = []
+
+    class Result:
+        def fetch_one(self):
+            return ("", "PhoneBook")
+
+    class Session:
+        def run_sql(self, statement):
+            statements.append(statement)
+            return Result()
+
+    def start_sandbox(*_args):
+        if failure_stage == "start":
+            raise RuntimeError("sandbox start failed")
+
+    old_session = Session()
+    phone_book = {"session": old_session}
+    dba = SimpleNamespace(
+        stop_sandbox_instance=lambda *_args: None,
+        start_sandbox_instance=start_sandbox,
+    )
+    monkeypatch.setattr(
+        test_fixtures,
+        "mysqlsh",
+        SimpleNamespace(globals=SimpleNamespace(dba=dba)),
+    )
+    monkeypatch.setattr(
+        test_fixtures,
+        "PHONE_BOOKS",
+        {"PhoneBook": phone_book},
+    )
+
+    def create_session():
+        raise RuntimeError("sandbox reconnect failed")
+
+    monkeypatch.setattr(
+        test_fixtures.helpers,
+        "create_shell_session",
+        create_session,
+    )
+
+    server = test_fixtures._MysqlTestServer(
+        {"port": 3388, "password": ""},
+        SimpleNamespace(name="/tmp/component-test-sandbox"),
+        old_session,
+        lambda _message: None,
+    )
+    component = harness.MrsComponentTestHarness(
+        old_session,
+        {
+            "id": b"service-id",
+            "host_ctx": "/test",
+            "published": True,
+        },
+        port=8443,
+        test_server=server,
+    )
+
+    component.persist_http_port(9443)
+    with pytest.raises(RuntimeError, match=expected_error):
+        component.restart_server()
+
+    component.cleanup()
+
+    assert server.session is None
+    assert phone_book["session"] is None
+    assert statements == [
+        "SET PERSIST mysql_rest_service.http_port = 9443",
+        "SELECT @@SESSION.sql_mode, DATABASE()",
+    ]
 
 
 def test_cleanup_restores_publication_when_uninstall_fails(monkeypatch):
