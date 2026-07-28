@@ -1056,6 +1056,8 @@ export class MigrationAssistant {
             throw new Error(`Compatibility checks did not finish with issues. ` +
                 `Current state: ${stateText}`, { cause: error });
         }
+
+        await this.waitForLoadingIcon();
     }
 
     private parseStepStatus(statusClass: string): StepStatus {
