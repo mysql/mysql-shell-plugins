@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -24,3 +24,4 @@
 """The MySQL Shell GUI Plugin"""
 
 from gui_plugin import init
+from gui_plugin import legacy as legacy_configuration_import

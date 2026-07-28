@@ -418,6 +418,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsListAll]: { result: Array<IConnectionDetails | IFolderPath>; };
     [ShellAPIGui.GuiDbConnectionsUpdateFolderSettings]: {};
     [ShellAPIGui.GuiDbConnectionsGetFolder]: { result: IFolderPath; };
+    [ShellAPIGui.GuiDbConnectionsImportWorkbenchConnections]: { result: unknown; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};

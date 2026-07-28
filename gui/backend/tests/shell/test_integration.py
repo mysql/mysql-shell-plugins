@@ -58,6 +58,9 @@ PROPERTIES
       debugger
             The websocket debugger module
 
+      legacy
+            The legacy configuration import backend module.
+
       mds
             The MySQL Database Service MySQL Shell GUI backend module
 

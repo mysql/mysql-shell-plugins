@@ -27,8 +27,9 @@ import { test as base, expect, type Page, type TestInfo } from "@playwright/test
 import { _electron as electron, type ElectronApplication } from "playwright";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { lstat, mkdir, readlink, rm, symlink } from "node:fs/promises";
+import { lstat, mkdir, readlink, rm, symlink, writeFile } from "node:fs/promises";
 import { basename, delimiter, dirname, join, resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 
 import { ElectronWorkbench } from "../helpers/ElectronWorkbench.js";
 
@@ -37,6 +38,10 @@ const fixturesDir = __dirname;
 const electronRoot = resolve(fixturesDir, "../../..");
 const repoRoot = resolve(electronRoot, "../..");
 const guiPluginSourceDir = resolve(electronRoot, "../backend/gui_plugin");
+const vsCodeDatabaseFixture = resolve(
+    repoRoot,
+    "gui/backend/tests/unit/legacy/fixtures/vscode/mysqlsh_gui_backend_1.20.sql",
+);
 const pluginSourceDirs = new Map([
     ["gui_plugin", guiPluginSourceDir],
     ["mds_plugin", resolve(repoRoot, "mds_plugin")],
@@ -60,6 +65,29 @@ interface IElectronFixtures {
 
 interface IElectronOptions {
     electronLaunchEnvironment: Record<string, string | undefined>;
+}
+
+export interface ILegacyConfigurationImportFixtureOptions {
+    workbenchConnections?: boolean;
+    vsCodeConnections?: boolean;
+    vsCodeLogs?: boolean;
+    workbenchProject?: boolean;
+    vsCodeProject?: boolean;
+}
+
+export interface ILegacyConfigurationImportTestSources {
+    home: string;
+    appData: string;
+    failureRoot: string;
+    workbenchConnections: string;
+    workbenchProjects: string;
+    vsCodeRoot: string;
+    vsCodeDatabase: string;
+    vsCodeLogs: string[];
+    vsCodeProjects: string;
+    workbenchProject?: string;
+    vsCodeProject?: string;
+    close: () => void;
 }
 
 type SlowMoPatchTarget = Record<string | symbol, unknown>;
@@ -175,14 +203,11 @@ const installSlowMo = (page: Page, delay: number | undefined): void => {
     patchSlowMoMethod(Object.getPrototypeOf(page.touchscreen) as object, "tap", delay);
 };
 
-const createLaunchArguments = (testInfo: TestInfo): string[] => {
-    const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
-    const electronUserDataDir = testInfo.outputPath("electron-user-data");
+const createLaunchArguments = (testInfo: TestInfo, userDataDir?: string): string[] => {
+    const electronUserDataDir = userDataDir ?? testInfo.outputPath("electron-user-data");
     const args = [
         "--electron-user-data-dir",
         electronUserDataDir,
-        "--mysqlsh-user-config-home",
-        shellUserConfigDir,
     ];
 
     if (process.env.ELECTRON_E2E_BACKGROUND === "1" || process.env.ELECTRON_E2E_BACKGROUND === "true") {
@@ -268,14 +293,16 @@ const resolveElectronExecutablePath = (): string => {
 };
 
 const createLaunchEnvironment = (
-    shellUserConfigDir: string,
     mysqlshRuntimeDir: string | undefined,
     environmentOverrides: Record<string, string | undefined>,
-): NodeJS.ProcessEnv => {
-    const launchEnv: NodeJS.ProcessEnv = {
-        ...process.env,
-        MYSQLSH_USER_CONFIG_HOME: shellUserConfigDir,
-    };
+): Record<string, string> => {
+    const launchEnv = Object.fromEntries(
+        Object.entries(process.env).filter(
+            (entry): entry is [string, string] => entry[1] !== undefined,
+        ),
+    );
+    delete launchEnv.ELECTRON_RUN_AS_NODE;
+    delete launchEnv.MYSQLSH_USER_CONFIG_HOME;
 
     if (isPackagedAppMode) {
         delete launchEnv.ELECTRON_RENDERER_URL;
@@ -294,16 +321,16 @@ const createLaunchEnvironment = (
     return applyEnvironmentOverrides({
         ...launchEnv,
         ELECTRON_RENDERER_URL: rendererUrl,
-        ELECTRON_MYSQLSH_RUNTIME_DIR: mysqlshRuntimeDir,
+        ...(mysqlshRuntimeDir ? { ELECTRON_MYSQLSH_RUNTIME_DIR: mysqlshRuntimeDir } : {}),
         ...(pythonPath.length > 0 ? { PYTHONPATH: pythonPath } : {}),
         ...(mysqlshGuiExtraArgs.length > 0 ? { MYSQLSH_GUI_EXTRA_ARGS: mysqlshGuiExtraArgs } : {}),
     }, environmentOverrides);
 };
 
 const applyEnvironmentOverrides = (
-    environment: NodeJS.ProcessEnv,
+    environment: Record<string, string>,
     overrides: Record<string, string | undefined>,
-): NodeJS.ProcessEnv => {
+): Record<string, string> => {
     for (const [key, value] of Object.entries(overrides)) {
         if (value === undefined) {
             delete environment[key];
@@ -313,6 +340,172 @@ const applyEnvironmentOverrides = (
     }
 
     return environment;
+};
+
+const legacySourcePaths = (testInfo: TestInfo) => {
+    const home = testInfo.outputPath("legacy-home");
+    const appData = testInfo.outputPath("legacy-app-data");
+    const failureRoot = join(home, ".electron-e2e-failures");
+    if (process.platform === "win32") {
+        return {
+            home,
+            appData,
+            failureRoot,
+            workbenchConnections: join(appData, "MySQL", "Workbench", "connections.xml"),
+            workbenchWrapper: join(appData, "MySQL", "mysqlsh-wb"),
+            vsCodeRoot: join(appData, "MySQL", "mysqlsh-gui"),
+        };
+    }
+
+    return {
+        home,
+        appData,
+        failureRoot,
+        workbenchConnections: process.platform === "darwin"
+            ? join(home, "Library", "Application Support", "MySQL", "Workbench", "connections.xml")
+            : join(home, ".mysql", "workbench", "connections.xml"),
+        workbenchWrapper: join(home, ".mysqlsh-wb"),
+        vsCodeRoot: join(home, ".mysqlsh-gui"),
+    };
+};
+
+const workbenchConnectionsXml = (): string => {
+    return `<?xml version="1.0"?>
+<data grt_format="2.0">
+  <value type="list" content-type="object"
+      content-struct-name="db.mgmt.Connection">
+    <value type="object" struct-name="db.mgmt.Connection">
+      <link type="object" struct-name="db.mgmt.Driver"
+          key="driver">com.mysql.rdbms.mysql.driver.native</link>
+      <value type="string" key="hostIdentifier">Mysql@db.example:3306</value>
+      <value type="dict" key="parameterValues">
+        <value type="string" key="hostName">db.example</value>
+        <value type="string" key="port">3306</value>
+        <value type="string" key="userName">scott</value>
+      </value>
+      <value type="string" key="name">Workbench Production</value>
+    </value>
+  </value>
+</data>
+`;
+};
+
+const createVsCodeDatabase = async (databasePath: string): Promise<DatabaseSync> => {
+    await mkdir(dirname(databasePath), { recursive: true });
+    const database = new DatabaseSync(databasePath);
+    database.exec(readFileSync(vsCodeDatabaseFixture, "utf8"));
+    database.exec(`
+        PRAGMA journal_mode=WAL;
+        PRAGMA wal_autocheckpoint=0;
+    `);
+
+    return database;
+};
+
+const createLegacyProject = async (
+    projectRoot: string,
+    projectId: string,
+    options: { includeKeys: boolean; },
+): Promise<string> => {
+    const projectPath = join(projectRoot, projectId);
+    const nestedPath = join(projectPath, "nested");
+    await mkdir(nestedPath, { recursive: true });
+    await writeFile(join(nestedPath, "state.txt"), `${projectId} state\n`, "utf8");
+
+    let sshPrivateKeyFile = "";
+    let sshSharedKeyFile = "";
+    if (options.includeKeys) {
+        sshPrivateKeyFile = join(projectPath, "project-key");
+        sshSharedKeyFile = join(projectRoot, "ssh", "shared-key");
+        await mkdir(dirname(sshSharedKeyFile), { recursive: true });
+        await writeFile(sshPrivateKeyFile, "project private key fixture\n", "utf8");
+        await writeFile(sshSharedKeyFile, "shared private key fixture\n", "utf8");
+    }
+
+    await writeFile(join(projectPath, "data.json"), JSON.stringify({
+        version: "1.0.0",
+        id: projectId,
+        name: `Legacy ${projectId}`,
+        options: {
+            _class: "MigrationOptions",
+            sourceConnectionOptions: {
+                scheme: "mysql",
+                user: "scott",
+                host: "db.example",
+                port: 3306,
+            },
+        },
+        ociConfigFile: "",
+        ociProfile: "DEFAULT",
+        ociConfigOwned: false,
+        sshSharedKeyFile,
+        sshPrivateKeyFile,
+        sshPublicKeyFile: "",
+        replicationCoordinates: {},
+        planStepData: {},
+        createTime: "2026-07-28T00:00:00",
+        modifyTime: "2026-07-28T00:00:00",
+        dataMigrationDidFinish: false,
+    }, undefined, 2), "utf8");
+
+    return projectPath;
+};
+
+export const createLegacyConfigurationImportTestSources = async (
+    testInfo: TestInfo,
+    options: ILegacyConfigurationImportFixtureOptions,
+): Promise<ILegacyConfigurationImportTestSources> => {
+    const paths = legacySourcePaths(testInfo);
+    const workbenchProjects = join(paths.workbenchWrapper, "plugin_data", "migration_plugin");
+    const vsCodePluginRoot = join(paths.vsCodeRoot, "plugin_data", "gui_plugin");
+    const vsCodeDatabase = join(vsCodePluginRoot, "mysqlsh_gui_backend.sqlite3");
+    const vsCodeProjects = join(paths.vsCodeRoot, "plugin_data", "migration_plugin");
+    const vsCodeLogs = [
+        join(vsCodePluginRoot, "mysqlsh_gui_backend_log.sqlite3"),
+        join(vsCodePluginRoot, "mysqlsh_gui_backend_log.sqlite3-wal"),
+        join(vsCodePluginRoot, "mysqlsh_gui_backend_log.sqlite3-shm"),
+    ];
+    let sourceDatabase: DatabaseSync | undefined;
+
+    await mkdir(paths.home, { recursive: true });
+    await mkdir(paths.appData, { recursive: true });
+    if (options.workbenchConnections) {
+        await mkdir(dirname(paths.workbenchConnections), { recursive: true });
+        await writeFile(paths.workbenchConnections, workbenchConnectionsXml(), "utf8");
+    }
+    if (options.vsCodeConnections) {
+        sourceDatabase = await createVsCodeDatabase(vsCodeDatabase);
+    }
+    if (options.vsCodeLogs) {
+        await mkdir(vsCodePluginRoot, { recursive: true });
+        await Promise.all(vsCodeLogs.map(async (logPath) => {
+            await writeFile(logPath, `legacy log fixture: ${basename(logPath)}\n`, "utf8");
+        }));
+    }
+
+    const workbenchProject = options.workbenchProject
+        ? await createLegacyProject(workbenchProjects, "workbench-project", { includeKeys: true })
+        : undefined;
+    const vsCodeProject = options.vsCodeProject
+        ? await createLegacyProject(vsCodeProjects, "vscode-project", { includeKeys: false })
+        : undefined;
+
+    return {
+        home: paths.home,
+        appData: paths.appData,
+        failureRoot: paths.failureRoot,
+        workbenchConnections: paths.workbenchConnections,
+        workbenchProjects,
+        vsCodeRoot: paths.vsCodeRoot,
+        vsCodeDatabase,
+        vsCodeLogs,
+        vsCodeProjects,
+        workbenchProject,
+        vsCodeProject,
+        close: () => {
+            sourceDatabase?.close();
+        },
+    };
 };
 
 const installPluginLinks = async (mysqlshRuntimeDir: string): Promise<void> => {
@@ -339,22 +532,28 @@ const installPluginLinks = async (mysqlshRuntimeDir: string): Promise<void> => {
 export const createElectronLaunchOptions = async (
     testInfo: TestInfo,
     environmentOverrides: Record<string, string | undefined>,
+    userDataDir?: string,
 ): Promise<ElectronLaunchOptions> => {
-    const shellUserConfigDir = testInfo.outputPath("mysqlsh-user-config");
-    const electronUserDataDir = testInfo.outputPath("electron-user-data");
+    const electronUserDataDir = userDataDir ?? testInfo.outputPath("electron-user-data");
     const mysqlshRuntimeDir = isPackagedAppMode ? undefined : resolveMysqlShellRuntimeDir();
-    await mkdir(shellUserConfigDir, { recursive: true });
     await mkdir(electronUserDataDir, { recursive: true });
 
     if (mysqlshRuntimeDir) {
         validateMysqlShellRuntimeDir(mysqlshRuntimeDir);
         await installPluginLinks(mysqlshRuntimeDir);
     }
+    const legacyPaths = legacySourcePaths(testInfo);
 
     return {
         executablePath: resolveElectronExecutablePath(),
-        args: createLaunchArguments(testInfo),
-        env: createLaunchEnvironment(shellUserConfigDir, mysqlshRuntimeDir, environmentOverrides),
+        args: createLaunchArguments(testInfo, electronUserDataDir),
+        env: createLaunchEnvironment(mysqlshRuntimeDir, {
+            ELECTRON_E2E: "1",
+            ELECTRON_E2E_LEGACY_HOME: legacyPaths.home,
+            ELECTRON_E2E_LEGACY_APP_DATA: legacyPaths.appData,
+            ELECTRON_E2E_LEGACY_FAILURE_ROOT: legacyPaths.failureRoot,
+            ...environmentOverrides,
+        }),
         timeout: 60000,
     };
 };
@@ -362,8 +561,13 @@ export const createElectronLaunchOptions = async (
 export const launchElectronApp = async (
     testInfo: TestInfo,
     environmentOverrides: Record<string, string | undefined> = {},
+    userDataDir?: string,
 ): Promise<ElectronApplication> => {
-    return electron.launch(await createElectronLaunchOptions(testInfo, environmentOverrides));
+    return electron.launch(await createElectronLaunchOptions(
+        testInfo,
+        environmentOverrides,
+        userDataDir,
+    ));
 };
 
 export const closeElectronApp = async (electronApp: ElectronApplication): Promise<void> => {

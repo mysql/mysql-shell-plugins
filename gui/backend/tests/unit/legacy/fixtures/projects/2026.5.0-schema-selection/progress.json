@@ -1,0 +1,55 @@
+{
+  "_class": "WorkStatusInfo",
+  "status": "in_progress",
+  "stages": [
+    {
+      "_class": "WorkStageInfo",
+      "stage": 2010,
+      "caption": "Create network",
+      "enabled": true,
+      "status": "finished",
+      "errors": [
+        {
+          "_class": "MigrationError",
+          "level": "WARNING",
+          "type": null,
+          "message": "Sanitized warning",
+          "title": null,
+          "info": null
+        }
+      ],
+      "current": 1,
+      "total": 1,
+      "eta": null,
+      "message": "Network created",
+      "info": {},
+      "logItems": 1
+    }
+  ],
+  "summary": {
+    "_class": "MigrationSummaryInfo",
+    "adminUser": "admin",
+    "migrationType": "cold",
+    "cloudConnectivity": "",
+    "compartmentName": "MySQL",
+    "fullCompartmentName": "Example/MySQL",
+    "region": "eu-frankfurt-1",
+    "dbSystemName": "migration-db-system",
+    "dbSystemId": "ocid1.mysqldbsystem.example",
+    "dbSystemIP": "10.0.1.10",
+    "dbSystemVersion": "8.4.0",
+    "channelId": "",
+    "jumpHostName": "migration-jump-host",
+    "jumpHostId": "ocid1.instance.example",
+    "jumpHostPrivateIP": "10.0.2.10",
+    "jumpHostPublicIP": "192.0.2.10",
+    "jumpHostKeyPath": "",
+    "createdJumpHost": true,
+    "sourceHost": "127.0.0.1",
+    "sourcePort": 3306,
+    "sourceVersion": "8.4.0",
+    "bucketNamespace": "example-namespace",
+    "bucketName": "migration-bucket",
+    "createdBucket": true
+  }
+}

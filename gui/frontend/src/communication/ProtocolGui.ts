@@ -55,6 +55,8 @@ export enum ShellAPIGui {
     GuiCoreClearPluginCommandMocks = "gui.core.clear_plugin_command_mocks",
     /** Add a new db_connection and associate the connection with a profile */
     GuiDbConnectionsAddDbConnection = "gui.dbConnections.add_db_connection",
+    /** Import non-secret connections from classic Workbench XML. */
+    GuiDbConnectionsImportWorkbenchConnections = "gui.dbConnections.import_workbench_connections",
     /** Update the data for a database connection */
     GuiDbConnectionsUpdateDbConnection = "gui.dbConnections.update_db_connection",
     /** Remove a db_connection by disassociating the connection from a profile */
@@ -101,6 +103,64 @@ export enum ShellAPIGui {
     GuiDbConnectionsUpdateFolderSettings = "gui.dbConnections.update_folder_settings",
     /** Get folder */
     GuiDbConnectionsGetFolder = "gui.dbConnections.get_folder",
+    /** Creates a new user account */
+    GuiUsersCreateUser = "gui.users.create_user",
+    /** Sets the allowed hosts for the given user. */
+    GuiUsersSetAllowedHosts = "gui.users.set_allowed_hosts",
+    /** Deletes a user account */
+    GuiUsersDeleteUser = "gui.users.delete_user",
+    /** Grant the given roles to the user. */
+    GuiUsersGrantRole = "gui.users.grant_role",
+    /** Gets the id for a given user. */
+    GuiUsersGetUserId = "gui.users.get_user_id",
+    /** Lists all user accounts. */
+    GuiUsersListUsers = "gui.users.list_users",
+    /** List the granted roles for a given user. */
+    GuiUsersListUserRoles = "gui.users.list_user_roles",
+    /** Lists all roles that can be assigned to users. */
+    GuiUsersListRoles = "gui.users.list_roles",
+    /** Lists all privileges of a role. */
+    GuiUsersListRolePrivileges = "gui.users.list_role_privileges",
+    /** Lists all privileges assigned to a user. */
+    GuiUsersListUserPrivileges = "gui.users.list_user_privileges",
+    /** Returns the list of modules for the given user. */
+    GuiUsersGetGuiModuleList = "gui.users.get_gui_module_list",
+    /** Returns the list of profile for the given user */
+    GuiUsersListProfiles = "gui.users.list_profiles",
+    /** Returns the specified profile. */
+    GuiUsersGetProfile = "gui.users.get_profile",
+    /** Updates a user profile. */
+    GuiUsersUpdateProfile = "gui.users.update_profile",
+    /** Returns the specified profile. */
+    GuiUsersAddProfile = "gui.users.add_profile",
+    /** Deletes a profile for the current user. */
+    GuiUsersDeleteProfile = "gui.users.delete_profile",
+    /** Returns the default profile for the given user. */
+    GuiUsersGetDefaultProfile = "gui.users.get_default_profile",
+    /** Sets the default profile for the given user. */
+    GuiUsersSetDefaultProfile = "gui.users.set_default_profile",
+    /** Sets the profile of the user's current web session. */
+    GuiUsersSetCurrentProfile = "gui.users.set_current_profile",
+    /** Returns the list of all groups or list all groups that given user belongs. */
+    GuiUsersListUserGroups = "gui.users.list_user_groups",
+    /** Creates user group. */
+    GuiUsersCreateUserGroup = "gui.users.create_user_group",
+    /** Adds user to user group. */
+    GuiUsersAddUserToGroup = "gui.users.add_user_to_group",
+    /** Removes user from user group. */
+    GuiUsersRemoveUserFromGroup = "gui.users.remove_user_from_group",
+    /** Updates user group. */
+    GuiUsersUpdateUserGroup = "gui.users.update_user_group",
+    /** Removes given user group. */
+    GuiUsersRemoveUserGroup = "gui.users.remove_user_group",
+    /** Discover validated legacy data that has not already been imported. */
+    GuiLegacyDiscover = "gui.legacy.discover",
+    /** Import discovered classic Workbench connections. */
+    GuiLegacyImportDiscoveredWorkbenchConnections = "gui.legacy.import_discovered_workbench_connections",
+    /** Import VS Code connections and remove obsolete extension logs. */
+    GuiLegacyImportVsCode = "gui.legacy.import_vs_code",
+    /** Copy and optionally remove legacy Migration Assistant projects. */
+    GuiLegacyImportMigrationAssistantProjects = "gui.legacy.import_migration_assistant_projects",
     /** Indicates whether this module is a GUI backend module */
     GuiMdsIsGuiModuleBackend = "gui.mds.is_gui_module_backend",
     /** Returns display information about the module */
@@ -235,56 +295,6 @@ export enum ShellAPIGui {
     GuiSqlEditorGetExecutionHistoryEntries = "gui.sqlEditor.get_execution_history_entries",
     /** Removes the execution_history entry with the given index */
     GuiSqlEditorRemoveExecutionHistoryEntry = "gui.sqlEditor.remove_execution_history_entry",
-    /** Creates a new user account */
-    GuiUsersCreateUser = "gui.users.create_user",
-    /** Sets the allowed hosts for the given user. */
-    GuiUsersSetAllowedHosts = "gui.users.set_allowed_hosts",
-    /** Deletes a user account */
-    GuiUsersDeleteUser = "gui.users.delete_user",
-    /** Grant the given roles to the user. */
-    GuiUsersGrantRole = "gui.users.grant_role",
-    /** Gets the id for a given user. */
-    GuiUsersGetUserId = "gui.users.get_user_id",
-    /** Lists all user accounts. */
-    GuiUsersListUsers = "gui.users.list_users",
-    /** List the granted roles for a given user. */
-    GuiUsersListUserRoles = "gui.users.list_user_roles",
-    /** Lists all roles that can be assigned to users. */
-    GuiUsersListRoles = "gui.users.list_roles",
-    /** Lists all privileges of a role. */
-    GuiUsersListRolePrivileges = "gui.users.list_role_privileges",
-    /** Lists all privileges assigned to a user. */
-    GuiUsersListUserPrivileges = "gui.users.list_user_privileges",
-    /** Returns the list of modules for the given user. */
-    GuiUsersGetGuiModuleList = "gui.users.get_gui_module_list",
-    /** Returns the list of profile for the given user */
-    GuiUsersListProfiles = "gui.users.list_profiles",
-    /** Returns the specified profile. */
-    GuiUsersGetProfile = "gui.users.get_profile",
-    /** Updates a user profile. */
-    GuiUsersUpdateProfile = "gui.users.update_profile",
-    /** Returns the specified profile. */
-    GuiUsersAddProfile = "gui.users.add_profile",
-    /** Deletes a profile for the current user. */
-    GuiUsersDeleteProfile = "gui.users.delete_profile",
-    /** Returns the default profile for the given user. */
-    GuiUsersGetDefaultProfile = "gui.users.get_default_profile",
-    /** Sets the default profile for the given user. */
-    GuiUsersSetDefaultProfile = "gui.users.set_default_profile",
-    /** Sets the profile of the user's current web session. */
-    GuiUsersSetCurrentProfile = "gui.users.set_current_profile",
-    /** Returns the list of all groups or list all groups that given user belongs. */
-    GuiUsersListUserGroups = "gui.users.list_user_groups",
-    /** Creates user group. */
-    GuiUsersCreateUserGroup = "gui.users.create_user_group",
-    /** Adds user to user group. */
-    GuiUsersAddUserToGroup = "gui.users.add_user_to_group",
-    /** Removes user from user group. */
-    GuiUsersRemoveUserFromGroup = "gui.users.remove_user_from_group",
-    /** Updates user group. */
-    GuiUsersUpdateUserGroup = "gui.users.update_user_group",
-    /** Removes given user group. */
-    GuiUsersRemoveUserGroup = "gui.users.remove_user_group",
     /** Returns basic information about this plugin. */
     GuiInfo = "gui.info",
     /** Returns the version number of the plugin */
@@ -801,6 +811,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreSetPluginCommandMocks]: { args: { rules: { }; }; };
     [ShellAPIGui.GuiCoreClearPluginCommandMocks]: {};
     [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPathId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsImportWorkbenchConnections]: { args: { profileId: number; xmlContent: string; }; };
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection?: IShellDbConnection; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { args: { profileId: number; folderPathId?: number; }; };
@@ -824,6 +835,35 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsListAll]: { args: { profileId: number; folderId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsUpdateFolderSettings]: { args: { folderPathId: number; newSettings: { color?: string; }; }; };
     [ShellAPIGui.GuiDbConnectionsGetFolder]: { args: { folderPathId: number; }; };
+    [ShellAPIGui.GuiUsersCreateUser]: { args: { username: string; password: string; role?: string; allowedHosts?: string; }; };
+    [ShellAPIGui.GuiUsersSetAllowedHosts]: { args: { userId: number; allowedHosts: string; }; };
+    [ShellAPIGui.GuiUsersDeleteUser]: { args: { username: string; }; };
+    [ShellAPIGui.GuiUsersGrantRole]: { args: { username: string; role: string; }; };
+    [ShellAPIGui.GuiUsersGetUserId]: { args: { username: string; }; };
+    [ShellAPIGui.GuiUsersListUsers]: {};
+    [ShellAPIGui.GuiUsersListUserRoles]: { args: { username: string; }; };
+    [ShellAPIGui.GuiUsersListRoles]: {};
+    [ShellAPIGui.GuiUsersListRolePrivileges]: { args: { role: string; }; };
+    [ShellAPIGui.GuiUsersListUserPrivileges]: { args: { username: string; }; };
+    [ShellAPIGui.GuiUsersGetGuiModuleList]: { args: { userId: number; }; };
+    [ShellAPIGui.GuiUsersListProfiles]: { args: { userId: number; }; };
+    [ShellAPIGui.GuiUsersGetProfile]: { args: { profileId: number; }; };
+    [ShellAPIGui.GuiUsersUpdateProfile]: { args: { profile: { id?: number; name?: string; description?: string; options?: IShellDictionary; state?: IShellDictionary; }; }; };
+    [ShellAPIGui.GuiUsersAddProfile]: { args: { userId: number; profile: { name?: string; description?: string; options?: IShellDictionary; state?: IShellDictionary; }; }; };
+    [ShellAPIGui.GuiUsersDeleteProfile]: { args: { userId: number; profileId: number; }; };
+    [ShellAPIGui.GuiUsersGetDefaultProfile]: { args: { userId: number; }; };
+    [ShellAPIGui.GuiUsersSetDefaultProfile]: { args: { userId: number; profileId: number; }; };
+    [ShellAPIGui.GuiUsersSetCurrentProfile]: { args: { profileId: number; }; };
+    [ShellAPIGui.GuiUsersListUserGroups]: { args: { memberId?: number; }; };
+    [ShellAPIGui.GuiUsersCreateUserGroup]: { args: { name: string; description: string; }; };
+    [ShellAPIGui.GuiUsersAddUserToGroup]: { args: { memberId: number; groupId: number; owner?: number; }; };
+    [ShellAPIGui.GuiUsersRemoveUserFromGroup]: { args: { memberId: number; groupId: number; }; };
+    [ShellAPIGui.GuiUsersUpdateUserGroup]: { args: { groupId: number; name?: string; description?: string; }; };
+    [ShellAPIGui.GuiUsersRemoveUserGroup]: { args: { groupId: number; }; };
+    [ShellAPIGui.GuiLegacyDiscover]: {};
+    [ShellAPIGui.GuiLegacyImportDiscoveredWorkbenchConnections]: { args: { profileId: number; }; };
+    [ShellAPIGui.GuiLegacyImportVsCode]: { args: { profileId: number; }; };
+    [ShellAPIGui.GuiLegacyImportMigrationAssistantProjects]: { args: { options: { }; }; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};
@@ -891,31 +931,6 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry]: { args: { connectionId: number; index: number; profileId?: number; }; };
     [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries]: { args: { connectionId: number; languageId?: string; truncateCodeLength?: number; profileId?: number; }; };
     [ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry]: { args: { connectionId: number; index?: number; profileId?: number; }; };
-    [ShellAPIGui.GuiUsersCreateUser]: { args: { username: string; password: string; role?: string; allowedHosts?: string; }; };
-    [ShellAPIGui.GuiUsersSetAllowedHosts]: { args: { userId: number; allowedHosts: string; }; };
-    [ShellAPIGui.GuiUsersDeleteUser]: { args: { username: string; }; };
-    [ShellAPIGui.GuiUsersGrantRole]: { args: { username: string; role: string; }; };
-    [ShellAPIGui.GuiUsersGetUserId]: { args: { username: string; }; };
-    [ShellAPIGui.GuiUsersListUsers]: {};
-    [ShellAPIGui.GuiUsersListUserRoles]: { args: { username: string; }; };
-    [ShellAPIGui.GuiUsersListRoles]: {};
-    [ShellAPIGui.GuiUsersListRolePrivileges]: { args: { role: string; }; };
-    [ShellAPIGui.GuiUsersListUserPrivileges]: { args: { username: string; }; };
-    [ShellAPIGui.GuiUsersGetGuiModuleList]: { args: { userId: number; }; };
-    [ShellAPIGui.GuiUsersListProfiles]: { args: { userId: number; }; };
-    [ShellAPIGui.GuiUsersGetProfile]: { args: { profileId: number; }; };
-    [ShellAPIGui.GuiUsersUpdateProfile]: { args: { profile: { id?: number; name?: string; description?: string; options?: IShellDictionary; state?: IShellDictionary; }; }; };
-    [ShellAPIGui.GuiUsersAddProfile]: { args: { userId: number; profile: { name?: string; description?: string; options?: IShellDictionary; state?: IShellDictionary; }; }; };
-    [ShellAPIGui.GuiUsersDeleteProfile]: { args: { userId: number; profileId: number; }; };
-    [ShellAPIGui.GuiUsersGetDefaultProfile]: { args: { userId: number; }; };
-    [ShellAPIGui.GuiUsersSetDefaultProfile]: { args: { userId: number; profileId: number; }; };
-    [ShellAPIGui.GuiUsersSetCurrentProfile]: { args: { profileId: number; }; };
-    [ShellAPIGui.GuiUsersListUserGroups]: { args: { memberId?: number; }; };
-    [ShellAPIGui.GuiUsersCreateUserGroup]: { args: { name: string; description: string; }; };
-    [ShellAPIGui.GuiUsersAddUserToGroup]: { args: { memberId: number; groupId: number; owner?: number; }; };
-    [ShellAPIGui.GuiUsersRemoveUserFromGroup]: { args: { memberId: number; groupId: number; }; };
-    [ShellAPIGui.GuiUsersUpdateUserGroup]: { args: { groupId: number; name?: string; description?: string; }; };
-    [ShellAPIGui.GuiUsersRemoveUserGroup]: { args: { groupId: number; }; };
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiMysqlListUsers]: { args: { moduleSessionId?: string; }; };
@@ -1380,6 +1395,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsListAll]: { result: Array<IConnectionDetails | IFolderPath>; };
     [ShellAPIGui.GuiDbConnectionsUpdateFolderSettings]: {};
     [ShellAPIGui.GuiDbConnectionsGetFolder]: { result: IFolderPath; };
+    [ShellAPIGui.GuiDbConnectionsImportWorkbenchConnections]: { result: unknown; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};
@@ -1484,6 +1500,10 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreClearPluginCommandMocks]: { result: boolean; };
     [ShellAPIGui.GuiDbConnectionsUpdateServerStatusCache]: {};
     [ShellAPIGui.GuiDbConnectionsGetServerStatusCache]: { result: Record<string, IAny> | null; };
+    [ShellAPIGui.GuiLegacyDiscover]: { result: IShellDictionary; };
+    [ShellAPIGui.GuiLegacyImportDiscoveredWorkbenchConnections]: { result: IShellDictionary; };
+    [ShellAPIGui.GuiLegacyImportVsCode]: { result: IShellDictionary[]; };
+    [ShellAPIGui.GuiLegacyImportMigrationAssistantProjects]: { result: IShellDictionary[]; };
     [ShellAPIGui.GuiSqlEditorReformat]: { result: string; };
     [ShellAPIGui.GuiMysqlListUsers]: { result: IMySQLUserListItem[]; };
     [ShellAPIGui.GuiMysqlSetGrantedRoles]: {};

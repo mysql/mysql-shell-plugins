@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,18 +24,14 @@
  */
 
 import { ui } from "../../app-logic/UILayer.js";
-import {
-    MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode, type IMySQLConnectionOptions,
-} from "../../communication/MySQL.js";
-import {
-    CdmEntityType, type ConnectionDataModel, type ICdmConnectionEntry,
+import type {
+    ConnectionDataModel,
+    ICdmConnectionEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { DBType, type IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
-import { SimpleXMLParser2, type ISimpleXMLTag } from "./SimpleXMLParser2.js";
 
 /**
  * A class to handle adding new connections to the connection data model.
@@ -56,218 +52,17 @@ export class ConnectionProcessor {
      */
     public static importMySQLWorkbenchConnections = async (xmlString: string,
         dataModel: ConnectionDataModel): Promise<void> => {
-        const validSqlModes = Object.values(MySQLSqlMode);
-
         try {
-            const xml = SimpleXMLParser2.parse(xmlString);
-
-            // Validate the XML file.
-            if (xml.length === 0) {
-                throw new Error("No data found.");
-            }
-
-            const root = xml[0];
-            if (root.type !== "tag" || root.tagName !== "data") {
-                throw new Error("Invalid format.");
-            }
-
-            const topValue = root.content[0];
-            if (topValue.type !== "tag"
-                || topValue.attributes["content-struct-name"] !== "db.mgmt.Connection") {
-                throw new Error("No data found.");
-            }
-
-            const connections: Array<IConnectionDetails<IMySQLConnectionOptions>> = [];
-            const valueList = topValue.content.filter((child) => {
-                return child.type === "tag" && child.tagName === "value";
-            }) as ISimpleXMLTag[];
-
-            valueList.forEach((xmlConnectionValue) => {
-                const details: IConnectionDetails<IMySQLConnectionOptions> = {
-                    id: -1,
-                    index: -1,
-                    dbType: DBType.MySQL,
-                    caption: "",
-                    description: "",
-                    options: {
-                        scheme: MySQLConnectionScheme.MySQL,
-                        host: "",
-                    },
-                };
-
-                // The value children of the xml element.
-                const childValueList = xmlConnectionValue.content.filter((child) => {
-                    return child.type === "tag" && child.tagName === "value";
-                }) as ISimpleXMLTag[];
-
-                childValueList.forEach((value) => {
-                    switch (value.attributes.key) {
-                        case "hostIdentifier": {
-                            let description = "";
-                            if (value.content.length > 0) {
-                                const firstChild = value.content[0];
-                                if (firstChild.type === "text") {
-                                    description = firstChild.text.trim();
-                                }
-                            }
-                            details.description = description;
-
-                            break;
-                        }
-
-                        case "name": {
-                            let caption = "";
-                            if (value.content.length > 0) {
-                                const firstChild = value.content[0];
-                                if (firstChild.type === "text") {
-                                    caption = firstChild.text.trim();
-                                }
-                            }
-                            details.caption = caption;
-
-                            break;
-                        }
-
-                        case "parameterValues": {
-                            const parameters = value.content.filter((child) => {
-                                return child.type === "tag" && child.tagName === "value";
-                            }) as ISimpleXMLTag[];
-
-                            const sshUri: string[] = [];
-                            parameters.forEach((parameter) => {
-                                const parameterKey = parameter.attributes.key;
-                                let parameterValue = "";
-                                if (parameter.content.length > 0) {
-                                    const firstChild = parameter.content[0];
-                                    if (firstChild.type === "text") {
-                                        parameterValue = firstChild.text.trim();
-                                    }
-                                }
-
-                                if (!parameterKey || !parameterValue) {
-                                    return;
-                                }
-
-                                switch (parameterKey) {
-                                    case "SQL_MODE": {
-                                        // Extract the list of sql modes and check the individual entries
-                                        // for validity.
-                                        const modes = parameterValue.split(",");
-                                        const validModes = modes.filter((mode) => {
-                                            return validSqlModes.includes(mode as MySQLSqlMode);
-                                        });
-
-                                        details.options["sql-mode"] = validModes as MySQLSqlMode[];
-                                        break;
-                                    }
-
-                                    case "hostName": {
-                                        details.options.host = parameterValue;
-                                        break;
-                                    }
-
-                                    case "port": {
-                                        details.options.port = parseInt(parameterValue, 10);
-                                        break;
-                                    }
-
-                                    case "schema": {
-                                        details.options.schema = parameterValue;
-                                        break;
-                                    }
-
-                                    case "serverVersion": {
-                                        details.version = parseInt(parameterValue, 10);
-                                        break;
-                                    }
-
-                                    case "sslCA": {
-                                        details.options["ssl-ca"] = parameterValue;
-                                        break;
-                                    }
-
-                                    case "sslCert": {
-                                        details.options["ssl-cert"] = parameterValue;
-                                        break;
-                                    }
-
-                                    case "sslKey": {
-                                        details.options["ssl-key"] = parameterValue;
-                                        break;
-                                    }
-
-                                    case "sslCipher": {
-                                        details.options["ssl-cipher"] = parameterValue;
-                                        break;
-                                    }
-
-                                    case "useSSL": {
-                                        // This parameter is encoded as number which directly corresponds
-                                        // to the entries in MySQLSslMode.
-                                        const v = parseInt(parameterValue, 10);
-                                        details.options["ssl-mode"] =
-                                            Object.values(MySQLSslMode)[v] as MySQLSslMode;
-                                        break;
-                                    }
-
-                                    case "userName": {
-                                        details.options.user = parameterValue;
-                                        break;
-                                    }
-
-                                    case "socket": {
-                                        details.options.socket = parameterValue;
-                                        break;
-                                    }
-
-                                    case "CLIENT_COMPRESS": {
-                                        details.options.compression = parameterValue === "1"
-                                            ? MySQLConnCompression.Preferred
-                                            : MySQLConnCompression.Disabled;
-                                        break;
-                                    }
-
-                                    case "sshHost": {
-                                        sshUri.push(parameterValue);
-                                        break;
-                                    }
-
-                                    case "sshKeyFile": {
-                                        details.options["ssh-identity-file"] = parameterValue;
-                                        break;
-                                    }
-
-                                    case "sshPassword": {
-                                        details.options["ssh-password"] = parameterValue;
-                                        break;
-                                    }
-
-                                    case "sshUserName": {
-                                        sshUri.unshift(parameterValue, "@");
-                                        break;
-                                    }
-
-                                    // TODO: LDAP and Kerberos.
-
-                                    default:
-                                }
-                            });
-
-                            if (sshUri.length > 0) {
-                                details.options.ssh = sshUri.join("");
-                            }
-
-                            break;
-                        }
-
-                        default:
-                    }
-                });
-
-                connections.push(details);
-            });
-
-            await this.convertWbConnectionDetails(connections, dataModel);
+            const report = await ShellInterface.dbConnections.importWorkbenchConnections(
+                webSession.currentProfileId,
+                xmlString,
+            );
+            await dataModel.reloadConnections();
+            void ui.showInformationMessage(
+                `Imported ${report.imported}, merged ${report.merged}, and skipped `
+                + `${report.skipped} MySQL Workbench connections.`,
+                {},
+            );
         } catch (e: unknown) {
             const message = convertErrorToString(e);
             void ui.showErrorMessage(`Could not parse XML file: ${message}`, {});
@@ -295,60 +90,6 @@ export class ConnectionProcessor {
             const message = convertErrorToString(reason);
             void requisitions.execute("showError", "Cannot add DB connection: " + message);
         }
-    }
-
-    /**
-     * Takes a list of imported Workbench connections and creates the actual group and connection entries.
-     *
-     * @param entries The list of connection details to convert.
-     * @param dataModel The connection data model to add the entries to.
-     */
-    private static async convertWbConnectionDetails(entries: Array<IConnectionDetails<IMySQLConnectionOptions>>,
-        dataModel: ConnectionDataModel): Promise<void> {
-        // First add a new top level folder for the imported connections. Check existing top level folders to
-        // find a suitable name.
-        let newFolderName = "Imported Connections";
-        const existingGroups = dataModel.roots.filter((entry) => {
-            return entry.type === CdmEntityType.ConnectionGroup;
-        });
-
-        if (existingGroups.find((entry) => {
-            return entry.caption === newFolderName;
-        })) {
-            // If the folder already exists, append a number to the name.
-            let i = 1;
-            while (i < 100) {
-                const candidate = `${newFolderName} (${i})`;
-                if (!existingGroups.find((entry) => {
-                    return entry.caption === candidate;
-                })) {
-                    newFolderName = `${newFolderName} (${i})`;
-                    break;
-                }
-                ++i;
-            }
-        }
-
-        // Now go over all connection details. Imported connections may have a name with a slash, which is the way
-        // they denote grouping in MySQL Workbench. We need to convert that to a folder path.
-        // Only a single grouping level is supported.
-        for (const details of entries) {
-            const path = details.caption.split("/");
-            if (path.length > 1) {
-                details.folderPath = `/${newFolderName}/${path[0]}`;
-                details.caption = path[1].trim();
-            } else {
-                details.folderPath = `/${newFolderName}`;
-                details.caption = path[0].trim();
-            }
-
-            const connection = dataModel.createConnectionEntry(details);
-            await this.addConnection(connection, dataModel);
-        }
-
-        const connectionString = entries.length === 1 ? "connection" : "connections";
-        void ui.showInformationMessage(
-            `Imported ${entries.length} ${connectionString} from MySQL Workbench.`, {});
     }
 
 }

@@ -25,6 +25,7 @@
 
 import { ShellInterfaceCore } from "./ShellInterfaceCore.js";
 import { ShellInterfaceDbConnection } from "./ShellInterfaceDbConnection.js";
+import { ShellInterfaceLegacy } from "./ShellInterfaceLegacy.js";
 import { ShellInterfaceMeb } from "./ShellInterfaceMeb.js";
 import { ShellInterfaceModule } from "./ShellInterfaceModule.js";
 import { ShellInterfaceMsm } from "./ShellInterfaceMsm.js";
@@ -40,6 +41,7 @@ export class ShellInterface {
         users?: ShellInterfaceUser;
         modules?: ShellInterfaceModule;
         dbConnections?: ShellInterfaceDbConnection;
+        legacy?: ShellInterfaceLegacy;
         meb?: ShellInterfaceMeb;
         msm?: ShellInterfaceMsm;
     } = {};
@@ -66,6 +68,12 @@ export class ShellInterface {
         ShellInterface.interfaces.dbConnections ??= new ShellInterfaceDbConnection();
 
         return ShellInterface.interfaces.dbConnections;
+    }
+
+    public static get legacy(): ShellInterfaceLegacy {
+        ShellInterface.interfaces.legacy ??= new ShellInterfaceLegacy();
+
+        return ShellInterface.interfaces.legacy;
     }
 
     public static get meb(): ShellInterfaceMeb {

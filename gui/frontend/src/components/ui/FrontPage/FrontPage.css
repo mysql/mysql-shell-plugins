@@ -85,6 +85,10 @@
     font-size: 110%;
 }
 
+.msg.frontPage #frontPageHeading {
+    padding-top: 30px;
+}
+
 .msg.frontPage #tilesHost {
     gap: 20px;
     padding-top: 6px;

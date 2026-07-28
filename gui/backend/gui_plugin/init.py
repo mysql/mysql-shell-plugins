@@ -52,7 +52,16 @@ class gui:
         automatically register all decorated functions in the sub-modules
         """
         # Import all sub-modules to register the decorated functions there
-        from gui_plugin import cluster, core, db_connections, meb, mds, migration, modeler
+        from gui_plugin import (
+            cluster,
+            core,
+            db_connections,
+            legacy,
+            meb,
+            mds,
+            migration,
+            modeler,
+        )
         from gui_plugin import shell, sql_editor, users, start
         from gui_plugin import modules, db, general, mysql
         from gui_plugin import Meb
@@ -81,6 +90,13 @@ class gui:
 
         This extension object holds the backend implementation of the
         DB Connections MySQL Shell GUI module
+        """
+
+    class legacy:
+        """The legacy configuration import backend module.
+
+        This extension object discovers and imports supported data from
+        classic Workbench and MySQL Shell for VS Code.
         """
 
     class modeler:

@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { access, mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { test, expect } from "../fixtures/electron.js";
@@ -82,6 +82,14 @@ test.describe("Electron desktop shell", () => {
         expect(userDataPath).toBe(testInfo.outputPath("electron-user-data"));
     });
 
+    test("uses mysqlsh below Electron user data as the MySQL Shell configuration root", async ({ workbench }, testInfo) => {
+        await workbench.waitForShell();
+
+        const userDataPath = testInfo.outputPath("electron-user-data");
+        await expect(access(join(userDataPath, "plugin_data", "gui_plugin"))).rejects.toThrow();
+        await expect(access(join(userDataPath, "mysqlsh", "plugin_data", "gui_plugin"))).resolves.toBeUndefined();
+    });
+
     test("keeps Workbench runtime data user-only", async ({ electronApp }, testInfo) => {
         const userDataPath = testInfo.outputPath("electron-user-data");
         const desktopLogPath = join(userDataPath, "MySQL Workbench-electron.log");
@@ -119,7 +127,7 @@ test.describe("Electron desktop shell", () => {
         await workbench.waitForShell();
 
         const marker = `electron-log-viewer-${Date.now()}`;
-        const logPath = testInfo.outputPath("mysqlsh-user-config", "mysqlsh.log");
+        const logPath = testInfo.outputPath("electron-user-data", "mysqlsh", "mysqlsh.log");
         await mkdir(dirname(logPath), { recursive: true });
         await writeFile(logPath, `Log viewer marker: ${marker}\n`, "utf8");
 

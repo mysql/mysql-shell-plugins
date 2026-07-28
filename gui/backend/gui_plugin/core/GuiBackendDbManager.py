@@ -595,6 +595,52 @@ class BackendSqliteDbManager(BackendDbManager):
                 logger.exception(e)
         return version
 
+    @classmethod
+    def upgrade_database_file(
+        cls,
+        db_file: pathlib.Path | str,
+    ) -> None:
+        """Upgrade a caller-owned database copy without moving source files."""
+        database_path = pathlib.Path(db_file)
+        with sqlite3.connect(database_path) as conn:
+            row = conn.execute(
+                "SELECT major, minor, patch FROM schema_version"
+            ).fetchone()
+        if row is None:
+            raise ValueError("The database has no schema version")
+
+        installed_version = Version(row)
+        if installed_version > CURRENT_DB_VERSION:
+            raise ValueError(
+                "The legacy database schema is newer than this application"
+            )
+        if installed_version < OLDEST_SUPPORTED_DB_VERSION:
+            raise ValueError(
+                "The legacy database schema is too old to migrate"
+            )
+        if installed_version == CURRENT_DB_VERSION:
+            return
+
+        script_dir = pathlib.Path(__file__).parent / "db_schema"
+        manager = cls.__new__(cls)
+        upgrade_scripts = manager.find_upgrade_scripts(
+            str(script_dir),
+            installed_version,
+            CURRENT_DB_VERSION,
+        )
+        with sqlite3.connect(database_path) as conn:
+            try:
+                for script in upgrade_scripts:
+                    with (script_dir / script).open(
+                        "r",
+                        encoding="utf8",
+                    ) as sql_file:
+                        conn.executescript(sql_file.read())
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+
     def find_installed_db_file(self, db_dir):
         installed_version = Version()
 

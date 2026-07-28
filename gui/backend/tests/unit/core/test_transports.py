@@ -510,7 +510,17 @@ def test_stdio_transport_execute_bypasses_backend_command_privileges(monkeypatch
     assert started_requests[0].request_id == "stdio-bypass"
 
 
-def test_stdio_transport_resolves_migration_commands(monkeypatch):
+@pytest.mark.parametrize(
+    "command_prefix",
+    [
+        "gui.migration.",
+        "gui.legacy.",
+    ],
+)
+def test_stdio_transport_resolves_migration_and_configuration_import_commands(
+    monkeypatch,
+    command_prefix,
+):
     started_requests = []
 
     class FakeRequestHandler:
@@ -534,30 +544,40 @@ def test_stdio_transport_resolves_migration_commands(monkeypatch):
     commands = sorted(
         command
         for command in bridge._web_functions
-        if command.startswith("gui.migration.")
+        if command.startswith(command_prefix)
     )
 
-    assert set(commands) == {
-        "gui.migration.info",
-        "gui.migration.version",
-        "gui.migration.work_start",
-        "gui.migration.work_abort",
-        "gui.migration.work_clean",
-        "gui.migration.work_status",
-        "gui.migration.work_retry",
-        "gui.migration.skip_transactions",
-        "gui.migration.fetch_logs",
-        "gui.migration.get_steps",
-        "gui.migration.new_project",
-        "gui.migration.open_project",
-        "gui.migration.close_project",
-        "gui.migration.list_projects",
-        "gui.migration.plan_update",
-        "gui.migration.plan_get_data_item",
-        "gui.migration.plan_update_sub_step",
-        "gui.migration.plan_commit",
-        "gui.migration.oci_sign_in",
+    expected_commands = {
+        "gui.migration.": {
+            "gui.migration.info",
+            "gui.migration.version",
+            "gui.migration.work_start",
+            "gui.migration.work_abort",
+            "gui.migration.work_clean",
+            "gui.migration.work_status",
+            "gui.migration.work_retry",
+            "gui.migration.skip_transactions",
+            "gui.migration.fetch_logs",
+            "gui.migration.get_steps",
+            "gui.migration.new_project",
+            "gui.migration.open_project",
+            "gui.migration.close_project",
+            "gui.migration.list_projects",
+            "gui.migration.plan_update",
+            "gui.migration.plan_get_data_item",
+            "gui.migration.plan_update_sub_step",
+            "gui.migration.plan_commit",
+            "gui.migration.oci_sign_in",
+        },
+        "gui.legacy.": {
+            "gui.legacy.discover",
+            "gui.legacy.import_discovered_workbench_connections",
+            "gui.legacy.import_migration_assistant_projects",
+            "gui.legacy.import_vs_code",
+        },
     }
+
+    assert set(commands) == expected_commands[command_prefix]
 
     for index, command in enumerate(commands):
         bridge.execute_command_request(

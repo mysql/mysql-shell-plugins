@@ -1,0 +1,111 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms,
+ * as designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.legacyConfigurationImportWizard {
+    width: min(720px, calc(100vw - 64px));
+    min-height: 440px;
+}
+
+.legacyConfigurationImportWizard .content {
+    min-height: 320px;
+}
+
+.legacyConfigurationImportPage {
+    position: relative;
+    gap: 24px;
+    justify-content: flex-start;
+    min-height: 280px;
+    padding: 12px;
+}
+
+.legacyConfigurationImportPage > .label {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+}
+
+.legacyConfigurationImportPageIcon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.legacyConfigurationImportInventory {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.legacyConfigurationImportInventory > .label {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+}
+
+.legacyConfigurationImportPage h2,
+.legacyConfigurationImportPage h3 {
+    margin: 0;
+}
+
+.legacyConfigurationImportPageBottom {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.legacyConfigurationImportPageBottomDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-left: 24px;
+}
+
+.legacyConfigurationImportIssues {
+    margin: 0;
+    padding-inline-start: 24px;
+}
+
+.legacyConfigurationImportSummaryActions {
+    margin: 0;
+    padding-inline-start: 24px;
+}
+
+#legacyConfigurationImportError {
+    user-select: text;
+}
+
+.legacyConfigurationImportProgress {
+    position: absolute;
+    inset: 0;
+}
+
+.legacyConfigurationImportReport {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}

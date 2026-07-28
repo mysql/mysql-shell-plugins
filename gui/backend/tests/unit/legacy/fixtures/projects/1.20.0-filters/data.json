@@ -1,0 +1,144 @@
+{
+  "version": "1.0.0",
+  "id": "released-filters-project",
+  "name": "Released filters project",
+  "options": {
+    "_class": "MigrationOptions",
+    "sourceConnectionOptions": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "user": "migration_user"
+    },
+    "region": "eu-frankfurt-1",
+    "targetHostingOptions": {
+      "_class": "OCIHostingOptions",
+      "parentCompartmentId": "",
+      "compartmentId": "",
+      "compartmentName": "MySQL",
+      "createVcn": true,
+      "networkParentCompartmentId": "",
+      "networkCompartmentId": "",
+      "networkCompartmentName": "Network",
+      "vcnId": "",
+      "vcnName": "migration-vcn",
+      "vcnCidrBlock": "10.0.0.0/16",
+      "internetGatewayName": "migration-igw",
+      "serviceGatewayName": "migration-sgw",
+      "privateSubnet": {
+        "_class": "OCISubnetOptions",
+        "id": "",
+        "name": "private-subnet",
+        "cidrBlock": "10.0.1.0/24",
+        "dnsLabel": "private"
+      },
+      "publicSubnet": {
+        "_class": "OCISubnetOptions",
+        "id": "",
+        "name": "public-subnet",
+        "cidrBlock": "10.0.2.0/24",
+        "dnsLabel": "public"
+      },
+      "onPremisePublicCidrBlock": "192.0.2.0/24",
+      "computeId": "",
+      "computeName": "migration-jump-host",
+      "availabilityDomain": "AD-1",
+      "shapeName": "VM.Standard.E4.Flex",
+      "cpuCount": 1,
+      "memorySizeGB": 16,
+      "bucketName": "migration-bucket"
+    },
+    "targetMySQLOptions": {
+      "_class": "DBSystemOptions",
+      "adminUsername": "admin",
+      "adminPassword": "",
+      "adminPasswordConfirm": "",
+      "mysqlVersion": "8.4.0",
+      "dbSystemId": "",
+      "name": "migration-db-system",
+      "description": "Sanitized released project fixture",
+      "contactEmails": "",
+      "hostnameLabel": "migration",
+      "availabilityDomain": "AD-1",
+      "faultDomain": "FAULT-DOMAIN-1",
+      "enableHA": false,
+      "enableRestService": false,
+      "enableBackup": true,
+      "enableHeatWave": false,
+      "heatWaveShapeName": "",
+      "heatWaveClusterSize": 1,
+      "shapeName": "MySQL.VM.Standard.E4.1.8GB",
+      "storageSizeGB": 50,
+      "autoExpandStorage": true,
+      "autoExpandMaximumSizeGB": 100
+    },
+    "mysqlConfiguration": [
+      {
+        "variable": "sql_mode",
+        "value": "STRICT_TRANS_TABLES",
+        "use_default": false
+      }
+    ],
+    "migrationType": "cold",
+    "cloudConnectivity": "",
+    "migrateData": true,
+    "migrateUsers": false,
+    "compatibilityFlags": [
+      "force_innodb"
+    ],
+    "filters": {
+      "_class": "MigrationFilters",
+      "schemas": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": [
+          "`excluded_schema`"
+        ]
+      },
+      "tables": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": [
+          "`app`.`archive`"
+        ]
+      },
+      "routines": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": []
+      },
+      "events": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": []
+      },
+      "libraries": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": []
+      },
+      "triggers": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": []
+      },
+      "users": {
+        "_class": "IncludeList",
+        "include": [],
+        "exclude": [
+          "'retired_user'@'%'"
+        ]
+      }
+    }
+  },
+  "ociConfigFile": "",
+  "ociProfile": "DEFAULT",
+  "ociConfigOwned": false,
+  "sshSharedKeyFile": "",
+  "sshPrivateKeyFile": "",
+  "sshPublicKeyFile": "",
+  "replicationCoordinates": null,
+  "planStepData": {},
+  "createTime": "2026-01-20T12:00:00",
+  "modifyTime": "2026-01-20T12:00:00",
+  "dataMigrationDidFinish": false
+}

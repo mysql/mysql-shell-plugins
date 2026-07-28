@@ -26,6 +26,8 @@
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
 import { ShellAPIGui } from "../../communication/ProtocolGui.js";
+import type { ILegacyConfigurationImportReport }
+    from "../../app-logic/LegacyConfigurationImport/LegacyConfigurationImportTypes.js";
 import { IConnectionDetails, IFolderPath } from "./index.js";
 
 export type ConnectionsAndFoldersList = Array<IConnectionDetails | IFolderPath>;
@@ -44,6 +46,31 @@ export interface IServerStatusCache {
 
 /** Interface for connection management. */
 export class ShellInterfaceDbConnection {
+    /**
+     * Imports non-secret classic Workbench connection definitions.
+     *
+     * @param profileId The target profile.
+     * @param xmlContent The selected Workbench connections XML.
+     *
+     * @returns The import report.
+     */
+    public async importWorkbenchConnections(
+        profileId: number,
+        xmlContent: string,
+    ): Promise<ILegacyConfigurationImportReport> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsImportWorkbenchConnections,
+            parameters: {
+                args: {
+                    profileId,
+                    xmlContent,
+                },
+            },
+        });
+
+        return response.result as ILegacyConfigurationImportReport;
+    }
+
     /**
      * Adds a new database connection to a profile.
      *

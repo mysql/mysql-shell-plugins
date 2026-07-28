@@ -406,17 +406,7 @@ const writeRecentFiles = (recentFiles) => {
     }
 };
 
-const resolveShellUserConfigDir = () => {
-    const explicitDirectory = commandLineArguments["shell-user-config-dir"]
-        ?? commandLineArguments["mysqlsh-user-config-home"]
-        ?? process.env.MYSQLSH_USER_CONFIG_HOME;
-
-    if (explicitDirectory) {
-        return path.resolve(explicitDirectory);
-    }
-
-    return path.join(app.getPath("userData"), "mysqlsh");
-};
+const resolveShellUserConfigDir = () => path.join(app.getPath("userData"), "mysqlsh");
 
 const shellUserConfigDir = resolveShellUserConfigDir();
 ensurePrivateDirectory(shellUserConfigDir);

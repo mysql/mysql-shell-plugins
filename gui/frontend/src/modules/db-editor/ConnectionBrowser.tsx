@@ -73,6 +73,9 @@ import { ConnectionTags, connectionTagsChangedKey } from "./ConnectionTags.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
 import { startMigrationAssistantWithValidatedPassword } from "./SidebarCommandHandler.js";
 import { ui } from "../../app-logic/UILayer.js";
+import {
+    LegacyConfigurationImportPanel,
+} from "../../app-logic/LegacyConfigurationImport/LegacyConfigurationImportPanel.js";
 import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { helpUrlMap } from "../../supplement/index.js";
 import { webSession } from "../../supplement/WebSession.js";
@@ -429,6 +432,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                             </Container>
                         </ConnectionBrowserPanel>
                     </>}
+                    <LegacyConfigurationImportPanel
+                        onConnectionsImported={this.refreshImportedConnections}
+                    />
                     <ConnectionBrowserPanel
                         id="connectionBrowserConnectionsPanel"
                         className="connectionBrowserConnectionsPanel"
@@ -710,6 +716,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
 
         return Promise.resolve(true);
+    };
+
+    private refreshImportedConnections = async (): Promise<void> => {
+        const context = this.context as DocumentContextType | undefined;
+        if (context) {
+            await context.connectionsDataModel.reloadConnections();
+            this.forceUpdate();
+        }
     };
 
     private handleCloseGreeting = (): void => {

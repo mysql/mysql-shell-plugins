@@ -66,7 +66,12 @@ export class ElectronWorkbench {
     public async waitForShell(): Promise<void> {
         await expect(this.page.locator("#root")).toHaveClass(/electronDesktopHost/, { timeout: 60000 });
         await this.page.waitForFunction(() => {
-            return Boolean(window.electronHost && window.electronDesktopBackend);
+            const desktopWindow = window as unknown as {
+                electronHost?: unknown;
+                electronDesktopBackend?: unknown;
+            };
+
+            return Boolean(desktopWindow.electronHost && desktopWindow.electronDesktopBackend);
         }, undefined, { timeout: 60000 });
         await expect(this.page.locator("#desktopSidebarPane")).toBeVisible({ timeout: 60000 });
         await expect(this.page.locator(".connectionBrowser")).toContainText("Welcome to MySQL Workbench", {
@@ -75,6 +80,51 @@ export class ElectronWorkbench {
         await expect(this.page.locator("#newConnectionButton")).toBeVisible({ timeout: 60000 });
         await expect(this.page.locator("#tilesHost")).toBeVisible({ timeout: 60000 });
         await this.waitForMenuItem(["File", "Open..."], { timeout: 60000 });
+    }
+
+    public async waitForLegacyConfigurationImportWizard(): Promise<Locator> {
+        const wizard = this.page.locator("#legacyConfigurationImportWizard");
+        await expect(wizard).toBeVisible({ timeout: 60000 });
+
+        return wizard;
+    }
+
+    public async openLegacyConfigurationImportWizard(): Promise<Locator> {
+        await this.waitForShell();
+        const openButton = this.page.locator("#openLegacyConfigurationImportWizard");
+        await expect(openButton).toBeVisible({ timeout: 60000 });
+        await openButton.click();
+
+        return this.waitForLegacyConfigurationImportWizard();
+    }
+
+    public async expectLegacyConfigurationImportPage(heading: string): Promise<Locator> {
+        const wizard = await this.waitForLegacyConfigurationImportWizard();
+        await expect(wizard.locator(".legacyConfigurationImportPage h2")).toHaveText(heading);
+
+        return wizard;
+    }
+
+    public async advanceLegacyConfigurationImportWizard(): Promise<void> {
+        const wizard = await this.waitForLegacyConfigurationImportWizard();
+        await wizard.locator("#legacyConfigurationImportNext").click();
+    }
+
+    public async startLegacyConfigurationImport(): Promise<void> {
+        const wizard = await this.waitForLegacyConfigurationImportWizard();
+        await wizard.locator("#legacyConfigurationImportStart").click();
+    }
+
+    public async closeLegacyConfigurationImportWizard(): Promise<void> {
+        const wizard = await this.waitForLegacyConfigurationImportWizard();
+        await wizard.locator("#legacyConfigurationImportClose").click();
+        await expect(wizard).toBeHidden();
+    }
+
+    public async cancelLegacyConfigurationImportWizard(): Promise<void> {
+        const wizard = await this.waitForLegacyConfigurationImportWizard();
+        await wizard.locator("#legacyConfigurationImportCancel").click();
+        await expect(wizard).toBeHidden();
     }
 
     public async menuLabels(): Promise<string[]> {
@@ -106,7 +156,7 @@ export class ElectronWorkbench {
             const normalizeLabel = (value: string) => {
                 return value.replace(/&/g, "").replace(/\s+/g, " ").trim();
             };
-            let submenu = Menu.getApplicationMenu();
+            let submenu: Electron.Menu | undefined = Menu.getApplicationMenu() ?? undefined;
             let selected: Electron.MenuItem | undefined;
 
             for (const label of path) {

@@ -201,6 +201,103 @@ def _settings_for_storage(connection):
     return settings
 
 
+def _validate_new_connection(connection):
+    if (
+        "caption" not in connection
+        or not isinstance(connection["caption"], str)
+        or connection["caption"].strip() == ""
+    ):
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            "The connection must contain valid caption.",
+        )
+
+    if (
+        "db_type" not in connection
+        or not isinstance(connection["db_type"], str)
+        or connection["db_type"].upper() not in ["MYSQL", "SQLITE"]
+    ):
+        raise MSGException(
+            Error.CORE_INVALID_PARAMETER,
+            "The connection must contain valid database type.",
+        )
+
+
+def insert_db_connection(db, profile_id, connection, folder_path_id=None):
+    """Insert and associate a validated connection using an open transaction."""
+    _validate_new_connection(connection)
+    db.execute(
+        """INSERT INTO db_connection(
+        db_type, caption, description, options, settings)
+        VALUES(?, ?, ?, ?, ?)""",
+        (
+            connection.get("db_type", "MySQL"),
+            connection.get("caption", "New Connection"),
+            connection.get("description", ""),
+            json.dumps(connection.get("options", {})),
+            json.dumps(_settings_for_storage(connection)),
+        ),
+    )
+    connection_id = db.get_last_row_id()
+
+    if folder_path_id is None:
+        folder_path_id = 1
+    index = db_connections.get_next_connection_index(
+        db,
+        profile_id,
+        folder_path_id,
+    )
+    db.execute(
+        """INSERT INTO profile_has_db_connection(
+        profile_id, db_connection_id, folder_path_id, `index`)
+        VALUES(?, ?, ?, ?)""",
+        (profile_id, connection_id, folder_path_id, index),
+    )
+    _sync_connection_tags(db, profile_id, connection_id, connection)
+
+    return (connection_id, folder_path_id, index)
+
+
+def ensure_folder_path(
+    db,
+    profile_id,
+    caption,
+    settings=None,
+    parent_folder_id=None,
+):
+    """Return or create a folder path using an open transaction."""
+    if parent_folder_id is None:
+        parent_folder_id = 1
+    folder_path_id = db_connections.folder_exists(
+        db,
+        caption,
+        parent_folder_id,
+    )
+    if folder_path_id is None:
+        index = db_connections.get_next_connection_index(
+            db,
+            profile_id,
+            parent_folder_id,
+        )
+        db.execute(
+            """INSERT INTO folder_path(
+            parent_folder_id, caption, `index`, settings)
+            VALUES (?, ?, ?, ?)""",
+            (
+                parent_folder_id,
+                caption,
+                index,
+                json.dumps(settings or {}),
+            ),
+        )
+        folder_path_id = db.get_last_row_id()
+
+    return db.select(
+        "SELECT * FROM folder_path WHERE id=?",
+        (folder_path_id,),
+    )[0]
+
+
 @plugin_function("gui.dbConnections.addDbConnection", cli=True, shell=True, web=True)
 def add_db_connection(profile_id, connection, folder_path_id=None, be_session=None):
     """Add a new db_connection and associate the connection with a profile
@@ -233,62 +330,49 @@ def add_db_connection(profile_id, connection, folder_path_id=None, be_session=No
     Returns:
         tuple: A tuple containing (connection_id, folder_path_id, index)
     """
-    # Verify connection parameters
-    if (
-        not "caption" in connection
-        or not isinstance(connection["caption"], str)
-        or connection["caption"].strip() == ""
-    ):
-        raise MSGException(
-            Error.CORE_INVALID_PARAMETER, "The connection must contain valid caption."
-        )
-
-    if (
-        not "db_type" in connection
-        or not isinstance(connection["db_type"], str)
-        or not connection["db_type"].upper() in ["MYSQL", "SQLITE"]
-    ):
-        raise MSGException(
-            Error.CORE_INVALID_PARAMETER,
-            "The connection must contain valid database type.",
-        )
+    _validate_new_connection(connection)
 
     with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
-            # Insert new db_connection
-            db.execute(
-                """INSERT INTO db_connection(
-                db_type, caption, description, options, settings)
-                VALUES(?, ?, ?, ?, ?)""",
-                (
-                    connection.get("db_type", "MySQL"),
-                    connection.get("caption", "New Connection"),
-                    connection.get("description", ""),
-                    json.dumps(connection.get("options", {})),
-                    json.dumps(_settings_for_storage(connection)),
-                ),
+            return insert_db_connection(
+                db,
+                profile_id,
+                connection,
+                folder_path_id,
             )
 
-            connection_id = db.get_last_row_id()
 
-            if folder_path_id is None:
-                folder_path_id = 1  # Root folder
+@plugin_function(
+    "gui.dbConnections.importWorkbenchConnections",
+    shell=False,
+    cli=False,
+    web=True,
+)
+def import_workbench_connections(
+    profile_id: int,
+    xml_content: str,
+    be_session=None,
+) -> dict:
+    """Import non-secret connections from classic Workbench XML.
 
-            index = db_connections.get_next_connection_index(
-                db, profile_id, folder_path_id
+    Args:
+        profile_id (int): The target profile id.
+        xml_content (str): The selected Workbench connections XML.
+        be_session (object): The current GUI backend session.
+
+    Returns:
+        dict: Counts and issues for the import.
+    """
+    from gui_plugin.db_connections.WorkbenchImport import import_workbench_xml
+
+    with BackendDatabase(be_session) as db:
+        with BackendTransaction(db):
+            return import_workbench_xml(
+                db,
+                profile_id,
+                xml_content,
+                "workbenchManual",
             )
-
-            # Insert n:m profile_has_db_connection to associate the connection with
-            # a profile
-            db.execute(
-                """INSERT INTO profile_has_db_connection(
-                profile_id, db_connection_id, folder_path_id, `index`)
-                VALUES(?, ?, ?, ?)""",
-                (profile_id, connection_id, folder_path_id, index),
-            )
-            _sync_connection_tags(db, profile_id, connection_id, connection)
-
-    return (connection_id, folder_path_id, index)
 
 
 @plugin_function("gui.dbConnections.updateDbConnection", shell=True, web=True)
@@ -811,20 +895,13 @@ def add_folder_path(
     """
     with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
-            if parent_folder_id is None:
-                parent_folder_id = 1  # Root folder
-            folder_path_id = db_connections.folder_exists(db, caption, parent_folder_id)
-            if folder_path_id is None:
-                index = db_connections.get_next_connection_index(
-                    db, profile_id, parent_folder_id
-                )
-                db.execute(
-                    """INSERT INTO folder_path (parent_folder_id, caption, `index`, settings)
-                            VALUES (?, ?, ?, ?)""",
-                    (parent_folder_id, caption, index, json.dumps(settings or {})),
-                )
-                folder_path_id = db.get_last_row_id()
-    return db.select("""SELECT * FROM folder_path WHERE id=?""", (folder_path_id,))[0]
+            return ensure_folder_path(
+                db,
+                profile_id,
+                caption,
+                settings,
+                parent_folder_id,
+            )
 
 
 @plugin_function("gui.dbConnections.removeFolderPath", cli=True, shell=True, web=True)
