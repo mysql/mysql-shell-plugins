@@ -379,7 +379,10 @@ SELECT
   u.`User` AS `user`,
   u.`Host` AS `host`,
   u.`account_locked` as accountLocked,
-  tal.`LOCKED` = 'YES' AS temporarilyLocked,
+  COALESCE(
+    /*!90600 tal.`LOCKED` = 'YES', */
+    FALSE
+  ) AS temporarilyLocked,
   u.`plugin`,
   u.`Host` = '%' AND u.`account_locked` = 'Y' AND COALESCE(u.`authentication_string`, '') = '' AS isRole,
   u.`password_expired` as passwordExpired,
@@ -417,8 +420,10 @@ SELECT
   END AS `sslOptions`
 
 FROM mysql.`user` u
+/*!90600
 LEFT JOIN performance_schema.`temporary_account_locks` tal
   ON tal.`USER` = u.`User` AND tal.`HOST` = u.`Host`
+*/
 LEFT JOIN roles_agg  ra ON ra.`to_user` = u.`User` AND ra.`to_host` = u.`Host`
 LEFT JOIN default_roles_agg dra ON dra.`USER` = u.`User` AND dra.`HOST` = u.`Host`
 LEFT JOIN schema_agg sa ON sa.`GRANTEE`   = CONCAT('''', u.`User`, '''@''', u.`Host`, '''')
@@ -471,6 +476,10 @@ WHERE up.`GRANTEE` = ?
 AND up.`PRIVILEGE_TYPE` <> 'USAGE'
 ORDER BY up.`PRIVILEGE_TYPE`
 """
+
+PARTIAL_REVOKES_QUERY = (
+    "SELECT COALESCE(/*!80016 @@GLOBAL.partial_revokes, */ FALSE) AS partialRevokes"
+)
 
 UNMANAGED_GLOBAL_PRIVILEGES = {
     "ALL",
@@ -571,7 +580,7 @@ def is_partial_revokes_enabled(session: DbSession) -> bool:
     """Return whether the connected MySQL server has partial revokes enabled."""
 
     try:
-        res = session.run_sql("SELECT @@GLOBAL.partial_revokes AS partialRevokes", [])
+        res = session.run_sql(PARTIAL_REVOKES_QUERY, [])
         row = res.fetch_one_object()
     except Exception:
         return False

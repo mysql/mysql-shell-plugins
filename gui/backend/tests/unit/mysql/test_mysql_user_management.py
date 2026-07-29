@@ -177,8 +177,11 @@ def test_list_mysql_users_includes_object_privilege_scopes():
     assert "u.`Host` AS `host`" in LIST_USERS_QUERY
     assert "CONCAT(u.`User`, '@', u.`Host`) AS `user`" not in LIST_USERS_QUERY
     assert "u.`password_expired` as passwordExpired" in LIST_USERS_QUERY
-    assert "tal.`LOCKED` = 'YES' AS temporarilyLocked" in LIST_USERS_QUERY
-    assert "performance_schema.`temporary_account_locks` tal" in LIST_USERS_QUERY
+    assert "/*!90600 tal.`LOCKED` = 'YES', */" in LIST_USERS_QUERY
+    assert (
+        "/*!90600\nLEFT JOIN performance_schema.`temporary_account_locks` tal"
+        in LIST_USERS_QUERY
+    )
     assert "tal.`USER` = u.`User` AND tal.`HOST` = u.`Host`" in LIST_USERS_QUERY
     assert "u.`Host` = '%' AND u.`account_locked` = 'Y'" in LIST_USERS_QUERY
     assert "COALESCE(u.`authentication_string`, '') = '' AS isRole" in LIST_USERS_QUERY
@@ -283,6 +286,13 @@ def test_list_mysql_users_parses_partial_revoke_restrictions_as_stored():
     assert "JSON_EXTRACT(u.`User_attributes`, '$.Restrictions')" in LIST_USERS_QUERY
 
 
+def test_partial_revokes_query_is_version_gated():
+    assert (
+        "COALESCE(/*!80016 @@GLOBAL.partial_revokes, */ FALSE)"
+        in user_management.PARTIAL_REVOKES_QUERY
+    )
+
+
 @pytest.mark.parametrize(
     "value, expected",
     [
@@ -297,9 +307,7 @@ def test_is_partial_revokes_enabled_handles_values(value, expected):
     mock_session = MockSession(MockResultSet({"partialRevokes": value}))
 
     assert is_partial_revokes_enabled(cast(DbSession, mock_session)) is expected
-    assert mock_session.history == [
-        ("SELECT @@GLOBAL.partial_revokes AS partialRevokes", []),
-    ]
+    assert mock_session.history == [(user_management.PARTIAL_REVOKES_QUERY, [])]
 
 
 def test_is_partial_revokes_enabled_returns_false_when_missing():
@@ -1105,7 +1113,7 @@ def test_set_user_object_privileges_adds_and_revokes_schema_privileges():
 
     assert mock_session.history[0][1] == ["'alice'@'localhost'", "app`db"]
     assert mock_session.history[1] == (
-        "SELECT @@GLOBAL.partial_revokes AS partialRevokes",
+        user_management.PARTIAL_REVOKES_QUERY,
         [],
     )
     assert mock_session.history[2] == ("SHOW PRIVILEGES", [])
