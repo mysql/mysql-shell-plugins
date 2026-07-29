@@ -160,7 +160,7 @@ await ws.sendAndValidate({
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "type": "User",
-        "name": "root@localhost"
+        "filter": "root@localhost"
     }
 }, [
     {
