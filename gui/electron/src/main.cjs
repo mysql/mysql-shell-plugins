@@ -419,6 +419,7 @@ const resolveShellUserConfigDir = () => {
 };
 
 const shellUserConfigDir = resolveShellUserConfigDir();
+ensurePrivateDirectory(shellUserConfigDir);
 
 const resolveMysqlShellBinary = () => {
     if (!mysqlshRuntimeDir) {
@@ -2052,8 +2053,9 @@ const createWindow = async () => {
         appendDesktopLog(`render-process-gone reason=${details.reason} exitCode=${details.exitCode}`);
     });
 
-    mainWindow.webContents.on("console-message", (_event, level, message, line, sourceId) => {
-        appendDesktopLog(`renderer console level=${level} source=${sourceId}:${line} message=${message}`);
+    mainWindow.webContents.on("console-message", (details) => {
+        const { level, message, lineNumber, sourceId } = details;
+        appendDesktopLog(`renderer console level=${level} source=${sourceId}:${lineNumber} message=${message}`);
     });
 
     allowNativeWindowClose(mainWindow);
