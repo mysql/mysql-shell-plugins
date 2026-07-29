@@ -69,7 +69,9 @@ export class ElectronWorkbench {
             return Boolean(window.electronHost && window.electronDesktopBackend);
         }, undefined, { timeout: 60000 });
         await expect(this.page.locator("#desktopSidebarPane")).toBeVisible({ timeout: 60000 });
-        await expect(this.page.locator(".frontPage")).toContainText("Welcome to MySQL Workbench", { timeout: 60000 });
+        await expect(this.page.locator(".connectionBrowser")).toContainText("Welcome to MySQL Workbench", {
+            timeout: 60000,
+        });
         await expect(this.page.locator("#newConnectionButton")).toBeVisible({ timeout: 60000 });
         await expect(this.page.locator("#tilesHost")).toBeVisible({ timeout: 60000 });
         await this.waitForMenuItem(["File", "Open..."], { timeout: 60000 });

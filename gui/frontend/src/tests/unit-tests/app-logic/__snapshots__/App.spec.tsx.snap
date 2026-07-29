@@ -44,20 +44,12 @@ exports[`Application tests > Application readiness 1`] = `
       style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
     >
       <a
-        href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+        href="https://dev.mysql.com/doc/relnotes/workbench/en/"
         rel="noopener noreferrer"
         tabindex="0"
         target="_blank"
       >
-        Learn More &gt;
-      </a>
-      <a
-        href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
-        rel="noopener noreferrer"
-        tabindex="0"
-        target="_blank"
-      >
-        Documentation &gt;
+        Release Notes &gt;
       </a>
     </div>
     <div

@@ -2326,7 +2326,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     id="desktopTitlebarAddButton"
                     className="desktopWorkspaceTitlebarButton desktopWorkspaceCreateButton"
                     imageOnly
-                    data-tooltip="New or Open Editor"
                     disabled={!hasActiveConnectionPage}
                     onClick={this.openDesktopTitlebarAddMenu}
                 >
@@ -2427,15 +2426,15 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                             className="desktopStatusConnectionInfo"
                             orientation={Orientation.TopDown}
                             fixedScrollbars={false}
-                        >
-                            <Label
-                                className="desktopStatusPrimary"
-                                caption={workspaceTarget ?? connectionDetails.caption}
-                            />
-                            <Label
-                                className="desktopStatusSecondary"
-                                caption={offline ? "OFFLINE" : workspaceVersion ?? ""}
-                            />
+                            >
+                                <Label
+                                    className="desktopStatusPrimary"
+                                    caption={workspaceTarget ?? connectionDetails.caption}
+                                />
+                                <Label
+                                    className="desktopStatusSecondary"
+                                    caption={offline ? "OFFLINE" : workspaceVersion ?? ""}
+                                />
                         </Container>
                     </Container>
                 </Container>

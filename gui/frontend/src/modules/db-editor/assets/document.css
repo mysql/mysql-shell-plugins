@@ -325,6 +325,13 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     white-space: nowrap;
 }
 
+body[theme=light] .msg #workspaceSelector,
+body[theme=light] .msg #workspaceSelector>.container>.label,
+body[theme=light] .msg #workspaceSelector>.container>.container>.label,
+body[theme=light] .msg #workspaceSelector>.label {
+    color: color-mix(in srgb, var(--foreground) 78%, transparent);
+}
+
 .msg .desktopWorkspaceSelectorTags {
     display: flex;
     min-width: 0;
@@ -548,7 +555,7 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
 .msg #desktopStatusArea {
     display: grid;
     flex: 1 1 auto;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: minmax(200px, 35fr) minmax(0, 65fr);
     min-width: 0;
     width: 100%;
     max-width: 900px;
@@ -560,6 +567,14 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     border-radius: 12px;
     background-color: var(--input-background);
     -webkit-app-region: drag;
+}
+
+body[theme=light] .msg #desktopStatusArea {
+    border-color: color-mix(in srgb, var(--input-border) 55%, transparent);
+}
+
+body[theme=light] .msg #desktopStatusArea .desktopStatusPrimary {
+    color: color-mix(in srgb, var(--foreground) 78%, transparent);
 }
 
 .msg .desktopStatusAreaSection {
@@ -614,6 +629,12 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     color: color-mix(in srgb, #efffea 92%, var(--foreground));
     background: color-mix(in srgb, var(--disabledForeground) 35%, var(--input-background));
     text-shadow: 0 0 6px rgb(220 255 201 / 38%);
+}
+
+body[theme=light] .msg .desktopStatusIndicatorActive {
+    background: var(--administration-statusSuccessBackground, var(--statusBarItem-okBackground));
+    color: #FFFFFF;
+    text-shadow: none;
 }
 
 .msg .desktopStatusIndicatorInactive {
@@ -679,6 +700,10 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     height: 14px;
     line-height: 14px;
     min-height: 14px;
+}
+
+.msg .desktopStatusConnectionInfo > .desktopStatusSecondary {
+    font-size: 10px;
 }
 
 .msg .desktopStatusTimer {
@@ -749,7 +774,6 @@ body.electronDesktopMacHost .msg #desktopWorkspaceTitlebar.sidebarHidden {
     min-height: 36px;
     flex: 0 0 32px;
     margin: 0;
-    padding: 4px 8px;
 }
 
 .msg.dbModuleTabview #documentToolbar #newScriptMenuButton {
@@ -818,7 +842,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     padding-left: 5px;
 }
 
-.msg.connectionBrowser .toolbar .button,
 .msg.dbModuleTabview .toolbar .button,
 .msg.schemaDiagramDesigner .toolbar .button {
     flex: 0 0 auto;
@@ -831,7 +854,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     margin: 0;
 }
 
-.msg.connectionBrowser .toolbar .button>.icon,
 .msg.dbModuleTabview .toolbar .button>.icon {
     background-color: var(--titleBar-activeForeground);
 }
@@ -858,9 +880,20 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scriptEditorStatusbarSash {
     --divider-background-color: var(--statusBar-background);
     background-color: var(--statusBar-background);
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
+    border-top: 1px solid var(--editorGroup-border);
+    border-bottom: 1px solid var(--editorGroup-border);
     color: var(--statusBar-foreground);
+}
+
+body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scriptEditorStatusbarSash {
+    background-color: var(--sideBar-background);
+    border-color: transparent;
+    box-shadow: 0 -2px 8px rgb(0 0 0 / 8%);
+}
+
+body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scriptEditorStatusbarSash
+    #scriptEditorEmbeddedStatusbar .statusbarItem {
+    font-size: 9pt;
 }
 
 .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scriptEditorStatusbarSash .sashContent {
@@ -961,25 +994,8 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 /* Definitions for server status. */
 
 .msg.msg.clientConnections #clientConnectionToolbar {
-    width: min(1560px, calc(100% - 48px));
-    margin: 16px auto 0;
-}
-
-.msg.clientConnections #clientConnectionToolbar .button>.icon.codicon {
-    background: none;
-    color: var(--secondaryButton-foreground);
-}
-
-.msg.clientConnections #clientConnectionToolbar .button {
-    background-color: var(--secondaryButton-background);
-    color: var(--secondaryButton-foreground);
-}
-
-.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):hover,
-.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):focus,
-.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):focus-visible,
-.msg.clientConnections #clientConnectionToolbar .button:not(.disabled):active {
-    background-color: var(--secondaryButton-hoverBackground);
+    border: none;
+    filter: none;
 }
 
 .msg.clientConnections #clientConnectionToolbar .button.disabled {
@@ -1524,26 +1540,9 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     line-height: 1;
 }
 
-.msg.userAccounts #userAccountsToolbar .button {
-    background-color: var(--secondaryButton-background);
-    color: var(--secondaryButton-foreground);
-}
-
-.msg.userAccounts #userAccountsToolbar .button:not(.disabled):hover,
-.msg.userAccounts #userAccountsToolbar .button:not(.disabled):focus,
-.msg.userAccounts #userAccountsToolbar .button:not(.disabled):focus-visible,
-.msg.userAccounts #userAccountsToolbar .button:not(.disabled):active {
-    background-color: var(--secondaryButton-hoverBackground);
-}
-
 .msg.userAccounts #userAccountsToolbar .button.disabled {
     background-color: var(--secondaryButton-disabledBackground);
     color: var(--secondaryButton-disabledForeground);
-}
-
-.msg.userAccounts #userAccountsToolbar .button>.icon.codicon {
-    background: none;
-    color: var(--secondaryButton-foreground);
 }
 
 .msg.userAccounts #userAccountsToolbar .button.disabled>.icon {
@@ -1552,17 +1551,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
 
 .msg.userAccounts #userAccountsToolbar .button.disabled>.icon.codicon {
     color: var(--secondaryButton-disabledForeground);
-}
-
-.msg.userAccounts #userAccountsToolbar .userAccountCreateButton {
-    flex: 0 0 auto;
-}
-
-.msg.userAccounts #userAccountsToolbar .userAccountCreateButton>.icon.codicon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
 }
 
 .msg.userAccounts #userAccountsGridFrame {
@@ -3707,7 +3695,6 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     gap: 4px;
 }
 
-.msg.clientConnections .connectionDetailsNavigation .button,
 .msg.clientConnections .connectionDetailsActions .button {
     flex: 0 0 26px;
     width: 26px;
@@ -3716,38 +3703,20 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     margin: 0;
     padding: 0;
     border: none;
-    background-color: var(--secondaryButton-background);
     color: var(--secondaryButton-foreground);
 }
 
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active,
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):hover,
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):focus,
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):focus-visible,
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active:not(.disabled):active {
-    background-color: var(--button-defaultBackground);
+.msg.clientConnections .connectionDetailsActions .button:not(.toggled) {
+    background-color: var(--secondaryButton-background);
 }
 
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active>.icon.codicon {
-    color: var(--button-defaultForeground);
-}
-
-.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton.active>.icon:not(.codicon) {
-    background-color: var(--button-defaultForeground);
-}
-
-.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):hover,
-.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):focus,
-.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):focus-visible,
-.msg.clientConnections .connectionDetailsNavigation .button:not(.disabled):active,
-.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):hover,
-.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):focus,
-.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):focus-visible,
-.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.active):active {
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.toggled):hover,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.toggled):focus,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.toggled):focus-visible,
+.msg.clientConnections .connectionDetailsActions .button:not(.disabled):not(.toggled):active {
     background-color: var(--secondaryButton-hoverBackground);
 }
 
-.msg.clientConnections .connectionDetailsNavigation .button>.icon.codicon,
 .msg.clientConnections .connectionDetailsActions .button>.icon.codicon {
     display: flex;
     align-items: center;
@@ -3765,7 +3734,12 @@ body.electronDesktopWorkspaceLayout .msg .toolbar .button.documentSelectorNaviga
     background-color: var(--secondaryButton-foreground);
 }
 
-.msg.clientConnections .connectionDetailsNavigation .button.disabled>.icon.codicon,
+.msg.clientConnections .connectionDetailsActions .clientConnectionShowDetailsButton>.icon {
+    flex: 0 0 20px;
+    height: 20px;
+    width: 20px;
+}
+
 .msg.clientConnections .connectionDetailsActions .button.disabled>.icon.codicon {
     color: var(--secondaryButton-disabledForeground);
 }
@@ -4491,61 +4465,21 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     gap: 6px;
 }
 
+.msg.connectionBrowser {
+    --secondaryButton-background: transparent;
+    --secondaryButton-foreground: var(--foreground);
+    --secondaryButton-hoverBackground: var(--button-secondaryHoverBackground);
+    --secondaryButton-disabledBackground: transparent;
+    --secondaryButton-disabledForeground: var(--disabledForeground);
+}
+
 .msg .connectionBrowser #contentTitleRow {
     width: 100%;
-    gap: 8px;
+    gap: 0;
 }
 
 .msg .connectionBrowser #contentTitleRow>.expander {
     flex: 1 1 auto;
-}
-
-.msg .connectionBrowser #newConnectionButton,
-.msg .connectionBrowser #newFolderButton,
-.msg .connectionBrowser #connectionBrowserActionsButton {
-    min-width: 0;
-    margin: 0;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background-color: transparent;
-    border-color: transparent;
-    transition: background-color 0.15s ease-in, border-color 0.15s ease-in;
-}
-
-.msg .connectionBrowser #newConnectionButton:hover,
-.msg .connectionBrowser #newFolderButton:hover,
-.msg .connectionBrowser #connectionBrowserActionsButton:hover,
-.msg .connectionBrowser #newConnectionButton:focus,
-.msg .connectionBrowser #newFolderButton:focus,
-.msg .connectionBrowser #connectionBrowserActionsButton:focus {
-    background-color: var(--button-hoverBackground);
-    border-color: var(--button-hoverBackground);
-}
-
-.msg .connectionBrowser #newConnectionButton>.icon,
-.msg .connectionBrowser #newFolderButton>.icon,
-.msg .connectionBrowser #connectionBrowserActionsButton>.icon {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-}
-
-.msg .connectionBrowser #newConnectionButton>.icon:not(.codicon),
-.msg .connectionBrowser #newFolderButton>.icon:not(.codicon) {
-    background-color: var(--button-secondaryForeground);
-}
-
-.msg .connectionBrowser #connectionBrowserActionsButton>.icon.codicon {
-    background: none;
-    color: var(--button-secondaryForeground);
-    font-size: 16px;
-    line-height: 16px;
-}
-
-.msg .connectionBrowser #newConnectionButton>.icon {
-    width: 12px;
-    height: 12px;
 }
 
 .msg#schemaDiagramToolbar>.button {

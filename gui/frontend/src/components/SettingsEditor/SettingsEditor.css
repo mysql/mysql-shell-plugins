@@ -24,7 +24,14 @@
  */
 
 .msg.settingsEditor {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
     width: 100%;
+    background: var(--background);
 }
 
 .msg.settingsEditor .button.imageOnly {
@@ -57,11 +64,22 @@
 .msg.settingsEditor #optionsHost {
     min-height: 36px;
     margin: 12px 0 6px 0;
+    min-width: 0;
 }
 
 .msg.settingsEditor #settingsHost .searchContainer {
     flex: 1 1 auto;
+    min-width: 0;
     margin-right: 20px;
+}
+
+.msg.settingsEditor #settingsHost .searchContainer .input {
+    min-width: 0;
+}
+
+.msg.settingsEditor #settingsHost .searchContainer #searchResult,
+.msg.settingsEditor #advancedSettings {
+    white-space: nowrap;
 }
 
 .msg.settingsEditor #settingsHost > #settingsTreeHost {

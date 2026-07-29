@@ -49,7 +49,7 @@ vi.mock("../../../../utilities/helpers.js", async () => {
 });
 
 import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser.js";
-import { render, waitFor } from "@testing-library/preact";
+import { fireEvent, render, waitFor } from "@testing-library/preact";
 import { DialogResponseClosure } from "../../../../app-logic/general-types.js";
 import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase.js";
 import { CdmEntityType } from "../../../../data-models/ConnectionDataModel.js";
@@ -488,6 +488,48 @@ describe("Connection browser tests", (): void => {
         unmount();
     });
 
+    it("starts the Electron home tour with a temporary localhost tile", async () => {
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+            },
+        });
+        const workspaceSelector = document.createElement("div");
+        workspaceSelector.id = "workspaceSelector";
+        document.body.append(workspaceSelector);
+        const originalScrollIntoView = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
+        Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+            configurable: true,
+            value: vi.fn(),
+        });
+
+        try {
+            const { container, unmount } = renderBrowserWithRoots([]);
+
+            fireEvent.click(container.querySelector("#startHomeTourLink")!);
+            await waitFor(() => {
+                expect(document.querySelector(".uiExplainer")).toBeTruthy();
+            });
+
+            expect(container.querySelector("#homeTourLocalhost")).toBeTruthy();
+
+            fireEvent.click(document.querySelector(".uiExplainer .close")!);
+            await waitFor(() => {
+                expect(container.querySelector("#homeTourLocalhost")).toBeNull();
+            });
+
+            unmount();
+        } finally {
+            workspaceSelector.remove();
+            if (originalScrollIntoView) {
+                Object.defineProperty(HTMLElement.prototype, "scrollIntoView", originalScrollIntoView);
+            } else {
+                Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+            }
+        }
+    });
+
     it("persists the Home welcome panel dismissal", () => {
         const settingsSetSpy = vi.spyOn(Settings, "set");
         const saveSettingsSpy = vi.spyOn(Settings, "saveSettings").mockImplementation(() => { /** No-op. */ });
@@ -701,11 +743,67 @@ describe("Connection browser tests", (): void => {
         const handled = (browser as unknown as {
             handleConnectionMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
         }).handleConnectionMenuItemClick({
-            command: { title: "Back to Root", command: "move:root" },
+            command: { title: "/", command: "move:root" },
         });
 
         expect(handled).toBe(true);
         expect(moveSpy).toHaveBeenCalledWith("move:root", entry);
+    });
+
+    it("moves a folder to an existing folder from the tile menu", async () => {
+        const rootGroup = createGroup(1, "/");
+        const sourceGroup = createGroup(2, "Source", rootGroup);
+        const targetGroup = createGroup(3, "Archive", rootGroup);
+        const browser = createBrowser();
+        const dataModel = {
+            groupFromPath: vi.fn().mockResolvedValue(rootGroup),
+        };
+
+        (browser as unknown as {
+            context: unknown;
+            state: unknown;
+            handleMoveGroupToFolderAction: (action: string, entry: unknown) => Promise<void>;
+        }).context = { connectionsDataModel: dataModel };
+        (browser as unknown as { state: unknown; }).state = {
+            moveTargetGroups: [targetGroup],
+        };
+
+        const moveFolderSpy = vi.spyOn(ShellInterface.dbConnections, "moveFolder").mockResolvedValue(undefined);
+        const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
+
+        await (browser as unknown as {
+            handleMoveGroupToFolderAction: (action: string, entry: unknown) => Promise<void>;
+        }).handleMoveGroupToFolderAction("move:folder:3", sourceGroup);
+
+        expect(moveFolderSpy).toHaveBeenCalledWith(2, 3);
+        expect(rootGroup.refresh).toHaveBeenCalled();
+        expect(targetGroup.refresh).toHaveBeenCalled();
+        expect(executeRemoteSpy).toHaveBeenCalledWith("refreshConnectionGroup", rootGroup.folderPath);
+        expect(executeRemoteSpy).toHaveBeenCalledWith("refreshConnectionGroup", targetGroup.folderPath);
+    });
+
+    it("routes tile menu move commands through the current folder entry", () => {
+        const rootGroup = createGroup(1, "/");
+        const sourceGroup = createGroup(2, "Source", rootGroup);
+        const browser = createBrowser();
+
+        const moveSpy = vi.spyOn(browser as unknown as {
+            handleMoveGroupToFolderAction: (action: string, entry: unknown) => Promise<void>;
+        }, "handleMoveGroupToFolderAction").mockResolvedValue(undefined);
+
+        (browser as unknown as {
+            currentActionMenuEntry: unknown;
+            handleGroupMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
+        }).currentActionMenuEntry = sourceGroup;
+
+        const handled = (browser as unknown as {
+            handleGroupMenuItemClick: (props: { command: { command: string; }; children?: unknown; }) => boolean;
+        }).handleGroupMenuItemClick({
+            command: { title: "/", command: "move:root" },
+        });
+
+        expect(handled).toBe(true);
+        expect(moveSpy).toHaveBeenCalledWith("move:root", sourceGroup);
     });
 
     it("updates the current connection entry with edited details", async () => {

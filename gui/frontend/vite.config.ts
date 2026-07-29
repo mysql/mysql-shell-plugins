@@ -36,7 +36,7 @@ import nodePolyfills from "rollup-plugin-polyfill-node";
 import { execSync } from "child_process";
 import { platform } from "os";
 import { join } from "path";
-import packageData from "./package.json";
+import electronPackageData from "../electron/package.json";
 
 const determineBuildNumber = (): string => {
     // First try to get the hash from an environment variable, if that exists.
@@ -97,7 +97,7 @@ export default defineConfig(({ mode }) => {
         },
         define: {
             "globalThis.MSG_BUILD_NUMBER": determineBuildNumber(),
-            "globalThis.MSG_VERSION_NUMBER": `"${packageData.version}"`,
+            "globalThis.MSG_VERSION_NUMBER": `"${electronPackageData.version}"`,
             "globalThis.VITE_MODE": JSON.stringify(mode),
         },
         resolve: {

@@ -29,6 +29,7 @@ import { ComponentChild, createRef } from "preact";
 
 import { ui } from "../../../app-logic/UILayer.js";
 import { Assets } from "../../../supplement/Assets.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
 import { IBackendInformation } from "../../../supplement/ShellInterface/index.js";
 import { helpUrlMap } from "../../../supplement/index.js";
@@ -82,11 +83,9 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
 
     public render(): ComponentChild {
         const { data } = this.state;
-        const { onClose, additionalInfo, title, showLinks } = this.props;
+        const { onClose, additionalInfo, showLinks } = this.props;
 
         const className = this.getEffectiveClassNames(["aboutBox"]);
-        const showWorkbenchBranding = !title && (hasElectronHostBridge() || isStandalone());
-        const headingTitle = showWorkbenchBranding ? "MySQL Workbench" : (title ?? "About MySQL Shell");
 
         // The version is injected by the vite config.
         const versionParts: string[] = globalThis.MSG_VERSION_NUMBER?.split(".") ?? [];
@@ -109,10 +108,9 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                         {` (${globalThis.MSG_BUILD_NUMBER ?? "unknown"})`}
                     </span>
                 </GridCell>,
-
                 <GridCell key="cell5" className="heading shellBuildHeading" columnSpan={2}
                     orientation={Orientation.TopDown} >
-                    <Label caption="Shell Build Information" />
+                    <Label caption="Build Information" />
                 </GridCell>,
                 <GridCell
                     key="cell6"
@@ -122,7 +120,7 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                     <Divider />
                 </GridCell>,
 
-                <GridCell key="cell7" className="left title shellBuildInfo">MySQL Shell Version:</GridCell>,
+                <GridCell key="cell7" className="left title shellBuildInfo">Powered by MySQL Shell:</GridCell>,
                 <GridCell key="cell8" className="right shellBuildInfo">
                     {`${data.major}.${data.minor}.${data.patch}`}
                 </GridCell>,
@@ -130,13 +128,13 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                 <GridCell key="cell9" className="left title shellBuildInfo">Platform/Architecture:</GridCell>,
                 <GridCell key="cell10" className="right shellBuildInfo">{data.platform}/{data.architecture}</GridCell>,
 
-                <GridCell key="cell13" className="left title shellBuildInfo">Server Distribution:</GridCell>,
+                <GridCell key="cell13" className="left title shellBuildInfo">Distribution:</GridCell>,
                 <GridCell key="cell14" className="right shellBuildInfo">{data.serverDistribution}</GridCell>,
 
                 <GridCell key="cell15" className="left title shellBuildInfo">libmysqlclient:</GridCell>,
                 <GridCell key="cell16" className="right shellBuildInfo">
                     {`${data.serverMajor}.${data.serverMinor}.${data.serverPatch}`}
-                </GridCell>,
+                </GridCell>
             );
         }
 
@@ -176,7 +174,7 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
         return (
             <Dialog
                 ref={this.dialogRef}
-                caption={headingTitle}
+                caption="MySQL Workbench"
                 onClose={(cancelled) => {
                     onClose?.();
                 }}
@@ -201,7 +199,7 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                     <Image src={Assets.modules.appIcon} id="sakilaLogo" alt="MySQL Workbench" />
                     <Container id="heading" orientation={Orientation.TopDown}>
                         <Label id="headingLabel">
-                            {headingTitle}
+                            MySQL Workbench
                         </Label>
                     </Container>
 
@@ -219,14 +217,37 @@ export class AboutBox extends ComponentBase<IAboutBoxProperties, IAboutBoxState>
                     <Grid className="versionGrid" columns={2} rowGap={10} columnGap={12}>
                         {infoCells}
                     </Grid>
-
                     <Grid className="additionalInfoGrid" columns={5} rowGap={10} columnGap={12}>
                         {additionalInfo && additionalInfo.length > 0 && additionalInfoCells}
                     </Grid>
+
+                    <Button id="copyVersionInfo" caption="Copy" onClick={this.copyVersionInfo} />
 
                     <div className="copyright" />
                 </Container>
             </Dialog>
         );
     }
+
+    private copyVersionInfo = (): void => {
+        const { data } = this.state;
+        const electronVersion = window.electronHost?.electronVersion;
+        const productName = this.props.title ?? (hasElectronHostBridge() || isStandalone()
+            ? "MySQL Workbench"
+            : "MySQL Shell");
+        const version = globalThis.MSG_VERSION_NUMBER ?? "unknown";
+        const lines = [
+            `${productName} Version: ${version}`,
+            `Build: ${globalThis.MSG_BUILD_NUMBER ?? "unknown"}`,
+            ...(electronVersion ? [`Electron Version: ${electronVersion}`] : []),
+            ...(data ? [
+                `MySQL Shell Version: ${data.major}.${data.minor}.${data.patch}`,
+                `Platform/Architecture: ${data.platform}/${data.architecture}`,
+                `MySQL Distribution: ${data.serverDistribution}`,
+                `libmysqlclient: ${data.serverMajor}.${data.serverMinor}.${data.serverPatch}`,
+            ] : []),
+        ];
+
+        requisitions.writeToClipboard(lines.join("\n"));
+    };
 }

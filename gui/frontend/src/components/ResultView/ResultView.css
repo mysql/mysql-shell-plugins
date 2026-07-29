@@ -388,7 +388,7 @@
     flex: 0 0 auto;
     min-width: fit-content;
 
-    padding: 2px 0;
+    padding: 0;
 
     border: none;
     background: none;
@@ -403,9 +403,9 @@
     align-self: center;
 }
 
-.msg.resultHost .resultStatus .toolbar .button.msg.button {
+.msg.resultHost .resultStatus .toolbar>.button.msg.button {
     padding: 0;
-    margin: 0 4px;
+    margin: 0 1px;
 
     background-color: transparent;
     border-color: transparent;
@@ -413,8 +413,8 @@
     align-items: center;
 
     border-radius: 2px;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 }
 
 .msg.resultHost .resultStatus .toolbar .viewSelector.segmentedButton {
@@ -431,6 +431,31 @@
     border-radius: 0;
     width: auto;
     height: auto;
+}
+
+.msg.resultHost .resultStatus .toolbar .viewSelector.segmentedButton>.button.imageOnly {
+    min-width: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
+.msg.resultHost .resultStatus .toolbar .viewSelector.segmentedButton>.button>.icon {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.msg.resultHost .resultStatus .toolbar .viewSelector.segmentedButton>.button:not(.disabled)>.icon:not(.codicon) {
+    background-color: var(--button-defaultForeground);
+}
+
+.msg.resultHost .resultStatus .toolbar .viewSelector.segmentedButton>.button:not(.disabled)>.icon.codicon {
+    color: var(--button-defaultForeground);
+}
+
+.msg.resultHost .resultStatus .toolbar .viewSelector.segmentedButton>.button.selected {
+    box-shadow: none;
 }
 
 .msg.resultHost .resultStatus .toolbar .segmentedButton > .button + .button {
@@ -452,24 +477,6 @@
 
 .msg.resultHost .resultStatus .toolbar .segmentedButton > .button.selected > .icon {
     background-color: var(--button-defaultForeground);
-}
-
-.msg.resultHost .resultStatus .toolbar .button.msg.button:not(.disabled):hover,
-.msg.resultHost .resultStatus .toolbar .button.msg.button:not(.disabled):active {
-    background-color: var(--button-hoverBackground);
-}
-
-.msg.resultHost .resultStatus .toolbar .button.msg.button.disabled {
-    background-color: transparent;
-    color: var(--disabledForeground);
-}
-
-.msg.resultHost .resultStatus .toolbar .button.msg.button.disabled>.icon:not(.codicon) {
-    background-color: var(--disabledForeground);
-}
-
-.msg.resultHost .resultStatus .toolbar .button.msg.button.active {
-    background-color: var(--button-hoverBackground);
 }
 
 .msg.resultHost .resultStatus .toolbar .visualExplainDetailsLabel {
@@ -511,29 +518,18 @@
     border-right: 1px solid color-mix(in srgb, var(--resultStatus-foreground) 28%, transparent);
 }
 
-.msg.resultHost .resultStatus .toolbar .button>.icon {
+.msg.resultHost .resultStatus .toolbar>.button>.icon {
+    flex: 0 0 18px;
     width: 18px;
     height: 18px;
 }
 
-.msg.resultHost .resultStatus .toolbar .button>.icon:not(.codicon) {
-    background-color: var(--resultStatus-foreground);
+.msg.resultHost .resultStatus .toolbar>.button:not(.disabled)>.icon:not(.codicon) {
+    background-color: var(--button-defaultForeground);
 }
 
-.msg.resultHost .resultStatus .toolbar > #showActionMenu {
-    background: transparent;
-}
-
-.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):hover,
-.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):focus,
-.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):focus-visible,
-.msg.resultHost .resultStatus .toolbar > #showActionMenu:not(.disabled):active {
-    background-color: var(--button-hoverBackground);
-}
-
-.msg.resultHost .resultStatus .toolbar > #showActionMenu > .icon.codicon {
-    background: transparent;
-    color: var(--resultStatus-foreground);
+.msg.resultHost .resultStatus .toolbar>.button:not(.disabled)>.icon.codicon {
+    color: var(--button-defaultForeground);
 }
 
 .msg.resultHost .resultStatus .toolbar .button>.icon.codicon,

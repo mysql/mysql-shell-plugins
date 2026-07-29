@@ -56,6 +56,7 @@ export type IElectronNativeMenuEvent =
     };
 
 export interface IElectronHostBridge {
+    electronVersion: string;
     postMessage: (message: IEmbeddedMessage) => void;
     setMessageHandler?: (handler: (message: IEmbeddedMessage) => void) => void;
     showNativeMenu?: (request: IElectronNativeMenuRequest) => Promise<void>;

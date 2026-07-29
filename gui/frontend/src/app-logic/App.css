@@ -140,12 +140,14 @@ pre {
 }
 
 .copyright::after {
-    content: '© 2020, 2026, Oracle and/or its affiliates.';
+    content: 'Copyright © 2020, 2026, Oracle and/or its affiliates.\A Oracle, Java, and MySQL are registered trademarks of Oracle and/or its affiliates.\A Other names may be trademarks of their respective owners.';
     display: inline-block;
     margin-top: 20px;
     font-size: 10px;
     font-weight: 100;
     color: var(--disabledForeground);
+    text-align: center;
+    white-space: pre-line;
 }
 
 html.themeSwitch,
@@ -192,6 +194,7 @@ html.themeSwitch *:after {
     overflow: hidden;
     align-items: stretch;
     height: 100vh;
+    position: relative;
 
     background-color: var(--background);
 }

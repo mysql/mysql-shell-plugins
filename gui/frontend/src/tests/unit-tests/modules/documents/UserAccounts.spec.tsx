@@ -371,7 +371,8 @@ describe("UserAccounts module", () => {
         expect(container.querySelector("#userAccountsToolbar")).toBeTruthy();
         expect(container.querySelector("#userAccountsGrid")).toBeTruthy();
         const createButton = container.querySelector<HTMLButtonElement>("#createUserAccount");
-        expect(createButton?.querySelector(".codicon-add")).toBeTruthy();
+        expect(createButton).toBeTruthy();
+        expect(createButton?.classList.contains("imageOnly")).toBe(true);
         // Title label
         expect(screen.getByText("User Accounts")).toBeTruthy();
         await waitFor(() => {

@@ -98,7 +98,7 @@ test.describe("Database connection overview", () => {
         await workbench.openConnectionFolder(folderName);
         await workbench.expectConnectionTile(connection.caption);
 
-        await workbench.selectConnectionTileAction(connection.caption, ["Move to Folder", "Back to Root"]);
+        await workbench.selectConnectionTileAction(connection.caption, ["Move to Folder", "/"]);
         await workbench.expectNoConnectionTile(connection.caption);
         await workbench.goToRootConnectionFolder();
         await workbench.expectConnectionTile(connection.caption);

@@ -1,0 +1,157 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.connectionBrowserPanel {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 30px 40px 0;
+    position: relative;
+}
+
+.msg.connectionBrowser #connectionBrowserContent {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: auto;
+    user-select: none;
+}
+
+.msg.connectionBrowserGreeting #title {
+    font-size: 2.2rem;
+    font-weight: 200;
+    margin: 0;
+}
+
+.msg.connectionBrowserGreeting #greetingHeader {
+    align-self: center;
+    margin-bottom: 8px;
+}
+
+.msg.connectionBrowserGreeting #workbenchLogo {
+    height: 96px;
+    margin: 0 0 12px;
+    width: 96px;
+}
+
+.msg.connectionBrowserGreeting #greetingDescription,
+.msg.connectionBrowserWelcomeDetails #description {
+    align-self: center;
+    font-size: 1rem;
+    margin: 1em 0;
+    max-width: 700px;
+    white-space: pre-line;
+}
+
+.msg.connectionBrowserGreeting #linksHost {
+    align-self: center;
+    overflow: hidden;
+    padding: 20px 0 10px;
+}
+
+.msg.connectionBrowserGreeting #linksHost a {
+    font-size: 11pt;
+    font-weight: 500;
+    padding: 0 20px;
+}
+
+.msg.connectionBrowserConnectionsPanel #tilesHost {
+    gap: 20px;
+    padding-top: 6px;
+}
+
+.msg.connectionBrowserConnectionsPanel #tilesHost.dropTarget::after {
+    align-items: center;
+    animation: connectionBrowserDropFade 1s ease-in forwards;
+    background-color: var(--editorPane-background);
+    border: 4px dashed var(--foreground);
+    border-radius: 16px;
+    content: "DROP FILE TO CREATE A NEW LOCAL CONNECTION";
+    cursor: copy;
+    display: flex;
+    font-size: 150%;
+    height: calc(100% - 8px);
+    justify-content: center;
+    position: absolute;
+    width: calc(100% - 8px);
+}
+
+.msg.connectionBrowserConnectionsPanel #tilesHost.denyDrop::after {
+    cursor: not-allowed;
+}
+
+@keyframes connectionBrowserDropFade {
+    0% {
+        background-color: #FFFFFF00;
+    }
+
+    100% {
+        background-color: var(--editorPane-background);
+    }
+}
+
+@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+    .msg.connectionBrowserConnectionsPanel #tilesHost.dropTarget::after {
+        animation: connectionBrowserDropFadeBlur 200ms ease-in forwards;
+        background-color: var(--menu-blurredBackground);
+    }
+
+    @keyframes connectionBrowserDropFadeBlur {
+        0% {
+            background-color: #FFFFFF00;
+        }
+
+        100% {
+            backdrop-filter: blur(8px);
+            background-color: var(--menu-blurredBackground);
+        }
+    }
+}
+
+.msg.connectionBrowserPanelCloseButton {
+    background-color: transparent;
+    border: none;
+    height: 24px;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    width: 24px;
+}
+
+.msg.connectionBrowserPanelCloseButton:not(.disabled):hover,
+.msg.connectionBrowserPanelCloseButton:not(.disabled):active,
+.msg.connectionBrowserPanelCloseButton:focus {
+    background-color: var(--secondaryButton-hoverBackground);
+}
+
+.msg.connectionBrowserPanelCloseButton>.icon {
+    height: 16px;
+    margin: 0;
+    width: 16px;
+}

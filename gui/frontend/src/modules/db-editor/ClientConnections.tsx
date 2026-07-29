@@ -1616,9 +1616,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         return (
             <Button
                 key="showDetails"
-                className={`clientConnectionShowDetailsButton${showDetails ? " active" : ""}`}
+                className="clientConnectionShowDetailsButton"
                 data-tooltip={showDetails ? "Hide Details" : "Show Details"}
                 imageOnly={true}
+                toggled={showDetails}
                 onClick={this.handleShowDetails}
             >
                 <Icon src={Assets.toolbar.infoInactiveIcon} data-tooltip="inherit" />

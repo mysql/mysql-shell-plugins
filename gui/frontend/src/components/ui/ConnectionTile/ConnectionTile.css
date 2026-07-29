@@ -297,6 +297,21 @@
     opacity: 100%;
 }
 
+.msg.connectionTile #actions .button.imageOnly:not(.disabled):not(.toggled):focus,
+.msg.connectionTile #actions .button.imageOnly:not(.disabled):not(.toggled):focus-visible {
+    background-color: transparent;
+}
+
+.msg.connectionTile #actions .button.imageOnly:not(.disabled):not(.toggled):hover,
+.msg.connectionTile #actions .button.imageOnly:not(.disabled):not(.toggled):active {
+    background-color: var(--connectionTile-hoverBackground);
+}
+
+.msg.connectionTile.group #actions .button.imageOnly:not(.disabled):not(.toggled):hover,
+.msg.connectionTile.group #actions .button.imageOnly:not(.disabled):not(.toggled):active {
+    background-color: var(--connectionTileGroup-hoverBackground);
+}
+
 .msg.connectionTile #actions .icon {
     flex: 0 0 16px;
     height: 16px;

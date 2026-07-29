@@ -41,6 +41,7 @@ const subscribe = (channel, listener) => {
 };
 
 contextBridge.exposeInMainWorld("electronHost", {
+    electronVersion: process.versions.electron,
     postMessage: (message) => {
         ipcRenderer.send("electron-host-post-message", message);
     },

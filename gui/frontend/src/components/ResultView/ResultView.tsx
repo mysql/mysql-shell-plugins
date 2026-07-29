@@ -39,6 +39,7 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { KeyboardKeys, saveArrayAsFile, saveTextAsFile, selectFileInBrowser } from "../../utilities/helpers.js";
 import { convertCamelToTitleCase, convertHexToBase64, formatBase64ToHex } from "../../utilities/string-helpers.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
+import { Codicon } from "../ui/Codicon.js";
 import {
     ComponentBase, ComponentPlacement, IComponentProperties, SelectionType,
 } from "../ui/Component/ComponentBase.js";
@@ -345,7 +346,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         focusOnClick={false}
                         onClick={this.handleAction}
                     >
-                        <Icon src={Assets.misc.plusIcon} data-tooltip="inherit" />
+                        <Icon src={Codicon.Add} data-tooltip="inherit" />
                     </Button>}
                 </Container>
 

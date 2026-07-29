@@ -90,8 +90,6 @@
     "administration.selectionBorder": "$list.focusOutline",
     "administration.statusForeground": "$button.foreground",
     "administration.statusSuccessBackground": "$statusBarItem.okBackground",
-    "administration.statusWarningBackground": "$statusBarItem.warningBackground",
-    "administration.statusWarningForeground": "$statusBarItem.warningForeground",
     "administration.statusErrorBackground": "$statusBarItem.errorBackground",
     "administration.statusErrorForeground": "$statusBarItem.errorForeground"
 }

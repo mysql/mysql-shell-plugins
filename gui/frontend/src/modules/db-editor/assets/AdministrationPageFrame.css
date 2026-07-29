@@ -47,6 +47,10 @@
             color-mix(in srgb, var(--sideBar-background) 82%, transparent));
 }
 
+body[theme=light] .msg .administrationPageHeading {
+    background: var(--sideBar-background);
+}
+
 .msg .administrationPageHeadingHeader,
 .msg .administrationPageFrameHeader,
 .msg .administrationPageHeadingIdentity,
@@ -185,6 +189,15 @@
 
 .msg .administrationPageFrameContent {
     display: contents;
+}
+
+.msg .administrationPageFrame .toolbar .button.imageOnly>.icon:not(.codicon) {
+    background-color: var(--secondaryButton-foreground, var(--foreground));
+}
+
+.msg .administrationPageFrame .toolbar .button.imageOnly>.icon.codicon {
+    background: none;
+    color: var(--secondaryButton-foreground, var(--foreground));
 }
 
 .msg .administrationPageBody {

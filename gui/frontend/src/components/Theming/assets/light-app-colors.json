@@ -27,6 +27,8 @@
     "connectionTileGroup.border": "#F1A241",
     "connectionTileGroup.foreground": "#444444",
     "connectionTileGroup.hoverBackground": "#EE9020",
+    "administration.statusWarningBackground": "#E6A532",
+    "administration.statusWarningForeground": "#FFFFFF",
     "button.defaultBackground": "#1177BB",
     "button.defaultForeground": "#FFFFFF",
     "list.sortIndicatorForeground": "#007ACC",

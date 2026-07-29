@@ -34,7 +34,7 @@ test.describe("Electron desktop shell", () => {
 
         await expect(page.locator("#root")).toHaveClass(/electronDesktopHost/);
         await expect(page.locator("#desktopSidebarPane")).toBeVisible();
-        await expect(page.locator(".frontPage")).toContainText("Welcome to MySQL Workbench");
+        await expect(page.locator(".connectionBrowser")).toContainText("Welcome to MySQL Workbench");
         await expect(page.locator("#contentTitle")).toHaveText("Database Connections");
         await expect(page.locator("#newConnectionButton")).toBeVisible();
         await expect(page.locator("#tilesHost")).toBeVisible();

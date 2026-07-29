@@ -47,6 +47,9 @@ export interface IButtonProperties extends IComponentProperties {
     /** When set the button gets no min width or extra padding. */
     imageOnly?: boolean;
 
+    /** Indicates that an image-only button is toggled on. */
+    toggled?: boolean;
+
     /** If set this button gets a different background. */
     isDefault?: boolean;
 
@@ -70,7 +73,8 @@ export class Button extends ComponentBase<IButtonProperties> {
         super(props);
 
         // Have to handle the `disabled` property manually because we have to disable a div instead of a button element.
-        this.addHandledProperties("innerRef", "round", "orientation", "imageOnly", "isDefault", "requestType",
+        this.addHandledProperties("innerRef", "round", "orientation", "imageOnly", "toggled", "isDefault",
+            "requestType",
             "disabled", "focusOnClick", "appearance");
 
         if (props.requestType) {
@@ -86,12 +90,14 @@ export class Button extends ComponentBase<IButtonProperties> {
     }
 
     public render(): ComponentChild {
-        const { appearance, children, caption, style, orientation, round, imageOnly, disabled, isDefault } = this.props;
+        const { appearance, children, caption, style, orientation, round, imageOnly, toggled, disabled, isDefault } =
+            this.props;
         const className = this.getEffectiveClassNames([
             "button",
             appearance,
             this.classFromProperty(round, "round"),
             this.classFromProperty(imageOnly, "imageOnly"),
+            this.classFromProperty(toggled, "toggled"),
             this.classFromProperty(disabled, "disabled"),
             this.classFromProperty(isDefault, "default"),
         ]);

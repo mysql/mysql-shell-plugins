@@ -367,6 +367,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                 className={!previewActive ? "selected" : undefined}
                                 imageOnly={true}
                                 isDefault={!previewActive}
+                                toggled={!previewActive}
                                 focusOnClick={true}
                                 role="radio"
                                 aria-label="Data Grid"
@@ -383,6 +384,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                 className={previewActive ? "selected" : undefined}
                                 imageOnly={true}
                                 isDefault={previewActive}
+                                toggled={previewActive}
                                 focusOnClick={true}
                                 role="radio"
                                 aria-label="Preview Changes as SQL"

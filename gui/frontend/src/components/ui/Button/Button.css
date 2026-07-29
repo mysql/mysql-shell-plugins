@@ -43,9 +43,64 @@
 }
 
 .msg.button.imageOnly {
-    padding: 2px 2px;
+    background-color: transparent;
+    border: none;
+    height: 28px;
     margin: 2px;
     min-width: 0;
+    padding: 0;
+    width: 28px;
+}
+
+.msg.button.imageOnly>.icon {
+    flex: 0 0 16px;
+    height: 16px;
+    width: 16px;
+}
+
+.msg.button.imageOnly>.icon:not(.codicon) {
+    background-color: var(--button-secondaryForeground, var(--foreground));
+}
+
+.msg.button.imageOnly>.icon.codicon {
+    align-items: center;
+    color: var(--button-secondaryForeground, var(--foreground));
+    display: flex;
+    font-size: 16px;
+    justify-content: center;
+    line-height: 16px;
+}
+
+.msg.button.imageOnly:not(.disabled):hover,
+.msg.button.imageOnly:not(.disabled):focus,
+.msg.button.imageOnly:not(.disabled):focus-visible,
+.msg.button.imageOnly:not(.disabled):active {
+    background-color: var(--button-secondaryHoverBackground);
+}
+
+.msg.button.imageOnly.disabled {
+    background-color: transparent;
+}
+
+.msg.button.imageOnly.disabled>.icon,
+.msg.button.imageOnly.disabled>.image {
+    opacity: 0.5;
+}
+
+.msg.button.imageOnly.toggled,
+.msg.button.imageOnly.toggled:not(.disabled):hover,
+.msg.button.imageOnly.toggled:not(.disabled):focus,
+.msg.button.imageOnly.toggled:not(.disabled):focus-visible,
+.msg.button.imageOnly.toggled:not(.disabled):active {
+    background-color: var(--button-defaultBackground);
+}
+
+.msg.button.imageOnly.toggled>.icon.codicon {
+    color: var(--button-defaultForeground);
+}
+
+.msg.button.imageOnly.toggled>.icon:not(.codicon) {
+    background-color: var(--button-defaultForeground);
 }
 
 .msg.button.iconSize24 {

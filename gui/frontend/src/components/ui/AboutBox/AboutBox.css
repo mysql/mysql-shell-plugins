@@ -47,6 +47,10 @@
     margin-top: 8px;
 }
 
+.msg.aboutBox #copyVersionInfo {
+    margin-top: 20px;
+}
+
 .msg.aboutBox .grid .title {
     color: var(--disabledForeground);
 }

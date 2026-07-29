@@ -204,7 +204,7 @@ exports[`UserAccounts module > matches snapshot after initial load > UserAccount
               />
             </div>
             <div
-              class="msg button imageOnly userAccountCreateButton"
+              class="msg button imageOnly"
               data-tooltip="Create user"
               id="createUserAccount"
               role="button"

@@ -1312,19 +1312,20 @@ describe("Client connections module tests", (): void => {
         expect(instance.testGetSelectedRowRawValue("THREAD_ID")).toBe(42);
     });
 
-    it("uses secondary button styling for toolbar and side action buttons", ({ expect }) => {
+    it("uses shared secondary toolbar styling and page-specific side action styling", ({ expect }) => {
         const clientConnectionsCss = readFrontendSourceFile("src/modules/db-editor/assets/document.css");
+        const toolbarCss = readFrontendSourceFile("src/components/ui/Toolbar/Toolbar.css");
 
         expect(clientConnectionsCss).toContain(
             "--secondaryButton-hoverBackground: var(--button-secondaryHoverBackground);",
         );
-        expect(clientConnectionsCss).not.toContain("clientConnectionActionHoverBackground");
-        expect(clientConnectionsCss).toContain(
-            ".msg.clientConnections #clientConnectionToolbar .button:not(.disabled):hover",
+        expect(toolbarCss).toContain(
+            ".msg.toolbar .button.msg.button.imageOnly:not(.disabled):not(.toggled):hover",
         );
+        expect(toolbarCss).toContain("background-color: var(--button-secondaryHoverBackground);");
         expect(clientConnectionsCss).toContain(
             ".msg.clientConnections .connectionDetailsActions " +
-            ".button:not(.disabled):not(.active):hover",
+            ".button:not(.disabled):not(.toggled):hover",
         );
         expect(clientConnectionsCss).toContain("background-color: var(--secondaryButton-hoverBackground);");
     });

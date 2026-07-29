@@ -2156,7 +2156,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
             <Button
                 key="createUser"
                 id="createUserAccount"
-                className="userAccountCreateButton"
                 data-tooltip="Create user"
                 imageOnly={true}
                 onClick={this.handleCreateUser}

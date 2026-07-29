@@ -1341,7 +1341,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 <Search
                     id="schemasSectionSearch"
                     className="sidebarSectionSearch"
-                    placeholder="Search"
+                    placeholder="Search DB objects"
                     leadingIcon={Codicon.Search}
                     buttons={{
                         clearAll: true,
