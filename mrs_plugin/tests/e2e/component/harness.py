@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+# pyright: strict
+
 import http.cookiejar
 import json
 import socket
@@ -28,13 +30,14 @@ import ssl
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable, Collection, Mapping, Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass
 from email.message import Message
-from typing import Any
+from http.client import HTTPMessage, HTTPResponse
+from typing import IO, ParamSpec, Protocol, TypeAlias, TypeVar, TypedDict, cast
 
 from mrs_plugin import lib
-
 
 COMPONENT_URN = "file://component_mysql_rest_service"
 LIFECYCLE_ADMIN_PRIVILEGE = "MYSQL_REST_SERVICE_ADMIN"
@@ -43,11 +46,74 @@ DEFAULT_HTTP_TIMEOUT = 10
 POLL_INTERVAL = 0.1
 
 
-def log(message):
+JsonValue: TypeAlias = (
+    None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
+)
+HttpHeaders: TypeAlias = Mapping[str, str]
+
+_Parameters = ParamSpec("_Parameters")
+_ReturnType = TypeVar("_ReturnType")
+
+
+class SqlResult(Protocol):
+    def fetch_one(self) -> Sequence[object] | None: ...
+
+    def fetch_all(self) -> Sequence[Sequence[object]]: ...
+
+
+class SqlSession(Protocol):
+    def run_sql(
+        self,
+        statement: str,
+        parameters: Sequence[object] | None = None,
+    ) -> SqlResult: ...
+
+    def is_open(self) -> bool: ...
+
+    def close(self) -> None: ...
+
+
+class RestartableTestServer(Protocol):
+    @property
+    def session(self) -> SqlSession | None: ...
+
+    def restart(self) -> SqlSession: ...
+
+
+class ServiceMetadata(TypedDict):
+    id: bytes
+    host_ctx: str
+    published: bool | int
+
+
+class TestServiceFixture(TypedDict):
+    session: SqlSession | None
+    service_id: bytes
+
+
+_UpdateServices = Callable[
+    [SqlSession, list[bytes], dict[str, bool]],
+    object,
+]
+
+
+def _update_service_publication(
+    session: SqlSession,
+    service_id: bytes,
+    published: bool,
+) -> None:
+    update_services = cast(
+        _UpdateServices,
+        lib.services.update_services,  # pyright: ignore[reportUnknownMemberType]
+    )
+    update_services(session, [service_id], {"published": published})
+
+
+def log(message: str) -> None:
     print(f"[component-e2e] {message}", flush=True)
 
 
-def _get_free_port():
+def _get_free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))
         return sock.getsockname()[1]
@@ -66,23 +132,23 @@ class HttpResponse:
     body: bytes
 
     @property
-    def text(self):
+    def text(self) -> str:
         return self.body.decode("utf-8", errors="replace")
 
-    def json(self) -> Any:
-        return json.loads(self.body)
+    def json(self) -> JsonValue:
+        return cast(JsonValue, json.loads(self.body))
 
 
 class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
     def redirect_request(
         self,
-        request,
-        response,
-        code,
-        message,
-        headers,
-        new_url,
-    ):
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: HTTPMessage,
+        newurl: str,
+    ) -> None:
         return None
 
 
@@ -91,13 +157,14 @@ class MrsHttpClient:
 
     def __init__(
         self,
-        base_url,
-        timeout=DEFAULT_HTTP_TIMEOUT,
-        ssl_context=None,
-        follow_redirects=False,
-    ):
+        base_url: str,
+        timeout: float = DEFAULT_HTTP_TIMEOUT,
+        ssl_context: ssl.SSLContext | None = None,
+        follow_redirects: bool = False,
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
+        self._default_headers: dict[str, str] = {}
 
         if ssl_context is None:
             # Sandboxes use a generated, self-signed TLS certificate.
@@ -106,7 +173,7 @@ class MrsHttpClient:
             ssl_context.verify_mode = ssl.CERT_NONE
 
         self.cookies = http.cookiejar.CookieJar()
-        handlers = [
+        handlers: list[urllib.request.BaseHandler] = [
             urllib.request.HTTPSHandler(context=ssl_context),
             urllib.request.HTTPCookieProcessor(self.cookies),
         ]
@@ -115,20 +182,81 @@ class MrsHttpClient:
 
         self._opener = urllib.request.build_opener(*handlers)
 
-    def get(self, path, headers=None):
+    def get(
+        self,
+        path: str,
+        headers: HttpHeaders | None = None,
+    ) -> HttpResponse:
         return self.request("GET", path, headers=headers)
 
-    def request(self, method, path, body=None, headers=None):
+    def request(
+        self,
+        method: str,
+        path: str,
+        body: bytes | None = None,
+        headers: HttpHeaders | None = None,
+    ) -> HttpResponse:
         return self._request(method, path, body, headers, log_exchange=True)
+
+    def request_json(
+        self,
+        method: str,
+        path: str,
+        value: JsonValue,
+        headers: HttpHeaders | None = None,
+    ) -> HttpResponse:
+        request_headers: dict[str, str] = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        request_headers.update(headers or {})
+
+        return self.request(
+            method,
+            path,
+            body=json.dumps(value).encode("utf-8"),
+            headers=request_headers,
+        )
+
+    def login(
+        self,
+        path: str,
+        username: str,
+        password: str,
+        session_type: str = "cookie",
+        auth_app: str | None = None,
+    ) -> HttpResponse:
+        if session_type not in ("cookie", "bearer"):
+            raise ValueError("session_type must be 'cookie' or 'bearer'")
+
+        credentials: dict[str, JsonValue] = {
+            "sessionType": session_type,
+            "username": username,
+            "password": password,
+        }
+        if auth_app is not None:
+            credentials["authApp"] = auth_app
+
+        response = self.request_json("POST", path, credentials)
+        if response.status == 200 and session_type == "bearer":
+            payload = response.json()
+            access_token = (
+                payload.get("accessToken") if isinstance(payload, dict) else None
+            )
+            if not isinstance(access_token, str) or not access_token:
+                raise AssertionError("Bearer login succeeded without an access token")
+            self._default_headers["Authorization"] = f"Bearer {access_token}"
+
+        return response
 
     def wait_for_status(
         self,
-        path,
-        expected_status,
-        headers=None,
-        timeout=DEFAULT_WAIT_TIMEOUT,
-        retry_statuses=(404,),
-    ):
+        path: str,
+        expected_status: int,
+        headers: HttpHeaders | None = None,
+        timeout: float = DEFAULT_WAIT_TIMEOUT,
+        retry_statuses: Collection[int] = (404,),
+    ) -> HttpResponse:
         """Poll a GET request through selected transient HTTP statuses."""
         url = self._url(path)
         log(f"Waiting for GET {url} to return HTTP {expected_status}")
@@ -166,12 +294,21 @@ class MrsHttpClient:
 
             time.sleep(min(POLL_INTERVAL, remaining))
 
-    def _request(self, method, path, body, headers, log_exchange):
+    def _request(
+        self,
+        method: str,
+        path: str,
+        body: bytes | None,
+        headers: HttpHeaders | None,
+        log_exchange: bool,
+    ) -> HttpResponse:
         url = self._url(path)
+        request_headers = dict(self._default_headers)
+        request_headers.update(headers or {})
         request = urllib.request.Request(
             url,
             data=body,
-            headers=headers or {},
+            headers=request_headers,
             method=method,
         )
 
@@ -179,10 +316,14 @@ class MrsHttpClient:
             log(f"{method} {url}")
 
         try:
-            with self._opener.open(
-                request,
-                timeout=self._timeout,
-            ) as response:
+            response = cast(
+                HTTPResponse,
+                self._opener.open(
+                    request,
+                    timeout=self._timeout,
+                ),
+            )
+            with response:
                 result = self._read_response(response)
         except urllib.error.HTTPError as error:
             try:
@@ -194,16 +335,21 @@ class MrsHttpClient:
             log(f"Received HTTP {result.status}")
         return result
 
-    def _url(self, path):
+    def _url(self, path: str) -> str:
         if not path.startswith("/"):
             raise ValueError("HTTP request paths must start with '/'")
 
         return self._base_url + path
 
     @staticmethod
-    def _read_response(response):
+    def _read_response(
+        response: HTTPResponse | urllib.error.HTTPError,
+    ) -> HttpResponse:
+        status = response.status
+        if status is None:
+            raise AssertionError("HTTP response did not include a status code")
         return HttpResponse(
-            status=response.getcode(),
+            status=status,
             headers=response.headers,
             body=response.read(),
         )
@@ -212,8 +358,14 @@ class MrsHttpClient:
 class MrsComponentTestHarness:
     """Test-facing control of one MRS component and one published service."""
 
-    def __init__(self, session, service, port=None, test_server=None):
-        self._session = session
+    def __init__(
+        self,
+        session: SqlSession,
+        service: ServiceMetadata,
+        port: int | None = None,
+        test_server: RestartableTestServer | None = None,
+    ) -> None:
+        self._session: SqlSession | None = session
         self._test_server = test_server
         self._service_id = service["id"]
         self._service_path = service["host_ctx"]
@@ -225,56 +377,71 @@ class MrsComponentTestHarness:
         self.base_url = f"https://127.0.0.1:{self.port}"
         self.http = MrsHttpClient(self.base_url)
 
-    def add_cleanup(self, callback, *args, **kwargs):
+    def add_cleanup(
+        self,
+        callback: Callable[_Parameters, _ReturnType],
+        *args: _Parameters.args,
+        **kwargs: _Parameters.kwargs,
+    ) -> Callable[_Parameters, _ReturnType]:
         """Register LIFO cleanup to run before component uninstall."""
         return self._cleanups.callback(callback, *args, **kwargs)
 
-    def is_installed(self):
-        return bool(
-            self._session.run_sql(
+    def _require_session(self) -> SqlSession:
+        if self._session is None:
+            raise RuntimeError("MySQL is unavailable")
+        return self._session
+
+    def is_installed(self) -> bool:
+        row = (
+            self._require_session()
+            .run_sql(
                 "SELECT COUNT(*) FROM mysql.component WHERE component_urn = ?",
                 [COMPONENT_URN],
-            ).fetch_one()[0]
+            )
+            .fetch_one()
         )
+        if row is None:
+            raise AssertionError("Component installation query returned no row")
+        return bool(row[0])
 
-    def publish_service(self):
+    def publish_service(self) -> None:
         self.set_service_published(True)
 
-    def set_service_published(self, published):
+    def set_service_published(self, published: bool) -> None:
         published = bool(published)
         if published == self._published:
             return
 
         action = "Publishing" if published else "Unpublishing"
         log(f"{action} MRS service {self._service_path}")
-        lib.services.update_services(
-            self._session,
-            [self._service_id],
-            {"published": published},
+        _update_service_publication(
+            self._require_session(),
+            self._service_id,
+            published,
         )
         self._published = published
 
-    def install(self):
+    def install(self) -> None:
         log(f"Installing the MRS component on HTTPS port {self.port}")
-        self._session.run_sql(
+        self._require_session().run_sql(
             f'INSTALL COMPONENT "{COMPONENT_URN}" '
             f"SET GLOBAL mysql_rest_service.http_port = {self.port}"
         )
 
-    def configure_http_port(self, port=None):
+    def configure_http_port(self, port: int | None = None) -> int:
         port = _get_free_port() if port is None else int(port)
         log(f"Configuring the MRS component HTTPS port as {port}")
-        self._session.run_sql(
+        self._require_session().run_sql(
             f"SET GLOBAL mysql_rest_service.http_port = {port}"
         )
 
         self._set_endpoint(port)
         return port
 
-    def persist_http_port(self, port=None):
+    def persist_http_port(self, port: int | None = None) -> int:
         port = _get_free_port() if port is None else int(port)
         log(f"Persisting the MRS component HTTPS port as {port}")
-        self._session.run_sql(
+        self._require_session().run_sql(
             f"SET PERSIST mysql_rest_service.http_port = {port}"
         )
         self.add_cleanup(self._reset_persisted_http_port)
@@ -282,28 +449,28 @@ class MrsComponentTestHarness:
         self._set_endpoint(port)
         return port
 
-    def _set_endpoint(self, port):
+    def _set_endpoint(self, port: int) -> None:
         self.port = port
         self.base_url = f"https://127.0.0.1:{port}"
         self.http = MrsHttpClient(self.base_url)
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         log("Uninstalling the MRS component")
-        self._session.run_sql(f'UNINSTALL COMPONENT "{COMPONENT_URN}"')
+        self._require_session().run_sql(f'UNINSTALL COMPONENT "{COMPONENT_URN}"')
 
-    def start(self):
+    def start(self) -> int:
         log("Starting the MRS component")
         return self._execute_lifecycle_udf("start")
 
-    def stop(self):
+    def stop(self) -> int:
         log("Stopping the MRS component")
         return self._execute_lifecycle_udf("stop")
 
-    def restart(self):
+    def restart(self) -> int:
         log("Restarting the MRS component")
         return self._execute_lifecycle_udf("restart")
 
-    def restart_server(self):
+    def restart_server(self) -> SqlSession:
         """Restart the suite-owned mysqld and adopt its new session."""
         if self._test_server is None:
             raise RuntimeError("MySQL Server restart is not configured")
@@ -313,50 +480,119 @@ class MrsComponentTestHarness:
         finally:
             self._session = self._test_server.session
 
-        return self._session
+        return self._require_session()
 
-    def grant_lifecycle_admin(self):
+    def grant_lifecycle_admin(self) -> None:
         log(f"Granting {LIFECYCLE_ADMIN_PRIVILEGE} to the test account")
-        self._session.run_sql(
+        self._require_session().run_sql(
             f"GRANT {LIFECYCLE_ADMIN_PRIVILEGE} ON *.* TO CURRENT_USER()"
         )
         self.add_cleanup(self._revoke_lifecycle_admin)
 
-    def _revoke_lifecycle_admin(self):
+    def _revoke_lifecycle_admin(self) -> None:
         log(f"Revoking {LIFECYCLE_ADMIN_PRIVILEGE} from the test account")
-        self._session.run_sql(
+        self._require_session().run_sql(
             f"REVOKE {LIFECYCLE_ADMIN_PRIVILEGE} ON *.* FROM CURRENT_USER()"
         )
 
-    def _reset_persisted_http_port(self):
+    def _reset_persisted_http_port(self) -> None:
         log("Resetting the persisted MRS component HTTPS port")
-        self._session.run_sql("RESET PERSIST mysql_rest_service.http_port")
+        self._require_session().run_sql("RESET PERSIST mysql_rest_service.http_port")
 
-    def _execute_lifecycle_udf(self, operation):
-        return self._session.run_sql(
-            f"SELECT mysql_rest_service_{operation}()"
-        ).fetch_one()[0]
+    def _execute_lifecycle_udf(self, operation: str) -> int:
+        row = (
+            self._require_session()
+            .run_sql(f"SELECT mysql_rest_service_{operation}()")
+            .fetch_one()
+        )
+        if row is None:
+            raise AssertionError(f"{operation} UDF returned no row")
+        return cast(int, row[0])
 
-    def status(self):
-        rows = self._session.run_sql(
-            """
+    def status(self) -> ComponentStatus:
+        rows = self._require_session().run_sql("""
             SELECT VARIABLE_NAME, VARIABLE_VALUE
             FROM performance_schema.global_status
             WHERE VARIABLE_NAME IN (
                 'mysql_rest_service.state',
                 'mysql_rest_service.current_http_port'
             )
-            """
-        ).fetch_all()
-        values = {row[0].lower(): row[1] for row in rows}
-        current_port = values.get("mysql_rest_service.current_http_port")
+            """).fetch_all()
+        values = {cast(str, row[0]).lower(): row[1] for row in rows}
+        state = cast(str | None, values.get("mysql_rest_service.state"))
+        current_port = cast(
+            int | str | None,
+            values.get("mysql_rest_service.current_http_port"),
+        )
 
         return ComponentStatus(
-            state=values.get("mysql_rest_service.state"),
+            state=state,
             http_port=int(current_port) if current_port is not None else None,
         )
 
-    def wait_until_ready(self, timeout=DEFAULT_WAIT_TIMEOUT):
+    def error_log_count(self, text: str) -> int:
+        row = (
+            self._require_session()
+            .run_sql(
+                """
+                SELECT COUNT(*)
+                FROM performance_schema.error_log
+                WHERE LOCATE(?, DATA) > 0
+                """,
+                [text],
+            )
+            .fetch_one()
+        )
+        if row is None:
+            raise AssertionError("Error-log count query returned no row")
+        return int(cast(int | str | bytes, row[0]))
+
+    def wait_for_error_log(
+        self,
+        text: str,
+        previous_count: int = 0,
+        timeout: float = DEFAULT_WAIT_TIMEOUT,
+    ) -> str:
+        """Wait for a new error-log entry containing the given text."""
+        log(f"Waiting for MySQL error log entry containing: {text}")
+        deadline = time.monotonic() + timeout
+        count = self.error_log_count(text)
+
+        while count <= previous_count:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise AssertionError(
+                    f"MySQL error log did not receive a new entry containing "
+                    f"{text!r} within {timeout} seconds; matching entry count "
+                    f"remained {count}"
+                )
+
+            time.sleep(min(POLL_INTERVAL, remaining))
+            count = self.error_log_count(text)
+
+        row = (
+            self._require_session()
+            .run_sql(
+                """
+                SELECT DATA
+                FROM performance_schema.error_log
+                WHERE LOCATE(?, DATA) > 0
+                ORDER BY LOGGED DESC, THREAD_ID DESC
+                LIMIT 1
+                """,
+                [text],
+            )
+            .fetch_one()
+        )
+        if row is None:
+            raise AssertionError("Expected error-log query returned no row")
+        log(f"MySQL error log received the expected entry after {count} match(es)")
+        return cast(str, row[0])
+
+    def wait_until_ready(
+        self,
+        timeout: float = DEFAULT_WAIT_TIMEOUT,
+    ) -> ComponentStatus:
         log("Waiting for the MRS component to become READY")
         status = self.wait_for_state("READY", timeout=timeout, http_port=self.port)
         log(f"MRS component is READY at {self.base_url}")
@@ -364,16 +600,15 @@ class MrsComponentTestHarness:
 
     def wait_for_state(
         self,
-        expected_state,
-        timeout=DEFAULT_WAIT_TIMEOUT,
-        http_port=None,
-    ):
+        expected_state: str,
+        timeout: float = DEFAULT_WAIT_TIMEOUT,
+        http_port: int | None = None,
+    ) -> ComponentStatus:
         deadline = time.monotonic() + timeout
         status = self.status()
 
-        while (
-            status.state != expected_state
-            or (http_port is not None and status.http_port != http_port)
+        while status.state != expected_state or (
+            http_port is not None and status.http_port != http_port
         ):
             if status.state == "ERROR" and expected_state != "ERROR":
                 raise AssertionError(
@@ -393,7 +628,7 @@ class MrsComponentTestHarness:
 
         return status
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         if self._session is None:
             # The session is invalidated as soon as a suite-owned sandbox
             # stops. Its destruction will discard all remaining test state.
@@ -409,13 +644,10 @@ class MrsComponentTestHarness:
                     self.uninstall()
             finally:
                 if self._published != self._original_published:
-                    log(
-                        f"Restoring the publication state of "
-                        f"{self._service_path}"
-                    )
-                    lib.services.update_services(
-                        self._session,
-                        [self._service_id],
-                        {"published": self._original_published},
+                    log(f"Restoring the publication state of {self._service_path}")
+                    _update_service_publication(
+                        self._require_session(),
+                        self._service_id,
+                        self._original_published,
                     )
                     self._published = self._original_published

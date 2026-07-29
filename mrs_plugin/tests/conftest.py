@@ -21,45 +21,70 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from __future__ import annotations
+
 import os
 import tempfile
+from collections.abc import Callable, Iterator
 from contextlib import ExitStack
+from typing import TYPE_CHECKING, TypedDict, cast
 
-import mysqlsh
+import mysqlsh  # pyright: ignore[reportMissingImports]
 import pytest
 
-from mrs_plugin import lib
 import mrs_plugin.tests.unit.helpers as helpers
-from mrs_plugin import general
+from mrs_plugin import general, lib
 
-PHONE_BOOKS = {}
+if TYPE_CHECKING:
+    from mrs_plugin.tests.e2e.component.harness import (
+        RestartableTestServer,
+        SqlSession,
+        TestServiceFixture,
+    )
+
+PHONE_BOOKS: dict[str, TestServiceFixture] = {}
+
+
+class _ConnectionData(TypedDict):
+    user: str
+    host: str
+    port: str
+    password: str
 
 
 class _MysqlTestServer:
     """Own the suite's sandbox and reconnectable Shell session."""
 
-    def __init__(self, connection_data, deployment_dir, session, log):
+    def __init__(
+        self,
+        connection_data: _ConnectionData,
+        deployment_dir: tempfile.TemporaryDirectory[str] | None,
+        session: SqlSession,
+        log: Callable[[str], None],
+    ) -> None:
         self._connection_data = connection_data
         self._deployment_dir = deployment_dir
-        self._session = session
+        self._session: SqlSession | None = session
         self._log = log
 
     @property
-    def session(self):
+    def session(self) -> SqlSession | None:
         return self._session
 
-    def close_session(self):
+    def close_session(self) -> None:
         if self._session is not None and self._session.is_open():
             self._session.close()
 
-    def _set_session(self, session):
+    def _set_session(self, session: SqlSession | None) -> None:
         self._session = session
         for phone_book in PHONE_BOOKS.values():
             phone_book["session"] = session
 
-    def restart(self):
+    def restart(self) -> SqlSession:
         if self._deployment_dir is None:
             raise RuntimeError("Cannot restart a reused MySQL instance")
+        if self._session is None:
+            raise RuntimeError("Cannot restart without an active MySQL session")
 
         port = self._connection_data["port"]
         sandbox_dir = self._deployment_dir.name
@@ -67,6 +92,8 @@ class _MysqlTestServer:
         session_state = self._session.run_sql(
             "SELECT @@SESSION.sql_mode, DATABASE()"
         ).fetch_one()
+        if session_state is None:
+            raise AssertionError("MySQL session-state query returned no row")
 
         self._log("Stopping the MySQL sandbox")
         mysqlsh.globals.dba.stop_sandbox_instance(
@@ -86,22 +113,23 @@ class _MysqlTestServer:
         )
         self._log("MySQL sandbox started")
 
-        self._set_session(helpers.create_shell_session())
+        session = cast("SqlSession", helpers.create_shell_session())
+        self._set_session(session)
 
-        self._session.run_sql(
+        session.run_sql(
             "SET SESSION sql_mode = ?",
             [session_state[0]],
         )
         if session_state[1] is not None:
             schema = mysqlsh.mysql.quote_identifier(session_state[1])
-            self._session.run_sql(f"USE {schema}")
+            session.run_sql(f"USE {schema}")
 
         lib.services.set_current_service_id(
-            self._session,
+            session,
             PHONE_BOOKS["PhoneBook"]["service_id"],
         )
         self._log("Reconnected to MySQL")
-        return self._session
+        return session
 
 
 def start_mysql_session(connection_id=0):
@@ -141,8 +169,9 @@ def start_mysql_session(connection_id=0):
     for db in phone_book_dbs:
         temp_dir = tempfile.TemporaryDirectory()
         temp_dirs.append(temp_dir)
-        PHONE_BOOKS[db] = helpers.create_mrs_phonebook_schema(
-            session, "/test", db, temp_dir
+        PHONE_BOOKS[db] = cast(
+            "TestServiceFixture",
+            helpers.create_mrs_phonebook_schema(session, "/test", db, temp_dir),
         )
 
     lib.services.set_current_service_id(session, PHONE_BOOKS["PhoneBook"]["service_id"])
@@ -172,11 +201,13 @@ def cleanup_mysql_session(session_data):
 
 
 @pytest.fixture(scope="session")
-def init_mrs(request):
+def init_mrs(
+    request: pytest.FixtureRequest,
+) -> Iterator[RestartableTestServer]:
     shell = mysqlsh.globals.shell
     shell.options.set("useWizards", False)
 
-    connection_data = helpers.get_connection_data()
+    connection_data = cast(_ConnectionData, helpers.get_connection_data())
     os.makedirs(os.path.join("tests", "mysql-sandboxes"), exist_ok=True)
 
     component_e2e = request.config.getoption("--mrs-component")
@@ -188,7 +219,7 @@ def init_mrs(request):
             "with REUSE_MYSQLD"
         )
 
-    def _component_e2e_log(message):
+    def _component_e2e_log(message: str) -> None:
         if component_e2e:
             print(f"[component-e2e] {message}", flush=True)
 
@@ -212,7 +243,7 @@ def init_mrs(request):
             )
             _component_e2e_log("MySQL sandbox deployed")
 
-            def destroy_sandbox():
+            def destroy_sandbox() -> None:
                 _component_e2e_log("Destroying the MySQL sandbox")
                 mysqlsh.globals.dba.kill_sandbox_instance(
                     connection_data["port"],
@@ -227,18 +258,18 @@ def init_mrs(request):
                 f"{connection_data['host']}:{connection_data['port']}"
             )
 
-        session: mysqlsh.globals.session = helpers.create_shell_session()
+        session = cast("SqlSession", helpers.create_shell_session())
         assert session is not None
         _component_e2e_log("Connected to MySQL")
 
-        test_server = _MysqlTestServer(
+        test_server: RestartableTestServer = _MysqlTestServer(
             connection_data,
             deployment_dir,
             session,
             _component_e2e_log,
         )
 
-        def close_session():
+        def close_session() -> None:
             _component_e2e_log("Closing the MySQL session")
             test_server.close_session()
 
@@ -248,6 +279,8 @@ def init_mrs(request):
             server = session.run_sql(
                 "SELECT @@version, @@basedir, @@datadir"
             ).fetch_one()
+            if server is None:
+                raise AssertionError("MySQL Server identity query returned no row")
             _component_e2e_log(
                 f"MySQL Server {server[0]}; basedir={server[1]}; "
                 f"datadir={server[2]}"
@@ -271,8 +304,9 @@ def init_mrs(request):
         for db in phone_book_dbs:
             temp_dir = tempfile.TemporaryDirectory()
             cleanups.callback(temp_dir.cleanup)
-            PHONE_BOOKS[db] = helpers.create_mrs_phonebook_schema(
-                session, "/test", db, temp_dir
+            PHONE_BOOKS[db] = cast(
+                "TestServiceFixture",
+                helpers.create_mrs_phonebook_schema(session, "/test", db, temp_dir),
             )
 
         lib.services.set_current_service_id(

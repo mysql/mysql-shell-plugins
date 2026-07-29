@@ -32,10 +32,15 @@ are still available.
 `MrsHttpClient` retains cookies, does not follow redirects by default, and
 returns error responses instead of raising for HTTP status codes. Pass
 `follow_redirects=True` only when following redirects is part of the scenario.
+Use `request_json()` for JSON request bodies. `login()` retains a cookie
+session or configures the client with the returned bearer token; create a
+separate client for each independent authenticated session.
 Use the GET-only `wait_for_status()` when a test must wait for a published
 metadata change to become visible. It retries selected transient HTTP statuses
 (404 by default), but transport failures and unexpected statuses fail
 immediately.
+Snapshot matching diagnostics with `error_log_count()` before triggering a
+failure, then use `wait_for_error_log()` to require a new matching entry.
 
 Keep scenario-specific assertions in test modules. Add behavior to the harness
 only when it represents a reusable component, metadata, or HTTP operation.
@@ -54,6 +59,12 @@ python3 run_tests.py \
     --shell /path/to/mysqlsh \
     --pytest=-s \
     -k component_serves_published_service
+```
+
+Shared component test infrastructure is checked with Pyright:
+
+```sh
+/path/to/mysqlsh --pym pyright --project pyrightconfig.json
 ```
 
 Copyright (c) 2026, Oracle and/or its affiliates.

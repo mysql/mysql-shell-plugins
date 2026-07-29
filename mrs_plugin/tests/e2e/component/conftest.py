@@ -21,23 +21,45 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+# pyright: strict
+
+from collections.abc import Iterator
+from typing import cast
+
 import pytest
 
 from mrs_plugin import lib
-from mrs_plugin.tests.e2e.component.harness import MrsComponentTestHarness
+from mrs_plugin.tests.e2e.component.harness import (
+    MrsComponentTestHarness,
+    RestartableTestServer,
+    ServiceMetadata,
+    TestServiceFixture,
+)
 
 
 @pytest.fixture(scope="session")
-def require_component_e2e(request):
+def require_component_e2e(request: pytest.FixtureRequest) -> None:
     if not request.config.getoption("--mrs-component"):
         pytest.skip("pass --mrs-component to run component end-to-end tests")
 
 
 @pytest.fixture
-def mrs_component(require_component_e2e, phone_book, init_mrs):
+def mrs_component(
+    require_component_e2e: None,
+    phone_book: TestServiceFixture,
+    init_mrs: RestartableTestServer,
+) -> Iterator[MrsComponentTestHarness]:
     session = phone_book["session"]
+    if session is None:
+        pytest.fail("The MRS test session is not available")
     service_id = phone_book["service_id"]
-    service = lib.services.get_service(session, service_id=service_id)
+    service = cast(
+        ServiceMetadata | None,
+        lib.services.get_service(  # pyright: ignore[reportUnknownMemberType]
+            session,
+            service_id=service_id,
+        ),
+    )
     if service is None:
         pytest.fail("The MRS test service was not found")
 
@@ -57,7 +79,9 @@ def mrs_component(require_component_e2e, phone_book, init_mrs):
 
 
 @pytest.fixture
-def ready_mrs_component(mrs_component):
+def ready_mrs_component(
+    mrs_component: MrsComponentTestHarness,
+) -> MrsComponentTestHarness:
     mrs_component.publish_service()
     mrs_component.install()
     mrs_component.wait_until_ready()

@@ -95,6 +95,126 @@ def test_http_client_can_follow_redirects_explicitly(redirect_server):
     assert response.body == b"target"
 
 
+def test_request_json_encodes_body_and_headers(monkeypatch):
+    client = harness.MrsHttpClient("https://127.0.0.1:8443")
+    requests = []
+
+    def request(*args, **kwargs):
+        requests.append((args, kwargs))
+        return _response(200)
+
+    monkeypatch.setattr(client, "_request", request)
+
+    response = client.request_json(
+        "POST",
+        "/test",
+        {"value": 1},
+        headers={"X-Test": "yes"},
+    )
+
+    assert response.status == 200
+    assert requests == [
+        (
+            (
+                "POST",
+                "/test",
+                b'{"value": 1}',
+                {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "X-Test": "yes",
+                },
+            ),
+            {"log_exchange": True},
+        )
+    ]
+
+
+def test_login_sets_bearer_authorization(monkeypatch):
+    client = harness.MrsHttpClient("https://127.0.0.1:8443")
+    requests = []
+
+    def request_json(method, path, value, headers=None):
+        requests.append((method, path, value, headers))
+        return _response(200, b'{"accessToken":"test-token"}')
+
+    monkeypatch.setattr(client, "request_json", request_json)
+
+    response = client.login(
+        "/test/authentication/login",
+        "user",
+        "password",
+        session_type="bearer",
+        auth_app="MySQL",
+    )
+
+    assert response.status == 200
+    assert requests == [
+        (
+            "POST",
+            "/test/authentication/login",
+            {
+                "sessionType": "bearer",
+                "username": "user",
+                "password": "password",
+                "authApp": "MySQL",
+            },
+            None,
+        )
+    ]
+    assert client._default_headers == {
+        "Authorization": "Bearer test-token"
+    }
+
+
+def test_login_does_not_create_bearer_session_on_failure(monkeypatch):
+    client = harness.MrsHttpClient("https://127.0.0.1:8443")
+    monkeypatch.setattr(
+        client,
+        "request_json",
+        lambda *_args, **_kwargs: _response(401),
+    )
+
+    response = client.login(
+        "/test/authentication/login",
+        "user",
+        "wrong-password",
+        session_type="bearer",
+    )
+
+    assert response.status == 401
+    assert client._default_headers == {}
+
+
+def test_login_rejects_bearer_response_without_token(monkeypatch):
+    client = harness.MrsHttpClient("https://127.0.0.1:8443")
+    monkeypatch.setattr(
+        client,
+        "request_json",
+        lambda *_args, **_kwargs: _response(200, b"{}"),
+    )
+
+    with pytest.raises(AssertionError, match="without an access token"):
+        client.login(
+            "/test/authentication/login",
+            "user",
+            "password",
+            session_type="bearer",
+        )
+
+
+def test_login_rejects_unknown_session_type():
+    client = harness.MrsHttpClient("https://127.0.0.1:8443")
+
+    with pytest.raises(ValueError, match="session_type"):
+        client.login(
+            "/test/authentication/login",
+            "user",
+            "password",
+            session_type="unknown",
+        )
+
+
 def test_wait_for_status_retries_not_found(monkeypatch):
     client = harness.MrsHttpClient("https://127.0.0.1:8443")
     responses = iter([_response(404), _response(200)])
@@ -202,6 +322,60 @@ def test_wait_for_state_timeout_reports_last_status(monkeypatch):
 
     assert "did not reach READY within 1 seconds" in str(error.value)
     assert f"last status was {last_status}" in str(error.value)
+
+
+def test_wait_for_error_log_returns_new_matching_entry(monkeypatch):
+    class Result:
+        def __init__(self, row):
+            self._row = row
+
+        def fetch_one(self):
+            return self._row
+
+    class Session:
+        def __init__(self):
+            self.counts = iter(["1", "2"])
+
+        def run_sql(self, statement, parameters):
+            assert parameters == ["unique diagnostic"]
+            if "COUNT(*)" in statement:
+                return Result((next(self.counts),))
+            return Result(("new unique diagnostic",))
+
+    component = harness.MrsComponentTestHarness(
+        Session(),
+        {
+            "id": b"service-id",
+            "host_ctx": "/test",
+            "published": True,
+        },
+        port=8443,
+    )
+    monkeypatch.setattr(harness.time, "sleep", lambda _seconds: None)
+
+    message = component.wait_for_error_log(
+        "unique diagnostic",
+        previous_count=1,
+    )
+
+    assert message == "new unique diagnostic"
+
+
+def test_wait_for_error_log_timeout_reports_matching_count(monkeypatch):
+    component = _component_harness()
+    monotonic_times = iter([10.0, 11.0])
+    monkeypatch.setattr(component, "error_log_count", lambda _text: 2)
+    monkeypatch.setattr(harness.time, "monotonic", lambda: next(monotonic_times))
+
+    with pytest.raises(AssertionError) as error:
+        component.wait_for_error_log(
+            "missing diagnostic",
+            previous_count=2,
+            timeout=1,
+        )
+
+    assert "did not receive a new entry" in str(error.value)
+    assert "matching entry count remained 2" in str(error.value)
 
 
 def test_cleanup_callbacks_run_in_reverse_order_before_uninstall(monkeypatch):

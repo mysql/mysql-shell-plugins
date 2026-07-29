@@ -1,0 +1,13 @@
+// Copyright (c) 2026, Oracle and/or its affiliates.
+{
+    "include": [
+        "tests/conftest.py",
+        "tests/e2e/component/conftest.py",
+        "tests/e2e/component/harness.py"
+    ],
+    "extraPaths": [
+        ".."
+    ],
+    "typeCheckingMode": "standard",
+    "reportMissingTypeStubs": false
+}
