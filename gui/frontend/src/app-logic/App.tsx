@@ -55,7 +55,7 @@ import { ApplicationDB } from "./ApplicationDB.js";
 import { DialogHost } from "./DialogHost.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
 import {
-    DialogResponseClosure, DialogType, IDialogResponse, minimumShellVersion, type IDialogRequest,
+    DialogResponseClosure, DialogType, minimumShellVersion, type IDialogRequest,
     type IServicePasswordRequest,
 } from "./general-types.js";
 import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
@@ -98,15 +98,9 @@ export class App extends Component<{}, IAppState> {
         };
         requisitions.register("hostThemeChange", this.themeManager.hostThemeChange);
 
-        // Register early to ensure this handler is called last.
-        requisitions.register("dialogResponse", this.dialogResponse);
-
         requisitions.register("webSessionStarted", (data) => {
             webSession.sessionId = data.sessionUuid;
             webSession.runMode = data.localUserMode ? RunMode.LocalUser : RunMode.Normal;
-            if (data.singleServerMode) {
-                webSession.runMode = RunMode.SingleServer;
-            }
 
             // TODO: remove the check for the recover message and instead handle the session user name via
             //       session storage. Requires individual solutions for both, standalone and embedded use.
@@ -184,7 +178,6 @@ export class App extends Component<{}, IAppState> {
             void ApplicationDB.cleanUp();
 
             requisitions.unregister("themeChanged", this.themeChanged);
-            requisitions.unregister("dialogResponse", this.dialogResponse);
             requisitions.unregister("hostThemeChange", this.themeManager.hostThemeChange);
 
             this.codiconStyleDisposables.forEach((disposable) => {
@@ -199,7 +192,7 @@ export class App extends Component<{}, IAppState> {
     public override componentDidMount(): void {
         /* istanbul ignore next */
         if (!appParameters.testsRunning && !this.isStandaloneFileViewer()) {
-            void MessageScheduler.get.connect({ url: new URL(window.location.href) });
+            void MessageScheduler.get.connect();
         }
 
         if (hasElectronHostBridge()) {
@@ -277,14 +270,6 @@ export class App extends Component<{}, IAppState> {
 
     public showInformationMessage = <T extends string>(message: string, options: MessageOptions | undefined,
         ...items: T[]): Thenable<string | undefined> => {
-        // Forward info messages to the hosting application.
-        if (appParameters.inExtension) {
-            const result = requisitions.executeRemote("showInfo", message);
-            if (result) {
-                return Promise.resolve(undefined);
-            }
-        }
-
         const accept = items.shift();
         const refuse = items.shift();
         const alternative = items.shift();
@@ -317,13 +302,6 @@ export class App extends Component<{}, IAppState> {
 
     public showWarningMessage = <T extends string>(message: string, _options: MessageOptions,
         ..._items: T[]): Thenable<string | undefined> => {
-        if (appParameters.inExtension) {
-            const result = requisitions.executeRemote("showWarning", message);
-            if (result) {
-                return Promise.resolve(undefined);
-            }
-        }
-
         if (this.#notificationCenterRef.current) {
             return this.#notificationCenterRef.current.showNotification({
                 type: NotificationType.Warning,
@@ -336,13 +314,6 @@ export class App extends Component<{}, IAppState> {
 
     public showErrorMessage = <T extends string>(message: string, _options: MessageOptions,
         ..._items: T[]): Thenable<string | undefined> => {
-        if (appParameters.inExtension) {
-            const result = requisitions.executeRemote("showError", message);
-            if (result) {
-                return Promise.resolve(undefined);
-            }
-        }
-
         if (this.#notificationCenterRef.current) {
             return this.#notificationCenterRef.current.showNotification({
                 type: NotificationType.Error,
@@ -512,14 +483,4 @@ export class App extends Component<{}, IAppState> {
         return Promise.resolve(true);
     };
 
-    private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
-        if (appParameters.inExtension) {
-            // Forward all dialog responses.
-            const result = requisitions.executeRemote("dialogResponse", response);
-
-            return Promise.resolve(result);
-        }
-
-        return Promise.resolve(false);
-    };
 }

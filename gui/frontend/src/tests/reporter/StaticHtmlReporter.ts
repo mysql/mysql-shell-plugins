@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
@@ -64,7 +64,6 @@ export class StaticHtmlReporter implements Reporter {
         let skippedModules = 0;
 
         const testRunResults: string[] = [];
-        const screenshotDir = "../../src/tests/e2e/screenshots";
 
         const processSuite = (suite: TestSuite): string => {
             switch (suite.state()) {
@@ -96,10 +95,6 @@ export class StaticHtmlReporter implements Reporter {
                         ++skippedTests;
                     }
 
-                    const safeName = child.name.replace(/[^\w\d\-_.]/g, "_");
-                    const imgPath = path.join(screenshotDir, `${safeName}.png`);
-
-                    let imgHtml = "";
                     let errorHtml = "";
                     if (result.state === "failed" || result.state === "skipped") {
 
@@ -121,10 +116,6 @@ export class StaticHtmlReporter implements Reporter {
                                 </div>`;
                         });
 
-                        if (existsSync(path.join(path.resolve("src/tests/e2e/screenshots"), `${safeName}.png`))) {
-                            imgHtml = `<img src="${imgPath}" class="screenshot" />`;
-                        }
-
                     }
 
                     const slow = child.diagnostic()?.slow;
@@ -137,7 +128,6 @@ export class StaticHtmlReporter implements Reporter {
                                 <div class="test-duration${slow ? " warn" : ""}">${time} ms</div>
                             </div>
                             <div class="error-info">${errorHtml}</div>
-                            <div>${imgHtml}</div>
                         </div>
                     `);
 
@@ -152,29 +142,12 @@ export class StaticHtmlReporter implements Reporter {
             if (errors.length > 0) {
                 const suiteErrors: string[] = [];
 
-                const safeName = suite.name.replace(/[^\w\d\-_.]/g, "_");
-                const imgPath = path.join(screenshotDir, `${safeName}.png`);
-                let imgHtml: string | undefined;
-
-                if (existsSync(path.join(path.resolve("src/tests/e2e/screenshots"), `${safeName}.png`))) {
-                    imgHtml = `<img src="${imgPath}" class="screenshot" />`;
-                }
-
                 errors.forEach((err) => {
-                    if (imgHtml) {
-                        suiteErrors.push(`
-                            <div class="error-message">
-                                <pre>${err.stack}</pre>
-                                <pre>${imgHtml}</pre>
-                            </div>
-                        `);
-                    } else {
-                        suiteErrors.push(`
-                            <div class="error-message">
-                                <pre>${err.stack}</pre>
-                            </div>
-                        `);
-                    }
+                    suiteErrors.push(`
+                        <div class="error-message">
+                            <pre>${err.stack}</pre>
+                        </div>
+                    `);
                 });
 
                 htmlSuiteErrors += `

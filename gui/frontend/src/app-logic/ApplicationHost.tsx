@@ -93,12 +93,12 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
         desktopCommandRegistry.registerProvider(this.desktopCommandProvider);
 
-        if (hasElectronHostBridge() && !appParameters.inExtension) {
+        if (hasElectronHostBridge()) {
             document.body.classList.add("electronDesktopWorkspaceLayout");
             document.getElementById("root")?.classList.add("electronDesktopWorkspaceLayout");
         }
 
-        if (!appParameters.inExtension && !appParameters.hideStatusBar) {
+        if (!appParameters.hideStatusBar) {
             this.optionsStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 9);
             this.optionsStatusItem.text = "$(gear)";
             this.optionsStatusItem.tooltip = "Toggle Preferences";

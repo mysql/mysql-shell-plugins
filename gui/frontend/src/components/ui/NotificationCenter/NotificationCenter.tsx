@@ -154,7 +154,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
         if (!appParameters.hideStatusBar) {
             requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
-            if (!appParameters.inExtension && !hasElectronHostBridge()) {
+            if (!hasElectronHostBridge()) {
                 this.#statusBarItem = StatusBar.createStatusBarItem({
                     id: "showNotificationHistory",
                     command: "notifications:showHistory",
@@ -654,14 +654,6 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     };
 
     private showInfo = async (caption: string): Promise<boolean> => {
-        // Forward info messages to the hosting application.
-        if (appParameters.inExtension) {
-            const result = requisitions.executeRemote("showInfo", caption);
-            if (result) {
-                return true;
-            }
-        }
-
         await this.showNotification({
             type: NotificationType.Information,
             text: caption,
@@ -671,14 +663,6 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     };
 
     private showWarning = async (message: string): Promise<boolean> => {
-        // Forward info messages to the hosting application.
-        if (appParameters.inExtension) {
-            const result = requisitions.executeRemote("showWarning", message);
-            if (result) {
-                return true;
-            }
-        }
-
         await this.showNotification({
             type: NotificationType.Warning,
             text: message,
@@ -688,14 +672,6 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     };
 
     private showError = async (message: string): Promise<boolean> => {
-        // Forward info messages to the hosting application.
-        if (appParameters.inExtension) {
-            const result = requisitions.executeRemote("showError", message);
-            if (result) {
-                return true;
-            }
-        }
-
         await this.showNotification({
             type: NotificationType.Error,
             text: message,

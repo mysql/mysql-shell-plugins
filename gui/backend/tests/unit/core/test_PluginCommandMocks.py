@@ -25,7 +25,6 @@ import pytest
 
 from gui_plugin.core import PluginCommandMocks
 from gui_plugin.core.ShellGuiStdioBridge import ShellGuiStdioBridge
-from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 
 
 class MockWebSession:
@@ -42,16 +41,6 @@ class MockWebSession:
 
     def send_command_done(self, request_id):
         self.done_requests.append(request_id)
-
-
-class MockPrivilegeResult:
-    def fetch_all(self):
-        return [{"access_pattern": ".*"}]
-
-
-class MockBackendDb:
-    def execute(self, _sql, _params):
-        return MockPrivilegeResult()
 
 
 @pytest.fixture(autouse=True)
@@ -183,28 +172,6 @@ def test_plugin_command_mock_control_commands_cannot_be_mocked(monkeypatch):
         PluginCommandMocks.set_plugin_command_mocks(
             {"gui.core.setPluginCommandMocks": {"result": True}}
         )
-
-
-def test_websocket_handler_sends_plugin_command_mock_without_invoking_plugin(
-    monkeypatch,
-):
-    enable_plugin_command_mocks(monkeypatch)
-    PluginCommandMocks.set_plugin_command_mocks(
-        {"gui.migration.work_status": {"responses": [{"request_state": {"type": "PENDING", "msg": ""}}]}}
-    )
-
-    def execute_request(web_session):
-        handler = ShellGuiWebSocketHandler.__new__(ShellGuiWebSocketHandler)
-        handler._db = MockBackendDb()
-        handler._session_user_id = 1
-        handler.send_json_response = web_session.send_json_response
-        handler.send_command_done = web_session.send_command_done
-        handler.send_command_response = web_session.send_command_response
-        handler.execute_command_request(
-            {"request_id": "request-1", "command": "gui.migration.work_status"}
-        )
-
-    assert_pending_mock_response(execute_request)
 
 
 def test_stdio_bridge_sends_plugin_command_mock_without_invoking_plugin(monkeypatch):

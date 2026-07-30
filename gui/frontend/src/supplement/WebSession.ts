@@ -40,8 +40,6 @@ export enum RunMode {
     /** The app runs with a predefined local administrator account. This is only possible with local installations. */
     LocalUser,
 
-    /** The app runs in a mode where it can only connect to a single MySQL server. */
-    SingleServer,
 }
 interface IWebSessionData {
     sessionId?: string;
@@ -208,9 +206,7 @@ class WebSession {
     public saveProfile(): void {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
-            if (!appParameters.inExtension) {
-                void ui.showInformationMessage("Profile updated successfully.", {});
-            }
+            void ui.showInformationMessage("Profile updated successfully.", {});
         }).catch((reason: unknown) => {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Profile Update Error: ${message}`, {});
@@ -276,10 +272,6 @@ class WebSession {
     }
 
     private get authKey(): Promise<CryptoKey | undefined> {
-        if (appParameters.inExtension) { // sessionStorage is not available in the extension.
-            return Promise.resolve(undefined);
-        }
-
         const stringKey = sessionStorage.getItem("encryptionKey");
         if (!stringKey) {
             return Promise.resolve(undefined);
@@ -291,9 +283,8 @@ class WebSession {
     }
 
     static {
-        // Generate our auth key for encrypting credentials. But not when we are running tests or in the extension.
-        // This is because JSDOM has no support for crypto.sublte and the extension does not support session storage.
-        if (!appParameters.testsRunning && !appParameters.inExtension && !sessionStorage.getItem("encryptionKey")) {
+        // JSDOM has no support for crypto.subtle, so do not create an encryption key while running tests.
+        if (!appParameters.testsRunning && !sessionStorage.getItem("encryptionKey")) {
             void crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"])
                 .then((key) => {
                     void crypto.subtle.exportKey("raw", key).then((rawKey) => {

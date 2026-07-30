@@ -62,9 +62,9 @@ default_server_connection_string = (
 
 FORMAT = "[%(asctime)-15s][%(levelname)s] %(message)s"
 logging.basicConfig(
-    level=logging.DEBUG, format=FORMAT, filename=("./TestWebSocket.log")
+    level=logging.DEBUG, format=FORMAT, filename=("./TestGuiBackend.log")
 )
-file_logger = logging.getLogger("TestWebSocket")
+file_logger = logging.getLogger("TestGuiBackend")
 
 
 @pytest.fixture(scope="session")

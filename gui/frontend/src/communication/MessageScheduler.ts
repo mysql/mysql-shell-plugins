@@ -25,8 +25,6 @@
 
 import { ui } from "../app-logic/UILayer.js";
 import { requisitions } from "../supplement/Requisitions.js";
-import { appParameters } from "../supplement/AppParameters.js";
-import { hasElectronDesktopBackend } from "../supplement/ElectronDesktop.js";
 import { webSession } from "../supplement/WebSession.js";
 import { uuid } from "../utilities/helpers.js";
 import { convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase } from "../utilities/string-helpers.js";
@@ -41,14 +39,6 @@ import { ShellAPIMigration } from "./ProtocolMigration.js";
 import type { IProtocolParameters } from "./ProtocolParameterMapper.js";
 import type { IProtocolResults } from "./ProtocolResultMapper.js";
 import { ResponseError } from "./ResponseError.js";
-
-export interface IConnectionOptions {
-    /** The http(s) URL to connect to. */
-    url: URL,
-
-    /** A path for MySQL shell configuration folder. */
-    shellConfigDir?: string;
-}
 
 /** The type of responses returned by requests. */
 type ResponseType<K extends keyof IProtocolResults> = K extends typeof multiResultAPIs[number] ?
@@ -127,43 +117,6 @@ interface IBackendConnection {
     close: () => void;
     connect: () => void;
     send: (data: string) => void;
-}
-
-class BrowserBackendConnection implements IBackendConnection {
-    private readonly socket: WebSocket;
-
-    public constructor(target: URL) {
-        this.socket = new WebSocket(target);
-    }
-
-    public get CONNECTING(): number {
-        return WebSocket.CONNECTING;
-    }
-
-    public get OPEN(): number {
-        return WebSocket.OPEN;
-    }
-
-    public get readyState(): number {
-        return this.socket.readyState;
-    }
-
-    public addEventListener = <K extends keyof IConnectionEventMap>(
-        type: K, listener: (event: IConnectionEventMap[K]) => void): void => {
-        this.socket.addEventListener(type, listener as EventListener);
-    };
-
-    public close = (): void => {
-        this.socket.close();
-    };
-
-    public connect = (): void => {
-        // WebSocket starts connecting immediately on construction.
-    };
-
-    public send = (data: string): void => {
-        this.socket.send(data);
-    };
 }
 
 class ElectronBackendConnection implements IBackendConnection {
@@ -287,9 +240,6 @@ export class MessageScheduler {
     private debugging = false;
     private disconnecting = false;
 
-    private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    private reconnectTimeout = 1000; // In milliseconds.
-
     private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults; }>();
 
     #traceEnabled = false;
@@ -332,13 +282,11 @@ export class MessageScheduler {
     }
 
     /**
-     * Opens a web socket connection.
-     *
-     * @param options Details for the connection.
+     * Opens the Electron desktop bridge connection.
      *
      * @returns A promise which indicates success or failure.
      */
-    public connect(options: IConnectionOptions): Promise<void> {
+    public connect(): Promise<void> {
         this.disconnecting = false;
 
         // If already open or connecting don't do anything.
@@ -346,23 +294,13 @@ export class MessageScheduler {
             this.socket.readyState === this.socket.CONNECTING)) {
             return Promise.resolve();
         } else {
-            const target = new URL(options.url);
-            target.protocol = options.url.protocol.replace("http", "ws"); // ws or wss
-            target.pathname = "ws1.ws";
-
-            // Standalone Vite development runs the frontend on port 3001 and the shell backend on 8000.
-            // VS Code webviews receive the backend URL from the extension and must keep that port.
-            if (appParameters.inDevelopment && !appParameters.inExtension) {
-                target.port = "8000";
-            }
-
             return new Promise((resolve, reject) => {
-                const socket = this.createConnection(target, options);
+                const socket = this.createConnection();
 
-                socket.addEventListener("close", this.onClose.bind(this, options));
+                socket.addEventListener("close", this.onClose);
                 socket.addEventListener("message", this.onMessage);
                 socket.addEventListener("open", this.onOpen.bind(this, resolve));
-                socket.addEventListener("error", this.onError.bind(this, options, reject));
+                socket.addEventListener("error", this.onError.bind(this, reject));
 
                 this.socket = socket;
                 socket.connect();
@@ -431,19 +369,10 @@ export class MessageScheduler {
     }
 
     /**
-     * Creates a web socket for the given options.
-     *
-     * @param target The endpoint to connect the socket to.
-     * @param options Details for the connection.
-     *
-     * @returns A new websocket instance.
+     * Creates the renderer side of the desktop bridge.
      */
-    protected createConnection(target: URL, options: IConnectionOptions): IBackendConnection {
-        if (hasElectronDesktopBackend()) {
-            return new ElectronBackendConnection();
-        }
-
-        return new BrowserBackendConnection(target);
+    protected createConnection(): IBackendConnection {
+        return new ElectronBackendConnection();
     }
 
     /**
@@ -472,7 +401,7 @@ export class MessageScheduler {
                         case EventType.DataResponse: {
                             // It's a normal data response.
                             if (ongoing.onData) {
-                                ongoing.onData(response, response.requestId).then((handledData) => {
+                                void ongoing.onData(response, response.requestId).then((handledData) => {
                                     if (!handledData) {
                                         ongoing.result.push(response);
                                     }
@@ -576,71 +505,31 @@ export class MessageScheduler {
      * @param resolve The resolver function to signal when the socket connection is available.
      */
     private onOpen = (resolve: (value: void | PromiseLike<void>) => void): void => {
-        if (this.reconnectTimer) {
-            clearTimeout(this.reconnectTimer);
-            this.reconnectTimer = null;
-
-            void ui.showInformationMessage("Connection to the backend established.", {});
-        }
-        this.reconnectTimeout = 1000;
-
         void requisitions.execute("socketStateChanged", true).then(() => {
             resolve();
         });
     };
 
     /**
-     * Called when the socket is closed or failed to open. Unfortunately, the given close code is always the same
-     * (1006) and the close reason is always empty.
-     *
-     * @param options The options used to open the websocket. Needed for automatic reconnect.
+     * Called when the desktop bridge is closed.
      */
-    private onClose = (options: IConnectionOptions): void => {
+    private onClose = (): void => {
         webSession.clearSessionData();
         void requisitions.execute("socketStateChanged", false);
-
-        if (!this.disconnecting && !this.debugging) {
-            if (this.reconnectTimer) {
-                clearTimeout(this.reconnectTimer);
-            }
-
-            this.reconnectTimer = setTimeout(() => {
-                // Do not clear the timer variable here as indicator in case we need another reconnection attempt.
-                void this.connect(options);
-            }, this.reconnectTimeout);
-        }
     };
 
     /**
-     * Called when an error occurred in the socket connection.
-     *
-     * @param options The options used to open the websocket. Needed for automatic reconnect.
+     * Called when an error occurred while starting the desktop bridge.
      * @param reject The reject function to call to signal that the connection had a failure to open.
      * @param event Event that gives more info about the error.
      */
-    private onError = (options: IConnectionOptions, reject: (reason?: unknown) => void, event: Event): void => {
-        if (appParameters.testsRunning) {
-            // If tests are running, we do not want to reconnect automatically.
-            return;
-        }
-
+    private onError = (reject: (reason?: unknown) => void, event: Event): void => {
         const detail = event instanceof CustomEvent && typeof event.detail === "string"
             ? event.detail
             : JSON.stringify(event, undefined, 4);
         reject(new Error(detail));
 
-        this.reconnectTimeout *= 2;
-        if (this.reconnectTimer) {
-            // This was a automatic reconnection attempt and failed. So, try again with a higher
-            // timeout value.
-            this.reconnectTimer = setTimeout(() => {
-                void this.connect(options);
-            }, this.reconnectTimeout);
-        }
-
-        void ui.showErrorMessage(`Could not establish a connection to the backend. Make sure you ` +
-            `use valid user credentials and the MySQL Shell is running. Trying to reconnect in ` +
-            `${this.reconnectTimeout / 1000} seconds.`, {});
+        void ui.showErrorMessage(`Could not establish a connection to the Workbench backend: ${detail}`, {});
     };
 
     /**

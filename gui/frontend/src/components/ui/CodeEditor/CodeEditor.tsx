@@ -39,7 +39,6 @@ import { CodeEditorSetup } from "./CodeEditorSetup.js";
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
-import { appParameters } from "../../../supplement/AppParameters.js";
 import { EditorLanguage, isEditorLanguage, ITextRange } from "../../../supplement/index.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import {
@@ -993,52 +992,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             },
         }));
 
-        if (appParameters.inExtension) {
-            this.disposables.push(editor.addAction({
-                id: "executeOnHost",
-                label: "Execute on all visible DB Notebooks",
-                keybindings: [KeyMod.Alt | KeyMod.CtrlCmd | KeyCode.Enter],
-                contextMenuGroupId: "2_execution",
-                contextMenuOrder: 7,
-                precondition,
-                run: () => {
-                    const options = { atCaret: false, advance: true, asText: false };
-                    this.executeCurrentContextOnHost(options);
-                    this.doExecuteContext(options);
-                },
-            }));
-
-            // In embedded mode some key combinations don't work by default. So we add handlers for them here.
-            this.disposables.push(editor.addAction({
-                id: "paste",
-                label: "Paste",
-                keybindings: [KeyMod.CtrlCmd | KeyCode.KeyV],
-                run: () => {
-                    editor.trigger("source", "editor.action.clipboardPasteAction", null);
-                },
-            }));
-
-            this.disposables.push(editor.addAction({
-                id: "copy",
-                label: "Copy",
-                keybindings: [KeyMod.CtrlCmd | KeyCode.KeyC],
-                precondition,
-                run: () => {
-                    editor.trigger("source", "editor.action.clipboardCopyAction", null);
-                },
-            }));
-
-            this.disposables.push(editor.addAction({
-                id: "cut",
-                label: "Cut",
-                keybindings: [KeyMod.CtrlCmd | KeyCode.KeyX],
-                precondition,
-                run: () => {
-                    editor.trigger("source", "editor.action.clipboardCutAction", null);
-                },
-            }));
-        }
-
         if (mixedLanguage) {
             if (notebookHistory) {
                 this.disposables.push(editor.addAction({
@@ -1098,19 +1051,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     run: this.switchCurrentLanguage.bind(this, "javascript", false),
                 }));
             }
-            if (appParameters.inExtension) {
-                this.disposables.push(editor.addAction({
-                    id: "sendBlockUpdates",
-                    label: "Update SQL in Original Source File",
-                    keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyU],
-                    contextMenuGroupId: "4_linked",
-                    precondition,
-                    run: () => {
-                        this.runContextCommand("sendBlockUpdates");
-                    },
-                }));
-            }
-
             // Special key handling for our blocks.
             this.disposables.push(editor.addAction({
                 id: "deleteBackwards",

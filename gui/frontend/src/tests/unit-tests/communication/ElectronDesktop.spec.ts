@@ -31,7 +31,6 @@ interface IWebSessionStartedData {
     localUserMode: boolean;
     requestState: { msg: string; };
     sessionUuid: string;
-    singleServerMode: boolean;
 }
 
 describe("Electron desktop frontend integration", () => {
@@ -104,7 +103,6 @@ describe("Electron desktop frontend integration", () => {
                         },
                         session_uuid: "session-123",
                         local_user_mode: true,
-                        single_server_mode: false,
                     }),
                 ]),
                 disconnect: vi.fn().mockResolvedValue(undefined),
@@ -140,9 +138,7 @@ describe("Electron desktop frontend integration", () => {
             return true;
         });
 
-        await MessageScheduler.get.connect({
-            url: new URL("app://renderer/index.html"),
-        });
+        await MessageScheduler.get.connect();
         await Promise.resolve();
 
         expect(webSessionStarted).toMatchObject({
@@ -152,7 +148,6 @@ describe("Electron desktop frontend integration", () => {
             },
             sessionUuid: "session-123",
             localUserMode: true,
-            singleServerMode: false,
         });
 
         const responsePromise = MessageScheduler.get.sendRequest({
@@ -200,7 +195,6 @@ describe("Electron desktop frontend integration", () => {
                     },
                     session_uuid: "session-456",
                     local_user_mode: true,
-                    single_server_mode: false,
                 }),
             ]);
 
@@ -238,15 +232,11 @@ describe("Electron desktop frontend integration", () => {
         registerUiLayer(uiLayerMock);
 
         try {
-            await expect(MessageScheduler.get.connect({
-                url: new URL("app://renderer/index.html"),
-            })).rejects.toThrow("missing mysqlsh");
+            await expect(MessageScheduler.get.connect()).rejects.toThrow("missing mysqlsh");
 
             expect(MessageScheduler.get.isConnected).toBe(false);
 
-            await MessageScheduler.get.connect({
-                url: new URL("app://renderer/index.html"),
-            });
+            await MessageScheduler.get.connect();
 
             expect(connect).toHaveBeenCalledTimes(2);
             expect(MessageScheduler.get.isConnected).toBe(true);
@@ -257,7 +247,8 @@ describe("Electron desktop frontend integration", () => {
     });
 
     it("bridges desktop command execution and state updates through the Electron host", async () => {
-        let inboundHandler: ((message: { source: "host"; command: string; data?: { id?: string; }; }) => void) | undefined;
+        type HostMessage = { source: "host"; command: string; data?: { id?: string; }; };
+        let inboundHandler: ((message: HostMessage) => void) | undefined;
         const postMessage = vi.fn();
         const execute = vi.fn().mockResolvedValue(true);
         const { desktopCommandRegistry } = await import("../../../supplement/DesktopCommandRegistry.js");
@@ -276,7 +267,7 @@ describe("Electron desktop frontend integration", () => {
             configurable: true,
             value: {
                 postMessage,
-                setMessageHandler: (handler: (message: { source: "host"; command: string; data?: { id?: string; }; }) => void) => {
+                setMessageHandler: (handler: (message: HostMessage) => void) => {
                     inboundHandler = handler;
                 },
             },

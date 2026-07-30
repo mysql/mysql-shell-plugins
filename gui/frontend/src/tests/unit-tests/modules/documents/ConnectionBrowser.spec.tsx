@@ -177,7 +177,6 @@ describe("Connection browser tests", (): void => {
 
     afterEach(() => {
         Reflect.deleteProperty(window, "electronHost");
-        appParameters.inExtension = false;
         vi.restoreAllMocks();
     });
 
@@ -571,7 +570,6 @@ describe("Connection browser tests", (): void => {
     it("forces a new connection workspace for tile actions outside the extension", () => {
         const executeSpy = vi.spyOn(requisitions, "execute").mockResolvedValue(true);
         const executeRemoteSpy = vi.spyOn(requisitions, "executeRemote").mockResolvedValue(true);
-        appParameters.inExtension = false;
 
         const browser = createBrowser();
 

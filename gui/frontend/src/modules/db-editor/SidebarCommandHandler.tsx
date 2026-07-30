@@ -31,7 +31,6 @@ import {
     DialogResponseClosure, DialogType, LibraryDialogType, type IDialogRequest
 
 } from "../../app-logic/general-types.js";
-import { appParameters } from "../../supplement/AppParameters.js";
 import type { IMySQLConnectionOptions } from "../../communication/MySQL.js";
 import { IJdvViewInfo } from "../../communication/ProtocolGui.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
@@ -56,7 +55,7 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IConnectionDetails, IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
-import { RunMode, webSession } from "../../supplement/WebSession.js";
+import { webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, getConnectionInfoFromDetails, sleep, uuid } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase, formatWithNumber, quoteObjectName } from "../../utilities/string-helpers.js";
 import { JdvHub } from "../jdv/JdvHub.js";
@@ -215,7 +214,7 @@ export class SidebarCommandHandler {
 
                         case "msg.startMySQLCloudMigrationAssistant": {
                             if (entry.type === CdmEntityType.Connection) {
-                                if (appParameters.inExtension || hasElectronHostBridge()) {
+                                if (hasElectronHostBridge()) {
                                     success = await startMigrationAssistantWithValidatedPassword(entry.details);
                                 } else {
                                     void ui.showErrorMessage("Not implemented.", {});
@@ -1452,10 +1451,7 @@ export class SidebarCommandHandler {
             const port = getRouterPortForConnection(entry.connection.details.id);
             let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
 
-            if (webSession.runMode === RunMode.SingleServer && url.startsWith("/")) {
-                // TODO: Get port from metadata schema once the router stores it there
-                url = `https://${window.location.hostname}:8443${url}`;
-            } else if (url.startsWith("/")) {
+            if (url.startsWith("/")) {
                 url = `https://localhost:${port}${url}`;
             } else {
                 url = `https://${url}`;

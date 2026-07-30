@@ -10,10 +10,6 @@
             "path": "gui/frontend"
         },
         {
-            "name": "VSCode Extension",
-            "path": "gui/extension"
-        },
-        {
             "name": "Desktop App",
             "path": "gui/electron"
         },

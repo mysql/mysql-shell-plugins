@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as https from "https";
-
 export class RouterInterface {
 
     private port: number;
@@ -41,75 +39,9 @@ export class RouterInterface {
         await this.put(`${service}/_debug`, { enabled });
     };
 
-    private createRequest = (method: string, path: string) => {
-        const result = {
-            hostname: "localhost",
-            port: this.port,
-            path,
-            method,
-            rejectUnauthorized: false,
-            headers: {
-                "Content-Type": "application/json"
-            },
-        };
-
-        return result;
-    };
-
-    /**
-     * Makes an HTTPS request to the router and parses JSON response.
-     *
-     * @param method the HTTP method to use
-     * @param path the path for the router REST API
-     * @param body the body payload
-     * @returns Promise<any> The parsed JSON response
-     */
-    private httpsRequest = <T = void>(method: string, path: string, body: unknown = undefined): Promise<T> => {
-        return new Promise((resolve, reject) => {
-            const options = this.createRequest(method, path);
-
-            if (body !== undefined) {
-                (options.headers as Record<string, string>)["Content-Length"] =
-                    Buffer.byteLength(JSON.stringify(body)).toString();
-            }
-
-            const req = https.request(options, (res) => {
-                let data = "";
-
-                res.on("data", (chunk: Buffer) => {
-                    data += chunk.toString();
-                });
-
-                res.on("end", () => {
-                    try {
-                        if (data == "") {
-                            resolve(undefined as T);
-
-                            return;
-                        }
-
-                        // If the response is not JSON, you may need to adjust parsing logic.
-                        resolve(JSON.parse(data) as T);
-                    } catch (e) {
-                        if (e instanceof Error) {
-                            reject(e);
-                        } else {
-                            reject(new Error(String(e)));
-                        }
-                    }
-                });
-            });
-
-            if (body !== undefined) {
-                req.write(JSON.stringify(body));
-            }
-
-            req.on("error", (err) => {
-                reject(err);
-            });
-
-            req.end();
-        });
+    private httpsRequest = <T = void>(_method: "GET" | "PUT", _path: string,
+        _body: unknown = undefined): Promise<T> => {
+        return Promise.reject(new Error("MySQL Router controls are unavailable while MRS support is deferred."));
     };
 
     private get = async <T>(path: string): Promise<T> => {
@@ -120,7 +52,4 @@ export class RouterInterface {
         await this.httpsRequest("PUT", path, data);
     };
 
-    private post = async (path: string, data: unknown = undefined): Promise<void> => {
-        await this.httpsRequest("POST", path, data);
-    };
 }

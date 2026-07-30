@@ -63,7 +63,6 @@ import { hasElectronHostBridge } from "../../../supplement/ElectronDesktop.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { DBType, IFolderPath } from "../../../supplement/ShellInterface/index.js";
-import { RunMode, webSession } from "../../../supplement/WebSession.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { convertErrorToString, uuid, isStandalone } from "../../../utilities/helpers.js";
 import { EnabledState } from "../../mrs/mrs-helpers.js";
@@ -239,7 +238,6 @@ interface IDocumentSideBarState extends IComponentState {
     tempCaption?: string;
 
     /** Set when the default connection is being opened (in single server mode). */
-    defaultOpening: boolean;
 
     schemaSearchValues: ISearchValues;
 }
@@ -331,7 +329,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 connectionTreeItems: [],
                 ociTreeItems: [],
             },
-            defaultOpening: false,
             schemaSearchValues: {
                 value: "",
             },
@@ -396,34 +393,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     };
 
     public override componentDidUpdate(prevProps: IDocumentSideBarProperties): void {
-        if (webSession.runMode === RunMode.SingleServer) {
-            const { defaultOpening } = this.state;
-            const context = this.context as DocumentContextType | undefined;
-            if (!defaultOpening && context) {
-                this.setState({ defaultOpening: true });
-
-                void context.connectionsDataModel.connectionList().then((connectionList) => {
-                    const firstConnection = connectionList[0];
-                    if (!context.documentDataModel.isOpen(firstConnection.details)) {
-                        // Open the first connection and wait for it to finish that.
-                        void firstConnection.refresh?.().then(() => {
-                            setTimeout(() => {
-                                const row = this.connectionTableRef.current?.getRows()[0];
-                                if (row) {
-                                    this.expandTreeRowIfReady(row);
-                                }
-                            }, 500);
-
-                            this.openNewNotebook(firstConnection);
-                        });
-
-                        // Do not update the trees yet. Instead wait for the new notebook to be opened.
-                        return;
-                    }
-                });
-            }
-        }
-
         const {
             activeWorkspaceConnection, activeWorkspaceConnectionId, markedSchema, selectedOpenDocument,
             sidebarMode = "classic",
@@ -536,16 +505,14 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 content: this.renderDocumentsTree(context.documentDataModel.roots),
             });
 
-            if (webSession.runMode !== RunMode.SingleServer) {
-                accordionSections[0].actions!.push({
-                    icon: Codicon.NewFile,
-                    command: {
-                        command: "addConsole",
-                        tooltip: "Add new console",
-                        title: "Add new console",
-                    },
-                });
-            }
+            accordionSections[0].actions!.push({
+                icon: Codicon.NewFile,
+                command: {
+                    command: "addConsole",
+                    tooltip: "Add new console",
+                    title: "Add new console",
+                },
+            });
         }
 
         if (sidebarMode === "classic") {
@@ -564,39 +531,28 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
             accordionSections.push(connectionSection);
 
-            if (webSession.runMode === RunMode.SingleServer) {
-                connectionSection.actions!.push({
-                    icon: Codicon.CollapseAll,
-                    command: {
-                        command: "msg.collapseAll",
-                        tooltip: "Collapse Connection Node",
-                        title: "Collapse Connection Node",
-                    },
-                });
-            } else {
-                connectionSection.actions!.push({
-                    icon: Codicon.Add,
-                    command: {
-                        command: "msg.addConnection",
-                        tooltip: "Create New DB Connection",
-                        title: "Create New DB Connection",
-                    },
-                }, {
-                    icon: Codicon.Refresh,
-                    command: {
-                        command: "msg.refreshConnections",
-                        tooltip: "Refresh the Connection List",
-                        title: "Refresh the Connection List",
-                    },
-                }, {
-                    icon: Codicon.CollapseAll,
-                    command: {
-                        command: "msg.collapseAll",
-                        tooltip: "Collapse All",
-                        title: "Collapse All",
-                    },
-                });
-            }
+            connectionSection.actions!.push({
+                icon: Codicon.Add,
+                command: {
+                    command: "msg.addConnection",
+                    tooltip: "Create New DB Connection",
+                    title: "Create New DB Connection",
+                },
+            }, {
+                icon: Codicon.Refresh,
+                command: {
+                    command: "msg.refreshConnections",
+                    tooltip: "Refresh the Connection List",
+                    title: "Refresh the Connection List",
+                },
+            }, {
+                icon: Codicon.CollapseAll,
+                command: {
+                    command: "msg.collapseAll",
+                    tooltip: "Collapse All",
+                    title: "Collapse All",
+                },
+            });
         } else if (sidebarMode === "electronHome") {
             accordionSections.push({
                 ref: this.connectionSectionRef,
@@ -646,35 +602,33 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             });
         }
 
-        if (webSession.runMode !== RunMode.SingleServer) {
-            accordionSections.push({
-                ref: this.ociSectionRef,
-                id: "ociSection",
-                caption: "ORACLE CLOUD INFRASTRUCTURE",
-                stretch: true,
-                expanded: ociSectionState.expanded ?? false,
-                initialSize: ociSectionState.size,
-                resizable: true,
-                minSize: 100,
-                content: this.renderOciTree(context.ociDataModel.profiles),
-                actions: [{
-                    icon: Codicon.Gear,
-                    command: {
-                        command: "msg.mds.configureOciProfiles",
-                        tooltip: "Configure the OCI Profile list",
-                        title: "Configure the OCI Profile list",
-                    },
+        accordionSections.push({
+            ref: this.ociSectionRef,
+            id: "ociSection",
+            caption: "ORACLE CLOUD INFRASTRUCTURE",
+            stretch: true,
+            expanded: ociSectionState.expanded ?? false,
+            initialSize: ociSectionState.size,
+            resizable: true,
+            minSize: 100,
+            content: this.renderOciTree(context.ociDataModel.profiles),
+            actions: [{
+                icon: Codicon.Gear,
+                command: {
+                    command: "msg.mds.configureOciProfiles",
+                    tooltip: "Configure the OCI Profile list",
+                    title: "Configure the OCI Profile list",
                 },
-                {
-                    icon: Codicon.Refresh,
-                    command: {
-                        command: "msg.mds.refreshOciProfiles",
-                        tooltip: "Reload the OCI Profile list",
-                        title: "Reload the OCI Profile list",
-                    },
-                }],
-            });
-        }
+            },
+            {
+                icon: Codicon.Refresh,
+                command: {
+                    command: "msg.mds.refreshOciProfiles",
+                    tooltip: "Reload the OCI Profile list",
+                    title: "Reload the OCI Profile list",
+                },
+            }],
+        });
 
         return (
             <>
@@ -1522,51 +1476,49 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private renderConnectionTreeContextMenus(): ComponentChild {
         const isClassicSidebar = (this.props.sidebarMode ?? "classic") === "classic";
         const optionalMenuItems: ComponentChild[] = [];
-        if (webSession.runMode !== RunMode.SingleServer) {
-            optionalMenuItems.push(
-                <MenuItem command={{ title: "-", command: "" }} disabled key="edit-separator" />,
-                <MenuItem
-                    command={{ title: "Edit Connection…", command: "msg.editConnection" }}
-                    icon={Assets.misc.editIcon}
-                    key="edit"
-                />,
-                <MenuItem
-                    command={{ title: "Duplicate Connection…", command: "msg.duplicateConnection" }}
-                    icon={Assets.misc.cloneIcon}
-                    key="duplicate"
-                />,
-            );
+        optionalMenuItems.push(
+            <MenuItem command={{ title: "-", command: "" }} disabled key="edit-separator" />,
+            <MenuItem
+                command={{ title: "Edit Connection…", command: "msg.editConnection" }}
+                icon={Assets.misc.editIcon}
+                key="edit"
+            />,
+            <MenuItem
+                command={{ title: "Duplicate Connection…", command: "msg.duplicateConnection" }}
+                icon={Assets.misc.cloneIcon}
+                key="duplicate"
+            />,
+        );
 
-            if ((this.props.sidebarMode ?? "classic") === "classic") {
-                optionalMenuItems.push(
-                    <MenuItem command={{ title: "-", command: "" }} disabled key="system-schemas-separator" />,
-                    <MenuItem
-                        id="showSystemSchemas"
-                        command={{
-                            title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
-                        }}
-                        key="showSystemSchemas"
-                    />,
-                );
-            }
-
+        if ((this.props.sidebarMode ?? "classic") === "classic") {
             optionalMenuItems.push(
-                <MenuItem command={{ title: "-", command: "" }} disabled key="session-separator" />,
+                <MenuItem command={{ title: "-", command: "" }} disabled key="system-schemas-separator" />,
                 <MenuItem
+                    id="showSystemSchemas"
                     command={{
-                        title: "Open New MySQL Shell Console for this Connection",
-                        command: "msg.newSessionUsingConnection",
+                        title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
                     }}
-                    icon={Codicon.Terminal}
-                    key="shell"
-                />,
-                <MenuItem command={{ title: "-", command: "" }} disabled key="delete-separator" />,
-                <MenuItem
-                    command={{ title: "Delete Connection…", command: "msg.removeConnection" }}
-                    key="delete"
+                    key="showSystemSchemas"
                 />,
             );
         }
+
+        optionalMenuItems.push(
+            <MenuItem command={{ title: "-", command: "" }} disabled key="session-separator" />,
+            <MenuItem
+                command={{
+                    title: "Open New MySQL Shell Console for this Connection",
+                    command: "msg.newSessionUsingConnection",
+                }}
+                icon={Codicon.Terminal}
+                key="shell"
+            />,
+            <MenuItem command={{ title: "-", command: "" }} disabled key="delete-separator" />,
+            <MenuItem
+                command={{ title: "Delete Connection…", command: "msg.removeConnection" }}
+                key="delete"
+            />,
+        );
 
         const copyToClipboardMenuItems = () => {
             return (

@@ -636,6 +636,7 @@ describe("Document module desktop commands", () => {
                     details: connectionDetails,
                     isOpen: true,
                     currentSchema: "",
+                    state: createTreeState({ expandedOnce: true }),
                 },
                 suppressAbout: false,
             };
@@ -750,6 +751,7 @@ describe("Document module desktop commands", () => {
                 isOpen: true,
                 currentSchema: "",
                 close: vi.fn().mockResolvedValue(undefined),
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -871,6 +873,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -933,6 +936,7 @@ describe("Document module desktop commands", () => {
                 isOpen: true,
                 currentSchema: "",
                 backend: {} as never,
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1064,6 +1068,7 @@ describe("Document module desktop commands", () => {
                 details,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1126,6 +1131,7 @@ describe("Document module desktop commands", () => {
                 details: liveConnectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1220,6 +1226,7 @@ describe("Document module desktop commands", () => {
                 currentSchema: "",
                 userConnectionId: 18,
                 serviceConnectionId: 19,
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1232,6 +1239,7 @@ describe("Document module desktop commands", () => {
                 currentSchema: "",
                 userConnectionId: 20,
                 serviceConnectionId: 21,
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1343,6 +1351,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1413,6 +1422,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1492,6 +1502,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1572,12 +1583,14 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
         const sharedConnection = createElectronWorkspaceConnection();
         const roots = (moduleRef.current as any).connectionsDataModel.roots as unknown[];
         roots.splice(0, roots.length, sharedConnection.connection);
+        fakeConnectionWorkspace.connection = sharedConnection.connection;
 
         (moduleRef.current as any).connectionPresentation.set(fakePage, createConnectionPresentationState());
 
@@ -1624,12 +1637,14 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
         const sharedConnection = createElectronWorkspaceConnection();
         const roots = (moduleRef.current as any).connectionsDataModel.roots as unknown[];
         roots.splice(0, roots.length, sharedConnection.connection);
+        fakeConnectionWorkspace.connection = sharedConnection.connection;
 
         (moduleRef.current as any).connectionPresentation.set(fakePage, createConnectionPresentationState());
 
@@ -1682,12 +1697,14 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
         const sharedConnection = createElectronWorkspaceConnection({ adminPages: [] });
         const roots = (moduleRef.current as any).connectionsDataModel.roots as unknown[];
         roots.splice(0, roots.length, sharedConnection.connection);
+        fakeConnectionWorkspace.connection = sharedConnection.connection;
 
         (moduleRef.current as any).connectionPresentation.set(fakePage, createConnectionPresentationState());
 
@@ -1733,12 +1750,14 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
         const sharedConnection = createElectronWorkspaceConnection();
         const roots = (moduleRef.current as any).connectionsDataModel.roots as unknown[];
         roots.splice(0, roots.length, sharedConnection.connection);
+        fakeConnectionWorkspace.connection = sharedConnection.connection;
 
         (moduleRef.current as any).connectionPresentation.set(fakePage, createConnectionPresentationState());
 
@@ -1765,6 +1784,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -1808,11 +1828,17 @@ describe("Document module desktop commands", () => {
 
         module.state.connectionWorkspaces = [{
             dataModelEntry: firstPage,
-            connection: { details: connectionDetails },
+            connection: {
+                details: connectionDetails,
+                state: createTreeState({ expandedOnce: true }),
+            },
             suppressAbout: false,
         }, {
             dataModelEntry: secondPage,
-            connection: { details: connectionDetails },
+            connection: {
+                details: connectionDetails,
+                state: createTreeState({ expandedOnce: true }),
+            },
             suppressAbout: false,
         }] as never;
         module.state.shellSessionTabs = [{
@@ -1889,6 +1915,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -2023,6 +2050,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -2079,6 +2107,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -2282,6 +2311,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -2662,6 +2692,7 @@ describe("Document module desktop commands", () => {
             isOpen: false,
             isOffline: true,
             currentSchema: "",
+            state: createTreeState({ expandedOnce: true }),
         };
         const adminPage = {
             id: "offline-server-status",
@@ -2768,6 +2799,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -2833,6 +2865,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -2939,6 +2972,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -3122,6 +3156,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -3892,6 +3927,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -3964,6 +4000,7 @@ describe("Document module desktop commands", () => {
                         details: connectionDetails,
                         isOpen: true,
                         currentSchema: "",
+                        state: createTreeState({ expandedOnce: true }),
                     },
                     suppressAbout: false,
                 }] as never,
@@ -4014,6 +4051,7 @@ describe("Document module desktop commands", () => {
                 details: connectionDetails,
                 isOpen: true,
                 currentSchema: "",
+                state: createTreeState({ expandedOnce: true }),
             },
             suppressAbout: false,
         };
@@ -4090,6 +4128,7 @@ describe("Document module desktop commands", () => {
                     details: connectionDetails,
                     isOpen: true,
                     currentSchema: "",
+                    state: createTreeState({ expandedOnce: true }),
                 },
                 suppressAbout: false,
             }] as never;
@@ -4217,6 +4256,7 @@ describe("Document module desktop commands", () => {
             isOpen: false,
             isOffline: true,
             currentSchema: "",
+            state: createTreeState({ expandedOnce: true }),
         };
         const selectedAdminConnection = {
             ...openServiceConnection,

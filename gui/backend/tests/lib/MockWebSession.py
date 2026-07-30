@@ -37,7 +37,6 @@ class MockWebSession:
         self._requests = {}
 
         self.request_id = None
-        self.single_server = None
 
     def register_callback(self, request_id, callback):
         self.callbacks[request_id] = callback

@@ -167,15 +167,11 @@ export class ThemeManager {
         this.themeStyleElement.id = "theme-colors";
         document.head.prepend(this.themeStyleElement);
 
-        if (!appParameters.inExtension) {
-            this.updating = true;
-            this.switchTheme("Auto");
-            this.updating = false;
-        }
+        this.updating = true;
+        this.switchTheme("Auto");
+        this.updating = false;
 
-        if (!appParameters.inExtension) {
-            window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", this.handleOSThemeChange);
-        }
+        window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", this.handleOSThemeChange);
 
         requisitions.register("settingsChanged", this.settingsChanged);
     }

@@ -157,16 +157,7 @@ FUNCTIONS
             Converts a MySQL SQL file to Sqlite syntax.
 
       help([member])
-            Provides help about this object and it's members
-
-      install_shell_web_certificate([kwargs])
-            Installs the MySQL Shell GUI webserver certificate
-
-      is_shell_web_certificate_installed([kwargs])
-            Checks if the MySQL Shell GUI webserver certificate is installed
-
-      remove_shell_web_certificate()
-            Removes the MySQL Shell GUI webserver certificate"""
+            Provides help about this object and it's members"""
 
     assert help_text == mysqlsh.globals.gui.core.help()  # pylint: disable=no-member
 
@@ -538,7 +529,6 @@ FUNCTIONS
     assert help_text == mysqlsh.globals.gui.users.help()  # pylint: disable=no-member
 
 
-# cSpell:ignore webrootpath
 @pytest.mark.skipif(
     not has_gui_plugin,
     reason="This test should be run with the gui plugin installed on the real shell.",
@@ -551,20 +541,13 @@ SYNTAX
       gui.start
 
 DESCRIPTION
-      The MySQL Shell GUI can be started as a native application or as a web
-      application served by a web server.
+      The MySQL Shell GUI is hosted by the MySQL Workbench desktop application.
 
 FUNCTIONS
       desktop_bridge()
-            Starts the local single-user JSON bridge over stdio.
+            Starts the trusted local GUI JSON bridge over standard I/O.
 
       help([member])
-            Provides help about this object and it's members
-
-      native_ui()
-            Starts the native Shell GUI client
-
-      web_server([port][, secure][, webrootpath][, single_instance_token][, read_token_on_stdin][, accept_remote_connections][, single_server])
-            Starts a web server that will serve the MySQL Shell GUI"""
+            Provides help about this object and it's members"""
 
     assert help_text == mysqlsh.globals.gui.start.help()  # pylint: disable=no-member

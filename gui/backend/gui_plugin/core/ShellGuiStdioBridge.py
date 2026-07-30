@@ -57,14 +57,13 @@ class ShellGuiStdioBridge:
     """JSON transport for trusted local frontends.
 
     Transport model:
-    - stdio is local-only and single-user-only.
+    - stdio is local-only and is the only supported GUI transport.
     - The session uses the local desktop GUI user, so there is no separate
       authenticate round-trip before requests can be processed.
     - stdout is reserved for JSON protocol messages.
 
-    This differs intentionally from the HTTP/WebSocket transport, which may
-    serve local or remote clients and must support both single-user and
-    multi-user deployments.
+    The Electron Workbench host launches MySQL Shell as its child process and
+    owns both ends of the standard input/output pipe.
     """
 
     REQUEST_THREAD_CLOSE_TIMEOUT_SECONDS = 5.0

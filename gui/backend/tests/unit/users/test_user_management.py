@@ -145,13 +145,6 @@ def test_role_privileges(role, privilege, privilege_type):
     assert name_in_message(privilege, privileges) == True
 
 
-def test_single_server_role_privileges():
-    privileges = UserManagement.list_role_privileges("Single Server User")
-
-    assert name_in_message("Access to selected gui.users functions", privileges) == True
-    assert name_in_message("Limited access for Single Server Mode", privileges) == True
-
-
 @pytest.mark.parametrize("user, role, privilege", test_user_privileges_data)
 def test_user_privileges(user, role, privilege):
     privileges = UserManagement.list_user_privileges(user)

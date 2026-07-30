@@ -12,7 +12,7 @@ The MySQL Shell Plugins Repository is a collection of plugins for the MySQL Shel
 
 ## Installation
 
-The GUI plugin backend and the other plugins can all be used on their own via MySQL Shell, but together they power the [MySQL Shell GUI](gui/frontend/readme.md) and the [MySQL Shell for VS Code](gui/extension/readme.md). Read the individual project readme files for more details, how to contribute and other information.
+The GUI plugin backend and the other plugins can all be used on their own via MySQL Shell, but together they power the [MySQL Shell GUI](gui/frontend/readme.md). Read the individual project readme files for more details, how to contribute and other information.
 
 The following plugins are installed by copying the folders into the MySQL Shell Plugins directory:
 
@@ -52,4 +52,3 @@ This distribution may include materials developed by third parties. For license 
 For additional downloads and the source of MySQL Shell (part of MySQL Server), visit: https://dev.mysql.com/downloads
 
 Copyright &copy; 2022, 2026, Oracle and/or its affiliates.
-

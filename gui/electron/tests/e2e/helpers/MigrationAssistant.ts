@@ -141,7 +141,7 @@ export interface ICompatibilityIssue {
 
 const wait1second = 1000;
 const waitForResourceOptionsTimeout = wait1second * 60;
-const mocksPath = resolve(__dirname, "../../../../frontend/src/tests/e2e/migration_assistant/mocks");
+const mocksPath = resolve(__dirname, "../fixtures/migration-assistant-mocks");
 
 type BackendMockResponse = Record<string, unknown>;
 

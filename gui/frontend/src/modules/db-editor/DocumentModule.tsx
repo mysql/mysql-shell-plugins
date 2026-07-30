@@ -353,29 +353,27 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private sidebarCommandHandler: SidebarCommandHandler;
     private desktopCommandProvider: IDesktopCommandProvider;
 
-    private autoLogoutTimer?: ReturnType<typeof setTimeout>;
-
     public constructor(props: {}) {
         super(props);
 
         this.workerPool = new ExecutionWorkerPool();
 
-        this.connectionsDataModel = new ConnectionDataModel(webSession.runMode === RunMode.SingleServer);
+        this.connectionsDataModel = new ConnectionDataModel();
         this.connectionsDataModel.autoRouterRefresh = false;
         this.dataModelListener = new ConnectionDataModelListener(this.connectionsDataModel);
 
         // The document data model does not need to be initialized. It's built dynamically.
-        this.documentDataModel = new OpenDocumentDataModel(webSession.runMode === RunMode.SingleServer);
+        this.documentDataModel = new OpenDocumentDataModel();
 
         // Ditto for the shell task data model.
         this.shellTaskDataModel = new ShellTaskDataModel();
 
         this.ociDataModel = new OciDataModel();
 
-        const promises: Array<Promise<void>> = [this.connectionsDataModel.initialize()];
-        if (webSession.runMode !== RunMode.SingleServer) {
-            promises.push(this.ociDataModel.initialize());
-        }
+        const promises: Array<Promise<void>> = [
+            this.connectionsDataModel.initialize(),
+            this.ociDataModel.initialize(),
+        ];
 
         void Promise.all(promises).then(() => {
             this.setState({ loading: false });
@@ -397,8 +395,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             schemaDiagramTabs: [],
             shellSessionTabs: [],
             sidebarState: new Map<string, IDocumentSideBarSectionState>(),
-            showSidebar: !appParameters.inExtension,
-            showTabs: !appParameters.inExtension,
+            showSidebar: true,
+            showTabs: true,
             loading: true,
             desktopStoppingWorkspaces: [],
             progressMessage: "",
@@ -412,10 +410,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const { selectedPage, loading } = state;
 
         let newSelection = selectedPage;
-        if (!newSelection) {
-            if (!loading && !appParameters.inExtension) {
-                newSelection = state.overviewId;
-            }
+        if (!newSelection && !loading) {
+            newSelection = state.overviewId;
         }
 
         const newState = {
@@ -467,16 +463,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             this.forceUpdate();
         });
 
-        if (this.containerRef.current && !appParameters.inExtension) {
+        if (this.containerRef.current) {
             this.containerRef.current.addEventListener("keydown", this.handleKeyPress);
-        }
-
-        // A user is logged in when this component gets mounted, so we can start the auto logout timer.
-        if (webSession.runMode === RunMode.SingleServer) {
-            this.restartAutoLogoutTimer();
-            ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
-                window.addEventListener(evt, this.restartAutoLogoutTimer, true);
-            });
         }
 
         this.syncDesktopStatusTimer();
@@ -485,20 +473,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     }
 
     public override componentWillUnmount(): void {
-        clearTimeout(this.autoLogoutTimer);
-        this.autoLogoutTimer = undefined;
         this.stopDesktopStatusTimer();
         this.desktopWorkspaceRunStartTimes.clear();
 
         desktopCommandRegistry.unregisterProvider(this.desktopCommandProvider);
 
-        if (webSession.runMode === RunMode.SingleServer) {
-            ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((evt) => {
-                window.removeEventListener(evt, this.restartAutoLogoutTimer, true);
-            });
-        }
-
-        if (this.containerRef.current && !appParameters.inExtension) {
+        if (this.containerRef.current) {
             this.containerRef.current.removeEventListener("keydown", this.handleKeyPress);
         }
 
@@ -567,7 +547,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     }
 
     private isElectronWorkspaceLayout = (): boolean => {
-        return hasElectronHostBridge() && !appParameters.inExtension;
+        return hasElectronHostBridge();
     };
 
     private stopDesktopStatusTimer = (): void => {
@@ -1510,32 +1490,29 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const connectionWorkspacePages = new Map<string, IWorkspaceTabPage[]>();
 
         let actualSelection = selectedPage;
-        if (webSession.runMode !== RunMode.SingleServer) {
-            // Don't render the overview, if we can only have a single connection.
-            const overview = (
-                <Container
-                    id="overviewHost"
-                    orientation={Orientation.TopDown}
-                >
-                    <ConnectionBrowser
-                        toolbarItems={toolbarItems}
-                        showToolbar={!electronWorkspaceLayout}
-                        onAddConnection={this.handleAddConnection}
-                        onUpdateConnection={this.handleUpdateConnection}
-                        onRemoveConnection={this.handleRemoveConnection}
-                    />
-                </Container>
-            );
+        const overview = (
+            <Container
+                id="overviewHost"
+                orientation={Orientation.TopDown}
+            >
+                <ConnectionBrowser
+                    toolbarItems={toolbarItems}
+                    showToolbar={!electronWorkspaceLayout}
+                    onAddConnection={this.handleAddConnection}
+                    onUpdateConnection={this.handleUpdateConnection}
+                    onRemoveConnection={this.handleRemoveConnection}
+                />
+            </Container>
+        );
 
-            pages.push({
-                icon: Codicon.Home,
-                caption: "Connections",
-                id: this.documentDataModel.overview.id,
-                content: overview,
-                workspaceId: homeWorkspaceId,
-                pageKind: "overview",
-            });
-        }
+        pages.push({
+            icon: Codicon.Home,
+            caption: "Connections",
+            id: this.documentDataModel.overview.id,
+            content: overview,
+            workspaceId: homeWorkspaceId,
+            pageKind: "overview",
+        });
         connectionWorkspaces.forEach((info: IConnectionWorkspacePage) => {
             const page = info.dataModelEntry;
             const connectionState = this.connectionPresentation.get(page)!;
@@ -2045,48 +2022,45 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         }
 
         const splitterPanes: ISplitterPane[] = [];
-        if (!appParameters.inExtension) {
-            // Don't render the sidebar when in the extension.
-            const sideBar = activeSidebarWorkspace.kind === "debugger"
-                ? <Container
-                    id="communicationDebuggerSidebarHost"
-                    orientation={Orientation.TopDown}
-                    style={{ position: "relative", flex: "1 1 auto" }}
-                />
-                : <DocumentSideBar
-                    ref={this.sideBarRef}
-                    selectedOpenDocument={selectedDocument}
-                    markedSchema={activeConnectionWorkspace?.connection.currentSchema ?? ""}
-                    savedSectionState={sidebarState}
-                    sidebarMode={documentSidebarMode}
-                    activeWorkspaceConnection={activeWorkspaceConnection}
-                    activeWorkspaceConnectionId={activeWorkspaceConnectionId}
-                    overviewId={this.documentDataModel.overview.id}
-                    onSaveState={this.handleSaveExplorerState}
-                    onSelectDocumentItem={this.handleDocumentSelection}
-                    onSelectConnectionItem={this.handleConnectionEntrySelection}
-                    onConnectionTreeCommand={this.handleSideBarConnectionCommand}
-                    onDocumentTreeCommand={this.handleSideBarDocumentCommand}
-                    onOciTreeCommand={this.handleSideBarOciCommand}
-                />;
-            splitterPanes.push({
-                content: electronWorkspaceLayout
-                    ? <Container id="desktopSidebarPane" orientation={Orientation.TopDown}>
-                        {showSidebar &&
-                            <Container id="desktopSidebarHeader" orientation={Orientation.LeftToRight}>
-                                {this.renderDesktopSidebarToggle(showSidebar)}
-                            </Container>
-                        }
-                        {sideBar}
-                    </Container>
-                    : sideBar,
-                minSize: 0,
-                initialSize: this.getSidebarInitialSize(),
-                resizable: true,
-                snap: true,
-                collapsed: !showSidebar,
-            });
-        }
+        const sideBar = activeSidebarWorkspace.kind === "debugger"
+            ? <Container
+                id="communicationDebuggerSidebarHost"
+                orientation={Orientation.TopDown}
+                style={{ position: "relative", flex: "1 1 auto" }}
+            />
+            : <DocumentSideBar
+                ref={this.sideBarRef}
+                selectedOpenDocument={selectedDocument}
+                markedSchema={activeConnectionWorkspace?.connection.currentSchema ?? ""}
+                savedSectionState={sidebarState}
+                sidebarMode={documentSidebarMode}
+                activeWorkspaceConnection={activeWorkspaceConnection}
+                activeWorkspaceConnectionId={activeWorkspaceConnectionId}
+                overviewId={this.documentDataModel.overview.id}
+                onSaveState={this.handleSaveExplorerState}
+                onSelectDocumentItem={this.handleDocumentSelection}
+                onSelectConnectionItem={this.handleConnectionEntrySelection}
+                onConnectionTreeCommand={this.handleSideBarConnectionCommand}
+                onDocumentTreeCommand={this.handleSideBarDocumentCommand}
+                onOciTreeCommand={this.handleSideBarOciCommand}
+            />;
+        splitterPanes.push({
+            content: electronWorkspaceLayout
+                ? <Container id="desktopSidebarPane" orientation={Orientation.TopDown}>
+                    {showSidebar &&
+                        <Container id="desktopSidebarHeader" orientation={Orientation.LeftToRight}>
+                            {this.renderDesktopSidebarToggle(showSidebar)}
+                        </Container>
+                    }
+                    {sideBar}
+                </Container>
+                : sideBar,
+            minSize: 0,
+            initialSize: this.getSidebarInitialSize(),
+            resizable: true,
+            snap: true,
+            collapsed: !showSidebar,
+        });
 
         splitterPanes.push({
             content,
@@ -2845,17 +2819,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private toggleSidebarVisibility = (): void => {
-        if (appParameters.inExtension) {
-            return;
-        }
-
         this.setState((prevState) => {
             return { showSidebar: !prevState.showSidebar };
         });
     };
 
     private handleMainPaneResized = (info: ISplitterPaneSizeInfo[]): void => {
-        if (!appParameters.inExtension && info.length > 1) {
+        if (info.length > 1) {
             this.sidebarWidth = info[0]!.currentSize;
         }
     };
@@ -3378,10 +3348,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private connectionStateChanged = async (): Promise<boolean> => {
-        if (webSession.runMode === RunMode.SingleServer) {
-            await this.doLogout();
-        }
-
         return true;
     };
 
@@ -5964,33 +5930,6 @@ EXAMPLES
         return caption;
     }
 
-    private restartAutoLogoutTimer = () => {
-        clearTimeout(this.autoLogoutTimer);
-        this.autoLogoutTimer = undefined;
-
-        let logoutTimeout: number | undefined;
-
-        const testTimeout = globalThis.testConfig?.TEST_AUTO_LOGOUT_TIMEOUT;
-
-        if (testTimeout !== undefined) {
-            logoutTimeout = parseInt(testTimeout, 10); // Must be in milliseconds.
-            if (isNaN(logoutTimeout)) {
-                logoutTimeout = undefined;
-            }
-        }
-
-        // Use the configured auto logout timeout. Convert hours to milliseconds.
-        logoutTimeout ??= Settings.get("general.autoLogoutTimeout", 12) * 3600 * 1000;
-
-        if (logoutTimeout > 0) {
-            this.autoLogoutTimer = setTimeout(() => {
-                void ui.showInformationMessage("You have been logged out due to inactivity. Please log in again.",
-                    { modal: true }, "OK");
-                void this.doLogout();
-            }, logoutTimeout);
-        }
-    };
-
     private getDesktopCommandState = (): IDesktopCommandDescriptor[] => {
         const selectedConnectionWorkspaceRef = this.getSelectedConnectionWorkspaceRef();
         const activeConnectionWorkspace = this.getActiveConnectionWorkspace();
@@ -6094,7 +6033,7 @@ EXAMPLES
         }, {
             id: "view.toggleSidebar",
             label: "Toggle Sidebar",
-            enabled: !appParameters.inExtension,
+            enabled: true,
             accelerator: "CmdOrCtrl+B",
         }, {
             id: "view.showHiddenCharacters",
@@ -6260,10 +6199,6 @@ EXAMPLES
             }
 
             case "view.toggleSidebar": {
-                if (appParameters.inExtension) {
-                    return false;
-                }
-
                 this.toggleSidebarVisibility();
 
                 return true;

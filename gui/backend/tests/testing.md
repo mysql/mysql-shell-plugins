@@ -1,8 +1,8 @@
-### Copyright (c) 2020, Oracle and/or its affiliates.
+### Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 
 # Testing
 
-This document describes 4 diffrent testing python frameworks and how to use it. 
+This document describes 4 diffrent testing python frameworks and how to use it.
 
 ## Install dependencies
 
@@ -12,7 +12,7 @@ First we need install all required dependencies. All dependencies are listed in 
 
 ## Executing tests
 
-All test sholud be executed from `plugins/gui/backend` directory. Before run any of those tests you must start WebSocket server. You can do it by executing `F5` in VSCode or manully execute `main.py` file.
+All tests should be executed from `plugins/gui/backend` directory. The test harness creates the desktop bridge context as needed; no WebSocket server is required.
 
 1. Doctest
 

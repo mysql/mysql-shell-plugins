@@ -53,9 +53,6 @@ export interface IAppParameters {
     /** Indicates if the app runs under control of a wrapper app (a web client control embedded in a desktop app). */
     embedded?: boolean;
 
-    /** Indicates if the app runs in the VS Code extension. */
-    inExtension?: boolean;
-
     /** Set when debugging of the web app (not the extension) is ongoing. */
     inDevelopment?: boolean;
 

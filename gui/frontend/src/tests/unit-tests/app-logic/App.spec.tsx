@@ -53,7 +53,7 @@ describe("Application tests", () => {
         await nextRunLoop();
         expect(appRef.current).toBeDefined();
 
-        expect(requisitions.registrations("dialogResponse")).toBe(2); // The app registers this.
+        expect(requisitions.registrations("dialogResponse")).toBe(1); // The ShellPromptHandler registers this.
     });
 
     afterAll(() => {

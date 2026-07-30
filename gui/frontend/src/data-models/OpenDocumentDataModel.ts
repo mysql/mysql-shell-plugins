@@ -291,7 +291,7 @@ export class OpenDocumentDataModel {
     #appProviders = new Map<IWebviewProvider, IOdmAppProviderEntry>();
     #subscribers = new Set<DataModelSubscriber<OpenDocumentDataModelEntry>>();
 
-    public constructor(private singleServerMode: boolean) {
+    public constructor() {
         this.#defaultProvider = this.createAppProviderEntry("MySQL Shell") as IOdmAppDefaultProviderEntry;
     }
 
@@ -317,10 +317,7 @@ export class OpenDocumentDataModel {
             return this.withAddedRoots([...this.#appProviders.values()]);
         }
 
-        const roots: OpenDocumentDataModelEntry[] = [];
-        if (!this.singleServerMode) {
-            roots.push(this.#defaultProvider.connectionOverview);
-        }
+        const roots: OpenDocumentDataModelEntry[] = [this.#defaultProvider.connectionOverview];
 
         roots.push(
             ...this.#defaultProvider.schemaDiagramPages,

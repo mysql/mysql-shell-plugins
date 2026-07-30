@@ -39,7 +39,6 @@ import gui_plugin.core.ShellGuiStdioBridge as StdioBridgeModule
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.ShellGuiStdioBridge import ShellGuiStdioBridge
-from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
 from gui_plugin.core.dbms.DbSession import DbSession
 from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
 from gui_plugin.start import Start
@@ -148,68 +147,6 @@ assert "gui_plugin.migration.work_step" not in sys.modules
     )
 
 
-def test_http_transport_bootstraps_web_server(tmp_path, monkeypatch):
-    index_file = tmp_path / "index.html"
-    index_file.write_text("<html><body>transport-ok</body></html>", encoding="utf-8")
-
-    class FakeSocket:
-        def __init__(self):
-            self.closed = False
-
-        def close(self):
-            self.closed = True
-
-    class FakeServer:
-        def __init__(self, address, handler_class):
-            self.address = address
-            self.handler_class = handler_class
-            self.daemon_threads = False
-            self.host = None
-            self.port = None
-            self.single_instance_token = None
-            self.single_server = None
-            self.socket = FakeSocket()
-            self.serve_forever_called = False
-
-        def serve_forever(self):
-            self.serve_forever_called = True
-
-    created_servers = []
-
-    def fake_server_factory(address, handler_class):
-        server = FakeServer(address, handler_class)
-        created_servers.append(server)
-        return server
-
-    monkeypatch.setattr(Start, "ThreadedHTTPServer", fake_server_factory)
-    monkeypatch.setattr(Start.signal, "signal", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(Start.logger, "add_filter", lambda *_args, **_kwargs: None)
-
-    monkeypatch.setattr(
-        mysqlsh.plugin_manager.general,  # pylint: disable=no-member
-        "get_shell_user_dir",
-        lambda *parts: str(tmp_path / "plugin_data" / "/".join(parts)),
-    )
-
-    Start.web_server(
-        port=8123,
-        secure=None,
-        webrootpath=str(tmp_path),
-        single_instance_token="transport-token",
-    )
-
-    assert len(created_servers) == 1
-    server = created_servers[0]
-    assert server.address == ("127.0.0.1", 8123)
-    assert server.handler_class is ShellGuiWebSocketHandler
-    assert server.host == "http://127.0.0.1"
-    assert server.port == 8123
-    assert server.single_instance_token == "transport-token"
-    assert server.single_server is None
-    assert server.serve_forever_called is True
-    assert server.socket.closed is True
-
-
 class _FakeCursor:
     def __init__(self, row=None):
         self.row = row
@@ -281,14 +218,12 @@ def test_stdio_transport_emits_ready_and_session_messages(monkeypatch):
     assert output_lines[0]["data"]["transport"] == "stdio"
     assert output_lines[0]["data"]["local_user_mode"] is True
     assert output_lines[0]["data"]["active_profile"]["id"] == 21
-    assert "single_server_mode" not in output_lines[0]["data"]
 
     session_message = output_lines[1]
     assert session_message["request_state"]["type"] == "OK"
     assert session_message["request_state"]["msg"] == "A new session has been created"
     assert session_message["local_user_mode"] is True
     assert session_message["active_profile"]["id"] == 21
-    assert "single_server_mode" not in session_message
     assert session_message["session_uuid"] == output_lines[0]["data"]["session_uuid"]
 
 

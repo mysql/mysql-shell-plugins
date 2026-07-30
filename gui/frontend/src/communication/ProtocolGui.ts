@@ -49,12 +49,6 @@ export enum ShellAPIGui {
     GuiCoreDeleteFile = "gui.core.delete_file",
     /** Returns information about backend */
     GuiCoreGetBackendInformation = "gui.core.get_backend_information",
-    /** Checks if the MySQL Shell GUI webserver certificate is installed */
-    GuiCoreIsShellWebCertificateInstalled = "gui.core.is_shell_web_certificate_installed",
-    /** Installs the MySQL Shell GUI webserver certificate */
-    GuiCoreInstallShellWebCertificate = "gui.core.install_shell_web_certificate",
-    /** Removes the MySQL Shell GUI webserver certificate */
-    GuiCoreRemoveShellWebCertificate = "gui.core.remove_shell_web_certificate",
     /** Sets test-only plugin command mock rules. */
     GuiCoreSetPluginCommandMocks = "gui.core.set_plugin_command_mocks",
     /** Clears test-only plugin command mock rules. */
@@ -373,18 +367,6 @@ export enum ShellAPIGui {
     GuiDebuggerGetScripts = "gui.debugger.get_scripts",
     /** Returns the content of the given script */
     GuiDebuggerGetScriptContent = "gui.debugger.get_script_content"
-}
-
-export interface IShellGuiCoreIsShellWebCertificateInstalledKwargs {
-    /** Check if not only the certificates have been created but also installed into the keychain */
-    checkKeychain?: boolean;
-}
-
-export interface IShellGuiCoreInstallShellWebCertificateKwargs {
-    /** Install the cert in the users keychain */
-    keychain?: boolean;
-    /** Whether to replace an existing certificate */
-    replaceExisting?: boolean;
 }
 
 export interface IShellDbConnection {
@@ -816,9 +798,6 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreProbeLocalConnectionEndpoint]: { args: { kind: string; target: string; port?: number | null; }; };
     [ShellAPIGui.GuiCoreDeleteFile]: { args: { path: string; }; };
     [ShellAPIGui.GuiCoreGetBackendInformation]: {};
-    [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: { kwargs?: IShellGuiCoreIsShellWebCertificateInstalledKwargs; };
-    [ShellAPIGui.GuiCoreInstallShellWebCertificate]: { kwargs?: IShellGuiCoreInstallShellWebCertificateKwargs; };
-    [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
     [ShellAPIGui.GuiCoreSetPluginCommandMocks]: { args: { rules: { }; }; };
     [ShellAPIGui.GuiCoreClearPluginCommandMocks]: {};
     [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPathId?: number; }; };
@@ -1000,7 +979,6 @@ export interface IWebSessionData {
     requestState: { msg: string; };
     sessionUuid?: string;
     localUserMode: boolean;
-    singleServerMode: boolean;
     activeProfile: IShellProfile;
 }
 
@@ -1379,9 +1357,6 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreSetLogLevel]: void;
     [ShellAPIGui.GuiCoreGetLogLevel]: { result: string; };
     [ShellAPIGui.GuiCoreGetBackendInformation]: { result: IShellBackendInformation; };
-    [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
-    [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
-    [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
     [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: [number, number, number]; };
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};

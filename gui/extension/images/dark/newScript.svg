@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;fill:white;">
-    <g transform="matrix(1,0,0,1,-1,0)">
-        <g id="newScript">
-            <path d="M10.5,0.1L13.9,3.6L14,4L14,9.982L13,9.982L13,5L9,5L9,1L3,1L3,14L10.991,14L10.991,15L2.5,15L2,14.5L2,0.5L2.5,0L10.2,0L10.5,0.1ZM10,1L10,4L12.9,4L10,1ZM15,16L14,16L14,14L12,14L12,13L14,13L14,11L15,11L15,13L17,13L17,14L15,14L15,16Z"/>
-        </g>
-    </g>
-</svg>

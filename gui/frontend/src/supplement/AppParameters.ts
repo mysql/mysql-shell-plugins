@@ -22,8 +22,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* eslint-disable no-restricted-syntax */
-
 import type { IAppParameters } from "./RequisitionTypes.js";
 import { hasElectronHostBridge } from "./ElectronDesktop.js";
 
@@ -39,8 +37,6 @@ export const parseAppParameters = (): void => {
     appParameters.hideStatusBar = false;
     appParameters.testsRunning = false;
     appParameters.inDevelopment = false;
-    appParameters.inExtension = false;
-
     if (typeof window !== "undefined") {
         if (hasElectronHostBridge()) {
             appParameters.embedded = true;
@@ -57,12 +53,6 @@ export const parseAppParameters = (): void => {
 
             if (queryParam === "app") {
                 appParameters.embedded = true;
-
-                if (value === "vscode") {
-                    appParameters.hideStatusBar = true;
-                    appParameters.inExtension = true;
-                }
-
                 continue;
             }
 
@@ -86,13 +76,4 @@ export const parseAppParameters = (): void => {
         appParameters.inDevelopment = true;
     }
 
-    // Test Explorer tests also run under VS Code control, but must not be treated as embedded.
-    if (typeof process === "undefined") {
-        return;
-    }
-
-    const env = process.env;
-    if ((env.VSCODE_PID !== undefined || env.TERM_PROGRAM === "vscode" || env.VSCODE_WSL_EXT_LOCATION !== undefined) && !appParameters.testsRunning) {
-        appParameters.inExtension = true;
-    }
 };

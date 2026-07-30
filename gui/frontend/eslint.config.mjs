@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -63,10 +63,8 @@ export default tslint.config(
                         "eslint.config.mjs",
                         "vite.config.ts",
                         "vitest.config.ts",
-                        "e2e.vitest.config.ts",
                         "src/tests/tsconfig.json",
                         "src/tests/reporter/StaticHtmlReporter.ts",
-                        "src/tests/e2e/*.mjs",
                     ],
                     defaultProject: "tsconfig.json",
                 },

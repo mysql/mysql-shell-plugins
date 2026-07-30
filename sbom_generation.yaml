@@ -116,19 +116,11 @@ steps:
       # For more details, visit https://github.com/CycloneDX/cyclonedx-node-npm/blob/main/README.md
       npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file artifactSBOM.json --spec-version 1.4 --flatten-components )
   - type: Command
-    name: "Run cyclonedx-node-npm package for the VSCode Extension"
-    command: |
-      # Install dependencies & cyclonedx-node-npm package
-      ( cd gui/extension && \
-      npm install && npm install --save-dev @cyclonedx/cyclonedx-npm@1.19.3 && \
-      # For more details, visit https://github.com/CycloneDX/cyclonedx-node-npm/blob/main/README.md
-      npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file artifactSBOM.json --spec-version 1.4 --flatten-components )
-  - type: Command
     name: "Merge multiple SBOMs using CycloneDX-cli"
     command: |
       # For more details, visit https://github.com/CycloneDX/cyclonedx-cli/blob/main/README.md
       chmod +x cyclonedx-linux-x64
-      ./cyclonedx-linux-x64 merge --input-files ./mds_plugin/artifactSBOM.json ./mrs_plugin/artifactSBOM.json ./gui/backend/artifactSBOM.json ./gui/backend/gui_plugin/migration/artifactSBOM.json ./gui/frontend/artifactSBOM.json ./gui/extension/artifactSBOM.json --output-file artifactSBOM.json
+      ./cyclonedx-linux-x64 merge --input-files ./mds_plugin/artifactSBOM.json ./mrs_plugin/artifactSBOM.json ./gui/backend/artifactSBOM.json ./gui/backend/gui_plugin/migration/artifactSBOM.json ./gui/frontend/artifactSBOM.json --output-file artifactSBOM.json
 
 outputArtifacts:
   - name: artifactSBOM

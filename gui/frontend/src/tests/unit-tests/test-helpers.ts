@@ -32,14 +32,10 @@ import { range } from "d3";
 
 // ATTENTION: keep the namespace imports or vite report weird errors.
 import * as fs from "fs";
-import * as os from "os";
 import * as path from "path";
 
-import { appParameters } from "../../supplement/AppParameters.js";
-import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { RunMode, webSession } from "../../supplement/WebSession.js";
-import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
+import { webSession } from "../../supplement/WebSession.js";
 import { uiLayerMock } from "./__mocks__/UILayerMock.js";
 
 import { IColumnInfo } from "../../app-logic/general-types.js";
@@ -213,8 +209,8 @@ export const mockClassMethods = <T extends abstract new (...args: never[]) => un
     targetClass: T,
     mocks: {
         [K in keyof InstanceType<T>]?: InstanceType<T>[K] extends (...args: infer P) => infer R
-        ? (...args: P) => R
-        : never;
+            ? (...args: P) => R
+            : never;
     },
 ): void => {
     (Object.keys(mocks) as Array<keyof typeof mocks>).forEach((methodName) => {
@@ -466,144 +462,6 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
         element.dispatchEvent(event6);
         await nextProcessTick();
     }
-};
-
-/**
- * Helper method to launch a MySQL Shell for a test suite and wait for it until it's fully up.
- *
- * @param showOutput If true then the shell output will be printed to the console (inline). Errors are always displayed.
- * @param handleEvents If this parameter is true, the function also subscribes to serverResponse and webSession events
- *                     to trigger authentication and waits until a profile is loaded. If false, the caller has to take
- *                     care of that.
- * @param logLevel The log level to use. Only relevant if showOutput is true.
- * @param context Test context name used when copying MySQL Shell logs.
- *
- * @param context
- * @returns A promise resolving to the created shell launcher. Use this to shut down the shell process when done.
- */
-export const setupShellForTests = (showOutput: boolean, handleEvents = true,
-    logLevel?: LogLevel, context?: string): Promise<MySQLShellLauncher> => {
-
-    // Create a test folder name with a random part, in the system's temp folder.
-    const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));
-
-    return new Promise((resolve, reject) => {
-        try {
-            // Create that folder and add links to the shell plugins.
-            fs.mkdirSync(targetDir + "/plugins", { recursive: true });
-            fs.symlinkSync(path.resolve("../../../../backend/gui_plugin"), targetDir + "/plugins/gui_plugin");
-            fs.symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");
-            fs.symlinkSync(path.resolve("../../../../../mds_plugin"), targetDir + "/plugins/mds_plugin");
-            fs.symlinkSync(path.resolve("../../../../../msm_plugin"), targetDir + "/plugins/msm_plugin");
-            fs.symlinkSync(path.resolve("../../../../../util_plugin"), targetDir + "/plugins/util_plugin");
-
-            // And create a web root link in the gui_plugin.
-            const symlinkDir = targetDir + "/plugins/gui_plugin/core/webroot";
-            const symlinkTarget = path.resolve("../../../build");
-            try {
-                fs.symlinkSync(symlinkTarget, symlinkDir);
-            } catch {
-                // Ignore the error if the link already exists.
-            }
-
-            appParameters.set("shellUserConfigDir", path.resolve(targetDir));
-        } catch (error) {
-            fs.rmSync(targetDir, { recursive: true });
-            reject(error as Error);
-
-            return;
-        }
-
-        const shellLauncher = new MySQLShellLauncher(
-            (text) => {
-                if (showOutput) {
-                    console.log(text);
-                }
-            },
-            (error) => {
-                console.error(`\nError while setting up MySQL Shell connection: ${error.message}\n`);
-            },
-            () => { // Called on exit of the shell process.
-
-                if (context) {
-                    const logsRoot = path.join(process.cwd(), "logs");
-                    try {
-                        fs.mkdirSync(logsRoot, { recursive: true });
-                    } catch (e) {
-                        // If the folder cannot be created we still want the test to
-                        // clean‑up the temp directory, so we just log the error.
-                        console.error(`⚠️  Could not create logs folder at ${logsRoot}:`, e);
-                    }
-
-                    const shellLogPath = path.join(targetDir, "mysqlsh.log");
-                    if (fs.existsSync(shellLogPath)) {
-                        const destPath = path.join(logsRoot, `${context}-mysqlsh.log`);
-
-                        try {
-                            fs.copyFileSync(shellLogPath, destPath);
-                            console.info(`🔍  MySQL Shell log saved to ${destPath}`);
-                        } catch (e) {
-                            console.error(`⚠️  Failed to copy MySQL Shell log from ${shellLogPath} to ${destPath}:`, e);
-                        }
-                    } else {
-                        console.warn(`⚠️  No MySQL Shell log found at ${shellLogPath}`);
-                    }
-                } else {
-                    console.log("No context provided, skipping MySQL Shell log copy.");
-                }
-
-                try {
-                    fs.rmSync(targetDir, { recursive: true, force: true });
-                } catch (e) {
-                    console.error(`⚠️  Could not delete temporary dir ${targetDir}:`, e);
-                }
-            },
-        );
-
-        if (handleEvents) {
-            requisitions.register("webSessionStarted", (data) => {
-                webSession.sessionId = data.sessionUuid;
-                webSession.runMode = data.localUserMode ? RunMode.LocalUser : RunMode.Normal;
-
-                // Session recovery is not supported in tests, so remove the else branch from test coverage.
-                // istanbul ignore else
-                if (webSession.userName === "") {
-                    if (webSession.runMode === RunMode.LocalUser) {
-                        void ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
-                            if (showOutput) {
-                                console.log("Shell connection established and user authenticated");
-                            }
-
-                            if (profile) {
-                                webSession.loadProfile(profile);
-                                void requisitions.execute("userAuthenticated", profile);
-                            }
-                        });
-                    }
-                } else {
-                    webSession.loadProfile(data.activeProfile);
-                }
-
-                return Promise.resolve(true);
-            });
-
-            const loaded = (): Promise<boolean> => {
-                requisitions.unregister("profileLoaded", loaded);
-                resolve(shellLauncher);
-
-                return Promise.resolve(true);
-            };
-
-            requisitions.register("profileLoaded", loaded);
-        }
-
-        shellLauncher.startShellAndConnect(".", false, false, logLevel);
-
-        if (!handleEvents) {
-            // If events are handled then the promise is resolved when a profile is loaded.
-            resolve(shellLauncher);
-        }
-    });
 };
 
 /**
@@ -1135,25 +993,6 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
         service,
         authApp,
     });
-};
-
-export const createJdvData = async (backend: ShellInterfaceSqlEditor,
-    schema = "jdv_test"): Promise<Record<string, string[]>> => {
-    const schemasWithTables: Record<string, string[]> = {};
-
-    schemasWithTables[schema] = ["customer", "order"];
-
-    await backend.execute(`DROP DATABASE IF EXISTS ${schema}`);
-    await backend.execute(`CREATE DATABASE IF NOT EXISTS ${schema}`);
-    await backend.execute(`CREATE TABLE IF NOT EXISTS ${schema}.customer (` +
-        `id INT AUTO_INCREMENT PRIMARY KEY,` +
-        `username VARCHAR(50) NOT NULL UNIQUE)`);
-    await backend.execute(`CREATE TABLE IF NOT EXISTS ${schema}.order (` +
-        `id INT AUTO_INCREMENT PRIMARY KEY,` +
-        `customer_id INT NOT NULL,` +
-        `FOREIGN KEY (customer_id) REFERENCES ${schema}.customer(id) ON DELETE CASCADE)`);
-
-    return schemasWithTables;
 };
 
 export const ignoreSnapshotUuids = (): void => {

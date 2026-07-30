@@ -25,73 +25,38 @@
 
 import { render, waitFor } from "@testing-library/preact";
 import { createRef } from "preact";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
-import { IJdvViewInfo } from "../../../../../communication/ProtocolGui.js";
+import { IJdvTableColumnWithReference, IJdvViewInfo } from "../../../../../communication/ProtocolGui.js";
 import { JdvHub } from "../../../../../modules/jdv/JdvHub.js";
 import { IJdvEditRequest } from "../../../../../supplement/RequisitionTypes.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
-import {
-    DialogHelper, createBackend, createJdvData, sendKeyPress, setupShellForTests,
-} from "../../../test-helpers.js";
+import { DialogHelper, sendKeyPress } from "../../../test-helpers.js";
 
 describe("Jdv Object dialog tests", () => {
-    let launcher: MySQLShellLauncher;
-    let backend: ShellInterfaceSqlEditor;
-    let dialogHelper: DialogHelper;
-
-    const watchJdvInitialLoad = (schema: string, table: string, validTable: boolean): (() => Promise<void>) => {
-        let completion: Promise<unknown> | undefined;
-        const getSchemaObjectNames = backend.getSchemaObjectNames.bind(backend);
-        const getJdvTableColumnsWithReferences = backend.getJdvTableColumnsWithReferences.bind(backend);
-        const schemaObjectNamesSpy = vi.spyOn(backend, "getSchemaObjectNames").mockImplementation(
-            (requestedSchema, type, routineType, filter) => {
-                const result = getSchemaObjectNames(requestedSchema, type, routineType, filter);
-                if (!validTable && requestedSchema === schema && type === "View") {
-                    completion = result;
-                }
-
-                return result;
-            });
-        const tableColumnsSpy = vi.spyOn(backend, "getJdvTableColumnsWithReferences").mockImplementation(
-            (requestedSchema, requestedTable) => {
-                const result = getJdvTableColumnsWithReferences(requestedSchema, requestedTable);
-                if (validTable && requestedSchema === schema && requestedTable === table) {
-                    completion = result;
-                }
-
-                return result;
-            });
-
-        return async (): Promise<void> => {
-            try {
-                await waitFor(() => {
-                    expect(completion).toBeDefined();
-                }, { timeout: 3000 });
-                await completion;
-                await Promise.resolve();
-            } finally {
-                schemaObjectNamesSpy.mockRestore();
-                tableColumnsSpy.mockRestore();
-            }
-        };
+    const createBackend = (schema: string, tables: string[] = [],
+        columns: IJdvTableColumnWithReference[] = [], includeSchema = false): ShellInterfaceSqlEditor => {
+        return {
+            getCatalogObjects: (): Promise<string[]> => {
+                return Promise.resolve(includeSchema ? [schema] : []);
+            },
+            getSchemaObjectNames: (_schema: string, type: string): Promise<string[]> => {
+                return Promise.resolve(type === "Table" ? tables : []);
+            },
+            getJdvTableColumnsWithReferences: (): Promise<IJdvTableColumnWithReference[]> => {
+                return Promise.resolve(columns);
+            },
+            getTableObjectNames: (_schema: string, table: string, type: string): Promise<string[]> => {
+                return Promise.resolve(type === "Primary Key" && tables.includes(table) ? ["id"] : []);
+            },
+        } as unknown as ShellInterfaceSqlEditor;
     };
 
-    beforeAll(async () => {
+    beforeAll(() => {
         registerUiLayer(uiLayerMock);
-        launcher = await setupShellForTests(true, true, "DEBUG2", "JdvObjectDialogTests");
-
-        dialogHelper = new DialogHelper("jdvObjectDialog", "Json Duality View Builder");
-        backend = await createBackend();
-    });
-
-    afterAll(async () => {
-        await backend.closeSession();
-        await launcher.exitProcess();
     });
 
     it("Standard Rendering (snapshot)", () => {
@@ -107,7 +72,8 @@ describe("Jdv Object dialog tests", () => {
     // TODO: this currently test if the dialog opened with the correct fields
     // but does not test if the fields where populated correctly with the object values
     it("Show Jdv Object Dialog (snapshot) and escape", async () => {
-        await backend.execute("DROP DATABASE IF EXISTS test_schema");
+        const backend = createBackend("test_schema");
+        const dialogHelper = new DialogHelper("jdvObjectDialog", "Json Duality View Builder");
 
         const hostRef = createRef<JdvHub>();
         const { unmount } = render(
@@ -128,7 +94,6 @@ describe("Jdv Object dialog tests", () => {
             jdvViewInfo,
             createView: true,
         };
-        const waitForJdvInitialLoad = watchJdvInitialLoad("test_schema", "test_table", false);
         const promise = hostRef.current!.showJdvObjectDialog(backend, dialogRequest);
         await dialogHelper.waitForDialog();
 
@@ -137,7 +102,6 @@ describe("Jdv Object dialog tests", () => {
 
         expect(portals[0]).toMatchSnapshot();
 
-        await waitForJdvInitialLoad();
         sendKeyPress(KeyboardKeys.Escape);
 
         await promise;
@@ -149,7 +113,8 @@ describe("Jdv Object dialog tests", () => {
     });
 
     it("Show Jdv Object Dialog and cancel", async () => {
-        await backend.execute("DROP DATABASE IF EXISTS jdv_missing_dialog");
+        const backend = createBackend("jdv_missing_dialog");
+        const dialogHelper = new DialogHelper("jdvObjectDialog", "Json Duality View Builder");
 
         const hostRef = createRef<JdvHub>();
         const { unmount } = render(
@@ -170,7 +135,6 @@ describe("Jdv Object dialog tests", () => {
             jdvViewInfo,
             createView: true,
         };
-        const waitForJdvInitialLoad = watchJdvInitialLoad("jdv_missing_dialog", "customer", false);
         const promise = hostRef.current!.showJdvObjectDialog(backend, dialogRequest);
         await dialogHelper.waitForDialog();
 
@@ -178,9 +142,10 @@ describe("Jdv Object dialog tests", () => {
         expect(portals).toHaveLength(1);
 
         {
-            await waitForJdvInitialLoad();
             const treeGrid = dialogHelper.searchChild<HTMLDivElement>({ class: "jdvObjectTreeGrid" });
-            expect(treeGrid.children).toHaveLength(2);
+            await waitFor(() => {
+                expect(treeGrid.children).toHaveLength(2);
+            });
 
             const treeGridHeader = treeGrid.children[0] as HTMLElement;
             expect(treeGridHeader.classList).toContain("tabulator-header");
@@ -199,8 +164,36 @@ describe("Jdv Object dialog tests", () => {
     });
 
     it("Jdv Object Dialog error testing [jdv name]", async () => {
-
-        await createJdvData(backend, "jdv_test_dialog");
+        const columns: IJdvTableColumnWithReference[] = [
+            {
+                name: "id",
+                position: 1,
+                dbColumn: {
+                    dbName: "id",
+                    datatype: "int",
+                    isPrimary: true,
+                    isGenerated: false,
+                    notNull: true,
+                },
+                table: "customer",
+                schema: "jdv_test_dialog",
+            },
+            {
+                name: "username",
+                position: 2,
+                dbColumn: {
+                    dbName: "username",
+                    datatype: "varchar",
+                    isPrimary: false,
+                    isGenerated: false,
+                    notNull: true,
+                },
+                table: "customer",
+                schema: "jdv_test_dialog",
+            },
+        ];
+        const backend = createBackend("jdv_test_dialog", ["customer"], columns, true);
+        const dialogHelper = new DialogHelper("jdvObjectDialog", "Json Duality View Builder");
 
         const hostRef = createRef<JdvHub>();
         const { unmount } = render(
@@ -223,10 +216,11 @@ describe("Jdv Object dialog tests", () => {
             createView: true,
         };
 
-        const waitForJdvInitialLoad = watchJdvInitialLoad("jdv_test_dialog", "customer", true);
         const promise = hostRef.current!.showJdvObjectDialog(backend, dialogRequest);
         await dialogHelper.waitForDialog();
-        await waitForJdvInitialLoad();
+        await waitFor(() => {
+            expect(dialogHelper.searchChild<HTMLDivElement>({ class: "jdvObjectTreeGrid" })).toBeDefined();
+        });
 
         try {
             portals = document.getElementsByClassName("portal");

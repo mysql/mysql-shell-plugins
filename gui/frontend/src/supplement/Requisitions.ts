@@ -25,7 +25,7 @@
 
 import type { IDictionary } from "../app-logic/general-types.js";
 import type { IEmbeddedMessage, IEmbeddedSourceType } from "../communication/index.js";
-import { appParameters, parseAppParameters } from "./AppParameters.js";
+import { parseAppParameters } from "./AppParameters.js";
 import { type DesktopCommandId, desktopCommandRegistry } from "./DesktopCommandRegistry.js";
 import { hasElectronHostBridge } from "./ElectronDesktop.js";
 import { RequisitionPipeline } from "./RequisitionPipeline.js";
@@ -128,46 +128,6 @@ export class RequisitionHub {
                     }
                 });
 
-                if (appParameters.inExtension) {
-                    // If we are running embedded in VS Code, we have to forward keyboard events, to allow VS Code
-                    // to handle these, if needed.
-                    // See extension code (WebviewProvider.ts) how these messages are treated.
-                    document.addEventListener("keydown", (e) => {
-                        const obj = {
-                            source: this.source,
-                            command: "keydown",
-                            altKey: e.altKey,
-                            code: e.code,
-                            ctrlKey: e.ctrlKey,
-                            isComposing: e.isComposing,
-                            key: e.key,
-                            location: e.location,
-                            metaKey: e.metaKey,
-                            repeat: e.repeat,
-                            shiftKey: e.shiftKey,
-                        };
-
-                        // Forward event to the window parent, which will forward to VS Code.
-                        window.parent.postMessage(obj, "*");
-                    });
-
-                    document.addEventListener("keyup", (e) => {
-                        const obj = {
-                            type: "keyup",
-                            altKey: e.altKey,
-                            code: e.code,
-                            ctrlKey: e.ctrlKey,
-                            isComposing: e.isComposing,
-                            key: e.key,
-                            location: e.location,
-                            metaKey: e.metaKey,
-                            repeat: e.repeat,
-                            shiftKey: e.shiftKey,
-                        };
-
-                        window.parent.postMessage(obj, "*");
-                    });
-                }
             }
         }
     }
@@ -415,15 +375,7 @@ export class RequisitionHub {
      * @param text The text to write to the clipboard.
      */
     public writeToClipboard(text: string): void {
-        if (appParameters.inExtension) {
-            const message = {
-                source: this.source,
-                command: "writeClipboard",
-                text,
-            };
-
-            this.remoteTarget?.postMessage?.(message, "*");
-        } else if (window.isSecureContext) {
+        if (window.isSecureContext) {
             // Some browser limit access to the clipboard in unsecure contexts.
             void navigator.clipboard.writeText(text);
         } else if ("execCommand" in document) {

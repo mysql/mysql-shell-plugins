@@ -933,5 +933,5 @@ export const isShellPromptResult = (response?: unknown): response is IShellFeedb
 };
 
 export const isStandalone = (): boolean => {
-    return (appParameters?.embedded || false) && (appParameters?.inExtension || false);
+    return appParameters.embedded ?? false;
 };

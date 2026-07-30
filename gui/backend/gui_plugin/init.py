@@ -151,8 +151,7 @@ class gui:
     class start:
         """Used to start the MySQL Shell GUI
 
-        The MySQL Shell GUI can be started as a native application
-        or as a web application served by a web server.
+        The MySQL Shell GUI is hosted by the MySQL Workbench desktop application.
         """
 
     class db:

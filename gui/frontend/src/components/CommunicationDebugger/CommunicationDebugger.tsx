@@ -744,7 +744,7 @@ export default class CommunicationDebugger
         if (MessageScheduler.get.isConnected) {
             this.printOutput("/* ERROR: You are already connected */\n\n", OutputType.Error);
         } else {
-            void MessageScheduler.get.connect({ url: new URL(window.location.href) });
+            void MessageScheduler.get.connect();
         }
     };
 

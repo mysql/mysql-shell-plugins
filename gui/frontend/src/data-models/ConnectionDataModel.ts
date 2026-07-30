@@ -33,7 +33,7 @@ import { EnabledState } from "../modules/mrs/mrs-helpers.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { DBType, type IConnectionDetails, type IFolderPath } from "../supplement/ShellInterface/index.js";
+import { type IConnectionDetails, type IFolderPath } from "../supplement/ShellInterface/index.js";
 import { webSession, type ILoginCredentials } from "../supplement/WebSession.js";
 import { convertErrorToString, partition, uuid } from "../utilities/helpers.js";
 import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
@@ -709,11 +709,10 @@ export class ConnectionDataModel implements ICdmAccessManager {
     /**
      * Creates a new instance of the connection data model.
      *
-     * @param singleServerMode Set to true if the data model should only create a temporary connection to the server.
      * @param refreshTime The time in milliseconds to wait between refreshing the MRS routers, when auto refresh
      *                    is enabled.
      */
-    public constructor(private singleServerMode: boolean, refreshTime = 10000) {
+    public constructor(refreshTime = 10000) {
         this.rootGroup = {
             id: uuid(),
             caption: "",
@@ -723,25 +722,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
             state: createDataModelEntryState(),
         };
 
-        if (singleServerMode) {
-            // In single server mode we only have one connection, with no details. The backend will ignore the values
-            // and open a connection to a server, configured in the startup details.
-            const details: IConnectionDetails = {
-                id: 0,
-                index: 0,
-                dbType: DBType.MySQL,
-                caption: "MySQL AI Server",
-                description: "",
-                options: {},
-            };
-
-            const connection = new ConnectionEntryImpl(details.caption, details, this);
-            this.rootGroup.entries.push(connection);
-        } else {
-            this.rootGroup.refresh = () => {
-                return this.updateConnectionGroup(this.rootGroup);
-            };
-        }
+        this.rootGroup.refresh = () => {
+            return this.updateConnectionGroup(this.rootGroup);
+        };
 
         this.routerRefreshTime = refreshTime;
     }
@@ -1473,14 +1456,10 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @returns A promise that resolves once the connections are updated (true means success).
      */
     private async updateConnections(): Promise<boolean> {
-        if (!this.singleServerMode) {
-            const promise = this.updateConnectionGroup(this.rootGroup);
-            requisitions.executeRemote("connectionsUpdated", undefined);
+        const promise = this.updateConnectionGroup(this.rootGroup);
+        requisitions.executeRemote("connectionsUpdated", undefined);
 
-            return promise;
-        }
-
-        return false;
+        return promise;
     }
 
     /**

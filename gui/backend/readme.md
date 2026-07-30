@@ -121,13 +121,12 @@ In vscode, you should use the following configurations. These configurations all
 To debug the backend code in standalone mode, the following command should be issued:
 
 ```bash
-ATTACH_DEBUGGER=BACKEND mysqlsh --py -e "import gui_plugin.debug_utils; import gui_plugin.start; gui.start.web_server(port=8000, secure={}, single_instance_token=\"<same token used in the browser URL>\")"
+ATTACH_DEBUGGER=BACKEND mysqlsh --disable-builtin-plugins --py -e "import gui_plugin.debug_utils; import gui_plugin.start; gui.start.desktop_bridge()"
 ```
 
 ## Desktop Bridge
 
-For the Electron desktop app (aka the new MySQL Workbench), there is now a
-stdio-based entrypoint which avoids the localhost web server entirely:
+Workbench starts the GUI backend over standard input/output:
 
 ```bash
 mysqlsh --disable-builtin-plugins --py -e "import gui_plugin as gui; import gui_plugin.start; gui.start.desktop_bridge()"
@@ -135,22 +134,21 @@ mysqlsh --disable-builtin-plugins --py -e "import gui_plugin as gui; import gui_
 
 This mode is intended for the Electron desktop launch flow where the desktop shell starts
 `mysqlsh` as a child process and exchanges line-delimited JSON over stdin/stdout.
-On startup the bridge emits a small `ready` event, followed by the same session-created
-response shape used by the websocket backend. It still speaks the existing request types
+On startup the bridge emits a small `ready` event, followed by the session-created
+response. It still speaks the existing request types
 such as `execute`, `cancel`, and `prompt_reply`.
 
 In desktop bridge mode, stdout is reserved for protocol JSON only. Human-readable
 diagnostics continue to be emitted, but they are written to stderr instead, so
 desktop hosts do not need to suppress logging with `LOG_LEVEL=NONE`.
 
-Compared to `gui.start.web_server(...)`, this mode:
+The desktop bridge:
 
 - does not require a webroot or static file serving
-- does not require localhost certificates
+- creates MRS Router TLS material independently of the GUI transport
 - does not require polling for a TCP port to become ready
 - keeps the MySQL Shell execution model unchanged
 
-The Electron desktop app now replaces the older native wrapper hosts. The existing
-web server path remains the right choice for browsers and VS Code webviews.
+The Electron desktop app is the only supported GUI host.
 
 Copyright &copy; 2020, 2026, Oracle and/or its affiliates.

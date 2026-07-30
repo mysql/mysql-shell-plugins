@@ -143,7 +143,6 @@ describe("Application desktop bootstrap", () => {
             },
             sessionUuid: "desktop-session",
             localUserMode: true,
-            singleServerMode: false,
             activeProfile: {
                 id: 1,
                 userId: 7,
@@ -196,7 +195,6 @@ describe("Application desktop bootstrap", () => {
             },
             sessionUuid: "desktop-session",
             localUserMode: true,
-            singleServerMode: false,
             activeProfile: {
                 id: 1,
                 userId: 7,

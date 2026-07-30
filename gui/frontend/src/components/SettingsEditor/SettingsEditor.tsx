@@ -30,7 +30,6 @@ import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables"
 
 import type { IDictionary } from "../../app-logic/general-types.js";
 import { settingCategories, type ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
-import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { Button } from "../ui/Button/Button.js";
 import { CheckState, Checkbox, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
 import { Codicon } from "../ui/Codicon.js";
@@ -73,10 +72,6 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
 
         const settingsTree = settingCategories.children!;
         const hiddenIds: string[] = [];
-        if (webSession.runMode === RunMode.SingleServer) {
-            // This setting is only used in single server mode, where we only have one, non-editable connection.
-            hiddenIds.push("dbEditor.defaultEditor");
-        }
 
         const [, filteredTree] = this.filterSettingsTree(settingsTree, false, hiddenIds);
 

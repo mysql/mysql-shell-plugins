@@ -25,21 +25,19 @@
 
 import { render, waitFor } from "@testing-library/preact";
 import { createRef } from "preact";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import {
-    IJdvObjectFieldWithReference, IJdvTableColumn, IJdvTableReference, IJdvViewInfo
+    IJdvObjectFieldWithReference, IJdvTableColumn, IJdvTableColumnWithReference, IJdvTableReference, IJdvViewInfo
 } from "../../../../../communication/ProtocolGui.js";
 import {
     IJdvObjectFieldEditorData, IJdvObjectFieldTreeItem, JdvObjectFieldEditor, JdvObjectFieldTreeEntryType,
     JdvObjectFieldValidatorType,
 } from "../../../../../modules/jdv/dialogs/JdvObjectFieldEditor.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { parseVersion } from "../../../../../parsing/mysql/mysql-helpers.js";
 import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
-import { createBackend, createJdvData, normalizeWhitespace, setupShellForTests, } from "../../../test-helpers.js";
+import { normalizeWhitespace } from "../../../test-helpers.js";
 
 // @ts-expect-error, we need access to a private members here.
 class JdvObjectFieldEditorMock extends JdvObjectFieldEditor {
@@ -48,10 +46,6 @@ class JdvObjectFieldEditorMock extends JdvObjectFieldEditor {
 }
 
 describe("JDV Object field editor tests", () => {
-    let launcher: MySQLShellLauncher;
-    let backend: ShellInterfaceSqlEditor;
-    let backendInitialized = false;
-
     const createEmptyJdvViewInfoObject = (): IJdvViewInfo => {
         return {
             id: "",
@@ -142,6 +136,25 @@ describe("JDV Object field editor tests", () => {
                 return Promise.resolve([]);
             },
             getJdvObjectFieldsWithReferences: () => {
+                return Promise.resolve([]);
+            },
+        } as unknown as ShellInterfaceSqlEditor;
+    };
+
+    const createJdvBackend = (columnsByTable: Partial<Record<string, IJdvTableColumnWithReference[]>>,
+        primaryKeys: Partial<Record<string, string[]>>): ShellInterfaceSqlEditor => {
+        return {
+            getSchemaObjectNames: (): Promise<string[]> => {
+                return Promise.resolve([]);
+            },
+            getTableObjectNames: (_schema: string, table: string, type: string): Promise<string[]> => {
+                return Promise.resolve(type === "Primary Key" ? primaryKeys[table] ?? [] : []);
+            },
+            getJdvTableColumnsWithReferences: (_schema: string, table: string):
+            Promise<IJdvTableColumnWithReference[]> => {
+                return Promise.resolve(columnsByTable[table] ?? []);
+            },
+            getJdvObjectFieldsWithReferences: (): Promise<IJdvObjectFieldWithReference[]> => {
                 return Promise.resolve([]);
             },
         } as unknown as ShellInterfaceSqlEditor;
@@ -606,30 +619,95 @@ describe("JDV Object field editor tests", () => {
         return { unmount, editorRef, values, backend };
     };
 
-    describe("backend-backed field editor tests", () => {
-        beforeAll(async () => {
-            registerUiLayer(uiLayerMock);
-            launcher = await setupShellForTests(true, true, "DEBUG2", "JdvObjectFieldEditorTests");
-        });
-
-        afterAll(async () => {
-            if (backendInitialized) {
-                await backend.execute("DROP DATABASE IF EXISTS jdv_test");
-                await backend.closeSession();
-            }
-
-            await launcher.exitProcess();
-        });
-
-        beforeEach(async () => {
-            backend = await createBackend();
-            backendInitialized = true;
-            await backend.execute("DROP DATABASE IF EXISTS jdv_test");
-            await backend.execute("CREATE DATABASE IF NOT EXISTS jdv_test");
-        });
+    describe("data-loading field editor tests", () => {
+        const schemasWithTables = { jdv_test: ["customer", "order"] };
+        const columnsByTable: Record<string, IJdvTableColumnWithReference[]> = {
+            customer: [
+                {
+                    name: "id",
+                    position: 1,
+                    dbColumn: {
+                        dbName: "id",
+                        datatype: "int",
+                        isPrimary: true,
+                        isGenerated: false,
+                        notNull: true,
+                    },
+                    table: "customer",
+                    schema: "jdv_test",
+                },
+                {
+                    name: "username",
+                    position: 2,
+                    dbColumn: {
+                        dbName: "username",
+                        datatype: "varchar",
+                        isPrimary: false,
+                        isGenerated: false,
+                        notNull: true,
+                    },
+                    table: "customer",
+                    schema: "jdv_test",
+                },
+                {
+                    name: "order",
+                    position: 3,
+                    referenceMapping: {
+                        kind: "1:n",
+                        baseColumn: "id",
+                        referencedColumn: "customer_id",
+                        referencedTable: "order",
+                        referencedSchema: "jdv_test",
+                    },
+                    table: "customer",
+                    schema: "jdv_test",
+                },
+            ],
+            order: [
+                {
+                    name: "id",
+                    position: 1,
+                    dbColumn: {
+                        dbName: "id",
+                        datatype: "int",
+                        isPrimary: true,
+                        isGenerated: false,
+                        notNull: true,
+                    },
+                    table: "order",
+                    schema: "jdv_test",
+                },
+                {
+                    name: "customer_id",
+                    position: 2,
+                    dbColumn: {
+                        dbName: "customer_id",
+                        datatype: "int",
+                        isPrimary: false,
+                        isGenerated: false,
+                        notNull: true,
+                    },
+                    table: "order",
+                    schema: "jdv_test",
+                },
+                {
+                    name: "customer",
+                    position: 3,
+                    referenceMapping: {
+                        kind: "n:1",
+                        baseColumn: "customer_id",
+                        referencedColumn: "id",
+                        referencedTable: "customer",
+                        referencedSchema: "jdv_test",
+                    },
+                    table: "order",
+                    schema: "jdv_test",
+                },
+            ],
+        };
 
         it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [create JDV]", async () => {
-            const schemasWithTables = await createJdvData(backend);
+            const backend = createJdvBackend(columnsByTable, { customer: ["id"], order: ["id"] });
             const values: IJdvObjectFieldEditorData = {
                 jdvSchema: "jdv_test",
                 defaultJdvName: "customer_jdv",
@@ -680,24 +758,31 @@ describe("JDV Object field editor tests", () => {
             unmount();
         });
 
-        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async ({ skip }) => {
-            const versionResult = await backend.execute("SELECT @@version");
-            const version = String((versionResult?.rows?.[0] as unknown[] | undefined)?.[0] ?? "");
-            if (parseVersion(version) < 90400) {
-                skip();
-
-                return;
-            }
-
-            const schemasWithTables = await createJdvData(backend);
-            const exampleDDL = createJdvExampleDDL();
-            await backend.execute(exampleDDL);
-
-            const jdvViewInfo = await backend.getJdvViewInfo("jdv_test", "customer_orders_jdv");
-            if (jdvViewInfo.objects) {
-                jdvViewInfo.objects[0].storedFields = createJdvExampleStoredFields("0");
-                jdvViewInfo.objects[1].storedFields = createJdvExampleStoredFields("1");
-            }
+        it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [edit JDV]", async () => {
+            const backend = createJdvBackend(columnsByTable, { customer: ["id"], order: ["id"] });
+            const jdvViewInfo: IJdvViewInfo = {
+                id: "",
+                name: "customer_orders_jdv",
+                schema: "jdv_test",
+                rootTableName: "customer",
+                rootTableSchema: "jdv_test",
+                objects: [
+                    {
+                        id: "0",
+                        table: "customer",
+                        schema: "jdv_test",
+                        isRoot: true,
+                        storedFields: createJdvExampleStoredFields("0"),
+                    },
+                    {
+                        id: "1",
+                        table: "order",
+                        schema: "jdv_test",
+                        isRoot: false,
+                        storedFields: createJdvExampleStoredFields("1"),
+                    },
+                ],
+            };
 
             const values: IJdvObjectFieldEditorData = {
                 jdvSchema: jdvViewInfo.schema,
@@ -743,11 +828,10 @@ describe("JDV Object field editor tests", () => {
         });
 
         it("JdvObjectFieldEditor test fillTreeBasedOnJdvObjectFields [invalid root table]", async () => {
+            const backend = createJdvBackend({}, {});
             const schemasWithTables: Record<string, string[]> = {};
 
             // root table with no primary key
-            await backend.execute("CREATE TABLE IF NOT EXISTS jdv_test.product_rating (" +
-            "rating TINYINT UNSIGNED DEFAULT 0 CHECK (rating BETWEEN 0 AND 5))");
             schemasWithTables.jdv_test = ["product_rating"];
             const values1: IJdvObjectFieldEditorData = {
                 jdvSchema: "jdv_test",
@@ -783,10 +867,7 @@ describe("JDV Object field editor tests", () => {
             unmount();
 
             // root table with composite primary key
-            await backend.execute("CREATE TABLE IF NOT EXISTS jdv_test.delivery_info (" +
-            "id INT NOT NULL," +
-            "purchase_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-            "PRIMARY KEY (id, purchase_date))");
+            const compositePrimaryKeyBackend = createJdvBackend({}, { delivery_info: ["id", "purchase_date"] });
             schemasWithTables.jdv_test = ["delivery_info"];
             const values2: IJdvObjectFieldEditorData = {
                 jdvSchema: "jdv_test",
@@ -804,7 +885,8 @@ describe("JDV Object field editor tests", () => {
                 currentTreeItems: [],
             };
 
-            const { unmount: unmount2, editorRef: editorRef2 } = await doMount(values2, backend, schemasWithTables,
+            const { unmount: unmount2, editorRef: editorRef2 } = await doMount(values2, compositePrimaryKeyBackend,
+                schemasWithTables,
                 () => {
                     return values2.jdvViewInfo;
                 });

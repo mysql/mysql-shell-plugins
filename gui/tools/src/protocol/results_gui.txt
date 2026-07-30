@@ -17,7 +17,6 @@ export interface IWebSessionData {
     requestState: { msg: string; };
     sessionUuid?: string;
     localUserMode: boolean;
-    singleServerMode: boolean;
     activeProfile: IShellProfile;
 }
 
@@ -396,9 +395,6 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreSetLogLevel]: void;
     [ShellAPIGui.GuiCoreGetLogLevel]: { result: string; };
     [ShellAPIGui.GuiCoreGetBackendInformation]: { result: IShellBackendInformation; };
-    [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
-    [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
-    [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
     [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: [number, number, number]; };
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};

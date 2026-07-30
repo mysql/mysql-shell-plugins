@@ -71,7 +71,6 @@ import { ConnectionEditor } from "./ConnectionEditor.js";
 import { ConnectionTags, connectionTagsChangedKey } from "./ConnectionTags.js";
 import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
 import { startMigrationAssistantWithValidatedPassword } from "./SidebarCommandHandler.js";
-import { appParameters } from "../../supplement/AppParameters.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { hasElectronHostBridge } from "../../supplement/ElectronDesktop.js";
 import { helpUrlMap } from "../../supplement/index.js";
@@ -983,7 +982,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             case "open:notebook": {
                 // In the standalone/Electron frontend, match the sidebar behavior and always
                 // open a fresh connection page for notebook/script actions.
-                const createNewWorkspace = !appParameters.inExtension || options?.newTab === true;
+                const createNewWorkspace = true;
                 const initialEditor = action === "open:script"
                     ? "script"
                     : action === "open:notebook" ? "notebook" : options?.editor ?? "default";
@@ -1012,7 +1011,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "msg.startMySQLCloudMigrationAssistant": {
-                if (appParameters.inExtension || hasElectronHostBridge()) {
+                if (hasElectronHostBridge()) {
                     void startMigrationAssistantWithValidatedPassword(entry.details);
                 } else {
                     void ui.showErrorMessage("Not implemented.", {});

@@ -68,7 +68,6 @@ import {
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { desktopCommandRegistry } from "../../supplement/DesktopCommandRegistry.js";
-import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
     EditorLanguage,
     IScriptRequest, ISqlPageRequest,
@@ -1039,10 +1038,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
 
     private editorLoadScript = async (details: IScriptRequest): Promise<boolean> => {
         if (details.openFromFile) {
-            if (appParameters.inExtension) {
-                return requisitions.executeRemote("editorLoadScript", details);
-            }
-
             const languageToExt: Partial<Record<EditorLanguage, string[]>> = {
                 mysql: [".mysql", ".sql"],
                 sql: [".sql"],
@@ -1368,12 +1363,6 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             // Ask the user to select a file.
             const targetEditorId = details?.createNew ? undefined : this.findActiveEditor()?.document.id;
 
-            if (appParameters.inExtension) {
-                return requisitions.executeRemote("editorLoadNotebook", details?.createNew
-                    ? { createNew: true }
-                    : targetEditorId ? { id: targetEditorId } : undefined);
-            }
-
             if (appParameters.embedded) {
                 requisitions.executeRemote("showOpenDialogWithRead", {
                     id: this.getNotebookLoadResourceId(targetEditorId, details?.createNew ?? false),
@@ -1495,7 +1484,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
                 openState.fileName = details.fileName;
                 openState.currentVersion = this.getEditorModelVersion(openState) ?? openState.currentVersion;
                 this.refreshOpenEditorTitle(openState.document.id);
-                if (appParameters.embedded && !appParameters.inExtension) {
+                if (appParameters.embedded) {
                     ui.setStatusBarMessage(`DB Notebook saved to ${details.fileName}`);
                 }
 
@@ -2153,11 +2142,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         const temp = text.toLowerCase();
         switch (temp) {
             case "\\about": {
-                if (webSession.runMode === RunMode.SingleServer) {
-                    await context.addResultData({
-                        type: "about", title: "MySQL AI", info: "Machine Learning and GenAI Solution",
-                    }, { resultId: "" });
-                } else if (savedState.heatWaveEnabled) {
+                if (savedState.heatWaveEnabled) {
                     await context.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
                 } else {
                     const isMac = navigator.userAgent.includes("Macintosh");

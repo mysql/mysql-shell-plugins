@@ -1,12 +1,9 @@
 {
     "name": "mysql-shell-gui",
-    "version": "2026.5.0",
+    "version": "26.7.0",
     "publisher": "Oracle",
     "type": "module",
     "scripts": {
-        "run-shell:single-user": "bash ./scripts/launch-shell-webserver.sh 1234",
-        "run-shell:single-server": "bash ./scripts/launch-shell-webserver.sh localhost:3306",
-        "run-win-shell:web-server": "call ./scripts/launch-shell-webserver.cmd",
         "run-vite:dev-server": "vite",
         "build": "bash ./scripts/production-build.sh",
         "build-with-maps": "bash ./scripts/production-build.sh development true",
@@ -15,16 +12,11 @@
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
         "build-win-with-maps": "pwsh scripts/production-build.ps1 true && tsc -p tsconfig.json",
         "type-check": "tsc -p tsconfig.json",
-        "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\" --ignore-pattern 'src/tests/e2e/**'",
+        "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "lint:fix": "npm run lint -- --fix",
         "unit-tests": "bash ./scripts/unit_tests_setup_and_run.sh",
         "update-snapshots": "vitest run --no-watch --no-coverage -u",
-        "clear:node-modules": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings",
-        "e2e-tests-setup": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py --execution_mode=setup",
-        "e2e-tests-execute": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py --execution_mode=execute",
-        "e2e-tests-teardown": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py --execution_mode=teardown",
-        "e2e-tests-setup-and-run": "mysqlsh --disable-builtin-plugins --py -f src/tests/e2e/setup_local_env_and_run.py",
-        "e2e-tests-run": "vitest --no-watch --no-coverage -c e2e.vitest.config.ts"
+        "clear:node-modules": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings"
     },
     "dependencies": {
         "@pixi/layout": "3.1.0",
@@ -44,7 +36,6 @@
     "devDependencies": {
         "@esbuild-plugins/node-globals-polyfill": "0.2.3",
         "@esbuild-plugins/node-modules-polyfill": "0.2.2",
-        "@playwright/test": "1.56.1",
         "@preact/preset-vite": "2.10.1",
         "@stylistic/eslint-plugin": "5.0.0",
         "@testing-library/preact": "3.2.4",
@@ -54,7 +45,6 @@
         "@types/jsdom": "21.1.7",
         "@types/node": "22.16.3",
         "@types/resize-observer-browser": "0.1.11",
-        "@types/selenium-webdriver": "4.1.19",
         "@types/tabulator-tables": "6.2.6",
         "@types/ws": "8.18.1",
         "@typescript-eslint/eslint-plugin": "8.36.0",
@@ -84,7 +74,6 @@
         "postcss": "8.5.6",
         "postcss-nesting": "13.0.2",
         "rollup-plugin-polyfill-node": "0.13.0",
-        "selenium-webdriver": "4.16.0",
         "terser": "5.43.1",
         "ts-node": "10.9.2",
         "tsx": "4.19.4",

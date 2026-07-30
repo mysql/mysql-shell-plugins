@@ -30,7 +30,7 @@ import mysqlsh
 
 # To DEBUG either the backend code (server side) or the unit tests
 # add the following 2 lines at:
-# - gui.start.web_server OR
+# - gui.start.desktop_bridge OR
 # - the test to be debugged
 #
 # from gui_plugin.internal import wait_debugger

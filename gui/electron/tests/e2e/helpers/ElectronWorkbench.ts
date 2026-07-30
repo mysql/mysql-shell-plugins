@@ -736,6 +736,34 @@ export class ElectronWorkbench {
         }
     }
 
+    public async expandSchemaTreePath(captions: string[]): Promise<Locator> {
+        if (captions.length === 0) {
+            throw new Error("A schema tree path must contain at least one caption.");
+        }
+
+        await this.waitForSchemasTreeReady();
+        for (let index = 0; index < captions.length - 1; ++index) {
+            const entryPath = captions.slice(0, index + 1);
+            const childPath = captions.slice(0, index + 2);
+            const row = await this.waitForSchemaTreePath(entryPath);
+            if (await this.schemaTreePathExists(childPath)) {
+                continue;
+            }
+
+            const toggle = row.locator(".treeToggle").first();
+            await expect(toggle).toBeVisible({ timeout: 30000 });
+            await toggle.scrollIntoViewIfNeeded();
+            if (!await toggle.evaluate((element) => element.classList.contains("codicon-chevron-down"))) {
+                await toggle.click();
+            }
+
+            await this.waitForSchemasTreeReady();
+            await this.waitForSchemaTreePath(childPath);
+        }
+
+        return this.waitForSchemaTreePath(captions);
+    }
+
     public async selectSchemaTreeAction(caption: string, menuPath: string[]): Promise<void> {
         await this.page.keyboard.press("Escape");
         await this.installNativeMenuInterceptor();
@@ -743,6 +771,17 @@ export class ElectronWorkbench {
 
         const row = this.schemaTreeEntry(caption);
         await expect(row).toBeVisible({ timeout: 30000 });
+        await row.scrollIntoViewIfNeeded();
+        await row.click({ button: "right" });
+        await this.selectNativeMenuPath(menuPath);
+    }
+
+    public async selectSchemaTreePathAction(captions: string[], menuPath: string[]): Promise<void> {
+        await this.page.keyboard.press("Escape");
+        await this.installNativeMenuInterceptor();
+        await this.clearNativeMenuRequest();
+
+        const row = await this.waitForSchemaTreePath(captions);
         await row.scrollIntoViewIfNeeded();
         await row.click({ button: "right" });
         await this.selectNativeMenuPath(menuPath);
@@ -765,6 +804,60 @@ export class ElectronWorkbench {
                 menu = this.page.locator(".popup.visible").last();
             }
         }
+    }
+
+    private async schemaTreePathExists(captions: string[]): Promise<boolean> {
+        return (await this.schemaTreePathIndex(captions)) !== -1;
+    }
+
+    private async waitForSchemaTreePath(captions: string[]): Promise<Locator> {
+        await expect.poll(() => this.schemaTreePathIndex(captions), { timeout: 30000 }).not.toBe(-1);
+
+        const index = await this.schemaTreePathIndex(captions);
+        if (index === -1) {
+            throw new Error(`Schema tree path not found: ${captions.join(" > ")}`);
+        }
+
+        const row = this.page.locator("#schemasSection .tabulator-row").nth(index);
+        await expect(row).toBeVisible({ timeout: 30000 });
+
+        return row;
+    }
+
+    private async schemaTreePathIndex(captions: string[]): Promise<number> {
+        return this.page.locator("#schemasSection .tabulator-row").evaluateAll((rows, path) => {
+            let parentIndex = -1;
+            let parentLevel = -1;
+
+            for (const caption of path) {
+                const expectedLevel = parentLevel + 1;
+                let index = -1;
+                for (let currentIndex = parentIndex + 1; currentIndex < rows.length; ++currentIndex) {
+                    const row = rows[currentIndex];
+                    const levelMatch = /tabulator-tree-level-(\d+)/.exec(row.className);
+                    const level = levelMatch ? Number(levelMatch[1]) : -1;
+                    if (parentIndex !== -1 && level <= parentLevel) {
+                        break;
+                    }
+
+                    if (level === expectedLevel
+                        && row.querySelector("label#mainCaption")?.textContent?.trim() === caption) {
+                        index = currentIndex;
+                        parentLevel = level;
+
+                        break;
+                    }
+                }
+
+                if (index === -1) {
+                    return -1;
+                }
+
+                parentIndex = index;
+            }
+
+            return parentIndex;
+        }, captions);
     }
 
     private async selectTileMenuAction(tile: Locator, menuPath: string[]): Promise<void> {

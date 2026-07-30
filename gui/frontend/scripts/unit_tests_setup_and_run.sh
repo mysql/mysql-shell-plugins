@@ -26,40 +26,5 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FRONTEND_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-ELECTRON_DIR="$(cd "$FRONTEND_DIR/../electron" && pwd)"
-
-setup_started=0
-teardown_done=0
-
-export DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-Sakila1!}"
-
-function teardown() {
-    if [ "$setup_started" -eq 1 ] && [ "$teardown_done" -eq 0 ]; then
-        teardown_done=1
-        cd "$ELECTRON_DIR"
-        npm run e2e-tests-teardown
-    fi
-}
-
-function cleanup() {
-    teardown || true
-}
-
-trap cleanup EXIT INT TERM
-
-cd "$ELECTRON_DIR"
-setup_started=1
-npm run e2e-tests-setup
-
-test_status=0
 cd "$FRONTEND_DIR"
-./node_modules/.bin/vitest run --no-watch --no-coverage "$@" || test_status=$?
-
-teardown_status=0
-teardown || teardown_status=$?
-
-if [ "$test_status" -ne 0 ]; then
-    exit "$test_status"
-fi
-
-exit "$teardown_status"
+./node_modules/.bin/vitest run --no-watch --no-coverage "$@"

@@ -105,9 +105,7 @@ def add_user_role(db, user_id, role):
     return db.get_last_row_id()
 
 
-def create_user(
-    db, username, password, role=None, allowed_hosts=None, single_server_user=False
-):
+def create_user(db, username, password, role=None, allowed_hosts=None):
     """Creates a new user account
 
     Args:
@@ -115,7 +113,6 @@ def create_user(
         username (str): The name of the user
         password (str): The user's password
         allowed_hosts (str): Allowed hosts that user can connect from, optional
-        single_server_user (bool): If True, the user is created as a single server user with no password
 
     Returns:
         Returns the ID of the created user account.
@@ -126,14 +123,11 @@ def create_user(
     if len(search) > 0:
         raise MSGException(Error.USER_CREATE, "User already exists.")
 
-    if single_server_user:
-        stored_password = "authenticated-by-mysql-server"
-    else:
-        salt = os.urandom(32).hex()
-        password_hash = hashlib.pbkdf2_hmac(
-            "sha256", password.encode(), salt.encode(), 100000
-        ).hex()
-        stored_password = password_hash + salt
+    salt = os.urandom(32).hex()
+    password_hash = hashlib.pbkdf2_hmac(
+        "sha256", password.encode(), salt.encode(), 100000
+    ).hex()
+    stored_password = password_hash + salt
 
     if allowed_hosts:
         db.execute(
