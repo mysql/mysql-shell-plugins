@@ -4,6 +4,11 @@
     "version": "26.7.0",
     "private": true,
     "description": "MySQL Workbench based on MySQL Shell and Electron",
+    "desktopPackageSuffixes": {
+        "community": "",
+        "commercial": "-commercial"
+    },
+    "desktopElectronBuilderCache": "packaging/electron-builder-cache",
     "main": "src/main.cjs",
     "scripts": {
         "build:frontend": "npm --prefix ../frontend run build",

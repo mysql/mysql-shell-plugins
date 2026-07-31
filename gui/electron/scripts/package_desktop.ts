@@ -34,7 +34,7 @@ const {
     statSync,
     writeFileSync,
 } = require("fs");
-const { basename, dirname, join, resolve } = require("path");
+const { basename, dirname, isAbsolute, join, resolve } = require("path");
 
 class Logger {
 
@@ -68,14 +68,71 @@ const pluginNames = [
 ];
 const desktopProductName = "MySQL Workbench";
 const desktopBundleStem = "MySQL Workbench";
-const desktopPackageName = "mysql-workbench";
+const desktopLinuxExecutableName = "mysql-workbench";
 const desktopBundleIdentifier = "com.oracle.mysqlworkbench";
 const desktopPackageAuthor = {
     name: "Oracle and/or its affiliates",
 };
 const desktopPackageHomepage = "https://www.mysql.com/products/workbench/";
 const desktopPackageLicense = "GPL-2.0";
+const desktopDebianShellDependencies = [
+    "libbz2-1.0",
+    "libc6 (>= 2.28)",
+    "libcrypt1 (>= 1:4.1.0)",
+    "libgcc-s1 (>= 4.2)",
+    "libgdbm-compat4 (>= 1.16)",
+    "libgdbm6 (>= 1.16)",
+    "libkeyutils1 (>= 1.5.9)",
+    "libncursesw6 (>= 6)",
+    "libstdc++6 (>= 10.2)",
+    "libtinfo6 (>= 6)",
+    "libudev1 (>= 183)",
+    "libyaml-0-2",
+    "zlib1g (>= 1:1.2.0)",
+];
+const desktopRpmCommonShellDependencies = [
+    "libbz2.so.1()(64bit)",
+    "libc.so.6(GLIBC_2.28)(64bit)",
+    "libcrypt.so.1()(64bit)",
+    "libkeyutils.so.1(KEYUTILS_1.5)(64bit)",
+    "libncursesw.so.6()(64bit)",
+    "libpanelw.so.6()(64bit)",
+    "libstdc++.so.6(CXXABI_1.3.11)(64bit)",
+    "libstdc++.so.6(GLIBCXX_3.4.22)(64bit)",
+    "libtinfo.so.6()(64bit)",
+    "libudev.so.1(LIBUDEV_183)(64bit)",
+    "libyaml-0.so.2()(64bit)",
+    "libz.so.1(ZLIB_1.2.0)(64bit)",
+];
+const desktopRpmTargetShellDependencies = new Map([
+    ["linux-x64", [
+        "libgcc_s.so.1(GCC_4.2.0)(64bit)",
+        "libgdbm.so.6()(64bit)",
+        "libgdbm_compat.so.4()(64bit)",
+    ]],
+    ["linux-arm64", [
+        "libgcc_s.so.1(GCC_4.5.0)(64bit)",
+    ]],
+]);
 const electronFolder = resolve(__dirname, "..");
+const packageJson = require(join(electronFolder, "package.json"));
+const resolveElectronBuilderCacheFolder = (metadata, projectFolder) => {
+    const configuredPath = metadata.desktopElectronBuilderCache;
+    if (typeof configuredPath !== "string"
+        || configuredPath.length === 0
+        || isAbsolute(configuredPath)) {
+        throw new Error(
+            "desktopElectronBuilderCache must be a non-empty relative path.",
+        );
+    }
+
+    return resolve(projectFolder, configuredPath);
+};
+
+const electronBuilderCacheFolder = resolveElectronBuilderCacheFolder(
+    packageJson,
+    electronFolder,
+);
 const guiFolder = resolve(electronFolder, "..");
 const frontEndFolder = join(guiFolder, "frontend");
 const buildFolder = join(frontEndFolder, "build");
@@ -84,19 +141,19 @@ const packagedDesktopFolder = join(electronFolder, "packaging", "desktop-package
 const packagedArtifactsFolder = join(electronFolder, "packaging", "desktop-artifacts");
 const shellCacheFolder = resolve(process.env.MYSQL_SHELL_STAGING_ROOT ?? join(electronFolder, "packaging", "mysql-shell-staging"));
 const electronCacheFolder = join(electronFolder, "packaging", "electron");
-const electronBuilderCacheFolder = join(electronFolder, "packaging", "electron-builder-cache");
 const electronSourceFolder = join(electronFolder, "src");
 const electronImagesFolder = join(electronFolder, "images");
 const taskHelperFolder = join(guiFolder, "task-helper");
 const desktopIconIcns = join(electronImagesFolder, "app-icon.icns");
 const desktopIconIco = join(electronImagesFolder, "app-icon.ico");
 const desktopIconPng = join(electronImagesFolder, "app-icon.png");
-const electronBuilderExecutable = join(
-    electronFolder,
-    "node_modules",
-    ".bin",
-    process.platform === "win32" ? "electron-builder.cmd" : "electron-builder",
-);
+const windowsSignHook = join(__dirname, "windows_sign.cjs");
+const resolveElectronBuilderInvocation = (projectFolder, args) => {
+    return {
+        command: process.execPath,
+        args: [resolve(projectFolder, "node_modules/electron-builder/cli.js"), ...args],
+    };
+};
 const pluginSourceFolders = new Map([
     ["gui_plugin", join(guiFolder, "backend", "gui_plugin")],
     ["mds_plugin", resolve(guiFolder, "..", "mds_plugin")],
@@ -104,8 +161,36 @@ const pluginSourceFolders = new Map([
     ["msm_plugin", resolve(guiFolder, "..", "msm_plugin")],
     ["util_plugin", resolve(guiFolder, "..", "util_plugin")],
 ]);
-const packageJson = require(join(electronFolder, "package.json"));
+const validateDesktopPackageSuffixes = (metadata) => {
+    const suffixes = metadata.desktopPackageSuffixes;
+    if (!suffixes || typeof suffixes !== "object" || Array.isArray(suffixes)) {
+        throw new Error("desktopPackageSuffixes must be an object.");
+    }
+
+    const entries = Object.entries(suffixes);
+    if (entries.length === 0
+        || entries.some(([name, suffix]) => name.length === 0 || typeof suffix !== "string")) {
+        throw new Error("desktopPackageSuffixes must map non-empty names to string suffixes.");
+    }
+
+    if (new Set(entries.map(([, suffix]) => suffix)).size !== entries.length) {
+        throw new Error("desktopPackageSuffixes values must be unique.");
+    }
+
+    if (typeof suffixes.community !== "string") {
+        throw new Error("desktopPackageSuffixes must define community.");
+    }
+
+    return suffixes;
+};
+
+const desktopPackageSuffixes = validateDesktopPackageSuffixes(packageJson);
+const desktopPackageName = packageJson.name;
 const desktopPackageVersion = packageJson.version;
+
+if (typeof desktopPackageName !== "string" || desktopPackageName.length === 0) {
+    throw new Error("Could not determine the desktop package name.");
+}
 
 if (typeof desktopPackageVersion !== "string" || desktopPackageVersion.length === 0) {
     throw new Error("Could not determine the desktop package version.");
@@ -123,8 +208,22 @@ const executeTask = (cmd, message) => {
     Logger.done();
 };
 
+const getDesktopPackageName = (packageNameSuffix) => {
+    return `${desktopPackageName}${packageNameSuffix}`;
+};
+
 const parseArguments = (argv) => {
-    const result = { targets: [], quick: false, artifacts: false, zip: false };
+    const result = {
+        targets: [],
+        quick: false,
+        artifacts: false,
+        zip: false,
+        sign: false,
+        artifactManifest: undefined,
+        skipDeb: false,
+        skipRpm: false,
+        packageNameSuffix: desktopPackageSuffixes.community,
+    };
 
     for (let index = 2; index < argv.length; index += 1) {
         const argument = argv[index];
@@ -166,6 +265,41 @@ const parseArguments = (argv) => {
             continue;
         }
 
+        if (argument === "--win-sign") {
+            result.sign = true;
+            continue;
+        }
+
+        if (argument.startsWith("--artifact-manifest=")) {
+            const manifestPath = argument.slice("--artifact-manifest=".length);
+            if (manifestPath.length === 0) {
+                throw new Error("--artifact-manifest requires a path.");
+            }
+
+            result.artifactManifest = resolve(manifestPath);
+            continue;
+        }
+
+        if (argument === "--skip-deb") {
+            result.skipDeb = true;
+            continue;
+        }
+
+        if (argument === "--skip-rpm") {
+            result.skipRpm = true;
+            continue;
+        }
+
+        if (argument.startsWith("--package-name-suffix=")) {
+            const packageNameSuffix = argument.slice("--package-name-suffix=".length);
+            if (!Object.values(desktopPackageSuffixes).includes(packageNameSuffix)) {
+                throw new Error(`Unknown package name suffix '${packageNameSuffix}'.`);
+            }
+
+            result.packageNameSuffix = packageNameSuffix;
+            continue;
+        }
+
         throw new Error(`Unknown argument '${argument}'.`);
     }
 
@@ -179,12 +313,29 @@ const parseArguments = (argv) => {
         }
     }
 
+    if (result.sign && result.targets.some((target) => !target.startsWith("win32-"))) {
+        throw new Error("--win-sign can only be used with Windows targets.");
+    }
+
     if (result.quick && result.artifacts) {
         throw new Error("--quick cannot be combined with --artifacts.");
     }
 
     if (result.quick && result.zip) {
         throw new Error("--quick cannot be combined with --zip.");
+    }
+
+    if ((result.skipDeb || result.skipRpm) && !result.artifacts) {
+        throw new Error("--skip-deb and --skip-rpm can only be used with --artifacts.");
+    }
+
+    if (result.artifactManifest !== undefined && !result.artifacts && !result.zip) {
+        throw new Error("--artifact-manifest can only be used with --zip or --artifacts.");
+    }
+
+    const hasLinuxTarget = result.targets.some((target) => target.startsWith("linux-"));
+    if (hasLinuxTarget && result.skipDeb && result.skipRpm) {
+        throw new Error("At least one Linux installer format must remain enabled.");
     }
 
     return result;
@@ -249,9 +400,9 @@ const cleanPluginArtifacts = (folder) => {
     }
 };
 
-const buildAppManifest = () => {
+const buildAppManifest = (packageName) => {
     return JSON.stringify({
-        name: desktopPackageName,
+        name: packageName,
         productName: desktopProductName,
         version: desktopPackageVersion,
         description: packageJson.description,
@@ -294,6 +445,10 @@ const getTargetBuildOptions = (target) => {
     throw new Error(`Unsupported target '${target}'.`);
 };
 
+const getDesktopExecutableName = (target) => {
+    return target.startsWith("linux") ? desktopLinuxExecutableName : desktopBundleStem;
+};
+
 const getElectronBuilderTargets = (target, options) => {
     const targets = [
         "dir",
@@ -319,17 +474,71 @@ const getElectronBuilderTargets = (target, options) => {
         return targets;
     }
 
-    targets.push("deb", "rpm");
+    if (!options.skipDeb) {
+        targets.push("deb");
+    }
+
+    if (!options.skipRpm) {
+        targets.push("rpm");
+    }
 
     return targets;
 };
 
-const buildElectronBuilderConfig = (target, outputFolder, packageOptions) => {
+const getArtifactFileName = (packageName, target, extension) => {
+    return `${packageName}-${desktopPackageVersion}-${target}.${extension}`;
+};
+
+const getArtifactFileNames = (target, packageOptions, packageName) => {
+    return getElectronBuilderTargets(target, packageOptions)
+        .filter((builderTarget) => builderTarget !== "dir")
+        .map((extension) => getArtifactFileName(packageName, target, extension));
+};
+
+const getDesktopRpmShellDependencies = (target) => {
+    const targetDependencies = desktopRpmTargetShellDependencies.get(target);
+    if (targetDependencies === undefined) {
+        return [];
+    }
+
+    return [
+        ...desktopRpmCommonShellDependencies,
+        ...targetDependencies,
+    ];
+};
+
+const buildElectronBuilderConfig = (target, outputFolder, packageOptions, packageName) => {
     const targets = getElectronBuilderTargets(target, packageOptions);
+    const alternativePackageNames = Object.values(desktopPackageSuffixes)
+        .filter((suffix) => suffix !== packageOptions.packageNameSuffix)
+        .map((suffix) => getDesktopPackageName(suffix));
+    const debFpmOptions = [
+        ...alternativePackageNames.flatMap((alternativePackageName) => [
+            `--conflicts=${alternativePackageName}`,
+            `--replaces=${alternativePackageName}`,
+        ]),
+        ...desktopDebianShellDependencies.map((dependency) => `--depends=${dependency}`),
+    ];
+    const rpmFpmOptions = target.startsWith("linux-")
+        ? [
+            ...getDesktopRpmShellDependencies(target)
+                .map((dependency) => `--depends=${dependency}`),
+            ...(packageOptions.packageNameSuffix === desktopPackageSuffixes.community
+                ? []
+                : [
+                    `--provides=${getDesktopPackageName(desktopPackageSuffixes.community)} `
+                        + "= %{version}-%{release}",
+                    `--provides=${getDesktopPackageName(desktopPackageSuffixes.community)}`
+                        + "%{?_isa} = %{version}-%{release}",
+                    `--replaces=${getDesktopPackageName(desktopPackageSuffixes.community)} `
+                        + "< %{version}-%{release}",
+                ]),
+        ]
+        : undefined;
     const config = {
         appId: desktopBundleIdentifier,
         productName: desktopProductName,
-        executableName: desktopBundleStem,
+        executableName: getDesktopExecutableName(target),
         copyright: "Copyright (c) 2026, Oracle and/or its affiliates.",
         electronVersion: packageJson.dependencies.electron,
         asar: false,
@@ -341,9 +550,9 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions) => {
         files: [
             "**/*",
         ],
-        artifactName: `${desktopPackageName}-${desktopPackageVersion}-${target}.\${ext}`,
+        artifactName: getArtifactFileName(packageName, target, "${ext}"),
         mac: {
-            target: targets,
+            target: target.startsWith("darwin") ? targets : null,
             category: "public.app-category.developer-tools",
             icon: desktopIconIcns,
             identity: null,
@@ -352,12 +561,19 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions) => {
             sign: false,
         },
         win: {
-            target: targets,
+            target: target.startsWith("win32") ? targets : null,
             icon: desktopIconIco,
-            signExecutable: false,
+            signExecutable: packageOptions.sign === true,
+            signExts: packageOptions.sign === true ? [".dll", "!.msi"] : undefined,
+            signtoolOptions: packageOptions.sign === true
+                ? {
+                    sign: windowsSignHook,
+                    signingHashAlgorithms: ["sha256"],
+                }
+                : undefined,
         },
         linux: {
-            target: targets,
+            target: target.startsWith("linux") ? targets : null,
             category: "Development",
             icon: desktopIconPng,
             maintainer: desktopPackageAuthor.name,
@@ -366,10 +582,12 @@ const buildElectronBuilderConfig = (target, outputFolder, packageOptions) => {
             description: packageJson.description,
         },
         deb: {
-            packageName: desktopPackageName,
+            packageName,
+            fpm: debFpmOptions,
         },
         rpm: {
-            packageName: desktopPackageName,
+            packageName,
+            fpm: rpmFpmOptions,
         },
     };
 
@@ -424,54 +642,44 @@ const findBuiltPackageRoot = (target, outputFolder) => {
         return dirname(executable);
     }
 
+    const executableName = getDesktopExecutableName(target);
     const executable = findEntry(outputFolder, (_fullPath, entry, stats) => {
-        return stats.isFile() && entry === desktopBundleStem;
+        return stats.isFile() && entry === executableName;
     });
     if (!executable) {
-        throw new Error(`Could not find ${desktopBundleStem} under ${outputFolder}`);
+        throw new Error(`Could not find ${executableName} under ${outputFolder}`);
     }
 
     return dirname(executable);
 };
 
-const copyArtifactFiles = (sourceFolder, targetFolder) => {
-    const artifactExtensions = new Set([
-        ".deb",
-        ".dmg",
-        ".msi",
-        ".rpm",
-        ".zip",
-    ]);
-    const artifacts = [];
-
-    const collect = (folder) => {
-        for (const entry of readdirSync(folder)) {
-            const fullPath = join(folder, entry);
-            const stats = statSync(fullPath);
-
-            if (stats.isDirectory()) {
-                collect(fullPath);
-                continue;
-            }
-
-            for (const extension of artifactExtensions) {
-                if (entry.endsWith(extension)) {
-                    artifacts.push(fullPath);
-                    break;
-                }
-            }
-        }
-    };
-
-    collect(sourceFolder);
-    if (artifacts.length === 0) {
-        throw new Error(`No desktop artifacts were generated under ${sourceFolder}`);
+const copyArtifactFiles = (sourceFolder, targetFolder, artifactFileNames) => {
+    const artifacts = artifactFileNames.map((artifactFileName) => {
+        return resolve(sourceFolder, artifactFileName);
+    });
+    const missingArtifacts = artifacts.filter((artifact) => {
+        return !existsSync(artifact) || !statSync(artifact).isFile();
+    });
+    if (missingArtifacts.length > 0) {
+        throw new Error(`Expected desktop artifact was not generated: ${missingArtifacts[0]}`);
     }
 
     resetDirectory(targetFolder);
-    for (const artifact of artifacts) {
-        cpSync(artifact, join(targetFolder, basename(artifact)), { force: true });
-    }
+    return artifacts.map((artifact) => {
+        const target = resolve(targetFolder, basename(artifact));
+        cpSync(artifact, target, { force: true });
+
+        return target;
+    });
+};
+
+const writeArtifactManifest = (manifestPath, artifacts) => {
+    ensureDirectory(dirname(manifestPath));
+    writeFileSync(
+        manifestPath,
+        `${JSON.stringify({ artifacts }, null, 2)}\n`,
+        "utf8",
+    );
 };
 
 const runElectronBuilder = (target, appFolder, configPath, packageOptions) => {
@@ -488,7 +696,8 @@ const runElectronBuilder = (target, appFolder, configPath, packageOptions) => {
         args.push("--dir");
     }
 
-    const result = spawnSync(electronBuilderExecutable, args, {
+    const invocation = resolveElectronBuilderInvocation(electronFolder, args);
+    const result = spawnSync(invocation.command, invocation.args, {
         stdio: "inherit",
         env: {
             ...process.env,
@@ -545,7 +754,27 @@ const prepareShellBundle = (target, appFolder) => {
     }
 
     cleanPluginArtifacts(pluginsTargetFolder);
-    rmSync(join(pluginsTargetFolder, "gui_plugin", "wrappers"), { recursive: true, force: true });
+    const pluginPathsToRemove = [
+        join(
+            pluginsTargetFolder,
+            "mrs_plugin",
+            "db_schema",
+            "mysql_rest_service_metadata.msm.project",
+            "development",
+        ),
+        join(
+            pluginsTargetFolder,
+            "mrs_plugin",
+            "db_schema",
+            "mysql_tasks.msm.project",
+            "development",
+        ),
+        join(pluginsTargetFolder, "gui_plugin", "debugger"),
+        join(pluginsTargetFolder, "gui_plugin", "wrappers"),
+    ];
+    for (const path of pluginPathsToRemove) {
+        rmSync(path, { recursive: true, force: true });
+    }
 };
 
 const installAppImages = (appFolder) => {
@@ -606,7 +835,7 @@ const installProductBundleHelper = (target, targetFolder) => {
     }
 };
 
-const installAppPayload = (target, appFolder, includeShellBundle) => {
+const installAppPayload = (target, appFolder, includeShellBundle, packageName) => {
     if (includeShellBundle) {
         resetDirectory(appFolder);
     } else {
@@ -621,7 +850,7 @@ const installAppPayload = (target, appFolder, includeShellBundle) => {
         }
     }
 
-    writeFileSync(join(appFolder, "package.json"), buildAppManifest());
+    writeFileSync(join(appFolder, "package.json"), buildAppManifest(packageName));
     cpSync(electronSourceFolder, join(appFolder, "src"), { recursive: true, force: true });
     ensureDirectory(join(appFolder, "frontend"));
     cpSync(buildFolder, join(appFolder, "frontend", "build"), { recursive: true, force: true });
@@ -636,6 +865,7 @@ const installAppPayload = (target, appFolder, includeShellBundle) => {
 };
 
 const packageTarget = (target, packageOptions) => {
+    const packageName = getDesktopPackageName(packageOptions.packageNameSuffix);
     const targetOutputFolder = join(packagedDesktopFolder, target);
     const targetArtifactFolder = join(packagedArtifactsFolder, target);
     const targetStagingFolder = join(tempPackageFolder, target);
@@ -644,24 +874,34 @@ const packageTarget = (target, packageOptions) => {
     const builderConfigPath = join(targetStagingFolder, "electron-builder.json");
 
     resetDirectory(targetStagingFolder);
-    installAppPayload(target, appFolder, true);
-    writeFileSync(builderConfigPath, buildElectronBuilderConfig(target, builderOutputFolder, packageOptions));
+    installAppPayload(target, appFolder, true, packageName);
+    writeFileSync(
+        builderConfigPath,
+        buildElectronBuilderConfig(target, builderOutputFolder, packageOptions, packageName),
+    );
     runElectronBuilder(target, appFolder, builderConfigPath, packageOptions);
 
     ensureDirectory(packagedDesktopFolder);
     copyPackagedRuntime(target, findBuiltPackageRoot(target, builderOutputFolder), targetOutputFolder);
-    if (packageOptions.artifacts || packageOptions.zip) {
-        copyArtifactFiles(builderOutputFolder, targetArtifactFolder);
-    }
+    const artifacts = packageOptions.artifacts || packageOptions.zip
+        ? copyArtifactFiles(
+            builderOutputFolder,
+            targetArtifactFolder,
+            getArtifactFileNames(target, packageOptions, packageName),
+        )
+        : [];
     installProductBundleHelper(target, targetOutputFolder);
 
     Logger.success(`Created desktop package for ${target} in ${targetOutputFolder}`);
     if (packageOptions.artifacts || packageOptions.zip) {
         Logger.success(`Created desktop artifacts for ${target} in ${targetArtifactFolder}`);
     }
+
+    return artifacts;
 };
 
-const quickPackageTarget = (target) => {
+const quickPackageTarget = (target, packageOptions) => {
+    const packageName = getDesktopPackageName(packageOptions.packageNameSuffix);
     const targetOutputFolder = join(packagedDesktopFolder, target);
     const resourcesFolder = getPackagedResourcesDirectory(target, targetOutputFolder);
     if (!existsSync(resourcesFolder)) {
@@ -675,42 +915,67 @@ const quickPackageTarget = (target) => {
         throw new Error(`Could not locate the packaged app payload for ${target} at ${appFolder}`);
     }
 
-    installAppPayload(target, appFolder, false);
+    installAppPayload(target, appFolder, false, packageName);
     installProductBundleHelper(target, targetOutputFolder);
     Logger.success(`Updated desktop package app payload for ${target} in ${targetOutputFolder}`);
 };
 
-const options = parseArguments(process.argv);
+const main = (argv) => {
+    const options = parseArguments(argv);
+    const artifacts = [];
 
-if (!options.quick) {
-    for (const pluginName of pluginNames) {
-        const pluginFolder = pluginSourceFolders.get(pluginName);
-        if (!existsSync(pluginFolder)) {
-            throw new Error(`Missing plugin source in this repo: ${pluginFolder}`);
+    if (!options.quick) {
+        for (const pluginName of pluginNames) {
+            const pluginFolder = pluginSourceFolders.get(pluginName);
+            if (!existsSync(pluginFolder)) {
+                throw new Error(`Missing plugin source in this repo: ${pluginFolder}`);
+            }
         }
     }
-}
 
-process.chdir(frontEndFolder);
-executeTask("npm run build-if-needed", "Ensuring the frontend build is up to date...");
-process.chdir(electronFolder);
+    process.chdir(frontEndFolder);
+    executeTask("npm run build-if-needed", "Ensuring the frontend build is up to date...");
+    process.chdir(electronFolder);
 
-if (!options.quick) {
-    Logger.info("Clearing the desktop packaging output...");
-    rmSync(tempPackageFolder, { recursive: true, force: true });
-    rmSync(packagedDesktopFolder, { recursive: true, force: true });
-    if (options.artifacts || options.zip) {
-        rmSync(packagedArtifactsFolder, { recursive: true, force: true });
+    if (!options.quick) {
+        Logger.info("Clearing the desktop packaging output...");
+        rmSync(tempPackageFolder, { recursive: true, force: true });
+        rmSync(packagedDesktopFolder, { recursive: true, force: true });
+        if (options.artifacts || options.zip) {
+            rmSync(packagedArtifactsFolder, { recursive: true, force: true });
+        }
+        Logger.done();
     }
-    Logger.done();
-}
 
-for (const target of options.targets) {
-    Logger.info(`${options.quick ? "Quick-updating" : "Packaging"} desktop runtime for ${target}...`);
-    if (options.quick) {
-        quickPackageTarget(target);
-    } else {
-        packageTarget(target, options);
+    for (const target of options.targets) {
+        Logger.info(`${options.quick ? "Quick-updating" : "Packaging"} desktop runtime for ${target}...`);
+        if (options.quick) {
+            quickPackageTarget(target, options);
+        } else {
+            artifacts.push(...packageTarget(target, options));
+        }
+        Logger.done();
     }
-    Logger.done();
+
+    if (options.artifactManifest !== undefined) {
+        writeArtifactManifest(options.artifactManifest, artifacts);
+    }
+};
+
+module.exports = {
+    buildAppManifest,
+    buildElectronBuilderConfig,
+    copyArtifactFiles,
+    getArtifactFileName,
+    getArtifactFileNames,
+    getDesktopPackageName,
+    parseArguments,
+    resolveElectronBuilderCacheFolder,
+    resolveElectronBuilderInvocation,
+    validateDesktopPackageSuffixes,
+    writeArtifactManifest,
+};
+
+if (require.main === module) {
+    main(process.argv);
 }

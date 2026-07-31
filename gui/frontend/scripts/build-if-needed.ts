@@ -26,6 +26,7 @@
 import { readdirSync, existsSync, statSync } from "fs";
 import { platform } from "os";
 import { dirname, join, resolve } from "path";
+import { argv, exit } from "process";
 import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
 
@@ -50,7 +51,7 @@ const buildInputs = [
     join(shellPluginsFolder, "mrs_plugin", "sdk", "typescript", "MrsBaseClasses.ts"),
 ];
 
-const withMaps = process.argv.includes("--with-maps");
+const withMaps = argv.includes("--with-maps");
 
 const getLatestPathMtime = (targetPath: string): number => {
     if (!existsSync(targetPath)) {
@@ -96,15 +97,43 @@ const runCommand = (command: string): void => {
     }
 };
 
+const isPowerShellAvailable = (command: string): boolean => {
+    const result = spawnSync(command, [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "exit 0",
+    ], {
+        stdio: "ignore",
+    });
+
+    return result.status === 0;
+};
+
+const findPowerShell = (): string => {
+    const executables = ["pwsh", "powershell.exe"];
+
+    for (const executable of executables) {
+        if (isPowerShellAvailable(executable)) {
+            return executable;
+        }
+    }
+
+    throw new Error(`PowerShell executable not found: tried ${executables.join(" and ")}`);
+};
+
 if (!shouldRebuildFrontend()) {
     console.log("[OK] Frontend build is up to date, skipping rebuild.");
-    process.exit(0);
+    exit(0);
 }
 
 if (platform() === "win32") {
-    const command = withMaps
-        ? "pwsh scripts/production-build.ps1 true && tsc -p tsconfig.json"
-        : "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json";
+    const powerShell = findPowerShell();
+    console.log(`[INF] Using PowerShell executable: ${powerShell}`);
+
+    const command = `${powerShell} -NoLogo -NoProfile -NonInteractive`
+        + ` -File scripts/production-build.ps1${withMaps ? " true" : ""}`
+        + " && tsc -p tsconfig.json";
     runCommand(command);
 } else {
     const command = withMaps

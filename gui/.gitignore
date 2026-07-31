@@ -55,12 +55,15 @@ extension/*.vsix
 
 # Electron desktop packaging artifacts
 electron/.dev
+electron/dist
 electron/output
 electron/packaging/desktop-packages
 electron/packaging/desktop-artifacts
 electron/packaging/electron
+electron/packaging/electron-builder-cache
 electron/packaging/mysql-shell-staging
 electron/packaging/temp
+electron/scripts/windows_sign_private.*
 
 # e2e testing
 electron/test-reports

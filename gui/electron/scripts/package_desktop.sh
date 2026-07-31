@@ -259,6 +259,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ELECTRON_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 STRIP_MYSQLSH_TREE_SCRIPT="$SCRIPT_DIR/strip_mysqlsh_tree.sh"
+PREPARE_MYSQLSH_TREE_SCRIPT="$SCRIPT_DIR/prepare_mysqlsh_tree.py"
 
 cd "$ELECTRON_DIR"
 
@@ -317,6 +318,11 @@ if [ ! -x "$STRIP_MYSQLSH_TREE_SCRIPT" ]; then
     exit 1
 fi
 
+if [ ! -f "$PREPARE_MYSQLSH_TREE_SCRIPT" ]; then
+    echo "ERROR: Missing MySQL Shell preparation helper: $PREPARE_MYSQLSH_TREE_SCRIPT"
+    exit 1
+fi
+
 function flatten_directory() {
     local source_dir="$1"
     local target_dir="$2"
@@ -366,17 +372,6 @@ function get_mysql_shell_staging_marker_path() {
     local target_dir="$1"
 
     printf '%s\n' "$target_dir/.mysql-shell-staging-source"
-}
-
-function validate_mysqlsh_tree() {
-    local source_dir="$1"
-
-    for required_dir in bin lib share; do
-        if [ ! -e "$source_dir/$required_dir" ]; then
-            echo "ERROR: Expected '$source_dir/$required_dir' to exist in the mysqlsh tree."
-            exit 1
-        fi
-    done
 }
 
 function mysql_shell_staging_is_current() {
@@ -477,24 +472,6 @@ function extract_archive_preserving_layout() {
     shopt -u dotglob nullglob
 
     rmdir "$temp_dir" 2>/dev/null || :
-}
-
-function stage_mysqlsh_tree() {
-    local source_dir="$1"
-    local target_dir="$2"
-
-    validate_mysqlsh_tree "$source_dir"
-
-    rm -rf "$target_dir"
-    mkdir -p "$target_dir"
-
-    cp -R "$source_dir/bin" "$target_dir/bin"
-    cp -R "$source_dir/lib" "$target_dir/lib"
-    cp -R "$source_dir/share" "$target_dir/share"
-
-    if [ -e "$source_dir/libexec" ]; then
-        cp -R "$source_dir/libexec" "$target_dir/libexec"
-    fi
 }
 
 function strip_mysqlsh_tree() {
@@ -660,7 +637,8 @@ for platform in "${TARGETS[@]}"; do
     echo "Preparing MySQL Shell staging for $platform..."
     if [ -n "$shell_tree" ]; then
         echo "Copying MySQL Shell tree for $platform from $shell_tree..."
-        stage_mysqlsh_tree "$shell_tree" "$shell_dir"
+        python3 "$PREPARE_MYSQLSH_TREE_SCRIPT" \
+            stage --clean "$shell_tree" "$shell_dir"
         write_mysql_shell_staging_marker "tree:$shell_tree" "$shell_dir"
         echo "Completed MySQL Shell staging for $platform."
     else
@@ -681,9 +659,9 @@ for platform in "${TARGETS[@]}"; do
             write_mysql_shell_staging_marker "$shell_source_key" "$shell_dir"
             echo "Completed MySQL Shell staging for $platform."
         fi
-    fi
 
-    strip_mysqlsh_tree "$shell_dir"
+        strip_mysqlsh_tree "$shell_dir"
+    fi
 
     if [ "$DEV_MODE" -eq 1 ]; then
         install_dev_plugin_links "$shell_dir"
