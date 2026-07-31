@@ -34,6 +34,35 @@ const sqlString = (value: string): string => {
     return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 };
 
+const executeSql = (connection: ReturnType<typeof localMySQLConnection>, statements: string | string[]): string => {
+    const response = spawnSync(process.env.ELECTRON_E2E_MYSQLSH ?? process.env.MYSQLSH ?? "mysqlsh", [
+        "--disable-builtin-plugins",
+        "--sql",
+        "--result-format=tabbed",
+        "--host", connection.host,
+        "--port", connection.port,
+        "--user", connection.user,
+        `--password=${connection.password}`,
+        "-e", Array.isArray(statements) ? statements.join("\n") : statements,
+    ], {
+        encoding: "utf8",
+        env: {
+            ...process.env,
+            MYSQLSH_USER_CONFIG_HOME: mysqlshUserConfigHome(),
+        },
+    });
+
+    if (response.error) {
+        throw response.error;
+    }
+
+    if (response.status !== 0) {
+        throw new Error(response.stderr || response.stdout || "mysqlsh failed to execute SQL.");
+    }
+
+    return response.stdout;
+};
+
 const failAuthentication = (connection: ReturnType<typeof localMySQLConnection>, user: string): void => {
     const response = spawnSync(process.env.ELECTRON_E2E_MYSQLSH ?? process.env.MYSQLSH ?? "mysqlsh", [
         "--disable-builtin-plugins",
@@ -78,11 +107,8 @@ test.describe("User accounts and privilege management", () => {
         await workbench.createMySQLConnection(adminConnection);
         await workbench.openSqlScriptFromConnectionTile(adminConnection.caption, adminConnection.password,
             untitledSqlScriptTab);
-        await workbench.writeInActiveEditor(
-            `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        );
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "0");
+        expect(executeSql(adminConnection,
+            `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`)).toContain("0");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -108,15 +134,10 @@ test.describe("User accounts and privilege management", () => {
         await workbench.closeActiveTabDiscardingChanges();
         await workbench.selectConnectionTileAction(userConnection.caption, ["Delete Connection…"]);
         await workbench.acceptConfirmDialog();
-        await workbench.openSqlScriptFromConnectionTile(adminConnection.caption, adminConnection.password,
-            untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(adminConnection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "0");
-        await workbench.closeActiveTabDiscardingChanges();
+        ])).toContain("0");
     });
 
     test("deletes an existing user account from the account list context menu", async ({ page, workbench }, testInfo) => {
@@ -127,13 +148,11 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eDeleteUser!1';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -153,13 +172,11 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eCloneUser!1';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -212,12 +229,10 @@ test.describe("User accounts and privilege management", () => {
         await workbench.closeActiveTabDiscardingChanges();
         await workbench.createMySQLConnection(userConnection);
         await workbench.openSqlScriptFromConnectionTile(userConnection.caption, userConnection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(userConnection, [
             `ALTER USER USER() IDENTIFIED BY '${replacementPassword}' REPLACE '${sqlString(generatedPassword)}';`,
             "SELECT 'password changed' AS result;",
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "result", "password changed");
+        ])).toContain("password changed");
     });
 
     test("creates an account requiring a password reset", async ({ page, workbench }, testInfo) => {
@@ -271,15 +286,10 @@ test.describe("User accounts and privilege management", () => {
         await dialog.locator("#ok").click();
         await expect(dialog).toBeHidden({ timeout: 15000 });
 
-        await workbench.closeActiveTabDiscardingChanges();
-        await workbench.writeInActiveEditor(
-            `SELECT account_locked FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        );
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_locked", "Y");
+        expect(executeSql(connection,
+            `SELECT account_locked FROM mysql.user WHERE User = '${username}' AND Host = '%';`)).toContain("Y");
 
-        await workbench.writeInActiveEditor(`DROP USER IF EXISTS '${username}'@'%';`);
-        await workbench.clickMenu(["Run", "Execute"]);
+        executeSql(connection, `DROP USER IF EXISTS '${username}'@'%';`);
         await workbench.closeActiveTabDiscardingChanges();
     });
 
@@ -291,13 +301,11 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eLockUnlockUser!1';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -312,9 +320,7 @@ test.describe("User accounts and privilege management", () => {
         await workbench.selectUserAccountRowAction(userRow, ["Unlock Account"]);
         await expect(statusPill).toHaveText("UNLOCKED");
 
-        await workbench.closeActiveTabDiscardingChanges();
-        await workbench.writeInActiveEditor(`DROP USER IF EXISTS '${username}'@'%';`);
-        await workbench.clickMenu(["Run", "Execute"]);
+        executeSql(connection, `DROP USER IF EXISTS '${username}'@'%';`);
         await workbench.closeActiveTabDiscardingChanges();
     });
 
@@ -327,14 +333,12 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY '${password}' `
                 + "FAILED_LOGIN_ATTEMPTS 2 PASSWORD_LOCK_TIME UNBOUNDED;",
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         failAuthentication(connection, username);
         failAuthentication(connection, username);
@@ -346,20 +350,17 @@ test.describe("User accounts and privilege management", () => {
         await expect(userRow).toBeVisible({ timeout: 15000 });
         await expect(statusPill).toHaveText("LOCKED");
 
-        await workbench.closeActiveTabDiscardingChanges();
-        await workbench.writeInActiveEditor([
+        const temporaryLockOutput = executeSql(connection, [
             "SELECT u.account_locked, tal.LOCKED AS temporarily_locked",
             "FROM mysql.user u",
             "LEFT JOIN performance_schema.temporary_account_locks tal",
             "  ON tal.USER = u.User AND tal.HOST = u.Host",
             `WHERE u.User = '${username}' AND u.Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_locked", "N");
-        await workbench.expectResultGridCellText(0, "temporarily_locked", "YES");
+        ]);
+        expect(temporaryLockOutput).toContain("N");
+        expect(temporaryLockOutput).toContain("YES");
 
-        await workbench.writeInActiveEditor(`DROP USER IF EXISTS '${username}'@'%';`);
-        await workbench.clickMenu(["Run", "Execute"]);
+        executeSql(connection, `DROP USER IF EXISTS '${username}'@'%';`);
         await workbench.closeActiveTabDiscardingChanges();
     });
 
@@ -372,15 +373,13 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY '${password}' `
                 + "PASSWORD EXPIRE INTERVAL 6 DAY PASSWORD HISTORY 3 PASSWORD REUSE INTERVAL 4 DAY "
                 + "PASSWORD REQUIRE CURRENT FAILED_LOGIN_ATTEMPTS 2 PASSWORD_LOCK_TIME 7;",
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         failAuthentication(connection, username);
         failAuthentication(connection, username);
@@ -397,8 +396,7 @@ test.describe("User accounts and privilege management", () => {
         await dialog.locator("#ok").click();
         await expect(dialog).toBeHidden({ timeout: 15000 });
 
-        await workbench.closeActiveTabDiscardingChanges();
-        await workbench.writeInActiveEditor([
+        const passwordPolicyOutput = executeSql(connection, [
             "SELECT u.password_lifetime, u.Password_reuse_history, u.Password_reuse_time,",
             "       u.Password_require_current,",
             "       JSON_UNQUOTE(JSON_EXTRACT(u.User_attributes,",
@@ -410,19 +408,12 @@ test.describe("User accounts and privilege management", () => {
             "LEFT JOIN performance_schema.temporary_account_locks tal",
             "  ON tal.USER = u.User AND tal.HOST = u.Host",
             `WHERE u.User = '${username}' AND u.Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "password_lifetime", "6");
-        await workbench.expectResultGridCellText(0, "Password_reuse_history", "3");
-        await workbench.expectResultGridCellText(0, "Password_reuse_time", "4");
-        await workbench.expectResultGridCellText(0, "Password_require_current", "Y");
-        await workbench.expectResultGridCellText(0, "failed_login_attempts", "2");
-        await workbench.expectResultGridCellText(0, "password_lock_time", "7");
-        await workbench.expectResultGridCellText(0, "account_locked", "N");
-        await workbench.expectResultGridCellText(0, "temporarily_locked", "YES");
+        ]);
+        for (const value of ["6", "3", "4", "Y", "2", "7", "N", "YES"]) {
+            expect(passwordPolicyOutput).toContain(value);
+        }
 
-        await workbench.writeInActiveEditor(`DROP USER IF EXISTS '${username}'@'%';`);
-        await workbench.clickMenu(["Run", "Execute"]);
+        executeSql(connection, `DROP USER IF EXISTS '${username}'@'%';`);
         await workbench.closeActiveTabDiscardingChanges();
     });
 
@@ -434,14 +425,12 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eViewUserSql!1';`,
             `GRANT SELECT, INSERT ON *.* TO '${username}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -461,9 +450,7 @@ test.describe("User accounts and privilege management", () => {
         await dialog.locator("#cancel").click();
         await expect(dialog).toBeHidden({ timeout: 15000 });
 
-        await workbench.closeActiveTabDiscardingChanges();
-        await workbench.writeInActiveEditor(`DROP USER IF EXISTS '${username}'@'%';`);
-        await workbench.clickMenu(["Run", "Execute"]);
+        executeSql(connection, `DROP USER IF EXISTS '${username}'@'%';`);
         await workbench.closeActiveTabDiscardingChanges();
     });
 
@@ -475,13 +462,11 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE ROLE '${roleName}'@'%';`,
             `SELECT COUNT(*) AS role_count FROM mysql.user WHERE User = '${roleName}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "role_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -499,16 +484,14 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eAssignRole!1';`,
             `CREATE ROLE '${roleName}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user `
                 + `WHERE (User = '${username}' OR User = '${roleName}') AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "2");
+        ])).toContain("2");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -535,7 +518,7 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eInheritedPrivileges!1';`,
@@ -543,9 +526,7 @@ test.describe("User accounts and privilege management", () => {
             `GRANT SELECT, INSERT ON *.* TO '${roleName}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user `
                 + `WHERE (User = '${username}' OR User = '${roleName}') AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "2");
+        ])).toContain("2");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -575,7 +556,7 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eDefaultRolePrivileges!1';`,
@@ -583,9 +564,7 @@ test.describe("User accounts and privilege management", () => {
             `GRANT SELECT, INSERT ON *.* TO '${roleName}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user `
                 + `WHERE (User = '${username}' OR User = '${roleName}') AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "2");
+        ])).toContain("2");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -616,7 +595,7 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eInheritedPrivilegeLabels!1';`,
@@ -626,9 +605,7 @@ test.describe("User accounts and privilege management", () => {
             "SELECT COUNT(*) AS assigned_role_count FROM mysql.role_edges "
                 + `WHERE FROM_USER = '${roleName}' AND FROM_HOST = '%' `
                 + `AND TO_USER = '${username}' AND TO_HOST = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "assigned_role_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -655,7 +632,7 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             "SET GLOBAL partial_revokes = ON;",
@@ -666,9 +643,7 @@ test.describe("User accounts and privilege management", () => {
             "SELECT COUNT(*) AS assigned_role_count FROM mysql.role_edges "
                 + `WHERE FROM_USER = '${roleName}' AND FROM_HOST = '%' `
                 + `AND TO_USER = '${username}' AND TO_HOST = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "assigned_role_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -694,16 +669,14 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             "SET GLOBAL partial_revokes = ON;",
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eObjectPlusGlobal!1';`,
             `GRANT SELECT ON *.* TO '${username}'@'%';`,
             `GRANT INSERT ON sakila.* TO '${username}'@'%';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -722,7 +695,7 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `DROP ROLE IF EXISTS '${roleName}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY 'E2eGrantInheritedPrivileges!1';`,
@@ -732,9 +705,7 @@ test.describe("User accounts and privilege management", () => {
             "SELECT COUNT(*) AS assigned_role_count FROM mysql.role_edges "
                 + `WHERE FROM_USER = '${roleName}' AND FROM_HOST = '%' `
                 + `AND TO_USER = '${username}' AND TO_HOST = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "assigned_role_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -878,13 +849,11 @@ test.describe("User accounts and privilege management", () => {
 
         await workbench.createMySQLConnection(connection);
         await workbench.openSqlScriptFromConnectionTile(connection.caption, connection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(connection, [
             `DROP USER IF EXISTS '${username}'@'%';`,
             `CREATE USER '${username}'@'%' IDENTIFIED BY '${initialPassword}';`,
             `SELECT COUNT(*) AS account_count FROM mysql.user WHERE User = '${username}' AND Host = '%';`,
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "account_count", "1");
+        ])).toContain("1");
 
         await workbench.clickMenu(["Database", "User Accounts"]);
         await workbench.expectVisibleWithoutPassword(page.locator("#userAccountsOverview"), "User Accounts");
@@ -904,12 +873,10 @@ test.describe("User accounts and privilege management", () => {
         await workbench.closeActiveTabDiscardingChanges();
         await workbench.createMySQLConnection(userConnection);
         await workbench.openSqlScriptFromConnectionTile(userConnection.caption, userConnection.password, untitledSqlScriptTab);
-        await workbench.writeInActiveEditor([
+        expect(executeSql(userConnection, [
             `ALTER USER USER() IDENTIFIED BY '${replacementPassword}' REPLACE '${resetPassword}';`,
             "SELECT 'password changed' AS result;",
-        ].join("\n"));
-        await workbench.clickMenu(["Run", "Execute"]);
-        await workbench.expectResultGridCellText(0, "result", "password changed");
+        ])).toContain("password changed");
     });
 
 });
