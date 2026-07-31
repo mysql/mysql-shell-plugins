@@ -39,6 +39,6 @@
         "electron-builder": "26.15.3"
     },
     "dependencies": {
-        "electron": "42.4.1"
+        "electron": "43.2.0"
     }
 }
