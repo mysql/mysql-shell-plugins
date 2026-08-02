@@ -58,12 +58,13 @@ import {
 import { Assets } from "../../supplement/Assets.js";
 import { IConnectionInfo } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../supplement/ProfileState.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import {
     DBType, IConnectionDetails, IFolderPath, type IShellSessionDetails,
 } from "../../supplement/ShellInterface/index.js";
 import {
-    convertErrorToString, isStandalone, loadFileAsText, saveTextAsFile, selectFileInBrowser, uuid,
+    convertErrorToString, loadFileAsText, saveTextAsFile, selectFileInBrowser, uuid,
 } from "../../utilities/helpers.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { ConnectionProcessor } from "../common/ConnectionProcessor.js";
@@ -171,6 +172,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
     public override componentDidMount(): void {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
+        requisitions.register("profileStateChanged", this.handleProfileStateChanged);
         requisitions.register("refreshConnectionGroup", this.refreshConnectionGroup);
         requisitions.register("dbFileDropped", this.dbFileDropped);
         requisitions.register("addNewConnection", this.addNewConnection);
@@ -193,6 +195,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
+        requisitions.unregister("profileStateChanged", this.handleProfileStateChanged);
         requisitions.unregister("refreshConnectionGroup", this.refreshConnectionGroup);
         requisitions.unregister("dbFileDropped", this.dbFileDropped);
         requisitions.unregister("addNewConnection", this.addNewConnection);
@@ -302,16 +305,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             : null;
 
         const contentTitle = "Database Connections";
-        const showWorkbenchBranding = hasElectronHostBridge() || isStandalone();
-        let projectShortName = "MySQL Shell";
-        let projectName = "MySQL Shell for VS Code";
-        if (showWorkbenchBranding) {
-            projectShortName = "MySQL Workbench";
-            projectName = "MySQL Workbench";
-        }
-
-        const showGreeting = Settings.get("dbEditor.connectionBrowser.showGreeting", true);
-        const showHomeTour = hasElectronHostBridge() && !appParameters.inExtension;
+        const showGreeting = ProfileState.get("dbEditor.connectionBrowser.showGreeting", true);
+        const showHomeTour = hasElectronHostBridge();
         const showTourSample = showHomeTour && this.state.tourActive && !this.hasSavedConnections();
         const productVersion = globalThis.MSG_VERSION_NUMBER;
 
@@ -664,6 +659,12 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return false;
     };
 
+    private handleProfileStateChanged = (): Promise<boolean> => {
+        this.forceUpdate();
+
+        return Promise.resolve(true);
+    };
+
     private connectionTileTags(details: IConnectionDetails): IConnectionTileTag[] {
         const tags = details.tags ?? (details.settings?.badge ? [details.settings.badge] : []);
         if (tags.length === 0) {
@@ -712,8 +713,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private handleCloseGreeting = (): void => {
-        Settings.set("dbEditor.connectionBrowser.showGreeting", false);
-        Settings.saveSettings(true);
+        ProfileState.set("dbEditor.connectionBrowser.showGreeting", false);
+        ProfileState.saveState(true);
     };
 
     private dbFileDropped = async (fileName: string): Promise<boolean> => {

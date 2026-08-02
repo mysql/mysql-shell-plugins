@@ -40,6 +40,7 @@ import {
     type DesktopCommandId, desktopCommandRegistry, type IDesktopCommandDescriptor, type IDesktopCommandProvider,
 } from "../supplement/DesktopCommandRegistry.js";
 import { hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
+import { ProfileState } from "../supplement/ProfileState.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { RunMode, webSession } from "../supplement/WebSession.js";
 import { LoadingIndicator } from "./LazyAppRouter.js";
@@ -234,14 +235,18 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
                 case "application:toggleAbout": {
                     const { aboutVisible } = this.state;
 
-                    this.setState({ debuggerVisible: false, aboutVisible: !aboutVisible, settingsVisible: false }, done);
+                    this.setState({
+                        debuggerVisible: false, aboutVisible: !aboutVisible, settingsVisible: false,
+                    }, done);
                     break;
                 }
 
                 case "application:togglePreferences": {
                     const { settingsVisible } = this.state;
 
-                    this.setState({ debuggerVisible: false, settingsVisible: !settingsVisible, aboutVisible: false }, done);
+                    this.setState({
+                        debuggerVisible: false, settingsVisible: !settingsVisible, aboutVisible: false,
+                    }, done);
                     break;
                 }
 
@@ -299,6 +304,10 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
             label: "Preferences...",
             enabled: true,
             accelerator: "CmdOrCtrl+,",
+        }, {
+            id: "app.resetRememberedUiState",
+            label: "Reset Remembered UI State...",
+            enabled: true,
         }];
 
         if (!hasElectronHostBridge()) {
@@ -324,6 +333,19 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
 
             case "app.preferences": {
                 await this.showPreferences();
+
+                return true;
+            }
+
+            case "app.resetRememberedUiState": {
+                const response = await ui.confirm(
+                    "Reset remembered UI state like warnings, UI tours etc?",
+                    "Reset",
+                    "Cancel",
+                );
+                if (response === "Reset") {
+                    ProfileState.reset();
+                }
 
                 return true;
             }

@@ -468,6 +468,7 @@ export interface IRequestTypeMap {
     "userLoggedOut": SimpleCallback;
 
     "profileLoaded": SimpleCallback;
+    "profileStateChanged": SimpleCallback;
     "changeProfile": (id: string | number) => Promise<boolean>;
 
     "statusBarButtonClick": (values: { type: string; event: MouseEvent | KeyboardEvent; }) => Promise<boolean>;

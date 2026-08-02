@@ -2355,7 +2355,7 @@ exports[`Application host tests > Rendering Preferences 1`] = `
             style="flex-direction: column;"
           >
             <div
-              class="msg button"
+              class="msg button flat"
               id="settingsBackButton"
               role="button"
               tabindex="0"

@@ -257,6 +257,7 @@ CREATE TABLE IF NOT EXISTS `profile` (
   `name` VARCHAR(80) NULL,
   `description` VARCHAR(200) NULL,
   `options` TEXT NULL,
+  `state` TEXT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_profile_user1`
     FOREIGN KEY (`user_id`)

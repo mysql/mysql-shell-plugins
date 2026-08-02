@@ -38,7 +38,7 @@ import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/Tree
 import { IUIExplainerStep, UIExplainer } from "../../../components/ui/UIExplainer/UIExplainer.js";
 import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
-import { Settings } from "../../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../../supplement/ProfileState.js";
 import {
     IPerformanceReportCapabilities, ShellInterfaceSqlEditor,
 } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -174,7 +174,7 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
     }];
     private listRequestId = 0;
     private detailsRequestId = 0;
-    private explainerSeen = Settings.get("general.slowQueriesExplainerSeen", false);
+    private explainerSeen = ProfileState.get("general.slowQueriesExplainerSeen", false);
 
     public constructor(props: ISlowQueriesReportProperties) {
         super(props);
@@ -612,8 +612,8 @@ export class SlowQueriesReport extends ComponentBase<ISlowQueriesReportPropertie
 
     private handleExplainerClose = (): void => {
         this.explainerSeen = true;
-        Settings.set("general.slowQueriesExplainerSeen", true);
-        Settings.saveSettings();
+        ProfileState.set("general.slowQueriesExplainerSeen", true);
+        ProfileState.saveState();
     };
 
 }

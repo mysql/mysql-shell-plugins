@@ -70,6 +70,7 @@ class WebSession {
         name: "",
         userId: -1,
         options: {},
+        state: {},
     };
 
     private sessionData!: IWebSessionData;
@@ -158,6 +159,7 @@ class WebSession {
             name: "",
             userId: -1,
             options: {},
+            state: {},
         };
     }
 

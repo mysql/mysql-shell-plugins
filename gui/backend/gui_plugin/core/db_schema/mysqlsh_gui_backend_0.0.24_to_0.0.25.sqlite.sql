@@ -8,6 +8,8 @@
 
 PRAGMA foreign_keys = OFF;
 
+ALTER TABLE `profile` ADD COLUMN `state` TEXT NULL;
+
 BEGIN TRANSACTION;
 DELETE FROM `user_has_role` WHERE `role_id` = 4;
 DELETE FROM `role_has_privilege` WHERE `role_id` = 4 OR `privilege_id` IN (5, 6);

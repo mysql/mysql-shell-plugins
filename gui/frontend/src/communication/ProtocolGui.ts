@@ -904,8 +904,8 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiUsersGetGuiModuleList]: { args: { userId: number; }; };
     [ShellAPIGui.GuiUsersListProfiles]: { args: { userId: number; }; };
     [ShellAPIGui.GuiUsersGetProfile]: { args: { profileId: number; }; };
-    [ShellAPIGui.GuiUsersUpdateProfile]: { args: { profile: { id?: number; name?: string; description?: string; options?: IShellDictionary; }; }; };
-    [ShellAPIGui.GuiUsersAddProfile]: { args: { userId: number; profile: { name?: string; description?: string; options?: IShellDictionary; }; }; };
+    [ShellAPIGui.GuiUsersUpdateProfile]: { args: { profile: { id?: number; name?: string; description?: string; options?: IShellDictionary; state?: IShellDictionary; }; }; };
+    [ShellAPIGui.GuiUsersAddProfile]: { args: { userId: number; profile: { name?: string; description?: string; options?: IShellDictionary; state?: IShellDictionary; }; }; };
     [ShellAPIGui.GuiUsersDeleteProfile]: { args: { userId: number; profileId: number; }; };
     [ShellAPIGui.GuiUsersGetDefaultProfile]: { args: { userId: number; }; };
     [ShellAPIGui.GuiUsersSetDefaultProfile]: { args: { userId: number; profileId: number; }; };
@@ -973,6 +973,7 @@ export interface IShellProfile {
     name: string;
     description: string;
     options: IShellDictionary;
+    state: IShellDictionary;
 }
 
 export interface IWebSessionData {

@@ -99,19 +99,7 @@
     min-width: 0;
     min-height: 24px;
     padding: 2px 6px;
-    border: 1px solid transparent;
-    border-radius: 0;
-    background: none;
     color: var(--foreground);
-}
-
-.msg.settingsEditor #settingsBackButton:not(.disabled):hover,
-.msg.settingsEditor #settingsBackButton:not(.disabled):active {
-    background-color: var(--settings-rowHoverBackground);
-}
-
-.msg.settingsEditor #settingsBackButton:focus-visible {
-    border-color: var(--settings-focusedRowBorder);
 }
 
 .msg.settingsEditor #settingsBackButton > .icon.codicon {

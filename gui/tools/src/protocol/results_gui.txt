@@ -11,6 +11,7 @@ export interface IShellProfile {
     name: string;
     description: string;
     options: IShellDictionary;
+    state: IShellDictionary;
 }
 
 export interface IWebSessionData {

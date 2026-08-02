@@ -193,14 +193,6 @@ export const registerSettings = (): void => {
         "Settings related to the general behavior of the application.",
     );
     registerSetting(
-        "general.closeConfirmation",
-        "Confirmation on Close",
-        "Ask for confirmation before closing the application.",
-        "boolean",
-        true,
-        false,
-    );
-    registerSetting(
         "general.autoLogoutTimeout",
         "Auto Logout Timeout",
         "The number of hours after which the user is automatically logged out. Set to 0 to disable auto logout.",
@@ -208,22 +200,6 @@ export const registerSettings = (): void => {
         12,
         false,
         { range: [0, 24] },
-    );
-    registerSetting(
-        "general.statementHistogramExplainerSeen",
-        "Statement Histogram Explanation Seen",
-        "",
-        "boolean",
-        false,
-        true,
-    );
-    registerSetting(
-        "general.slowQueriesExplainerSeen",
-        "Slow Queries Explanation Seen",
-        "",
-        "boolean",
-        false,
-        true,
     );
 
     registerSettingCategory(
@@ -383,14 +359,6 @@ export const registerSettings = (): void => {
         "execution continues with the next statement.", "boolean",
         false, false);
     registerSetting(
-        "editor.confirmVisualExplainAnalyze",
-        "Confirm Visual Explain Analyze",
-        "Ask for confirmation before running Visual Explain Analyze.",
-        "boolean",
-        true,
-        false,
-    );
-    registerSetting(
         "editor.showMinimap",
         "Show the Minimap",
         "Determines if code editors should show a minimap, instead of the plain scrollbar, for better navigation.",
@@ -461,15 +429,6 @@ export const registerSettings = (): void => {
 
     registerSettingCategory("dbEditor.connectionBrowser", "Connection Browser", "Settings related to the connection " +
         "overview page");
-    registerSetting(
-        "dbEditor.connectionBrowser.showGreeting",
-        "Show Greeting",
-        "If set, a message section is shown with some useful links.",
-        "boolean",
-        true,
-        false,
-    );
-
     registerSetting(
         "dbEditor.connectionBrowser.sortFoldersFirst",
         "Sort Folders First",

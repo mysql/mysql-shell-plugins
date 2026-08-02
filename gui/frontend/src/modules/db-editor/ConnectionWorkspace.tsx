@@ -67,6 +67,7 @@ import {
 } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../supplement/ProfileState.js";
 import { desktopCommandRegistry } from "../../supplement/DesktopCommandRegistry.js";
 import {
     EditorLanguage,
@@ -2063,7 +2064,7 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
     };
 
     private confirmExplainAnalyze = async (): Promise<boolean> => {
-        if (!Settings.get("editor.confirmVisualExplainAnalyze", true)) {
+        if (!ProfileState.get("editor.confirmVisualExplainAnalyze", true)) {
             return true;
         }
 
@@ -2086,8 +2087,8 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
         }
 
         if (response.data?.doNotAskAgain === true) {
-            Settings.set("editor.confirmVisualExplainAnalyze", false);
-            Settings.saveSettings();
+            ProfileState.set("editor.confirmVisualExplainAnalyze", false);
+            void ProfileState.saveState();
         }
 
         return true;

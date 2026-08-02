@@ -162,6 +162,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
                     >
                         <Button
                             id="settingsBackButton"
+                            appearance="flat"
                             onClick={this.handleBack}
                         >
                             <Icon src={Codicon.ArrowLeft} />

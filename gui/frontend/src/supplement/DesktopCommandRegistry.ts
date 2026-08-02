@@ -29,6 +29,7 @@ import { hasElectronHostBridge } from "./ElectronDesktop.js";
 export type DesktopCommandId =
     "app.about" |
     "app.preferences" |
+    "app.resetRememberedUiState" |
     "desktop.newScriptTab" |
     "desktop.newNotebookTab" |
     "dev.toggleDebugger" |

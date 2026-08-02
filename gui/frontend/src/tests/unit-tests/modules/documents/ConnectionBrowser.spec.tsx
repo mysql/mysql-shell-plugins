@@ -57,7 +57,7 @@ import { DocumentContext, type DocumentContextType } from "../../../../modules/d
 import { ui } from "../../../../app-logic/UILayer.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { appParameters } from "../../../../supplement/AppParameters.js";
-import { Settings } from "../../../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../../../supplement/ProfileState.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import { ConnectionProcessor } from "../../../../modules/common/ConnectionProcessor.js";
@@ -530,16 +530,16 @@ describe("Connection browser tests", (): void => {
     });
 
     it("persists the Home welcome panel dismissal", () => {
-        const settingsSetSpy = vi.spyOn(Settings, "set");
-        const saveSettingsSpy = vi.spyOn(Settings, "saveSettings").mockImplementation(() => { /** No-op. */ });
+        const profileStateSetSpy = vi.spyOn(ProfileState, "set");
+        const saveProfileStateSpy = vi.spyOn(ProfileState, "saveState").mockImplementation(() => { /** No-op. */ });
         const browser = createBrowser();
 
         (browser as unknown as {
             handleCloseGreeting: () => void;
         }).handleCloseGreeting();
 
-        expect(settingsSetSpy).toHaveBeenCalledWith("dbEditor.connectionBrowser.showGreeting", false);
-        expect(saveSettingsSpy).toHaveBeenCalledWith(true);
+        expect(profileStateSetSpy).toHaveBeenCalledWith("dbEditor.connectionBrowser.showGreeting", false);
+        expect(saveProfileStateSpy).toHaveBeenCalledWith(true);
     });
 
     it("anchors tile action menus to the right edge of the tile button", () => {

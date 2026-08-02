@@ -194,12 +194,13 @@ def add_profile(db, user_id, profile):
     """
     db.execute(
         """INSERT INTO profile(user_id, name,
-        description, options) VALUES(?, ?, ?, ?)""",
+        description, options, state) VALUES(?, ?, ?, ?, ?)""",
         (
             user_id,
             profile.get("name", "New Profile"),
             profile.get("description", ""),
             json.dumps(profile.get("options", {})),
+            json.dumps(profile.get("state", {})),
         ),
     )
 
@@ -238,7 +239,7 @@ def get_profile(db, profile_id):
         raise MSGException(Error.CORE_INVALID_PARAMETER, "Invalid profile id.")
 
     result = db.select(
-        """SELECT id, user_id, name, description, options FROM profile
+        """SELECT id, user_id, name, description, options, state FROM profile
         WHERE id = ?""",
         (profile_id,),
     )

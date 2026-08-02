@@ -1773,6 +1773,9 @@ const createMenu = () => {
     const aboutItem = createDesktopCommandMenuItem("app.about", `About ${appName}`);
 
     const preferencesItem = createDesktopCommandMenuItem("app.preferences", "Preferences...");
+    const resetRememberedUiStateItem = createDesktopCommandMenuItem(
+        "app.resetRememberedUiState", "Reset Remembered UI State...",
+    );
 
     const fileMenu = {
         label: "File",
@@ -1944,7 +1947,7 @@ const createMenu = () => {
     const helpMenu = {
         label: "Help",
         submenu: [
-            ...(isMac ? [] : [preferencesItem, aboutItem, { type: "separator" }]),
+            ...(isMac ? [] : [preferencesItem, resetRememberedUiStateItem, aboutItem, { type: "separator" }]),
             {
                 label: `${appName} Help`,
                 click: () => {
@@ -1961,6 +1964,7 @@ const createMenu = () => {
                 aboutItem,
                 { type: "separator" },
                 preferencesItem,
+                resetRememberedUiStateItem,
                 { type: "separator" },
                 { role: "services" },
                 { type: "separator" },

@@ -241,6 +241,7 @@ CREATE TABLE IF NOT EXISTS `profile` (
   `name` VARCHAR(80) NULL,
   `description` VARCHAR(200) NULL,
   `options` TEXT NULL,
+  `state` TEXT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_profile_user1_idx` (`user_id` ASC) VISIBLE,
   CONSTRAINT `fk_profile_user1`

@@ -41,6 +41,7 @@ import ApplicationHost from "../../../app-logic/ApplicationHost.js";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
 import { desktopCommandRegistry } from "../../../supplement/DesktopCommandRegistry.js";
 import { appParameters } from "../../../supplement/AppParameters.js";
+import { ProfileState } from "../../../supplement/ProfileState.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { RunMode, webSession } from "../../../supplement/WebSession.js";
 import { isStandalone } from "../../../utilities/helpers.js";
@@ -197,7 +198,7 @@ describe("Application host tests", () => {
         await requisitions.execute("showPreferences", undefined);
         expect(hostRef.current!.state.settingsVisible).toBe(true);
 
-        await act(async () => {
+        void act(() => {
             fireEvent.click(container.querySelector("#settingsBackButton")!);
         });
 
@@ -325,6 +326,9 @@ describe("Application host tests", () => {
             return entry.id === "app.preferences";
         })?.enabled).toBe(true);
         expect(initialState.find((entry) => {
+            return entry.id === "app.resetRememberedUiState";
+        })?.enabled).toBe(true);
+        expect(initialState.find((entry) => {
             return entry.id === "dev.toggleDebugger";
         })).toMatchObject({
             enabled: true,
@@ -336,6 +340,13 @@ describe("Application host tests", () => {
 
         expect(await desktopCommandRegistry.execute("app.preferences")).toBe(true);
         expect(hostRef.current!.state.settingsVisible).toBe(true);
+
+        const resetProfileStateSpy = vi.spyOn(ProfileState, "reset");
+        const confirmSpy = vi.spyOn(uiLayerMock, "confirm").mockResolvedValueOnce("Reset");
+        expect(await desktopCommandRegistry.execute("app.resetRememberedUiState")).toBe(true);
+        expect(resetProfileStateSpy).toHaveBeenCalledOnce();
+        resetProfileStateSpy.mockRestore();
+        confirmSpy.mockRestore();
 
         expect(await desktopCommandRegistry.execute("dev.toggleDebugger")).toBe(true);
         expect(hostRef.current!.state.debuggerVisible).toBe(true);

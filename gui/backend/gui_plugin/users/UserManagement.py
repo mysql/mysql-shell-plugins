@@ -378,6 +378,7 @@ def update_profile(profile, be_session=None):
         name (str): The profile name
         description (str): A longer description for profile
         options (dict): The options specific for the profile
+        state (dict): The persisted UI state specific for the profile
 
     Returns:
         None
@@ -389,12 +390,14 @@ def update_profile(profile, be_session=None):
             """UPDATE profile SET
             name = ?,
             description = ?,
-            options = ?
+            options = ?,
+            state = ?
             WHERE id = ?""",
             (
                 profile.get("name"),
                 profile.get("description", ""),
                 None if options is None else json.dumps(options),
+                json.dumps(profile.get("state", {})),
                 profile.get("id"),
             ),
         )
@@ -414,6 +417,7 @@ def add_profile(user_id, profile, be_session=None):
         name (str): The profile name
         description (str): A longer description for profile
         options (dict): The options specific for the profile
+        state (dict): The persisted UI state specific for the profile
 
     Returns:
         int: the profile ID.

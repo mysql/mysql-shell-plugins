@@ -36,14 +36,14 @@ import {
 } from "../../../../modules/db-editor/performance/SlowQueriesReport.js";
 import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
-import { Settings } from "../../../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../../../supplement/ProfileState.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
 describe("PerformanceDashboard Tests", (): void => {
     beforeEach(() => {
-        Settings.set("general.statementHistogramExplainerSeen", true);
-        Settings.set("general.slowQueriesExplainerSeen", true);
+        ProfileState.set("general.statementHistogramExplainerSeen", true);
+        ProfileState.set("general.slowQueriesExplainerSeen", true);
     });
 
     const performanceReportItems = (): HTMLElement[] => {

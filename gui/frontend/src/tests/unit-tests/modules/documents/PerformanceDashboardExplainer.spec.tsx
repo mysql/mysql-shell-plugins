@@ -31,7 +31,7 @@ import { PerformanceDashboard } from "../../../../modules/db-editor/PerformanceD
 import {
     formatStatementHistogramUpperBound, parseStatementHistogramRows, statementHistogramPercentiles,
 } from "../../../../modules/db-editor/performance/StatementHistogram.js";
-import { Settings } from "../../../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../../../supplement/ProfileState.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
@@ -70,14 +70,14 @@ const clickPerformanceReport = async (container: HTMLElement, title: string): Pr
 
 describe("PerformanceDashboard report explainers", (): void => {
     beforeEach(() => {
-        Settings.set("general.statementHistogramExplainerSeen", false);
-        Settings.set("general.slowQueriesExplainerSeen", false);
+        ProfileState.set("general.statementHistogramExplainerSeen", false);
+        ProfileState.set("general.slowQueriesExplainerSeen", false);
         HTMLElement.prototype.scrollIntoView = vi.fn();
     });
 
     afterEach(() => {
-        Settings.set("general.statementHistogramExplainerSeen", false);
-        Settings.set("general.slowQueriesExplainerSeen", false);
+        ProfileState.set("general.statementHistogramExplainerSeen", false);
+        ProfileState.set("general.slowQueriesExplainerSeen", false);
     });
 
     it("uses the observed upper bound in the final histogram label", () => {
@@ -161,7 +161,7 @@ describe("PerformanceDashboard report explainers", (): void => {
         await waitFor(() => {
             expect(screen.queryByRole("dialog")).toBeNull();
         });
-        expect(Settings.get("general.statementHistogramExplainerSeen", false)).toBe(true);
+        expect(ProfileState.get("general.statementHistogramExplainerSeen", false)).toBe(true);
 
         unmount();
     });
@@ -248,7 +248,7 @@ describe("PerformanceDashboard report explainers", (): void => {
         await waitFor(() => {
             expect(screen.queryByRole("dialog")).toBeNull();
         });
-        expect(Settings.get("general.slowQueriesExplainerSeen", false)).toBe(true);
+        expect(ProfileState.get("general.slowQueriesExplainerSeen", false)).toBe(true);
 
         await clickPerformanceReport(container, "Table Sizes");
         await clickPerformanceReport(container, "Slow Queries");

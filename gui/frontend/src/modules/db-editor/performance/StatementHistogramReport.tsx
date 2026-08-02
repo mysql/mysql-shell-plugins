@@ -30,7 +30,7 @@ import {
 } from "../../../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../../../components/ui/Container/Container.js";
 import { IUIExplainerStep, UIExplainer } from "../../../components/ui/UIExplainer/UIExplainer.js";
-import { Settings } from "../../../supplement/Settings/Settings.js";
+import { ProfileState } from "../../../supplement/ProfileState.js";
 import {
     IPerformanceReportCapabilities, ShellInterfaceSqlEditor,
 } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -70,7 +70,7 @@ export class StatementHistogramReport
         placement: ComponentPlacement.TopLeft,
     }];
     private requestId = 0;
-    private explainerSeen = Settings.get("general.statementHistogramExplainerSeen", false);
+    private explainerSeen = ProfileState.get("general.statementHistogramExplainerSeen", false);
 
     public constructor(props: IStatementHistogramReportProperties) {
         super(props);
@@ -203,8 +203,8 @@ export class StatementHistogramReport
 
     private handleExplainerClose = (): void => {
         this.explainerSeen = true;
-        Settings.set("general.statementHistogramExplainerSeen", true);
-        Settings.saveSettings();
+        ProfileState.set("general.statementHistogramExplainerSeen", true);
+        ProfileState.saveState();
     };
 
 }

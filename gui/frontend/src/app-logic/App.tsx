@@ -47,7 +47,7 @@ import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
 import { appParameters } from "../supplement/AppParameters.js";
 import { hasElectronDesktopBackend, hasElectronHostBridge } from "../supplement/ElectronDesktop.js";
 import { requisitions } from "../supplement/Requisitions.js";
-import { Settings } from "../supplement/Settings/Settings.js";
+import { ProfileState } from "../supplement/ProfileState.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { RunMode, webSession } from "../supplement/WebSession.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
@@ -165,7 +165,7 @@ export class App extends Component<{}, IAppState> {
 
         window.addEventListener("beforeunload", (e: Event) => {
             // Always ask the user if they want to leave the page (if enabled).
-            const ask = Settings.get("general.closeConfirmation", true);
+            const ask = ProfileState.get("general.closeConfirmation", true);
             if (ask) {
                 e.preventDefault();
             }
