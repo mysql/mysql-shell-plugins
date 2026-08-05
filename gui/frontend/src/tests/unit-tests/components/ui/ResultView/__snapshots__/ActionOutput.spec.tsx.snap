@@ -4,7 +4,7 @@ exports[`Action Output Tests > Action Full Rendering 1`] = `
 <div>
   <div
     class="msg button imageOnly copyButton"
-    data-tooltip="Copy result to clipboard"
+    data-tooltip="Copy to Clipboard"
     role="button"
     tabindex="-1"
   >
@@ -40,7 +40,7 @@ exports[`Action Output Tests > Action Full Rendering 2`] = `
 HTMLCollection [
   <div
     class="msg button imageOnly copyButton"
-    data-tooltip="Copy result to clipboard"
+    data-tooltip="Copy to Clipboard"
     role="button"
     tabindex="-1"
   >
@@ -91,7 +91,7 @@ exports[`Action Output Tests > Standard Rendering 1`] = `
 <div>
   <div
     class="msg button imageOnly copyButton"
-    data-tooltip="Copy result to clipboard"
+    data-tooltip="Copy to Clipboard"
     role="button"
     tabindex="-1"
   >

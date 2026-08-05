@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import { render } from "@testing-library/preact";
+import { createRef } from "preact";
+import { describe, expect, it } from "vitest";
+
+import { Portal } from "../../../../components/ui/Portal/Portal.js";
+import { nextRunLoop } from "../../test-helpers.js";
+
+describe("Portal component tests", (): void => {
+    it("allows scrolling a control inside the portal", async () => {
+        const portalRef = createRef<Portal>();
+        const { unmount } = render(
+            <Portal ref={portalRef}>
+                <textarea id="scrollablePortalControl" />
+            </Portal>,
+        );
+
+        portalRef.current!.open();
+        await nextRunLoop();
+
+        const control = document.querySelector<HTMLTextAreaElement>("#scrollablePortalControl");
+        expect(control).not.toBeNull();
+        const event = new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: 40 });
+        control!.dispatchEvent(event);
+
+        expect(event.defaultPrevented).toBe(false);
+        unmount();
+    });
+});

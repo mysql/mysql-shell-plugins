@@ -27,9 +27,6 @@
     flex: 1 1 auto;
     min-height: 0;
     min-width: 0;
-    position: absolute;
-    inset: 0;
-    z-index: 10;
     width: 100%;
     background: var(--background);
 }
@@ -74,6 +71,8 @@
 }
 
 .msg.settingsEditor #settingsHost .searchContainer .input {
+    box-sizing: border-box;
+    width: 100%;
     min-width: 0;
 }
 
@@ -160,6 +159,7 @@
     flex-direction: column;
     flex: 1 1 auto;
 
+    box-sizing: border-box;
     padding: 8px;
     width: 100%;
     border-left: 2px solid transparent;
@@ -201,6 +201,13 @@
     align-items: flex-start;
 
     max-width: 400px;
+}
+
+.msg.settingsEditor #settingsValueList .settingValue.checkbox {
+    align-items: flex-start;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
 }
 
 .msg.settingsEditor #settingsValueList .settingValue > .checkMark {

@@ -129,6 +129,30 @@ const assertMigrationStartBlocked = async (page: Page): Promise<void> => {
     await expect(page.locator(".notificationCenter")).toContainText(/Migration Assistant is already open|migration is currently running/u);
 };
 
+const waitForMigrationPlanTileStepsPassed = async (
+    migrationAssistant: MigrationAssistant,
+): Promise<void> => {
+    await expect.poll(async () => {
+        const actualTiles = await migrationAssistant.getTiles();
+        const migrationPlanTile = actualTiles.find((tile) => {
+            return tile.name === "Migration Plan";
+        });
+
+        if (!migrationPlanTile) {
+            return ["Migration Plan tile is missing"];
+        }
+
+        return migrationPlanTile.subSteps.filter((step) => {
+            return step.status !== TileStepStatus.Passed;
+        }).map((step) => {
+            return `${step.name}: ${step.status}`;
+        });
+    }, {
+        timeout: 30000,
+        message: "Migration Plan tile steps should be passed",
+    }).toEqual([]);
+};
+
 const fillMigrationPlan = async (migrationAssistant: MigrationAssistant): Promise<boolean> => {
     await migrationAssistant.dismissNotifications();
     if (!await migrationAssistant.fillUseExistingTargetSelectionAndAdvance()) {
@@ -173,30 +197,6 @@ const assertMigrationPlanStepsPassed = async (migrationAssistant: MigrationAssis
         expect(migrationPlanSubSteps).toContain(step.caption);
         expect(step.isExpanded).toBe(false);
     }
-};
-
-const waitForMigrationPlanTileStepsPassed = async (
-    migrationAssistant: MigrationAssistant,
-): Promise<void> => {
-    await expect.poll(async () => {
-        const actualTiles = await migrationAssistant.getTiles();
-        const migrationPlanTile = actualTiles.find((tile) => {
-            return tile.name === "Migration Plan";
-        });
-
-        if (!migrationPlanTile) {
-            return ["Migration Plan tile is missing"];
-        }
-
-        return migrationPlanTile.subSteps.filter((step) => {
-            return step.status !== TileStepStatus.Passed;
-        }).map((step) => {
-            return `${step.name}: ${step.status}`;
-        });
-    }, {
-        timeout: 30000,
-        message: "Migration Plan tile steps should be passed",
-    }).toEqual([]);
 };
 
 const assertTilesForActiveMigration = async (migrationAssistant: MigrationAssistant, status: TileStepStatus): Promise<void> => {

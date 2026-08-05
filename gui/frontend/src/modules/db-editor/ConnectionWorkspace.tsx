@@ -2113,6 +2113,9 @@ Use DB Notebooks to explore MySQL data with executable SQL, JavaScript, and Type
             if (connection?.backend) {
                 try {
                     await connection.backend.addExecutionHistoryEntry(connection.details.id, code, language);
+                    savedState.executionHistory = await connection.backend.getExecutionHistoryEntries(
+                        connection.details.id, 30,
+                    );
 
                     // Reset the index.
                     savedState.currentExecutionHistoryIndex = 0;

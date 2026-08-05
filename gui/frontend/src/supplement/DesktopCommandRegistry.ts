@@ -57,6 +57,7 @@ export type DesktopCommandId =
     "database.admin.performanceDashboard" |
     "database.admin.enterpriseBackup" |
     "database.admin.lakehouseNavigator" |
+    "database.migrationAssistant.start" |
     "database.mrs.configure" |
     "database.mrs.browseDocs" |
     "view.find" |

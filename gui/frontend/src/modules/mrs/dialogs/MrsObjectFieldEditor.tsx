@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,7 @@ import {
     IComponentProperties, IComponentState, SelectionType,
 } from "../../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
+import { CopyButton } from "../../../components/ui/CopyButton/CopyButton.js";
 import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../../components/ui/Dropdown/DropdownItem.js";
 import { Icon } from "../../../components/ui/Icon/Icon.js";
@@ -51,7 +52,6 @@ import { IInputChangeProperties, Input } from "../../../components/ui/Input/Inpu
 import { Label } from "../../../components/ui/Label/Label.js";
 import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import { Assets } from "../../../supplement/Assets.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString, uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import {
@@ -561,15 +561,11 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 >
                     {data.dbObject.objectType !== MrsDbObjectType.Script &&
                         <>
-                            <Button
+                            <CopyButton
                                 className="sqlCopyBtn"
                                 key="sqlCopyBtn"
-                                data-tooltip="Copy SQL to Clipboard"
-                                onClick={this.copySqlToClipboard}
-                                imageOnly={true}
-                            >
-                                <Icon src={Codicon.Copy} width={11} height={11} data-tooltip="inherit" />
-                            </Button>
+                                value={this.copySqlText}
+                            />
                             <Button
                                 className={this.getEffectiveClassNames(
                                     ["sqlPreviewBtn", sqlPreview ? "buttonActivated" : undefined])}
@@ -690,7 +686,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         });
     };
 
-    private copySqlToClipboard = (): void => {
+    private copySqlText = (): string => {
         const { values, getCurrentDbObject } = this.props;
         const data = values as IMrsObjectFieldEditorData;
 
@@ -699,8 +695,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         // Update the local DB Object reference if the DB Object has been updated by the main editor
         data.dbObject = getCurrentDbObject();
 
-        const text = MrsObjectFieldEditor.buildDataMappingViewSql(data) ?? "";
-        requisitions.writeToClipboard(text);
+        return MrsObjectFieldEditor.buildDataMappingViewSql(data) ?? "";
     };
 
     // TreeGrid Row / Column Formatters.

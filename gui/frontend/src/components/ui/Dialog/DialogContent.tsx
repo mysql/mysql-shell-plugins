@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -159,8 +159,8 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
 
                     this.lastDeltaX = e.clientX - this.dragStartX;
                     this.lastDeltaY = e.clientY - this.dragStartY;
-                    this.innerRef.current!.style.transform = `translate(calc(-50% + ${this.lastDeltaX}px), ` +
-                        `calc(-50% + ${this.lastDeltaY}px))`;
+                    this.innerRef.current!.style.transform =
+                        `translate(${this.lastDeltaX}px, ${this.lastDeltaY}px)`;
                 }
 
                 return true;

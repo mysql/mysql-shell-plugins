@@ -37,6 +37,7 @@ import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { Input, type IInputChangeProperties } from "../../components/ui/Input/Input.js";
+import { CopyButton } from "../../components/ui/CopyButton/CopyButton.js";
 import { Dialog } from "../../components/ui/Dialog/Dialog.js";
 import { ISearchValues, Search } from "../../components/ui/Search/Search.js";
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
@@ -50,7 +51,6 @@ import {
 } from "../../components/Dialogs/ValueEditDialog.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { Assets } from "../../supplement/Assets.js";
-import { requisitions } from "../../supplement/Requisitions.js";
 import { IToolbarItems } from "./index.js";
 import {
     IMySQLGlobalPrivilegeCatalogItem,
@@ -298,16 +298,13 @@ class UserAccountSqlViewer extends ValueEditCustom<IValueEditCustomProperties, I
                 className="userAccountSqlViewer"
                 orientation={Orientation.TopDown}
                 crossAlignment={ContentAlignment.Stretch}
+                fixedScrollbars={false}
             >
-                <Button
+                <CopyButton
                     id="userAccountSqlCopyButton"
                     className="userAccountSqlCopyButton"
-                    data-tooltip="Copy SQL to Clipboard"
-                    imageOnly={true}
-                    onClick={this.copyStatements}
-                >
-                    <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                </Button>
+                    value={statements}
+                />
                 <Input
                     id="userAccountSqlOutput"
                     value={statements}
@@ -315,16 +312,12 @@ class UserAccountSqlViewer extends ValueEditCustom<IValueEditCustomProperties, I
                     multiLineCount={16}
                     readOnly={true}
                     spellCheck={false}
-                    data-tooltip="Copy SQL to Clipboard"
+                    wrap="off"
                 />
             </Container>
         );
     }
 
-    private copyStatements = (): void => {
-        const { statements = "" } = this.props.values as unknown as Partial<IUserAccountSqlViewerData>;
-        requisitions.writeToClipboard(statements);
-    };
 }
 
 class RoleAssignmentEditor extends ValueEditCustom<IValueEditCustomProperties, IRoleAssignmentEditorState> {
@@ -1703,15 +1696,11 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
                                     <Icon src={this.state.generatedPasswordVisible ? Codicon.EyeClosed : Codicon.Eye}
                                         data-tooltip="inherit" />
                                 </Button>
-                                <Button
+                                <CopyButton
                                     id="copyGeneratedPassword"
                                     className="generatedPasswordCopyButton"
-                                    data-tooltip="Copy password to clipboard"
-                                    imageOnly={true}
-                                    onClick={this.copyGeneratedPassword}
-                                >
-                                    <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                                </Button>
+                                    value={this.state.generatedPassword}
+                                />
                                 <Input
                                     id="generatedPassword"
                                     value={this.state.generatedPassword}
@@ -3610,10 +3599,6 @@ export class UserAccounts extends ComponentBase<IUserAccountsProperties, IUserAc
         this.setState({ generatedPassword, generatedPasswordVisible: false }, () => {
             this.generatedPasswordDialogRef.current?.open();
         });
-    };
-
-    private copyGeneratedPassword = (): void => {
-        requisitions.writeToClipboard(this.state.generatedPassword);
     };
 
     private toggleGeneratedPasswordVisibility = (): void => {

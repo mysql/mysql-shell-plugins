@@ -162,8 +162,8 @@ exports[`Jdv Object dialog tests > Show Jdv Object Dialog (snapshot) and escape 
                 style="flex-direction: row-reverse; align-items: center;"
               >
                 <div
-                  class="msg button imageOnly sqlCopyBtn"
-                  data-tooltip="Copy SQL to Clipboard"
+                  class="msg button imageOnly sqlCopyBtn copyButton"
+                  data-tooltip="Copy to Clipboard"
                   role="button"
                   tabindex="0"
                 >

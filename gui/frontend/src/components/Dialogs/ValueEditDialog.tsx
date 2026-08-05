@@ -1443,7 +1443,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                         data-tooltip="Add new property entry"
                                         onClick={this.onAddMatrixProperty.bind(this, sectionId, key)}
                                     >
-                                        <Icon src={Assets.misc.addIcon} data-tooltip="inherit" />
+                                        <Icon src={Codicon.Add} data-tooltip="inherit" />
                                     </Button>
                                     <Button
                                         id="buttonRemoveEntry"
@@ -1451,7 +1451,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                         onClick={this.onRemoveMatrixProperty.bind(this, sectionId, key)}
                                         disabled={tableData.length === 0}
                                     >
-                                        <Icon src={Assets.misc.removeIcon} data-tooltip="inherit" />
+                                        <Icon src={Codicon.Remove} data-tooltip="inherit" />
                                     </Button>
                                 </Container>
                             </Container>

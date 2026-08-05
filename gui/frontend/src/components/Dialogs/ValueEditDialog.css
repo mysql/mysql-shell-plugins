@@ -81,7 +81,7 @@
 }
 
 .msg.valueEditDialog .valueTitle {
-    color: var(--disabledForeground);
+    color: var(--text-captionForeground);
     font-size: 0.95em;
     padding: 2px 0;
 
@@ -162,7 +162,7 @@
 .msg.dialog.valueEditDialog .valueDescription {
     flex: 1 1 auto;
     white-space: normal;
-    color: var(--disabledForeground);
+    color: var(--descriptionForeground);
 }
 
 .msg.dialog.valueEditDialog .gridCell .description {
@@ -179,7 +179,7 @@
     line-height: 12px;
     text-wrap: wrap;
     display: inline-block;
-    color: var(--tag-background);
+    color: var(--descriptionForeground);
 }
 
 .msg.dialog.valueEditDialog .gridCell .message {
@@ -228,6 +228,14 @@
 .msg.dialog.valueEditDialog #matrixActions .icon {
     width: 12px;
     height: 12px;
+}
+
+.msg.dialog.valueEditDialog #matrixActions .icon.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 12px;
 }
 
 .msg.dialog.valueEditDialog #matrixActions .button {
@@ -294,5 +302,5 @@
 }
 
 .msg.dialog.valueEditDialog .msg.label.description {
-    color: var(--disabledForeground);
+    color: var(--descriptionForeground);
 }

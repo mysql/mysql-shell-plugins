@@ -522,8 +522,11 @@ export class MigrationAssistant {
         try {
             await this.waitUntilStepIs({ caption: migrationType, isExpanded: true }, wait1second * 90);
         } catch (error) {
+            const state = this.page.isClosed()
+                ? "page closed before the Target Selection state could be collected"
+                : JSON.stringify(await this.getTargetSelectionDebugState());
             throw new Error(`Target Selection did not advance to Migration Type. ` +
-                `State: ${JSON.stringify(await this.getTargetSelectionDebugState())}`, { cause: error });
+                `State: ${state}`, { cause: error });
         }
 
         await this.waitForLoadingIcon();
@@ -635,16 +638,21 @@ export class MigrationAssistant {
     }
 
     public async setMigrationTypeIfVisible(): Promise<void> {
-        if (await this.page.locator(locator.steps.migrationType.type).first().count() === 0) {
+        const migrationTypeRadios = this.page.locator(locator.steps.migrationType.type);
+        if (!await this.waitForOptionalVisible(migrationTypeRadios.first(), wait1second * 5)) {
             return;
         }
 
         await this.setMigrationType();
+        await expect(migrationTypeRadios.filter({ hasText: "Hot Migration" }))
+            .toHaveAttribute("aria-checked", "true");
     }
 
     public async setNetworkConnectivity(): Promise<void> {
-        await this.page.locator(locator.steps.migrationType.connectivity).click();
+        const connectivity = this.page.locator(locator.steps.migrationType.connectivity);
+        await connectivity.click();
         await this.page.locator(locator.steps.migrationType.connectivityPopup).locator("#ssh-tunnel").click();
+        await expect(connectivity).toContainText("SSH Tunnel");
         await this.waitForLoadingIcon();
     }
 

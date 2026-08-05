@@ -3130,6 +3130,7 @@ describe("Document module desktop commands", () => {
         expect(initialState.find((entry) => entry.id === "database.admin.performanceDashboard")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.enterpriseBackup")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.admin.lakehouseNavigator")?.enabled).toBe(false);
+        expect(initialState.find((entry) => entry.id === "database.migrationAssistant.start")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.mrs.configure")?.enabled).toBe(false);
         expect(initialState.find((entry) => entry.id === "database.mrs.browseDocs")?.enabled).toBe(true);
 
@@ -3531,6 +3532,11 @@ describe("Document module desktop commands", () => {
                 enabled: true,
             }),
             expect.objectContaining({
+                id: "database.migrationAssistant.start",
+                label: "Start MySQL HeatWave Cloud Migration Assistant",
+                enabled: true,
+            }),
+            expect.objectContaining({
                 id: "database.mrs.configure",
                 label: "Configure MySQL REST Service",
                 enabled: true,
@@ -3580,6 +3586,13 @@ describe("Document module desktop commands", () => {
         expect(sideBarCommandSpy).toHaveBeenCalledWith({
             title: "Configure MRS",
             command: "msg.mrs.configureMySQLRestService",
+        }, sharedConnection.connection);
+
+        sideBarCommandSpy.mockClear();
+        expect(await desktopCommandRegistry.execute("database.migrationAssistant.start")).toBe(true);
+        expect(sideBarCommandSpy).toHaveBeenCalledWith({
+            title: "Start MySQL HeatWave Cloud Migration Assistant",
+            command: "msg.startMySQLCloudMigrationAssistant",
         }, sharedConnection.connection);
 
         sideBarCommandSpy.mockClear();

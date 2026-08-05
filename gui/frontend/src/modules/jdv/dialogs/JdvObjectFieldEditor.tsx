@@ -45,6 +45,7 @@ import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor.js";
 import { Codicon } from "../../../components/ui/Codicon.js";
 import { IComponentState, SelectionType } from "../../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
+import { CopyButton } from "../../../components/ui/CopyButton/CopyButton.js";
 import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../../components/ui/Dropdown/DropdownItem.js";
 import { Icon } from "../../../components/ui/Icon/Icon.js";
@@ -52,7 +53,6 @@ import { Input } from "../../../components/ui/Input/Input.js";
 import { Label } from "../../../components/ui/Label/Label.js";
 import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import { Assets } from "../../../supplement/Assets.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString, uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import { JdvObjectAddTableDialog } from "./JdvObjectAddTableDialog.js";
@@ -393,16 +393,12 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
                         crossAlignment={ContentAlignment.Center}
                     >
                         <>
-                            <Button
+                            <CopyButton
                                 className="sqlCopyBtn"
                                 key="sqlCopyBtn"
-                                data-tooltip="Copy SQL to Clipboard"
-                                onClick={this.copySqlToClipboard}
+                                value={this.copySqlText}
                                 disabled={Object.keys(validations).length > 0}
-                                imageOnly={true}
-                            >
-                                <Icon src={Codicon.Copy} width={11} height={11} data-tooltip="inherit" />
-                            </Button>
+                            />
                             <Button
                                 className={this.getEffectiveClassNames(
                                     ["sqlPreviewBtn", sqlPreview ? "buttonActivated" : undefined])}
@@ -480,12 +476,11 @@ export class JdvObjectFieldEditor extends ValueEditCustom<
         });
     };
 
-    private copySqlToClipboard = (): void => {
+    private copySqlText = (): string => {
         const { values } = this.props;
         const data = values as IJdvObjectFieldEditorData;
 
-        const text = JdvObjectFieldEditor.buildDataMappingViewSql(data) ?? "";
-        requisitions.writeToClipboard(text);
+        return JdvObjectFieldEditor.buildDataMappingViewSql(data) ?? "";
     };
 
     private handleBackendError = (reason: unknown): void => {

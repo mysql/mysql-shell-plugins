@@ -207,7 +207,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
     private handlePortalMouseWheel = (event: WheelEvent): void => {
         const { open, options } = this.state;
 
-        if (open && (options.blockMouseEvents ?? true)) {
+        if (open && event.target === this.host && (options.blockMouseEvents ?? true)) {
             event.preventDefault();
             event.stopPropagation();
         }

@@ -139,7 +139,6 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
                         placeholder="Search settings"
                         result={foundEntries > -1 ? `${foundEntries} Settings Found` : undefined}
                         buttons={{
-                            matchChase: true,
                             clearAll: true,
                         }}
                         values={searchValues}

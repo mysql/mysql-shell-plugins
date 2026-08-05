@@ -702,6 +702,10 @@ body[theme=light] .msg .desktopStatusIndicatorActive {
     min-height: 14px;
 }
 
+.msg .desktopStatusText {
+    color: var(--foreground);
+}
+
 .msg .desktopStatusConnectionInfo > .desktopStatusSecondary {
     font-size: 10px;
 }
@@ -1229,6 +1233,13 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 
 .msg .userAccountSqlViewer {
     position: relative;
+}
+
+.msg .userAccountSqlViewer #userAccountSqlOutput {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: auto;
+    resize: vertical;
 }
 
 .msg .userAccountSqlViewer .userAccountSqlCopyButton {
@@ -3646,17 +3657,17 @@ body[theme=light] .msg.dbModuleTabview .standaloneScriptHost #editorPaneSash.scr
 }
 
 .msg.clientConnections .connectionDetailsProcessIdInput {
-    width: 100%;
-    max-width: 14ch;
-    min-width: 5ch;
+    width: 110px;
     margin: 0;
-    padding: 0 4px 0 8px;
+    padding: 4px;
     border: 1px solid var(--input-border);
     border-radius: 999px;
     background-color: var(--input-background);
     color: var(--input-foreground);
     font: inherit;
+    font-size: 1.1rem;
     line-height: inherit;
+    text-align: center;
 }
 
 .msg.clientConnections .connectionDetailsProcessIdInput:disabled {

@@ -308,7 +308,11 @@ export interface IDocumentModuleState {
     overviewId: string;
 }
 
-export class DocumentModule extends Component<{}, IDocumentModuleState> {
+interface IDocumentModuleProperties {
+    contentReplacement?: ComponentChild;
+}
+
+export class DocumentModule extends Component<IDocumentModuleProperties, IDocumentModuleState> {
     // The current UI presentation state of the connection.
     private connectionPresentation = new Map<IOdmConnectionPageEntry, IConnectionPresentationState>();
 
@@ -1855,7 +1859,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }).join(" ") || undefined;
 
             let workspaceMainContent: ComponentChild;
-            if (activeWorkspace.kind === "home") {
+            if (this.props.contentReplacement) {
+                workspaceMainContent = (
+                    <Container id="dbModuleTabHost" orientation={Orientation.TopDown}>
+                        {this.props.contentReplacement}
+                    </Container>
+                );
+            } else if (activeWorkspace.kind === "home") {
                 const overviewPage = pages.find((page) => {
                     return page.id === this.documentDataModel.overview.id;
                 });
@@ -6112,6 +6122,10 @@ EXAMPLES
             enabled: desktopRunState?.canExecuteSubparts ?? false,
             checked: desktopRunState?.autoCommit ?? false,
         }, ...administrationCommands, {
+            id: "database.migrationAssistant.start",
+            label: "Start MySQL HeatWave Cloud Migration Assistant",
+            enabled: canUseActiveMySQLConnection,
+        }, {
             id: "database.mrs.configure",
             label: "Configure MySQL REST Service",
             enabled: canUseActiveMySQLConnection,
@@ -6336,6 +6350,20 @@ EXAMPLES
                 const result = await this.handleSideBarConnectionCommand({
                     title: "Configure MRS",
                     command: "msg.mrs.configureMySQLRestService",
+                }, connection);
+
+                return result.success;
+            }
+
+            case "database.migrationAssistant.start": {
+                const connection = this.getActiveWorkspaceConnectionEntry();
+                if (!connection) {
+                    return false;
+                }
+
+                const result = await this.handleSideBarConnectionCommand({
+                    title: "Start MySQL HeatWave Cloud Migration Assistant",
+                    command: "msg.startMySQLCloudMigrationAssistant",
                 }, connection);
 
                 return result.success;

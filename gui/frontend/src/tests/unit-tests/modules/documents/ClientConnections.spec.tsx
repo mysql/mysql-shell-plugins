@@ -633,7 +633,7 @@ describe("Client connections module tests", (): void => {
         expect(identityRule).toContain("display: contents;");
         expect(processIdRule).toContain("font-size: 1.2rem;");
         expect(processIdInputRule).toContain("font: inherit;");
-        expect(processIdInputRule).toContain("padding: 0 4px 0 8px;");
+        expect(processIdInputRule).toContain("padding: 4px;");
         expect(processIdInputRule).toContain("border-radius: 999px;");
         expect(accountRule).toContain("font-size: 0.76rem;");
         expect(navigationRule).toContain("grid-column: 1;");

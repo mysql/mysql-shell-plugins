@@ -68,7 +68,6 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
     private debuggerStatusItem?: IStatusBarItem;
     private desktopCommandProvider: IDesktopCommandProvider;
 
-    private editorHost = <DocumentModule />;
     private aboutBoxRef = createRef<AboutBox>();
 
     public constructor(props: IApplicationHostProperties) {
@@ -148,11 +147,15 @@ export default class ApplicationHost extends ComponentBase<IApplicationHostPrope
         const { settingsVisible, aboutVisible, debuggerVisible, debuggerEnabledInBackground,
             debuggerMaximized } = this.state;
 
-        const pages: ComponentChild[] = [this.editorHost];
+        const settingsEditor = settingsVisible
+            ? <SettingsEditor key="settingsEditor" onBack={this.handleSettingsBack} />
+            : undefined;
+        const pages: ComponentChild[] = [<DocumentModule
+            key="documentModule"
+            contentReplacement={settingsEditor}
+        />];
 
-        if (settingsVisible) {
-            pages.push(<SettingsEditor key="settingsEditor" onBack={this.handleSettingsBack} />);
-        } else if (aboutVisible) {
+        if (aboutVisible) {
             pages.push(<AboutBox ref={this.aboutBoxRef} onClose={this.handleAboutClose} />);
         }
 

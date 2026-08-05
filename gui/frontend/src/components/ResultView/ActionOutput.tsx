@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,11 +27,9 @@ import { ComponentChild, createRef } from "preact";
 
 import { ITextResultEntry } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { Button } from "../ui/Button/Button.js";
-import { Codicon } from "../ui/Codicon.js";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
-import { Icon } from "../ui/Icon/Icon.js";
+import { CopyButton } from "../ui/CopyButton/CopyButton.js";
 import { JsonView } from "../ui/JsonView/JsonView.js";
 import { Label } from "../ui/Label/Label.js";
 import type { JsonValue } from "../../app-logic/general-types.js";
@@ -138,16 +136,12 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
 
         return (
             <>
-                <Button
+                <CopyButton
                     className="copyButton"
-                    data-tooltip="Copy result to clipboard"
-                    imageOnly
                     focusOnClick={false}
                     tabIndex={-1}
-                    onPointerDown={this.copyToClipboard}
-                >
-                    <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                </Button>
+                    value={this.getCopyText}
+                />
                 <Container
                     innerRef={this.outputRef}
                     orientation={Orientation.TopDown}
@@ -254,7 +248,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
         sel?.addRange(range);
     };
 
-    private copyToClipboard = (): void => {
+    private getCopyText = (): string => {
         if (this.outputRef.current) {
             const selection = window.getSelection();
             let text = selection?.toString() ?? "";
@@ -263,9 +257,11 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             }
 
             if (text.length > 0) {
-                requisitions.writeToClipboard(text.replaceAll(/\u00A0/g, " "));
+                return text.replaceAll(/\u00A0/g, " ");
             }
         }
+
+        return "";
     };
 
 }

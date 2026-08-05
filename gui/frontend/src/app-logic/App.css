@@ -169,9 +169,9 @@ html.themeSwitch *:after {
 .msg select:focus,
 .msg textarea:focus,
 .msg button:focus {
-    outline-width: 1px;
+    outline-width: 2px;
     outline-style: solid;
-    outline-offset: -1px;
+    outline-offset: -2px;
     outline-color: var(--focusBorder);
     opacity: 1 !important;
 }

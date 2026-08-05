@@ -63,6 +63,7 @@ import { Checkbox, CheckState } from "../../components/ui/Checkbox/Checkbox.js";
 import { Codicon } from "../../components/ui/Codicon.js";
 import { ClickEventCallback, ComponentPlacement } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { CopyButton } from "../../components/ui/CopyButton/CopyButton.js";
 import { Dialog } from "../../components/ui/Dialog/Dialog.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
@@ -3235,18 +3236,12 @@ Migration Assistant.`}
 
                 <Container className="finalize-info" orientation={Orientation.LeftToRight}>
                     <code style={{ width: "100%" }}>{summaryInfo.dbSystemIP}</code>
-                    <Button
+                    <CopyButton
                         className="finalize-copy-button"
-                        data-tooltip="Copy to clipboard"
-                        imageOnly
                         focusOnClick={false}
                         tabIndex={-1}
-                        onPointerDown={() => {
-                            requisitions.writeToClipboard(summaryInfo.dbSystemIP ?? "");
-                        }}
-                    >
-                        <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                    </Button>
+                        value={summaryInfo.dbSystemIP ?? ""}
+                    />
                 </Container>
 
                 <p>
@@ -3260,35 +3255,23 @@ Migration Assistant.`}
 
                 <Container className="finalize-info" orientation={Orientation.LeftToRight}>
                     <code style={{ width: "100%" }}>{sshCmd}</code>
-                    <Button
+                    <CopyButton
                         className="finalize-copy-button"
-                        data-tooltip="Copy to clipboard"
-                        imageOnly
                         focusOnClick={false}
                         tabIndex={-1}
-                        onPointerDown={() => {
-                            requisitions.writeToClipboard(sshCmd);
-                        }}
-                    >
-                        <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                    </Button>
+                        value={sshCmd}
+                    />
                 </Container>
                 <p>And use MySQL Shell from there (password is what you provided earlier
                     and defaults to the same as for your source database):</p>
                 <Container className="finalize-info" orientation={Orientation.LeftToRight}>
                     <code style={{ width: "100%" }}>{mysqlshCmd}</code>
-                    <Button
+                    <CopyButton
                         className="finalize-copy-button"
-                        data-tooltip="Copy to clipboard"
-                        imageOnly
                         focusOnClick={false}
                         tabIndex={-1}
-                        onPointerDown={() => {
-                            requisitions.writeToClipboard(mysqlshCmd);
-                        }}
-                    >
-                        <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                    </Button>
+                        value={mysqlshCmd}
+                    />
                 </Container>
                 <p>Tip: you can copy the private key for the jump host to your regular SSH configuration
                     directory to keep it for the future.</p>
@@ -3442,18 +3425,12 @@ Migration Assistant.`}
 
                     <Container className="finalize-info" orientation={Orientation.LeftToRight}>
                         <code style={{ width: "100%" }}>{command}</code>
-                        <Button
+                        <CopyButton
                             className="finalize-copy-button"
-                            data-tooltip="Copy to clipboard"
-                            imageOnly
                             focusOnClick={false}
                             tabIndex={-1}
-                            onPointerDown={() => {
-                                requisitions.writeToClipboard(command);
-                            }}
-                        >
-                            <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                        </Button>
+                            value={command}
+                        />
                     </Container>
 
                     You may have to copy the SSH key if you open the tunnel from a host other than where you are running
@@ -4552,18 +4529,12 @@ Migration Assistant.`}
                             {isUrl ? (
                                 <>
                                     <a className="url" href={info}>OCI Sign In</a>
-                                    <Button
+                                    <CopyButton
                                         className="copyButton"
-                                        data-tooltip="Copy URL to clipboard"
-                                        imageOnly
                                         focusOnClick={false}
                                         tabIndex={-1}
-                                        onPointerDown={() => {
-                                            requisitions.writeToClipboard(info);
-                                        }}
-                                    >
-                                        <Icon src={Codicon.Copy} data-tooltip="inherit" />
-                                    </Button>
+                                        value={info}
+                                    />
                                 </>
                             ) : <span className="text">{info}</span>}
                         </div>

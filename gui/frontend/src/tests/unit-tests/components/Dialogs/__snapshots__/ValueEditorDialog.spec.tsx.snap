@@ -1117,9 +1117,8 @@ exports[`Value Edit Dialog Tests > Updating Dialog Values 1`] = `
                 tabindex="0"
               >
                 <div
-                  class="msg icon"
+                  class="msg icon codicon codicon-add"
                   data-tooltip="inherit"
-                  style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%20950,%20950'%3e%3cg%20id='Add'%20transform='translate(-37,%20-37)'%3e%3cpath%20d='M927.625,363.562%20L660.438,363.562%20L660.438,96.375%20C660.438,63.6%20633.838,37%20601.062,37%20L422.938,37%20C390.163,37%20363.562,63.6%20363.562,96.375%20L363.562,363.562%20L96.375,363.562%20C63.6,363.562%2037,390.163%2037,422.938%20L37,601.062%20C37,633.838%2063.6,660.438%2096.375,660.438%20L363.562,660.438%20L363.562,927.625%20C363.562,960.4%20390.163,987%20422.938,987%20L601.062,987%20C633.838,987%20660.438,960.4%20660.438,927.625%20L660.438,660.438%20L927.625,660.438%20C960.4,660.438%20987,633.838%20987,601.062%20L987,422.938%20C987,390.163%20960.4,363.562%20927.625,363.562'%20fill='%23000000'/%3e%3c/g%3e%3c/svg%3e");"
                 />
               </div>
               <div
@@ -1130,9 +1129,8 @@ exports[`Value Edit Dialog Tests > Updating Dialog Values 1`] = `
                 tabindex="0"
               >
                 <div
-                  class="msg icon"
+                  class="msg icon codicon codicon-remove"
                   data-tooltip="inherit"
-                  style="mask-image: url("data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3csvg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='100%25'%20height='100%25'%20viewBox='0,%200,%20950,%20297.125'%3e%3cg%20id='Remove'%20transform='translate(-36,%20-362.563)'%3e%3cpath%20d='M926.625,362.563%20L95.375,362.563%20C62.6,362.563%2036,389.163%2036,421.938%20L36,600.062%20C36,632.838%2062.6,659.438%2095.375,659.438%20C660,660%20926.625,659.438%20926.625,659.438%20C959.4,659.438%20986,632.838%20986,600.062%20L986,421.938%20C986,389.163%20959.4,362.563%20926.625,362.563'%20fill='%23000000'/%3e%3c/g%3e%3c/svg%3e");"
                 />
               </div>
             </div>

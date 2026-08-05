@@ -1916,6 +1916,9 @@ const createMenu = () => {
                     openExternalUrl(mrsDocsUrl);
                 },
             },
+            { type: "separator" },
+            createDesktopCommandStateMenuItem("database.migrationAssistant.start",
+                "Start MySQL HeatWave Cloud Migration Assistant"),
         ],
     };
 

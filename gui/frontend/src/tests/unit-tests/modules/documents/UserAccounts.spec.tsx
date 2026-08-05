@@ -1536,9 +1536,7 @@ describe("UserAccounts module", () => {
         );
         const copyButton = document.querySelector<HTMLButtonElement>("#userAccountSqlCopyButton");
         expect(copyButton).not.toBeNull();
-        expect(copyButton?.getAttribute("data-tooltip")).toBe("Copy SQL to Clipboard");
-        const output = document.querySelector<HTMLTextAreaElement>("#userAccountSqlOutput");
-        expect(output?.getAttribute("data-tooltip")).toBe("Copy SQL to Clipboard");
+        expect(copyButton?.getAttribute("data-tooltip")).toBe("Copy to Clipboard");
         fireEvent.click(copyButton!);
         expect(clipboardSpy).toHaveBeenCalledOnce();
         expect(clipboardSpy).toHaveBeenCalledWith(statements.statements.value?.statements);

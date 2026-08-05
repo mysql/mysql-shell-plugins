@@ -1036,7 +1036,7 @@ export const EnterpriseBackupConfiguration = (props: IEnterpriseBackupConfigurat
             <>
                 <p>
                     mysqlbackup requires read access to the MySQL data directory ({datadir}).
-                    Thus, the user you run Workbench as must have read permission to data directory and its contents.,
+                    Thus, the user you run Workbench as must have read permission to data directory and its contents.
                 </p>
             </>,
             <div className="enterpriseBackupWizardInfoText">

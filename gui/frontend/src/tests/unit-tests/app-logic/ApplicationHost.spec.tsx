@@ -163,30 +163,37 @@ describe("Application host tests", () => {
         unmount();
     });
 
-    it("Rendering Preferences", async () => {
+    it("renders Workbench Preferences once inside the document workspace", async () => {
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+            },
+        });
+
         const hostRef = createRef<ApplicationHost>();
         const { container, unmount } = render(
             <ApplicationHost ref={hostRef} />,
         );
 
         await nextRunLoop();
-        expect(hostRef.current).toBeDefined();
-
         await requisitions.execute("showPreferences", undefined);
 
-        expect(container).toMatchSnapshot();
-        expect(hostRef.current!.state).toEqual({
-            aboutVisible: false,
-            settingsVisible: true,
-            debuggerVisible: false,
-            debuggerEnabledInBackground: false,
-            debuggerMaximized: true,
-        });
+        const settingsEditors = container.querySelectorAll(".settingsEditor");
+        expect(settingsEditors).toHaveLength(1);
+        expect(container.querySelector("#dbModuleTabHost .settingsEditor")).toBe(settingsEditors[0]);
 
         unmount();
     });
 
     it("closes preferences from the settings back button", async () => {
+        Object.defineProperty(window, "electronHost", {
+            configurable: true,
+            value: {
+                postMessage: vi.fn(),
+            },
+        });
+
         const hostRef = createRef<ApplicationHost>();
         const { container, unmount } = render(
             <ApplicationHost ref={hostRef} />,

@@ -117,7 +117,7 @@ exports[`Script editor tests > Script editor instantiation 1`] = `
                 >
                   <div
                     class="msg button imageOnly copyButton"
-                    data-tooltip="Copy result to clipboard"
+                    data-tooltip="Copy to Clipboard"
                     role="button"
                     tabindex="-1"
                   >
