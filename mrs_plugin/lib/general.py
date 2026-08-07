@@ -160,7 +160,7 @@ def configure(
             last_deployment_version = (
                 schema_management.get_last_deployment_script_version(
                     schema_project_path=lib.core.script_path(
-                        "db_schema", "mysql_rest_service_metadata.msm.project"
+                        "db_schema", "mrs.msm.project"
                     )
                 )
             )
@@ -216,7 +216,7 @@ def configure(
                 schema_management.deploy_schema(
                     session=management_session,
                     schema_project_path=lib.core.script_path(
-                        "db_schema", "mysql_tasks.msm.project"
+                        "db_schema", "tasks.msm.project"
                     ),
                 )
 
@@ -226,7 +226,7 @@ def configure(
             info_msg = schema_management.deploy_schema(
                 session=management_session,
                 schema_project_path=lib.core.script_path(
-                    "db_schema", "mysql_rest_service_metadata.msm.project"
+                    "db_schema", "mrs.msm.project"
                 ),
                 version=version,
             )
@@ -305,7 +305,7 @@ def ignore_version_upgrade(session):
 def get_available_metadata_versions(session):
     return schema_management.get_released_versions(
         schema_project_path=lib.core.script_path(
-            "db_schema", "mysql_rest_service_metadata.msm.project"
+            "db_schema", "mrs.msm.project"
         )
     )
 

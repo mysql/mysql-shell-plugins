@@ -347,7 +347,7 @@ def configure(
 
         last_deployment_version = schema_management.get_last_deployment_script_version(
             schema_project_path=lib.core.script_path(
-                "db_schema", "mysql_rest_service_metadata.msm.project"
+                "db_schema", "mrs.msm.project"
             )
         )
 

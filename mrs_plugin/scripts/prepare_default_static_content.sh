@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 
 # Requires html-minifier-terser to be installed
 # sudo npm install html-minifier-terser -g
@@ -11,7 +11,7 @@ else
     ROOTPATH=$1
 fi
 
-cd $ROOTPATH/db_schema/mysql_rest_service_metadata.msm.project/development/default_static_content
+cd $ROOTPATH/db_schema/mrs.msm.project/development/default_static_content
 
 echo "Preparing default static content ..."
 

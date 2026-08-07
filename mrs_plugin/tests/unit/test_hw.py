@@ -33,7 +33,7 @@ import os
 
 # NOTE: This test requires the following script, which must be copied or
 # symlinked here.
-k_mysql_tasks_install = "mysql_tasks_deployment_3.0.0.sql"
+k_mysql_tasks_install = "tasks_deployment_3.0.0.sql"
 
 if not os.path.exists(k_mysql_tasks_install):
     pytest.skip(

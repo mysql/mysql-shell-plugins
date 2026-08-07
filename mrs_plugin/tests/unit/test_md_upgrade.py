@@ -261,10 +261,10 @@ def check_metadata_upgrade(session, from_version, to_version):
 
 
 def get_md_versions():
-    repat = re.compile("mysql_rest_service_metadata_(.*?).sql")
+    repat = re.compile("mrs_(.*?).sql")
     path = (
         os.path.dirname(lib.__file__)
-        + "/../db_schema/mysql_rest_service_metadata.msm.project/releases/versions"
+        + "/../db_schema/mrs.msm.project/releases/versions"
     )
     versions = []
     for f in os.listdir(path):
