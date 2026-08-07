@@ -743,6 +743,6 @@ export interface IRequestTypeMap {
     
     "startMigrationAssistant": (details: IConnectionDetails) => Promise<boolean>;
     "migrationStarted": (currentProject: IProjectData) => Promise<boolean>;
-    "migrationStopped": (currentProject: IProjectData) => Promise<boolean>;
+    "migrationStopped": (currentProject?: IProjectData) => Promise<boolean>;
     "migrationAssistantMounted": SimpleCallback;
 }

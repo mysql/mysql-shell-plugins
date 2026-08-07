@@ -426,6 +426,8 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     private mhs = new ShellInterfaceMhs(this.interactive);
     private enableLogger = new URLSearchParams(window.location.search).has("enableLogger");
     private migration = new ShellInterfaceMigration(this.enableLogger);
+
+    private migrationStarted = false;
     private logger = new MigrationSubAppLogger(this.enableLogger || !!appParameters.inDevelopment);
 
     private sh = new ShapesHelper(shapesByTemplate);
@@ -1703,7 +1705,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
     }
 
     private async monitorWorkProgress(): Promise<void> {
-        const { tiles, project } = this.state;
+        const { tiles } = this.state;
 
         try {
             const backendWorkState = await this.fetchWorkStatus();
@@ -1713,24 +1715,31 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             if (backendWorkState.status == WorkStatus.IN_PROGRESS
                 || backendWorkState.status == WorkStatus.READY
             ) {
+                if (backendWorkState.status == WorkStatus.READY) {
+                    this.notifyMigrationStopped();
+                }
                 await sleep(2000);
                 await this.monitorWorkProgress();
             } else {
-                const stopOnStatus = [
-                    WorkStatus.ABORTED,
-                    WorkStatus.ERROR,
-                    WorkStatus.FINISHED,
-                ];
-                if (project && stopOnStatus.includes(backendWorkState.status)) {
-                    requisitions.executeRemote("migrationStopped", project);
-                }
+                this.notifyMigrationStopped();
                 this.setState({
                     migrationInProgress: false,
                 });
             }
         } catch (error) {
             console.error("An error occurred while monitoring progress:", error);
+            this.notifyMigrationStopped();
+            this.setState({ migrationInProgress: false });
         }
+    }
+
+    private notifyMigrationStopped(): void {
+        if (!this.migrationStarted) {
+            return;
+        }
+
+        this.migrationStarted = false;
+        requisitions.executeRemote("migrationStopped", undefined);
     }
 
     private async startMigration() {
@@ -1762,6 +1771,7 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
 
         if (project) {
             requisitions.executeRemote("migrationStarted", project);
+            this.migrationStarted = true;
         }
         this.setState({
             backendRequestInProgress: true,
@@ -1781,6 +1791,9 @@ export default class MigrationSubApp extends Component<IMigrationSubAppProps, IM
             console.error(e);
             const message = convertErrorToString(e);
             ui.showErrorMessage(`Failed to start: ${message}`, {});
+            this.notifyMigrationStopped();
+
+            return;
         } finally {
             this.setState({
                 backendRequestInProgress: false,

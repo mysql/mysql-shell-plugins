@@ -44,6 +44,10 @@
     gap: 10px;
 }
 
+.migration-sub-app .migration-checks-actions .msg.button {
+    font-size: var(--msg-standard-font-size);
+}
+
 .migration-sub-app .migration-checks-progress {
     margin-bottom: 0;
 }
