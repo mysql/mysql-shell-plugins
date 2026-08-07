@@ -637,8 +637,13 @@ for platform in "${TARGETS[@]}"; do
     echo "Preparing MySQL Shell staging for $platform..."
     if [ -n "$shell_tree" ]; then
         echo "Copying MySQL Shell tree for $platform from $shell_tree..."
+        PREPARE_MYSQLSH_TREE_ARGS=(stage --clean)
+        if [ "$STAGE_MYSQLSH_ONLY" -eq 0 ]; then
+            PREPARE_MYSQLSH_TREE_ARGS+=(--optimize-oci)
+        fi
+        PREPARE_MYSQLSH_TREE_ARGS+=("$shell_tree" "$shell_dir")
         python3 "$PREPARE_MYSQLSH_TREE_SCRIPT" \
-            stage --clean "$shell_tree" "$shell_dir"
+            "${PREPARE_MYSQLSH_TREE_ARGS[@]}"
         write_mysql_shell_staging_marker "tree:$shell_tree" "$shell_dir"
         echo "Completed MySQL Shell staging for $platform."
     else
@@ -660,7 +665,13 @@ for platform in "${TARGETS[@]}"; do
             echo "Completed MySQL Shell staging for $platform."
         fi
 
+        if [ "$STAGE_MYSQLSH_ONLY" -eq 0 ]; then
+            rm -f "$(get_mysql_shell_staging_marker_path "$shell_dir")"
+        fi
         strip_mysqlsh_tree "$shell_dir"
+        if [ "$STAGE_MYSQLSH_ONLY" -eq 0 ]; then
+            python3 "$PREPARE_MYSQLSH_TREE_SCRIPT" optimize-oci "$shell_dir"
+        fi
     fi
 
     if [ "$DEV_MODE" -eq 1 ]; then

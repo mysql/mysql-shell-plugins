@@ -21,7 +21,9 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import shutil
@@ -31,6 +33,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import ModuleType
+from unittest import mock
 
 
 SCRIPT_DIR = Path(__file__).resolve().parents[2] / "scripts"
@@ -52,7 +55,11 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             self.fail(f"Could not load MySQL Shell preparation helper: {SCRIPT_PATH}")
 
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        sys.path.insert(0, str(SCRIPT_DIR))
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            sys.path.pop(0)
 
         return module
 
@@ -78,6 +85,132 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             check=False,
             text=True,
         )
+
+    def prepare_package_wrapper_fixture(
+        self, root: Path
+    ) -> tuple[Path, Path, Path, Path, dict[str, str]]:
+        electron_dir = root / "gui" / "electron"
+        scripts_dir = electron_dir / "scripts"
+        scripts_dir.mkdir(parents=True)
+        shutil.copy2(PACKAGE_SCRIPT_PATH, scripts_dir / PACKAGE_SCRIPT_PATH.name)
+
+        event_log = root / "package-wrapper-events.jsonl"
+        prepare_script = scripts_dir / SCRIPT_PATH.name
+        prepare_script.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json\n"
+            "import os\n"
+            "import shutil\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "arguments = sys.argv[1:]\n"
+            "event = {'tool': 'prepare', 'arguments': arguments}\n"
+            "with Path(os.environ['PACKAGE_WRAPPER_EVENT_LOG']).open(\n"
+            "    'a', encoding='utf-8'\n"
+            ") as output:\n"
+            "    output.write(json.dumps(event) + '\\n')\n"
+            "if arguments[0] == 'stage':\n"
+            "    source = Path(arguments[-2])\n"
+            "    destination = Path(arguments[-1])\n"
+            "    shutil.copytree(source, destination, symlinks=True)\n"
+            "    if '--clean' in arguments:\n"
+            "        for tests in destination.rglob('tests'):\n"
+            "            if tests.is_dir():\n"
+            "                shutil.rmtree(tests)\n"
+            "elif arguments[0] == 'optimize-oci':\n"
+            "    tree = Path(arguments[1])\n"
+            "    site_packages = (\n"
+            "        tree / 'lib/mysqlsh/lib/python3.13/site-packages'\n"
+            "    )\n"
+            "    oci = site_packages / 'oci'\n"
+            "    if not oci.is_dir():\n"
+            "        raise SystemExit(8)\n"
+            "    shutil.rmtree(oci)\n"
+            "    (site_packages / 'oci.zip').write_bytes(b'committed zip')\n"
+            "    (site_packages / 'oci.pth').write_bytes(b'oci.zip\\n')\n"
+            "    failure_marker_name = os.environ.get(\n"
+            "        'PACKAGE_WRAPPER_OPTIMIZE_FAILURE_MARKER'\n"
+            "    )\n"
+            "    if failure_marker_name is not None:\n"
+            "        failure_marker = Path(failure_marker_name)\n"
+            "        if not failure_marker.exists():\n"
+            "            failure_marker.write_text(\n"
+            "                'failed after commit', encoding='utf-8'\n"
+            "            )\n"
+            "            raise SystemExit(9)\n",
+            encoding="utf-8",
+        )
+
+        strip_script = scripts_dir / STRIP_SCRIPT_PATH.name
+        strip_script.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json\n"
+            "import os\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "event = {'tool': 'strip', 'arguments': sys.argv[1:]}\n"
+            "with Path(os.environ['PACKAGE_WRAPPER_EVENT_LOG']).open(\n"
+            "    'a', encoding='utf-8'\n"
+            ") as output:\n"
+            "    output.write(json.dumps(event) + '\\n')\n",
+            encoding="utf-8",
+        )
+        strip_script.chmod(0o755)
+
+        for plugin in (
+            root / "gui" / "backend" / "gui_plugin",
+            root / "mds_plugin",
+            root / "mrs_plugin",
+            root / "msm_plugin",
+            root / "util_plugin",
+        ):
+            plugin.mkdir(parents=True)
+
+        source = self.create_shell_tree(root / "mysqlsh")
+        source_tests = (
+            source / "lib" / "mysqlsh" / "plugins" / "gui_plugin" / "tests"
+        )
+        source_tests.mkdir()
+        oci = (
+            source / "lib" / "mysqlsh" / "lib" / "python3.13"
+            / "site-packages" / "oci"
+        )
+        oci.mkdir(parents=True)
+        (oci / "__init__.py").write_text("oci = True\n", encoding="utf-8")
+
+        fake_bin = root / "bin"
+        fake_bin.mkdir()
+        node_log = root / "node.json"
+        fake_node = fake_bin / "node"
+        fake_node.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json\n"
+            "import os\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PACKAGE_WRAPPER_TEST_LOG']).write_text(\n"
+            "    json.dumps({'arguments': sys.argv[1:], 'cwd': os.getcwd()}),\n"
+            "    encoding='utf-8')\n",
+            encoding="utf-8",
+        )
+        fake_node.chmod(0o755)
+        environment = os.environ.copy()
+        environment["PATH"] = os.pathsep.join(
+            (str(fake_bin), environment["PATH"])
+        )
+        environment["ELECTRON_VERSION"] = "43.2.0"
+        environment["PACKAGE_WRAPPER_EVENT_LOG"] = str(event_log)
+        environment["PACKAGE_WRAPPER_TEST_LOG"] = str(node_log)
+
+        return electron_dir, source, event_log, node_log, environment
+
+    def read_package_wrapper_events(
+        self, event_log: Path
+    ) -> list[dict[str, object]]:
+        return [
+            json.loads(line)
+            for line in event_log.read_text(encoding="utf-8").splitlines()
+        ]
 
     def test_cli_starts_with_python_3_6(self) -> None:
         python = shutil.which("python3.6")
@@ -129,6 +262,68 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             staged_link = destination / "bin" / "mysqlsh-link"
             self.assertTrue(staged_link.is_symlink())
             self.assertEqual(staged_link.readlink(), Path("mysqlsh.exe"))
+
+    def test_stage_oci_optimization_is_opt_in(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            source = self.create_shell_tree(root / "source")
+            destination = root / "staging" / "linux-x64"
+
+            with mock.patch.object(
+                helper, "prepare_oci_sdk", create=True
+            ) as prepare_oci:
+                helper.stage_mysqlsh_tree(source, destination, cleanup=True)
+                prepare_oci.assert_not_called()
+
+                def mark_prepared(staged_tree: Path) -> None:
+                    (staged_tree / "oci-prepared").write_text(
+                        "prepared", encoding="utf-8"
+                    )
+
+                prepare_oci.side_effect = mark_prepared
+                helper.stage_mysqlsh_tree(source, destination, optimize_oci=True)
+
+            self.assertEqual(
+                (destination / "oci-prepared").read_text(encoding="utf-8"),
+                "prepared",
+            )
+            self.assertEqual(prepare_oci.call_count, 1)
+
+    def test_oci_optimization_failure_keeps_existing_destination(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            source = self.create_shell_tree(root / "source")
+            destination = root / "staging" / "linux-x64"
+            stale = destination / "stale" / "saved.bin"
+            stale.parent.mkdir(parents=True)
+            stale.write_bytes(b"preserve this destination")
+            before = {
+                path.relative_to(destination): path.read_bytes()
+                for path in destination.rglob("*")
+                if path.is_file()
+            }
+
+            with mock.patch.object(
+                helper,
+                "prepare_oci_sdk",
+                create=True,
+                side_effect=RuntimeError("compile failed"),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "compile failed"):
+                    helper.stage_mysqlsh_tree(
+                        source, destination, optimize_oci=True
+                    )
+
+            after = {
+                path.relative_to(destination): path.read_bytes()
+                for path in destination.rglob("*")
+                if path.is_file()
+            }
+            self.assertEqual(after, before)
 
     def test_validation_reports_each_missing_required_path(self) -> None:
         helper = self.load_helper()
@@ -287,6 +482,91 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
                  / "tests").exists()
             )
 
+    def test_stage_cli_supports_oci_optimization(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            source = self.create_shell_tree(root / "source")
+            destination = root / "staging" / "linux-x64"
+
+            with mock.patch.object(
+                helper, "prepare_oci_sdk", create=True
+            ) as prepare_oci:
+                self.assertEqual(
+                    helper.main(
+                        ["stage", "--optimize-oci", str(source), str(destination)]
+                    ),
+                    0,
+                )
+
+            prepare_oci.assert_called_once()
+            self.assertTrue((destination / "bin" / "mysqlsh.exe").is_file())
+
+    def test_stage_cli_reports_oci_compilation_failure(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            source = self.create_shell_tree(root / "source")
+            destination = root / "staging" / "linux-x64"
+            compilation_error = subprocess.CalledProcessError(1, ["mysqlsh"])
+            stderr = io.StringIO()
+
+            with mock.patch.object(
+                helper, "prepare_oci_sdk", side_effect=compilation_error
+            ):
+                with contextlib.redirect_stderr(stderr):
+                    self.assertEqual(
+                        helper.main(
+                            [
+                                "stage",
+                                "--optimize-oci",
+                                str(source),
+                                str(destination),
+                            ]
+                        ),
+                        1,
+                    )
+
+            self.assertEqual(stderr.getvalue(), f"ERROR: {compilation_error}\n")
+            self.assertNotIn("Traceback", stderr.getvalue())
+
+    def test_optimize_oci_cli_prepares_resolved_tree(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = Path(temporary_dir) / "mysqlsh"
+            tree.mkdir()
+
+            with mock.patch.object(
+                helper, "prepare_oci_sdk", create=True
+            ) as prepare_oci:
+                self.assertEqual(helper.main(["optimize-oci", str(tree)]), 0)
+
+            prepare_oci.assert_called_once_with(tree.resolve())
+
+    def test_optimize_oci_cli_reports_compilation_failure(self) -> None:
+        helper = self.load_helper()
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            tree = Path(temporary_dir) / "mysqlsh"
+            tree.mkdir()
+            compilation_error = subprocess.CalledProcessError(1, ["mysqlsh"])
+            stderr = io.StringIO()
+
+            with mock.patch.object(
+                helper, "prepare_oci_sdk", side_effect=compilation_error
+            ):
+                with contextlib.redirect_stderr(stderr):
+                    self.assertEqual(
+                        helper.main(["optimize-oci", str(tree)]),
+                        1,
+                    )
+
+            self.assertEqual(stderr.getvalue(), f"ERROR: {compilation_error}\n")
+            self.assertNotIn("Traceback", stderr.getvalue())
+
     def test_cli_reports_invalid_tree(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             source = Path(temporary_dir) / "invalid"
@@ -325,64 +605,20 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
             self.assertIn("Mode: apply", apply.stdout)
             self.assertFalse(tests.exists())
 
-    def test_package_wrapper_stages_and_cleans_unpacked_tree(self) -> None:
+    def test_package_wrapper_optimizes_final_payloads(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            electron_dir = root / "gui" / "electron"
-            scripts_dir = electron_dir / "scripts"
-            scripts_dir.mkdir(parents=True)
-            for script in (
-                PACKAGE_SCRIPT_PATH,
-                SCRIPT_PATH,
-                STRIP_SCRIPT_PATH,
-            ):
-                shutil.copy2(script, scripts_dir / script.name)
-
-            for plugin in (
-                root / "gui" / "backend" / "gui_plugin",
-                root / "mds_plugin",
-                root / "mrs_plugin",
-                root / "msm_plugin",
-                root / "util_plugin",
-            ):
-                plugin.mkdir(parents=True)
-
-            source = self.create_shell_tree(root / "mysqlsh")
-            source_tests = (
-                source / "lib" / "mysqlsh" / "plugins" / "gui_plugin" / "tests"
+            electron_dir, source, event_log, node_log, environment = (
+                self.prepare_package_wrapper_fixture(root)
             )
-            source_tests.mkdir()
             (electron_dir / "packaging" / "electron" / "linux-x64").mkdir(
                 parents=True
             )
 
-            fake_bin = root / "bin"
-            fake_bin.mkdir()
-            log_path = root / "node.json"
-            fake_node = fake_bin / "node"
-            fake_node.write_text(
-                "#!/usr/bin/env python3\n"
-                "import json\n"
-                "import os\n"
-                "import sys\n"
-                "from pathlib import Path\n"
-                "Path(os.environ['PACKAGE_WRAPPER_TEST_LOG']).write_text(\n"
-                "    json.dumps({'arguments': sys.argv[1:], 'cwd': os.getcwd()}),\n"
-                "    encoding='utf-8')\n",
-                encoding="utf-8",
-            )
-            fake_node.chmod(0o755)
-            environment = os.environ.copy()
-            environment["PATH"] = os.pathsep.join(
-                (str(fake_bin), environment["PATH"])
-            )
-            environment["ELECTRON_VERSION"] = "43.2.0"
-            environment["PACKAGE_WRAPPER_TEST_LOG"] = str(log_path)
-
             result = subprocess.run(
                 [
                     "bash",
-                    str(scripts_dir / PACKAGE_SCRIPT_PATH.name),
+                    str(electron_dir / "scripts" / PACKAGE_SCRIPT_PATH.name),
                     "linux-x64",
                     "--mysqlsh-tree",
                     str(source),
@@ -403,9 +639,244 @@ class PrepareMysqlshTreeTest(unittest.TestCase):
                 (staging / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
                  / "tests").exists()
             )
-            invocation = json.loads(log_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                self.read_package_wrapper_events(event_log),
+                [
+                    {
+                        "tool": "prepare",
+                        "arguments": [
+                            "stage",
+                            "--clean",
+                            "--optimize-oci",
+                            str(source),
+                            str(staging),
+                        ],
+                    }
+                ],
+            )
+            invocation = json.loads(node_log.read_text(encoding="utf-8"))
             self.assertEqual(invocation["cwd"], str(electron_dir))
             self.assertIn("--targets=linux-x64", invocation["arguments"])
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            electron_dir, source, event_log, _, environment = (
+                self.prepare_package_wrapper_fixture(root)
+            )
+            cache = electron_dir / "packaging" / "mysql-shell"
+            cache.mkdir(parents=True)
+            shutil.make_archive(
+                str(cache / "linux-x64"),
+                "gztar",
+                root_dir=source.parent,
+                base_dir=source.name,
+            )
+            staging = (
+                electron_dir / "packaging" / "mysql-shell-staging" / "linux-x64"
+            )
+
+            first_result = subprocess.run(
+                [
+                    "bash",
+                    str(electron_dir / "scripts" / PACKAGE_SCRIPT_PATH.name),
+                    "linux-x64",
+                ],
+                capture_output=True,
+                check=False,
+                env=environment,
+                text=True,
+            )
+            stale = staging / "stale-optimized-cache"
+            stale.write_text("replace me", encoding="utf-8")
+            second_result = subprocess.run(
+                [
+                    "bash",
+                    str(electron_dir / "scripts" / PACKAGE_SCRIPT_PATH.name),
+                    "linux-x64",
+                ],
+                capture_output=True,
+                check=False,
+                env=environment,
+                text=True,
+            )
+
+            self.assertEqual(first_result.returncode, 0, first_result.stderr)
+            self.assertEqual(second_result.returncode, 0, second_result.stderr)
+            self.assertFalse(stale.exists())
+            self.assertIn(
+                "Extracting MySQL Shell archive for linux-x64",
+                second_result.stdout,
+            )
+            self.assertNotIn(
+                "Using cached MySQL Shell staging for linux-x64",
+                second_result.stdout,
+            )
+            self.assertEqual(
+                self.read_package_wrapper_events(event_log),
+                [
+                    {
+                        "tool": "strip",
+                        "arguments": ["--apply", str(staging)],
+                    },
+                    {
+                        "tool": "prepare",
+                        "arguments": ["optimize-oci", str(staging)],
+                    },
+                    {
+                        "tool": "strip",
+                        "arguments": ["--apply", str(staging)],
+                    },
+                    {
+                        "tool": "prepare",
+                        "arguments": ["optimize-oci", str(staging)],
+                    },
+                ],
+            )
+            self.assertFalse(
+                (staging / ".mysql-shell-staging-source").exists()
+            )
+
+    def test_package_wrapper_recovers_from_late_optimization_failure(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            electron_dir, source, event_log, node_log, environment = (
+                self.prepare_package_wrapper_fixture(root)
+            )
+            cache = electron_dir / "packaging" / "mysql-shell"
+            cache.mkdir(parents=True)
+            shutil.make_archive(
+                str(cache / "linux-x64"),
+                "gztar",
+                root_dir=source.parent,
+                base_dir=source.name,
+            )
+            staging = (
+                electron_dir / "packaging" / "mysql-shell-staging" / "linux-x64"
+            )
+            failure_marker = root / "optimization-failed-once"
+            environment["PACKAGE_WRAPPER_OPTIMIZE_FAILURE_MARKER"] = str(
+                failure_marker
+            )
+            command = [
+                "bash",
+                str(electron_dir / "scripts" / PACKAGE_SCRIPT_PATH.name),
+                "linux-x64",
+            ]
+
+            first_result = subprocess.run(
+                command,
+                capture_output=True,
+                check=False,
+                env=environment,
+                text=True,
+            )
+            node_ran_after_failure = node_log.exists()
+            marker_existed_after_failure = (
+                staging / ".mysql-shell-staging-source"
+            ).exists()
+            site_packages = (
+                staging / "lib" / "mysqlsh" / "lib" / "python3.13"
+                / "site-packages"
+            )
+            oci_existed_after_failure = (site_packages / "oci").exists()
+            zip_existed_after_failure = (site_packages / "oci.zip").is_file()
+            pth_after_failure = (site_packages / "oci.pth").read_bytes()
+            second_result = subprocess.run(
+                command,
+                capture_output=True,
+                check=False,
+                env=environment,
+                text=True,
+            )
+
+            self.assertEqual(first_result.returncode, 9, first_result.stderr)
+            self.assertFalse(node_ran_after_failure)
+            self.assertFalse(oci_existed_after_failure)
+            self.assertTrue(zip_existed_after_failure)
+            self.assertEqual(pth_after_failure, b"oci.zip\n")
+            self.assertEqual(second_result.returncode, 0, second_result.stderr)
+            self.assertFalse(marker_existed_after_failure)
+            self.assertIn(
+                "Extracting MySQL Shell archive for linux-x64",
+                second_result.stdout,
+            )
+            self.assertNotIn(
+                "Using cached MySQL Shell staging for linux-x64",
+                second_result.stdout,
+            )
+            self.assertTrue(node_log.is_file())
+            self.assertEqual(
+                self.read_package_wrapper_events(event_log),
+                [
+                    {
+                        "tool": "strip",
+                        "arguments": ["--apply", str(staging)],
+                    },
+                    {
+                        "tool": "prepare",
+                        "arguments": ["optimize-oci", str(staging)],
+                    },
+                    {
+                        "tool": "strip",
+                        "arguments": ["--apply", str(staging)],
+                    },
+                    {
+                        "tool": "prepare",
+                        "arguments": ["optimize-oci", str(staging)],
+                    },
+                ],
+            )
+
+    def test_package_wrapper_stage_only_does_not_optimize_oci(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            electron_dir, source, event_log, node_log, environment = (
+                self.prepare_package_wrapper_fixture(root)
+            )
+            staging = (
+                electron_dir / "packaging" / "mysql-shell-staging" / "linux-x64"
+            )
+
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(electron_dir / "scripts" / PACKAGE_SCRIPT_PATH.name),
+                    "--mysqlsh-tree",
+                    str(source),
+                ],
+                capture_output=True,
+                check=False,
+                env=environment,
+                text=True,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            events = self.read_package_wrapper_events(event_log)
+            self.assertEqual(
+                events,
+                [
+                    {
+                        "tool": "prepare",
+                        "arguments": [
+                            "stage",
+                            "--clean",
+                            str(source),
+                            str(staging),
+                        ],
+                    }
+                ],
+            )
+            self.assertFalse(node_log.exists())
+            self.assertNotIn("--optimize-oci", events[0]["arguments"])
+            self.assertNotIn("optimize-oci", events[0]["arguments"])
+            self.assertEqual(
+                (staging / ".mysql-shell-staging-source").read_text(
+                    encoding="utf-8"
+                ),
+                f"tree:{source}\n",
+            )
 
 
 if __name__ == "__main__":

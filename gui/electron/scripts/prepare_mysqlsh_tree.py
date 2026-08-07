@@ -25,10 +25,13 @@
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import List, Optional, Sequence
+
+from prepare_oci_sdk import prepare_oci_sdk
 
 
 CLEANUP_DIRECTORY_NAMES = {
@@ -111,7 +114,10 @@ def clean_mysqlsh_tree(tree: Path) -> List[Path]:
 
 
 def stage_mysqlsh_tree(
-    source: Path, destination: Path, cleanup: bool = False
+    source: Path,
+    destination: Path,
+    cleanup: bool = False,
+    optimize_oci: bool = False,
 ) -> None:
     source = source.resolve()
     destination = destination.absolute()
@@ -135,6 +141,9 @@ def stage_mysqlsh_tree(
 
         if cleanup:
             clean_mysqlsh_tree(staged_tree)
+
+        if optimize_oci:
+            prepare_oci_sdk(staged_tree)
 
         backup = temporary_root / "previous"
         destination_existed = destination.exists() or destination.is_symlink()
@@ -199,12 +208,18 @@ def parse_arguments(arguments: Optional[Sequence[str]] = None) -> argparse.Names
 
     stage_parser = commands.add_parser("stage", help="Stage an unpacked tree.")
     stage_parser.add_argument("--clean", action="store_true")
+    stage_parser.add_argument("--optimize-oci", action="store_true")
     stage_parser.add_argument("source", type=Path)
     stage_parser.add_argument("destination", type=Path)
 
     clean_parser = commands.add_parser("clean", help="Clean a staged tree.")
     clean_parser.add_argument("--apply", action="store_true")
     clean_parser.add_argument("tree", type=Path)
+
+    optimize_oci_parser = commands.add_parser(
+        "optimize-oci", help="Prepare the OCI SDK in an unpacked tree."
+    )
+    optimize_oci_parser.add_argument("tree", type=Path)
 
     options = parser.parse_args(arguments)
     if options.command is None:
@@ -218,7 +233,14 @@ def main(arguments: Optional[Sequence[str]] = None) -> int:
 
     try:
         if options.command == "stage":
-            stage_mysqlsh_tree(options.source, options.destination, options.clean)
+            stage_mysqlsh_tree(
+                options.source,
+                options.destination,
+                options.clean,
+                options.optimize_oci,
+            )
+        elif options.command == "optimize-oci":
+            prepare_oci_sdk(options.tree.resolve())
         else:
             tree = options.tree.resolve()
             candidates = find_cleanup_candidates(tree)
@@ -230,7 +252,7 @@ def main(arguments: Optional[Sequence[str]] = None) -> int:
                     print("Cleanup complete.")
             elif candidates:
                 print("Dry run complete. Re-run with --apply to delete these paths.")
-    except (OSError, RuntimeError, ValueError) as error:
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
 
         return 1

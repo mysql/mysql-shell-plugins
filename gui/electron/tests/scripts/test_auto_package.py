@@ -42,6 +42,7 @@ from unittest import mock
 
 SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "auto_package.py"
 HELPER_PATH = SCRIPT_PATH.parent / "prepare_mysqlsh_tree.py"
+OCI_HELPER_PATH = SCRIPT_PATH.parent / "prepare_oci_sdk.py"
 
 
 class FlushingStringIO(io.StringIO):
@@ -75,7 +76,25 @@ class AutoPackageTest(unittest.TestCase):
 
     def create_mysqlsh_tree(self, root: Path) -> Path:
         (root / "bin").mkdir(parents=True)
-        (root / "bin" / "mysqlsh").write_bytes(b"mysqlsh")
+        mysqlsh = root / "bin" / "mysqlsh"
+        mysqlsh.write_text(
+            "#!/usr/bin/env python3\n"
+            "import compileall\n"
+            "import sys\n"
+            "raise SystemExit(\n"
+            "    0 if compileall.compile_dir(\n"
+            "        sys.argv[-1], force=True, legacy=True, quiet=1\n"
+            "    ) else 1\n"
+            ")\n",
+            encoding="utf-8",
+        )
+        mysqlsh.chmod(0o755)
+        oci = (
+            root / "lib" / "mysqlsh" / "lib" / "python3.13"
+            / "site-packages" / "oci"
+        )
+        oci.mkdir(parents=True)
+        (oci / "__init__.py").write_text("oci = True\n", encoding="utf-8")
         plugin = root / "lib" / "mysqlsh" / "plugins" / "gui_plugin"
         plugin.mkdir(parents=True)
         (plugin / "init.py").write_text("plugin = True\n", encoding="utf-8")
@@ -109,6 +128,8 @@ class AutoPackageTest(unittest.TestCase):
             shutil.copy2(SCRIPT_PATH, script_path)
         if HELPER_PATH.is_file():
             shutil.copy2(HELPER_PATH, scripts_dir / HELPER_PATH.name)
+        if OCI_HELPER_PATH.is_file():
+            shutil.copy2(OCI_HELPER_PATH, scripts_dir / OCI_HELPER_PATH.name)
 
         (scripts_dir / "package_desktop.ts").touch()
 
@@ -1304,7 +1325,7 @@ class AutoPackageTest(unittest.TestCase):
             output = FlushingStringIO()
             with (
                 mock.patch.object(auto_package, "replace_electron_tree_from_zip"),
-                mock.patch.object(auto_package, "stage_mysqlsh_tree"),
+                mock.patch.object(auto_package, "stage_mysqlsh_tree") as stage,
                 mock.patch.object(auto_package, "configure_7zip_environment"),
                 mock.patch.object(auto_package, "configure_fpm_environment"),
                 mock.patch.object(
@@ -1326,6 +1347,13 @@ class AutoPackageTest(unittest.TestCase):
                 )
 
             self.assertEqual(result, 0)
+            stage.assert_called_once_with(
+                mysqlsh_source,
+                root / "electron" / "packaging" / "mysql-shell-staging"
+                / "linux-arm64",
+                cleanup=True,
+                optimize_oci=True,
+            )
             self.assertEqual(output.flush_count, 5)
             self.assertIn("--artifacts", invocations[0])
             self.assertIn("--skip-deb", invocations[0])
@@ -1628,6 +1656,41 @@ class AutoPackageTest(unittest.TestCase):
 
             extract.assert_not_called()
             stage.assert_not_called()
+
+    def test_main_reports_mysqlsh_preparation_failure(self) -> None:
+        auto_package = self.load_auto_package()
+        compilation_error = subprocess.CalledProcessError(1, ["mysqlsh"])
+        stderr = io.StringIO()
+        caught_error: Optional[Exception] = None
+        result: Optional[int] = None
+
+        with (
+            mock.patch.object(
+                auto_package,
+                "parse_arguments",
+                return_value=mock.sentinel.options,
+            ),
+            mock.patch.object(
+                auto_package,
+                "resolve_platform",
+                return_value="linux-x64",
+            ),
+            mock.patch.object(
+                auto_package,
+                "package_target",
+                side_effect=compilation_error,
+            ),
+            contextlib.redirect_stderr(stderr),
+        ):
+            try:
+                result = auto_package.main([])
+            except Exception as error:
+                caught_error = error
+
+        self.assertIsNone(caught_error)
+        self.assertEqual(result, 1)
+        self.assertEqual(stderr.getvalue(), f"ERROR: {compilation_error}\n")
+        self.assertNotIn("Traceback", stderr.getvalue())
 
     def test_invalid_wix_options_do_not_change_staged_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

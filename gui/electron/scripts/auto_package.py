@@ -429,6 +429,7 @@ def package_target(
         mysqlsh_source,
         mysqlsh_destination,
         cleanup=True,
+        optimize_oci=True,
     )
 
     environment["MYSQL_SHELL_STAGING_ROOT"] = str(mysqlsh_staging_root.resolve())
@@ -492,7 +493,13 @@ def main(arguments: Optional[Sequence[str]] = None) -> int:
         target = resolve_platform(platform.system(), platform.machine())
 
         return package_target(options, target, Path(__file__).resolve().parent)
-    except (OSError, RuntimeError, ValueError, zipfile.BadZipFile) as error:
+    except (
+        OSError,
+        RuntimeError,
+        ValueError,
+        subprocess.CalledProcessError,
+        zipfile.BadZipFile,
+    ) as error:
         print(f"ERROR: {error}", file=sys.stderr)
 
         return 1
