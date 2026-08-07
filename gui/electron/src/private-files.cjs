@@ -44,13 +44,15 @@ const run = (command, args) => {
 const restrictWindowsAccess = (targetPath, isDirectory, runCommand = run) => {
     const encodedPath = Buffer.from(targetPath, "utf8").toString("base64");
     const inheritanceFlags = isDirectory ? "OICI" : "";
+    const securityType = isDirectory ? "DirectorySecurity" : "FileSecurity";
+    const filesystemType = isDirectory ? "Directory" : "File";
     const script = `
 $targetPath = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("${encodedPath}"))
 $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 $sddl = "D:P(A;${inheritanceFlags};FA;;;$currentUser)(A;${inheritanceFlags};FA;;;BA)(A;${inheritanceFlags};FA;;;SY)"
-$acl = Get-Acl -LiteralPath $targetPath
+$acl = New-Object Security.AccessControl.${securityType}
 $acl.SetSecurityDescriptorSddlForm($sddl, [Security.AccessControl.AccessControlSections]::Access)
-Set-Acl -LiteralPath $targetPath -AclObject $acl
+[IO.${filesystemType}]::SetAccessControl($targetPath, $acl)
 `;
     const encodedScript = Buffer.from(script, "utf16le").toString("base64");
 
